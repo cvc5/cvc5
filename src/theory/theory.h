@@ -664,18 +664,6 @@ class Theory : protected EnvObj
   virtual void presolve() {}
 
   /**
-   * A Theory is called with postsolve exactly one time per user
-   * check-sat.  postsolve() is called after the query has completed
-   * (regardless of whether sat, unsat, or unknown), and after any
-   * model-querying related to the query has been performed.
-   * After this call, the theory will not get another check() or
-   * propagate() call until presolve() is called again.  A Theory
-   * cannot raise conflicts, add lemmas, or propagate literals during
-   * postsolve().
-   */
-  virtual void postsolve() {}
-
-  /**
    * Notification sent to the theory wheneven the search restarts.
    * Serves as a good time to do some clean-up work, and you can
    * assume you're at DL 0 for the purposes of Contexts.  This function
@@ -787,11 +775,10 @@ class Theory : protected EnvObj
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /** Return true if this theory uses central equality engine */
-  bool usesCentralEqualityEngine() const;
-  /** uses central equality engine (static) */
-  static bool usesCentralEqualityEngine(TheoryId id);
-  /** Explains/propagates via central equality engine only */
+  /**
+   * Return true if this theory explains and propagates via central equality
+   * engine only when the theory uses the central equality engine.
+   */
   static bool expUsingCentralEqualityEngine(TheoryId id);
 
  private:

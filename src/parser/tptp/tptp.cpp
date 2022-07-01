@@ -21,8 +21,6 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
-#include "options/options.h"
-#include "options/options_public.h"
 #include "parser/parser.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"

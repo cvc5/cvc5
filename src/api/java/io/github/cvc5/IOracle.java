@@ -10,31 +10,14 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for TableProjectOp operator.
+ * The cvc5 java API.
+ *
+ * IOracle interface for cvc5 oracle functions.
  */
 
-#include "table_project_op.h"
+package io.github.cvc5;
 
-namespace cvc5::internal {
-
-TableProjectOp::TableProjectOp(std::vector<uint32_t> indices)
-    : ProjectOp(std::move(indices))
-{
+@FunctionalInterface
+public interface IOracle {
+  Term apply(Term[] terms) throws CVC5ApiException;
 }
-
-TableAggregateOp::TableAggregateOp(std::vector<uint32_t> indices)
-    : ProjectOp(std::move(indices))
-{
-}
-
-TableJoinOp::TableJoinOp(std::vector<uint32_t> indices)
-    : ProjectOp(std::move(indices))
-{
-}
-
-TableGroupOp::TableGroupOp(std::vector<uint32_t> indices)
-    : ProjectOp(std::move(indices))
-{
-}
-
-}  // namespace cvc5::internal

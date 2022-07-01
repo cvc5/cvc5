@@ -249,7 +249,7 @@ class TheoryEngine : protected EnvObj
   bool presolve();
 
   /**
-   * Calls postsolve() on all theories.
+   * Resets the internal state.
    */
   void postsolve();
 
@@ -333,12 +333,9 @@ class TheoryEngine : protected EnvObj
     return d_theoryTable[theoryId];
   }
 
-  bool isTheoryEnabled(theory::TheoryId theoryId) const
-  {
-    return d_logicInfo.isTheoryEnabled(theoryId);
-  }
-  /** get the logic info used by this theory engine */
-  const LogicInfo& getLogicInfo() const;
+  bool isTheoryEnabled(theory::TheoryId theoryId) const;
+  /** return the theory that should explain a propagation from TheoryId */
+  theory::TheoryId theoryExpPropagation(theory::TheoryId tid) const;
 
   /**
    * Returns the equality status of the two terms, from the theory
@@ -500,15 +497,6 @@ class TheoryEngine : protected EnvObj
    * directly, use theoryOf() instead.
    */
   theory::Theory* d_theoryTable[theory::THEORY_LAST];
-
-  /**
-   * A collection of theories that are "active" for the current run.
-   * This set is provided by the user (as a logic string, say, in SMT-LIBv2
-   * format input), or else by default it's all-inclusive.  This is important
-   * because we can optimize for single-theory runs (no sharing), can reduce
-   * the cost of walking the DAG on registration, etc.
-   */
-  const LogicInfo& d_logicInfo;
 
   //--------------------------------- new proofs
   /** Proof node manager used by this theory engine, if proofs are enabled */

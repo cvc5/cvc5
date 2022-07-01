@@ -238,12 +238,11 @@ parseCommand returns [cvc5::Command* cmd = NULL]
     }
   | EOF
     {
-      CommandSequence* seq = new CommandSequence();
       // assert that all distinct constants are distinct
       cvc5::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr));
+        PARSER_STATE->preemptCommand(new AssertCommand(aexpr));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
@@ -254,15 +253,14 @@ parseCommand returns [cvc5::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      seq->addCommand(new SetInfoCommand("filename", filename));
+      PARSER_STATE->preemptCommand(new SetInfoCommand("filename", filename));
       if(PARSER_STATE->hasConjecture()) {
         // note this does not impact how the TPTP status is reported currently
-        seq->addCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
+        PARSER_STATE->preemptCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
       } else {
-        seq->addCommand(new CheckSatCommand());
+        PARSER_STATE->preemptCommand(new CheckSatCommand());
       }
-      PARSER_STATE->preemptCommand(seq);
-      cmd = NULL;
+      cmd = nullptr;
     }
   ;
 

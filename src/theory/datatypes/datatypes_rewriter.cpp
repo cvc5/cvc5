@@ -23,9 +23,9 @@
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
 #include "tuple_utils.h"
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
@@ -167,7 +167,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
 
-    TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
+    ProjectOp op = in.getOperator().getConst<ProjectOp>();
     std::vector<uint32_t> indices = op.getIndices();
     Node tuple = in[0];
     Node ret = TupleUtils::getTupleProjection(indices, tuple);

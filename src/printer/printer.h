@@ -46,13 +46,10 @@ class Printer
   virtual ~Printer() {}
 
   /** Get the Printer for a given Language */
-  static Printer* getPrinter(Language lang);
+  static Printer* getPrinter(std::ostream& out);
 
   /** Write a Node out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out,
-                        TNode n,
-                        int toDepth,
-                        size_t dag) const = 0;
+  virtual void toStream(std::ostream& out, TNode n) const = 0;
 
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
@@ -286,14 +283,6 @@ class Printer
                                       TypeNode locType,
                                       TypeNode dataType) const;
 
-  /** Print command sequence command */
-  virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
-  /** Print declaration sequence command */
-  virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}
@@ -313,11 +302,6 @@ class Printer
   virtual void toStreamModelTerm(std::ostream& out,
                                  const Node& n,
                                  const Node& value) const = 0;
-
-  /** write model response to command using another language printer */
-  void toStreamUsing(Language lang,
-                     std::ostream& out,
-                     const smt::Model& m) const;
 
   /**
    * Write an error to `out` stating that command `name` is not supported by

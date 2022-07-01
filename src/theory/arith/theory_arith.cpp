@@ -188,7 +188,10 @@ Theory::PPAssertStatus TheoryArith::ppAssert(
 
 void TheoryArith::ppStaticLearn(TNode n, NodeBuilder& learned)
 {
-  d_internal->ppStaticLearn(n, learned);
+  if (options().arith.arithStaticLearning)
+  {
+    d_internal->ppStaticLearn(n, learned);
+  }
 }
 
 bool TheoryArith::preCheck(Effort level)
@@ -334,7 +337,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       continue;
     }
     // maps to constant of same type
-    Assert(p.first.getType() == p.second.getType());
+    Assert(p.first.getType() == p.second.getType())
+        << "Bad type : " << p.first << " -> " << p.second;
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -435,7 +439,8 @@ bool TheoryArith::sanityCheckIntegerModel()
   {
     for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Assert(p.first.getType() == p.second.getType());
+      Assert(p.first.getType() == p.second.getType())
+          << "Bad type: " << p.first << " -> " << p.second;
     }
   }
   bool addedLemma = false;

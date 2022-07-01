@@ -293,19 +293,6 @@ bool TheorySep::preNotifyFact(
   }
   if (!slbl.isNull() && satom.getKind() == SEP_PTO)
   {
-    if (polarity)
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      // (SEP_LABEL (sep.pto x y) L) => L = (set.singleton x)
-      Node s = nm->mkNode(SET_SINGLETON, satom[0]);
-      Node eq = slbl.eqNode(s);
-      TrustNode trn =
-          d_im.mkLemmaExp(eq, PfRule::THEORY_INFERENCE, {fact}, {fact}, {eq});
-      d_im.addPendingLemma(trn.getNode(),
-                           InferenceId::SEP_POS_PTO_SINGLETON,
-                           LemmaProperty::NONE,
-                           trn.getGenerator());
-    }
     return false;
   }
   // assert to equality if non-spatial or a labelled pto
@@ -1825,7 +1812,23 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
       else if (polarity != pol)
       {
         // a positive and negative pto
-        if (!areDisequal(pval, qval))
+        bool isSat = false;
+        std::vector<Node> conc;
+        // based on the lemma below, either the domain or range has to be
+        // disequal. We iterate on each child of the pto
+        for (size_t j = 0; j < 2; j++)
+        {
+          if (areDisequal(p[0][j], q[0][j]))
+          {
+            isSat = true;
+            break;
+          }
+          if (p[0][j] != q[0][j])
+          {
+            conc.push_back(p[0][j].eqNode(q[0][j]).notNode());
+          }
+        }
+        if (!isSat)
         {
           std::vector<Node> exp;
           if (plbl != qlbl)
@@ -1839,16 +1842,11 @@ bool TheorySep::checkPto(HeapAssertInfo* e, Node p, bool polarity)
           Node neg = polarity ? q : p;
           exp.push_back(pos);
           exp.push_back(neg.notNode());
-          std::vector<Node> conc;
-          if (pval != qval)
-          {
-            conc.push_back(pval.eqNode(qval).notNode());
-          }
           Node concn = nm->mkOr(conc);
           Trace("sep-pto") << "prop neg/pos: " << concn << " by " << exp
                            << std::endl;
-          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B => y != w
-          // or (label (pto x y) A) ^ ~(label (pto z y) B) ^ A = B => false
+          // (label (pto x y) A) ^ ~(label (pto z w) B) ^ A = B =>
+          // (x != z or y != w)
           sendLemma(exp, concn, InferenceId::SEP_PTO_NEG_PROP);
         }
       }

@@ -598,7 +598,8 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   d_currPropagationProccessed = normalizeAndRegister(clauseExp);
   // consume steps if clausification being recorded. If we are not logging it,
   // we need to add the clause as a closed step to the proof so that the SAT
-  // proof does not have non-input formulas as assumptions.
+  // proof does not have non-input formulas as assumptions. That clause is the
+  // result of normalizeAndRegister, stored in d_currPropagationProccessed
   if (proofLogging)
   {
     const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
@@ -610,7 +611,10 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
   else
   {
-    d_proof.addStep(clauseExp, PfRule::THEORY_LEMMA, {}, {clauseExp});
+    d_proof.addStep(d_currPropagationProccessed,
+                    PfRule::THEORY_LEMMA,
+                    {},
+                    {d_currPropagationProccessed});
   }
 }
 

@@ -249,6 +249,20 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
   // reductions inference of the sine solver) may have introduced substitutions
   // internally during check.
   Node svalue = d_model.getSubstitutedForm(value);
+  // ensure the value has integer type if var has integer type
+  if (var.getType().isInteger())
+  {
+    if (svalue.getKind() == Kind::TO_REAL)
+    {
+      svalue = svalue[0];
+    }
+    else if (svalue.getKind() == Kind::CONST_RATIONAL)
+    {
+      Assert(svalue.getConst<Rational>().isIntegral());
+      svalue =
+          NodeManager::currentNM()->mkConstInt(svalue.getConst<Rational>());
+    }
+  }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
   d_model.addSubstitution(var, svalue);
 }

@@ -449,6 +449,29 @@ name   = "Quantifiers"
   help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
 
 [[option]]
+  name       = "printInstMode"
+  category   = "common"
+  long       = "print-inst=MODE"
+  type       = "PrintInstMode"
+  default    = "LIST"
+  help       = "print format for printing instantiations"
+  help_mode  = "Print format for printing instantiations."
+[[option.mode.LIST]]
+  name = "list"
+  help = "Print the list of instantiations per quantified formula, when non-empty."
+[[option.mode.NUM]]
+  name = "num"
+  help = "Print the total number of instantiations per quantified formula, when non-zero."
+
+[[option]]
+  name       = "printInstFull"
+  category   = "regular"
+  long       = "print-inst-full"
+  type       = "bool"
+  default    = "true"
+  help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
   name       = "instMaxLevel"
   category   = "expert"
   long       = "inst-max-level=N"
@@ -832,6 +855,24 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "support SyGuS commands"
+
+[[option]]
+  name       = "sygusOut"
+  category   = "regular"
+  long       = "sygus-out=MODE"
+  type       = "SygusSolutionOutMode"
+  default    = "STANDARD"
+  help       = "output mode for sygus"
+  help_mode  = "Modes for sygus solution output."
+[[option.mode.STATUS]]
+  name = "status"
+  help = "Print only status for check-synth calls."
+[[option.mode.STATUS_AND_DEF]]
+  name = "status-and-def"
+  help = "Print status followed by definition corresponding to solution."
+[[option.mode.STANDARD]]
+  name = "sygus-standard"
+  help = "Print based on SyGuS standard."
 
 [[option]]
   name       = "cegqiSingleInvMode"

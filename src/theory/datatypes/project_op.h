@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for TupleProjectOp operator.
+ * A class for ProjectOp operator.
  */
 
 #include "cvc5_public.h"
@@ -26,7 +26,7 @@ namespace cvc5::internal {
 class TypeNode;
 
 /**
- * base class for TupleProjectOp, TupleProjectOp
+ * class for projection operators
  */
 class ProjectOp
 {
@@ -52,24 +52,6 @@ struct ProjectOpHashFunction
 {
   size_t operator()(const ProjectOp& op) const;
 }; /* struct ProjectOpHashFunction */
-
-/**
- * The class is an operator for kind project used to project elements in a
- * table. It stores the indices of projected elements
- */
-class TupleProjectOp : public ProjectOp
-{
- public:
-  explicit TupleProjectOp(std::vector<uint32_t> indices);
-  TupleProjectOp(const TupleProjectOp& op) = default;
-}; /* class TupleProjectOp */
-
-/**
- * Hash function for the TupleProjectOpHashFunction objects.
- */
-struct TupleProjectOpHashFunction : public ProjectOpHashFunction
-{
-}; /* struct TupleProjectOpHashFunction */
 
 }  // namespace cvc5::internal
 

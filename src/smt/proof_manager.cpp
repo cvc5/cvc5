@@ -178,7 +178,7 @@ void PfManager::printProof(std::ostream& out,
   // according to the proof format, post process and print the proof node
   if (options().proof.proofFormatMode == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter dotPrinter;
+    proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)

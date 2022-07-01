@@ -72,10 +72,6 @@ libcvc5_add_sources(
   skolem_manager.h
   subtype_elim_node_converter.cpp
   subtype_elim_node_converter.h
-  symbol_manager.cpp
-  symbol_manager.h
-  symbol_table.cpp
-  symbol_table.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp

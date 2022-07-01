@@ -69,8 +69,7 @@
 #include "smt/model.h"
 #include "smt/smt_mode.h"
 #include "smt/solver_engine.h"
-#include "theory/bags/table_project_op.h"
-#include "theory/datatypes/tuple_project_op.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
@@ -301,6 +300,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(SET_CHOOSE, internal::Kind::SET_CHOOSE),
         KIND_ENUM(SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
         KIND_ENUM(SET_MAP, internal::Kind::SET_MAP),
+        KIND_ENUM(SET_FILTER, internal::Kind::SET_FILTER),
+        KIND_ENUM(SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(RELATION_JOIN, internal::Kind::RELATION_JOIN),
         KIND_ENUM(RELATION_PRODUCT, internal::Kind::RELATION_PRODUCT),
@@ -308,6 +309,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
         KIND_ENUM(RELATION_JOIN_IMAGE, internal::Kind::RELATION_JOIN_IMAGE),
         KIND_ENUM(RELATION_IDEN, internal::Kind::RELATION_IDEN),
+        KIND_ENUM(RELATION_GROUP, internal::Kind::RELATION_GROUP),
+        KIND_ENUM(RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE),
         /* Bags ------------------------------------------------------------- */
         KIND_ENUM(BAG_UNION_MAX, internal::Kind::BAG_UNION_MAX),
         KIND_ENUM(BAG_UNION_DISJOINT, internal::Kind::BAG_UNION_DISJOINT),
@@ -623,6 +626,8 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_CHOOSE, SET_CHOOSE},
         {internal::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
         {internal::Kind::SET_MAP, SET_MAP},
+        {internal::Kind::SET_FILTER, SET_FILTER},
+        {internal::Kind::SET_FOLD, SET_FOLD},
         /* Relations ------------------------------------------------------- */
         {internal::Kind::RELATION_JOIN, RELATION_JOIN},
         {internal::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
@@ -630,6 +635,9 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
         {internal::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
         {internal::Kind::RELATION_IDEN, RELATION_IDEN},
+        {internal::Kind::RELATION_GROUP, RELATION_GROUP},
+        {internal::Kind::RELATION_AGGREGATE_OP, RELATION_AGGREGATE},
+        {internal::Kind::RELATION_AGGREGATE, RELATION_AGGREGATE},
         /* Bags ------------------------------------------------------------ */
         {internal::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
         {internal::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
@@ -740,6 +748,42 @@ const static std::unordered_set<Kind> s_indexed_kinds(
      FLOATINGPOINT_TO_FP_FROM_REAL,
      FLOATINGPOINT_TO_FP_FROM_SBV,
      FLOATINGPOINT_TO_FP_FROM_UBV});
+
+/**
+ * Mapping from external (API) kind to the corresponding internal operator kind.
+ */
+const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
+    {BITVECTOR_EXTRACT, internal::Kind::BITVECTOR_EXTRACT_OP},
+    {BITVECTOR_REPEAT, internal::Kind::BITVECTOR_REPEAT_OP},
+    {BITVECTOR_ROTATE_LEFT, internal::Kind::BITVECTOR_ROTATE_LEFT_OP},
+    {BITVECTOR_ROTATE_RIGHT, internal::Kind::BITVECTOR_ROTATE_RIGHT_OP},
+    {BITVECTOR_SIGN_EXTEND, internal::Kind::BITVECTOR_SIGN_EXTEND_OP},
+    {BITVECTOR_ZERO_EXTEND, internal::Kind::BITVECTOR_ZERO_EXTEND_OP},
+    {DIVISIBLE, internal::Kind::DIVISIBLE_OP},
+    {FLOATINGPOINT_TO_SBV, internal::Kind::FLOATINGPOINT_TO_SBV_OP},
+    {FLOATINGPOINT_TO_UBV, internal::Kind::FLOATINGPOINT_TO_UBV_OP},
+    {FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
+     internal::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV_OP},
+    {FLOATINGPOINT_TO_FP_FROM_FP,
+     internal::Kind::FLOATINGPOINT_TO_FP_FROM_FP_OP},
+    {FLOATINGPOINT_TO_FP_FROM_REAL,
+     internal::Kind::FLOATINGPOINT_TO_FP_FROM_REAL_OP},
+    {FLOATINGPOINT_TO_FP_FROM_SBV,
+     internal::Kind::FLOATINGPOINT_TO_FP_FROM_SBV_OP},
+    {FLOATINGPOINT_TO_FP_FROM_UBV,
+     internal::Kind::FLOATINGPOINT_TO_FP_FROM_UBV_OP},
+    {IAND, internal::Kind::IAND_OP},
+    {INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR_OP},
+    {REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
+    {REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
+    {TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT_OP},
+    {RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
+    {RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
+    {TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
+    {TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
+    {TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
+    {TABLE_GROUP, internal::Kind::TABLE_GROUP_OP},
+};
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
@@ -1913,11 +1957,16 @@ size_t Op::getNumIndicesHelper() const
     case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
-      size = d_node->getConst<internal::TupleProjectOp>().getIndices().size();
-      break;
+    case RELATION_AGGREGATE:
+    case RELATION_GROUP:
+    case TABLE_AGGREGATE:
+    case TABLE_GROUP:
+    case TABLE_JOIN:
     case TABLE_PROJECT:
-      size = d_node->getConst<internal::TableProjectOp>().getIndices().size();
+    {
+      size = d_node->getConst<internal::ProjectOp>().getIndices().size();
       break;
+    }
     default: CVC5_API_CHECK(false) << "Unhandled kind " << kindToString(k);
   }
   return size;
@@ -2069,11 +2118,16 @@ Term Op::getIndexHelper(size_t index) const
 
       break;
     }
-
     case TUPLE_PROJECT:
+    case RELATION_AGGREGATE:
+    case RELATION_GROUP:
+    case TABLE_AGGREGATE:
+    case TABLE_GROUP:
+    case TABLE_JOIN:
+    case TABLE_PROJECT:
     {
       const std::vector<uint32_t>& projectionIndices =
-          d_node->getConst<internal::TupleProjectOp>().getIndices();
+          d_node->getConst<internal::ProjectOp>().getIndices();
       t = d_solver->mkRationalValHelper(projectionIndices[index]);
       break;
     }
@@ -4886,7 +4940,7 @@ template <typename T>
 Op Solver::mkOpHelper(Kind kind, const T& t) const
 {
   //////// all checks before this line
-  internal::Node res = getNodeManager()->mkConst(t);
+  internal::Node res = getNodeManager()->mkConst(s_op_kinds.at(kind), t);
   static_cast<void>(res.getType(true)); /* kick off type checking */
   return Op(this, kind, res);
 }
@@ -6108,20 +6162,16 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       res = mkOpHelper(kind, internal::RegExpLoop(args[0], args[1]));
       break;
     case TUPLE_PROJECT:
-      res = mkOpHelper(kind, internal::TupleProjectOp(args));
-      break;
-    case TABLE_PROJECT:
-      res = mkOpHelper(kind, internal::TableProjectOp(args));
-      break;
+    case RELATION_AGGREGATE:
+    case RELATION_GROUP:
     case TABLE_AGGREGATE:
-      res = mkOpHelper(kind, internal::TableAggregateOp(args));
-      break;
-    case TABLE_JOIN:
-      res = mkOpHelper(kind, internal::TableJoinOp(args));
-      break;
     case TABLE_GROUP:
-      res = mkOpHelper(kind, internal::TableGroupOp(args));
+    case TABLE_JOIN:
+    case TABLE_PROJECT:
+    {
+      res = mkOpHelper(kind, internal::ProjectOp(args));
       break;
+    }
     default:
       if (nargs == 0)
       {
@@ -6750,7 +6800,7 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.unsatCores)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceUnsatCores)
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
