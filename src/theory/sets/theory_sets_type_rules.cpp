@@ -633,7 +633,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
     if (!setType.isSet())
     {
       std::stringstream ss;
-      ss << "RELATION_PROJECT operator expects a table. Found '" << n[2]
+      ss << "RELATION_AGGREGATE operator expects a table. Found '" << n[2]
          << "' of type '" << setType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -642,7 +642,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
+      ss << "RELATION_AGGREGATE operator expects a table. Found '" << n[2]
          << "' of type '" << setType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }

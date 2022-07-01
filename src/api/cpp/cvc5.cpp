@@ -2126,6 +2126,7 @@ Term Op::getIndexHelper(size_t index) const
     case TUPLE_PROJECT:
     case RELATION_AGGREGATE:
     case RELATION_GROUP:
+    case RELATION_PROJECT:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
@@ -6169,6 +6170,7 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
     case TUPLE_PROJECT:
     case RELATION_AGGREGATE:
     case RELATION_GROUP:
+    case RELATION_PROJECT:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
