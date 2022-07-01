@@ -48,8 +48,6 @@ PfManager::PfManager(Env& env)
       d_pfpp(nullptr),
       d_finalProof(nullptr)
 {
-  // enable proof support in the environment/rewriter
-  d_env.setProofNodeManager(d_pnm.get());
   // now construct preprocess proof generator
   d_pppg = std::make_unique<PreprocessProofGenerator>(
       env, env.getUserContext(), "smt::PreprocessProofGenerator");

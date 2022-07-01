@@ -58,7 +58,7 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
       d_llra(d_env.isTheoryProofProducing() ? new LazyCDProof(
                  d_env, nullptr, userContext(), "NonClausalSimp::llra")
                    : nullptr),
-      d_tsubsList(d_env, userContext())
+      d_tsubsList(userContext())
 {
 }
 
