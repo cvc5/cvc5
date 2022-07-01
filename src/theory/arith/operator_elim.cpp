@@ -462,7 +462,7 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 {
   TrustNode tlem;
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
     tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }

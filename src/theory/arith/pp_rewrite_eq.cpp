@@ -26,7 +26,7 @@ namespace arith {
 
 PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
     : EnvObj(env),
-      d_ppPfGen(d_env.getProofNodeManager(), context(), "Arith::ppRewrite")
+      d_ppPfGen(env, context(), "Arith::ppRewrite")
 {
 }
 

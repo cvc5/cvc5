@@ -50,7 +50,7 @@ CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
   if (d_env.isTheoryProofProducing())
   {
     d_proof.reset(
-        new CoveringsProofGenerator(userContext(), d_env.getProofNodeManager()));
+        new CoveringsProofGenerator(env, userContext()));
   }
 }
 

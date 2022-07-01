@@ -22,6 +22,7 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 

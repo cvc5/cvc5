@@ -30,7 +30,7 @@ namespace arrays {
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : TheoryInferenceManager(env, t, state, "theory::arrays::", false),
       d_lemmaPg(isProofEnabled()
-                    ? new EagerProofGenerator(env.getProofNodeManager(),
+                    ? new EagerProofGenerator(env,
                                               userContext(),
                                               "ArrayLemmaProofGenerator")
                     : nullptr)
