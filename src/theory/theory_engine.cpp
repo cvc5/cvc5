@@ -215,10 +215,9 @@ void TheoryEngine::finishInit()
 TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
       d_propEngine(nullptr),
-      d_lazyProof(
-          env.isTheoryProofProducing() ? new LazyCDProof(
-              env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
-                           : nullptr),
+      d_lazyProof(env.isTheoryProofProducing() ? new LazyCDProof(
+                      env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
+                                               : nullptr),
       d_tepg(new TheoryEngineProofGenerator(env, userContext())),
       d_tc(nullptr),
       d_sharedSolver(nullptr),
@@ -1319,7 +1318,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
     // ensure closed
-    tlemma.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::lemma_initial");
+    tlemma.debugCheckClosed(
+        options(), "te-proof-debug", "TheoryEngine::lemma_initial");
   }
 
   // assert the lemma
@@ -1390,7 +1390,8 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
     {
       Trace("te-proof-debug")
           << "Check closed conflict explained with sharing" << std::endl;
-      tncExp.debugCheckClosed(options(), "te-proof-debug",
+      tncExp.debugCheckClosed(options(),
+                              "te-proof-debug",
                               "TheoryEngine::conflict_explained_sharing");
       Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
       Trace("te-proof-debug") << "Conflict " << tconflict << " from "
@@ -1457,7 +1458,8 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
         << "Check closed conflict with sharing" << std::endl;
     if (isProofEnabled())
     {
-      tconf.debugCheckClosed(options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
+      tconf.debugCheckClosed(
+          options(), "te-proof-debug", "TheoryEngine::conflict:sharing");
     }
     lemma(tconf, LemmaProperty::REMOVABLE);
   }
@@ -1639,7 +1641,8 @@ TrustNode TheoryEngine::getExplanation(
         d_sharedSolver->explain(toExplain.d_node, toExplain.d_theory);
     if (lcp != nullptr)
     {
-      texplanation.debugCheckClosed(options(), "te-proof-exp", "texplanation", false);
+      texplanation.debugCheckClosed(
+          options(), "te-proof-exp", "texplanation", false);
       Trace("te-proof-exp")
           << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
           << " by " << texplanation.getNode() << std::endl;

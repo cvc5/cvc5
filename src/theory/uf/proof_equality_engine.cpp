@@ -353,7 +353,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   pfBody = pnm->clone(pfBody);
   Trace("pfee-proof") << "pfee::ensureProofForFact: add scope" << std::endl;
   // The free assumptions must be closed by assumps, which should be passed

@@ -147,7 +147,8 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     // node -> irNode via rewriting
     // irNode -> ppNode via theory-preprocessing + rewriting + tf removal
     tret = d_tspg->mkTrustRewriteSequence(cterms);
-    tret.debugCheckClosed(options(), "tpp-debug", "TheoryPreprocessor::lemma_ret");
+    tret.debugCheckClosed(
+        options(), "tpp-debug", "TheoryPreprocessor::lemma_ret");
   }
   else
   {
@@ -479,8 +480,8 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
   {
     Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (generator) "
                        << term << " -> " << termr << std::endl;
-    trn.debugCheckClosed(options(), "tpp-debug",
-                         "TheoryPreprocessor::preprocessWithProof");
+    trn.debugCheckClosed(
+        options(), "tpp-debug", "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
         term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true, tctx);

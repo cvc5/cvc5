@@ -108,7 +108,7 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   std::shared_ptr<ProofNode> pfb = lcp->getProofFor(conclusion);
   Trace("tepg-debug") << "...mkScope" << std::endl;
   // call the scope method of proof node manager
-  ProofNodeManager * pnm = d_env.getProofNodeManager();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   std::shared_ptr<ProofNode> pf = pnm->mkScope(pfb, scopeAssumps);
 
   if (pf->getResult() != f)
