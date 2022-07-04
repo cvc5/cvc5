@@ -27,6 +27,7 @@ using namespace cvc5::main;
 /**
  * cvc5's main() routine is just an exception-safe wrapper around runCvc5.
  */
+extern "C" {
 int main(int argc, char* argv[])
 {
   std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
@@ -77,4 +78,5 @@ int main(int argc, char* argv[])
   // Make sure that the command executor is destroyed before the node manager.
   pExecutor.reset();
   exit(1);
+}
 }
