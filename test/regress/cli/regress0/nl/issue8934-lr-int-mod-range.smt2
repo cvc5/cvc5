@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --learned-rewrite
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic QF_NIA)
 (declare-const x Int)
 (declare-const y Int)
