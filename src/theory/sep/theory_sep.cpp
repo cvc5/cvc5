@@ -1295,7 +1295,8 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
-  Trace("sep-debug") << "disjoint heap: " << parent << " for " << children << std::endl;
+  Trace("sep-debug") << "disjoint heap: " << parent << " for " << children
+                     << std::endl;
   Assert(children.size() >= 2);
   if (!sharesRootLabel(parent, d_base_label))
   {
