@@ -1010,7 +1010,13 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
 {
   size_t prev_asserts = asserts.size();
   // call the static reduce routine
-  Node retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
+  Node retNode = t;
+  // We cannot statically reduce seq.nth due to it being partial function.
+  // Reducing it here would violate its functional property.
+  if (t.getKind()!=SEQ_NTH)
+  {
+    retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
+  }
   if( t!=retNode ){
     Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if (!asserts.empty())
