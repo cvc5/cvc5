@@ -293,17 +293,23 @@ Node LearnedRewrite::rewriteLearned(Node n,
     Node den = n[1];
     arith::Bounds db = binfer.get(den);
     if (!db.lower_value.isNull() && !db.upper_value.isNull()
-         && db.lower_value.getConst<Rational>().sgn()==db.upper_value.getConst<Rational>().sgn())
+        && db.lower_value.getConst<Rational>().sgn()
+               == db.upper_value.getConst<Rational>().sgn())
     {
-      Trace("learned-rewrite-rr-debug") << "Bounds for " << den << ": " << db.lower_value << ", " << db.upper_value << std::endl;
+      Trace("learned-rewrite-rr-debug")
+          << "Bounds for " << den << ": " << db.lower_value << ", "
+          << db.upper_value << std::endl;
       // if 0 <= UB(num) < LB(den) or 0 <= UB(num) < -UB(den)
       arith::Bounds nb = binfer.get(num);
       if (!nb.upper_value.isNull())
       {
         Rational bnum = nb.upper_value.getConst<Rational>().abs();
-        if (db.lower_value.getConst<Rational>().abs() < bnum && db.upper_value.getConst<Rational>().abs()< bnum)
+        if (db.lower_value.getConst<Rational>().abs() < bnum
+            && db.upper_value.getConst<Rational>().abs() < bnum)
         {
-          Node ret = db.lower_value.getConst<Rational>().sgn()==-1 ? nm->mkNode(kind::NEG, nr[0]) : nr[0];
+          Node ret = db.lower_value.getConst<Rational>().sgn() == -1
+                         ? nm->mkNode(kind::NEG, nr[0])
+                         : nr[0];
           nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
         }
       }
