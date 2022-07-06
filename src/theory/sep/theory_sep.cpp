@@ -44,7 +44,6 @@ namespace sep {
 
 TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
-      d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::sep::"),
@@ -409,6 +408,21 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
+      }
+      // if we are not a part of the root label, we require applying downwards
+      // closure, e.g. (SEP_LABEL (pto x y) A) =>
+      // (or (SEP_LABEL (pto x y) B) (SEP_LABEL (pto x y) C)) where
+      // A is the disjoint union of B and C.
+      if (!sharesRootLabel(slbl,d_base_label))
+      {
+        std::map<Node, std::vector<Node> >::iterator itc = d_childrenMap.find(slbl);
+        Assert (itc!=d_childrenMap.end());
+        std::vector<Node> disjs;
+        for (const Node& c : itc->second)
+        {
+          disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
+        }
+        conc = nm->mkNode(AND, conc, nm->mkNode(OR, disj));
       }
       // note semantics of sep.nil is enforced globally
     }

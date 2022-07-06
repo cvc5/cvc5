@@ -478,6 +478,8 @@ enum class InferenceId
   SEP_DISTINCT_REF,
   // reference bound lemma
   SEP_REF_BOUND,
+  // downwards PTO
+  SEP_PTO_DOWN,
   // ---------------------------------- end sep theory
 
   // ---------------------------------- sets theory
