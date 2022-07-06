@@ -1278,6 +1278,8 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
   Assert(children.size() >= 2);
+  Assert (d_childrenMap.find(parent)==d_childrenMap.end());
+  d_childrenMap[parent] = children;
   // remember parent relationships
   for (const Node& c : children)
   {

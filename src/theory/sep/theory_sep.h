@@ -248,6 +248,10 @@ class TheorySep : public Theory {
    * if sep.wand constraints are present.
    */
   std::map<Node, std::vector<Node> > d_parentMap;
+  /**
+   * Maps label sets to their direct children.
+   */
+  std::map<Node, std::vector<Node> > d_childrenMap;
 
   /**
    * This sends the lemmas:
