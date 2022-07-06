@@ -216,9 +216,9 @@ int ArithMSum::isolate(
   Trace("ajr-temp") << "Isolate " << v << " in ";
   for (const std::pair<const Node, Node>& m : msum)
   {
-     Trace("ajr-temp") << m.first << " -> " << m.second << ", ";
+    Trace("ajr-temp") << m.first << " -> " << m.second << ", ";
   }
-   Trace("ajr-temp") << std::endl;
+  Trace("ajr-temp") << std::endl;
   Node veq_c;
   Node val;
   // isolate v in the (in)equality
@@ -252,7 +252,8 @@ int ArithMSum::isolate(
       {
         val = nm->mkNode(TO_INTEGER, val);
       }
-      Assert(val.getType() == vc.getType()) << val << " " << vc << " " << val.getType() << " " << vc.getType();
+      Assert(val.getType() == vc.getType())
+          << val << " " << vc << " " << val.getType() << " " << vc.getType();
     }
     veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
   }
