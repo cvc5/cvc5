@@ -1013,7 +1013,7 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
   Node retNode = t;
   // We cannot statically reduce seq.nth due to it being partial function.
   // Reducing it here would violate its functional property.
-  if (t.getKind()!=SEQ_NTH)
+  if (t.getKind() != SEQ_NTH)
   {
     retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
   }
