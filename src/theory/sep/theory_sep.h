@@ -246,7 +246,8 @@ class TheorySep : public Theory {
    */
   std::map<Node, std::vector<Node> > d_parentMap;
   /**
-   * Maps label sets to their direct children.
+   * Maps label sets to their direct children. This map is only stored for
+   * labels with children that do not share a root label with the base label.
    */
   std::map<Node, std::vector<Node> > d_childrenMap;
 

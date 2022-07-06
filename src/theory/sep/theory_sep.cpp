@@ -424,7 +424,8 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
           {
             disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
           }
-          conc = nm->mkNode(AND, conc, nm->mkNode(OR, disjs));
+          Node conc2 = nm->mkNode(OR, disjs);
+          conc = conc.isNull() ? conc2 : nm->mkNode(AND, conc, conc2);
         }
       }
       // note semantics of sep.nil is enforced globally
@@ -1294,10 +1295,13 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
-  Trace("ajr-temp") << "disjoint heap: " << parent << " for " << children << std::endl;
+  Trace("sep-debug") << "disjoint heap: " << parent << " for " << children << std::endl;
   Assert(children.size() >= 2);
-  Assert(d_childrenMap.find(parent) == d_childrenMap.end());
-  d_childrenMap[parent] = children;
+  if (!sharesRootLabel(parent, d_base_label))
+  {
+    Assert(d_childrenMap.find(parent) == d_childrenMap.end());
+    d_childrenMap[parent] = children;
+  }
   // remember parent relationships
   for (const Node& c : children)
   {
