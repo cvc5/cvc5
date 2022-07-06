@@ -292,25 +292,31 @@ Node LearnedRewrite::rewriteLearned(Node n,
     Node num = n[0];
     Node den = n[1];
     arith::Bounds db = binfer.get(den);
-    if (!db.lower_value.isNull() && !db.upper_value.isNull()
-        && db.lower_value.getConst<Rational>().sgn()
-               == db.upper_value.getConst<Rational>().sgn())
+    if (!db.lower_value.isNull() && !db.upper_value.isNull())
     {
-      Trace("learned-rewrite-rr-debug")
-          << "Bounds for " << den << ": " << db.lower_value << ", "
-          << db.upper_value << std::endl;
-      // if 0 <= UB(num) < LB(den) or 0 <= UB(num) < -UB(den)
-      arith::Bounds nb = binfer.get(num);
-      if (!nb.upper_value.isNull())
+      Rational bdenu = db.upper_value.getConst<Rational>();
+      Rational bdenl = db.lower_value.getConst<Rational>();
+      if (bdenl.sgn()==bdenu.sgn())
       {
-        Rational bnum = nb.upper_value.getConst<Rational>().abs();
-        if (db.lower_value.getConst<Rational>().abs() < bnum
-            && db.upper_value.getConst<Rational>().abs() < bnum)
+        // if the sign of LB(num) is the sign of UB(num), 
+        // the sign of LB(den) is the sign of UB(den), and
+        // abs(LB(num)) and abs(UB(num)) is less than abs(LB(den)) and
+        // abs(UB(den)), then the mod can be eliminated.
+        arith::Bounds nb = binfer.get(num);
+        if (!nb.upper_value.isNull() && !nb.lower_value.isNull())
         {
-          Node ret = db.lower_value.getConst<Rational>().sgn() == -1
-                         ? nm->mkNode(kind::NEG, nr[0])
-                         : nr[0];
-          nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
+          Rational bnuml = nb.lower_value.getConst<Rational>();
+          Rational bnumu = nb.upper_value.getConst<Rational>();
+          Rational bnum = bnumu.abs() > bnuml.abs() ? bnuml.abs() : bnumu.abs();
+          if (bnuml.sgn()==bnumu.sgn() && bdenl.abs() < bnum && bdenu.abs() < bnum)
+          {
+            // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
+            // otherwise, (mod x y) ---> x
+            Node ret = bnuml.sgn() == -1
+                          ? nm->mkNode(kind::ADD, nr[0], nm->mkNode(kind::ABS, nr[1]))
+                          : nr[0];
+            nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
+          }
         }
       }
       // could also do num + k*den checks
