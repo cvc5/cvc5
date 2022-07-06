@@ -712,7 +712,7 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "RELATION_PROJECT operator expects a table. Found '" << n[0]
+      ss << "RELATION_PROJECT operator expects a relation. Found '" << n[0]
          << "' of type '" << setType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
