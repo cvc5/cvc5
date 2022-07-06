@@ -118,6 +118,11 @@ class TheorySetsRewriter : public TheoryRewriter
    * @return the aggregation result.
    */
   RewriteResponse postRewriteAggregate(TNode n);
+  /**
+   * If A has type (Set T), then rewrite ((rel.project n1 ... nk) A) as
+   * (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
+   */
+  RewriteResponse postRewriteProject(TNode n);
 }; /* class TheorySetsRewriter */
 
 }  // namespace sets

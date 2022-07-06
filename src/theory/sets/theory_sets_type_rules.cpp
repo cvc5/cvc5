@@ -15,9 +15,10 @@
 
 #include "theory/sets/theory_sets_type_rules.h"
 
-#include <climits>
 #include <sstream>
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "theory/sets/normal_form.h"
 #include "util/cardinality.h"
 #include "theory/datatypes/project_op.h"
@@ -632,7 +633,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
     if (!setType.isSet())
     {
       std::stringstream ss;
-      ss << "RELATION_PROJECT operator expects a table. Found '" << n[2]
+      ss << "RELATION_AGGREGATE operator expects a set. Found '" << n[2]
          << "' of type '" << setType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -641,7 +642,7 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
     if (!tupleType.isTuple())
     {
       std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
+      ss << "RELATION_AGGREGATE operator expects a relation. Found '" << n[2]
          << "' of type '" << setType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
@@ -678,6 +679,63 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
     }
   }
   return nm->mkSetType(functionType.getRangeType());
+}
+
+TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
+                                              TNode n,
+                                              bool check)
+{
+  Assert(n.getKind() == kind::RELATION_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_PROJECT_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  TypeNode setType = n[0].getType(check);
+  if (check)
+  {
+    if (n.getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "operands in term " << n << " are " << n.getNumChildren()
+         << ", but RELATION_PROJECT expects 1 operand.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a set. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    // make sure all indices are less than the length of the tuple type
+    DType dType = tupleType.getDType();
+    DTypeConstructor constructor = dType[0];
+    size_t numArgs = constructor.getNumArgs();
+    for (uint32_t index : indices)
+    {
+      std::stringstream ss;
+      if (index >= numArgs)
+      {
+        ss << "Index " << index << " in term " << n << " is >= " << numArgs
+           << " which is the number of columns in " << n[0] << ".";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  TypeNode tupleType = setType.getSetElementType();
+  TypeNode retTupleType =
+      TupleUtils::getTupleProjectionType(indices, tupleType);
+  return nm->mkSetType(retTupleType);
 }
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)
