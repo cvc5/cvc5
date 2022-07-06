@@ -703,7 +703,7 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
     if (!setType.isSet())
     {
       std::stringstream ss;
-      ss << "RELATION_PROJECT operator expects a relation. Found '" << n[0]
+      ss << "RELATION_PROJECT operator expects a set. Found '" << n[0]
          << "' of type '" << setType << "'.";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
