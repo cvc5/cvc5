@@ -1076,7 +1076,9 @@ Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
   // we could use (SEQ_NTH, x, i) instead of
   // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1))
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(Rational(1))));
+  return nm->mkNode(
+      STRING_TO_CODE,
+      nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(Rational(1))));
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
