@@ -413,10 +413,11 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       // closure, e.g. (SEP_LABEL (pto x y) A) =>
       // (or (SEP_LABEL (pto x y) B) (SEP_LABEL (pto x y) C)) where
       // A is the disjoint union of B and C.
-      if (!sharesRootLabel(slbl,d_base_label))
+      if (!sharesRootLabel(slbl, d_base_label))
       {
-        std::map<Node, std::vector<Node> >::iterator itc = d_childrenMap.find(slbl);
-        Assert (itc!=d_childrenMap.end());
+        std::map<Node, std::vector<Node> >::iterator itc =
+            d_childrenMap.find(slbl);
+        Assert(itc != d_childrenMap.end());
         std::vector<Node> disjs;
         for (const Node& c : itc->second)
         {
@@ -1292,7 +1293,7 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
   Assert(children.size() >= 2);
-  Assert (d_childrenMap.find(parent)==d_childrenMap.end());
+  Assert(d_childrenMap.find(parent) == d_childrenMap.end());
   d_childrenMap[parent] = children;
   // remember parent relationships
   for (const Node& c : children)
