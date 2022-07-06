@@ -417,13 +417,15 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       {
         std::map<Node, std::vector<Node> >::iterator itc =
             d_childrenMap.find(slbl);
-        Assert(itc != d_childrenMap.end());
-        std::vector<Node> disjs;
-        for (const Node& c : itc->second)
+        if (itc != d_childrenMap.end())
         {
-          disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
+          std::vector<Node> disjs;
+          for (const Node& c : itc->second)
+          {
+            disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
+          }
+          conc = nm->mkNode(AND, conc, nm->mkNode(OR, disjs));
         }
-        conc = nm->mkNode(AND, conc, nm->mkNode(OR, disj));
       }
       // note semantics of sep.nil is enforced globally
     }
