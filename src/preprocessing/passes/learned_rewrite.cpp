@@ -292,22 +292,19 @@ Node LearnedRewrite::rewriteLearned(Node n,
     Node num = n[0];
     Node den = n[1];
     arith::Bounds db = binfer.get(den);
-    if ((!db.lower_value.isNull()
-         && db.lower_value.getConst<Rational>().sgn() == 1)
-        || (!db.upper_value.isNull()
-            && db.upper_value.getConst<Rational>().sgn() == -1))
+    if (!db.lower_value.isNull() && !db.upper_value.isNull()
+         && db.lower_value.getConst<Rational>().sgn()==db.upper_value.getConst<Rational>().sgn())
     {
-      Rational bden = db.upper_value.isNull()
-                          ? db.lower_value.getConst<Rational>()
-                          : db.upper_value.getConst<Rational>().abs();
+      Trace("learned-rewrite-rr-debug") << "Bounds for " << den << ": " << db.lower_value << ", " << db.upper_value << std::endl;
       // if 0 <= UB(num) < LB(den) or 0 <= UB(num) < -UB(den)
       arith::Bounds nb = binfer.get(num);
       if (!nb.upper_value.isNull())
       {
-        Rational bnum = nb.upper_value.getConst<Rational>();
-        if (bnum.sgn() != -1 && bnum < bden)
+        Rational bnum = nb.upper_value.getConst<Rational>().abs();
+        if (db.lower_value.getConst<Rational>().abs() < bnum && db.upper_value.getConst<Rational>().abs()< bnum)
         {
-          nr = returnRewriteLearned(nr, nr[0], LearnedRewriteId::INT_MOD_RANGE);
+          Node ret = db.lower_value.getConst<Rational>().sgn()==-1 ? nm->mkNode(kind::NEG, nr[0]) : nr[0];
+          nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
         }
       }
       // could also do num + k*den checks
