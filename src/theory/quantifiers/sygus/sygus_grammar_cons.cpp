@@ -1505,7 +1505,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
     std::unordered_set<Node>& term_irrelevant,
-      options::SygusGrammarConsMode sgcm)
+    options::SygusGrammarConsMode sgcm)
 {
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
   for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
@@ -1525,7 +1525,8 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         include_cons,
                         term_irrelevant,
                         sdts,
-                        unres, sgcm);
+                        unres,
+                        sgcm);
   // extract the datatypes from the sygus datatype generator objects
   std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)

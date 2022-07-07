@@ -25,8 +25,8 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
-#include "smt/env_obj.h"
 #include "options/quantifiers_options.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -117,7 +117,7 @@ public:
      std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
      std::map<TypeNode, std::unordered_set<Node>>& include_cons,
      std::unordered_set<Node>& term_irrelevant,
-      options::SygusGrammarConsMode sgcm);
+     options::SygusGrammarConsMode sgcm);
 
  /**
   * Make the default sygus datatype type corresponding to builtin type range.
@@ -125,7 +125,7 @@ public:
  static TypeNode mkSygusDefaultType(TypeNode range,
                                     Node bvl,
                                     const std::string& fun,
-      options::SygusGrammarConsMode sgcm)
+                                    options::SygusGrammarConsMode sgcm)
  {
    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
@@ -137,7 +137,8 @@ public:
                              extra_cons,
                              exclude_cons,
                              include_cons,
-                             term_irrelevant, sgcm);
+                             term_irrelevant,
+                             sgcm);
   }
 
   /** make the sygus datatype type that encodes the solution space (lambda

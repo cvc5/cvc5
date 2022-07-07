@@ -198,7 +198,8 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
         extra_cons,
         exclude_cons,
         include_cons,
-        terms_irrelevant, options().quantifiers.sygusGrammarConsMode);
+        terms_irrelevant,
+        options().quantifiers.sygusGrammarConsMode);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;

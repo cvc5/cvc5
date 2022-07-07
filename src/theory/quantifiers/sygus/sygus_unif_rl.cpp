@@ -361,7 +361,11 @@ Node SygusUnifRl::constructSol(
     return d_parent->getModelValue(e);
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
-  Node sol = itd->second.buildSol(etis->d_cons, lemmas, options().quantifiers.sygusUnifShuffleCond, options().quantifiers.sygusUnifCondIndNoRepeatSol);
+  Node sol =
+      itd->second.buildSol(etis->d_cons,
+                           lemmas,
+                           options().quantifiers.sygusUnifShuffleCond,
+                           options().quantifiers.sygusUnifCondIndNoRepeatSol);
   Assert(d_useCondPool || !sol.isNull() || !lemmas.empty());
   return sol;
 }
@@ -559,8 +563,8 @@ unsigned SygusUnifRl::DecisionTreeInfo::getStrategyIndex() const
 
 Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
                                              std::vector<Node>& lemmas,
-                                                    bool shuffleCond,
-                                                    bool condIndNoRepeatSol)
+                                             bool shuffleCond,
+                                             bool condIndNoRepeatSol)
 {
   if (!d_template.first.isNull())
   {
@@ -572,8 +576,9 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
                           << " conditions..." << std::endl;
   // reset the trie
   d_pt_sep.d_trie.clear();
-  return d_unif->usingConditionPool() ? buildSolAllCond(cons, lemmas, shuffleCond, condIndNoRepeatSol)
-                                      : buildSolMinCond(cons, lemmas);
+  return d_unif->usingConditionPool()
+             ? buildSolAllCond(cons, lemmas, shuffleCond, condIndNoRepeatSol)
+             : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
