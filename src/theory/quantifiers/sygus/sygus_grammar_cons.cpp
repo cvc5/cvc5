@@ -613,7 +613,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
   // make Boolean type
   TypeNode bool_type = nm->booleanType();
-  TypeNode unres_bt;
   // the index of Bool in types
   size_t boolIndex = types.size();
   types.push_back(bool_type);
@@ -645,11 +644,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     unres_types.push_back(unres_t);
     type_to_unres[types[i]] = unres_t;
     sygus_to_builtin[unres_t] = types[i];
-    if (types[i].isBoolean())
-    {
-      unres_bt = unres_t;
-    }
   }
+  TypeNode unres_bt = type_to_unres[bool_type];
 
   // We ensure an ordering on types such that parametric types are processed
   // before their consitituents. Since parametric types were added before their
