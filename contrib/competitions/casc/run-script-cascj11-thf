@@ -9,7 +9,7 @@ bench="$1"
 file=${bench##*/}
 filename=${file%.*}
 
-echo "------- cvc5-thf casc j11 : $bench at $2..."
+echo "------- cvc5-thf casc j11 : $bench..."
 
 # use: trywith [params..]
 # to attempt a run.  If an SZS ontology result is printed, then
