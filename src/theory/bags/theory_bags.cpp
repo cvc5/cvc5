@@ -112,6 +112,12 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
+    case kind::TABLE_PROJECT:
+    {
+      Node ret = BagReduction::reduceProjectOperator(atom);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
     default: return TrustNode::null();
   }
 }
@@ -465,7 +471,6 @@ void TheoryBags::preRegisterTerm(TNode n)
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
     case BAG_PARTITION:
-    case TABLE_PROJECT:
     {
       std::stringstream ss;
       ss << "Term of kind " << n.getKind() << " is not supported yet";

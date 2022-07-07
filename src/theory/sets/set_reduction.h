@@ -74,6 +74,11 @@ class SetReduction
    *   ((_ rel.group n1 ... nk) A))
    */
   static Node reduceAggregateOperator(Node node);
+  /**
+   * @param n has the form ((rel.project n1 ... nk) A) where A has type (Set T)
+   * @return (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
+   */
+  static Node reduceProjectOperator(Node n);
 };
 
 }  // namespace sets

@@ -851,6 +851,21 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
+  case kind::RELATION_PROJECT:
+  {
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (rel.project A)
+      out << "rel.project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ rel.project 2 4 4) A)
+      out << "(_ rel.project" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];
@@ -1192,6 +1207,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
   case kind::RELATION_GROUP: return "rel.group";
   case kind::RELATION_AGGREGATE: return "rel.aggr";
+  case kind::RELATION_PROJECT: return "rel.project";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";

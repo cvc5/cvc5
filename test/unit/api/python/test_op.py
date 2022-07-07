@@ -105,6 +105,9 @@ def test_get_num_indices(solver):
     tuple_project_op = solver.mkOp(Kind.TUPLE_PROJECT, *indices)
     assert len(indices) == tuple_project_op.getNumIndices()
 
+    relation_project_op = solver.mkOp(Kind.RELATION_PROJECT, *indices)
+    assert len(indices) == relation_project_op.getNumIndices()
+
     table_project_op = solver.mkOp(Kind.TABLE_PROJECT, *indices)
     assert len(indices) == table_project_op.getNumIndices()
 
