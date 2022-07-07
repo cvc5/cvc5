@@ -611,13 +611,20 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
   // create placeholder for boolean type (kept apart since not collected)
 
+  // make Boolean type
+  TypeNode bool_type = nm->booleanType();
+  TypeNode unres_bt;
+  // the index of Bool in types
+  size_t boolIndex = types.size();
+  types.push_back(bool_type);
+  
   // create placeholders for collected types
   std::vector<TypeNode> unres_types;
   std::map<TypeNode, TypeNode> type_to_unres;
   std::map<TypeNode, std::unordered_set<Node>>::const_iterator itc;
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, std::pair<unsigned, bool>> typeToGAnyTerm;
-  for (unsigned i = 0, size = types.size(); i < size; ++i)
+  for (size_t i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
     ss << fun << "_" << types[i];
@@ -638,19 +645,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     unres_types.push_back(unres_t);
     type_to_unres[types[i]] = unres_t;
     sygus_to_builtin[unres_t] = types[i];
+    if (types[i].isBoolean())
+    {
+      unres_bt = unres_t;
+    }
   }
-  // make Boolean type
-  std::stringstream ssb;
-  ssb << fun << "_Bool";
-  std::string dbname = ssb.str();
-  sdts.push_back(SygusDatatypeGenerator(dbname));
-  unsigned boolIndex = types.size();
-  TypeNode bool_type = nm->booleanType();
-  TypeNode unres_bt = mkUnresolvedType(ssb.str());
-  types.push_back(bool_type);
-  unres_types.push_back(unres_bt);
-  type_to_unres[bool_type] = unres_bt;
-  sygus_to_builtin[unres_bt] = bool_type;
 
   // We ensure an ordering on types such that parametric types are processed
   // before their consitituents. Since parametric types were added before their
@@ -1511,6 +1510,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   {
     TypeNode btype = nm->booleanType();
     exclude_cons[btype].insert(nm->operatorOf(ITE));
+    Trace("sygus-grammar-def") << "...exclude Boolean ITE" << std::endl;
   }
   std::vector<SygusDatatypeGenerator> sdts;
   mkSygusDefaultGrammar(range,
@@ -1614,6 +1614,7 @@ void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(
 }
 bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
 {
+  Trace("ajr-temp") << "should include " << op << " ? " << std::endl;
   if (d_exclude_cons.find(op) != d_exclude_cons.end())
   {
     return false;
