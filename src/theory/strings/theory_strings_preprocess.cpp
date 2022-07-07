@@ -1065,7 +1065,12 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
       if( changed ){
         tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
       }
-      retNode = simplify(tmp, asserts);
+      // We cannot statically reduce seq.nth due to it being partial function.
+      // Reducing it here would violate the functional property of seq.nth.
+      if (tmp.getKind() != SEQ_NTH)
+      {
+        retNode = simplify(tmp, asserts);
+      }
     }
     d_visited[t] = retNode;
     return retNode;
