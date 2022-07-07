@@ -131,7 +131,7 @@ public:
    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
    std::map<TypeNode, std::unordered_set<Node>> include_cons;
    std::unordered_set<Node> term_irrelevant;
-   return mkSygusDefaultType(opts, 
+   return mkSygusDefaultType(opts,
                              range,
                              bvl,
                              fun,

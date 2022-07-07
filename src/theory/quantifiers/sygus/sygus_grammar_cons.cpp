@@ -617,7 +617,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // the index of Bool in types
   size_t boolIndex = types.size();
   types.push_back(bool_type);
-  
+
   // create placeholders for collected types
   std::vector<TypeNode> unres_types;
   std::map<TypeNode, TypeNode> type_to_unres;
@@ -1494,7 +1494,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
     std::unordered_set<Node>& term_irrelevant)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
   for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
            extra_cons.begin();
@@ -1530,8 +1530,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   }
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
-  std::vector<TypeNode> types =
-      nm->mkMutualDatatypeTypes(datatypes);
+  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(datatypes);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
   return types[0];

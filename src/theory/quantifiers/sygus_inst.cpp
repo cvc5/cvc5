@@ -441,15 +441,14 @@ void SygusInst::registerQuantifier(Node q)
   for (const Node& var : q[0])
   {
     addSpecialValues(var.getType(), extra_cons);
-    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(
-        options(),
-        var.getType(),
-        Node(),
-        var.toString(),
-        extra_cons,
-        exclude_cons,
-        include_cons,
-        term_irrelevant);
+    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(options(),
+                                                            var.getType(),
+                                                            Node(),
+                                                            var.toString(),
+                                                            extra_cons,
+                                                            exclude_cons,
+                                                            include_cons,
+                                                            term_irrelevant);
     types.push_back(tn);
 
     Trace("sygus-inst") << "Construct (default) datatype for " << var
