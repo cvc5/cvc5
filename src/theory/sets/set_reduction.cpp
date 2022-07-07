@@ -144,6 +144,21 @@ Node SetReduction::reduceAggregateOperator(Node node)
   return map;
 }
 
+Node SetReduction::reduceProjectOperator(Node n)
+{
+  Assert(n.getKind() == RELATION_PROJECT);
+  NodeManager* nm = NodeManager::currentNM();
+  Node A = n[0];
+  TypeNode elementType = A.getType().getSetElementType();
+  ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
+  Node op = nm->mkConst(TUPLE_PROJECT_OP, projectOp);
+  Node t = nm->mkBoundVar("t", elementType);
+  Node projection = nm->mkNode(TUPLE_PROJECT, op, t);
+  Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, t), projection);
+  Node setMap = nm->mkNode(SET_MAP, lambda, A);
+  return setMap;
+}
+
 }  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal
