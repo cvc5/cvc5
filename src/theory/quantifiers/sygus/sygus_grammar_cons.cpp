@@ -392,13 +392,9 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   return visited[n];
 }
 
-TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
-                                                 std::set<TypeNode>& unres)
+TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name)
 {
-  TypeNode unresolved =
-      NodeManager::currentNM()->mkUnresolvedDatatypeSort(name);
-  unres.insert(unresolved);
-  return unresolved;
+  return NodeManager::currentNM()->mkUnresolvedDatatypeSort(name);
 }
 
 void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
@@ -576,7 +572,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
     std::unordered_set<Node>& term_irrelevant,
     std::vector<SygusDatatypeGenerator>& sdts,
-    std::set<TypeNode>& unres,
     options::SygusGrammarConsMode sgcm)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -639,7 +634,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts.back().d_include_cons = itc->second;
     }
     //make unresolved type
-    TypeNode unres_t = mkUnresolvedType(dname, unres);
+    TypeNode unres_t = mkUnresolvedType(dname);
     unres_types.push_back(unres_t);
     type_to_unres[types[i]] = unres_t;
     sygus_to_builtin[unres_t] = types[i];
@@ -651,7 +646,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   sdts.push_back(SygusDatatypeGenerator(dbname));
   unsigned boolIndex = types.size();
   TypeNode bool_type = nm->booleanType();
-  TypeNode unres_bt = mkUnresolvedType(ssb.str(), unres);
+  TypeNode unres_bt = mkUnresolvedType(ssb.str());
   types.push_back(bool_type);
   unres_types.push_back(unres_bt);
   type_to_unres[bool_type] = unres_bt;
@@ -687,7 +682,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::stringstream ssat;
         ssat << sdts[i].d_sdt.getName() << "_any_term";
         sdts.push_back(SygusDatatypeGenerator(ssat.str()));
-        TypeNode unresAnyTerm = mkUnresolvedType(ssat.str(), unres);
+        TypeNode unresAnyTerm = mkUnresolvedType(ssat.str());
         unres_types.push_back(unresAnyTerm);
         // set tracking information for later addition at boolean type.
         std::pair<unsigned, bool> p(sdts.size() - 1, false);
@@ -789,7 +784,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         ss << fun << "_PosIReal";
         std::string posIRealName = ss.str();
         // make unresolved type
-        TypeNode unresPosIReal = mkUnresolvedType(posIRealName, unres);
+        TypeNode unresPosIReal = mkUnresolvedType(posIRealName);
         unres_types.push_back(unresPosIReal);
         // make data type for positive constant integral reals
         sdts.push_back(SygusDatatypeGenerator(posIRealName));
@@ -1117,7 +1112,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::stringstream ss;
     ss << fun << "_AnyConst";
     // Make sygus datatype for any constant.
-    TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
+    TypeNode unresAnyConst = mkUnresolvedType(ss.str());
     unres_types.push_back(unresAnyConst);
     sdts.push_back(SygusDatatypeGenerator(ss.str()));
     sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
@@ -1515,7 +1510,6 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   {
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
   }
-  std::set<TypeNode> unres;
   std::vector<SygusDatatypeGenerator> sdts;
   mkSygusDefaultGrammar(range,
                         bvl,
@@ -1525,7 +1519,6 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         include_cons,
                         term_irrelevant,
                         sdts,
-                        unres,
                         sgcm);
   // extract the datatypes from the sygus datatype generator objects
   std::vector<DType> datatypes;
@@ -1549,7 +1542,6 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     return templ_arg_sygus_type;
   }else{
     tcount++;
-    std::set<TypeNode> unres;
     std::vector<SygusDatatype> sdts;
     std::stringstream ssd;
     ssd << fun << "_templ_" << tcount;
