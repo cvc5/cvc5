@@ -35,9 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(SkolemCache* sc,
+StringsPreprocess::StringsPreprocess(Env& env,
+                                     SkolemCache* sc,
                                      HistogramStat<Kind>* statReductions)
-    : d_sc(sc), d_statReductions(statReductions)
+    : EnvObj(env), d_sc(sc), d_statReductions(statReductions)
 {
 }
 
@@ -47,7 +48,8 @@ StringsPreprocess::~StringsPreprocess(){
 
 Node StringsPreprocess::reduce(Node t,
                                std::vector<Node>& asserts,
-                               SkolemCache* sc)
+                               SkolemCache* sc,
+                               size_t alphaCard)
 {
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
@@ -514,7 +516,13 @@ Node StringsPreprocess::reduce(Node t,
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, t12));
-    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    std::vector<Node> bchildren { b11, b12, b13 };
+    if (s.getType().isString())
+    {
+      Node crange = utils::mkCodeRange(skt, alphaCard);
+      bchildren.push_back(crange);
+    }
+    Node b1 = nm->mkNode(AND, bchildren);
 
     // the lemma for `seq.nth`
     Node lemma = nm->mkNode(IMPLIES, cond, b1);
@@ -524,6 +532,7 @@ Node StringsPreprocess::reduce(Node t,
     // IMPLIES: s = sk1 ++ unit(skt) ++ sk2 AND
     //          len( sk1 ) = n AND
     //          len( sk2 ) = len( s )- (n+1)
+    // We also ensure skt is a valid code point if s is of type String
     asserts.push_back(lemma);
     retNode = skt;
   }
@@ -1001,7 +1010,7 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
 {
   size_t prev_asserts = asserts.size();
   // call the static reduce routine
-  Node retNode = reduce(t, asserts, d_sc);
+  Node retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
   if( t!=retNode ){
     Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if (!asserts.empty())

@@ -1852,6 +1852,7 @@ set(regress_1_tests
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
   regress1/bags/table_project1.smt2
+  regress1/bags/table_project2.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
@@ -2508,11 +2509,14 @@ set(regress_1_tests
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
   regress1/sets/proj-issue494-finite-leafof.smt2
+  regress1/sets/relation_aggregate1.smt2
   regress1/sets/relation_group1.smt2
   regress1/sets/relation_group2.smt2
   regress1/sets/relation_group3.smt2
   regress1/sets/relation_group4.smt2
   regress1/sets/relation_group5.smt2
+  regress1/sets/relation_project1.smt2
+  regress1/sets/relation_project2.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
@@ -2640,6 +2644,9 @@ set(regress_1_tests
   regress1/strings/issue8434-nterm-str-rw.smt2
   regress1/strings/issue8890-inj-oob.smt2
   regress1/strings/issue8906-oob-exp.smt2
+  regress1/strings/issue8915-str-unit-model.smt2
+  regress1/strings/issue8916-str-unit-pairs.smt2
+  regress1/strings/issue8918-str-nth-crange-red.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

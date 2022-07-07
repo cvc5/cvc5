@@ -64,6 +64,21 @@ class SetReduction
    * unionFn: Int -> (Set T1) is an uninterpreted function
    */
   static Node reduceFoldOperator(Node node, std::vector<Node>& asserts);
+
+  /**
+   * @param node of the form ((_ rel.aggr n1 ... nk) f initial A))
+   * @return reduction term that uses map, fold, and group operators
+   * as follows:
+   * (set.map
+   *   (lambda ((B Table)) (set.fold f initial B))
+   *   ((_ rel.group n1 ... nk) A))
+   */
+  static Node reduceAggregateOperator(Node node);
+  /**
+   * @param n has the form ((rel.project n1 ... nk) A) where A has type (Set T)
+   * @return (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
+   */
+  static Node reduceProjectOperator(Node n);
 };
 
 }  // namespace sets

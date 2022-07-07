@@ -293,19 +293,6 @@ bool TheorySep::preNotifyFact(
   }
   if (!slbl.isNull() && satom.getKind() == SEP_PTO)
   {
-    if (polarity)
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      // (SEP_LABEL (sep.pto x y) L) => L = (set.singleton x)
-      Node s = nm->mkNode(SET_SINGLETON, satom[0]);
-      Node eq = slbl.eqNode(s);
-      TrustNode trn =
-          d_im.mkLemmaExp(eq, PfRule::THEORY_INFERENCE, {fact}, {fact}, {eq});
-      d_im.addPendingLemma(trn.getNode(),
-                           InferenceId::SEP_POS_PTO_SINGLETON,
-                           LemmaProperty::NONE,
-                           trn.getGenerator());
-    }
     return false;
   }
   // assert to equality if non-spatial or a labelled pto

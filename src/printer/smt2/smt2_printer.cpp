@@ -779,7 +779,7 @@ void Smt2Printer::toStream(std::ostream& out,
     ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
-      // e.g. (table.project function initial_value bag)
+      // e.g. (table.aggr function initial_value bag)
       out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
     }
     else
@@ -832,6 +832,37 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       // e.g. ((_ rel.group 0 1 2 3) A)
       out << "(_ rel.group" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
+  case kind::RELATION_AGGREGATE:
+  {
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (rel.aggr function initial_value bag)
+      out << "rel.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
+    }
+    else
+    {
+      // e.g.  ((_ rel.aggr 0) function initial_value bag)
+      out << "(_ rel.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
+          << ")";
+    }
+    return;
+  }
+  case kind::RELATION_PROJECT:
+  {
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (rel.project A)
+      out << "rel.project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ rel.project 2 4 4) A)
+      out << "(_ rel.project" << op << ") " << n[0] << ")";
     }
     return;
   }
@@ -1175,6 +1206,8 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::RELATION_IDEN: return "rel.iden";
   case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
   case kind::RELATION_GROUP: return "rel.group";
+  case kind::RELATION_AGGREGATE: return "rel.aggr";
+  case kind::RELATION_PROJECT: return "rel.project";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";

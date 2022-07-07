@@ -1435,6 +1435,18 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_GROUP, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK RELATION_AGGREGATE_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_AGGREGATE, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
+  | LPAREN_TOK RELATION_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1610,6 +1622,20 @@ identifier[cvc5::ParseOp& p]
         // i_1, ..., j_n are numerals
         p.d_kind = cvc5::RELATION_GROUP;
         p.d_op = SOLVER->mkOp(cvc5::RELATION_GROUP, numerals);
+      }
+     | RELATION_AGGREGATE_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ rel.aggr i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::RELATION_AGGREGATE;
+        p.d_op = SOLVER->mkOp(cvc5::RELATION_AGGREGATE, numerals);
+      }
+     | RELATION_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+       // we adopt a special syntax (_ rel.project i_1 ... i_n) where
+       // i_1, ..., i_n are numerals
+       p.d_kind = cvc5::RELATION_PROJECT;
+       p.d_op = SOLVER->mkOp(cvc5::RELATION_PROJECT, numerals);
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
@@ -2224,6 +2250,8 @@ TABLE_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BA
 TABLE_JOIN_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.join';
 TABLE_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.group';
 RELATION_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.group';
+RELATION_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.aggr';
+RELATION_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

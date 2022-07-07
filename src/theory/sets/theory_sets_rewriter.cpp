@@ -22,6 +22,7 @@
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
+#include "theory/sets/set_reduction.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -590,6 +591,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }
 
   case RELATION_GROUP: return postRewriteGroup(node);
+  case RELATION_AGGREGATE: return postRewriteAggregate(node);
+  case RELATION_PROJECT: return postRewriteProject(node);
   default: break;
   }
 
@@ -762,6 +765,32 @@ RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
     return RewriteResponse(REWRITE_AGAIN_FULL, evaluation);
   }
 
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteAggregate(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = RelsUtils::evaluateRelationAggregate(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
+{
+  Assert(n.getKind() == RELATION_PROJECT);
+  Node ret = SetReduction::reduceProjectOperator(n);
+  if (ret != n)
+  {
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
   return RewriteResponse(REWRITE_DONE, n);
 }
 

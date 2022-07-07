@@ -72,6 +72,13 @@ class RelsUtils
    * projection with indices n_1 ... n_k
    */
   static Node evaluateGroup(TNode n);
+
+  /**
+   * @param n has the form ((_ rel.aggr n1 ... n_k) f initial A)
+   * where initial and A are constants
+   * @return the aggregation result.
+   */
+  static Node evaluateRelationAggregate(TNode n);
 };
 }  // namespace sets
 }  // namespace theory
