@@ -2645,6 +2645,7 @@ set(regress_1_tests
   regress1/strings/issue8915-str-unit-model.smt2
   regress1/strings/issue8916-str-unit-pairs.smt2
   regress1/strings/issue8918-str-nth-crange-red.smt2
+  regress1/strings/issue8932-cmi-unit.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -3121,6 +3122,7 @@ set(regress_3_tests
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
   regress3/strings/indexof_re_red.smt2
+  regress3/strings/issue8926-sygus-inst.smt2
   regress3/strings/norn-dis-0707-3.smt2
   regress3/strings/replace_re_all.smt2
   regress3/unbdd_inv_gen_ex7.sy
