@@ -296,9 +296,9 @@ Node LearnedRewrite::rewriteLearned(Node n,
     {
       Rational bdenu = db.upper_value.getConst<Rational>();
       Rational bdenl = db.lower_value.getConst<Rational>();
-      if (bdenl.sgn()==bdenu.sgn())
+      if (bdenl.sgn() == bdenu.sgn())
       {
-        // if the sign of LB(num) is the sign of UB(num), 
+        // if the sign of LB(num) is the sign of UB(num),
         // the sign of LB(den) is the sign of UB(den), and
         // abs(LB(num)) and abs(UB(num)) is less than abs(LB(den)) and
         // abs(UB(den)), then the mod can be eliminated.
@@ -308,13 +308,14 @@ Node LearnedRewrite::rewriteLearned(Node n,
           Rational bnuml = nb.lower_value.getConst<Rational>();
           Rational bnumu = nb.upper_value.getConst<Rational>();
           Rational bnum = bnumu.abs() > bnuml.abs() ? bnuml.abs() : bnumu.abs();
-          if (bnuml.sgn()==bnumu.sgn() && bdenl.abs() < bnum && bdenu.abs() < bnum)
+          if (bnuml.sgn() == bnumu.sgn() && bdenl.abs() < bnum
+              && bdenu.abs() < bnum)
           {
             // if the numerator is negative, then (mod x y) ---> (+ x (abs y))
             // otherwise, (mod x y) ---> x
-            Node ret = bnuml.sgn() == -1
-                          ? nm->mkNode(kind::ADD, nr[0], nm->mkNode(kind::ABS, nr[1]))
-                          : nr[0];
+            Node ret = bnuml.sgn() == -1 ? nm->mkNode(
+                           kind::ADD, nr[0], nm->mkNode(kind::ABS, nr[1]))
+                                         : nr[0];
             nr = returnRewriteLearned(nr, ret, LearnedRewriteId::INT_MOD_RANGE);
           }
         }
