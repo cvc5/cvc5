@@ -110,35 +110,35 @@ public:
   *     will be included.
   */
  static TypeNode mkSygusDefaultType(
+     const Options& opts,
      TypeNode range,
      Node bvl,
      const std::string& fun,
      std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
      std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
      std::map<TypeNode, std::unordered_set<Node>>& include_cons,
-     std::unordered_set<Node>& term_irrelevant,
-     options::SygusGrammarConsMode sgcm);
+     std::unordered_set<Node>& term_irrelevant);
 
  /**
   * Make the default sygus datatype type corresponding to builtin type range.
   */
- static TypeNode mkSygusDefaultType(TypeNode range,
+ static TypeNode mkSygusDefaultType(const Options& opts,
+                                    TypeNode range,
                                     Node bvl,
-                                    const std::string& fun,
-                                    options::SygusGrammarConsMode sgcm)
+                                    const std::string& fun)
  {
    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
    std::map<TypeNode, std::unordered_set<Node>> include_cons;
    std::unordered_set<Node> term_irrelevant;
-   return mkSygusDefaultType(range,
+   return mkSygusDefaultType(opts, 
+                             range,
                              bvl,
                              fun,
                              extra_cons,
                              exclude_cons,
                              include_cons,
-                             term_irrelevant,
-                             sgcm);
+                             term_irrelevant);
   }
 
   /** make the sygus datatype type that encodes the solution space (lambda

@@ -192,14 +192,14 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     getIncludeCons(axioms, conj, include_cons);
     std::unordered_set<Node> terms_irrelevant;
     itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
+        options(),
         NodeManager::currentNM()->booleanType(),
         d_ibvlShared,
         "interpolation_grammar",
         extra_cons,
         exclude_cons,
         include_cons,
-        terms_irrelevant,
-        options().quantifiers.sygusGrammarConsMode);
+        terms_irrelevant);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;

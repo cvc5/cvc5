@@ -168,14 +168,14 @@ Node CegGrammarConstructor::process(Node q,
       }
 
       // make the default grammar
-      tn = mkSygusDefaultType(preGrammarType,
+      tn = mkSygusDefaultType(options(),
+                              preGrammarType,
                               sfvl,
                               ss.str(),
                               extra_cons,
                               exc_cons,
                               inc_cons,
-                              term_irlv,
-                              options().quantifiers.sygusGrammarConsMode);
+                              term_irlv);
       // print the grammar
       if (isOutputOn(OutputTag::SYGUS_GRAMMAR))
       {
@@ -1455,13 +1455,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     for (unsigned i = 0; i < 4; i++)
     {
       Kind k = i == 0 ? NOT : (i == 1 ? AND : (i == 2 ? OR : ITE));
-      // TODO #1935 ITEs are added to Boolean grammars so that we can infer
-      // unification strategies. We can do away with this if we can infer
-      // unification strategies from and/or/not
-      if (k == ITE && options::sygusUnifPi() == options::SygusUnifPiMode::NONE)
-      {
-        continue;
-      }
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       std::vector<TypeNode> cargs;
       cargs.push_back(unres_bt);
@@ -1493,15 +1486,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 }
 
 TypeNode CegGrammarConstructor::mkSygusDefaultType(
+    const Options& opts,
     TypeNode range,
     Node bvl,
     const std::string& fun,
     std::map<TypeNode, std::unordered_set<Node>>& extra_cons,
     std::map<TypeNode, std::unordered_set<Node>>& exclude_cons,
     std::map<TypeNode, std::unordered_set<Node>>& include_cons,
-    std::unordered_set<Node>& term_irrelevant,
-    options::SygusGrammarConsMode sgcm)
+    std::unordered_set<Node>& term_irrelevant)
 {
+  NodeManager * nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
   for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
            extra_cons.begin();
@@ -1509,6 +1503,14 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
        ++it)
   {
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
+  }
+  // TODO #1935 ITEs are added to Boolean grammars so that we can infer
+  // unification strategies. We can do away with this if we can infer
+  // unification strategies from and/or/not
+  if (opts.quantifiers.sygusUnifPi == options::SygusUnifPiMode::NONE)
+  {
+    TypeNode btype = nm->booleanType();
+    exclude_cons[btype].insert(nm->operatorOf(ITE));
   }
   std::vector<SygusDatatypeGenerator> sdts;
   mkSygusDefaultGrammar(range,
@@ -1519,7 +1521,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         include_cons,
                         term_irrelevant,
                         sdts,
-                        sgcm);
+                        opts.quantifiers.sygusGrammarConsMode);
   // extract the datatypes from the sygus datatype generator objects
   std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
@@ -1529,7 +1531,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
   std::vector<TypeNode> types =
-      NodeManager::currentNM()->mkMutualDatatypeTypes(datatypes);
+      nm->mkMutualDatatypeTypes(datatypes);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
   return types[0];
