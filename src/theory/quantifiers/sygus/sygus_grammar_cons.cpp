@@ -1609,7 +1609,6 @@ void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(
 }
 bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
 {
-  Trace("ajr-temp") << "should include " << op << " ? " << std::endl;
   if (d_exclude_cons.find(op) != d_exclude_cons.end())
   {
     return false;
