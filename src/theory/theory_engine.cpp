@@ -686,28 +686,7 @@ void TheoryEngine::postsolve() {
   d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
-  CVC5_UNUSED bool wasInConflict = d_inConflict;
-
-  try {
-    // Definition of the statement that is to be run by every theory
-#ifdef CVC5_FOR_EACH_THEORY_STATEMENT
-#undef CVC5_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)    \
-  if (theory::TheoryTraits<THEORY>::hasPostsolve) \
-  {                                               \
-    theoryOf(THEORY)->postsolve();                \
-    Assert(!d_inConflict || wasInConflict)        \
-        << "conflict raised during postsolve()";  \
-  }
-
-    // Postsolve for each theory using the statement above
-    CVC5_FOR_EACH_THEORY;
-  } catch(const theory::Interrupted&) {
-    Trace("theory") << "TheoryEngine::postsolve() => interrupted" << endl;
-  }
-}/* TheoryEngine::postsolve() */
-
+}
 
 void TheoryEngine::notifyRestart() {
   // Reset the interrupt flag

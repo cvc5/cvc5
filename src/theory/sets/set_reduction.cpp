@@ -18,7 +18,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/emptyset.h"
 #include "expr/skolem_manager.h"
-#include "theory/datatypes/tuple_utils.h"
+#include "theory/datatypes//project_op.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "util/rational.h"
 
@@ -118,6 +118,45 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   asserts.push_back(union_n_equal);
   asserts.push_back(nonNegative);
   return combine_n;
+}
+
+Node SetReduction::reduceAggregateOperator(Node node)
+{
+  Assert(node.getKind() == RELATION_AGGREGATE);
+  NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  Node function = node[0];
+  TypeNode elementType = function.getType().getArgTypes()[0];
+  Node initialValue = node[1];
+  Node A = node[2];
+
+  ProjectOp op = node.getOperator().getConst<ProjectOp>();
+  Node groupOp = nm->mkConst(RELATION_GROUP_OP, op);
+  Node group = nm->mkNode(RELATION_GROUP, {groupOp, A});
+
+  Node set = bvm->mkBoundVar<FirstIndexVarAttribute>(
+      group, "set", nm->mkSetType(elementType));
+  Node foldList = nm->mkNode(BOUND_VAR_LIST, set);
+  Node foldBody = nm->mkNode(SET_FOLD, function, initialValue, set);
+
+  Node fold = nm->mkNode(LAMBDA, foldList, foldBody);
+  Node map = nm->mkNode(SET_MAP, fold, group);
+  return map;
+}
+
+Node SetReduction::reduceProjectOperator(Node n)
+{
+  Assert(n.getKind() == RELATION_PROJECT);
+  NodeManager* nm = NodeManager::currentNM();
+  Node A = n[0];
+  TypeNode elementType = A.getType().getSetElementType();
+  ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();
+  Node op = nm->mkConst(TUPLE_PROJECT_OP, projectOp);
+  Node t = nm->mkBoundVar("t", elementType);
+  Node projection = nm->mkNode(TUPLE_PROJECT, op, t);
+  Node lambda = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, t), projection);
+  Node setMap = nm->mkNode(SET_MAP, lambda, A);
+  return setMap;
 }
 
 }  // namespace sets

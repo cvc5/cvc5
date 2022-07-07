@@ -89,6 +89,36 @@ operator SET_FILTER        2  "set filter operator"
 #  A: a bag of type (Set T1)
 operator SET_FOLD          3  "set fold operator"
 
+# rel.group operator
+constant RELATION_GROUP_OP \
+  class \
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_GROUP; payload is an instance of the cvc5::internal::ProjectOp class"
+
+parameterized RELATION_GROUP RELATION_GROUP_OP 1 "relation group"
+
+# relation aggregate operator
+constant RELATION_AGGREGATE_OP \
+  class \
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_AGGREGATE; payload is an instance of the cvc5::internal::ProjectOp class"
+
+parameterized RELATION_AGGREGATE RELATION_AGGREGATE_OP 3 "relation aggregate"
+
+# rel.project operator extends datatypes tuple_project operator to a set of tuples
+constant RELATION_PROJECT_OP \
+  class \
+  ProjectOp+ \
+  ::cvc5::internal::ProjectOpHashFunction \
+  "theory/datatypes/project_op.h" \
+  "operator for RELATION_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
+
+parameterized RELATION_PROJECT RELATION_PROJECT_OP 1 "relation projection"
+
 operator RELATION_JOIN 		   2  "relation join"
 operator RELATION_PRODUCT 	   2  "relation cartesian product"
 operator RELATION_TRANSPOSE    1  "relation transpose"
@@ -116,10 +146,16 @@ typerule SET_FOLD           ::cvc5::internal::theory::sets::SetFoldTypeRule
 
 typerule RELATION_JOIN 			::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule
 typerule RELATION_PRODUCT 		::cvc5::internal::theory::sets::RelBinaryOperatorTypeRule
-typerule RELATION_TRANSPOSE 		::cvc5::internal::theory::sets::RelTransposeTypeRule
+typerule RELATION_TRANSPOSE 	::cvc5::internal::theory::sets::RelTransposeTypeRule
 typerule RELATION_TCLOSURE 	    ::cvc5::internal::theory::sets::RelTransClosureTypeRule
-typerule RELATION_JOIN_IMAGE	    ::cvc5::internal::theory::sets::JoinImageTypeRule
+typerule RELATION_JOIN_IMAGE	::cvc5::internal::theory::sets::JoinImageTypeRule
 typerule RELATION_IDEN 			::cvc5::internal::theory::sets::RelIdenTypeRule
+typerule RELATION_GROUP_OP      "SimpleTypeRule<RBuiltinOperator>"
+typerule RELATION_GROUP         ::cvc5::internal::theory::sets::RelationGroupTypeRule
+typerule RELATION_AGGREGATE_OP  "SimpleTypeRule<RBuiltinOperator>"
+typerule RELATION_AGGREGATE     ::cvc5::internal::theory::sets::RelationAggregateTypeRule
+typerule RELATION_PROJECT_OP    "SimpleTypeRule<RBuiltinOperator>"
+typerule RELATION_PROJECT       ::cvc5::internal::theory::sets::RelationProjectTypeRule
 
 construle SET_UNION         ::cvc5::internal::theory::sets::SetsBinaryOperatorTypeRule
 construle SET_SINGLETON     ::cvc5::internal::theory::sets::SingletonTypeRule

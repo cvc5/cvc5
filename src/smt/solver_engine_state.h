@@ -230,7 +230,7 @@ class SolverEngineState : protected EnvObj
   /**
    * Internal status flag to indicate whether we have been issued a
    * notifyCheckSat call and have yet to process the "postsolve" methods of
-   * SolverEngine via SolverEngine::notifyPostSolvePre/notifyPostSolvePost.
+   * SolverEngine via SolverEngine::notifyPostSolve().
    */
   bool d_needPostsolve;
 

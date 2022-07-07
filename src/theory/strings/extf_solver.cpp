@@ -48,7 +48,7 @@ ExtfSolver::ExtfSolver(Env& env,
       d_csolver(cs),
       d_extt(et),
       d_statistics(statistics),
-      d_preproc(d_termReg.getSkolemCache(), &statistics.d_reductions),
+      d_preproc(env, d_termReg.getSkolemCache(), &statistics.d_reductions),
       d_hasExtf(context(), false),
       d_extfInferCache(context()),
       d_reduced(userContext())
