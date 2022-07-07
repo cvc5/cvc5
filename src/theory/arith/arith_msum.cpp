@@ -213,12 +213,6 @@ int ArithMSum::isolate(
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq, Kind k, bool doCoeff)
 {
-  Trace("ajr-temp") << "Isolate " << v << " in ";
-  for (const std::pair<const Node, Node>& m : msum)
-  {
-    Trace("ajr-temp") << m.first << " -> " << m.second << ", ";
-  }
-  Trace("ajr-temp") << std::endl;
   Node veq_c;
   Node val;
   // isolate v in the (in)equality
