@@ -44,7 +44,6 @@ namespace sep {
 
 TheorySep::TheorySep(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_SEP, env, out, valuation),
-      d_lemmas_produced_c(userContext()),
       d_bounds_init(false),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::sep::"),
@@ -409,6 +408,25 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       if (slbl != ss)
       {
         conc = slbl.eqNode(ss);
+      }
+      // if we are not a part of the root label, we require applying downwards
+      // closure, e.g. (SEP_LABEL (pto x y) A) =>
+      // (or (SEP_LABEL (pto x y) B) (SEP_LABEL (pto x y) C)) where
+      // A is the disjoint union of B and C.
+      if (!sharesRootLabel(slbl, d_base_label))
+      {
+        std::map<Node, std::vector<Node> >::iterator itc =
+            d_childrenMap.find(slbl);
+        if (itc != d_childrenMap.end())
+        {
+          std::vector<Node> disjs;
+          for (const Node& c : itc->second)
+          {
+            disjs.push_back(nm->mkNode(SEP_LABEL, satom, c));
+          }
+          Node conc2 = nm->mkNode(OR, disjs);
+          conc = conc.isNull() ? conc2 : nm->mkNode(AND, conc, conc2);
+        }
       }
       // note semantics of sep.nil is enforced globally
     }
@@ -1277,7 +1295,14 @@ Node TheorySep::getLabel( Node atom, int child, Node lbl ) {
 
 void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
 {
+  Trace("sep-debug") << "disjoint heap: " << parent << " for " << children
+                     << std::endl;
   Assert(children.size() >= 2);
+  if (!sharesRootLabel(parent, d_base_label))
+  {
+    Assert(d_childrenMap.find(parent) == d_childrenMap.end());
+    d_childrenMap[parent] = children;
+  }
   // remember parent relationships
   for (const Node& c : children)
   {
