@@ -258,7 +258,9 @@ void Smt2::addSepOperators() {
 void Smt2::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
-  defineType("Table", d_solver->mkBagSort(d_solver->mkTupleSort({})), true);
+  Sort tupleSort = d_solver->mkTupleSort({});
+  defineType("Relation", d_solver->mkSetSort(tupleSort), true);
+  defineType("Table", d_solver->mkBagSort(tupleSort), true);
   defineVar("true", d_solver->mkTrue(), true);
   defineVar("false", d_solver->mkFalse(), true);
   addOperator(cvc5::AND, "and");
@@ -1131,7 +1133,8 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
            || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
            || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
-           || p.d_kind == cvc5::RELATION_AGGREGATE)
+           || p.d_kind == cvc5::RELATION_AGGREGATE
+           || p.d_kind == cvc5::RELATION_PROJECT)
   {
     cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
