@@ -2,15 +2,15 @@
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status
 (set-logic LIA)
 
-(synth-fun max ((x Int) (y Int)) Int)
-;  ((Start Int) (StartBool Bool))
-;  ((Start Int (0 1 x y
-;               (+ Start Start)
-;               (- Start Start)
-;               (ite StartBool Start Start)))
-;   (StartBool Bool ((and StartBool StartBool)
-;                    (not StartBool)
-;                    (<= Start Start)))))
+(synth-fun max ((x Int) (y Int)) Int
+  ((Start Int) (StartBool Bool))
+  ((Start Int (0 1 x y
+               (+ Start Start)
+               (- Start Start)
+               (ite StartBool Start Start)))
+   (StartBool Bool ((and StartBool StartBool)
+                    (not StartBool)
+                    (<= Start Start)))))
 
 ;(synth-fun min ((x Int) (y Int)) Int
 ;  ((Start Int) (StartBool Bool))
