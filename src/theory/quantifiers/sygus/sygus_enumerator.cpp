@@ -39,7 +39,7 @@ SygusEnumerator::SygusEnumerator(Env& env,
                                  SygusStatistics* s,
                                  bool enumShapes,
                                  bool enumAnyConstHoles,
-                  size_t numConstants)
+                                 size_t numConstants)
     : EnumValGenerator(env),
       d_tds(tds),
       d_sec(sec),
@@ -1149,8 +1149,13 @@ Node SygusEnumerator::TermEnumMaster::convertShape(
   return visited[n];
 }
 
-SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn, size_t numConstants)
-    : TermEnum(), d_te(tn), d_currNumConsts(0), d_nextIndexEnd(0), d_enumNumConsts(numConstants)
+SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn,
+                                                            size_t numConstants)
+    : TermEnum(),
+      d_te(tn),
+      d_currNumConsts(0),
+      d_nextIndexEnd(0),
+      d_enumNumConsts(numConstants)
 {
 }
 

@@ -476,8 +476,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currNumConsts;
     /** the next end threshold */
     unsigned d_nextIndexEnd;
-  /** The number of interpreted constants to consider for each size */
-  size_t d_enumNumConsts;
+    /** The number of interpreted constants to consider for each size */
+    size_t d_enumNumConsts;
   };
   /** a free variable enumerator
    *
