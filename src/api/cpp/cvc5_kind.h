@@ -3398,6 +3398,26 @@ enum Kind : int32_t
    * \endrst
    */
   RELATION_AGGREGATE,
+  /**
+   * Relation projection operator extends tuple projection operator to sets.
+   *
+   * - Arity: ``1``
+   *   - ``1:`` Term of relation Sort
+   *
+   * - Indices: ``n``
+   *   - ``1..n:`` Indices of the projection
+   *
+   * - Create Term of this Kind with:
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   * \rst
+   * .. warning:: This kind is experimental and may be changed or removed in
+   *              future versions.
+   * \endrst
+   */
+  RELATION_PROJECT,
 
   /* Bags ------------------------------------------------------------------ */
 
