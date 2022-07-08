@@ -255,9 +255,9 @@ public:
      case kind::ARCSECANT:
      case kind::ARCCOTANGENT:
      case kind::SQRT:
-     case kind::PI: 
+     case kind::PI:
      case kind::INT_TO_BITVECTOR:
-     case kind::BITVECTOR_TO_NAT:return areChildrenPolynomialMembers(n);
+     case kind::BITVECTOR_TO_NAT: return areChildrenPolynomialMembers(n);
      case kind::ABS:
      case kind::TO_INTEGER:
        // Treat to_int as a variable; it is replaced in early preprocessing
