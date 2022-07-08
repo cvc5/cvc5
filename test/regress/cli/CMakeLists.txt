@@ -733,6 +733,7 @@ set(regress_0_tests
   regress0/ineq_basic.smtv1.smt2
   regress0/ineq_slack.smtv1.smt2
   regress0/int-to-bv/basic.smt2
+  regress0/int-to-bv/issue8935-unsupported-operators.smt2
   regress0/int-to-bv/neg-consts.smt2
   regress0/int-to-bv/not-enough-bits.smt2
   regress0/int-to-bv/overflow.smt2
