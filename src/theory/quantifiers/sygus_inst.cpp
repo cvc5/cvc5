@@ -357,7 +357,7 @@ bool SygusInst::checkCompleteFor(Node q)
 void SygusInst::registerQuantifier(Node q)
 {
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
-  
+
   if (!shouldProcess(q))
   {
     return;
