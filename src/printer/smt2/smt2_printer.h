@@ -253,14 +253,14 @@ class Smt2Printer : public cvc5::internal::Printer
 
   /**
    * Get the string for a kind k, which returns how the kind k is printed in
-   * the SMT-LIB format (with variant v).
+   * the SMT-LIB format.
    */
-  static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
+  static std::string smtKindString(Kind k);
   /**
    * Same as above, but also takes into account the type of the node, which
    * makes a difference for printing sequences.
    */
-  static std::string smtKindStringOf(const Node& n, Variant v = smt2_6_variant);
+  static std::string smtKindStringOf(const Node& n);
   /**
    * Get the string corresponding to the sygus datatype t printed as a grammar.
    */
