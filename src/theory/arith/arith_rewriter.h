@@ -96,7 +96,7 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse rewriteBVToNat(TNode node);
   /** rewrite int2bv */
   static RewriteResponse rewriteIntToBV(TNode node);
-  
+
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
   /** The operator elimination utility */

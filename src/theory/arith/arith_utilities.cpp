@@ -15,10 +15,10 @@
 
 #include "theory/arith/arith_utilities.h"
 
+#include <cmath>
+
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
-
-#include <cmath>
 
 using namespace cvc5::internal::kind;
 

@@ -346,14 +346,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         ss << "  " << t;
         throw LogicException(ss.str());
       }
-    case kind::BITVECTOR_TO_NAT:
-      return rewriteBVToNat(t);
-    case kind::INT_TO_BITVECTOR:
-      return rewriteIntToBV(t);
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default:
-      Unreachable();
+      case kind::BITVECTOR_TO_NAT: return rewriteBVToNat(t);
+      case kind::INT_TO_BITVECTOR: return rewriteIntToBV(t);
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unreachable();
     }
   }
 }
@@ -1115,22 +1111,24 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-RewriteResponse ArithRewriter::rewriteBVToNat(TNode node) {
+RewriteResponse ArithRewriter::rewriteBVToNat(TNode node)
+{
   if (node[0].isConst())
   {
     Node resultNode = eliminateBv2Nat(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  return RewriteResponse(REWRITE_DONE, node); 
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse ArithRewriter::rewriteIntToBV(TNode node) {
+RewriteResponse ArithRewriter::rewriteIntToBV(TNode node)
+{
   if (node[0].isConst())
   {
     Node resultNode = eliminateInt2Bv(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
-  return RewriteResponse(REWRITE_DONE, node); 
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 TrustNode ArithRewriter::expandDefinition(Node node)
