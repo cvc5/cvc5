@@ -357,6 +357,11 @@ bool SygusInst::checkCompleteFor(Node q)
 void SygusInst::registerQuantifier(Node q)
 {
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
+  
+  if (!shouldProcess(q))
+  {
+    return;
+  }
 
   Trace("sygus-inst") << "Register " << q << std::endl;
 
@@ -463,6 +468,10 @@ void SygusInst::registerQuantifier(Node q)
  */
 void SygusInst::preRegisterQuantifier(Node q)
 {
+  if (!shouldProcess(q))
+  {
+    return;
+  }
   Trace("sygus-inst") << "preRegister " << q << std::endl;
   addCeLemma(q);
 }
