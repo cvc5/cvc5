@@ -16,6 +16,7 @@
 #include "theory/arith/theory_arith_type_rules.h"
 
 #include "util/rational.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
