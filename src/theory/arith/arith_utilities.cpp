@@ -15,6 +15,9 @@
 
 #include "theory/arith/arith_utilities.h"
 
+#include "theory/bv/theory_bv_utils.h"
+#include "util/bitvector.h"
+
 #include <cmath>
 
 using namespace cvc5::internal::kind;
@@ -311,10 +314,10 @@ std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
 
 Node eliminateBv2Nat(TNode node)
 {
-  const unsigned size = utils::getSize(node[0]);
+  const unsigned size = bv::utils::getSize(node[0]);
   NodeManager* const nm = NodeManager::currentNM();
   const Node z = nm->mkConstInt(Rational(0));
-  const Node bvone = utils::mkOne(1);
+  const Node bvone = bv::utils::mkOne(1);
 
   Integer i = 1;
   std::vector<Node> children;
@@ -335,8 +338,8 @@ Node eliminateInt2Bv(TNode node)
 {
   const uint32_t size = node.getOperator().getConst<IntToBitVector>().d_size;
   NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = utils::mkZero(1);
-  const Node bvone = utils::mkOne(1);
+  const Node bvzero = bv::utils::mkZero(1);
+  const Node bvone = bv::utils::mkOne(1);
 
   std::vector<Node> v;
   Integer i = 2;
