@@ -61,16 +61,6 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
     case kind::BITVECTOR_SDIV:
     case kind::BITVECTOR_SREM:
     case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
-    case kind::BITVECTOR_TO_NAT:
-
-        ret = utils::eliminateBv2Nat(node);
-      
-      break;
-    case kind::INT_TO_BITVECTOR:
-
-        ret = utils::eliminateInt2Bv(node);
-      
-      break;
     default: break;
   }
   if (!ret.isNull() && node != ret)
@@ -756,9 +746,6 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
-
-  d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
-  d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;
 }
 
 Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {

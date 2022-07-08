@@ -210,6 +210,43 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+
+TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
+                                               TNode n,
+                                               bool check)
+{
+  Assert(n.getKind() == kind::INT_TO_BITVECTOR_OP);
+  size_t bvSize = n.getConst<IntToBitVector>();
+  if (bvSize == 0)
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
+  }
+  return nodeManager->mkFunctionType(nodeManager->integerType(),
+                                     nodeManager->mkBitVectorType(bvSize));
+}
+
+TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
+                                                  TNode n,
+                                                  bool check)
+{
+  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    if (check && !n[0].getType(check).isBitVector())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+    }
+    return nodeManager->integerType();
+  }
+
+  Assert(n.getKind() == kind::INT_TO_BITVECTOR);
+  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+  if (check && !n[0].getType(check).isInteger())
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting integer term");
+  }
+  return nodeManager->mkBitVectorType(bvSize);
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal
