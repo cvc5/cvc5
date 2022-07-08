@@ -393,13 +393,8 @@ Node OperatorElim::eliminateOperators(Node node,
       return var;
     }
 
-    case BITVECTOR_TO_NAT:
-      return eliminateBv2Nat(node);
-      
-      break;
-    case INT_TO_BITVECTOR:
-      return eliminateInt2Bv(node);
-      break;
+    case BITVECTOR_TO_NAT: return eliminateBv2Nat(node); break;
+    case INT_TO_BITVECTOR: return eliminateInt2Bv(node); break;
     default: break;
   }
   return node;

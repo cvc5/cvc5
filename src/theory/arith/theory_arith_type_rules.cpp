@@ -210,7 +210,6 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-
 TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check)

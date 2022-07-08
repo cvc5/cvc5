@@ -307,7 +307,6 @@ std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
   return {a, nm->mkNode(kind::TO_REAL, b)};
 }
 
-
 /* ------------------------------------------------------------------------- */
 
 Node eliminateBv2Nat(TNode node)
