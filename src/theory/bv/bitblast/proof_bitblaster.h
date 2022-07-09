@@ -36,7 +36,6 @@ class BBProof : protected EnvObj
  public:
   BBProof(Env& env,
           TheoryState* state,
-          ProofNodeManager* pnm,
           bool fineGrained);
   ~BBProof();
 
@@ -64,8 +63,6 @@ class BBProof : protected EnvObj
 
   /** The associated simple bit-blaster. */
   std::unique_ptr<NodeBitblaster> d_bb;
-  /** The associated proof node manager. */
-  ProofNodeManager* d_pnm;
   /** Term context for d_tcpg to not rewrite below BV leafs. */
   std::unique_ptr<TermContext> d_tcontext;
   /** Term conversion proof generator for bit-blast steps. */
