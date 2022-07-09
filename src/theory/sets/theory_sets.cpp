@@ -34,8 +34,8 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
       d_cpacb(*this),
-      d_internal(new TheorySetsPrivate(
-          env, *this, d_state, d_im, d_skCache, d_pnm, d_cpacb)),
+      d_internal(
+          new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_cpacb)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -168,9 +168,14 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     d_im.lemma(andNode, InferenceId::BAGS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  if (nk == TABLE_AGGREGATE)
+  if (nk == RELATION_AGGREGATE)
   {
     Node ret = SetReduction::reduceAggregateOperator(n);
+    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+  }
+  if (nk == RELATION_PROJECT)
+  {
+    Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(ret, ret, nullptr);
   }
   return d_internal->ppRewrite(n, lems);

@@ -19,16 +19,17 @@
 #include "proof/proof_node_algorithm.h"
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 namespace prop {
 
-PropPfManager::PropPfManager(context::UserContext* userContext,
-                             ProofNodeManager* pnm,
+PropPfManager::PropPfManager(Env& env,
+                             context::UserContext* userContext,
                              CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
-    : d_pnm(pnm),
-      d_pfpp(new ProofPostproccess(pnm, cnfProof)),
+    : EnvObj(env),
+      d_pfpp(new ProofPostproccess(env, cnfProof)),
       d_satSolver(satSolver),
       d_assertions(userContext)
 {
@@ -60,8 +61,11 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
     d_assertions.push_back(assertion);
   }
   std::vector<Node> avec{d_assertions.begin(), d_assertions.end()};
-  pfnEnsureClosedWrt(
-      conflictProof.get(), avec, "sat-proof", "PropPfManager::checkProof");
+  pfnEnsureClosedWrt(options(),
+                     conflictProof.get(),
+                     avec,
+                     "sat-proof",
+                     "PropPfManager::checkProof");
 }
 
 std::shared_ptr<ProofNode> PropPfManager::getProof()

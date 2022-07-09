@@ -18,16 +18,17 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-CDProof::CDProof(ProofNodeManager* pnm,
+CDProof::CDProof(Env& env,
                  context::Context* c,
                  const std::string& name,
                  bool autoSymm)
-    : d_manager(pnm),
+    : EnvObj(env),
       d_context(),
       d_nodes(c ? c : &d_context),
       d_name(name),
@@ -47,8 +48,9 @@ std::shared_ptr<ProofNode> CDProof::getProofFor(Node fact)
   // add as assumption
   std::vector<Node> pargs = {fact};
   std::vector<std::shared_ptr<ProofNode>> passume;
+  ProofNodeManager* pnm = getManager();
   std::shared_ptr<ProofNode> pfa =
-      d_manager->mkNode(PfRule::ASSUME, passume, pargs, fact);
+      pnm->mkNode(PfRule::ASSUME, passume, pargs, fact);
   d_nodes.insert(fact, pfa);
   return pfa;
 }
@@ -94,10 +96,11 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
     std::vector<std::shared_ptr<ProofNode>> pschild;
     pschild.push_back(pfs);
     std::vector<Node> args;
+    ProofNodeManager* pnm = getManager();
     if (pf == nullptr)
     {
       Trace("cdproof") << "...fresh make symm" << std::endl;
-      std::shared_ptr<ProofNode> psym = d_manager->mkSymm(pfs, fact);
+      std::shared_ptr<ProofNode> psym = pnm->mkSymm(pfs, fact);
       Assert(psym != nullptr);
       d_nodes.insert(fact, psym);
       return psym;
@@ -107,7 +110,7 @@ std::shared_ptr<ProofNode> CDProof::getProofSymm(Node fact)
       // if its not an assumption, make the connection
       Trace("cdproof") << "...update symm" << std::endl;
       // update pf
-      bool sret = d_manager->updateNode(pf.get(), PfRule::SYMM, pschild, args);
+      bool sret = pnm->updateNode(pf.get(), PfRule::SYMM, pschild, args);
       AlwaysAssert(sret);
     }
   }
@@ -151,6 +154,7 @@ bool CDProof::addStep(Node expected,
     // we will overwrite the existing proof node by updating its contents below
   }
   // collect the child proofs, for each premise
+  ProofNodeManager* pnm = getManager();
   std::vector<std::shared_ptr<ProofNode>> pchildren;
   for (const Node& c : children)
   {
@@ -168,7 +172,7 @@ bool CDProof::addStep(Node expected,
       // otherwise, we initialize it as an assumption
       std::vector<Node> pcargs = {c};
       std::vector<std::shared_ptr<ProofNode>> pcassume;
-      pc = d_manager->mkNode(PfRule::ASSUME, pcassume, pcargs, c);
+      pc = pnm->mkNode(PfRule::ASSUME, pcassume, pcargs, c);
       // assumptions never fail to check
       Assert(pc != nullptr);
       d_nodes.insert(c, pc);
@@ -194,7 +198,7 @@ bool CDProof::addStep(Node expected,
   if (pprev == nullptr)
   {
     Trace("cdproof") << "  new node " << expected << "..." << std::endl;
-    pthis = d_manager->mkNode(id, pchildren, args, expected);
+    pthis = pnm->mkNode(id, pchildren, args, expected);
     if (pthis == nullptr)
     {
       // failed to construct the node, perhaps due to a proof checking failure
@@ -211,7 +215,7 @@ bool CDProof::addStep(Node expected,
     // We return the value of updateNode here. This means this method may return
     // false if this call failed, regardless of whether we already have a proof
     // step for expected.
-    ret = d_manager->updateNode(pthis.get(), id, pchildren, args);
+    ret = pnm->updateNode(pthis.get(), id, pchildren, args);
   }
   if (ret)
   {
@@ -316,8 +320,9 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // checker than the one of the manager in this class, then it is double
       // checked here, so that this class maintains the invariant that all of
       // its nodes in d_nodes have been checked by the underlying checker.
-      Assert(d_manager->getChecker() == nullptr
-             || d_manager->getChecker()->check(pn.get(), curFact) == curFact);
+      Assert(getManager()->getChecker() == nullptr
+             || getManager()->getChecker()->check(pn.get(), curFact)
+                    == curFact);
       // just store the proof for fact
       d_nodes.insert(curFact, pn);
     }
@@ -326,7 +331,7 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       // We update cur to have the structure of the top node of pn. Notice that
       // the interface to update this node will ensure that the proof apf is a
       // proof of the assumption. If it does not, then pn was wrong.
-      if (!d_manager->updateNode(
+      if (!getManager()->updateNode(
               cur.get(), pn->getRule(), pn->getChildren(), pn->getArguments()))
       {
         return false;
@@ -410,7 +415,12 @@ bool CDProof::hasStep(Node fact)
 
 size_t CDProof::getNumProofNodes() const { return d_nodes.size(); }
 
-ProofNodeManager* CDProof::getManager() const { return d_manager; }
+ProofNodeManager* CDProof::getManager() const
+{
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
+  return pnm;
+}
 
 bool CDProof::shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol)
 {
