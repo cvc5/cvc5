@@ -224,6 +224,17 @@ struct RelationGroupTypeRule
 }; /* struct RelationGroupTypeRule */
 
 /**
+ * Relation project is indexed by a list of indices (n_1, ..., n_m). It ensures
+ * that the argument is a set of tuples whose arity k is greater than each n_i
+ * for i = 1, ..., m. If the argument is of type (Relation T_1 ... T_k), then
+ * the returned type is (Relation T_{n_1} ... T_{n_m}).
+ */
+struct RelationProjectTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct RelationProjectTypeRule */
+
+/**
  * Relation aggregate operator is indexed by a list of indices (n_1, ..., n_k).
  * It ensures that it has 3 arguments:
  * - A combining function of type (-> (Tuple T_1 ... T_j) T T)
