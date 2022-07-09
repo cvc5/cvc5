@@ -19,6 +19,7 @@
 #include "proof/proof_ensure_closed.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
@@ -50,11 +51,11 @@ bool ProofNodeUpdaterCallback::updatePost(Node res,
   return false;
 }
 
-ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
+ProofNodeUpdater::ProofNodeUpdater(Env& env,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
                                    bool autoSym)
-    : d_pnm(pnm),
+    : EnvObj(env),
       d_cb(cb),
       d_debugFreeAssumps(false),
       d_mergeSubproofs(mergeSubproofs),
@@ -111,6 +112,8 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
   visit.push_back(pf);
   std::map<Node, std::shared_ptr<ProofNode>>::iterator itc;
   Node res;
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
   do
   {
     cur = visit.back();
@@ -126,7 +129,7 @@ void ProofNodeUpdater::processInternal(std::shared_ptr<ProofNode> pf,
         {
           // already have a proof, merge it into this one
           visited[cur] = true;
-          d_pnm->updateNode(cur.get(), itc->second.get());
+          pnm->updateNode(cur.get(), itc->second.get());
           // does not contain free assumptions since the range of resCache does
           // not contain free assumptions
           cfaMap[cur.get()] = false;
@@ -200,7 +203,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
 {
   PfRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
-  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
+  CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
   std::vector<Node> ccn;
   for (const std::shared_ptr<ProofNode>& cp : cc)
@@ -227,7 +230,7 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
     }
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_pnm->updateNode(cur.get(), npn.get());
+    d_env.getProofNodeManager()->updateNode(cur.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
     if (d_debugFreeAssumps)
     {
@@ -236,8 +239,11 @@ bool ProofNodeUpdater::updateProofNode(std::shared_ptr<ProofNode> cur,
       // the proof. We can now debug based on the expected set of free
       // assumptions.
       Trace("pfnu-debug") << "Ensure updated closed..." << std::endl;
-      pfnEnsureClosedWrt(
-          npn.get(), fullFa, "pfnu-debug", "ProofNodeUpdater:postupdate");
+      pfnEnsureClosedWrt(options(),
+                         npn.get(),
+                         fullFa,
+                         "pfnu-debug",
+                         "ProofNodeUpdater:postupdate");
     }
     Trace("pf-process-debug") << "..finished" << std::endl;
     return true;
@@ -286,9 +292,10 @@ void ProofNodeUpdater::runFinalize(
           resCacheNcWaiting.find(res);
       if (itnw != resCacheNcWaiting.end())
       {
+        ProofNodeManager* pnm = d_env.getProofNodeManager();
         for (std::shared_ptr<ProofNode>& ncp : itnw->second)
         {
-          d_pnm->updateNode(ncp.get(), cur.get());
+          pnm->updateNode(ncp.get(), cur.get());
         }
         resCacheNcWaiting.erase(res);
       }
@@ -305,7 +312,7 @@ void ProofNodeUpdater::runFinalize(
     // assumptions.
     Trace("pfnu-debug") << "Ensure update closed..." << std::endl;
     pfnEnsureClosedWrt(
-        cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
+        options(), cur.get(), fa, "pfnu-debug", "ProofNodeUpdater:finalize");
   }
 }
 

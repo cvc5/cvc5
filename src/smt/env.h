@@ -267,7 +267,7 @@ class Env
   /* Private initialization ------------------------------------------------- */
 
   /** Set proof node manager if it exists */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  void finishInit(ProofNodeManager* pnm);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
