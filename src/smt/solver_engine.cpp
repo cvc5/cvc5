@@ -188,6 +188,7 @@ void SolverEngine::finishInit()
   SetDefaults sdefaults(*d_env, d_isInternalSubsolver);
   sdefaults.setDefaults(d_env->d_logic, getOptions());
 
+  ProofNodeManager* pnm = nullptr;
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
@@ -201,7 +202,10 @@ void SolverEngine::finishInit()
     d_asserts->enableProofs(pppg);
     // enabled proofs in the preprocessor
     d_smtSolver->getPreprocessor()->enableProofs(pppg);
+    pnm = d_pfManager->getProofNodeManager();
   }
+  // enable proof support in the environment/rewriter
+  d_env->finishInit(pnm);
 
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
   d_smtSolver->finishInit();

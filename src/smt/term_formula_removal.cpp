@@ -42,20 +42,20 @@ RemoveTermFormulas::RemoveTermFormulas(Env& env)
   if (pnm != nullptr)
   {
     d_tpg.reset(
-        new TConvProofGenerator(pnm,
+        new TConvProofGenerator(env,
                                 nullptr,
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "RemoveTermFormulas::TConvProofGenerator",
                                 &d_rtfc));
     d_tpgi.reset(
-        new TConvProofGenerator(pnm,
+        new TConvProofGenerator(env,
                                 nullptr,
                                 TConvPolicy::ONCE,
                                 TConvCachePolicy::NEVER,
                                 "RemoveTermFormulas::TConvProofGenerator"));
     d_lp.reset(new LazyCDProof(
-        pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
+        env, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
 }
 
@@ -475,8 +475,8 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
       newLem = TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
-      newLem.debugCheckClosed("rtf-proof-debug",
-                              "RemoveTermFormulas::run:new_assert");
+      newLem.debugCheckClosed(
+          options(), "rtf-proof-debug", "RemoveTermFormulas::run:new_assert");
     }
 
     // The representation is now the skolem

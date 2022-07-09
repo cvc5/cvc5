@@ -51,7 +51,7 @@ class LazyCDProof : public CDProof
    * to getProofFor, even if new steps are provided to this class in the
    * meantime.
    */
-  LazyCDProof(ProofNodeManager* pnm,
+  LazyCDProof(Env& env,
               ProofGenerator* dpg = nullptr,
               context::Context* c = nullptr,
               const std::string& name = "LazyCDProof",
