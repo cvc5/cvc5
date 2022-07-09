@@ -68,6 +68,9 @@ set(regress_0_tests
   regress0/arith/issue8097-iid.smt2
   regress0/arith/issue8159-rewrite-intreal.smt2
   regress0/arith/issue8805-mixed-var-elim.smt2
+  regress0/arith/issue8905-pi-to-int.smt2
+  regress0/arith/issue8872-msum-types.smt2
+  regress0/arith/issue8872-2-msum-types.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -829,6 +832,7 @@ set(regress_0_tests
   regress0/nl/issue8744-real-cov.smt2
   regress0/nl/issue8755-nl-logic-exception.smt2
   regress0/nl/issue8835-int-second.smt2
+  regress0/nl/issue8934-lr-int-mod-range.smt2
   regress0/nl/lazard-spurious-root.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -1209,6 +1213,7 @@ set(regress_0_tests
   regress0/sep/issue5343-err.smt2
   regress0/sep/issue8659-wand-diff-heaps.smt2
   regress0/sep/issue8841-neg-prop.smt2
+  regress0/sep/issue8863-downwards-pto.smt2
   regress0/sep/nemp.smt2
   regress0/sep/nil-no-elim.smt2
   regress0/sep/nspatial-simp.smt2
@@ -1840,10 +1845,15 @@ set(regress_1_tests
   regress1/bags/subbag2.smt2
   regress1/bags/table_aggregate1.smt2
   regress1/bags/table_group1.smt2
+  regress1/bags/table_group2.smt2
+  regress1/bags/table_group3.smt2
+  regress1/bags/table_group4.smt2
+  regress1/bags/table_group5.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
   regress1/bags/table_project1.smt2
+  regress1/bags/table_project2.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
@@ -2049,6 +2059,7 @@ set(regress_1_tests
   regress1/nl/issue8052-iand-rewrite.smt2
   regress1/nl/issue8118-elim-sin.smt2
   regress1/nl/issue8162-drop-pi-bound.smt2
+  regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -2434,6 +2445,7 @@ set(regress_1_tests
   regress1/sep/wand-simp-unsat.smt2
   regress1/seq/issue8148-2-const-mv.smt2
   regress1/seq/issue8148-const-mv.smt2
+  regress1/seq/issue8936-nth-eager-red.smt2
   regress1/sets/choose.cvc.smt2
   regress1/sets/choose1.smt2
   regress1/sets/choose2.smt2
@@ -2501,6 +2513,14 @@ set(regress_1_tests
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
   regress1/sets/proj-issue494-finite-leafof.smt2
+  regress1/sets/relation_aggregate1.smt2
+  regress1/sets/relation_group1.smt2
+  regress1/sets/relation_group2.smt2
+  regress1/sets/relation_group3.smt2
+  regress1/sets/relation_group4.smt2
+  regress1/sets/relation_group5.smt2
+  regress1/sets/relation_project1.smt2
+  regress1/sets/relation_project2.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
@@ -2510,6 +2530,9 @@ set(regress_1_tests
   regress1/sets/set_filter2.smt2
   regress1/sets/set_filter3.smt2
   regress1/sets/set_filter4.smt2
+  regress1/sets/set_fold1.smt2
+  regress1/sets/set_fold2.smt2
+  regress1/sets/set_fold3.smt2
   regress1/sets/set_map_card_incomplete.smt2
   regress1/sets/set_map_negative_members.smt2
   regress1/sets/set_map_positive_members.smt2
@@ -2623,6 +2646,13 @@ set(regress_1_tests
   regress1/strings/issue8094-witness-model.smt2
   regress1/strings/issue8347-has-skolem.smt2
   regress1/strings/issue8434-nterm-str-rw.smt2
+  regress1/strings/issue8890-inj-oob.smt2
+  regress1/strings/issue8906-oob-exp.smt2
+  regress1/strings/issue8915-str-unit-model.smt2
+  regress1/strings/issue8916-str-unit-pairs.smt2
+  regress1/strings/issue8918-str-nth-crange-red.smt2
+  regress1/strings/issue8932-cmi-unit.smt2
+  regress1/strings/issue8944-sygus-inst.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2652,6 +2682,7 @@ set(regress_1_tests
   regress1/strings/proj-issue281.smt2
   regress1/strings/proj-issue331.smt2
   regress1/strings/proj-issue502-merge-type.smt2
+  regress1/strings/prop-engine-order.smt2
   regress1/strings/query4674.smt2
   regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2
@@ -3098,6 +3129,7 @@ set(regress_3_tests
   regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
   regress3/strings/indexof_re_red.smt2
+  regress3/strings/issue8926-sygus-inst.smt2
   regress3/strings/norn-dis-0707-3.smt2
   regress3/strings/replace_re_all.smt2
   regress3/unbdd_inv_gen_ex7.sy

@@ -17,7 +17,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
-#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
@@ -712,7 +711,7 @@ void Instantiate::notifyEndRound()
   }
   if (isOutputOn(OutputTag::INST))
   {
-    bool req = !options().printer.printInstFull;
+    bool req = !options().quantifiers.printInstFull;
     for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
       Node name;

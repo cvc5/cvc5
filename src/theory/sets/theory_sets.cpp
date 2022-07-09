@@ -16,6 +16,7 @@
 #include "theory/sets/theory_sets.h"
 
 #include "options/sets_options.h"
+#include "theory/sets/set_reduction.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory_model.h"
@@ -157,6 +158,25 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       ss << "Set comprehensions require quantifiers in the background logic.";
       throw LogicException(ss.str());
     }
+  }
+  if (nk == SET_FOLD)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceFoldOperator(n, asserts);
+    NodeManager* nm = NodeManager::currentNM();
+    Node andNode = nm->mkNode(AND, asserts);
+    d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  if (nk == RELATION_AGGREGATE)
+  {
+    Node ret = SetReduction::reduceAggregateOperator(n);
+    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+  }
+  if (nk == RELATION_PROJECT)
+  {
+    Node ret = SetReduction::reduceProjectOperator(n);
+    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
   }
   return d_internal->ppRewrite(n, lems);
 }

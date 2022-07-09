@@ -150,6 +150,15 @@ struct SetFilterTypeRule
 }; /* struct SetFilterTypeRule */
 
 /**
+ * Type rule for (set.fold f t A) to make sure f is a binary operation of type
+ * (-> T1 T2 T2), t of type T2, and A is a set of type (Set T1)
+ */
+struct SetFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct SetFoldTypeRule */
+
+/**
  * Type rule for binary operators (rel.join, rel.product) to check
  * if the two arguments are relations (set of tuples).
  * For arguments A of type (Relation A1 ... Am) and B of type
@@ -202,6 +211,41 @@ struct RelIdenTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
+
+/**
+ * Relation group operator is indexed by a list of indices (n_1, ..., n_k). It
+ * ensures that the argument is a relation whose arity is greater than each n_i
+ * for i = 1, ..., k. If the passed relation is of type T, then the returned
+ * type is (Set T), i.e., set of relations.
+ */
+struct RelationGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct RelationGroupTypeRule */
+
+/**
+ * Relation project is indexed by a list of indices (n_1, ..., n_m). It ensures
+ * that the argument is a set of tuples whose arity k is greater than each n_i
+ * for i = 1, ..., m. If the argument is of type (Relation T_1 ... T_k), then
+ * the returned type is (Relation T_{n_1} ... T_{n_m}).
+ */
+struct RelationProjectTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct RelationProjectTypeRule */
+
+/**
+ * Relation aggregate operator is indexed by a list of indices (n_1, ..., n_k).
+ * It ensures that it has 3 arguments:
+ * - A combining function of type (-> (Tuple T_1 ... T_j) T T)
+ * - Initial value of type T
+ * - A relation of type (Relation T_1 ... T_j) where 0 <= n_1, ..., n_k < j
+ * the returned type is (Relation T).
+ */
+struct RelationAggregateTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct RelationAggregateTypeRule */
 
 struct SetsProperties
 {

@@ -223,6 +223,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
       Trace("te-lemma") << "Lemma, new lemma: " << lem.d_lemma.getProven()
                         << " (skolem is " << lem.d_skolem << ")" << std::endl;
     }
+    Trace("te-lemma") << "removable = " << removable << std::endl;
   }
 
   // now, assert the lemmas
@@ -292,18 +293,37 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // Assert to decision engine first.
+  if (!removable)
+  {
+    // notify skolem definitions first to ensure that the computation of
+    // when a literal contains a skolem is accurate in the calls below.
+    Trace("prop") << "Notify skolem definitions..." << std::endl;
+    for (const theory::SkolemLemma& lem : ppLemmas)
+    {
+      d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
+    }
+  }
+  // Assert to the SAT solver first
+  Trace("prop") << "Push to SAT..." << std::endl;
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
+  }
   // Note that this order is important for theories that send lemmas during
   // preregistration, as it impacts the order in which lemmas are processed
   // by default by the decision engine. In particular, sending to the SAT
   // solver first means that lemmas sent during preregistration in response to
   // the current lemma are processed after that lemma. This makes a difference
   // e.g. for string reduction lemmas, where preregistration lemmas are
-  // introduced for skolems that appear in reductions. Moving this
-  // block after the one below has mixed (trending negative) performance on
-  // SMT-LIB strings logics.
+  // introduced for skolems that appear in reductions. Moving the above
+  // block after the one below has mixed performance on SMT-LIB strings logics.
   if (!removable)
   {
+    Trace("prop") << "Notify assertions..." << std::endl;
     // also add to the decision engine, where notice we don't need proofs
     if (!trn.isNull())
     {
@@ -315,14 +335,7 @@ void PropEngine::assertLemmasInternal(
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
   }
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
+  Trace("prop") << "Finish " << trn << std::endl;
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {

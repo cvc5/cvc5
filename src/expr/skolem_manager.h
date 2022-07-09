@@ -169,6 +169,28 @@ enum class SkolemFunId
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
   BAGS_DEQ_DIFF,
+  /** Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Table T))
+   */
+  TABLES_GROUP_PART,
+  /**
+   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * and a part B of type (Table T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  TABLES_GROUP_PART_ELEMENT,
+  /** Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Relation T))
+   */
+  RELATIONS_GROUP_PART,
+  /**
+   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * and a part B of type (Relation T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  RELATIONS_GROUP_PART_ELEMENT,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))
@@ -182,6 +204,10 @@ enum class SkolemFunId
   SETS_CHOOSE,
   /** set diff to witness (not (= A B)) */
   SETS_DEQ_DIFF,
+  SETS_FOLD_CARD,
+  SETS_FOLD_COMBINE,
+  SETS_FOLD_ELEMENTS,
+  SETS_FOLD_UNION,
   /**
    * A skolem variable that is unique per terms (set.map f A), y which is an
    * element in (set.map f A). The skolem is constrained to be an element in A,

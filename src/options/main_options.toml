@@ -174,3 +174,11 @@ name   = "Driver"
   type       = "uint64_t"
   default    = "1"
   help       = "Number of parallel jobs the portfolio engine can run"
+
+[[option]]
+  name       = "printSuccess"
+  category   = "common"
+  long       = "print-success"
+  type       = "bool"
+  default    = "false"
+  help       = "print the \"success\" output required of SMT-LIBv2"

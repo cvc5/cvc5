@@ -15,15 +15,20 @@
 
 #include "theory/sets/theory_sets_type_rules.h"
 
-#include <climits>
 #include <sstream>
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "theory/sets/normal_form.h"
 #include "util/cardinality.h"
+#include "theory/datatypes/project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace sets {
+
+using namespace cvc5::internal::theory::datatypes;
 
 TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
@@ -356,6 +361,57 @@ TypeNode SetFilterTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
+TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
+                                      TNode n,
+                                      bool check)
+{
+  Assert(n.getKind() == kind::SET_FOLD);
+  TypeNode functionType = n[0].getType(check);
+  TypeNode initialValueType = n[1].getType(check);
+  TypeNode setType = n[2].getType(check);
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n,
+          "set.fold operator expects a set in the third argument, "
+          "a non-set is found");
+    }
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T2 T2) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    TypeNode rangeType = functionType.getRangeType();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == rangeType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T2 T2). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (rangeType != initialValueType)
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects an initial value of type "
+         << rangeType << ". Found a term of type '" << initialValueType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  TypeNode retType = n[0].getType().getRangeType();
+  return retType;
+}
+
 TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
                                                 bool check)
@@ -524,6 +580,162 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   std::vector<TypeNode> tupleTypes = setType[0].getTupleTypes();
   tupleTypes.push_back(tupleTypes[0]);
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
+}
+
+TypeNode RelationGroupTypeRule::computeType(NodeManager* nm, TNode n, bool check)
+{
+  Assert(n.getKind() == kind::RELATION_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_GROUP_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode setType = n[0].getType(check);
+
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_GROUP operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_GROUP operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    datatypes::TupleUtils::checkTypeIndices(n, tupleType, indices);
+  }
+  return nm->mkSetType(setType);
+}
+
+TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
+                                                TNode n,
+                                                bool check)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_AGGREGATE_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+
+  TypeNode functionType = n[0].getType(check);
+  TypeNode initialValueType = n[1].getType(check);
+  TypeNode setType = n[2].getType(check);
+
+  if (check)
+  {
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_AGGREGATE operator expects a set. Found '" << n[2]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_AGGREGATE operator expects a relation. Found '" << n[2]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TupleUtils::checkTypeIndices(n, tupleType, indices);
+
+    TypeNode elementType = setType.getSetElementType();
+
+    if (!(functionType.isFunction()))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T) as a first argument. "
+         << "Found a term of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    TypeNode rangeType = functionType.getRangeType();
+    if (!(argTypes.size() == 2 && argTypes[0] == elementType
+          && argTypes[1] == rangeType))
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
+         << elementType << " T T). "
+         << "Found a function of type '" << functionType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+    if (rangeType != initialValueType)
+    {
+      std::stringstream ss;
+      ss << "Operator " << n.getKind() << " expects an initial value of type "
+         << rangeType << ". Found a term of type '" << initialValueType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+  }
+  return nm->mkSetType(functionType.getRangeType());
+}
+
+TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
+                                              TNode n,
+                                              bool check)
+{
+  Assert(n.getKind() == kind::RELATION_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == kind::RELATION_PROJECT_OP);
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  const std::vector<uint32_t>& indices = op.getIndices();
+  TypeNode setType = n[0].getType(check);
+  if (check)
+  {
+    if (n.getNumChildren() != 1)
+    {
+      std::stringstream ss;
+      ss << "operands in term " << n << " are " << n.getNumChildren()
+         << ", but RELATION_PROJECT expects 1 operand.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    if (!setType.isSet())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a set. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    TypeNode tupleType = setType.getSetElementType();
+    if (!tupleType.isTuple())
+    {
+      std::stringstream ss;
+      ss << "RELATION_PROJECT operator expects a relation. Found '" << n[0]
+         << "' of type '" << setType << "'.";
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
+
+    // make sure all indices are less than the length of the tuple type
+    DType dType = tupleType.getDType();
+    DTypeConstructor constructor = dType[0];
+    size_t numArgs = constructor.getNumArgs();
+    for (uint32_t index : indices)
+    {
+      std::stringstream ss;
+      if (index >= numArgs)
+      {
+        ss << "Index " << index << " in term " << n << " is >= " << numArgs
+           << " which is the number of columns in " << n[0] << ".";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+  }
+  TypeNode tupleType = setType.getSetElementType();
+  TypeNode retTupleType =
+      TupleUtils::getTupleProjectionType(indices, tupleType);
+  return nm->mkSetType(retTupleType);
 }
 
 Cardinality SetsProperties::computeCardinality(TypeNode type)

@@ -779,7 +779,7 @@ void Smt2Printer::toStream(std::ostream& out,
     ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
-      // e.g. (table.project function initial_value bag)
+      // e.g. (table.aggr function initial_value bag)
       out << "table.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
     }
     else
@@ -817,6 +817,52 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       // e.g. ((_ table.group 0 1 2 3) A)
       out << "(_ table.group" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
+  case kind::RELATION_GROUP:
+  {
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (rel.group A)
+      out << "rel.group " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ rel.group 0 1 2 3) A)
+      out << "(_ rel.group" << op << ") " << n[0] << ")";
+    }
+    return;
+  }
+  case kind::RELATION_AGGREGATE:
+  {
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (rel.aggr function initial_value bag)
+      out << "rel.aggr " << n[0] << " " << n[1] << " " << n[2] << ")";
+    }
+    else
+    {
+      // e.g.  ((_ rel.aggr 0) function initial_value bag)
+      out << "(_ rel.aggr" << op << ") " << n[0] << " " << n[1] << " " << n[2]
+          << ")";
+    }
+    return;
+  }
+  case kind::RELATION_PROJECT:
+  {
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (rel.project A)
+      out << "rel.project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ rel.project 2 4 4) A)
+      out << "(_ rel.project" << op << ") " << n[0] << ")";
     }
     return;
   }
@@ -1152,12 +1198,16 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::SET_IS_SINGLETON: return "set.is_singleton";
   case kind::SET_MAP: return "set.map";
   case kind::SET_FILTER: return "set.filter";
+  case kind::SET_FOLD: return "set.fold";
   case kind::RELATION_JOIN: return "rel.join";
   case kind::RELATION_PRODUCT: return "rel.product";
   case kind::RELATION_TRANSPOSE: return "rel.transpose";
   case kind::RELATION_TCLOSURE: return "rel.tclosure";
   case kind::RELATION_IDEN: return "rel.iden";
   case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
+  case kind::RELATION_GROUP: return "rel.group";
+  case kind::RELATION_AGGREGATE: return "rel.aggr";
+  case kind::RELATION_PROJECT: return "rel.project";
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
@@ -1552,15 +1602,6 @@ void Smt2Printer::toStreamCmdResetAssertions(std::ostream& out) const
 void Smt2Printer::toStreamCmdQuit(std::ostream& out) const
 {
   out << "(exit)" << std::endl;
-}
-
-void Smt2Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  for (cvc5::Command* i : sequence)
-  {
-    out << *i;
-  }
 }
 
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
@@ -2119,10 +2160,7 @@ static void toStream(std::ostream& out,
                      const cvc5::CommandSuccess* s,
                      Variant v)
 {
-  if (options::ioutils::getPrintSuccess(out))
-  {
-    out << "success" << endl;
-  }
+  out << "success" << endl;
 }
 
 static void toStream(std::ostream& out,
