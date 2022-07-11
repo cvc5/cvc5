@@ -40,8 +40,7 @@ class BVSolverBitblastInternal : public BVSolver
  public:
   BVSolverBitblastInternal(Env& env,
                            TheoryState* state,
-                           TheoryInferenceManager& inferMgr,
-                           ProofNodeManager* pnm);
+                           TheoryInferenceManager& inferMgr);
   ~BVSolverBitblastInternal() = default;
 
   bool needsEqualityEngine(EeSetupInfo& esi) override;
@@ -73,8 +72,6 @@ class BVSolverBitblastInternal : public BVSolver
    */
   void addBBLemma(TNode fact);
 
-  /** Proof node manager. */
-  ProofNodeManager* d_pnm;
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBProof> d_bitblaster;
   /** Proof rule checker */

@@ -44,8 +44,7 @@ class TermRegistry : protected EnvObj
   TermRegistry(Env& env,
                SolverState& state,
                InferenceManager& im,
-               SkolemCache& skc,
-               ProofNodeManager* pnm);
+               SkolemCache& skc);
   /** get the proxy variable for set n
    *
    * Proxy variables are used to communicate information that otherwise would

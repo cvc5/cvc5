@@ -33,7 +33,6 @@ class BitblastProofGenerator : public ProofGenerator, protected EnvObj
 {
  public:
   BitblastProofGenerator(Env& env,
-                         ProofNodeManager* pnm,
                          TConvProofGenerator* tcpg);
   ~BitblastProofGenerator(){};
 
@@ -57,8 +56,6 @@ class BitblastProofGenerator : public ProofGenerator, protected EnvObj
   void addBitblastStep(TNode t, TNode bbt, TNode eq);
 
  private:
-  /** The associated proof node manager. */
-  ProofNodeManager* d_pnm;
   /**
    * The associated term conversion proof generator, which tracks the
    * individual bit-blast steps.

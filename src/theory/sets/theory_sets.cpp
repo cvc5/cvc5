@@ -34,8 +34,8 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
       d_cpacb(*this),
-      d_internal(new TheorySetsPrivate(
-          env, *this, d_state, d_im, d_skCache, d_pnm, d_cpacb)),
+      d_internal(
+          new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_cpacb)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects

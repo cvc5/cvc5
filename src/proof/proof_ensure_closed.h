@@ -22,6 +22,7 @@
 
 namespace cvc5::internal {
 
+class Options;
 class ProofGenerator;
 class ProofNode;
 
@@ -33,7 +34,8 @@ class ProofNode;
  *
  * @param reqGen Whether we consider a null generator to be a failure.
  */
-void pfgEnsureClosed(Node proven,
+void pfgEnsureClosed(const Options& opts,
+                     Node proven,
                      ProofGenerator* pg,
                      const char* c,
                      const char* ctx,
@@ -47,7 +49,8 @@ void pfgEnsureClosed(Node proven,
  *
  * @param reqGen Whether we consider a null generator to be a failure.
  */
-void pfgEnsureClosedWrt(Node proven,
+void pfgEnsureClosedWrt(const Options& opts,
+                        Node proven,
                         ProofGenerator* pg,
                         const std::vector<Node>& assumps,
                         const char* c,
@@ -59,12 +62,16 @@ void pfgEnsureClosedWrt(Node proven,
  * assertion failure if pn is not closed. Detailed information is printed
  * on trace c. Context ctx is a string used for debugging.
  */
-void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx);
+void pfnEnsureClosed(const Options& opts,
+                     ProofNode* pn,
+                     const char* c,
+                     const char* ctx);
 /**
  * Same as above, but throws an assertion failure only if the free assumptions
  * of pn are not contained in assumps.
  */
-void pfnEnsureClosedWrt(ProofNode* pn,
+void pfnEnsureClosedWrt(const Options& opts,
+                        ProofNode* pn,
                         const std::vector<Node>& assumps,
                         const char* c,
                         const char* ctx);

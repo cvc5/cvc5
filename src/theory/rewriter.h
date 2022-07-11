@@ -84,8 +84,8 @@ class Rewriter {
   TrustNode rewriteWithProof(TNode node,
                              bool isExtEq = false);
 
-  /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  /** Finish init, which sets up the proof manager if applicable */
+  void finishInit(Env& env);
 
   /**
    * Registers a theory rewriter with this rewriter. The rewriter does not own
