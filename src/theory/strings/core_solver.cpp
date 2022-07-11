@@ -706,39 +706,17 @@ Node CoreSolver::getConclusion(Node x,
   Node conc;
   if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
   {
-    Node sk1;
-    Node sk2;
-    if (options::stringUnifiedVSpt())
-    {
-      // must compare so that we are agnostic to order of x/y
-      Node ux = x < y ? x : y;
-      Node uy = x < y ? y : x;
-      Node sk = skc->mkSkolemCached(ux,
-                                    uy,
-                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
-                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
-                                    "v_spt");
-      newSkolems.push_back(sk);
-      sk1 = sk;
-      sk2 = sk;
-    }
-    else
-    {
-      sk1 = skc->mkSkolemCached(
-          x,
-          y,
-          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-          "v_spt1");
-      sk2 = skc->mkSkolemCached(
-          y,
-          x,
-          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-          "v_spt2");
-      newSkolems.push_back(sk1);
-      newSkolems.push_back(sk2);
-    }
-    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
-                              : nm->mkNode(STRING_CONCAT, y, sk1));
+    // must compare so that we are agnostic to order of x/y
+    Node ux = x < y ? x : y;
+    Node uy = x < y ? y : x;
+    Node sk = skc->mkSkolemCached(ux,
+                                  uy,
+                                  isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                        : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                  "v_spt");
+    newSkolems.push_back(sk);
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, y)
+                              : nm->mkNode(STRING_CONCAT, y, sk));
 
     if (rule == PfRule::CONCAT_LPROP)
     {
@@ -746,22 +724,19 @@ Node CoreSolver::getConclusion(Node x,
     }
     else
     {
-      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
-                                : nm->mkNode(STRING_CONCAT, x, sk2));
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, x)
+                                : nm->mkNode(STRING_CONCAT, x, sk));
       // make agnostic to x/y
       conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
-    if (options::stringUnifiedVSpt())
-    {
-      // we can assume its length is greater than zero
-      Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(
-          AND,
-          conc,
-          sk1.eqNode(emp).negate(),
-          nm->mkNode(
-              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConstInt(Rational(0))));
-    }
+    // we can assume its length is greater than zero
+    Node emp = Word::mkEmptyWord(sk.getType());
+    conc = nm->mkNode(
+        AND,
+        conc,
+        sk.eqNode(emp).negate(),
+        nm->mkNode(
+            GT, nm->mkNode(STRING_LENGTH, sk), nm->mkConstInt(Rational(0))));
   }
   else if (rule == PfRule::CONCAT_CSPLIT)
   {

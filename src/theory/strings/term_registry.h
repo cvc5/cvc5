@@ -59,8 +59,7 @@ class TermRegistry : protected EnvObj
   TermRegistry(Env& env,
                Theory& t,
                SolverState& s,
-               SequencesStatistics& statistics,
-               ProofNodeManager* pnm);
+               SequencesStatistics& statistics);
   ~TermRegistry();
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;

@@ -25,6 +25,7 @@
 #include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
+#include "options/quantifiers_options.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -109,6 +110,7 @@ public:
   *     will be included.
   */
  static TypeNode mkSygusDefaultType(
+     const Options& opts,
      TypeNode range,
      Node bvl,
      const std::string& fun,
@@ -120,7 +122,8 @@ public:
  /**
   * Make the default sygus datatype type corresponding to builtin type range.
   */
- static TypeNode mkSygusDefaultType(TypeNode range,
+ static TypeNode mkSygusDefaultType(const Options& opts,
+                                    TypeNode range,
                                     Node bvl,
                                     const std::string& fun)
  {
@@ -128,7 +131,8 @@ public:
    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
    std::map<TypeNode, std::unordered_set<Node>> include_cons;
    std::unordered_set<Node> term_irrelevant;
-   return mkSygusDefaultType(range,
+   return mkSygusDefaultType(opts,
+                             range,
                              bvl,
                              fun,
                              extra_cons,
@@ -220,15 +224,13 @@ public:
   };
 
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
-  static TypeNode mkUnresolvedType(const std::string& name,
-                                   std::set<TypeNode>& unres);
+  static TypeNode mkUnresolvedType(const std::string& name);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor(TypeNode range,
                                           std::vector<TypeNode>& types);
   /** helper function for function mkSygusDefaultType
   * Collects a set of mutually recursive datatypes "datatypes" corresponding to
   * encoding type "range" to SyGuS.
-  *   unres is used for the resulting call to mkMutualDatatypeTypes
   */
   static void mkSygusDefaultGrammar(
       TypeNode range,
@@ -239,7 +241,7 @@ public:
       const std::map<TypeNode, std::unordered_set<Node>>& include_cons,
       std::unordered_set<Node>& term_irrelevant,
       std::vector<SygusDatatypeGenerator>& sdts,
-      std::set<TypeNode>& unres);
+      options::SygusGrammarConsMode sgcm);
 
   // helper function for mkSygusTemplateType
   static TypeNode mkSygusTemplateTypeRec(Node templ,

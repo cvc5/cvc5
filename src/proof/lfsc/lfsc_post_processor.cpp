@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "smt/env.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace cvc5::internal::kind;
@@ -30,8 +31,11 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
-    LfscNodeConverter& ltp, ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker()), d_tproc(ltp), d_firstTime(false)
+    Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env),
+      d_pc(env.getProofNodeManager()->getChecker()),
+      d_tproc(ltp),
+      d_firstTime(false)
 {
 }
 
@@ -427,9 +431,8 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   return nm->mkBoundVar(nm->booleanType());
 }
 
-LfscProofPostprocess::LfscProofPostprocess(LfscNodeConverter& ltp,
-                                           ProofNodeManager* pnm)
-    : d_cb(new proof::LfscProofPostprocessCallback(ltp, pnm)), d_pnm(pnm)
+LfscProofPostprocess::LfscProofPostprocess(Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env), d_cb(new proof::LfscProofPostprocessCallback(env, ltp))
 {
 }
 
@@ -438,7 +441,7 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   d_cb->initializeUpdate();
   // do not automatically add symmetry steps, since this leads to
   // non-termination for example on policy_variable.smt2
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
+  ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
   updater.process(pf);
 }
 
