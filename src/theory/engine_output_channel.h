@@ -84,7 +84,7 @@ class EngineOutputChannel : public theory::OutputChannel
   class Statistics
   {
    public:
-    Statistics(theory::TheoryId theory);
+    Statistics(StatisticsRegistry& sr, theory::TheoryId theory);
     /** Number of calls to conflict, propagate, lemma, requirePhase */
     IntStat conflicts, propagations, lemmas, requirePhase, trustedConflicts,
         trustedLemmas;

@@ -2124,6 +2124,7 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
+      d_statistics(statisticsRegistry()),
       d_conflict(context(), false),
       d_effort(EFFORT_INVALID)
 {
@@ -2545,10 +2546,10 @@ void QuantConflictFind::debugPrintQuantBody(const char* c,
   Trace(c) << ")";
 }
 
-QuantConflictFind::Statistics::Statistics()
+QuantConflictFind::Statistics::Statistics(StatisticsRegistry& sr)
     : d_inst_rounds(
-        statisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
-      d_entailment_checks(statisticsRegistry().registerInt(
+        sr.registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(sr.registerInt(
           "QuantConflictFind::Entailment_Checks"))
 {
 }

@@ -19,27 +19,27 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-SequencesStatistics::SequencesStatistics()
+SequencesStatistics::SequencesStatistics(StatisticsRegistry& sr)
     : d_checkRuns(
-        statisticsRegistry().registerInt("theory::strings::checkRuns")),
+        sr.registerInt("theory::strings::checkRuns")),
       d_strategyRuns(
-          statisticsRegistry().registerInt("theory::strings::strategyRuns")),
-      d_cdSimplifications(statisticsRegistry().registerHistogram<Kind>(
+          sr.registerInt("theory::strings::strategyRuns")),
+      d_cdSimplifications(sr.registerHistogram<Kind>(
           "theory::strings::cdSimplifications")),
-      d_reductions(statisticsRegistry().registerHistogram<Kind>(
+      d_reductions(sr.registerHistogram<Kind>(
           "theory::strings::reductions")),
-      d_regexpUnfoldingsPos(statisticsRegistry().registerHistogram<Kind>(
+      d_regexpUnfoldingsPos(sr.registerHistogram<Kind>(
           "theory::strings::regexpUnfoldingsPos")),
-      d_regexpUnfoldingsNeg(statisticsRegistry().registerHistogram<Kind>(
+      d_regexpUnfoldingsNeg(sr.registerHistogram<Kind>(
           "theory::strings::regexpUnfoldingsNeg")),
-      d_rewrites(statisticsRegistry().registerHistogram<Rewrite>(
+      d_rewrites(sr.registerHistogram<Rewrite>(
           "theory::strings::rewrites")),
-      d_conflictsEqEngine(statisticsRegistry().registerInt(
+      d_conflictsEqEngine(sr.registerInt(
           "theory::strings::conflictsEqEngine")),
       d_conflictsEager(
-          statisticsRegistry().registerInt("theory::strings::conflictsEager")),
+          sr.registerInt("theory::strings::conflictsEager")),
       d_conflictsInfer(
-          statisticsRegistry().registerInt("theory::strings::conflictsInfer"))
+          sr.registerInt("theory::strings::conflictsInfer"))
 {
 }
 

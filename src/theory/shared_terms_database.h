@@ -29,13 +29,13 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_stats.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
-class Env;
 class TheoryEngine;
 
-class SharedTermsDatabase : public context::ContextNotifyObj
+class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
 {
  public:
   /** A container for a list of shared terms */
@@ -45,8 +45,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
  private:
-  /** Reference to the env */
-  Env& d_env;
 
   /** Some statistics */
   IntStat d_statSharedTerms;

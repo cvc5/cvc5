@@ -19,19 +19,19 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusStatistics::SygusStatistics()
+SygusStatistics::SygusStatistics(StatisticsRegistry& sr)
     : d_solutions(
-        statisticsRegistry().registerInt("SynthConjecture::solutions")),
-      d_filtered_solutions(statisticsRegistry().registerInt(
+        sr.registerInt("SynthConjecture::solutions")),
+      d_filtered_solutions(sr.registerInt(
           "SynthConjecture::filtered_solutions")),
-      d_candidate_rewrites_print(statisticsRegistry().registerInt(
+      d_candidate_rewrites_print(sr.registerInt(
           "SynthConjecture::candidate_rewrites_print")),
-      d_enumTermsRewrite(statisticsRegistry().registerInt(
+      d_enumTermsRewrite(sr.registerInt(
           "SygusEnumerator::enumTermsRewrite")),
-      d_enumTermsExampleEval(statisticsRegistry().registerInt(
+      d_enumTermsExampleEval(sr.registerInt(
           "SygusEnumerator::enumTermsEvalExamples")),
       d_enumTerms(
-          statisticsRegistry().registerInt("SygusEnumerator::enumTerms"))
+          sr.registerInt("SygusEnumerator::enumTerms"))
 
 {
 }

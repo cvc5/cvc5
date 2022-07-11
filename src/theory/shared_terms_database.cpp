@@ -24,8 +24,8 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 
 SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
-    : ContextNotifyObj(env.getContext()),
-      d_env(env),
+    : EnvObj(env),
+      ContextNotifyObj(env.getContext()),
       d_statSharedTerms(
           statisticsRegistry().registerInt("theory::shared_terms")),
       d_addedSharedTermsSize(env.getContext(), 0),

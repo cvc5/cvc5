@@ -36,9 +36,10 @@ EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
 {
 }
 
-EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
+EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr, 
+                                         TheoryEngine* engine,
                                          theory::TheoryId theory)
-    : d_engine(engine), d_statistics(theory), d_theory(theory)
+    : d_engine(engine), d_statistics(sr, theory), d_theory(theory)
 {
 }
 

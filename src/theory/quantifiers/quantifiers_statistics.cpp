@@ -19,26 +19,26 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersStatistics::QuantifiersStatistics()
+QuantifiersStatistics::QuantifiersStatistics(StatisticsRegistry& sr)
     : d_time(
-        statisticsRegistry().registerTimer("theory::QuantifiersEngine::time")),
-      d_cbqi_time(statisticsRegistry().registerTimer(
+        sr.registerTimer("theory::QuantifiersEngine::time")),
+      d_cbqi_time(sr.registerTimer(
           "theory::QuantifiersEngine::time_conflict_based_inst")),
-      d_ematching_time(statisticsRegistry().registerTimer(
+      d_ematching_time(sr.registerTimer(
           "theory::QuantifiersEngine::time_ematching")),
-      d_num_quant(statisticsRegistry().registerInt(
+      d_num_quant(sr.registerInt(
           "QuantifiersEngine::Num_Quantifiers")),
-      d_instantiation_rounds(statisticsRegistry().registerInt(
+      d_instantiation_rounds(sr.registerInt(
           "QuantifiersEngine::Rounds_Instantiation_Full")),
-      d_instantiation_rounds_lc(statisticsRegistry().registerInt(
+      d_instantiation_rounds_lc(sr.registerInt(
           "QuantifiersEngine::Rounds_Instantiation_Last_Call")),
       d_triggers(
-          statisticsRegistry().registerInt("QuantifiersEngine::Triggers")),
-      d_simple_triggers(statisticsRegistry().registerInt(
+          sr.registerInt("QuantifiersEngine::Triggers")),
+      d_simple_triggers(sr.registerInt(
           "QuantifiersEngine::Triggers_Simple")),
-      d_multi_triggers(statisticsRegistry().registerInt(
+      d_multi_triggers(sr.registerInt(
           "QuantifiersEngine::Triggers_Multi")),
-      d_red_alpha_equiv(statisticsRegistry().registerInt(
+      d_red_alpha_equiv(sr.registerInt(
           "QuantifiersEngine::Reductions_Alpha_Equivalence"))
 {
 }
