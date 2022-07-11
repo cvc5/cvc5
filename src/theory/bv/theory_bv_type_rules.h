@@ -134,18 +134,6 @@ class BitVectorExtendTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-class IntToBitVectorOpTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
-class BitVectorConversionTypeRule
-{
- public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 /* -------------------------------------------------------------------------- */
 /* internal                                                                   */
 /* -------------------------------------------------------------------------- */

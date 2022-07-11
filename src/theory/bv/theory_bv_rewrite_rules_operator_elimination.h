@@ -265,40 +265,6 @@ inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
 }
 
 template <>
-inline bool RewriteRule<BVToNatEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::BITVECTOR_TO_NAT);
-}
-
-template <>
-inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<BVToNatEliminate>(" << node << ")" << std::endl;
-
-  //if( node[0].isConst() ){
-    //TODO? direct computation instead of term construction+rewriting
-  //}
-  return utils::eliminateBv2Nat(node);
-}
-
-template <>
-inline bool RewriteRule<IntToBVEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::INT_TO_BITVECTOR);
-}
-
-template <>
-inline Node RewriteRule<IntToBVEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<IntToBVEliminate>(" << node << ")" << std::endl;
-
-  //if( node[0].isConst() ){
-    //TODO? direct computation instead of term construction+rewriting
-  //}
-  return utils::eliminateInt2Bv(node);
-}
-
-template <>
 inline bool RewriteRule<NandEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_NAND &&
