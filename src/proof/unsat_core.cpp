@@ -19,7 +19,6 @@
 #include "options/base_options.h"
 #include "options/io_utils.h"
 #include "printer/printer.h"
-#include "smt/solver_engine_scope.h"
 
 namespace cvc5::internal {
 

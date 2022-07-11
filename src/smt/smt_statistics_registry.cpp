@@ -15,7 +15,6 @@
 
 #include "smt/smt_statistics_registry.h"
 
-#include "smt/solver_engine_scope.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
