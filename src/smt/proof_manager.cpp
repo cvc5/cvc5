@@ -190,7 +190,7 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LEAN)
   {
-    proof::LeanProofPostprocess lpfpp(d_pnm.get());
+    proof::LeanProofPostprocess lpfpp(d_env);
     std::vector<Node> assertions;
     getAssertions(as, assertions);
     lpfpp.process(fp);
@@ -202,7 +202,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp;
+    proof::AletheProofPrinter vpp(d_env);
     vpp.print(out, fp);
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)

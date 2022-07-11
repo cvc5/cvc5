@@ -409,7 +409,7 @@ void LfscProofPostprocessCallback::addRefl(CDProof* cdp, Node t)
   std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_refl.find(t);
   if (it == d_refl.end())
   {
-    d_refl[t] = d_pnm->mkNode(PfRule::REFL, {}, {t});
+    d_refl[t] = d_env.getProofNodeManager()->mkNode(PfRule::REFL, {}, {t});
     it = d_refl.find(t);
   }
   cdp->addProof(it->second);

@@ -265,8 +265,8 @@ bool LetUpdaterPfCallback::update(Node res,
   return false;
 }
 
-AletheProofPrinter::AletheProofPrinter()
-    : d_lbind(options::ioutils::getDagThresh(std::cout) ? options::ioutils::getDagThresh(std::cout) + 1
+AletheProofPrinter::AletheProofPrinter(Env& env)
+    : EnvObj(env), d_lbind(options::ioutils::getDagThresh(std::cout) ? options::ioutils::getDagThresh(std::cout) + 1
                                           : 0),
       d_cb(new LetUpdaterPfCallback(d_lbind))
 {
@@ -285,7 +285,7 @@ void AletheProofPrinter::print(std::ostream& out,
   AlwaysAssert(innerPf);
   // Traverse the proof node to letify the (converted) conclusions of proof
   // steps. TODO This traversal will collect the skolems to de defined.
-  ProofNodeUpdater updater(nullptr, *(d_cb.get()), false, false);
+  ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
   Trace("alethe-printer") << "- letify.\n";
   updater.process(innerPf);
 

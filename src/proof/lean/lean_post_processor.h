@@ -84,18 +84,16 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Lean calculus.
  */
-class LeanProofPostprocess
+class LeanProofPostprocess : protected EnvObj
 {
  public:
-  LeanProofPostprocess(ProofNodeManager* pnm);
+  LeanProofPostprocess(Env& env);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
   std::unique_ptr<LeanProofPostprocessCallback> d_cb;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace proof

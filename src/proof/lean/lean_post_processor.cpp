@@ -19,6 +19,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "util/rational.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
@@ -30,8 +31,9 @@ LeanProofPostprocessCallback::LeanProofPostprocessCallback(
 {
 }
 
-LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
-    : d_cb(new proof::LeanProofPostprocessCallback(pnm)), d_pnm(pnm)
+LeanProofPostprocess::LeanProofPostprocess(Env& env)
+    : EnvObj(env), 
+    d_cb(new proof::LeanProofPostprocessCallback(env.getProofNodeManager()))
 {
 }
 
@@ -115,7 +117,7 @@ bool LeanProofPostprocessCallback::update(Node res,
 
 void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()));
+  ProofNodeUpdater updater(d_env, *(d_cb.get()));
   updater.process(pf);
 };
 

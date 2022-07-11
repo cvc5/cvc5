@@ -21,6 +21,7 @@
 #include "printer/let_binding.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_updater.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -79,10 +80,10 @@ class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
  * It expects to print proof nodes that have processed by the Alethe proof post
  * processor.
  */
-class AletheProofPrinter
+class AletheProofPrinter : protected EnvObj
 {
  public:
-  AletheProofPrinter();
+  AletheProofPrinter(Env& env);
   ~AletheProofPrinter() {}
   /**
    * This method prints a proof node that has been transformed into the Alethe
