@@ -26,7 +26,6 @@
 #include "base/cvc5config.h"
 #include "base/output.h"
 #include "proof/eager_proof_generator.h"
-
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/cut_log.h"
 #include "theory/arith/linear/matrix.h"

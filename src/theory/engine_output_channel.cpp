@@ -17,7 +17,6 @@
 
 #include "expr/skolem_manager.h"
 #include "prop/prop_engine.h"
-
 #include "theory/theory_engine.h"
 
 using namespace cvc5::internal::kind;
@@ -26,18 +25,18 @@ namespace cvc5::internal {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
-    : conflicts(statisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                    + "conflicts")),
+    : conflicts(
+        statisticsRegistry().registerInt(getStatsPrefix(theory) + "conflicts")),
       propagations(statisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "propagations")),
-      lemmas(statisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                 + "lemmas")),
+                                                    + "propagations")),
+      lemmas(
+          statisticsRegistry().registerInt(getStatsPrefix(theory) + "lemmas")),
       requirePhase(statisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "requirePhase")),
-      trustedConflicts(statisticsRegistry().registerInt(
-          getStatsPrefix(theory) + "trustedConflicts")),
+                                                    + "requirePhase")),
+      trustedConflicts(statisticsRegistry().registerInt(getStatsPrefix(theory)
+                                                        + "trustedConflicts")),
       trustedLemmas(statisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                        + "trustedLemmas"))
+                                                     + "trustedLemmas"))
 {
 }
 

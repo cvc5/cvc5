@@ -25,7 +25,6 @@
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
-
 #include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/decision_manager.h"

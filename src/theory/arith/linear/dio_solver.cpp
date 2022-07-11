@@ -22,7 +22,6 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
-
 #include "theory/arith/linear/partial_model.h"
 
 using namespace std;
@@ -59,8 +58,8 @@ DioSolver::DioSolver(Env& env)
 }
 
 DioSolver::Statistics::Statistics()
-    : d_conflictCalls(statisticsRegistry().registerInt(
-        "theory::arith::dio::conflictCalls")),
+    : d_conflictCalls(
+        statisticsRegistry().registerInt("theory::arith::dio::conflictCalls")),
       d_cutCalls(
           statisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
       d_cuts(statisticsRegistry().registerInt("theory::arith::dio::cuts")),

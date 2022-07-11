@@ -16,8 +16,6 @@
 
 #include "theory/arrays/array_info.h"
 
-
-
 namespace cvc5::internal {
 namespace theory {
 namespace arrays {
@@ -46,8 +44,8 @@ Info::~Info() {
 ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
     : ct(c),
       info_map(),
-      d_mergeInfoTimer(statisticsRegistry().registerTimer(
-          statisticsPrefix + "mergeInfoTimer")),
+      d_mergeInfoTimer(statisticsRegistry().registerTimer(statisticsPrefix
+                                                          + "mergeInfoTimer")),
       d_avgIndexListLength(statisticsRegistry().registerAverage(
           statisticsPrefix + "avgIndexListLength")),
       d_avgStoresListLength(statisticsRegistry().registerAverage(
@@ -57,9 +55,8 @@ ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
       d_listsCount(
           statisticsRegistry().registerInt(statisticsPrefix + "listsCount")),
       d_callsMergeInfo(statisticsRegistry().registerInt(statisticsPrefix
-                                                           + "callsMergeInfo")),
-      d_maxList(
-          statisticsRegistry().registerInt(statisticsPrefix + "maxList")),
+                                                        + "callsMergeInfo")),
+      d_maxList(statisticsRegistry().registerInt(statisticsPrefix + "maxList")),
       d_tableSize(statisticsRegistry().registerSize<CNodeInfoMap>(
           statisticsPrefix + "infoTableSize", info_map))
 {

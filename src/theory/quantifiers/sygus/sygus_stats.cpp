@@ -15,15 +15,13 @@
 
 #include "theory/quantifiers/sygus/sygus_stats.h"
 
-
-
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 SygusStatistics::SygusStatistics()
     : d_solutions(
-          statisticsRegistry().registerInt("SynthConjecture::solutions")),
+        statisticsRegistry().registerInt("SynthConjecture::solutions")),
       d_filtered_solutions(statisticsRegistry().registerInt(
           "SynthConjecture::filtered_solutions")),
       d_candidate_rewrites_print(statisticsRegistry().registerInt(

@@ -15,14 +15,12 @@
 
 #include "smt/solver_engine_stats.h"
 
-
-
 namespace cvc5::internal {
 namespace smt {
 
 SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
-    : d_definitionExpansionTime(statisticsRegistry().registerTimer(
-        name + "definitionExpansionTime")),
+    : d_definitionExpansionTime(
+        statisticsRegistry().registerTimer(name + "definitionExpansionTime")),
       d_numConstantProps(
           statisticsRegistry().registerInt(name + "numConstantProps")),
       d_numAssertionsPre(statisticsRegistry().registerInt(
@@ -34,10 +32,9 @@ SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
       d_checkUnsatCoreTime(
           statisticsRegistry().registerTimer(name + "checkUnsatCoreTime")),
       d_solveTime(statisticsRegistry().registerTimer(name + "solveTime")),
-      d_pushPopTime(
-          statisticsRegistry().registerTimer(name + "pushPopTime")),
-      d_processAssertionsTime(statisticsRegistry().registerTimer(
-          name + "processAssertionsTime")),
+      d_pushPopTime(statisticsRegistry().registerTimer(name + "pushPopTime")),
+      d_processAssertionsTime(
+          statisticsRegistry().registerTimer(name + "processAssertionsTime")),
       d_simplifiedToFalse(
           statisticsRegistry().registerInt(name + "simplifiedToFalse"))
 {

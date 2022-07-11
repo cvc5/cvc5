@@ -15,8 +15,6 @@
 
 #include "theory/bags/bags_statistics.h"
 
-
-
 namespace cvc5::internal {
 namespace theory {
 namespace bags {

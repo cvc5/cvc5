@@ -17,7 +17,6 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
-
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "util/statistics_stats.h"
@@ -57,13 +56,12 @@ FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
       d_fcTimer(statisticsRegistry().registerTimer(name + "Timer")),
       d_fcFocusConstructionTimer(
           statisticsRegistry().registerTimer(name + "Construction")),
-      d_selectUpdateForDualLike(statisticsRegistry().registerTimer(
-          name + "selectUpdateForDualLike")),
-      d_selectUpdateForPrimal(statisticsRegistry().registerTimer(
-          name + "selectUpdateForPrimal")),
-      d_finalCheckPivotCounter(
-          statisticsRegistry().registerReference<uint32_t>(
-              name + "lastPivots", pivots))
+      d_selectUpdateForDualLike(
+          statisticsRegistry().registerTimer(name + "selectUpdateForDualLike")),
+      d_selectUpdateForPrimal(
+          statisticsRegistry().registerTimer(name + "selectUpdateForPrimal")),
+      d_finalCheckPivotCounter(statisticsRegistry().registerReference<uint32_t>(
+          name + "lastPivots", pivots))
 {
 }
 

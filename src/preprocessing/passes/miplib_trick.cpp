@@ -26,7 +26,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/util/boolean_simplification.h"
-
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"

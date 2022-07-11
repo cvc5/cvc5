@@ -19,7 +19,6 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
-
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
@@ -45,8 +44,8 @@ AttemptSolutionSDP::Statistics::Statistics()
         "theory::arith::attempt::searchTime")),
       d_queueTime(statisticsRegistry().registerTimer(
           "theory::arith::attempt::queueTime")),
-      d_conflicts(statisticsRegistry().registerInt(
-          "theory::arith::attempt::conflicts"))
+      d_conflicts(
+          statisticsRegistry().registerInt("theory::arith::attempt::conflicts"))
 {
 }
 

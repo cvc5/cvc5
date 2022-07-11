@@ -15,15 +15,13 @@
 
 #include "theory/quantifiers/quantifiers_statistics.h"
 
-
-
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 QuantifiersStatistics::QuantifiersStatistics()
-    : d_time(statisticsRegistry().registerTimer(
-        "theory::QuantifiersEngine::time")),
+    : d_time(
+        statisticsRegistry().registerTimer("theory::QuantifiersEngine::time")),
       d_cbqi_time(statisticsRegistry().registerTimer(
           "theory::QuantifiersEngine::time_conflict_based_inst")),
       d_ematching_time(statisticsRegistry().registerTimer(

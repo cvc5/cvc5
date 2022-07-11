@@ -17,7 +17,6 @@
 
 #include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
-
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"

@@ -18,11 +18,9 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
-
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
-
 
 using namespace std;
 
@@ -52,9 +50,8 @@ DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
           "theory::arith::dual::recentViolationCatches")),
       d_searchTime(statisticsRegistry().registerTimer(
           "theory::arith::dual::searchTime")),
-      d_finalCheckPivotCounter(
-          statisticsRegistry().registerReference<uint32_t>(
-              "theory::arith::dual::lastPivots", pivots))
+      d_finalCheckPivotCounter(statisticsRegistry().registerReference<uint32_t>(
+          "theory::arith::dual::lastPivots", pivots))
 {
 }
 

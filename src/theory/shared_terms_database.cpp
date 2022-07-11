@@ -16,7 +16,6 @@
 
 #include "theory/shared_terms_database.h"
 
-
 #include "theory/theory_engine.h"
 
 using namespace std;

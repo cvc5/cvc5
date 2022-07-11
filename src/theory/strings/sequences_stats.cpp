@@ -15,8 +15,6 @@
 
 #include "theory/strings/sequences_stats.h"
 
-
-
 namespace cvc5::internal {
 namespace theory {
 namespace strings {
@@ -38,10 +36,10 @@ SequencesStatistics::SequencesStatistics()
           "theory::strings::rewrites")),
       d_conflictsEqEngine(statisticsRegistry().registerInt(
           "theory::strings::conflictsEqEngine")),
-      d_conflictsEager(statisticsRegistry().registerInt(
-          "theory::strings::conflictsEager")),
-      d_conflictsInfer(statisticsRegistry().registerInt(
-          "theory::strings::conflictsInfer"))
+      d_conflictsEager(
+          statisticsRegistry().registerInt("theory::strings::conflictsEager")),
+      d_conflictsInfer(
+          statisticsRegistry().registerInt("theory::strings::conflictsInfer"))
 {
 }
 

@@ -15,8 +15,6 @@
 
 #include "theory/arith/nl/stats.h"
 
-
-
 namespace cvc5::internal {
 namespace theory {
 namespace arith {

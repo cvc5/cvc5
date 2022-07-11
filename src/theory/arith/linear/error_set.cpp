@@ -18,7 +18,6 @@
 
 #include "theory/arith/linear/error_set.h"
 
-
 #include "theory/arith/linear/constraint.h"
 
 using namespace std;

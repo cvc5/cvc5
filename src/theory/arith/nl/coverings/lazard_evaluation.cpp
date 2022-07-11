@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-
 #include "util/statistics_stats.h"
 
 #ifdef CVC5_USE_COCOA
@@ -36,14 +35,14 @@ namespace cvc5::internal::theory::arith::nl::coverings {
 
 struct LazardEvaluationStats
 {
-  IntStat d_directAssignments =
-      statisticsRegistry().registerInt("theory::arith::coverings::lazard-direct");
+  IntStat d_directAssignments = statisticsRegistry().registerInt(
+      "theory::arith::coverings::lazard-direct");
   IntStat d_ranAssignments =
       statisticsRegistry().registerInt("theory::arith::coverings::lazard-rans");
-  IntStat d_evaluations =
-      statisticsRegistry().registerInt("theory::arith::coverings::lazard-evals");
-  IntStat d_reductions =
-      statisticsRegistry().registerInt("theory::arith::coverings::lazard-reduce");
+  IntStat d_evaluations = statisticsRegistry().registerInt(
+      "theory::arith::coverings::lazard-evals");
+  IntStat d_reductions = statisticsRegistry().registerInt(
+      "theory::arith::coverings::lazard-reduce");
 };
 
 struct LazardEvaluationState;

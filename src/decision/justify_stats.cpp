@@ -15,20 +15,18 @@
 
 #include "decision/justify_stats.h"
 
-
-
 namespace cvc5::internal {
 namespace decision {
 
 JustifyStatistics::JustifyStatistics()
-    : d_numStatusNoDecision(statisticsRegistry().registerInt(
-          "JustifyStrategy::StatusNoDecision")),
-      d_numStatusDecision(statisticsRegistry().registerInt(
-          "JustifyStrategy::StatusDecision")),
-      d_numStatusBacktrack(statisticsRegistry().registerInt(
-          "JustifyStrategy::StatusBacktrack")),
-      d_maxStackSize(statisticsRegistry().registerInt(
-          "JustifyStrategy::MaxStackSize")),
+    : d_numStatusNoDecision(
+        statisticsRegistry().registerInt("JustifyStrategy::StatusNoDecision")),
+      d_numStatusDecision(
+          statisticsRegistry().registerInt("JustifyStrategy::StatusDecision")),
+      d_numStatusBacktrack(
+          statisticsRegistry().registerInt("JustifyStrategy::StatusBacktrack")),
+      d_maxStackSize(
+          statisticsRegistry().registerInt("JustifyStrategy::MaxStackSize")),
       d_maxAssertionsSize(statisticsRegistry().registerInt(
           "JustifyStrategy::MaxAssertionsSize")),
       d_maxSkolemDefsSize(statisticsRegistry().registerInt(

@@ -21,7 +21,6 @@
 #include "base/output.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 
