@@ -40,6 +40,7 @@
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/rewriter.h"
 #include "util/hash.h"
+#include "util/statistics_registry.h"
 
 #include <iterator>
 #include <queue>
@@ -177,7 +178,7 @@ SymmetryBreaker::SymmetryBreaker(Env& env, std::string name)
       d_termEqs(),
       d_termEqsOnly(),
       d_name(name),
-      d_stats(d_name + "theory::uf::symmetry_breaker::")
+      d_stats(statisticsRegistry(), d_name + "theory::uf::symmetry_breaker::")
 {
 }
 
@@ -750,18 +751,18 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
   }
 }
 
-SymmetryBreaker::Statistics::Statistics(const std::string& name)
-    : d_clauses(statisticsRegistry().registerInt(name + "clauses")),
-      d_units(statisticsRegistry().registerInt(name + "units")),
+SymmetryBreaker::Statistics::Statistics(StatisticsRegistry& sr, const std::string& name)
+    : d_clauses(sr.registerInt(name + "clauses")),
+      d_units(sr.registerInt(name + "units")),
       d_permutationSetsConsidered(
-          statisticsRegistry().registerInt(name + "permutationSetsConsidered")),
+          sr.registerInt(name + "permutationSetsConsidered")),
       d_permutationSetsInvariant(
-          statisticsRegistry().registerInt(name + "permutationSetsInvariant")),
-      d_invariantByPermutationsTimer(statisticsRegistry().registerTimer(
+          sr.registerInt(name + "permutationSetsInvariant")),
+      d_invariantByPermutationsTimer(sr.registerTimer(
           name + "timers::invariantByPermutations")),
       d_selectTermsTimer(
-          statisticsRegistry().registerTimer(name + "timers::selectTerms")),
-      d_initNormalizationTimer(statisticsRegistry().registerTimer(
+          sr.registerTimer(name + "timers::selectTerms")),
+      d_initNormalizationTimer(sr.registerTimer(
           name + "timers::initNormalization"))
 {
 }

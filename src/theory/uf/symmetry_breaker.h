@@ -52,6 +52,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "util/statistics_stats.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -144,7 +145,7 @@ public:
     /** time spent in initial round of normalization */
     TimerStat d_initNormalizationTimer;
 
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& sr, const std::string& name);
   };
 
   Statistics d_stats;
