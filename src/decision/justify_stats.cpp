@@ -18,18 +18,18 @@
 namespace cvc5::internal {
 namespace decision {
 
-JustifyStatistics::JustifyStatistics()
+JustifyStatistics::JustifyStatistics(StatisticsRegistry& sr)
     : d_numStatusNoDecision(
-        statisticsRegistry().registerInt("JustifyStrategy::StatusNoDecision")),
+        sr.registerInt("JustifyStrategy::StatusNoDecision")),
       d_numStatusDecision(
-          statisticsRegistry().registerInt("JustifyStrategy::StatusDecision")),
+          sr.registerInt("JustifyStrategy::StatusDecision")),
       d_numStatusBacktrack(
-          statisticsRegistry().registerInt("JustifyStrategy::StatusBacktrack")),
+          sr.registerInt("JustifyStrategy::StatusBacktrack")),
       d_maxStackSize(
-          statisticsRegistry().registerInt("JustifyStrategy::MaxStackSize")),
-      d_maxAssertionsSize(statisticsRegistry().registerInt(
+          sr.registerInt("JustifyStrategy::MaxStackSize")),
+      d_maxAssertionsSize(sr.registerInt(
           "JustifyStrategy::MaxAssertionsSize")),
-      d_maxSkolemDefsSize(statisticsRegistry().registerInt(
+      d_maxSkolemDefsSize(sr.registerInt(
           "JustifyStrategy::MaxSkolemDefsSize"))
 {
 }

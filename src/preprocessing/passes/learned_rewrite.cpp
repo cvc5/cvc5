@@ -21,6 +21,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;

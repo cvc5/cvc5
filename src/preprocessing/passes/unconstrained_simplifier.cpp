@@ -28,6 +28,7 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

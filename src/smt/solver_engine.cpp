@@ -117,7 +117,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
-  d_stats.reset(new SolverEngineStatistics());
+  d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
   // make the SyGuS solver

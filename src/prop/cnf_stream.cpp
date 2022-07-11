@@ -50,7 +50,7 @@ CnfStream::CnfStream(Env& env,
       d_registrar(registrar),
       d_name(name),
       d_removable(false),
-      d_stats(name)
+      d_stats(statisticsRegistry(), name)
 {
 }
 
@@ -739,8 +739,8 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-CnfStream::Statistics::Statistics(const std::string& name)
-    : d_cnfConversionTime(statisticsRegistry().registerTimer(
+CnfStream::Statistics::Statistics(StatisticsRegistry& sr, const std::string& name)
+    : d_cnfConversionTime(sr.registerTimer(
         name + "::CnfStream::cnfConversionTime"))
 {
 }
