@@ -129,6 +129,11 @@ void Smt2Printer::toStream(std::ostream& out, TNode n) const
   toStream(out, n, toDepth, dag);
 }
 
+void Smt2Printer::toStream(std::ostream& out, Kind k) const
+{
+  out << smtKindString(k);
+}
+
 void Smt2Printer::toStreamWithLetify(std::ostream& out,
                                      Node n,
                                      int toDepth,
