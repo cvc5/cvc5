@@ -272,7 +272,10 @@ public:
   bool isDivLike() const{
     return isDivMember(getNode());
   }
-  /** Return true if all direct children of n are polynomial members */
+  /**
+   * Return true if all direct children of n are polynomial members (returns
+   * true for Polynomial::isMember).
+   */
   static bool areChildrenPolynomialMembers(Node n);
 
   bool isNormalForm() { return isMember(getNode()); }
