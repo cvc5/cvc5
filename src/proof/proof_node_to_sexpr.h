@@ -24,9 +24,9 @@
 #include "expr/node.h"
 #include "proof/method_id.h"
 #include "proof/proof_rule.h"
+#include "rewriter/rewrites.h"
 #include "theory/inference_id.h"
 #include "theory/theory_id.h"
-#include "rewriter/rewrites.h"
 
 namespace cvc5::internal {
 
@@ -79,7 +79,8 @@ class ProofNodeToSExpr
   std::map<MethodId, Node> d_midMap;
   /** map infer ids to a variable displaying the inference id they represent */
   std::map<theory::InferenceId, Node> d_iidMap;
-  /** map dsl rewrite ids to a variable displaying the dsl rewrite id they represent */
+  /** map dsl rewrite ids to a variable displaying the dsl rewrite id they
+   * represent */
   std::map<rewriter::DslPfRule, Node> d_dslrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;

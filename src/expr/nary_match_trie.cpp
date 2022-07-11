@@ -142,7 +142,7 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
             // variable of type Real, then (+ x y) does *not* match
             // (+ 1.0 2 1.5), despite { x -> (+ 1.0 2), y -> 1.5 } being
             // a well-typed match.
-            if (s.isNull() || s.getType()!=var.getType())
+            if (s.isNull() || s.getType() != var.getType())
             {
               foundChildren = false;
               break;
@@ -172,7 +172,9 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           {
             currChildren.push_back(next);
             syms.pop_back();
-            Trace("match-debug") << "Compare types " << var << " " << next << " " << var.getType() << " " << next.getType() << std::endl;
+            Trace("match-debug")
+                << "Compare types " << var << " " << next << " "
+                << var.getType() << " " << next.getType() << std::endl;
             // check types in the (non-list) case
             if (var.getType() != next.getType())
             {
@@ -197,7 +199,8 @@ bool NaryMatchTrie::getMatches(Node n, NotifyMatch* ntm) const
           else
           {
             // add to binding
-            Trace("match-debug") << "Set " << var << " -> " << next << std::endl;
+            Trace("match-debug")
+                << "Set " << var << " -> " << next << std::endl;
             vars.push_back(var);
             subs.push_back(next);
             smap[var] = next;

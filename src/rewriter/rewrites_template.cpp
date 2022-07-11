@@ -15,10 +15,10 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "proof/proof_checker.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
 #include "util/string.h"
-#include "proof/proof_checker.h"
 
 using namespace cvc5::internal::kind;
 

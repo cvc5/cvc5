@@ -206,10 +206,10 @@ class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
    *
    */
   bool updatePost(Node res,
-                PfRule id,
-                const std::vector<Node>& children,
-                const std::vector<Node>& args,
-                CDProof* cdp) override;
+                  PfRule id,
+                  const std::vector<Node>& children,
+                  const std::vector<Node>& args,
+                  CDProof* cdp) override;
 
  private:
   /** The proof node manager */

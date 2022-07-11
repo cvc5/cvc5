@@ -262,7 +262,10 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
   }
   return expr::narySubstitute(conc, d_fvs, ss);
 }
-bool RewriteProofRule::isFixedPoint() const { return d_context != Node::null(); }
+bool RewriteProofRule::isFixedPoint() const
+{
+  return d_context != Node::null();
+}
 bool RewriteProofRule::isFlatForm() const { return d_isFlatForm; }
 }  // namespace rewriter
 }  // namespace cvc5::internal

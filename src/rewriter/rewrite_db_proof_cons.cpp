@@ -189,7 +189,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   Trace("rpc-debug2") << "notifyMatch: " << s << " from " << n << " via "
                       << vars << " -> " << subs << std::endl;
   Assert(d_target.getKind() == EQUAL);
-  Assert(s.getType()==n.getType());
+  Assert(s.getType() == n.getType());
   Assert(vars.size() == subs.size());
   if (d_currFixedPointId != DslPfRule::FAIL)
   {
@@ -265,7 +265,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     pic.d_id = id;
     for (size_t i = 0; i < nchild; i++)
     {
-      if (target[0][i].getType()!=target[1][i].getType())
+      if (target[0][i].getType() != target[1][i].getType())
       {
         // type error on children (required for certain polymorphic operators)
         return false;
@@ -309,13 +309,13 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
     // not support constant folding for the operator in question, which is the
     // case e.g. for operators that return regular expressions, datatypes,
     // sequences, sets.
-    if (target[0].getMetaKind()==metakind::PARAMETERIZED)
+    if (target[0].getMetaKind() == metakind::PARAMETERIZED)
     {
       rchildren.insert(rchildren.begin(), target[0].getOperator());
     }
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node tappc = nm->mkNode(target[0].getKind(), rchildren);
-    if (doEvaluate(tappc)!=r2)
+    if (doEvaluate(tappc) != r2)
     {
       return false;
     }
@@ -684,8 +684,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
           {
             const RewriteProofRule& rpr = d_db->getRule(itd->second.d_id);
             // add the DSL proof rule we used
-            pfArgs[cur].push_back(
-                nm->mkConstInt(Rational(static_cast<uint32_t>(itd->second.d_id))));
+            pfArgs[cur].push_back(nm->mkConstInt(
+                Rational(static_cast<uint32_t>(itd->second.d_id))));
             // compute premises based on the used substitution
             // build the substitution context
             const std::vector<Node>& vs = rpr.getVarList();
@@ -754,13 +754,13 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, Node eqi)
         }
         Node lhsTgt = nm->mkNode(cur[0].getKind(), lhsTgtc);
         Node rhs = doEvaluate(cur[1]);
-        Assert (!rhs.isNull());
+        Assert(!rhs.isNull());
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
         std::vector<Node> transChildren = {eq1, eq2};
         cdp->addStep(eq1, PfRule::CONG, ps, pfArgs[cur]);
         cdp->addStep(eq2, PfRule::EVALUATE, {}, {lhsTgt});
-        if (rhs!=cur[1])
+        if (rhs != cur[1])
         {
           cdp->addStep(cur[1].eqNode(rhs), PfRule::EVALUATE, {}, {cur[1]});
           transChildren.push_back(rhs.eqNode(cur[1]));

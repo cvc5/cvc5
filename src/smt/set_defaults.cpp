@@ -537,7 +537,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     // uses a non-standard implementation that sends (unsound) lemmas during
     // presolve.
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
-                       && !opts.base.incrementalSolving && !opts.smt.produceUnsatCores;
+                       && !opts.base.incrementalSolving
+                       && !opts.smt.produceUnsatCores;
     Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
                  << std::endl;
     opts.writeUf().ufSymmetryBreaker = qf_uf_noinc;

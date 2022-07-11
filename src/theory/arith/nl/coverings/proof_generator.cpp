@@ -21,7 +21,6 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/indexed_root_predicate.h"
-#include "theory/arith/arith_utilities.h"
 
 using namespace cvc5::internal::kind;
 

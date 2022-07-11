@@ -62,7 +62,8 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
       // do not letify id 0
       if (id > 0)
       {
-        Trace("alethe-printer-share") << "Node " << cur << " has id " << id << "\n";
+        Trace("alethe-printer-share")
+            << "Node " << cur << " has id " << id << "\n";
         // if cur has previously been declared, just use the let variable.
         if (d_declared.find(cur) != d_declared.end())
         {
@@ -206,7 +207,8 @@ Node AletheLetBinding::convert(Node n, const std::string& prefix)
         ss << " :named " << ssVar.str() << ")";
         Node declaration = nm->mkRawSymbol(ss.str(), ret.getType());
         declaredValue[cur] = declaration;
-        visited[cur] = cur == n? declaration : nm->mkBoundVar(ssVar.str(), cur.getType());
+        visited[cur] =
+            cur == n ? declaration : nm->mkBoundVar(ssVar.str(), cur.getType());
         continue;
       }
       visited[cur] = ret;
@@ -266,8 +268,10 @@ bool LetUpdaterPfCallback::update(Node res,
 }
 
 AletheProofPrinter::AletheProofPrinter(Env& env)
-    : EnvObj(env), d_lbind(options::ioutils::getDagThresh(std::cout) ? options::ioutils::getDagThresh(std::cout) + 1
-                                          : 0),
+    : EnvObj(env),
+      d_lbind(options::ioutils::getDagThresh(std::cout)
+                  ? options::ioutils::getDagThresh(std::cout) + 1
+                  : 0),
       d_cb(new LetUpdaterPfCallback(d_lbind))
 {
 }
@@ -473,7 +477,8 @@ std::string AletheProofPrinter::printInternal(
       out << " :discharge (";
       for (size_t j = 0, size = current_assumptions.size(); j < size; j++)
       {
-        out << current_assumptions[j] << (j != current_assumptions.size() - 1 ? " " : "");
+        out << current_assumptions[j]
+            << (j != current_assumptions.size() - 1 ? " " : "");
       }
       out << ")";
     }

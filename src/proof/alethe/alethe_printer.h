@@ -125,7 +125,6 @@ class AletheProofPrinter : protected EnvObj
 
   void printTerm(std::ostream& out, TNode n);
 
-
   /** The let binder for printing with sharing. */
   AletheLetBinding d_lbind;
 

@@ -147,7 +147,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
                              << " ---> " << eq[1] << std::endl;
     }
-    else if (r==PfRule::REWRITE)
+    else if (r == PfRule::REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];

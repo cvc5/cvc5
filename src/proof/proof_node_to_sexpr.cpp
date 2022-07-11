@@ -311,7 +311,7 @@ ProofNodeToSExpr::ArgFormat ProofNodeToSExpr::getArgumentFormat(
       }
       break;
     case PfRule::DSL_REWRITE:
-      if (i==0)
+      if (i == 0)
       {
         return ArgFormat::DSL_REWRITE_ID;
       }

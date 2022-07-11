@@ -18,8 +18,8 @@
 #include "proof/lean/lean_rules.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "util/rational.h"
 #include "smt/env.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 
@@ -32,8 +32,8 @@ LeanProofPostprocessCallback::LeanProofPostprocessCallback(
 }
 
 LeanProofPostprocess::LeanProofPostprocess(Env& env)
-    : EnvObj(env), 
-    d_cb(new proof::LeanProofPostprocessCallback(env.getProofNodeManager()))
+    : EnvObj(env),
+      d_cb(new proof::LeanProofPostprocessCallback(env.getProofNodeManager()))
 {
 }
 
