@@ -18,15 +18,16 @@
 #ifndef CVC5__SMT__SOLVER_ENGINE_STATS_H
 #define CVC5__SMT__SOLVER_ENGINE_STATS_H
 
-#include "util/statistics_stats.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 struct SolverEngineStatistics
 {
-  SolverEngineStatistics(StatisticsRegistry& sr, const std::string& name = "smt::SolverEngine::");
+  SolverEngineStatistics(StatisticsRegistry& sr,
+                         const std::string& name = "smt::SolverEngine::");
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */

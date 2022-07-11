@@ -21,16 +21,11 @@ namespace decision {
 JustifyStatistics::JustifyStatistics(StatisticsRegistry& sr)
     : d_numStatusNoDecision(
         sr.registerInt("JustifyStrategy::StatusNoDecision")),
-      d_numStatusDecision(
-          sr.registerInt("JustifyStrategy::StatusDecision")),
-      d_numStatusBacktrack(
-          sr.registerInt("JustifyStrategy::StatusBacktrack")),
-      d_maxStackSize(
-          sr.registerInt("JustifyStrategy::MaxStackSize")),
-      d_maxAssertionsSize(sr.registerInt(
-          "JustifyStrategy::MaxAssertionsSize")),
-      d_maxSkolemDefsSize(sr.registerInt(
-          "JustifyStrategy::MaxSkolemDefsSize"))
+      d_numStatusDecision(sr.registerInt("JustifyStrategy::StatusDecision")),
+      d_numStatusBacktrack(sr.registerInt("JustifyStrategy::StatusBacktrack")),
+      d_maxStackSize(sr.registerInt("JustifyStrategy::MaxStackSize")),
+      d_maxAssertionsSize(sr.registerInt("JustifyStrategy::MaxAssertionsSize")),
+      d_maxSkolemDefsSize(sr.registerInt("JustifyStrategy::MaxSkolemDefsSize"))
 {
 }
 

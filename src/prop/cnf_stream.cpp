@@ -739,9 +739,10 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-CnfStream::Statistics::Statistics(StatisticsRegistry& sr, const std::string& name)
-    : d_cnfConversionTime(sr.registerTimer(
-        name + "::CnfStream::cnfConversionTime"))
+CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
+                                  const std::string& name)
+    : d_cnfConversionTime(
+        sr.registerTimer(name + "::CnfStream::cnfConversionTime"))
 {
 }
 

@@ -18,25 +18,19 @@
 namespace cvc5::internal {
 namespace smt {
 
-SolverEngineStatistics::SolverEngineStatistics(StatisticsRegistry& sr, const std::string& name)
+SolverEngineStatistics::SolverEngineStatistics(StatisticsRegistry& sr,
+                                               const std::string& name)
     : d_definitionExpansionTime(
         sr.registerTimer(name + "definitionExpansionTime")),
-      d_numConstantProps(
-          sr.registerInt(name + "numConstantProps")),
-      d_numAssertionsPre(sr.registerInt(
-          name + "numAssertionsPreITERemoval")),
-      d_numAssertionsPost(sr.registerInt(
-          name + "numAssertionsPostITERemoval")),
-      d_checkModelTime(
-          sr.registerTimer(name + "checkModelTime")),
-      d_checkUnsatCoreTime(
-          sr.registerTimer(name + "checkUnsatCoreTime")),
+      d_numConstantProps(sr.registerInt(name + "numConstantProps")),
+      d_numAssertionsPre(sr.registerInt(name + "numAssertionsPreITERemoval")),
+      d_numAssertionsPost(sr.registerInt(name + "numAssertionsPostITERemoval")),
+      d_checkModelTime(sr.registerTimer(name + "checkModelTime")),
+      d_checkUnsatCoreTime(sr.registerTimer(name + "checkUnsatCoreTime")),
       d_solveTime(sr.registerTimer(name + "solveTime")),
       d_pushPopTime(sr.registerTimer(name + "pushPopTime")),
-      d_processAssertionsTime(
-          sr.registerTimer(name + "processAssertionsTime")),
-      d_simplifiedToFalse(
-          sr.registerInt(name + "simplifiedToFalse"))
+      d_processAssertionsTime(sr.registerTimer(name + "processAssertionsTime")),
+      d_simplifiedToFalse(sr.registerInt(name + "simplifiedToFalse"))
 {
 }
 

@@ -79,10 +79,10 @@ Node ProofRuleChecker::mkKindNode(Kind k)
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics(StatisticsRegistry& sr)
-    : d_ruleChecks(sr.registerHistogram<PfRule>(
-        "ProofCheckerStatistics::ruleChecks")),
-      d_totalRuleChecks(sr.registerInt(
-          "ProofCheckerStatistics::totalRuleChecks"))
+    : d_ruleChecks(
+        sr.registerHistogram<PfRule>("ProofCheckerStatistics::ruleChecks")),
+      d_totalRuleChecks(
+          sr.registerInt("ProofCheckerStatistics::totalRuleChecks"))
 {
 }
 
