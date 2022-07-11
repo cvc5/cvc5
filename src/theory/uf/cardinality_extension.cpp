@@ -1789,14 +1789,11 @@ void CardinalityExtension::checkCombinedCardinality()
 }
 
 CardinalityExtension::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_clique_conflicts(sr.registerInt(
-        "CardinalityExtension::Clique_Conflicts")),
-      d_clique_lemmas(sr.registerInt(
-          "CardinalityExtension::Clique_Lemmas")),
-      d_split_lemmas(sr.registerInt(
-          "CardinalityExtension::Split_Lemmas")),
-      d_max_model_size(sr.registerInt(
-          "CardinalityExtension::Max_Model_Size"))
+    : d_clique_conflicts(
+        sr.registerInt("CardinalityExtension::Clique_Conflicts")),
+      d_clique_lemmas(sr.registerInt("CardinalityExtension::Clique_Lemmas")),
+      d_split_lemmas(sr.registerInt("CardinalityExtension::Split_Lemmas")),
+      d_max_model_size(sr.registerInt("CardinalityExtension::Max_Model_Size"))
 {
   d_max_model_size.maxAssign(1);
 }
