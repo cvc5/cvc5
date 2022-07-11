@@ -147,14 +147,13 @@ void ErrorInformation::setAmount(const DeltaRational& am){
 }
 
 ErrorSet::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_enqueues(
-        sr.registerInt("theory::arith::pqueue::enqueues")),
-      d_enqueuesCollection(sr.registerInt(
-          "theory::arith::pqueue::enqueuesCollection")),
-      d_enqueuesDiffMode(sr.registerInt(
-          "theory::arith::pqueue::enqueuesDiffMode")),
-      d_enqueuesVarOrderMode(sr.registerInt(
-          "theory::arith::pqueue::enqueuesVarOrderMode")),
+    : d_enqueues(sr.registerInt("theory::arith::pqueue::enqueues")),
+      d_enqueuesCollection(
+          sr.registerInt("theory::arith::pqueue::enqueuesCollection")),
+      d_enqueuesDiffMode(
+          sr.registerInt("theory::arith::pqueue::enqueuesDiffMode")),
+      d_enqueuesVarOrderMode(
+          sr.registerInt("theory::arith::pqueue::enqueuesVarOrderMode")),
       d_enqueuesCollectionDuplicates(sr.registerInt(
           "theory::arith::pqueue::enqueuesCollectionDuplicates")),
       d_enqueuesVarOrderModeDuplicates(sr.registerInt(

@@ -44,7 +44,9 @@ class EngineOutputChannel : public theory::OutputChannel
   friend class internal::TheoryEngine;
 
  public:
-  EngineOutputChannel(StatisticsRegistry& sr, TheoryEngine* engine, theory::TheoryId theory);
+  EngineOutputChannel(StatisticsRegistry& sr,
+                      TheoryEngine* engine,
+                      theory::TheoryId theory);
 
   void safePoint(Resource r) override;
 

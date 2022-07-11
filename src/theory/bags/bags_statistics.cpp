@@ -20,8 +20,7 @@ namespace theory {
 namespace bags {
 
 BagsStatistics::BagsStatistics(StatisticsRegistry& sr)
-    : d_rewrites(sr.registerHistogram<Rewrite>(
-        "theory::bags::rewrites"))
+    : d_rewrites(sr.registerHistogram<Rewrite>("theory::bags::rewrites"))
 {
 }
 

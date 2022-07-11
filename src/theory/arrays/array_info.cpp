@@ -43,21 +43,20 @@ Info::~Info() {
   in_stores->deleteSelf();
 }
 
-ArrayInfo::ArrayInfo(StatisticsRegistry& sr, context::Context* c, std::string statisticsPrefix)
+ArrayInfo::ArrayInfo(StatisticsRegistry& sr,
+                     context::Context* c,
+                     std::string statisticsPrefix)
     : ct(c),
       info_map(),
-      d_mergeInfoTimer(sr.registerTimer(statisticsPrefix
-                                                          + "mergeInfoTimer")),
-      d_avgIndexListLength(sr.registerAverage(
-          statisticsPrefix + "avgIndexListLength")),
-      d_avgStoresListLength(sr.registerAverage(
-          statisticsPrefix + "avgStoresListLength")),
-      d_avgInStoresListLength(sr.registerAverage(
-          statisticsPrefix + "avgInStoresListLength")),
-      d_listsCount(
-          sr.registerInt(statisticsPrefix + "listsCount")),
-      d_callsMergeInfo(sr.registerInt(statisticsPrefix
-                                                        + "callsMergeInfo")),
+      d_mergeInfoTimer(sr.registerTimer(statisticsPrefix + "mergeInfoTimer")),
+      d_avgIndexListLength(
+          sr.registerAverage(statisticsPrefix + "avgIndexListLength")),
+      d_avgStoresListLength(
+          sr.registerAverage(statisticsPrefix + "avgStoresListLength")),
+      d_avgInStoresListLength(
+          sr.registerAverage(statisticsPrefix + "avgInStoresListLength")),
+      d_listsCount(sr.registerInt(statisticsPrefix + "listsCount")),
+      d_callsMergeInfo(sr.registerInt(statisticsPrefix + "callsMergeInfo")),
       d_maxList(sr.registerInt(statisticsPrefix + "maxList")),
       d_tableSize(sr.registerSize<CNodeInfoMap>(
           statisticsPrefix + "infoTableSize", info_map))

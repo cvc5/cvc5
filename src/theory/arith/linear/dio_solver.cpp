@@ -59,17 +59,12 @@ DioSolver::DioSolver(Env& env)
 }
 
 DioSolver::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_conflictCalls(
-        sr.registerInt("theory::arith::dio::conflictCalls")),
-      d_cutCalls(
-          sr.registerInt("theory::arith::dio::cutCalls")),
+    : d_conflictCalls(sr.registerInt("theory::arith::dio::conflictCalls")),
+      d_cutCalls(sr.registerInt("theory::arith::dio::cutCalls")),
       d_cuts(sr.registerInt("theory::arith::dio::cuts")),
-      d_conflicts(
-          sr.registerInt("theory::arith::dio::conflicts")),
-      d_conflictTimer(sr.registerTimer(
-          "theory::arith::dio::conflictTimer")),
-      d_cutTimer(
-          sr.registerTimer("theory::arith::dio::cutTimer"))
+      d_conflicts(sr.registerInt("theory::arith::dio::conflicts")),
+      d_conflictTimer(sr.registerTimer("theory::arith::dio::conflictTimer")),
+      d_cutTimer(sr.registerTimer("theory::arith::dio::cutTimer"))
 {
 }
 

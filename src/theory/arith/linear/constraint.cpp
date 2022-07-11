@@ -1038,10 +1038,10 @@ ConstraintDatabase::~ConstraintDatabase(){
 }
 
 ConstraintDatabase::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_unatePropagateCalls(sr.registerInt(
-        "theory::arith::cd::unatePropagateCalls")),
-      d_unatePropagateImplications(sr.registerInt(
-          "theory::arith::cd::unatePropagateImplications"))
+    : d_unatePropagateCalls(
+        sr.registerInt("theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(
+          sr.registerInt("theory::arith::cd::unatePropagateImplications"))
 {
 }
 

@@ -39,17 +39,17 @@ DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(
       d_statistics(statisticsRegistry(), d_pivots)
 { }
 
-DualSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr, uint32_t& pivots)
-    : d_statUpdateConflicts(sr.registerInt(
-        "theory::arith::dual::UpdateConflicts")),
-      d_processSignalsTime(sr.registerTimer(
-          "theory::arith::dual::findConflictOnTheQueueTime")),
-      d_simplexConflicts(sr.registerInt(
-          "theory::arith::dual::simplexConflicts")),
-      d_recentViolationCatches(sr.registerInt(
-          "theory::arith::dual::recentViolationCatches")),
-      d_searchTime(sr.registerTimer(
-          "theory::arith::dual::searchTime")),
+DualSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr,
+                                                     uint32_t& pivots)
+    : d_statUpdateConflicts(
+        sr.registerInt("theory::arith::dual::UpdateConflicts")),
+      d_processSignalsTime(
+          sr.registerTimer("theory::arith::dual::findConflictOnTheQueueTime")),
+      d_simplexConflicts(
+          sr.registerInt("theory::arith::dual::simplexConflicts")),
+      d_recentViolationCatches(
+          sr.registerInt("theory::arith::dual::recentViolationCatches")),
+      d_searchTime(sr.registerTimer("theory::arith::dual::searchTime")),
       d_finalCheckPivotCounter(sr.registerReference<uint32_t>(
           "theory::arith::dual::lastPivots", pivots))
 {

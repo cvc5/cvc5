@@ -41,12 +41,9 @@ AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
 { }
 
 AttemptSolutionSDP::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_searchTime(sr.registerTimer(
-        "theory::arith::attempt::searchTime")),
-      d_queueTime(sr.registerTimer(
-          "theory::arith::attempt::queueTime")),
-      d_conflicts(
-          sr.registerInt("theory::arith::attempt::conflicts"))
+    : d_searchTime(sr.registerTimer("theory::arith::attempt::searchTime")),
+      d_queueTime(sr.registerTimer("theory::arith::attempt::queueTime")),
+      d_conflicts(sr.registerInt("theory::arith::attempt::conflicts"))
 {
 }
 

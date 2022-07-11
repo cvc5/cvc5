@@ -130,7 +130,9 @@ private:
 public:
   const Info* emptyInfo;
 
-  ArrayInfo(StatisticsRegistry& sr, context::Context* c, std::string statisticsPrefix = "");
+  ArrayInfo(StatisticsRegistry& sr,
+            context::Context* c,
+            std::string statisticsPrefix = "");
 
   ~ArrayInfo();
 

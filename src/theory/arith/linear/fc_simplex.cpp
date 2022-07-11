@@ -19,8 +19,8 @@
 #include "options/arith_options.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
-#include "util/statistics_stats.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 using namespace std;
 
@@ -45,25 +45,21 @@ FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
       d_statistics(statisticsRegistry(), "theory::arith::FC::", d_pivots)
 { }
 
-FCSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr, 
+FCSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr,
                                                    const std::string& name,
                                                    uint32_t& pivots)
-    : d_initialSignalsTime(
-        sr.registerTimer(name + "initialProcessTime")),
-      d_initialConflicts(
-          sr.registerInt(name + "UpdateConflicts")),
+    : d_initialSignalsTime(sr.registerTimer(name + "initialProcessTime")),
+      d_initialConflicts(sr.registerInt(name + "UpdateConflicts")),
       d_fcFoundUnsat(sr.registerInt(name + "FoundUnsat")),
       d_fcFoundSat(sr.registerInt(name + "FoundSat")),
       d_fcMissed(sr.registerInt(name + "Missed")),
       d_fcTimer(sr.registerTimer(name + "Timer")),
-      d_fcFocusConstructionTimer(
-          sr.registerTimer(name + "Construction")),
+      d_fcFocusConstructionTimer(sr.registerTimer(name + "Construction")),
       d_selectUpdateForDualLike(
           sr.registerTimer(name + "selectUpdateForDualLike")),
-      d_selectUpdateForPrimal(
-          sr.registerTimer(name + "selectUpdateForPrimal")),
-      d_finalCheckPivotCounter(sr.registerReference<uint32_t>(
-          name + "lastPivots", pivots))
+      d_selectUpdateForPrimal(sr.registerTimer(name + "selectUpdateForPrimal")),
+      d_finalCheckPivotCounter(
+          sr.registerReference<uint32_t>(name + "lastPivots", pivots))
 {
 }
 

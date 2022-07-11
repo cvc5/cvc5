@@ -283,7 +283,10 @@ public:
     }
   }
 
-  ErrorSet(StatisticsRegistry& sr, ArithVariables& var, TableauSizes tabSizes, BoundCountingLookup boundLookup);
+  ErrorSet(StatisticsRegistry& sr,
+           ArithVariables& var,
+           TableauSizes tabSizes,
+           BoundCountingLookup boundLookup);
 
   typedef ErrorInfoMap::const_iterator error_iterator;
   error_iterator errorBegin() const { return d_errInfo.begin(); }

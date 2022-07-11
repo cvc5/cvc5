@@ -155,16 +155,13 @@ struct CutScratchPad {
 };
 
 ApproximateStatistics::ApproximateStatistics(StatisticsRegistry& sr)
-    : d_branchMaxDepth(
-        sr.registerInt("z::approx::branchMaxDepth")),
-      d_branchesMaxOnAVar(
-          sr.registerInt("z::approx::branchesMaxOnAVar")),
-      d_gaussianElimConstructTime(sr.registerTimer(
-          "z::approx::gaussianElimConstruct::time")),
-      d_gaussianElimConstruct(sr.registerInt(
-          "z::approx::gaussianElimConstruct::calls")),
-      d_averageGuesses(
-          sr.registerAverage("z::approx::averageGuesses"))
+    : d_branchMaxDepth(sr.registerInt("z::approx::branchMaxDepth")),
+      d_branchesMaxOnAVar(sr.registerInt("z::approx::branchesMaxOnAVar")),
+      d_gaussianElimConstructTime(
+          sr.registerTimer("z::approx::gaussianElimConstruct::time")),
+      d_gaussianElimConstruct(
+          sr.registerInt("z::approx::gaussianElimConstruct::calls")),
+      d_averageGuesses(sr.registerAverage("z::approx::averageGuesses"))
 {
 }
 
