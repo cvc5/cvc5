@@ -62,7 +62,8 @@ ArithCongruenceManager::ArithCongruenceManager(
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
           d_env, userContext(), "ArithCongruenceManager::pfGenExplain")),
-      d_pfee(nullptr)
+      d_pfee(nullptr),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -80,20 +81,20 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   Assert(isProofEnabled() == (d_pfee != nullptr));
 }
 
-ArithCongruenceManager::Statistics::Statistics()
-    : d_watchedVariables(statisticsRegistry().registerInt(
+ArithCongruenceManager::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_watchedVariables(sr.registerInt(
         "theory::arith::congruence::watchedVariables")),
-      d_watchedVariableIsZero(statisticsRegistry().registerInt(
+      d_watchedVariableIsZero(sr.registerInt(
           "theory::arith::congruence::watchedVariableIsZero")),
-      d_watchedVariableIsNotZero(statisticsRegistry().registerInt(
+      d_watchedVariableIsNotZero(sr.registerInt(
           "theory::arith::congruence::watchedVariableIsNotZero")),
-      d_equalsConstantCalls(statisticsRegistry().registerInt(
+      d_equalsConstantCalls(sr.registerInt(
           "theory::arith::congruence::equalsConstantCalls")),
-      d_propagations(statisticsRegistry().registerInt(
+      d_propagations(sr.registerInt(
           "theory::arith::congruence::propagations")),
-      d_propagateConstraints(statisticsRegistry().registerInt(
+      d_propagateConstraints(sr.registerInt(
           "theory::arith::congruence::propagateConstraints")),
-      d_conflicts(statisticsRegistry().registerInt(
+      d_conflicts(sr.registerInt(
           "theory::arith::congruence::conflicts"))
 {
 }

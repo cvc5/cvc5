@@ -226,7 +226,7 @@ public:
    * Initializes a LinearEqualityModule with a partial model, a tableau,
    * and a callback function for when basic variables update their values.
    */
-  LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundInfoMap& boundTracking, BasicVarModelUpdateCallBack f);
+  LinearEqualityModule(StatisticsRegistry& sr, ArithVariables& vars, Tableau& t, BoundInfoMap& boundTracking, BasicVarModelUpdateCallBack f);
 
   /**
    * Updates the assignment of a nonbasic variable x_i to v.
@@ -706,7 +706,7 @@ private:
     TimerStat d_weakenTime;
     TimerStat d_forceTime;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
   mutable Statistics d_statistics;
 

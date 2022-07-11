@@ -920,7 +920,8 @@ ConstraintDatabase::ConstraintDatabase(Env& env,
                                            : nullptr),
       d_raiseConflict(raiseConflict),
       d_one(1),
-      d_negOne(-1)
+      d_negOne(-1),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -1036,10 +1037,10 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics()
-    : d_unatePropagateCalls(statisticsRegistry().registerInt(
+ConstraintDatabase::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_unatePropagateCalls(sr.registerInt(
         "theory::arith::cd::unatePropagateCalls")),
-      d_unatePropagateImplications(statisticsRegistry().registerInt(
+      d_unatePropagateImplications(sr.registerInt(
           "theory::arith::cd::unatePropagateImplications"))
 {
 }

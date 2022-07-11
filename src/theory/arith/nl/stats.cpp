@@ -20,9 +20,9 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlStats::NlStats()
-    : d_mbrRuns(statisticsRegistry().registerInt("nl::mbrRuns")),
-      d_checkRuns(statisticsRegistry().registerInt("nl::checkRuns"))
+NlStats::NlStats(StatisticsRegistry& sr)
+    : d_mbrRuns(sr.registerInt("nl::mbrRuns")),
+      d_checkRuns(sr.registerInt("nl::checkRuns"))
 {
 }
 

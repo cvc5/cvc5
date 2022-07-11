@@ -53,22 +53,23 @@ DioSolver::DioSolver(Env& env)
       d_usedDecomposeIndex(context(), false),
       d_lastPureSubstitution(context(), 0),
       d_pureSubstitionIter(context(), 0),
-      d_decompositionLemmaQueue(context())
+      d_decompositionLemmaQueue(context()),
+      d_statistics(statisticsRegistry())
 {
 }
 
-DioSolver::Statistics::Statistics()
+DioSolver::Statistics::Statistics(StatisticsRegistry& sr)
     : d_conflictCalls(
-        statisticsRegistry().registerInt("theory::arith::dio::conflictCalls")),
+        sr.registerInt("theory::arith::dio::conflictCalls")),
       d_cutCalls(
-          statisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
-      d_cuts(statisticsRegistry().registerInt("theory::arith::dio::cuts")),
+          sr.registerInt("theory::arith::dio::cutCalls")),
+      d_cuts(sr.registerInt("theory::arith::dio::cuts")),
       d_conflicts(
-          statisticsRegistry().registerInt("theory::arith::dio::conflicts")),
-      d_conflictTimer(statisticsRegistry().registerTimer(
+          sr.registerInt("theory::arith::dio::conflicts")),
+      d_conflictTimer(sr.registerTimer(
           "theory::arith::dio::conflictTimer")),
       d_cutTimer(
-          statisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
+          sr.registerTimer("theory::arith::dio::cutTimer"))
 {
 }
 

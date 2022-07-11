@@ -30,6 +30,7 @@
 #include "theory/arith/linear/cut_log.h"
 #include "theory/arith/linear/matrix.h"
 #include "theory/arith/linear/normal_form.h"
+#include "util/statistics_registry.h"
 
 #ifdef CVC5_USE_GLPK
 #include "theory/arith/linear/partial_model.h"
@@ -153,17 +154,17 @@ struct CutScratchPad {
   }
 };
 
-ApproximateStatistics::ApproximateStatistics()
+ApproximateStatistics::ApproximateStatistics(StatisticsRegistry& sr)
     : d_branchMaxDepth(
-        statisticsRegistry().registerInt("z::approx::branchMaxDepth")),
+        sr.registerInt("z::approx::branchMaxDepth")),
       d_branchesMaxOnAVar(
-          statisticsRegistry().registerInt("z::approx::branchesMaxOnAVar")),
-      d_gaussianElimConstructTime(statisticsRegistry().registerTimer(
+          sr.registerInt("z::approx::branchesMaxOnAVar")),
+      d_gaussianElimConstructTime(sr.registerTimer(
           "z::approx::gaussianElimConstruct::time")),
-      d_gaussianElimConstruct(statisticsRegistry().registerInt(
+      d_gaussianElimConstruct(sr.registerInt(
           "z::approx::gaussianElimConstruct::calls")),
       d_averageGuesses(
-          statisticsRegistry().registerAverage("z::approx::averageGuesses"))
+          sr.registerAverage("z::approx::averageGuesses"))
 {
 }
 

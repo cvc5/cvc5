@@ -23,6 +23,7 @@
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/tableau.h"
 #include "util/statistics_stats.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 
@@ -41,29 +42,30 @@ SumOfInfeasibilitiesSPD::SumOfInfeasibilitiesSPD(Env& env,
       d_prevWitnessImprovement(AntiProductive),
       d_witnessImprovementInARow(0),
       d_sgnDisagreements(),
-      d_statistics("theory::arith::SOI", d_pivots)
+      d_statistics(statisticsRegistry(), "theory::arith::SOI", d_pivots)
 { }
 
-SumOfInfeasibilitiesSPD::Statistics::Statistics(const std::string& name,
+SumOfInfeasibilitiesSPD::Statistics::Statistics(StatisticsRegistry& sr,
+                                                const std::string& name,
                                                 uint32_t& pivots)
     : d_initialSignalsTime(
-        statisticsRegistry().registerTimer(name + "initialProcessTime")),
+        sr.registerTimer(name + "initialProcessTime")),
       d_initialConflicts(
-          statisticsRegistry().registerInt(name + "UpdateConflicts")),
-      d_soiFoundUnsat(statisticsRegistry().registerInt(name + "FoundUnsat")),
-      d_soiFoundSat(statisticsRegistry().registerInt(name + "FoundSat")),
-      d_soiMissed(statisticsRegistry().registerInt(name + "Missed")),
-      d_soiConflicts(statisticsRegistry().registerInt(name + "ConfMin::num")),
-      d_hasToBeMinimal(statisticsRegistry().registerInt(name + "HasToBeMin")),
-      d_maybeNotMinimal(statisticsRegistry().registerInt(name + "MaybeNotMin")),
-      d_soiTimer(statisticsRegistry().registerTimer(name + "Time")),
+          sr.registerInt(name + "UpdateConflicts")),
+      d_soiFoundUnsat(sr.registerInt(name + "FoundUnsat")),
+      d_soiFoundSat(sr.registerInt(name + "FoundSat")),
+      d_soiMissed(sr.registerInt(name + "Missed")),
+      d_soiConflicts(sr.registerInt(name + "ConfMin::num")),
+      d_hasToBeMinimal(sr.registerInt(name + "HasToBeMin")),
+      d_maybeNotMinimal(sr.registerInt(name + "MaybeNotMin")),
+      d_soiTimer(sr.registerTimer(name + "Time")),
       d_soiFocusConstructionTimer(
-          statisticsRegistry().registerTimer(name + "Construction")),
+          sr.registerTimer(name + "Construction")),
       d_soiConflictMinimization(
-          statisticsRegistry().registerTimer(name + "Conflict::Minimization")),
+          sr.registerTimer(name + "Conflict::Minimization")),
       d_selectUpdateForSOI(
-          statisticsRegistry().registerTimer(name + "selectSOI")),
-      d_finalCheckPivotCounter(statisticsRegistry().registerReference<uint32_t>(
+          sr.registerTimer(name + "selectSOI")),
+      d_finalCheckPivotCounter(sr.registerReference<uint32_t>(
           name + "lastPivots", pivots))
 {
 }

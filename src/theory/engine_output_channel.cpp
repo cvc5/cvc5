@@ -24,18 +24,18 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
+EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr, theory::TheoryId theory)
     : conflicts(
-        statisticsRegistry().registerInt(getStatsPrefix(theory) + "conflicts")),
-      propagations(statisticsRegistry().registerInt(getStatsPrefix(theory)
+        sr.registerInt(getStatsPrefix(theory) + "conflicts")),
+      propagations(sr.registerInt(getStatsPrefix(theory)
                                                     + "propagations")),
       lemmas(
-          statisticsRegistry().registerInt(getStatsPrefix(theory) + "lemmas")),
-      requirePhase(statisticsRegistry().registerInt(getStatsPrefix(theory)
+          sr.registerInt(getStatsPrefix(theory) + "lemmas")),
+      requirePhase(sr.registerInt(getStatsPrefix(theory)
                                                     + "requirePhase")),
-      trustedConflicts(statisticsRegistry().registerInt(getStatsPrefix(theory)
+      trustedConflicts(sr.registerInt(getStatsPrefix(theory)
                                                         + "trustedConflicts")),
-      trustedLemmas(statisticsRegistry().registerInt(getStatsPrefix(theory)
+      trustedLemmas(sr.registerInt(getStatsPrefix(theory)
                                                      + "trustedLemmas"))
 {
 }

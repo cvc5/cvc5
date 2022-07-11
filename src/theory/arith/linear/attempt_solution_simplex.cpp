@@ -23,6 +23,7 @@
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
 #include "theory/arith/linear/tableau.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 

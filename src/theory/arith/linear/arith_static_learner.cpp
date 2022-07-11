@@ -24,6 +24,7 @@
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_utilities.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -40,7 +41,7 @@ ArithStaticLearner::ArithStaticLearner(StatisticsRegistry& sr, context::Context*
 ArithStaticLearner::~ArithStaticLearner(){
 }
 
-ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr,)
+ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr)
     : d_iteMinMaxApplications(sr.registerInt(
         "theory::arith::iteMinMaxApplications")),
       d_iteConstantApplications(sr.registerInt(

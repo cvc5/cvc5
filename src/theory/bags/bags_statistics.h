@@ -20,6 +20,7 @@
 
 #include "theory/bags/rewrites.h"
 #include "util/statistics_stats.h"
+#include "util/statistics_registry.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -31,7 +32,7 @@ namespace bags {
 class BagsStatistics
 {
  public:
-  BagsStatistics();
+  BagsStatistics(StatisticsRegistry& sr);
 
   /** Counts the number of applications of each type of rewrite rule */
   HistogramStat<Rewrite> d_rewrites;

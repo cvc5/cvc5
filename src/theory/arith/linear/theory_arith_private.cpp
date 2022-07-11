@@ -103,7 +103,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_qflraStatus(Result::UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(userContext()),
+      d_learner(statisticsRegistry(), userContext()),
       d_assertionsThatDoNotMatchTheirLiterals(context()),
       d_nextIntegerCheckVar(0),
       d_constantIntegerVariables(context()),
@@ -113,9 +113,10 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_preregisteredNodes(context()),
       d_partialModel(context(), DeltaComputeCallback(*this)),
       d_errorSet(
-          d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
+          statisticsRegistry(), d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
       d_tableau(),
-      d_linEq(d_partialModel,
+      d_linEq(statisticsRegistry(),
+              d_partialModel,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
@@ -2542,7 +2543,7 @@ TreeLog& TheoryArithPrivate::getTreeLog(){
 
 ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
   if(d_approxStats == NULL){
-    d_approxStats = new ApproximateStatistics();
+    d_approxStats = new ApproximateStatistics(statisticsRegistry());
   }
   return *d_approxStats;
 }

@@ -36,21 +36,21 @@ DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(
     TempVarMalloc tvmalloc)
     : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
       d_pivotsInRound(),
-      d_statistics(d_pivots)
+      d_statistics(statisticsRegistry(), d_pivots)
 { }
 
-DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
-    : d_statUpdateConflicts(statisticsRegistry().registerInt(
+DualSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr, uint32_t& pivots)
+    : d_statUpdateConflicts(sr.registerInt(
         "theory::arith::dual::UpdateConflicts")),
-      d_processSignalsTime(statisticsRegistry().registerTimer(
+      d_processSignalsTime(sr.registerTimer(
           "theory::arith::dual::findConflictOnTheQueueTime")),
-      d_simplexConflicts(statisticsRegistry().registerInt(
+      d_simplexConflicts(sr.registerInt(
           "theory::arith::dual::simplexConflicts")),
-      d_recentViolationCatches(statisticsRegistry().registerInt(
+      d_recentViolationCatches(sr.registerInt(
           "theory::arith::dual::recentViolationCatches")),
-      d_searchTime(statisticsRegistry().registerTimer(
+      d_searchTime(sr.registerTimer(
           "theory::arith::dual::searchTime")),
-      d_finalCheckPivotCounter(statisticsRegistry().registerReference<uint32_t>(
+      d_finalCheckPivotCounter(sr.registerReference<uint32_t>(
           "theory::arith::dual::lastPivots", pivots))
 {
 }

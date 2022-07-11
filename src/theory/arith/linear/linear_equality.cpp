@@ -16,6 +16,7 @@
 
 #include "base/output.h"
 #include "theory/arith/linear/constraint.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 
@@ -48,7 +49,7 @@ void Border::output(std::ostream& out) const{
       << "}";
 }
 
-LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, BoundInfoMap& boundsTracking, BasicVarModelUpdateCallBack f):
+LinearEqualityModule::LinearEqualityModule(StatisticsRegistry& sr, ArithVariables& vars, Tableau& t, BoundInfoMap& boundsTracking, BasicVarModelUpdateCallBack f):
   d_variables(vars),
   d_tableau(t),
   d_basicVariableUpdates(f),
@@ -60,25 +61,26 @@ LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, Bou
   d_negOne(-1),
   d_btracking(boundsTracking),
   d_areTracking(false),
-  d_trackCallback(this)
+  d_trackCallback(this),
+  d_statistics(sr)
 {}
 
-LinearEqualityModule::Statistics::Statistics()
-    : d_statPivots(statisticsRegistry().registerInt("theory::arith::pivots")),
-      d_statUpdates(statisticsRegistry().registerInt("theory::arith::updates")),
+LinearEqualityModule::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_statPivots(sr.registerInt("theory::arith::pivots")),
+      d_statUpdates(sr.registerInt("theory::arith::updates")),
       d_pivotTime(
-          statisticsRegistry().registerTimer("theory::arith::pivotTime")),
-      d_adjTime(statisticsRegistry().registerTimer("theory::arith::adjTime")),
-      d_weakeningAttempts(statisticsRegistry().registerInt(
+          sr.registerTimer("theory::arith::pivotTime")),
+      d_adjTime(sr.registerTimer("theory::arith::adjTime")),
+      d_weakeningAttempts(sr.registerInt(
           "theory::arith::weakening::attempts")),
-      d_weakeningSuccesses(statisticsRegistry().registerInt(
+      d_weakeningSuccesses(sr.registerInt(
           "theory::arith::weakening::success")),
       d_weakenings(
-          statisticsRegistry().registerInt("theory::arith::weakening::total")),
+          sr.registerInt("theory::arith::weakening::total")),
       d_weakenTime(
-          statisticsRegistry().registerTimer("theory::arith::weakening::time")),
+          sr.registerTimer("theory::arith::weakening::time")),
       d_forceTime(
-          statisticsRegistry().registerTimer("theory::arith::forcing::time"))
+          sr.registerTimer("theory::arith::forcing::time"))
 {
 }
 

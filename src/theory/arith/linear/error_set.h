@@ -283,7 +283,7 @@ public:
     }
   }
 
-  ErrorSet(ArithVariables& var, TableauSizes tabSizes, BoundCountingLookup boundLookup);
+  ErrorSet(StatisticsRegistry& sr, ArithVariables& var, TableauSizes tabSizes, BoundCountingLookup boundLookup);
 
   typedef ErrorInfoMap::const_iterator error_iterator;
   error_iterator errorBegin() const { return d_errInfo.begin(); }
@@ -410,7 +410,7 @@ private:
     IntStat d_enqueuesCollectionDuplicates;
     IntStat d_enqueuesVarOrderModeDuplicates;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
 
   Statistics d_statistics;
