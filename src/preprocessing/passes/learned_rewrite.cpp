@@ -18,7 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "expr/term_context_stack.h"
 #include "preprocessing/assertion_pipeline.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"

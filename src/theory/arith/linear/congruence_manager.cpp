@@ -23,7 +23,7 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -82,19 +82,19 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 }
 
 ArithCongruenceManager::Statistics::Statistics()
-    : d_watchedVariables(smtStatisticsRegistry().registerInt(
+    : d_watchedVariables(statisticsRegistry().registerInt(
         "theory::arith::congruence::watchedVariables")),
-      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
+      d_watchedVariableIsZero(statisticsRegistry().registerInt(
           "theory::arith::congruence::watchedVariableIsZero")),
-      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+      d_watchedVariableIsNotZero(statisticsRegistry().registerInt(
           "theory::arith::congruence::watchedVariableIsNotZero")),
-      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
+      d_equalsConstantCalls(statisticsRegistry().registerInt(
           "theory::arith::congruence::equalsConstantCalls")),
-      d_propagations(smtStatisticsRegistry().registerInt(
+      d_propagations(statisticsRegistry().registerInt(
           "theory::arith::congruence::propagations")),
-      d_propagateConstraints(smtStatisticsRegistry().registerInt(
+      d_propagateConstraints(statisticsRegistry().registerInt(
           "theory::arith::congruence::propagateConstraints")),
-      d_conflicts(smtStatisticsRegistry().registerInt(
+      d_conflicts(statisticsRegistry().registerInt(
           "theory::arith::congruence::conflicts"))
 {
 }

@@ -51,7 +51,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {

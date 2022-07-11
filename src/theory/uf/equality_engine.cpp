@@ -21,7 +21,7 @@
 #include "base/output.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 
@@ -30,12 +30,12 @@ namespace theory {
 namespace eq {
 
 EqualityEngine::Statistics::Statistics(const std::string& name)
-    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "mergesCount")),
-      d_termsCount(smtStatisticsRegistry().registerInt(name + "termsCount")),
+    : d_mergesCount(statisticsRegistry().registerInt(name + "mergesCount")),
+      d_termsCount(statisticsRegistry().registerInt(name + "termsCount")),
       d_functionTermsCount(
-          smtStatisticsRegistry().registerInt(name + "functionTermsCount")),
+          statisticsRegistry().registerInt(name + "functionTermsCount")),
       d_constantTermsCount(
-          smtStatisticsRegistry().registerInt(name + "constantTermsCount"))
+          statisticsRegistry().registerInt(name + "constantTermsCount"))
 {
 }
 

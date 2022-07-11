@@ -751,17 +751,17 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
 }
 
 SymmetryBreaker::Statistics::Statistics(const std::string& name)
-    : d_clauses(smtStatisticsRegistry().registerInt(name + "clauses")),
-      d_units(smtStatisticsRegistry().registerInt(name + "units")),
-      d_permutationSetsConsidered(smtStatisticsRegistry().registerInt(
+    : d_clauses(statisticsRegistry().registerInt(name + "clauses")),
+      d_units(statisticsRegistry().registerInt(name + "units")),
+      d_permutationSetsConsidered(statisticsRegistry().registerInt(
           name + "permutationSetsConsidered")),
-      d_permutationSetsInvariant(smtStatisticsRegistry().registerInt(
+      d_permutationSetsInvariant(statisticsRegistry().registerInt(
           name + "permutationSetsInvariant")),
-      d_invariantByPermutationsTimer(smtStatisticsRegistry().registerTimer(
+      d_invariantByPermutationsTimer(statisticsRegistry().registerTimer(
           name + "timers::invariantByPermutations")),
       d_selectTermsTimer(
-          smtStatisticsRegistry().registerTimer(name + "timers::selectTerms")),
-      d_initNormalizationTimer(smtStatisticsRegistry().registerTimer(
+          statisticsRegistry().registerTimer(name + "timers::selectTerms")),
+      d_initNormalizationTimer(statisticsRegistry().registerTimer(
           name + "timers::initNormalization"))
 {
 }

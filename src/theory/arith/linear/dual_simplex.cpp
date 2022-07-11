@@ -18,7 +18,7 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
@@ -42,18 +42,18 @@ DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(
 { }
 
 DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
-    : d_statUpdateConflicts(smtStatisticsRegistry().registerInt(
+    : d_statUpdateConflicts(statisticsRegistry().registerInt(
         "theory::arith::dual::UpdateConflicts")),
-      d_processSignalsTime(smtStatisticsRegistry().registerTimer(
+      d_processSignalsTime(statisticsRegistry().registerTimer(
           "theory::arith::dual::findConflictOnTheQueueTime")),
-      d_simplexConflicts(smtStatisticsRegistry().registerInt(
+      d_simplexConflicts(statisticsRegistry().registerInt(
           "theory::arith::dual::simplexConflicts")),
-      d_recentViolationCatches(smtStatisticsRegistry().registerInt(
+      d_recentViolationCatches(statisticsRegistry().registerInt(
           "theory::arith::dual::recentViolationCatches")),
-      d_searchTime(smtStatisticsRegistry().registerTimer(
+      d_searchTime(statisticsRegistry().registerTimer(
           "theory::arith::dual::searchTime")),
       d_finalCheckPivotCounter(
-          smtStatisticsRegistry().registerReference<uint32_t>(
+          statisticsRegistry().registerReference<uint32_t>(
               "theory::arith::dual::lastPivots", pivots))
 {
 }

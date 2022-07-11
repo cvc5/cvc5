@@ -20,7 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -2548,8 +2548,8 @@ void QuantConflictFind::debugPrintQuantBody(const char* c,
 
 QuantConflictFind::Statistics::Statistics()
     : d_inst_rounds(
-        smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
-      d_entailment_checks(smtStatisticsRegistry().registerInt(
+        statisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(statisticsRegistry().registerInt(
           "QuantConflictFind::Entailment_Checks"))
 {
 }

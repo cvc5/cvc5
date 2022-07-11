@@ -26,7 +26,7 @@
 #include "base/cvc5config.h"
 #include "base/output.h"
 #include "proof/eager_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/cut_log.h"
 #include "theory/arith/linear/matrix.h"
@@ -156,15 +156,15 @@ struct CutScratchPad {
 
 ApproximateStatistics::ApproximateStatistics()
     : d_branchMaxDepth(
-        smtStatisticsRegistry().registerInt("z::approx::branchMaxDepth")),
+        statisticsRegistry().registerInt("z::approx::branchMaxDepth")),
       d_branchesMaxOnAVar(
-          smtStatisticsRegistry().registerInt("z::approx::branchesMaxOnAVar")),
-      d_gaussianElimConstructTime(smtStatisticsRegistry().registerTimer(
+          statisticsRegistry().registerInt("z::approx::branchesMaxOnAVar")),
+      d_gaussianElimConstructTime(statisticsRegistry().registerTimer(
           "z::approx::gaussianElimConstruct::time")),
-      d_gaussianElimConstruct(smtStatisticsRegistry().registerInt(
+      d_gaussianElimConstruct(statisticsRegistry().registerInt(
           "z::approx::gaussianElimConstruct::calls")),
       d_averageGuesses(
-          smtStatisticsRegistry().registerAverage("z::approx::averageGuesses"))
+          statisticsRegistry().registerAverage("z::approx::averageGuesses"))
 {
 }
 

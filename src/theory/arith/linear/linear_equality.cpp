@@ -15,7 +15,7 @@
 #include "theory/arith/linear/linear_equality.h"
 
 #include "base/output.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/constraint.h"
 
 
@@ -67,23 +67,23 @@ LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, Bou
 
 LinearEqualityModule::Statistics::Statistics()
     : d_statPivots(
-        smtStatisticsRegistry().registerInt("theory::arith::pivots")),
+        statisticsRegistry().registerInt("theory::arith::pivots")),
       d_statUpdates(
-          smtStatisticsRegistry().registerInt("theory::arith::updates")),
+          statisticsRegistry().registerInt("theory::arith::updates")),
       d_pivotTime(
-          smtStatisticsRegistry().registerTimer("theory::arith::pivotTime")),
+          statisticsRegistry().registerTimer("theory::arith::pivotTime")),
       d_adjTime(
-          smtStatisticsRegistry().registerTimer("theory::arith::adjTime")),
-      d_weakeningAttempts(smtStatisticsRegistry().registerInt(
+          statisticsRegistry().registerTimer("theory::arith::adjTime")),
+      d_weakeningAttempts(statisticsRegistry().registerInt(
           "theory::arith::weakening::attempts")),
-      d_weakeningSuccesses(smtStatisticsRegistry().registerInt(
+      d_weakeningSuccesses(statisticsRegistry().registerInt(
           "theory::arith::weakening::success")),
-      d_weakenings(smtStatisticsRegistry().registerInt(
+      d_weakenings(statisticsRegistry().registerInt(
           "theory::arith::weakening::total")),
-      d_weakenTime(smtStatisticsRegistry().registerTimer(
+      d_weakenTime(statisticsRegistry().registerTimer(
           "theory::arith::weakening::time")),
       d_forceTime(
-          smtStatisticsRegistry().registerTimer("theory::arith::forcing::time"))
+          statisticsRegistry().registerTimer("theory::arith::forcing::time"))
 {
 }
 

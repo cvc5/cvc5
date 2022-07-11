@@ -16,7 +16,7 @@
 
 #include "theory/shared_terms_database.h"
 
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -28,7 +28,7 @@ SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
     : ContextNotifyObj(env.getContext()),
       d_env(env),
       d_statSharedTerms(
-          smtStatisticsRegistry().registerInt("theory::shared_terms")),
+          statisticsRegistry().registerInt("theory::shared_terms")),
       d_addedSharedTermsSize(env.getContext(), 0),
       d_termsToTheories(env.getContext()),
       d_alreadyNotifiedMap(env.getContext()),

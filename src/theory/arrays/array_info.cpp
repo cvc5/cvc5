@@ -16,7 +16,7 @@
 
 #include "theory/arrays/array_info.h"
 
-#include "smt/smt_statistics_registry.h"
+
 
 namespace cvc5::internal {
 namespace theory {
@@ -46,21 +46,21 @@ Info::~Info() {
 ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
     : ct(c),
       info_map(),
-      d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(
+      d_mergeInfoTimer(statisticsRegistry().registerTimer(
           statisticsPrefix + "mergeInfoTimer")),
-      d_avgIndexListLength(smtStatisticsRegistry().registerAverage(
+      d_avgIndexListLength(statisticsRegistry().registerAverage(
           statisticsPrefix + "avgIndexListLength")),
-      d_avgStoresListLength(smtStatisticsRegistry().registerAverage(
+      d_avgStoresListLength(statisticsRegistry().registerAverage(
           statisticsPrefix + "avgStoresListLength")),
-      d_avgInStoresListLength(smtStatisticsRegistry().registerAverage(
+      d_avgInStoresListLength(statisticsRegistry().registerAverage(
           statisticsPrefix + "avgInStoresListLength")),
       d_listsCount(
-          smtStatisticsRegistry().registerInt(statisticsPrefix + "listsCount")),
-      d_callsMergeInfo(smtStatisticsRegistry().registerInt(statisticsPrefix
+          statisticsRegistry().registerInt(statisticsPrefix + "listsCount")),
+      d_callsMergeInfo(statisticsRegistry().registerInt(statisticsPrefix
                                                            + "callsMergeInfo")),
       d_maxList(
-          smtStatisticsRegistry().registerInt(statisticsPrefix + "maxList")),
-      d_tableSize(smtStatisticsRegistry().registerSize<CNodeInfoMap>(
+          statisticsRegistry().registerInt(statisticsPrefix + "maxList")),
+      d_tableSize(statisticsRegistry().registerSize<CNodeInfoMap>(
           statisticsPrefix + "infoTableSize", info_map))
 {
   emptyList = new(true) CTNodeList(ct);

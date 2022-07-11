@@ -22,7 +22,7 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/partial_model.h"
 
 using namespace std;
@@ -59,17 +59,17 @@ DioSolver::DioSolver(Env& env)
 }
 
 DioSolver::Statistics::Statistics()
-    : d_conflictCalls(smtStatisticsRegistry().registerInt(
+    : d_conflictCalls(statisticsRegistry().registerInt(
         "theory::arith::dio::conflictCalls")),
       d_cutCalls(
-          smtStatisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
-      d_cuts(smtStatisticsRegistry().registerInt("theory::arith::dio::cuts")),
+          statisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
+      d_cuts(statisticsRegistry().registerInt("theory::arith::dio::cuts")),
       d_conflicts(
-          smtStatisticsRegistry().registerInt("theory::arith::dio::conflicts")),
-      d_conflictTimer(smtStatisticsRegistry().registerTimer(
+          statisticsRegistry().registerInt("theory::arith::dio::conflicts")),
+      d_conflictTimer(statisticsRegistry().registerTimer(
           "theory::arith::dio::conflictTimer")),
       d_cutTimer(
-          smtStatisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
+          statisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
 {
 }
 

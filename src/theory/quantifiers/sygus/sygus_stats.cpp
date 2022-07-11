@@ -15,7 +15,7 @@
 
 #include "theory/quantifiers/sygus/sygus_stats.h"
 
-#include "smt/smt_statistics_registry.h"
+
 
 namespace cvc5::internal {
 namespace theory {
@@ -23,17 +23,17 @@ namespace quantifiers {
 
 SygusStatistics::SygusStatistics()
     : d_solutions(
-          smtStatisticsRegistry().registerInt("SynthConjecture::solutions")),
-      d_filtered_solutions(smtStatisticsRegistry().registerInt(
+          statisticsRegistry().registerInt("SynthConjecture::solutions")),
+      d_filtered_solutions(statisticsRegistry().registerInt(
           "SynthConjecture::filtered_solutions")),
-      d_candidate_rewrites_print(smtStatisticsRegistry().registerInt(
+      d_candidate_rewrites_print(statisticsRegistry().registerInt(
           "SynthConjecture::candidate_rewrites_print")),
-      d_enumTermsRewrite(smtStatisticsRegistry().registerInt(
+      d_enumTermsRewrite(statisticsRegistry().registerInt(
           "SygusEnumerator::enumTermsRewrite")),
-      d_enumTermsExampleEval(smtStatisticsRegistry().registerInt(
+      d_enumTermsExampleEval(statisticsRegistry().registerInt(
           "SygusEnumerator::enumTermsEvalExamples")),
       d_enumTerms(
-          smtStatisticsRegistry().registerInt("SygusEnumerator::enumTerms"))
+          statisticsRegistry().registerInt("SygusEnumerator::enumTerms"))
 
 {
 }

@@ -19,7 +19,7 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
@@ -41,11 +41,11 @@ AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
 { }
 
 AttemptSolutionSDP::Statistics::Statistics()
-    : d_searchTime(smtStatisticsRegistry().registerTimer(
+    : d_searchTime(statisticsRegistry().registerTimer(
         "theory::arith::attempt::searchTime")),
-      d_queueTime(smtStatisticsRegistry().registerTimer(
+      d_queueTime(statisticsRegistry().registerTimer(
           "theory::arith::attempt::queueTime")),
-      d_conflicts(smtStatisticsRegistry().registerInt(
+      d_conflicts(statisticsRegistry().registerInt(
           "theory::arith::attempt::conflicts"))
 {
 }

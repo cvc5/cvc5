@@ -17,7 +17,7 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "util/statistics_stats.h"
@@ -48,21 +48,21 @@ FCSimplexDecisionProcedure::FCSimplexDecisionProcedure(
 FCSimplexDecisionProcedure::Statistics::Statistics(const std::string& name,
                                                    uint32_t& pivots)
     : d_initialSignalsTime(
-        smtStatisticsRegistry().registerTimer(name + "initialProcessTime")),
+        statisticsRegistry().registerTimer(name + "initialProcessTime")),
       d_initialConflicts(
-          smtStatisticsRegistry().registerInt(name + "UpdateConflicts")),
-      d_fcFoundUnsat(smtStatisticsRegistry().registerInt(name + "FoundUnsat")),
-      d_fcFoundSat(smtStatisticsRegistry().registerInt(name + "FoundSat")),
-      d_fcMissed(smtStatisticsRegistry().registerInt(name + "Missed")),
-      d_fcTimer(smtStatisticsRegistry().registerTimer(name + "Timer")),
+          statisticsRegistry().registerInt(name + "UpdateConflicts")),
+      d_fcFoundUnsat(statisticsRegistry().registerInt(name + "FoundUnsat")),
+      d_fcFoundSat(statisticsRegistry().registerInt(name + "FoundSat")),
+      d_fcMissed(statisticsRegistry().registerInt(name + "Missed")),
+      d_fcTimer(statisticsRegistry().registerTimer(name + "Timer")),
       d_fcFocusConstructionTimer(
-          smtStatisticsRegistry().registerTimer(name + "Construction")),
-      d_selectUpdateForDualLike(smtStatisticsRegistry().registerTimer(
+          statisticsRegistry().registerTimer(name + "Construction")),
+      d_selectUpdateForDualLike(statisticsRegistry().registerTimer(
           name + "selectUpdateForDualLike")),
-      d_selectUpdateForPrimal(smtStatisticsRegistry().registerTimer(
+      d_selectUpdateForPrimal(statisticsRegistry().registerTimer(
           name + "selectUpdateForPrimal")),
       d_finalCheckPivotCounter(
-          smtStatisticsRegistry().registerReference<uint32_t>(
+          statisticsRegistry().registerReference<uint32_t>(
               name + "lastPivots", pivots))
 {
 }

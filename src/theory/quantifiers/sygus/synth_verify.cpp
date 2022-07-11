@@ -20,7 +20,7 @@
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"

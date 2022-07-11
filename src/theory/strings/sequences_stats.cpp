@@ -15,7 +15,7 @@
 
 #include "theory/strings/sequences_stats.h"
 
-#include "smt/smt_statistics_registry.h"
+
 
 namespace cvc5::internal {
 namespace theory {
@@ -23,24 +23,24 @@ namespace strings {
 
 SequencesStatistics::SequencesStatistics()
     : d_checkRuns(
-        smtStatisticsRegistry().registerInt("theory::strings::checkRuns")),
+        statisticsRegistry().registerInt("theory::strings::checkRuns")),
       d_strategyRuns(
-          smtStatisticsRegistry().registerInt("theory::strings::strategyRuns")),
-      d_cdSimplifications(smtStatisticsRegistry().registerHistogram<Kind>(
+          statisticsRegistry().registerInt("theory::strings::strategyRuns")),
+      d_cdSimplifications(statisticsRegistry().registerHistogram<Kind>(
           "theory::strings::cdSimplifications")),
-      d_reductions(smtStatisticsRegistry().registerHistogram<Kind>(
+      d_reductions(statisticsRegistry().registerHistogram<Kind>(
           "theory::strings::reductions")),
-      d_regexpUnfoldingsPos(smtStatisticsRegistry().registerHistogram<Kind>(
+      d_regexpUnfoldingsPos(statisticsRegistry().registerHistogram<Kind>(
           "theory::strings::regexpUnfoldingsPos")),
-      d_regexpUnfoldingsNeg(smtStatisticsRegistry().registerHistogram<Kind>(
+      d_regexpUnfoldingsNeg(statisticsRegistry().registerHistogram<Kind>(
           "theory::strings::regexpUnfoldingsNeg")),
-      d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>(
+      d_rewrites(statisticsRegistry().registerHistogram<Rewrite>(
           "theory::strings::rewrites")),
-      d_conflictsEqEngine(smtStatisticsRegistry().registerInt(
+      d_conflictsEqEngine(statisticsRegistry().registerInt(
           "theory::strings::conflictsEqEngine")),
-      d_conflictsEager(smtStatisticsRegistry().registerInt(
+      d_conflictsEager(statisticsRegistry().registerInt(
           "theory::strings::conflictsEager")),
-      d_conflictsInfer(smtStatisticsRegistry().registerInt(
+      d_conflictsInfer(statisticsRegistry().registerInt(
           "theory::strings::conflictsInfer"))
 {
 }

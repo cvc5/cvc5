@@ -18,7 +18,7 @@
 
 #include "theory/arith/linear/error_set.h"
 
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/constraint.h"
 
 using namespace std;
@@ -148,16 +148,16 @@ void ErrorInformation::setAmount(const DeltaRational& am){
 
 ErrorSet::Statistics::Statistics()
     : d_enqueues(
-        smtStatisticsRegistry().registerInt("theory::arith::pqueue::enqueues")),
-      d_enqueuesCollection(smtStatisticsRegistry().registerInt(
+        statisticsRegistry().registerInt("theory::arith::pqueue::enqueues")),
+      d_enqueuesCollection(statisticsRegistry().registerInt(
           "theory::arith::pqueue::enqueuesCollection")),
-      d_enqueuesDiffMode(smtStatisticsRegistry().registerInt(
+      d_enqueuesDiffMode(statisticsRegistry().registerInt(
           "theory::arith::pqueue::enqueuesDiffMode")),
-      d_enqueuesVarOrderMode(smtStatisticsRegistry().registerInt(
+      d_enqueuesVarOrderMode(statisticsRegistry().registerInt(
           "theory::arith::pqueue::enqueuesVarOrderMode")),
-      d_enqueuesCollectionDuplicates(smtStatisticsRegistry().registerInt(
+      d_enqueuesCollectionDuplicates(statisticsRegistry().registerInt(
           "theory::arith::pqueue::enqueuesCollectionDuplicates")),
-      d_enqueuesVarOrderModeDuplicates(smtStatisticsRegistry().registerInt(
+      d_enqueuesVarOrderModeDuplicates(statisticsRegistry().registerInt(
           "theory::arith::pqueue::enqueuesVarOrderModeDuplicates"))
 {
 }

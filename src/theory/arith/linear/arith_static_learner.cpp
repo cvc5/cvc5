@@ -21,7 +21,7 @@
 #include "base/output.h"
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 
@@ -41,9 +41,9 @@ ArithStaticLearner::~ArithStaticLearner(){
 }
 
 ArithStaticLearner::Statistics::Statistics()
-    : d_iteMinMaxApplications(smtStatisticsRegistry().registerInt(
+    : d_iteMinMaxApplications(statisticsRegistry().registerInt(
         "theory::arith::iteMinMaxApplications")),
-      d_iteConstantApplications(smtStatisticsRegistry().registerInt(
+      d_iteConstantApplications(statisticsRegistry().registerInt(
           "theory::arith::iteConstantApplications"))
 {
 }

@@ -18,7 +18,7 @@
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "proof/proof_node.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -79,9 +79,9 @@ Node ProofRuleChecker::mkKindNode(Kind k)
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
+    : d_ruleChecks(statisticsRegistry().registerHistogram<PfRule>(
           "ProofCheckerStatistics::ruleChecks")),
-      d_totalRuleChecks(smtStatisticsRegistry().registerInt(
+      d_totalRuleChecks(statisticsRegistry().registerInt(
           "ProofCheckerStatistics::totalRuleChecks"))
 {
 }

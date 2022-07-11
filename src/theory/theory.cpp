@@ -25,7 +25,7 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/ee_setup_info.h"
 #include "theory/ext_theory.h"
 #include "theory/output_channel.h"

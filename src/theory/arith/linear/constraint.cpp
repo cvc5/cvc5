@@ -26,7 +26,7 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
+
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
@@ -1038,9 +1038,9 @@ ConstraintDatabase::~ConstraintDatabase(){
 }
 
 ConstraintDatabase::Statistics::Statistics()
-    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
+    : d_unatePropagateCalls(statisticsRegistry().registerInt(
         "theory::arith::cd::unatePropagateCalls")),
-      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
+      d_unatePropagateImplications(statisticsRegistry().registerInt(
           "theory::arith::cd::unatePropagateImplications"))
 {
 }
