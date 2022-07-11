@@ -87,7 +87,6 @@ class InterpolationSolver;
 class QuantElimSolver;
 
 struct SolverEngineStatistics;
-class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -107,7 +106,6 @@ class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
   friend class smt::SolverEngineState;
-  friend class smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -1111,13 +1109,6 @@ class CVC5_EXPORT SolverEngine
 
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
-
-  /**
-   * The global scope object. Upon creation of this SolverEngine, it becomes the
-   * SolverEngine in scope. It says the SolverEngine in scope until it is
-   * destructed, or another SolverEngine is created.
-   */
-  std::unique_ptr<smt::SolverEngineScope> d_scope;
 }; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */
