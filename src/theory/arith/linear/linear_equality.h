@@ -246,7 +246,7 @@ public:
    {
      updateUntracked(x_i, v);
    }
-  }
+ }
 
   /** Specialization of update if the module is not tracking yet (for Assert*). */
   void updateUntracked(ArithVar x_i, const DeltaRational& v);

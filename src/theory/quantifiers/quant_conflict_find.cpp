@@ -2547,10 +2547,9 @@ void QuantConflictFind::debugPrintQuantBody(const char* c,
 }
 
 QuantConflictFind::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_inst_rounds(
-        sr.registerInt("QuantConflictFind::Inst_Rounds")),
-      d_entailment_checks(sr.registerInt(
-          "QuantConflictFind::Entailment_Checks"))
+    : d_inst_rounds(sr.registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(
+          sr.registerInt("QuantConflictFind::Entailment_Checks"))
 {
 }
 

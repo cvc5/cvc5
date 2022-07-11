@@ -768,14 +768,11 @@ InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
 }
 
 Instantiate::Statistics::Statistics(StatisticsRegistry& sr)
-    : d_instantiations(
-        sr.registerInt("Instantiate::Instantiations_Total")),
-      d_inst_duplicate(
-          sr.registerInt("Instantiate::Duplicate_Inst")),
-      d_inst_duplicate_eq(
-          sr.registerInt("Instantiate::Duplicate_Inst_Eq")),
-      d_inst_duplicate_ent(sr.registerInt(
-          "Instantiate::Duplicate_Inst_Entailed"))
+    : d_instantiations(sr.registerInt("Instantiate::Instantiations_Total")),
+      d_inst_duplicate(sr.registerInt("Instantiate::Duplicate_Inst")),
+      d_inst_duplicate_eq(sr.registerInt("Instantiate::Duplicate_Inst_Eq")),
+      d_inst_duplicate_ent(
+          sr.registerInt("Instantiate::Duplicate_Inst_Entailed"))
 {
 }
 

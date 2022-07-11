@@ -21,8 +21,8 @@
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
-#include "util/statistics_stats.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace theory {

@@ -28,13 +28,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-EqualityEngine::Statistics::Statistics(StatisticsRegistry& sr, const std::string& name)
+EqualityEngine::Statistics::Statistics(StatisticsRegistry& sr,
+                                       const std::string& name)
     : d_mergesCount(sr.registerInt(name + "mergesCount")),
       d_termsCount(sr.registerInt(name + "termsCount")),
-      d_functionTermsCount(
-          sr.registerInt(name + "functionTermsCount")),
-      d_constantTermsCount(
-          sr.registerInt(name + "constantTermsCount"))
+      d_functionTermsCount(sr.registerInt(name + "functionTermsCount")),
+      d_constantTermsCount(sr.registerInt(name + "constantTermsCount"))
 {
 }
 
