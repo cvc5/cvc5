@@ -387,6 +387,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   opts.writeSmt().produceProofs = true;
   Env env(NodeManager::currentNM(), &opts);
   smt::PfManager pfm(env);
+  env.finishInit(pfm.getProofNodeManager());
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
   builtin::BuiltinProofRuleChecker btchecker(env);

@@ -24,14 +24,13 @@
 
 namespace cvc5::internal {
 
-LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
+LazyCDProofChain::LazyCDProofChain(Env& env,
                                    bool cyclic,
                                    context::Context* c,
                                    ProofGenerator* defGen,
                                    bool defRec,
                                    const std::string& name)
-    : CDProof(pnm, c, name, false),
-      d_manager(pnm),
+    : CDProof(env, c, name, false),
       d_cyclic(cyclic),
       d_defRec(defRec),
       d_context(),
@@ -255,6 +254,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "\n";
     }
   } while (!visit.empty());
+  ProofNodeManager* pnm = getManager();
   // expand all assumptions marked to be connected
   for (const std::pair<const Node, std::shared_ptr<ProofNode>>& npfn :
        toConnect)
@@ -275,7 +275,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     // update each assumption proof node
     for (std::shared_ptr<ProofNode> pfn : it->second)
     {
-      d_manager->updateNode(pfn.get(), npfn.second.get());
+      pnm->updateNode(pfn.get(), npfn.second.get());
     }
   }
   Trace("lazy-cdproofchain") << "===========\n";
@@ -328,7 +328,8 @@ void LazyCDProofChain::addLazyStep(Node expected,
       }
       Trace("lazy-cdproofchain") << "\n";
     }
-    pfnEnsureClosedWrt(pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
+    pfnEnsureClosedWrt(
+        options(), pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
   }
 }
 

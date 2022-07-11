@@ -125,7 +125,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             d_secd.get(),
             &d_stats,
             false,
-            options().quantifiers.sygusRepairConst);
+            options().quantifiers.sygusRepairConst,
+            options().quantifiers.sygusEnumFastNumConsts);
       }
     }
     Trace("sygus-active-gen")

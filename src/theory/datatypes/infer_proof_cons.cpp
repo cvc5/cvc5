@@ -29,10 +29,9 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-InferProofCons::InferProofCons(context::Context* c, ProofNodeManager* pnm)
-    : d_pnm(pnm), d_lazyFactMap(c == nullptr ? &d_context : c)
+InferProofCons::InferProofCons(Env& env, context::Context* c)
+    : EnvObj(env), d_lazyFactMap(c == nullptr ? &d_context : c)
 {
-  Assert(d_pnm != nullptr);
 }
 
 void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
@@ -267,7 +266,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
   Trace("dt-ipc") << "dt-ipc: Ask proof for " << fact << std::endl;
   // temporary proof
-  CDProof pf(d_pnm);
+  CDProof pf(d_env);
   // get the inference
   NodeDatatypesInferenceMap::iterator it = d_lazyFactMap.find(fact);
   if (it == d_lazyFactMap.end())

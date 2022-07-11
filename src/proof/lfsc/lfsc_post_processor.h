@@ -24,6 +24,7 @@
 #include "proof/lfsc/lfsc_node_converter.h"
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/proof_node_updater.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -35,10 +36,11 @@ namespace proof {
  * A callback class used by the Lfsc convereter for post-processing proof nodes
  * by replacing internal rules by the rules in the Lfsc calculus.
  */
-class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
+class LfscProofPostprocessCallback : protected EnvObj,
+                                     public ProofNodeUpdaterCallback
 {
  public:
-  LfscProofPostprocessCallback(LfscNodeConverter& ltp, ProofNodeManager* pnm);
+  LfscProofPostprocessCallback(Env& env, LfscNodeConverter& ltp);
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -57,8 +59,6 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The proof checker of d_pnm **/
   ProofChecker* d_pc;
   /** The term processor */
@@ -88,18 +88,16 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Lfsc calculus.
  */
-class LfscProofPostprocess
+class LfscProofPostprocess : protected EnvObj
 {
  public:
-  LfscProofPostprocess(LfscNodeConverter& ltp, ProofNodeManager* pnm);
+  LfscProofPostprocess(Env& env, LfscNodeConverter& ltp);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
   std::unique_ptr<LfscProofPostprocessCallback> d_cb;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace proof
