@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -94,18 +95,18 @@ class ProofNodeUpdaterCallback
  * should be filled in the callback for each ProofNode to update. This update
  * process is applied in a *pre-order* traversal.
  */
-class ProofNodeUpdater
+class ProofNodeUpdater : protected EnvObj
 {
  public:
   /**
-   * @param pnm The proof node manager we are using
+   * @param env Reference to the environment
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
    */
-  ProofNodeUpdater(ProofNodeManager* pnm,
+  ProofNodeUpdater(Env& env,
                    ProofNodeUpdaterCallback& cb,
                    bool mergeSubproofs = false,
                    bool autoSym = true);
@@ -125,8 +126,6 @@ class ProofNodeUpdater
   void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
   /**

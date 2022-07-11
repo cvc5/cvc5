@@ -68,7 +68,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
     context::UserContext* u = userContext();
     ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
-        new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
+        new EagerProofGenerator(env, u, statsName + "EagerProofGenerator"));
     if (options().proof.proofAnnotate)
     {
       d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));
