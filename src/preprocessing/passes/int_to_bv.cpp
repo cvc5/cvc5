@@ -138,7 +138,6 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
         if (type.isBitVector())
         {
           uint32_t bvsize = type.getBitVectorSize();
-          // max = std::max(bvsize, max);
           if (bvsize > max)
           {
             max = bvsize;
