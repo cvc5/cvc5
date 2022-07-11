@@ -36,16 +36,16 @@ AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
                                        RaiseConflict conflictChannel,
                                        TempVarMalloc tvmalloc)
     : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
-      d_statistics()
+      d_statistics(statisticsRegistry())
 { }
 
-AttemptSolutionSDP::Statistics::Statistics()
-    : d_searchTime(statisticsRegistry().registerTimer(
+AttemptSolutionSDP::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_searchTime(sr.registerTimer(
         "theory::arith::attempt::searchTime")),
-      d_queueTime(statisticsRegistry().registerTimer(
+      d_queueTime(sr.registerTimer(
           "theory::arith::attempt::queueTime")),
       d_conflicts(
-          statisticsRegistry().registerInt("theory::arith::attempt::conflicts"))
+          sr.registerInt("theory::arith::attempt::conflicts"))
 {
 }
 

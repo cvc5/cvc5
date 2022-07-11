@@ -32,18 +32,18 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-ArithStaticLearner::ArithStaticLearner(context::Context* userContext)
-    : d_minMap(userContext), d_maxMap(userContext), d_statistics()
+ArithStaticLearner::ArithStaticLearner(StatisticsRegistry& sr, context::Context* userContext)
+    : d_minMap(userContext), d_maxMap(userContext), d_statistics(sr)
 {
 }
 
 ArithStaticLearner::~ArithStaticLearner(){
 }
 
-ArithStaticLearner::Statistics::Statistics()
-    : d_iteMinMaxApplications(statisticsRegistry().registerInt(
+ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr,)
+    : d_iteMinMaxApplications(sr.registerInt(
         "theory::arith::iteMinMaxApplications")),
-      d_iteConstantApplications(statisticsRegistry().registerInt(
+      d_iteConstantApplications(sr.registerInt(
           "theory::arith::iteConstantApplications"))
 {
 }
