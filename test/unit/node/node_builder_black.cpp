@@ -247,7 +247,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
 #ifdef CVC5_ASSERTIONS
   Node n;
-  ASSERT_DEATH(n = nb, "Nodes with kind `+` must have at least 2 children");
+  ASSERT_DEATH(n = nb, "Nodes with kind `\\+` must have at least 2 children");
   nb.clear(ADD);
 #endif
 
