@@ -97,7 +97,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.sub
     )
 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*64$")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(64bit "--enable-64bit")
     else()
         unset(64bit)
