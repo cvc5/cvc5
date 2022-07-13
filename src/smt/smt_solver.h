@@ -21,6 +21,8 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/assertions.h"
+#include "smt/env_obj.h"
 #include "smt/preprocessor.h"
 #include "theory/logic_info.h"
 #include "util/result.h"
@@ -43,7 +45,6 @@ class QuantifiersEngine;
 
 namespace smt {
 
-class Assertions;
 class SolverEngineState;
 struct SolverEngineStatistics;
 
@@ -61,11 +62,10 @@ struct SolverEngineStatistics;
  * models) can be queries using other classes that examine the state of the
  * TheoryEngine directly, which can be accessed via getTheoryEngine.
  */
-class SmtSolver
+class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
-            SolverEngineState& state,
             AbstractValues& abs,
             SolverEngineStatistics& stats);
   ~SmtSolver();
@@ -102,6 +102,19 @@ class SmtSolver
    * into the SMT solver, and clears the buffer.
    */
   void processAssertions(Assertions& as);
+  /**
+   * Perform a deep restart.
+   *
+   * This constructs a fresh copy of the theory engine and prop engine, and
+   * populates the given assertions for the next call to checkSatisfiability.
+   * In particular, we add the preprocessed assertions from the previous
+   * call to checkSatisfiability, as well as those in zll.
+   *
+   * @param as The assertions to populate
+   * @param zll The zero-level literals we learned on the previous call to
+   * checkSatisfiability.
+   */
+  void deepRestart(Assertions& as, const std::vector<Node>& zll);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -114,10 +127,8 @@ class SmtSolver
   //------------------------------------------ end access methods
 
  private:
-  /** Reference to the environment */
-  Env& d_env;
-  /** Reference to the state of the SolverEngine */
-  SolverEngineState& d_state;
+  /** Whether we track information necessary for deep restarts */
+  bool canDeepRestart() const;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Reference to the statistics of SolverEngine */
@@ -126,6 +137,13 @@ class SmtSolver
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
   std::unique_ptr<prop::PropEngine> d_propEngine;
+  //------------------------------------------ Bookkeeping for deep restarts
+  /** The exact list of preprocessed assertions we sent to the PropEngine */
+  std::vector<Node> d_ppAssertions;
+  /** The skolem map associated with d_ppAssertions */
+  std::unordered_map<size_t, Node> d_ppSkolemMap;
+  /** All learned literals, used for debugging */
+  std::unordered_set<Node> d_allLearnedLits;
 };
 
 }  // namespace smt

@@ -75,12 +75,13 @@ class TestTheoryWhiteEngine : public TestSmt
 
 TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
 
   // make the expression (ADD x y (MULT z 0))
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational("0"));
+  Node zero = d_nodeManager->mkConstInt(Rational("0"));
   Node zTimesZero = d_nodeManager->mkNode(MULT, z, zero);
   Node n = d_nodeManager->mkNode(ADD, x, y, zTimesZero);
 
@@ -90,7 +91,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
   // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
-  nOut = Rewriter::rewrite(n);
+  nOut = rr->rewrite(n);
 
   // assert that the rewritten node is what we expect
   ASSERT_EQ(nOut, nExpected);
@@ -98,6 +99,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 
 TEST_F(TestTheoryWhiteEngine, rewriter_complex)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->realType());
   TypeNode u = d_nodeManager->mkSort("U");
@@ -111,8 +113,8 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
       "g",
       d_nodeManager->mkFunctionType(d_nodeManager->realType(),
                                     d_nodeManager->integerType()));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational("1"));
-  Node two = d_nodeManager->mkConst(CONST_RATIONAL, Rational("2"));
+  Node one = d_nodeManager->mkConstInt(Rational("1"));
+  Node two = d_nodeManager->mkConstInt(Rational("2"));
 
   Node f1 = d_nodeManager->mkNode(APPLY_UF, f, one);
   Node f2 = d_nodeManager->mkNode(APPLY_UF, f, two);
@@ -137,7 +139,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
   // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
-  nOut = Rewriter::rewrite(n);
+  nOut = rr->rewrite(n);
 
   // assert that the rewritten node is what we expect
   ASSERT_EQ(nOut, nExpected);

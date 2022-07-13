@@ -37,11 +37,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(CONST_RATIONAL, 0);
-  auto one = nm->mkConst<Rational>(CONST_RATIONAL, 1);
-  auto mone = nm->mkConst<Rational>(CONST_RATIONAL, -1);
-  auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-  auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-ext-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {
@@ -103,6 +98,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
         }
       }
     }
+    Node zero = nm->mkConstRealOrInt(mon.getType(), Rational(0));
     switch (sign)
     {
       case -1:
@@ -127,8 +123,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
     Assert(args[2].getType().isRealOrInt());
     Assert(args[3].getType().isRealOrInt());
     Assert(args[4].getType().isRealOrInt());
-    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL
-           && args[5].getConst<Rational>().isIntegral());
+    Assert(args[5].isConst() && args[5].getConst<Rational>().isIntegral());
     Node t = args[0];
     Node x = args[1];
     Node y = args[2];

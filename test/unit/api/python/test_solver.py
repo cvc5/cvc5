@@ -167,19 +167,19 @@ def test_mk_datatype_sorts(solver):
     dtdecl0 = solver.mkDatatypeDecl("dt0", [p0])
     dtdecl1 = solver.mkDatatypeDecl("dt1", [p1])
     ctordecl0 = solver.mkDatatypeConstructorDecl("c0")
-    ctordecl0.addSelector("s0", u1.instantiate({p0}))
+    ctordecl0.addSelector("s0", u1.instantiate([p0]))
     ctordecl1 = solver.mkDatatypeConstructorDecl("c1")
-    ctordecl1.addSelector("s1", u0.instantiate({p1}))
+    ctordecl1.addSelector("s1", u0.instantiate([p1]))
     dtdecl0.addConstructor(ctordecl0)
     dtdecl1.addConstructor(ctordecl1)
     dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1])
-    isort1 = dt_sorts[1].instantiate({solver.getBooleanSort()})
+    isort1 = dt_sorts[1].instantiate([solver.getBooleanSort()])
     t1 = solver.mkConst(isort1, "t")
     t0 = solver.mkTerm(
         Kind.APPLY_SELECTOR,
         t1.getSort().getDatatype().getSelector("s1").getTerm(),
         t1)
-    assert dt_sorts[0].instantiate({solver.getBooleanSort()}) == t0.getSort()
+    assert dt_sorts[0].instantiate([solver.getBooleanSort()]) == t0.getSort()
 
 def test_mk_function_sort(solver):
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
@@ -308,8 +308,7 @@ def test_mk_tuple_sort(solver):
     solver.mkTupleSort(solver.getIntegerSort())
     funSort = solver.mkFunctionSort(solver.mkUninterpretedSort("u"),\
                                     solver.getIntegerSort())
-    with pytest.raises(RuntimeError):
-        solver.mkTupleSort(solver.getIntegerSort(), funSort)
+    solver.mkTupleSort(solver.getIntegerSort(), funSort)
 
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
@@ -704,6 +703,8 @@ def test_mk_string(solver):
     str(solver.mkString("asdf\\nasdf")) == "\"asdf\\u{5c}nasdf\""
     str(solver.mkString("asdf\\u{005c}nasdf", True)) ==\
             "\"asdf\\u{5c}nasdf\""
+    s = ""
+    assert solver.mkString(s).getStringValue() == s
 
 
 def test_mk_term(solver):
@@ -907,7 +908,8 @@ def test_mk_true(solver):
 def test_mk_tuple(solver):
     solver.mkTuple([solver.mkBitVectorSort(3)],
                    [solver.mkBitVector(3, "101", 2)])
-    solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
+    with pytest.raises(RuntimeError):
+      solver.mkTuple([solver.getRealSort()], [solver.mkInteger("5")])
 
     with pytest.raises(RuntimeError):
         solver.mkTuple([], [solver.mkBitVector(3, "101", 2)])
@@ -1040,6 +1042,29 @@ def test_define_fun(solver):
         slv.defineFun("ff", [b12, b22], bvSort2, v1)
 
 
+def test_define_fun_global(solver):
+    bSort = solver.getBooleanSort()
+
+    bTrue = solver.mkBoolean(True)
+    # (define-fun f () Bool true)
+    f = solver.defineFun("f", [], bSort, bTrue, True)
+    b = solver.mkVar(bSort, "b")
+    # (define-fun g (b Bool) Bool b)
+    g = solver.defineFun("g", [b], bSort, b, True)
+
+    # (assert (or (not f) (not (g true))))
+    solver.assertFormula(
+        solver.mkTerm(Kind.OR, f.notTerm(),
+                      solver.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
+    assert solver.checkSat().isUnsat()
+    solver.resetAssertions()
+    # (assert (or (not f) (not (g true))))
+    solver.assertFormula(
+        solver.mkTerm(Kind.OR, f.notTerm(),
+                      solver.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
+    assert solver.checkSat().isUnsat()
+
+
 def test_define_fun_rec(solver):
     bvSort = solver.mkBitVectorSort(32)
     funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
@@ -1111,6 +1136,126 @@ def test_define_fun_rec_wrong_logic(solver):
         solver.defineFunRec(f, [b, b], v)
 
 
+def test_define_fun_rec_global(solver):
+  bSort = solver.getBooleanSort()
+  fSort = solver.mkFunctionSort([bSort], bSort)
+
+  solver.push()
+  bTrue = solver.mkBoolean(True)
+  # (define-fun f () Bool true)
+  f = solver.defineFunRec("f", [], bSort, bTrue, True)
+  b = solver.mkVar(bSort, "b")
+  gSym = solver.mkConst(fSort, "g")
+  # (define-fun g (b Bool) Bool b)
+  g = solver.defineFunRec(gSym, [b], b, glbl=True)
+
+  # (assert (or (not f) (not (g true))))
+  solver.assertFormula(solver.mkTerm(
+      Kind.OR, f.notTerm(), solver.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
+  assert solver.checkSat().isUnsat()
+  solver.pop()
+  # (assert (or (not f) (not (g true))))
+  solver.assertFormula(solver.mkTerm(
+      Kind.OR, f.notTerm(), solver.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
+  assert solver.checkSat().isUnsat()
+
+
+def test_define_funs_rec(solver):
+  uSort = solver.mkUninterpretedSort("u")
+  bvSort = solver.mkBitVectorSort(32)
+  funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
+  funSort2 = solver.mkFunctionSort([uSort], solver.getIntegerSort())
+  b1 = solver.mkVar(bvSort, "b1")
+  b11 = solver.mkVar(bvSort, "b1")
+  b2 = solver.mkVar(solver.getIntegerSort(), "b2")
+  b3 = solver.mkVar(funSort2, "b3")
+  b4 = solver.mkVar(uSort, "b4")
+  v1 = solver.mkConst(bvSort, "v1")
+  v2 = solver.mkConst(solver.getIntegerSort(), "v2")
+  v3 = solver.mkConst(funSort2, "v3")
+  v4 = solver.mkConst(uSort, "v4")
+  f1 = solver.mkConst(funSort1, "f1")
+  f2 = solver.mkConst(funSort2, "f2")
+  f3 = solver.mkConst(bvSort, "f3")
+  solver.defineFunsRec([f1, f2], [[b1, b11], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+    solver.defineFunsRec([f1, f2], [[v1, b11], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+    solver.defineFunsRec([f1, f3], [[b1, b11], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+    solver.defineFunsRec([f1, f2], [[b1], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+    solver.defineFunsRec([f1, f2], [[b1, b2], [b4]], [v1, v2])
+  with pytest.raises(RuntimeError):
+    solver.defineFunsRec([f1, f2], [[b1, b11], [b4]], [v1, v4])
+
+  slv = cvc5.Solver()
+  uSort2 = slv.mkUninterpretedSort("u")
+  bvSort2 = slv.mkBitVectorSort(32)
+  funSort12 = slv.mkFunctionSort([bvSort2, bvSort2], bvSort2)
+  funSort22 = slv.mkFunctionSort([uSort2], slv.getIntegerSort())
+  b12 = slv.mkVar(bvSort2, "b1")
+  b112 = slv.mkVar(bvSort2, "b1")
+  b42 = slv.mkVar(uSort2, "b4")
+  v12 = slv.mkConst(bvSort2, "v1")
+  v22 = slv.mkConst(slv.getIntegerSort(), "v2")
+  f12 = slv.mkConst(funSort12, "f1")
+  f22 = slv.mkConst(funSort22, "f2")
+  
+  slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v12, v22])
+  
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f1, f22], [[b12, b112], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f12, f2], [[b12, b112], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f12, f22], [[b1, b112], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f12, f22], [[b12, b11], [b42]], [v12, v22])
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f12, f22], [[b12, b112], [b4]], [v12, v22])
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v1, v22])
+  with pytest.raises(RuntimeError):
+    slv.defineFunsRec([f12, f22], [[b12, b112], [b42]], [v12, v2])
+
+
+def test_define_funs_rec_wrong_logic(solver):
+  solver.setLogic("QF_BV")
+  uSort = solver.mkUninterpretedSort("u")
+  bvSort = solver.mkBitVectorSort(32)
+  funSort1 = solver.mkFunctionSort([bvSort, bvSort], bvSort)
+  funSort2 = solver.mkFunctionSort([uSort], solver.getIntegerSort())
+  b = solver.mkVar(bvSort, "b")
+  u = solver.mkVar(uSort, "u")
+  v1 = solver.mkConst(bvSort, "v1")
+  v2 = solver.mkConst(solver.getIntegerSort(), "v2")
+  f1 = solver.mkConst(funSort1, "f1")
+  f2 = solver.mkConst(funSort2, "f2")
+  with pytest.raises(RuntimeError):
+    solver.defineFunsRec([f1, f2], [[b, b], [u]], [v1, v2])
+
+
+def test_define_funs_rec_global(solver):
+  bSort = solver.getBooleanSort()
+  fSort = solver.mkFunctionSort([bSort], bSort)
+
+  solver.push()
+  bTrue = solver.mkBoolean(True)
+  b = solver.mkVar(bSort, "b")
+  gSym = solver.mkConst(fSort, "g")
+  # (define-funs-rec ((g ((b Bool)) Bool)) (b))
+  solver.defineFunsRec([gSym], [[b]], [b], True)
+
+  # (assert (not (g true)))
+  solver.assertFormula(solver.mkTerm(Kind.APPLY_UF, gSym, bTrue).notTerm())
+  assert solver.checkSat().isUnsat()
+  solver.pop()
+  # (assert (not (g true)))
+  solver.assertFormula(solver.mkTerm(Kind.APPLY_UF, gSym, bTrue).notTerm())
+  assert solver.checkSat().isUnsat()
+
+
 def test_uf_iteration(solver):
     intSort = solver.getIntegerSort()
     funSort = solver.mkFunctionSort([intSort, intSort], intSort)
@@ -1126,6 +1271,15 @@ def test_uf_iteration(solver):
         assert idx < 3
         assert c == expected_children[idx]
         idx = idx + 1
+
+
+def test_get_assertions(solver):
+    a = solver.mkConst(solver.getBooleanSort(), 'a')
+    b = solver.mkConst(solver.getBooleanSort(), 'b')
+    solver.assertFormula(a)
+    solver.assertFormula(b)
+    asserts = [a,b]
+    assert solver.getAssertions() == asserts
 
 
 def test_get_info(solver):
@@ -1404,6 +1558,10 @@ def test_get_value3(solver):
     solver.getValue(summ)
     solver.getValue(p_f_y)
 
+    a = [solver.getValue(x), solver.getValue(y), solver.getValue(z)]
+    b = solver.getValue([x,y,z])
+    assert a == b
+
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.getValue(x)
@@ -1430,7 +1588,7 @@ def checkSimpleSeparationConstraints(slv):
     heap = slv.mkTerm(Kind.SEP_PTO, p, x)
     slv.assertFormula(heap)
     nil = slv.mkSepNil(integer)
-    slv.assertFormula(nil.eqTerm(slv.mkReal(5)))
+    slv.assertFormula(nil.eqTerm(slv.mkInteger(5)))
     slv.checkSat()
 
 
@@ -1626,6 +1784,23 @@ def test_block_model_values5(solver):
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModelValues([x])
+
+def test_get_instantiations(solver):
+    iSort = solver.getIntegerSort()
+    boolSort = solver.getBooleanSort()
+    p = solver.declareFun("p", [iSort], boolSort)
+    x = solver.mkVar(iSort, "x")
+    bvl = solver.mkTerm(Kind.VARIABLE_LIST, x)
+    app = solver.mkTerm(Kind.APPLY_UF, p, x)
+    q = solver.mkTerm(Kind.FORALL, bvl, app)
+    solver.assertFormula(q)
+    five = solver.mkInteger(5)
+    app2 = solver.mkTerm(Kind.NOT, solver.mkTerm(Kind.APPLY_UF, p, five))
+    solver.assertFormula(app2)
+    with pytest.raises(RuntimeError):
+        solver.getInstantiations()
+    solver.checkSat()
+    solver.getInstantiations()
 
 def test_get_statistics(solver):
     intSort = solver.getIntegerSort()
@@ -2171,6 +2346,16 @@ def test_get_interpolant(solver):
     output = solver.getInterpolant(conj)
     assert output.getSort().isBoolean()
 
+    boolean = solver.getBooleanSort()
+    truen = solver.mkBoolean(True)
+    start = solver.mkVar(boolean)
+    g = solver.mkGrammar([], [start])
+    conj2 = solver.mkTerm(Kind.EQUAL, zero, zero)
+    g.addRule(start, truen)
+    output2 = solver.getInterpolant(conj2, g)
+    assert output2 == truen
+
+
 def test_get_interpolant_next(solver):
     solver.setLogic("QF_LIA")
     solver.setOption("produce-interpolants", "true")
@@ -2209,28 +2394,6 @@ def test_declare_pool(solver):
     nullSort = cvc5.Sort(solver)
     with pytest.raises(RuntimeError):
         solver.declarePool("i", nullSort, [])
-
-def test_define_fun_global(solver):
-    bSort = solver.getBooleanSort()
-
-    bTrue = solver.mkBoolean(True)
-    # (define-fun f () Bool true)
-    f = solver.defineFun("f", [], bSort, bTrue, True)
-    b = solver.mkVar(bSort, "b")
-    # (define-fun g (b Bool) Bool b)
-    g = solver.defineFun("g", [b], bSort, b, True)
-
-    # (assert (or (not f) (not (g true))))
-    solver.assertFormula(
-        solver.mkTerm(Kind.OR, f.notTerm(),
-                      solver.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
-    assert solver.checkSat().isUnsat()
-    solver.resetAssertions()
-    # (assert (or (not f) (not (g true))))
-    solver.assertFormula(
-        solver.mkTerm(Kind.OR, f.notTerm(),
-                      solver.mkTerm(Kind.APPLY_UF, g, bTrue).notTerm()))
-    assert solver.checkSat().isUnsat()
 
 
 def test_define_sort(solver):

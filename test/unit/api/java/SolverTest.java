@@ -378,8 +378,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkTupleSort(new Sort[] {d_solver.getIntegerSort()}));
     Sort funSort =
         d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"), d_solver.getIntegerSort());
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkTupleSort(new Sort[] {d_solver.getIntegerSort(), funSort}));
+    assertDoesNotThrow(() -> d_solver.mkTupleSort(new Sort[] {d_solver.getIntegerSort(), funSort}));
 
     Solver slv = new Solver();
     assertThrows(
@@ -821,8 +820,7 @@ class SolverTest
 
     // list datatype
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl listDecl =
-        d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
+    DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
     cons.addSelector("head", sort);
@@ -914,9 +912,10 @@ class SolverTest
     assertDoesNotThrow(()
                            -> d_solver.mkTuple(new Sort[] {d_solver.mkBitVectorSort(3)},
                                new Term[] {d_solver.mkBitVector(3, "101", 2)}));
-    assertDoesNotThrow(()
-                           -> d_solver.mkTuple(new Sort[] {d_solver.getRealSort()},
-                               new Term[] {d_solver.mkInteger("5")}));
+    assertThrows(CVC5ApiException.class,
+        ()
+            -> d_solver.mkTuple(
+                new Sort[] {d_solver.getRealSort()}, new Term[] {d_solver.mkInteger("5")}));
 
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkTuple(new Sort[] {}, new Term[] {d_solver.mkBitVector(3, "101", 2)}));
@@ -1385,6 +1384,18 @@ class SolverTest
   }
 
   @Test
+  void getAssertions()
+  {
+    Term a = d_solver.mkConst(d_solver.getBooleanSort(), "a");
+    Term b = d_solver.mkConst(d_solver.getBooleanSort(), "b");
+    d_solver.assertFormula(a);
+    d_solver.assertFormula(b);
+    Term[] asserts = d_solver.getAssertions();
+    assertEquals(asserts[0], a);
+    assertEquals(asserts[1], b);
+  }
+
+  @Test
   void getInfo()
   {
     assertDoesNotThrow(() -> d_solver.getInfo("name"));
@@ -1492,6 +1503,18 @@ class SolverTest
 
     // We expect the resulting output to be a boolean formula
     assertTrue(output.getSort().isBoolean());
+
+    // try with a grammar, a simple grammar admitting true
+    Sort bsort = d_solver.getBooleanSort();
+    Term truen = d_solver.mkBoolean(true);
+    Term start = d_solver.mkVar(bsort);
+    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Term conj2 = d_solver.mkTerm(EQUAL, zero, zero);
+    assertDoesNotThrow(() -> g.addRule(start, truen));
+    // Call the interpolation api, while the resulting interpolant is the output
+    Term output2 = d_solver.getInterpolant(conj2, g);
+    // interpolant must be true
+    assertEquals(output2, truen);
   }
 
   @Test
@@ -1516,6 +1539,20 @@ class SolverTest
 
     // We expect the next output to be distinct
     assertNotEquals(output, output2);
+  }
+
+  @Test
+  void declarePool() throws CVC5ApiException
+  {
+    Sort intSort = d_solver.getIntegerSort();
+    Sort setSort = d_solver.mkSetSort(intSort);
+    Term zero = d_solver.mkInteger(0);
+    Term x = d_solver.mkConst(intSort, "x");
+    Term y = d_solver.mkConst(intSort, "y");
+    // declare a pool with initial value { 0, x, y }
+    Term p = d_solver.declarePool("p", intSort, new Term[] {zero, x, y});
+    // pool should have the same sort
+    assertEquals(p.getSort(), setSort);
   }
 
   @Test
@@ -1714,7 +1751,7 @@ class SolverTest
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
       Map.Entry<String, Stat> elem = it.next();
-      if (elem.getKey() == "cvc5::CONSTANT")
+      if (elem.getKey().equals("cvc5::CONSTANT"))
       {
         assertFalse(elem.getValue().isInternal());
         assertFalse(elem.getValue().isDefault());
@@ -1723,10 +1760,11 @@ class SolverTest
         assertFalse(hist.isEmpty());
         assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
       }
-      else if (elem.getKey() == "theory::arrays::avgIndexListLength")
+      else if (elem.getKey().equals("theory::arrays::avgIndexListLength"))
       {
         assertTrue(elem.getValue().isInternal());
-        assertTrue(elem.getValue().isDefault());
+        assertTrue(elem.getValue().isDouble());
+        assertTrue(Double.isNaN(elem.getValue().getDouble()));
       }
     }
   }
@@ -1946,6 +1984,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.getValue(sum));
     assertDoesNotThrow(() -> d_solver.getValue(p_f_y));
 
+    Term[] b = d_solver.getValue(new Term[] {x, y, z});
+
     Solver slv = new Solver();
     assertThrows(CVC5ApiException.class, () -> slv.getValue(x));
     slv.close();
@@ -2105,7 +2145,7 @@ class SolverTest
     Term heap = solver.mkTerm(SEP_PTO, p, x);
     solver.assertFormula(heap);
     Term nil = solver.mkSepNil(integer);
-    solver.assertFormula(nil.eqTerm(solver.mkReal(5)));
+    solver.assertFormula(nil.eqTerm(solver.mkInteger(5)));
     solver.checkSat();
   }
 
@@ -2338,6 +2378,25 @@ class SolverTest
     d_solver.assertFormula(x.eqTerm(x));
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.blockModelValues(new Term[] {x}));
+  }
+
+  @Test
+  void getInstantiations() throws CVC5ApiException
+  {
+    Sort iSort = d_solver.getIntegerSort();
+    Sort boolSort = d_solver.getBooleanSort();
+    Term p = d_solver.declareFun("p", new Sort[] {iSort}, boolSort);
+    Term x = d_solver.mkVar(iSort, "x");
+    Term bvl = d_solver.mkTerm(VARIABLE_LIST, new Term[] {x});
+    Term app = d_solver.mkTerm(APPLY_UF, new Term[] {p, x});
+    Term q = d_solver.mkTerm(FORALL, new Term[] {bvl, app});
+    d_solver.assertFormula(q);
+    Term five = d_solver.mkInteger(5);
+    Term app2 = d_solver.mkTerm(NOT, new Term[] {d_solver.mkTerm(APPLY_UF, new Term[] {p, five})});
+    d_solver.assertFormula(app2);
+    assertThrows(CVC5ApiException.class, () -> d_solver.getInstantiations());
+    d_solver.checkSat();
+    assertDoesNotThrow(() -> d_solver.getInstantiations());
   }
 
   @Test
@@ -2599,23 +2658,21 @@ class SolverTest
   }
 
   @Test
-  void mkGrammar() throws CVC5ApiException {
+  void mkGrammar() throws CVC5ApiException
+  {
     Term nullTerm = d_solver.getNullTerm();
     Term boolTerm = d_solver.mkBoolean(true);
     Term boolVar = d_solver.mkVar(d_solver.getBooleanSort());
     Term intVar = d_solver.mkVar(d_solver.getIntegerSort());
 
-    assertDoesNotThrow(
-        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {intVar}));
-    assertDoesNotThrow(
-        () -> d_solver.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
+    assertDoesNotThrow(() -> d_solver.mkGrammar(new Term[] {}, new Term[] {intVar}));
+    assertDoesNotThrow(() -> d_solver.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
 
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {}));
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkGrammar(new Term[] {}, new Term[] {}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_solver.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
     assertThrows(CVC5ApiException.class,
         () -> d_solver.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
 
@@ -2623,13 +2680,12 @@ class SolverTest
     slv.setOption("sygus", "true");
     Term boolVar2 = slv.mkVar(slv.getBooleanSort());
     Term intVar2 = slv.mkVar(slv.getIntegerSort());
-    assertDoesNotThrow(
-        () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
+    assertDoesNotThrow(() -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
 
-    assertThrows(CVC5ApiException.class,
-        () -> slv.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
-    assertThrows(CVC5ApiException.class,
-        () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
+    assertThrows(
+        CVC5ApiException.class, () -> slv.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
     slv.close();
   }
 
@@ -2951,5 +3007,99 @@ class SolverTest
     assertEquals("((_ tuple.project 0 3 2 0 1 2) (tuple true 3 \"C\" "
             + "(set.singleton \"Z\")))",
         projection.toString());
+  }
+
+  @Test
+  void declareOracleFunError() throws CVC5ApiException
+  {
+    Sort iSort = d_solver.getIntegerSort();
+    // cannot declare without option
+    assertThrows(CVC5ApiException.class,
+        ()
+            -> d_solver.declareOracleFun(
+                "f", new Sort[] {iSort}, iSort, (input) -> d_solver.mkInteger(0)));
+    d_solver.setOption("oracles", "true");
+    Sort nullSort = d_solver.getNullSort();
+    // bad sort
+    assertThrows(CVC5ApiException.class,
+        ()
+            -> d_solver.declareOracleFun(
+                "f", new Sort[] {nullSort}, iSort, (input) -> d_solver.mkInteger(0)));
+  }
+
+  @Test
+  void declareOracleFunUnsat() throws CVC5ApiException
+  {
+    d_solver.setOption("oracles", "true");
+    Sort iSort = d_solver.getIntegerSort();
+    // f is the function implementing (lambda ((x Int)) (+ x 1))
+    Term f = d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, (input) -> {
+      if (input[0].getIntegerValue().signum() > -1)
+      {
+        return d_solver.mkInteger(input[0].getIntegerValue().add(new BigInteger("1")).toString());
+      }
+      return d_solver.mkInteger(0);
+    });
+    Term three = d_solver.mkInteger(3);
+    Term five = d_solver.mkInteger(5);
+    Term eq =
+        d_solver.mkTerm(EQUAL, new Term[] {d_solver.mkTerm(APPLY_UF, new Term[] {f, three}), five});
+    d_solver.assertFormula(eq);
+    // (f 3) = 5
+    assertTrue(d_solver.checkSat().isUnsat());
+  }
+
+  @Test
+  void declareOracleFunSat() throws CVC5ApiException
+  {
+    d_solver.setOption("oracles", "true");
+    d_solver.setOption("produce-models", "true");
+    Sort iSort = d_solver.getIntegerSort();
+
+    // f is the function implementing (lambda ((x Int)) (% x 10))
+    Term f = d_solver.declareOracleFun("f", new Sort[] {iSort}, iSort, (input) -> {
+      if (input[0].getIntegerValue().signum() > -1)
+      {
+        return d_solver.mkInteger(input[0].getIntegerValue().mod(new BigInteger("10")).toString());
+      }
+      return d_solver.mkInteger(0);
+    });
+    Term seven = d_solver.mkInteger(7);
+    Term x = d_solver.mkConst(iSort, "x");
+    Term lb = d_solver.mkTerm(Kind.GEQ, new Term[] {x, d_solver.mkInteger(0)});
+    d_solver.assertFormula(lb);
+    Term ub = d_solver.mkTerm(Kind.LEQ, new Term[] {x, d_solver.mkInteger(100)});
+    d_solver.assertFormula(ub);
+    Term eq = d_solver.mkTerm(
+        Kind.EQUAL, new Term[] {d_solver.mkTerm(APPLY_UF, new Term[] {f, x}), seven});
+    d_solver.assertFormula(eq);
+    // x >= 0 ^ x <= 100 ^ (f x) = 7
+    assertTrue(d_solver.checkSat().isSat());
+    Term xval = d_solver.getValue(x);
+    assertTrue(xval.getIntegerValue().signum() > -1);
+    assertTrue(xval.getIntegerValue().mod(new BigInteger("10")).equals(new BigInteger("7")));
+  }
+
+  @Test
+  void declareOracleFunSat2() throws CVC5ApiException
+  {
+    d_solver.setOption("oracles", "true");
+    d_solver.setOption("produce-models", "true");
+    Sort iSort = d_solver.getIntegerSort();
+    Sort bSort = d_solver.getBooleanSort();
+    // eq is the function implementing (lambda ((x Int) (y Int)) (= x y))
+    Term eq = d_solver.declareOracleFun("eq", new Sort[] {iSort, iSort}, bSort, (input) -> {
+      return d_solver.mkBoolean(input[0].equals(input[1]));
+    });
+    Term x = d_solver.mkConst(iSort, "x");
+    Term y = d_solver.mkConst(iSort, "y");
+    Term neq = d_solver.mkTerm(
+        Kind.NOT, new Term[] {d_solver.mkTerm(Kind.APPLY_UF, new Term[] {eq, x, y})});
+    d_solver.assertFormula(neq);
+    // (not (eq x y))
+    assertTrue(d_solver.checkSat().isSat());
+    Term xval = d_solver.getValue(x);
+    Term yval = d_solver.getValue(y);
+    assertFalse(xval.equals(yval));
   }
 }

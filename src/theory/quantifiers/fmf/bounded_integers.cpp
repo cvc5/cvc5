@@ -20,6 +20,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -28,6 +29,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
@@ -560,7 +562,7 @@ BoundVarType BoundedIntegers::getBoundVarType(Node q, Node v) const
 }
 
 void BoundedIntegers::getBoundVarIndices(Node q,
-                                         std::vector<unsigned>& indices) const
+                                         std::vector<size_t>& indices) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_set.find(q);
   if (it != d_set.end())
@@ -700,7 +702,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     Assert(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
-    Node sChoiceI = nm->mkSingleton(choice_i.getType(), choice_i);
+    Node sChoiceI = nm->mkNode(SET_SINGLETON, choice_i);
     if (nsr.isNull())
     {
       nsr = sChoiceI;
@@ -779,16 +781,15 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    NodeManager* nm = NodeManager::currentNM();
     const DType& dt = datatypes::utils::datatypeOf(t.getOperator());
     unsigned index = datatypes::utils::indexOf(t.getOperator());
+    bool sharedSel = options().datatypes.dtSharedSelectors;
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
       Node u;
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = nm->mkNode(
-            APPLY_SELECTOR, dt[index].getSelectorInternal(e.getType(), i), e);
+        Node se = datatypes::utils::applySelector(dt[index], i, sharedSel, e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){

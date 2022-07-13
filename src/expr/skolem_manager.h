@@ -50,8 +50,6 @@ enum class SkolemFunId
   SELECTOR_WRONG,
   /** a shared selector */
   SHARED_SELECTOR,
-  /** an application of seq.nth that is out of bounds */
-  SEQ_NTH_OOB,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
@@ -142,7 +140,7 @@ enum class SkolemFunId
    */
   BAGS_CHOOSE,
   /** An uninterpreted function for bag.map operator:
-   * To compute (bag.count y (map f A)), we need to find the distinct
+   * To compute (bag.count y (bag.map f A)), we need to find the distinct
    * elements in A that are mapped to y by function f (i.e., preimage of {y}).
    * If n is the cardinality of this preimage, then
    * the preimage is the set {uf(1), ..., uf(n)}
@@ -151,13 +149,13 @@ enum class SkolemFunId
   BAGS_MAP_PREIMAGE,
   /**
    * A skolem variable for the size of the preimage of {y} that is unique per
-   * terms (map f A), y which might be an element in (map f A). (see the
+   * terms (bag.map f A), y which might be an element in (bag.map f A). (see the
    * documentation for BAGS_MAP_PREIMAGE)
    */
   BAGS_MAP_PREIMAGE_SIZE,
   /**
    * A skolem variable for the index that is unique per terms
-   * (map f A), y, preImageSize, y, e which might be an element in A.
+   * (bag.map f A), y, preImageSize, y, e which might be an element in A.
    * (see the documentation for BAGS_MAP_PREIMAGE)
    */
   BAGS_MAP_PREIMAGE_INDEX,
@@ -170,20 +168,52 @@ enum class SkolemFunId
    */
   BAGS_MAP_SUM,
   /** bag diff to witness (not (= A B)) */
-  BAG_DEQ_DIFF,
+  BAGS_DEQ_DIFF,
+  /** Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Table T))
+   */
+  TABLES_GROUP_PART,
+  /**
+   * Given a group term ((_ table.group n1 ... nk) A) of type (Bag (Table T))
+   * and a part B of type (Table T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  TABLES_GROUP_PART_ELEMENT,
+  /** Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Relation T))
+   */
+  RELATIONS_GROUP_PART,
+  /**
+   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * and a part B of type (Relation T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  RELATIONS_GROUP_PART_ELEMENT,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))
    *    (ite
-   *      (= A (as emptyset (Set E)))
+   *      (= A (as set.empty (Set E)))
    *      (= x (uf A))
-   *      (and (member x A) (= x uf(A)))
+   *      (and (set.member x A) (= x uf(A)))
    * where uf: (Set E) -> E is a skolem function, and E is the type of elements
    * of A
    */
   SETS_CHOOSE,
   /** set diff to witness (not (= A B)) */
   SETS_DEQ_DIFF,
+  SETS_FOLD_CARD,
+  SETS_FOLD_COMBINE,
+  SETS_FOLD_ELEMENTS,
+  SETS_FOLD_UNION,
+  /**
+   * A skolem variable that is unique per terms (set.map f A), y which is an
+   * element in (set.map f A). The skolem is constrained to be an element in A,
+   * and it is mapped to y by f.
+   */
+  SETS_MAP_DOWN_ELEMENT,
   /** Higher-order type match predicate, see HoTermDb */
   HO_TYPE_MATCH_PRED
 };
@@ -342,22 +372,19 @@ class SkolemManager
                    int flags = SKOLEM_DEFAULT,
                    ProofGenerator* pg = nullptr);
   /**
-   * Same as above, but for special case of (witness ((x T)) (= x t))
-   * where T is the type of t. This skolem is unique for each t, which we
+   * Make purification skolem. This skolem is unique for each t, which we
    * implement via an attribute on t. This attribute is used to ensure to
    * associate a unique skolem for each t.
    *
-   * Notice that a purification skolem is trivial to justify, and hence it
-   * does not require a proof generator.
+   * Notice that a purification skolem is trivial to justify (via SKOLEM_INTRO),
+   * and hence it does not require a proof generator.
    *
-   * Notice that in very rare cases, two different terms may have the
-   * same purification skolem. For example, let k be the skolem introduced to
-   * eliminate (ite A B C). Then, the pair of terms:
+   * Notice that we do not convert t to original form in this call. Thus,
+   * in very rare cases, two Skolems may be introduced that have the same
+   * original form. For example, let k be the skolem introduced to eliminate
+   * (ite A B C). Then, asking for the purify skolem for:
    *  (ite (ite A B C) D E) and (ite k D E)
-   * have the same purification skolem. In the implementation, this is a result
-   * of the fact that the above terms have the same original form. It is sound
-   * to use the same skolem to purify these two terms, since they are
-   * definitionally equivalent.
+   * will return two different Skolems.
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
@@ -454,6 +481,17 @@ class SkolemManager
    * @return n in original form.
    */
   static Node getOriginalForm(Node n);
+  /**
+   * Convert to unpurified form, which returns the term that k purifies. This
+   * is literally the term that was passed as an argument to mkPurify on the
+   * call that created k. In contrast to getOriginalForm, this is not recursive
+   * w.r.t. skolems, so that the term purified by k may itself contain
+   * purification skolems that are not expanded.
+   *
+   * @param k The skolem to convert to unpurified form
+   * @return the unpurified form of k.
+   */
+  static Node getUnpurifiedForm(Node k);
 
  private:
   /** Cache of skolem functions for mkSkolemFunction above. */

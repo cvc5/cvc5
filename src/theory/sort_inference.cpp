@@ -426,19 +426,16 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     Trace("sort-inference-debug") << "...Process " << n << std::endl;
 
     int retType;
-    if( n.getKind()==kind::EQUAL && !n[0].getType().isBoolean() ){
+    // we only do this for non-finite types, as finite types have cardinality
+    // restrictions.
+    if (n.getKind() == kind::EQUAL
+        && !isCardinalityClassFinite(n[0].getType().getCardinalityClass(),
+                                     false))
+    {
       Trace("sort-inference-debug") << "For equality " << n << ", set equal types from : " << n[0].getType() << " " << n[1].getType() << std::endl;
-      //if original types are mixed (e.g. Int/Real), don't commit type equality in either direction
-      if( n[0].getType()!=n[1].getType() ){
-        //for now, assume the original types
-        for( unsigned i=0; i<2; i++ ){
-          int ct = getIdForType( n[i].getType() );
-          setEqual( child_types[i], ct );
-        }
-      }else{
-        //we only require that the left and right hand side must be equal
-        setEqual( child_types[0], child_types[1] );
-      }
+      Assert(n[0].getType() == n[1].getType());
+      // we only require that the left and right hand side must be equal
+      setEqual(child_types[0], child_types[1]);
       d_equality_types[n] = child_types[0];
       retType = getIdForType( n.getType() );
     }
@@ -605,9 +602,12 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // if no sort was inferred for this node, return original
-  if( tn.isNull() || tn.isComparableTo( old.getType() ) ){
+  if (tn.isNull() || tn == old.getType())
+  {
     return old;
-  }else if( old.isConst() ){
+  }
+  else if (old.isConst())
+  {
     //must make constant of type tn
     if( d_const_map[tn].find( old )==d_const_map[tn].end() ){
       std::stringstream ss;
@@ -618,7 +618,9 @@ Node SortInference::getNewSymbol( Node old, TypeNode tn ){
           "constant created during sort inference");  // use mkConst???
     }
     return d_const_map[tn][ old ];
-  }else if( old.getKind()==kind::BOUND_VARIABLE ){
+  }
+  else if (old.getKind() == kind::BOUND_VARIABLE)
+  {
     std::stringstream ss;
     ss << "b_" << old;
     return nm->mkBoundVar(ss.str(), tn);
@@ -684,7 +686,9 @@ Node SortInference::simplifyNode(
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
           Assert(!tnnc.isNull());
         }
-        else if (n.getKind() == kind::EQUAL && !n[0].getType().isBoolean()
+        else if (n.getKind() == kind::EQUAL
+                 && !isCardinalityClassFinite(
+                     n[0].getType().getCardinalityClass(), false)
                  && i == 0)
         {
           Assert(d_equality_types.find(n) != d_equality_types.end());
@@ -714,7 +718,8 @@ Node SortInference::simplifyNode(
     }else if( n.getKind()==kind::EQUAL ){
       TypeNode tn1 = children[0].getType();
       TypeNode tn2 = children[1].getType();
-      if( !tn1.isComparableTo( tn2 ) ){
+      if (tn1 != tn2)
+      {
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
         Assert(false);
@@ -756,7 +761,7 @@ Node SortInference::simplifyNode(
       {
         TypeNode tn = children[i+1].getType();
         TypeNode tna = getTypeForId( d_op_arg_types[op][i] );
-        if (!tn.isSubtypeOf(tna))
+        if (tn != tna)
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
           Assert(false);
@@ -874,7 +879,8 @@ bool SortInference::isWellSorted( Node n ) {
   }
 }
 
-bool SortInference::isMonotonic( TypeNode tn ) {
+bool SortInference::isMonotonic(TypeNode tn) const
+{
   Assert(tn.isUninterpretedSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }

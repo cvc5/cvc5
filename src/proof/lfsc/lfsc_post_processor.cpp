@@ -22,6 +22,8 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "smt/env.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -29,8 +31,11 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
-    LfscNodeConverter& ltp, ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker()), d_tproc(ltp), d_firstTime(false)
+    Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env),
+      d_pc(env.getProofNodeManager()->getChecker()),
+      d_tproc(ltp),
+      d_firstTime(false)
 {
 }
 
@@ -171,6 +176,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           return false;
         }
         Node cop = d_tproc.getOperatorOfClosure(res[0]);
+        Node pcop = d_tproc.getOperatorOfClosure(res[0], false, true);
         Trace("lfsc-pp-qcong") << "Operator for closure " << cop << std::endl;
         // start with base case body = body'
         Node curL = children[1][0];
@@ -179,10 +185,13 @@ bool LfscProofPostprocessCallback::update(Node res,
         Trace("lfsc-pp-qcong") << "Base congruence " << currEq << std::endl;
         for (size_t i = 0, nvars = res[0][0].getNumChildren(); i < nvars; i++)
         {
+          size_t ii = (nvars - 1) - i;
           Trace("lfsc-pp-qcong") << "Process child " << i << std::endl;
           // CONG rules for each variable
-          Node v = res[0][0][nvars - 1 - i];
-          Node vop = d_tproc.getOperatorOfBoundVar(cop, v);
+          Node v = res[0][0][ii];
+          // Use partial version for each argument except the last one. This
+          // avoids type errors in internal representation of LFSC terms.
+          Node vop = d_tproc.getOperatorOfBoundVar(ii == 0 ? cop : pcop, v);
           Node vopEq = vop.eqNode(vop);
           cdp->addStep(vopEq, PfRule::REFL, {}, {vop});
           Node nextEq;
@@ -251,17 +260,20 @@ bool LfscProofPostprocessCallback::update(Node res,
         for (size_t i = 0; i < nchildren; i++)
         {
           size_t ii = (nchildren - 1) - i;
+          Trace("lfsc-pp-cong") << "Process child " << ii << std::endl;
           Node uop = op;
-          // special case: each bv concat in the chain has a different type,
-          // so remake the operator here.
-          if (k == kind::BITVECTOR_CONCAT)
+          // special case: applications of the following kinds in the chain may
+          // have a different type, so remake the operator here.
+          if (k == kind::BITVECTOR_CONCAT || k == ADD || k == MULT
+              || k == NONLINEAR_MULT)
           {
             // we get the operator of the next argument concatenated with the
             // current accumulated remainder.
-            Node currApp =
-                nm->mkNode(kind::BITVECTOR_CONCAT, children[ii][0], currEq[0]);
+            Node currApp = nm->mkNode(k, children[ii][0], currEq[0]);
             uop = d_tproc.getOperatorOfTerm(currApp);
           }
+          Trace("lfsc-pp-cong") << "Apply " << uop << " to " << children[ii][0]
+                                << " and " << children[ii][1] << std::endl;
           Node argAppEq =
               nm->mkNode(HO_APPLY, uop, children[ii][0])
                   .eqNode(nm->mkNode(HO_APPLY, uop, children[ii][1]));
@@ -335,7 +347,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::ARITH_SUM_UB:
     {
       // proof of null terminator base 0 = 0
-      Node zero = d_tproc.getNullTerminator(ADD);
+      Node zero = d_tproc.getNullTerminator(ADD, res[0].getType());
       Node cur = zero.eqNode(zero);
       cdp->addStep(cur, PfRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)
@@ -354,6 +366,21 @@ bool LfscProofPostprocessCallback::update(Node res,
           addLfscRule(cdp, cur, newChildren, LfscRule::ARITH_SUM_UB, {});
         }
       }
+    }
+    break;
+    case PfRule::CONCAT_CONFLICT:
+    {
+      if (children.size() == 1)
+      {
+        // no need to change
+        return false;
+      }
+      Assert(children.size() == 2);
+      Assert(children[0].getKind() == EQUAL);
+      Assert(children[0][0].getType().isSequence());
+      // must use the sequences version of the rule
+      Node falsen = nm->mkConst(false);
+      addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
     default: return false; break;
@@ -404,9 +431,8 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   return nm->mkBoundVar(nm->booleanType());
 }
 
-LfscProofPostprocess::LfscProofPostprocess(LfscNodeConverter& ltp,
-                                           ProofNodeManager* pnm)
-    : d_cb(new proof::LfscProofPostprocessCallback(ltp, pnm)), d_pnm(pnm)
+LfscProofPostprocess::LfscProofPostprocess(Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env), d_cb(new proof::LfscProofPostprocessCallback(env, ltp))
 {
 }
 
@@ -415,7 +441,7 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   d_cb->initializeUpdate();
   // do not automatically add symmetry steps, since this leads to
   // non-termination for example on policy_variable.smt2
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
+  ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
   updater.process(pf);
 }
 

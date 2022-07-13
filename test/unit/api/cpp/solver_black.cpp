@@ -27,6 +27,20 @@ class TestApiBlackSolver : public TestApi
 {
 };
 
+TEST_F(TestApiBlackSolver, proj_issue416)
+{
+  Solver slv;
+  slv.setOption("solve-bv-as-int", "sum");
+  slv.setOption("strings-exp", "true");
+  Sort s1 = slv.getStringSort();
+  Term t27 = slv.mkConst(s1, "_x50");
+  Term t333 = slv.mkRegexpAll();
+  Term t1243 = slv.mkTerm(Kind::STRING_REPLACE_RE_ALL, {t27, t333, t27});
+  Term t1291 = slv.mkTerm(Kind::EQUAL, {t1243, t27});
+  slv.assertFormula(t1291);
+  slv.checkSat();
+}
+
 TEST_F(TestApiBlackSolver, pow2Large1)
 {
   // Based on https://github.com/cvc5/cvc5-projects/issues/371
@@ -77,6 +91,15 @@ TEST_F(TestApiBlackSolver, recoverableException)
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
   d_solver.assertFormula(x.eqTerm(x).notTerm());
   ASSERT_THROW(d_solver.getValue(x), CVC5ApiRecoverableException);
+  
+  try {
+    d_solver.getValue(x);
+  }
+  catch (const CVC5ApiRecoverableException& e)
+  {
+    ASSERT_NO_THROW(e.what());
+    ASSERT_NO_THROW(e.getMessage());
+  }
 }
 
 TEST_F(TestApiBlackSolver, supportsFloatingPoint)
@@ -371,8 +394,7 @@ TEST_F(TestApiBlackSolver, mkTupleSort)
   ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort()}));
   Sort funSort = d_solver.mkFunctionSort({d_solver.mkUninterpretedSort("u")},
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}),
-               CVC5ApiException);
+  ASSERT_NO_THROW(d_solver.mkTupleSort({d_solver.getIntegerSort(), funSort}));
 
   Solver slv;
   ASSERT_THROW(slv.mkTupleSort({d_solver.getIntegerSort()}), CVC5ApiException);
@@ -707,6 +729,8 @@ TEST_F(TestApiBlackSolver, mkString)
             "\"asdf\\u{5c}nasdf\"");
   ASSERT_EQ(d_solver.mkString("asdf\\u{005c}nasdf", true).toString(),
             "\"asdf\\u{5c}nasdf\"");
+  std::wstring s;
+  ASSERT_EQ(d_solver.mkString(s).getStringValue(), s);
 }
 
 TEST_F(TestApiBlackSolver, mkTerm)
@@ -925,8 +949,9 @@ TEST_F(TestApiBlackSolver, mkTuple)
 {
   ASSERT_NO_THROW(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
                                    {d_solver.mkBitVector(3, "101", 2)}));
-  ASSERT_NO_THROW(
-      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}));
+  ASSERT_THROW(
+      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkInteger("5")}),
+      CVC5ApiException);
 
   ASSERT_THROW(d_solver.mkTuple({}, {d_solver.mkBitVector(3, "101", 2)}),
                CVC5ApiException);
@@ -1326,6 +1351,16 @@ TEST_F(TestApiBlackSolver, uFIteration)
   }
 }
 
+TEST_F(TestApiBlackSolver, getAssertions)
+{
+  Term a = d_solver.mkConst(d_solver.getBooleanSort(), "a");
+  Term b = d_solver.mkConst(d_solver.getBooleanSort(), "b");
+  d_solver.assertFormula(a);
+  d_solver.assertFormula(b);
+  std::vector<Term> asserts{a, b};
+  ASSERT_EQ(d_solver.getAssertions(), asserts);
+}
+
 TEST_F(TestApiBlackSolver, getInfo)
 {
   ASSERT_NO_THROW(d_solver.getInfo("name"));
@@ -1427,9 +1462,20 @@ TEST_F(TestApiBlackSolver, getInterpolant)
        d_solver.mkTerm(LT, {z, zero})});
   // Call the interpolation api, while the resulting interpolant is the output
   Term output = d_solver.getInterpolant(conj);
-
   // We expect the resulting output to be a boolean formula
   ASSERT_TRUE(output.getSort().isBoolean());
+
+  // try with a grammar, a simple grammar admitting true
+  Sort boolean = d_solver.getBooleanSort();
+  Term truen = d_solver.mkBoolean(true);
+  Term start = d_solver.mkVar(boolean);
+  Grammar g = d_solver.mkGrammar({}, {start});
+  Term conj2 = d_solver.mkTerm(EQUAL, {zero, zero});
+  ASSERT_NO_THROW(g.addRule(start, truen));
+  // Call the interpolation api, while the resulting interpolant is the output
+  Term output2 = d_solver.getInterpolant(conj2, g);
+  // interpolant must be true
+  ASSERT_EQ(output2, truen);
 }
 
 TEST_F(TestApiBlackSolver, getInterpolantNext)
@@ -1529,13 +1575,13 @@ TEST_F(TestApiBlackSolver, getOptionNames)
 TEST_F(TestApiBlackSolver, getOptionInfo)
 {
   {
-    EXPECT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
+    ASSERT_THROW(d_solver.getOptionInfo("asdf-invalid"), CVC5ApiException);
   }
   {
     cvc5::OptionInfo info = d_solver.getOptionInfo("verbose");
-    EXPECT_EQ("verbose", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
+    ASSERT_EQ("verbose", info.name);
+    ASSERT_EQ(std::vector<std::string>{}, info.aliases);
+    ASSERT_TRUE(std::holds_alternative<OptionInfo::VoidInfo>(info.valueInfo));
     std::stringstream ss;
     ss << info;
     ASSERT_EQ(ss.str(), "OptionInfo{ verbose | void }");
@@ -1543,13 +1589,13 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   {
     // bool type with default
     cvc5::OptionInfo info = d_solver.getOptionInfo("print-success");
-    EXPECT_EQ("print-success", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(
+    ASSERT_EQ("print-success", info.name);
+    ASSERT_EQ(std::vector<std::string>{}, info.aliases);
+    ASSERT_TRUE(
         std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo));
     auto valInfo = std::get<OptionInfo::ValueInfo<bool>>(info.valueInfo);
-    EXPECT_EQ(false, valInfo.defaultValue);
-    EXPECT_EQ(false, valInfo.currentValue);
+    ASSERT_EQ(false, valInfo.defaultValue);
+    ASSERT_EQ(false, valInfo.currentValue);
     ASSERT_EQ(info.boolValue(), false);
     std::stringstream ss;
     ss << info;
@@ -1559,14 +1605,14 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   {
     // int64 type with default
     cvc5::OptionInfo info = d_solver.getOptionInfo("verbosity");
-    EXPECT_EQ("verbosity", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
+    ASSERT_EQ("verbosity", info.name);
+    ASSERT_EQ(std::vector<std::string>{}, info.aliases);
+    ASSERT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
         info.valueInfo));
     auto numInfo = std::get<OptionInfo::NumberInfo<int64_t>>(info.valueInfo);
-    EXPECT_EQ(0, numInfo.defaultValue);
-    EXPECT_EQ(0, numInfo.currentValue);
-    EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+    ASSERT_EQ(0, numInfo.defaultValue);
+    ASSERT_EQ(0, numInfo.currentValue);
+    ASSERT_FALSE(numInfo.minimum || numInfo.maximum);
     ASSERT_EQ(info.intValue(), 0);
     std::stringstream ss;
     ss << info;
@@ -1575,14 +1621,14 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   {
     // uint64 type with default
     cvc5::OptionInfo info = d_solver.getOptionInfo("rlimit");
-    EXPECT_EQ("rlimit", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
+    ASSERT_EQ("rlimit", info.name);
+    ASSERT_EQ(std::vector<std::string>{}, info.aliases);
+    ASSERT_TRUE(std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
         info.valueInfo));
     auto numInfo = std::get<OptionInfo::NumberInfo<uint64_t>>(info.valueInfo);
-    EXPECT_EQ(0, numInfo.defaultValue);
-    EXPECT_EQ(0, numInfo.currentValue);
-    EXPECT_FALSE(numInfo.minimum || numInfo.maximum);
+    ASSERT_EQ(0, numInfo.defaultValue);
+    ASSERT_EQ(0, numInfo.currentValue);
+    ASSERT_FALSE(numInfo.minimum || numInfo.maximum);
     ASSERT_EQ(info.uintValue(), 0);
     std::stringstream ss;
     ss << info;
@@ -1610,13 +1656,13 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   {
     // string type with default
     cvc5::OptionInfo info = d_solver.getOptionInfo("force-logic");
-    EXPECT_EQ("force-logic", info.name);
-    EXPECT_EQ(std::vector<std::string>{}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
+    ASSERT_EQ("force-logic", info.name);
+    ASSERT_EQ(std::vector<std::string>{}, info.aliases);
+    ASSERT_TRUE(std::holds_alternative<OptionInfo::ValueInfo<std::string>>(
         info.valueInfo));
     auto valInfo = std::get<OptionInfo::ValueInfo<std::string>>(info.valueInfo);
-    EXPECT_EQ("", valInfo.defaultValue);
-    EXPECT_EQ("", valInfo.currentValue);
+    ASSERT_EQ("", valInfo.defaultValue);
+    ASSERT_EQ("", valInfo.currentValue);
     ASSERT_EQ(info.stringValue(), "");
     std::stringstream ss;
     ss << info;
@@ -1626,16 +1672,16 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
   {
     // mode option
     cvc5::OptionInfo info = d_solver.getOptionInfo("simplification");
-    EXPECT_EQ("simplification", info.name);
-    EXPECT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
-    EXPECT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
+    ASSERT_EQ("simplification", info.name);
+    ASSERT_EQ(std::vector<std::string>{"simplification-mode"}, info.aliases);
+    ASSERT_TRUE(std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo));
     auto modeInfo = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-    EXPECT_EQ("batch", modeInfo.defaultValue);
-    EXPECT_EQ("batch", modeInfo.currentValue);
-    EXPECT_EQ(2, modeInfo.modes.size());
-    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "batch")
+    ASSERT_EQ("batch", modeInfo.defaultValue);
+    ASSERT_EQ("batch", modeInfo.currentValue);
+    ASSERT_EQ(2, modeInfo.modes.size());
+    ASSERT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "batch")
                 != modeInfo.modes.end());
-    EXPECT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
+    ASSERT_TRUE(std::find(modeInfo.modes.begin(), modeInfo.modes.end(), "none")
                 != modeInfo.modes.end());
     std::stringstream ss;
     ss << info;
@@ -1648,13 +1694,14 @@ TEST_F(TestApiBlackSolver, getOptionInfo)
 TEST_F(TestApiBlackSolver, getDriverOptions)
 {
   auto dopts = d_solver.getDriverOptions();
-  EXPECT_EQ(dopts.err().rdbuf(), std::cerr.rdbuf());
-  EXPECT_EQ(dopts.in().rdbuf(), std::cin.rdbuf());
-  EXPECT_EQ(dopts.out().rdbuf(), std::cout.rdbuf());
+  ASSERT_EQ(dopts.err().rdbuf(), std::cerr.rdbuf());
+  ASSERT_EQ(dopts.in().rdbuf(), std::cin.rdbuf());
+  ASSERT_EQ(dopts.out().rdbuf(), std::cout.rdbuf());
 }
-  
+
 TEST_F(TestApiBlackSolver, getStatistics)
 {
+  ASSERT_NO_THROW(cvc5::Stat());
   // do some array reasoning to make sure we have a double statistics
   {
     Sort s1 = d_solver.getIntegerSort();
@@ -1671,21 +1718,21 @@ TEST_F(TestApiBlackSolver, getStatistics)
   }
   {
     auto s = stats.get("global::totalTime");
-    EXPECT_FALSE(s.isInternal());
-    EXPECT_FALSE(s.isDefault());
-    EXPECT_TRUE(s.isString());
+    ASSERT_FALSE(s.isInternal());
+    ASSERT_FALSE(s.isDefault());
+    ASSERT_TRUE(s.isString());
     std::string time = s.getString();
-    EXPECT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
-    EXPECT_FALSE(s.isDouble());
+    ASSERT_TRUE(time.rfind("ms") == time.size() - 2);  // ends with "ms"
+    ASSERT_FALSE(s.isDouble());
     s = stats.get("resource::resourceUnitsUsed");
-    EXPECT_TRUE(s.isInternal());
-    EXPECT_FALSE(s.isDefault());
-    EXPECT_TRUE(s.isInt());
-    EXPECT_TRUE(s.getInt() >= 0);
+    ASSERT_TRUE(s.isInternal());
+    ASSERT_FALSE(s.isDefault());
+    ASSERT_TRUE(s.isInt());
+    ASSERT_TRUE(s.getInt() >= 0);
   }
   for (const auto& s: stats)
   {
-    EXPECT_FALSE(s.first.empty());
+    ASSERT_FALSE(s.first.empty());
   }
   for (auto it = stats.begin(true, true); it != stats.end(); ++it)
   {
@@ -1693,35 +1740,42 @@ TEST_F(TestApiBlackSolver, getStatistics)
       auto tmp1 = it, tmp2 = it;
       ++tmp1;
       tmp2++;
-      EXPECT_EQ(tmp1, tmp2);
+      ASSERT_EQ(tmp1, tmp2);
       --tmp1;
       tmp2--;
-      EXPECT_EQ(tmp1, tmp2);
-      EXPECT_EQ(tmp1, it);
-      EXPECT_EQ(it, tmp2);
+      ASSERT_EQ(tmp1, tmp2);
+      ASSERT_EQ(tmp1, it);
+      ASSERT_EQ(it, tmp2);
     }
     const auto& s = *it;
     // check some basic utility methods
-    EXPECT_TRUE(!(it == stats.end()));
-    EXPECT_EQ(s.first, it->first);
+    ASSERT_TRUE(!(it == stats.end()));
+    ASSERT_EQ(s.first, it->first);
     if (s.first == "cvc5::CONSTANT")
     {
-      EXPECT_FALSE(s.second.isInternal());
-      EXPECT_FALSE(s.second.isDefault());
-      EXPECT_TRUE(s.second.isHistogram());
+      ASSERT_FALSE(s.second.isInternal());
+      ASSERT_FALSE(s.second.isDefault());
+      ASSERT_TRUE(s.second.isHistogram());
       auto hist = s.second.getHistogram();
-      EXPECT_FALSE(hist.empty());
+      ASSERT_FALSE(hist.empty());
       std::stringstream ss;
       ss << s.second;
-      EXPECT_EQ(ss.str(), "{ integer type: 1 }");
+      ASSERT_EQ(ss.str(), "{ integer type: 1 }");
     }
     else if (s.first == "theory::arrays::avgIndexListLength")
     {
-      EXPECT_TRUE(s.second.isInternal());
-      EXPECT_TRUE(s.second.isDouble());
-      EXPECT_TRUE(std::isnan(s.second.getDouble()));
+      ASSERT_TRUE(s.second.isInternal());
+      ASSERT_TRUE(s.second.isDouble());
+      ASSERT_TRUE(std::isnan(s.second.getDouble()));
     }
   }
+}
+
+TEST_F(TestApiBlackSolver, printStatisticsSafe)
+{
+  testing::internal::CaptureStdout();
+  d_solver.printStatisticsSafe(STDOUT_FILENO);
+  testing::internal::GetCapturedStdout();
 }
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
@@ -1929,6 +1983,14 @@ TEST_F(TestApiBlackSolver, getValue3)
   ASSERT_NO_THROW(d_solver.getValue(sum));
   ASSERT_NO_THROW(d_solver.getValue(p_f_y));
 
+  std::vector<Term> a;
+  ASSERT_NO_THROW(a.emplace_back(d_solver.getValue(x)));
+  ASSERT_NO_THROW(a.emplace_back(d_solver.getValue(y)));
+  ASSERT_NO_THROW(a.emplace_back(d_solver.getValue(z)));
+  std::vector<Term> b;
+  ASSERT_NO_THROW(b = d_solver.getValue({x,y,z}));
+  ASSERT_EQ(a,b);
+
   Solver slv;
   ASSERT_THROW(slv.getValue(x), CVC5ApiException);
 }
@@ -2078,7 +2140,7 @@ void checkSimpleSeparationConstraints(Solver* solver)
   Term heap = solver->mkTerm(cvc5::Kind::SEP_PTO, {p, x});
   solver->assertFormula(heap);
   Term nil = solver->mkSepNil(integer);
-  solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
+  solver->assertFormula(nil.eqTerm(solver->mkInteger(5)));
   solver->checkSat();
 }
 }  // namespace
@@ -2288,6 +2350,24 @@ TEST_F(TestApiBlackSolver, blockModelValues5)
   d_solver.assertFormula(x.eqTerm(x));
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.blockModelValues({x}));
+}
+
+TEST_F(TestApiBlackSolver, getInstantiations)
+{
+  Sort iSort = d_solver.getIntegerSort();
+  Sort boolSort = d_solver.getBooleanSort();
+  Term p = d_solver.declareFun("p", {iSort}, boolSort);
+  Term x = d_solver.mkVar(iSort, "x");
+  Term bvl = d_solver.mkTerm(VARIABLE_LIST, {x});
+  Term app = d_solver.mkTerm(APPLY_UF, {p, x});
+  Term q = d_solver.mkTerm(FORALL, {bvl, app});
+  d_solver.assertFormula(q);
+  Term five = d_solver.mkInteger(5);
+  Term app2 = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {p, five})});
+  d_solver.assertFormula(app2);
+  ASSERT_THROW(d_solver.getInstantiations(), CVC5ApiException);
+  d_solver.checkSat();
+  ASSERT_NO_THROW(d_solver.getInstantiations());
 }
 
 TEST_F(TestApiBlackSolver, setInfo)
@@ -3357,6 +3437,106 @@ TEST_F(TestApiBlackSolver, projIssue337)
       d_solver.mkTerm(SEQ_UNIT, {d_solver.mkReal("3416574625719121610379268")});
   Term tt = d_solver.simplify(t);
   ASSERT_EQ(t.getSort(), tt.getSort());
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunError)
+{
+  Sort iSort = d_solver.getIntegerSort();
+  // cannot declare without option
+  ASSERT_THROW(d_solver.declareOracleFun(
+      "f",
+      {iSort},
+      iSort,
+      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); });
+               , CVC5ApiException);
+  d_solver.setOption("oracles", "true");
+  Sort nullSort;
+  // bad sort
+  ASSERT_THROW(d_solver.declareOracleFun(
+      "f",
+      {nullSort},
+      iSort,
+      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); });
+               , CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunUnsat)
+{
+  d_solver.setOption("oracles", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_solver.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term three = d_solver.mkInteger(3);
+  Term five = d_solver.mkInteger(5);
+  Term eq =
+      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  d_solver.assertFormula(eq);
+  // (f 3) = 5
+  ASSERT_TRUE(d_solver.checkSat().isUnsat());
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunSat)
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  // f is the function implementing (lambda ((x Int)) (% x 10))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_solver.mkInteger(input[0].getUInt32Value() % 10);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term seven = d_solver.mkInteger(7);
+  Term x = d_solver.mkConst(iSort, "x");
+  Term lb = d_solver.mkTerm(GEQ, {x, d_solver.mkInteger(0)});
+  d_solver.assertFormula(lb);
+  Term ub = d_solver.mkTerm(LEQ, {x, d_solver.mkInteger(100)});
+  d_solver.assertFormula(ub);
+  Term eq = d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, x}), seven});
+  d_solver.assertFormula(eq);
+  // x >= 0 ^ x <= 100 ^ (f x) = 7
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  ASSERT_TRUE(xval.isUInt32Value());
+  ASSERT_TRUE(xval.getUInt32Value() % 10 == 7);
+}
+
+TEST_F(TestApiBlackSolver, declareOracleFunSat2)
+{
+  d_solver.setOption("oracles", "true");
+  d_solver.setOption("produce-models", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  Sort bSort = d_solver.getBooleanSort();
+  // f is the function implementing (lambda ((x Int) (y Int)) (= x y))
+  Term eq = d_solver.declareOracleFun(
+      "eq", {iSort, iSort}, bSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkBoolean(input[0] == input[1]);
+      });
+  Term x = d_solver.mkConst(iSort, "x");
+  Term y = d_solver.mkConst(iSort, "y");
+  Term neq = d_solver.mkTerm(NOT, {d_solver.mkTerm(APPLY_UF, {eq, x, y})});
+  d_solver.assertFormula(neq);
+  // (not (eq x y))
+  ASSERT_TRUE(d_solver.checkSat().isSat());
+  Term xval = d_solver.getValue(x);
+  Term yval = d_solver.getValue(y);
+  ASSERT_TRUE(xval != yval);
+}
+
+TEST_F(TestApiBlackSolver, verticalBars)
+{
+  Term a = d_solver.declareFun("|a |", {}, d_solver.getRealSort());
+  ASSERT_EQ("|a |", a.toString());
 }
 
 }  // namespace test

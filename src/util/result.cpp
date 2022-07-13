@@ -142,7 +142,7 @@ ostream& operator<<(ostream& out, enum Result::Status s)
 }
 
 ostream& operator<<(ostream& out, const Result& r) {
-  Language language = options::ioutils::getOutputLang(out);
+  Language language = options::ioutils::getOutputLanguage(out);
   switch (language) {
     case Language::LANG_SYGUS_V2: r.toStreamSmt2(out); break;
     case Language::LANG_TPTP: r.toStreamTptp(out); break;

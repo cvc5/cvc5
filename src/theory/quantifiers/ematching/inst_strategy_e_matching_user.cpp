@@ -38,29 +38,6 @@ InstStrategyUserPatterns::InstStrategyUserPatterns(
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
 
-size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
-{
-  std::map<Node, std::vector<Trigger*> >::const_iterator it =
-      d_user_gen.find(q);
-  if (it == d_user_gen.end())
-  {
-    return 0;
-  }
-  return it->second.size();
-}
-
-Trigger* InstStrategyUserPatterns::getUserGenerator(Node q, size_t i) const
-{
-  std::map<Node, std::vector<Trigger*> >::const_iterator it =
-      d_user_gen.find(q);
-  if (it == d_user_gen.end())
-  {
-    return nullptr;
-  }
-  Assert(i < it->second.size());
-  return it->second[i];
-}
-
 std::string InstStrategyUserPatterns::identify() const
 {
   return std::string("UserPatterns");
@@ -145,6 +122,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   Assert(pat.getKind() == INST_PATTERN);
   // add to generators
   std::vector<Node> nodes;
+  const Options& opts = d_env.getOptions();
   for (const Node& p : pat)
   {
     if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
@@ -152,7 +130,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
       // skip duplicate pattern term
       continue;
     }
-    Node pat_use = PatternTermSelector::getIsUsableTrigger(p, q);
+    Node pat_use = PatternTermSelector::getIsUsableTrigger(opts, p, q);
     if (pat_use.isNull())
     {
       Trace("trigger-warn") << "User-provided trigger is not usable : " << pat

@@ -24,6 +24,7 @@
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -62,7 +63,6 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
   d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
-  d_equalityEngine->addFunctionKind(kind::SEQ_NTH_TOTAL);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -139,7 +139,12 @@ Node TheoryModel::getValue(TNode n) const
   {
     return nn;
   }
-  else if (nn.getKind() == kind::LAMBDA)
+  if (nn.getKind() == kind::FUNCTION_ARRAY_CONST)
+  {
+    // return the lambda instead
+    nn = uf::FunctionConst::toLambda(nn);
+  }
+  if (nn.getKind() == kind::LAMBDA)
   {
     if (options().theory.condenseFunctionValues)
     {
@@ -156,7 +161,7 @@ Node TheoryModel::getValue(TNode n) const
   }
   Trace("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
-  Assert(nn.getType().isSubtypeOf(n.getType()));
+  Assert(nn.getType() == n.getType());
   return nn;
 }
 
@@ -261,7 +266,7 @@ Node TheoryModel::getModelValue(TNode n) const
                         <= cc.getUpperBound());
     }
     // if the value was constant, we return it. If it was non-constant,
-    // we only return it if we an evaluated kind. This can occur if the
+    // we only return it if we are an evaluated kind. This can occur if the
     // children of n failed to evaluate.
     if (ret.isConst() || (
      d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
@@ -270,12 +275,15 @@ Node TheoryModel::getModelValue(TNode n) const
       d_modelCache[n] = ret;
       return ret;
     }
+    // Note that we discard the evaluation of the arguments here
+    Trace("model-getvalue-debug") << "Failed to evaluate " << ret << std::endl;
   }
   // must rewrite the term at this point
   ret = rewrite(n);
+  Trace("model-getvalue-debug")
+      << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
-  bool eeHasTerm;
   if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
   {
     // functions are in the equality engine, but *not* as first-class members
@@ -284,13 +292,8 @@ Node TheoryModel::getModelValue(TNode n) const
     // to the equality engine despite hasTerm returning true. However, they are
     // first class members when higher-order is enabled. Hence, the special
     // case here.
-    eeHasTerm = false;
   }
-  else
-  {
-    eeHasTerm = d_equalityEngine->hasTerm(ret);
-  }
-  if (eeHasTerm)
+  else if (d_equalityEngine->hasTerm(ret))
   {
     Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;

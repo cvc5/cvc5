@@ -68,9 +68,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.base.outputLanguage = Language::LANG_AST;
-    opts.base.outputLanguageWasSetByUser = true;
     d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
+    d_slvEngine->setOption("output-language", "ast");
   }
 
   std::unique_ptr<SolverEngine> d_slvEngine;
@@ -568,7 +567,7 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  o.toStream(sstr, -1, 0);
+  o.toStream(sstr);
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
@@ -648,7 +647,8 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  options::ioutils::apply(sstr, 0, -1, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyDagThresh(sstr, 0);
+  options::ioutils::applyOutputLanguage(sstr, Language::LANG_SMTLIB_V2_6);
   sstr << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
@@ -737,15 +737,15 @@ TEST_F(TestNodeBlackNode, isConst)
   Node cons_1_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
+                            d_nodeManager->mkConstInt(Rational(1)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
   Node cons_1_cons_2_nil = d_nodeManager->mkNode(
       APPLY_CONSTRUCTOR,
       cons,
-      d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
+      d_nodeManager->mkConstInt(Rational(1)),
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(CONST_RATIONAL, Rational(2)),
+                            d_nodeManager->mkConstInt(Rational(2)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
   ASSERT_TRUE(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
   ASSERT_FALSE(cons_x_nil.isConst());
@@ -754,8 +754,8 @@ TEST_F(TestNodeBlackNode, isConst)
 
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 

@@ -364,9 +364,10 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out) const
-  {
-    d_nv->toStream(out, -1, 0);
+  inline void toStream(std::ostream& out) const {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    d_nv->toStream(out);
   }
 
   /**
@@ -431,17 +432,6 @@ private:
    * @return true iff the type is well-founded
    */
   bool isWellFounded() const;
-
-  /**
-   * Is this type a subtype of the given type?
-   */
-  bool isSubtypeOf(TypeNode t) const;
-
-  /**
-   * Is this type comparable to the given type (i.e., do they share
-   * a common ancestor in the subtype tree)?
-   */
-  bool isComparableTo(TypeNode t) const;
 
   /** Is this the Boolean type? */
   bool isBoolean() const;
@@ -688,19 +678,7 @@ private:
    */
   TypeNode getUninterpretedSortConstructor() const;
 
-  /** Get the most general base type of the type */
-  TypeNode getBaseType() const;
-
-  /**
-   * Returns the leastUpperBound in the extended type lattice of the two types.
-   * If this is \top, i.e. there is no inhabited type that contains both,
-   * a TypeNode such that isNull() is true is returned.
-   */
-  static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
-  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
-
 private:
-  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Indents the given stream a given amount of spaces.
@@ -877,17 +855,6 @@ inline void TypeNode::printAst(std::ostream& out, int indent) const {
 inline bool TypeNode::isBoolean() const {
   return
     ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE );
-}
-
-inline bool TypeNode::isInteger() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE );
-}
-
-inline bool TypeNode::isReal() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE ) ||
-    isInteger();
 }
 
 inline bool TypeNode::isString() const {

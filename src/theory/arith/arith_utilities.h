@@ -25,7 +25,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "expr/subs.h"
-#include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
 #include "util/rational.h"
@@ -38,14 +37,6 @@ namespace arith {
 typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
-
-//Maps from Nodes -> ArithVars, and vice versa
-typedef std::unordered_map<Node, ArithVar> NodeToArithVarMap;
-typedef DenseMap<Node> ArithVarToNodeMap;
-
-inline Node mkRationalNode(const Rational& q){
-  return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
-}
 
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
@@ -222,12 +213,21 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+/** Make zero of the given type */
+Node mkZero(const TypeNode& tn);
+
+/** Is n (integer or real) zero? */
+bool isZero(const Node& n);
+
+/** Make one of the given type, maybe negated */
+Node mkOne(const TypeNode& tn, bool isNeg = false);
+
 // Returns an node that is the identity of a select few kinds.
 inline Node getIdentityType(const TypeNode& tn, Kind k)
 {
   switch (k)
   {
-    case kind::ADD: return NodeManager::currentNM()->mkConstRealOrInt(tn, 0);
+    case kind::ADD: return mkZero(tn);
     case kind::MULT:
     case kind::NONLINEAR_MULT:
       return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
@@ -277,14 +277,14 @@ inline Node mkInRange(Node term, Node start, Node end) {
 // when n is 0 or not. Useful for division by 0 logic.
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
 inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
-  Node zero = NodeManager::currentNM()->mkConstRealOrInt(n.getType(), 0);
+  Node zero = mkZero(n.getType());
   return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
 }
 
 inline Node mkPi()
 {
-  return NodeManager::currentNM()->mkNullaryOperator(
-      NodeManager::currentNM()->realType(), kind::PI);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNullaryOperator(nm->realType(), kind::PI);
 }
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
  * arithmetic relation ret such that
@@ -312,16 +312,6 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec);
 /** print rational approximation of cr with precision prec on trace c */
 void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
 
-/** Arithmetic substitute
- *
- * This computes the substitution n { subs }, but with the caveat
- * that subterms of n that belong to a theory other than arithmetic are
- * not traversed. In other words, terms that belong to other theories are
- * treated as atomic variables. For example:
- *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
- */
-Node arithSubstitute(Node n, const Subs& sub);
-
 /** Make the node u >= a ^ a >= l */
 Node mkBounded(Node l, Node a, Node u);
 
@@ -337,6 +327,38 @@ Node negateProofLiteral(TNode n);
  * The returned type is real if either have type real.
  */
 Node multConstants(const Node& c1, const Node& c2);
+
+/**
+ * Make the equality (= a b) or (= (- a b) zero) if a and b have different
+ * types, where zero has the same type as (- a b).
+ * Use this utility to ensure an equality is properly typed.
+ */
+Node mkEquality(const Node& a, const Node& b);
+
+/**
+ * Ensures that the returned pair has equal type, where a and b have
+ * real or integer type. We add TO_REAL if not.
+ */
+std::pair<Node,Node> mkSameType(const Node& a, const Node& b);
+
+/**
+ * Returns the rewritten form of node, which is a term of the form bv2nat(x).
+ * The return value of this method is the integer sum:
+ *   (+ ite( (= ((_ extract (n-1) (n-1)) x) 1) (^ 2 (n-1)) 0)
+ *      ...
+ *      ite( (= ((_ extract 0 0) x) 1) (^ 2 0) 0))
+ * where n is the bitwidth of x.
+ */
+Node eliminateBv2Nat(TNode node);
+/**
+ * Returns the rewritten form of node, which is a term of the form int2bv(x).
+ * The return value of this method is the concatenation term:
+ *   (bvconcat ite( (>= (mod x (^ 2 n)) (^ 2 (n-1))) (_ bv1 1) (_ bv1 0))
+ *             ...
+ *             ite( (>= (mod x (^ 2 1)) (^ 2 0)) (_ bv1 1) (_ bv1 0)))
+ * where n is the bit-width of x.
+ */
+Node eliminateInt2Bv(TNode node);
 
 }  // namespace arith
 }  // namespace theory

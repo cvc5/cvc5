@@ -258,6 +258,9 @@ void Smt2::addSepOperators() {
 void Smt2::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
+  Sort tupleSort = d_solver->mkTupleSort({});
+  defineType("Relation", d_solver->mkSetSort(tupleSort), true);
+  defineType("Table", d_solver->mkBagSort(tupleSort), true);
   defineVar("true", d_solver->mkTrue(), true);
   defineVar("false", d_solver->mkFalse(), true);
   addOperator(cvc5::AND, "and");
@@ -328,7 +331,7 @@ bool Smt2::logicIsSet() {
 
 bool Smt2::getTesterName(cvc5::Term cons, std::string& name)
 {
-  if ((v2_6() || sygus()) && strictModeEnabled())
+  if (strictModeEnabled())
   {
     // 2.6 or above uses indexed tester symbols, if we are in strict mode,
     // we do not automatically define is-cons for constructor cons.
@@ -604,6 +607,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::SET_CHOOSE, "set.choose");
     addOperator(cvc5::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(cvc5::SET_MAP, "set.map");
+    addOperator(cvc5::SET_FILTER, "set.filter");
+    addOperator(cvc5::SET_FOLD, "set.fold");
     addOperator(cvc5::RELATION_JOIN, "rel.join");
     addOperator(cvc5::RELATION_PRODUCT, "rel.product");
     addOperator(cvc5::RELATION_TRANSPOSE, "rel.transpose");
@@ -633,7 +638,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_MAP, "bag.map");
     addOperator(cvc5::BAG_FILTER, "bag.filter");
     addOperator(cvc5::BAG_FOLD, "bag.fold");
+    addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
+    addOperator(cvc5::BAG_PARTITION, "table.group");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
@@ -837,6 +844,17 @@ bool Smt2::isAbstractValue(const std::string& name)
 {
   return name.length() >= 2 && name[0] == '@' && name[1] != '0'
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
+}
+
+cvc5::Term Smt2::mkRealOrIntFromNumeral(const std::string& str)
+{
+  // if arithmetic is enabled, and integers are disabled
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
+      && !d_logic.areIntegersUsed())
+  {
+    return d_solver->mkReal(str);
+  }
+  return d_solver->mkInteger(str);
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
@@ -1112,7 +1130,11 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT)
+  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
+           || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
+           || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
+           || p.d_kind == cvc5::RELATION_AGGREGATE
+           || p.d_kind == cvc5::RELATION_PROJECT)
   {
     cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
@@ -1132,17 +1154,39 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!isHoEnabled() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
+    if (kind == cvc5::EQUAL || kind == cvc5::DISTINCT)
     {
+      bool isReal = false;
       // need hol if these operators are applied over function args
-      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
-           ++i)
+      for (const Term& i : args)
       {
-        if ((*i).getSort().isFunction())
+        Sort s = i.getSort();
+        if (!isHoEnabled())
         {
-          parseError(
-              "Cannot apply equality to functions unless logic is prefixed by "
-              "HO_.");
+          if (s.isFunction())
+          {
+            parseError(
+                "Cannot apply equality to functions unless logic is prefixed "
+                "by HO_.");
+          }
+        }
+        if (s.isReal())
+        {
+          isReal = true;
+        }
+      }
+      // If strict mode is not enabled, we are permissive for Int and Real
+      // subtyping. Note that other arithmetic operators and relations are
+      // already permissive, e.g. <=, +.
+      if (isReal && !strictModeEnabled())
+      {
+        for (Term& i : args)
+        {
+          Sort s = i.getSort();
+          if (s.isInteger())
+          {
+            i = d_solver->mkTerm(cvc5::TO_REAL, {i});
+          }
         }
       }
     }
@@ -1180,14 +1224,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                       << std::endl;
       return ret;
     }
-    if (kind == cvc5::SET_SINGLETON && args.size() == 1)
-    {
-      cvc5::Term ret = d_solver->mkTerm(cvc5::SET_SINGLETON, {args[0]});
-      Trace("parser") << "applyParseOp: return set.singleton " << ret
-                      << std::endl;
-      return ret;
-    }
-    else if (kind == cvc5::CARDINALITY_CONSTRAINT)
+    if (kind == cvc5::CARDINALITY_CONSTRAINT)
     {
       if (args.size() != 2)
       {
@@ -1252,6 +1289,50 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return ret;
 }
 
+std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(push).  Maybe you want (push 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    pushScope(true);
+  }
+  return std::make_unique<PushCommand>(*nscopes);
+}
+
+std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(pop).  Maybe you want (pop 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    popScope();
+  }
+  return std::make_unique<PopCommand>(*nscopes);
+}
+
 void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
@@ -1284,10 +1365,7 @@ cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
 
 bool Smt2::isConstInt(const cvc5::Term& t)
 {
-  cvc5::Kind k = t.getKind();
-  // !!! Note when arithmetic subtyping is eliminated, this will update to
-  // CONST_INTEGER.
-  return k == cvc5::CONST_RATIONAL && t.getSort().isInteger();
+  return t.getKind() == cvc5::CONST_INTEGER;
 }
 
 }  // namespace parser

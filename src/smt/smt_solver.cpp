@@ -15,6 +15,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
 #include "prop/prop_engine.h"
@@ -35,11 +36,9 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     SolverEngineState& state,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
-    : d_env(env),
-      d_state(state),
+    : EnvObj(env),
       d_pp(env, abs, stats),
       d_stats(stats),
       d_theoryEngine(nullptr),
@@ -65,6 +64,9 @@ void SmtSolver::finishInit()
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm)
   {
+    // reset the rule checkers
+    pnm->getChecker()->reset();
+    // add rule checkers from the theory engine
     d_theoryEngine->initializeProofChecker(pnm->getChecker());
   }
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -116,13 +118,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                                       const std::vector<Node>& assumptions)
 {
   Result result;
-
-  bool hasAssumptions = !assumptions.empty();
-
   try
   {
-    // update the state to indicate we are about to run a check-sat
-    d_state.notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
     as.initializeCheckSat(assumptions);
@@ -208,19 +205,13 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   // set the filename on the result
   const std::string& filename = d_env.getOptions().driver.filename;
-  result = Result(result, filename);
-
-  // notify our state of the check-sat result
-  d_state.notifyCheckSatResult(hasAssumptions, result);
-
-  return result;
+  return Result(result, filename);
 }
 
 void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
-  Assert(d_state.isFullyReady());
 
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
@@ -247,11 +238,96 @@ void SmtSolver::processAssertions(Assertions& as)
     // to the actual preprocessed learned literals, as the input may have
     // undergone further preprocessing.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+    // if we can deep restart, we always remember the preprocessed formulas,
+    // which are the basis for the next check-sat.
+    if (canDeepRestart())
+    {
+      // incompatible with global negation
+      Assert(!as.isGlobalNegated());
+      theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
+      // note that if a skolem is eliminated in preprocessing, we remove it
+      // from the preprocessed skolem map
+      std::vector<size_t> elimSkolems;
+      for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
+      {
+        if (sm.hasSubstitution(k.second))
+        {
+          Trace("deep-restart-ism")
+              << "SKOLEM:" << k.second << " was eliminated during preprocessing"
+              << std::endl;
+          elimSkolems.push_back(k.first);
+          continue;
+        }
+        Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
+                                  << assertions[k.first] << std::endl;
+      }
+      for (size_t i : elimSkolems)
+      {
+        ism.erase(i);
+      }
+      // remember the assertions and Skolem mapping
+      d_ppAssertions = assertions;
+      d_ppSkolemMap = ism;
+    }
     d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions
   as.clearCurrent();
+}
+
+void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
+{
+  Assert(canDeepRestart());
+  Assert(!zll.empty());
+  Trace("deep-restart") << "Have " << zll.size()
+                        << " zero level learned literals" << std::endl;
+
+  preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
+  // Copy the preprocessed assertions and skolem map information directly
+  for (const Node& a : d_ppAssertions)
+  {
+    apr.push_back(a);
+  }
+  preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
+  for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
+  {
+    // carry the entire skolem map, which should align with the order of
+    // assertions passed into the new assertions pipeline
+    ismr[k.first] = k.second;
+  }
+
+  if (isOutputOn(OutputTag::DEEP_RESTART))
+  {
+    output(OutputTag::DEEP_RESTART) << "(deep-restart (";
+    bool firstTime = true;
+    for (TNode lit : zll)
+    {
+      output(OutputTag::DEEP_RESTART) << (firstTime ? "" : " ") << lit;
+      firstTime = false;
+    }
+    output(OutputTag::DEEP_RESTART) << "))" << std::endl;
+  }
+  for (TNode lit : zll)
+  {
+    Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
+    apr.push_back(lit);
+    if (Configuration::isAssertionBuild())
+    {
+      Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
+          << "Relearned: " << lit << std::endl;
+      d_allLearnedLits.insert(lit);
+    }
+  }
+  Trace("deep-restart") << "Finished compute deep restart" << std::endl;
+
+  // we now finish init to reconstruct prop engine and theory engine
+  finishInit();
+}
+
+bool SmtSolver::canDeepRestart() const
+{
+  return options().smt.deepRestartMode != options::DeepRestartMode::NONE;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }

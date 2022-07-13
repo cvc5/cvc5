@@ -132,6 +132,63 @@ enum BlockModelsMode
   VALUES
 };
 
+/**
+ * Types of learned literals.
+ *
+ * Specifies categories of literals learned for the method
+ * Solver::getLearnedLiterals.
+ *
+ * Note that a literal may conceptually belong to multiple categories. We
+ * classify literals based on the first criteria in this list that they meet.
+ */
+enum LearnedLitType
+{
+  /**
+   * An equality that was turned into a substitution during preprocessing.
+   *
+   * In particular, literals in this category are of the form (= x t) where
+   * x does not occur in t.
+   */
+  PREPROCESS_SOLVED,
+  /**
+   * A top-level literal (unit clause) from the preprocessed set of input
+   * formulas.
+   */
+  PREPROCESS,
+  /**
+   * A literal from the preprocessed set of input formulas that does not
+   * occur at top-level after preprocessing.
+   *
+   * Typically, this is the most interesting category of literals to learn.
+   */
+  INPUT,
+  /**
+   * An internal literal that is solvable for an input variable.
+   *
+   * In particular, literals in this category are of the form (= x t) where
+   * x does not occur in t, the preprocessed set of input formulas contains the
+   * term x, but not the literal (= x t).
+   *
+   * Note that solvable literals can be turned into substitutions during
+   * preprocessing.
+   */
+  SOLVABLE,
+  /**
+   * An internal literal that can be made into a constant propagation for an
+   * input term.
+   *
+   * In particular, literals in this category are of the form (= t c) where
+   * c is a constant, the preprocessed set of input formulas contains the
+   * term t, but not the literal (= t c).
+   */
+  CONSTANT_PROP,
+  /** Any internal literal that does not fall into the above categories. */
+  INTERNAL,
+  /** Special case for when produce-learned-literals is not set.  */
+  UNKNOWN
+};
+/** Writes a learned literal type to a stream. */
+std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
 }
 
 #endif

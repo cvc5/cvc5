@@ -2,26 +2,6 @@ id     = "EXPR"
 name   = "Expression"
 
 [[option]]
-  name       = "defaultExprDepth"
-  category   = "expert"
-  long       = "expr-depth=N"
-  type       = "int64_t"
-  default    = "-1"
-  minimum    = "-1"
-  predicates = ["setDefaultExprDepth"]
-  help       = "print exprs to depth N (0 == default, -1 == no limit)"
-
-[[option]]
-  name       = "defaultDagThresh"
-  category   = "common"
-  long       = "dag-thresh=N"
-  type       = "int64_t"
-  default    = "1"
-  minimum    = "0"
-  predicates = ["setDefaultDagThresh"]
-  help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
-
-[[option]]
   name       = "typeChecking"
   category   = "expert"
   long       = "type-checking"

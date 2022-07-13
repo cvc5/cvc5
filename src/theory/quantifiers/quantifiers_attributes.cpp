@@ -35,7 +35,8 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && !d_isQuantBounded;
+  return !d_sygus && !d_quant_elim && !isFunDef() && !isOracleInterface()
+         && !d_isQuantBounded;
 }
 
 QuantAttributes::QuantAttributes() {}
@@ -258,6 +259,13 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
         }
+        // oracles are specified by a distinguished variable kind
+        if (avar.getKind() == kind::ORACLE)
+        {
+          qa.d_oracle = avar;
+          Trace("quant-attr")
+              << "Attribute : oracle interface : " << q << std::endl;
+        }
         if (avar.hasAttribute(SygusSideConditionAttribute()))
         {
           qa.d_sygusSideCondition =
@@ -318,18 +326,26 @@ bool QuantAttributes::isFunDef( Node q ) {
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.isFunDef();
   }
+  return it->second.isFunDef();
 }
 
 bool QuantAttributes::isSygus( Node q ) {
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.d_sygus;
   }
+  return it->second.d_sygus;
+}
+
+bool QuantAttributes::isOracleInterface(Node q)
+{
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
+    return false;
+  }
+  return it->second.isOracleInterface();
 }
 
 int64_t QuantAttributes::getQuantInstLevel(Node q)

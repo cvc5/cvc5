@@ -44,15 +44,26 @@ class Tester:
     def applies(self, benchmark_info):
         return True
 
-    def run(self, benchmark_info):
-        exit_code = EXIT_OK
-        output, error, exit_status = run_benchmark(benchmark_info)
+    def check_exit_status(self, name, expected_exit_status, exit_status, output, error, flags):
         if exit_status == STATUS_TIMEOUT:
-            exit_code = EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
-            print("Timeout - Flags: {}".format(benchmark_info.command_line_args))
-        elif benchmark_info.compare_outputs and output != benchmark_info.expected_output:
-            exit_code = EXIT_FAILURE
-            print("not ok - Flags: {}".format(benchmark_info.command_line_args))
+            print("Timeout ({}) - Flags: {}".format(name, flags))
+            return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+        elif exit_status != expected_exit_status:
+            print('not ok ({}) - Expected exit status "{}" but got "{}" - Flags: {}'.format(
+                name, expected_exit_status, exit_status, flags))
+            print()
+            print_outputs(output, error)
+            return EXIT_FAILURE
+        return None
+
+    def run(self, benchmark_info):
+        output, error, exit_status = run_benchmark(benchmark_info)
+        exit_code = self.check_exit_status(
+            "cvc5", benchmark_info.expected_exit_status, exit_status, output, error, benchmark_info.command_line_args)
+        if exit_code:
+            return exit_code
+        if benchmark_info.compare_outputs and output != benchmark_info.expected_output:
+            print("not ok (cvc5) - Flags: {}".format(benchmark_info.command_line_args))
             print()
             print("Standard output difference")
             print("=" * 80)
@@ -62,14 +73,11 @@ class Tester:
             print()
             if error:
                 print("Error output")
-                print("=" * 80)
-                print_colored(Color.YELLOW, error)
-                print("=" * 80)
-                print()
-        elif benchmark_info.compare_outputs and error != benchmark_info.expected_error:
-            exit_code = EXIT_FAILURE
+                print_segment(Color.YELLOW, error)
+            return EXIT_FAILURE
+        if benchmark_info.compare_outputs and error != benchmark_info.expected_error:
             print(
-                "not ok - Differences between expected and actual output on stderr - Flags: {}".format(
+                "not ok (cvc5) - Differences between expected and actual output on stderr - Flags: {}".format(
                     benchmark_info.command_line_args
                 )
             )
@@ -79,30 +87,9 @@ class Tester:
             print_diff(error, benchmark_info.expected_error)
             print("=" * 80)
             print()
-        elif exit_status != benchmark_info.expected_exit_status:
-            exit_code = EXIT_FAILURE
-            print(
-                'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.format(
-                    benchmark_info.expected_exit_status,
-                    exit_status,
-                    benchmark_info.command_line_args,
-                )
-            )
-            print()
-            print("Output:")
-            print("=" * 80)
-            print_colored(Color.BLUE, output)
-            print("=" * 80)
-            print()
-            print()
-            print("Error output:")
-            print("=" * 80)
-            print_colored(Color.YELLOW, error)
-            print("=" * 80)
-            print()
-        else:
-            print("ok - Flags: {}".format(benchmark_info.command_line_args))
-        return exit_code
+            return EXIT_FAILURE
+        print("ok - Flags: {}".format(benchmark_info.command_line_args))
+        return EXIT_OK
 
 
 ################################################################################
@@ -134,10 +121,7 @@ class UnsatCoreTester(Tester):
     def applies(self, benchmark_info):
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
+            and "unsat" in benchmark_info.expected_output.split()
             and "--no-produce-unsat-cores" not in benchmark_info.command_line_args
             and "--no-check-unsat-cores" not in benchmark_info.command_line_args
             and "--check-unsat-cores" not in benchmark_info.command_line_args
@@ -162,21 +146,70 @@ class ProofTester(Tester):
         expected_output_lines = benchmark_info.expected_output.split()
         return (
             benchmark_info.benchmark_ext != ".sy"
-            and (
-                "unsat" in benchmark_info.expected_output.split()
-                or "entailed" in benchmark_info.expected_output.split()
-            )
-            and "--no-produce-proofs" not in benchmark_info.command_line_args
-            and "--no-check-proofs" not in benchmark_info.command_line_args
-            and "--check-proofs" not in benchmark_info.command_line_args
+            and "unsat" in benchmark_info.expected_output.split()
         )
 
     def run(self, benchmark_info):
         return super().run(
             benchmark_info._replace(
-                command_line_args=benchmark_info.command_line_args + ["--check-proofs", "--proof-granularity=theory-rewrite"]
+                command_line_args=benchmark_info.command_line_args +
+                ["--check-proofs", "--proof-granularity=theory-rewrite"]
             )
         )
+
+
+class LfscTester(Tester):
+    def applies(self, benchmark_info):
+        return (
+            benchmark_info.benchmark_ext != ".sy"
+            and benchmark_info.expected_output.strip() == "unsat"
+        )
+
+    def run(self, benchmark_info):
+        with tempfile.NamedTemporaryFile() as tmpf:
+            cvc5_args = benchmark_info.command_line_args + [
+                "--dump-proofs",
+                "--proof-format=lfsc",
+                "--proof-granularity=theory-rewrite",
+            ]
+            output, error, exit_status = run_process(
+                [benchmark_info.cvc5_binary]
+                + cvc5_args
+                + [benchmark_info.benchmark_basename],
+                benchmark_info.benchmark_dir,
+                benchmark_info.timeout,
+            )
+            tmpf.write(output.strip("unsat\n".encode()))
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(
+                "cvc5", EXIT_OK, exit_status, output, error, cvc5_args)
+            if exit_code:
+                return exit_code
+            if "check" not in output:
+                print(
+                    'not ok (cvc5) - Empty proof - Flags: {}'.format(exit_status, cvc5_args))
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+            output, error, exit_status = run_process(
+                [benchmark_info.lfsc_binary] +
+                benchmark_info.lfsc_sigs + [tmpf.name],
+                benchmark_info.benchmark_dir,
+                timeout=benchmark_info.timeout,
+            )
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(
+                "lfsc", EXIT_OK, exit_status, output, error, cvc5_args)
+            if exit_code:
+                return exit_code
+            if "success" not in output:
+                print("not ok (lfsc) - Unexpected output - Flags: {}".format(cvc5_args))
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+        print("ok - Flags: {}".format(cvc5_args))
+        return EXIT_OK
 
 
 class ModelTester(Tester):
@@ -297,6 +330,7 @@ g_testers = {
     "base": BaseTester(),
     "unsat-core": UnsatCoreTester(),
     "proof": ProofTester(),
+    "lfsc": LfscTester(),
     "model": ModelTester(),
     "synth": SynthTester(),
     "abduct": AbductTester(),
@@ -322,6 +356,8 @@ BenchmarkInfo = collections.namedtuple(
         "error_scrubber",
         "timeout",
         "cvc5_binary",
+        "lfsc_binary",
+        "lfsc_sigs",
         "benchmark_dir",
         "benchmark_basename",
         "benchmark_ext",
@@ -356,6 +392,24 @@ def print_colored(color, text):
         print(color + line + Color.ENDC)
 
 
+def print_segment(color, text):
+    """Prints colored `text` inside a border."""
+    print("=" * 80)
+    for line in text.splitlines():
+        print(color + line + Color.ENDC)
+    print("=" * 80)
+    print()
+
+
+def print_outputs(stdout, stderr):
+    """Prints standard output and error."""
+    print("Output:")
+    print_segment(Color.BLUE, stdout)
+    print()
+    print("Error output:")
+    print_segment(Color.YELLOW, stderr)
+
+
 def print_diff(actual, expected):
     """Prints the difference between `actual` and `expected`."""
 
@@ -380,9 +434,9 @@ def run_process(args, cwd, timeout, s_input=None):
     output and the error output are empty and the exit code is 124."""
 
     cmd = " ".join([shlex.quote(a) for a in args]) if isinstance(args, list) else args
-
-    out = ""
-    err = ""
+    print("Running command: {}".format(str(cmd)))
+    out = bytes()
+    err = bytes()
     exit_status = STATUS_TIMEOUT
     try:
         # Instead of setting shell=True, we explicitly call bash. Using
@@ -469,8 +523,8 @@ def run_benchmark(benchmark_info):
         output = output.decode()
     if isinstance(error, bytes):
         error = error.decode()
-    output = re.sub(r"^[ \t]*", "", output.strip(), flags=re.MULTILINE)
-    error = re.sub(r"^[ \t]*", "", error.strip(), flags=re.MULTILINE)
+    output = re.sub(r"^[ \t]*|\r", "", output.strip(), flags=re.MULTILINE)
+    error = re.sub(r"^[ \t]*|\r", "", error.strip(), flags=re.MULTILINE)
     # qemu (used for arm nightlies) emits additional error output for non-zero exit codes
     error = re.sub(r"qemu: uncaught target signal.*", "", error).strip()
     return (output, error, exit_status)
@@ -480,6 +534,8 @@ def run_regression(
     testers,
     wrapper,
     cvc5_binary,
+    lfsc_binary,
+    lfsc_sigs,
     benchmark_path,
     timeout,
 ):
@@ -557,6 +613,8 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
+                if disable_tester == "proof" and "lfsc" in testers:
+                    testers.remove("lfsc")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
@@ -620,6 +678,8 @@ def run_regression(
             error_scrubber=error_scrubber,
             timeout=timeout,
             cvc5_binary=cvc5_binary,
+            lfsc_binary=lfsc_binary,
+            lfsc_sigs=lfsc_sigs,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
             benchmark_ext=benchmark_ext,
@@ -662,9 +722,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
+    tester_choices = ["all"] + list(g_testers.keys())
     parser.add_argument("--use-skip-return-code", action="store_true")
     parser.add_argument("--skip-timeout", action="store_true")
-    parser.add_argument("--tester", choices=g_testers.keys(), action="append")
+    parser.add_argument("--tester", choices=tester_choices, action="append")
+    parser.add_argument("--lfsc-binary", default="")
+    parser.add_argument("--lfsc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
     parser.add_argument("cvc5_binary")
     parser.add_argument("benchmark")
@@ -677,6 +740,7 @@ def main():
     g_args = parser.parse_args(argv)
 
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
+    lfsc_binary = os.path.abspath(g_args.lfsc_binary)
 
     wrapper = g_args.wrapper
     if os.environ.get("VALGRIND") == "1" and not wrapper:
@@ -687,11 +751,27 @@ def main():
     testers = g_args.tester
     if not testers:
         testers = g_default_testers
+    elif "all" in testers:
+        testers = list(g_testers.keys())
+
+    lfsc_sigs = []
+    if not g_args.lfsc_sig_dir == "":
+        lfsc_sig_dir = os.path.abspath(g_args.lfsc_sig_dir)
+        # `os.listdir` would be more appropriate if lfsc did not force us to
+        # list the signatures in order.
+        lfsc_sigs = ["core_defs", "util_defs", "theory_def", "nary_programs",
+                     "boolean_programs", "boolean_rules", "cnf_rules",
+                     "equality_rules", "arith_programs", "arith_rules",
+                     "strings_programs", "strings_rules", "quantifiers_rules"]
+        lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
+                     for sig in lfsc_sigs]
 
     return run_regression(
         testers,
         wrapper,
         cvc5_binary,
+        lfsc_binary,
+        lfsc_sigs,
         g_args.benchmark,
         timeout,
     )

@@ -51,6 +51,8 @@ ModelEngine::~ModelEngine() {
 
 }
 
+std::string ModelEngine::identify() const { return "ModelEngine"; }
+
 bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
 }
@@ -219,11 +221,10 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max =
-      options().quantifiers.mbqiMode == options::MbqiMode::FMC
-          ? 2
-          : (options().quantifiers.mbqiMode == options::MbqiMode::TRUST ? 0
-                                                                        : 1);
+  options::FmfMbqiMode mode = options().quantifiers.fmfMbqiMode;
+  int e_max = mode == options::FmfMbqiMode::FMC
+                  ? 2
+                  : (mode == options::FmfMbqiMode::TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incompleteQuants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -266,18 +267,17 @@ int ModelEngine::checkModel(){
   return d_addedLemmas;
 }
 
-
-
-void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
+void ModelEngine::exhaustiveInstantiate(Node q, int effort)
+{
   //first check if the builder can do the exhaustive instantiation
   unsigned prev_alem = d_builder->getNumAddedLemmas();
   unsigned prev_tlem = d_builder->getNumTriedLemmas();
   FirstOrderModel* fm = d_treg.getModel();
-  int retEi = d_builder->doExhaustiveInstantiation(fm, f, effort);
+  int retEi = d_builder->doExhaustiveInstantiation(fm, q, effort);
   if( retEi!=0 ){
     if( retEi<0 ){
       Trace("fmf-exh-inst") << "-> Builder determined complete instantiation was impossible." << std::endl;
-      d_incompleteQuants.insert(f);
+      d_incompleteQuants.insert(q);
     }else{
       Trace("fmf-exh-inst") << "-> Builder determined instantiation(s)." << std::endl;
     }
@@ -286,9 +286,10 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   }else{
     if( TraceIsOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
-      for( size_t i=0; i<f[0].getNumChildren(); i++ ){
+      for (size_t i = 0, nchild = q[0].getNumChildren(); i < nchild; i++)
+      {
         Trace("fmf-exh-inst-debug")
-            << d_qreg.getInstantiationConstant(f, i) << " ";
+            << d_qreg.getInstantiationConstant(q, i) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }
@@ -296,7 +297,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
     QRepBoundExt qrbe(qbi, fm);
     RepSetIterator riter(fm->getRepSet(), &qrbe);
-    if( riter.setQuantifier( f ) ){
+    if (riter.setQuantifier(q))
+    {
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
@@ -306,20 +308,18 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
             !riter.isFinished()
             && (addedLemmas == 0 || !options().quantifiers.fmfOneInstPerRound))
         {
-          //instantiation was not shown to be true, construct the match
-          InstMatch m( f );
-          for (unsigned i = 0; i < riter.getNumTerms(); i++)
-          {
-            m.set(d_qstate, i, riter.getCurrentTerm(i));
-          }
-          Trace("fmf-model-eval") << "* Add instantiation " << m << std::endl;
+          // instantiation was not shown to be true, construct the term vector
+          std::vector<Node> terms;
+          riter.getCurrentTerms(terms);
+          Trace("fmf-model-eval")
+              << "* Add instantiation " << terms << std::endl;
           triedLemmas++;
           //add as instantiation
-          if (inst->addInstantiation(f,
-                                     m.d_vals,
+          inst->processInstantiationRep(q, terms);
+          if (inst->addInstantiation(q,
+                                     terms,
                                      InferenceId::QUANTIFIERS_INST_FMF_EXH,
-                                     Node::null(),
-                                     true))
+                                     Node::null()))
           {
             addedLemmas++;
             if (d_qstate.isInConflict())
@@ -327,19 +327,23 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
               break;
             }
           }else{
-            Trace("fmf-model-eval") << "* Failed Add instantiation " << m << std::endl;
+            Trace("fmf-model-eval")
+                << "* Failed Add instantiation " << terms << std::endl;
           }
           riter.increment();
         }
         d_addedLemmas += addedLemmas;
         d_triedLemmas += triedLemmas;
       }
-    }else{
+    }
+    else
+    {
       Trace("fmf-exh-inst") << "...exhaustive instantiation did set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
     }
     //if the iterator is incomplete, we will return unknown instead of sat if no instantiations are added this round
-    if( riter.isIncomplete() ){
-      d_incompleteQuants.insert(f);
+    if (riter.isIncomplete())
+    {
+      d_incompleteQuants.insert(q);
     }
   }
 }

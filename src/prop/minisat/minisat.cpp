@@ -167,7 +167,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
   // FIXME: to be deleted when we kill old proof code for unsat cores
-  Assert(!options().smt.unsatCores || options().smt.produceProofs
+  Assert(!options().smt.produceUnsatCores || options().smt.produceProofs
          || clause_id != ClauseIdError);
   return clause_id;
 }
@@ -264,6 +264,23 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
+}
+
+std::vector<SatLiteral> MinisatSatSolver::getDecisions() const
+{
+  std::vector<SatLiteral> decisions;
+  const Minisat::vec<Minisat::Lit>& miniDecisions =
+      d_minisat->getMiniSatDecisions();
+  for (size_t i = 0, ndec = miniDecisions.size(); i < ndec; ++i)
+  {
+    decisions.push_back(toSatLiteral(miniDecisions[i]));
+  }
+  return decisions;
+}
+
+std::vector<Node> MinisatSatSolver::getOrderHeap() const
+{
+  return d_minisat->getMiniSatOrderHeap();
 }
 
 int32_t MinisatSatSolver::getDecisionLevel(SatVariable v) const

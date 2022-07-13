@@ -1,5 +1,31 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.0.1
+==========
+
+**New Features**
+
+- Support for cross-compiling an ARM binary of cvc5 on x86 macOS.
+
+**Changes**
+
+- Removed support for non-standard `declare-funs`, `declare-consts`, and
+  `declare-sorts` commands.
+- The kind for integer constants is now `CONST_INTEGER`, while real constants
+  continue to have kind `CONST_RATIONAL`.
+- Type rules for (dis)equality and if-then-else no longer allow mixing
+  integers and reals. Type rules for other operators like `APPLY_UF` now
+  require their arguments to match the type of the function being applied, and
+  do not assume integer/real subtyping.
+- The API method `mkTuple` no longer supports casting integers to reals when
+  constructing tuples.
+
+**New Features**
+
+- Support for declaring oracle functions in the API via the method
+  `declareOracleFun`. This allows users to declare functions whose semantics
+  are associated with a provided executable implementation.
+
 cvc5 1.0
 =========
 

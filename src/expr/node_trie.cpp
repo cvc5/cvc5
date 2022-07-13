@@ -91,4 +91,37 @@ template void NodeTemplateTrie<false>::debugPrint(const char* c,
 template void NodeTemplateTrie<true>::debugPrint(const char* c,
                                                  unsigned depth) const;
 
+
+template <bool ref_count>
+std::vector<Node> NodeTemplateTrie<ref_count>::getLeaves(size_t depth) const
+{
+  Assert(depth > 0);
+  std::vector<Node> vec;
+  std::vector<std::pair<const NodeTemplateTrie<ref_count>*, size_t>> visit;
+  visit.emplace_back(this, depth);
+  do
+  {
+    std::pair<const NodeTemplateTrie<ref_count>*, size_t> curr = visit.back();
+    visit.pop_back();
+    size_t currDepth = curr.second;
+    for (const std::pair<const NodeTemplate<ref_count>,
+                         NodeTemplateTrie<ref_count>>& p : curr.first->d_data)
+    {
+      if (currDepth == 0)
+      {
+        // we are at a leaf
+        vec.push_back(p.first);
+        break;
+      }
+      visit.emplace_back(&p.second, currDepth - 1);
+    }
+  } while (!visit.empty());
+  return vec;
+}
+
+template std::vector<Node> NodeTemplateTrie<false>::getLeaves(
+    size_t depth) const;
+template std::vector<Node> NodeTemplateTrie<true>::getLeaves(
+    size_t depth) const;
+
 }  // namespace cvc5::internal

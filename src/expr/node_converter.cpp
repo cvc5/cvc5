@@ -119,7 +119,7 @@ Node NodeConverter::convert(Node n)
         Node cret = postConvert(ret);
         if (!cret.isNull() && ret != cret)
         {
-          AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
+          AlwaysAssert(cret.getType() == ret.getType())
               << "Converting " << ret << " to " << cret << " changes type";
           Trace("nconv-debug2") << "..post-rewrite changed " << ret << " into "
                                 << cret << std::endl;
@@ -196,11 +196,8 @@ TypeNode NodeConverter::convertType(TypeNode tn)
         // reconstruct using a node builder, which seems to be required for
         // type nodes.
         NodeBuilder nb(ret.getKind());
-        if (ret.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          // push the operator
-          nb << NodeManager::operatorFromType(ret);
-        }
+        // there are no parameterized types
+        Assert (ret.getMetaKind() != kind::metakind::PARAMETERIZED);
         for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
              j != iend;
              ++j)

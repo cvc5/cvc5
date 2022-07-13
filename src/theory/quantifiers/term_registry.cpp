@@ -22,6 +22,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/ho_term_database.h"
+#include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
@@ -42,17 +43,20 @@ TermRegistry::TermRegistry(Env& env,
                                            : new TermDb(env, qs, qr)),
       d_echeck(new EntailmentCheck(env, qs, *d_termDb.get())),
       d_sygusTdb(nullptr),
+      d_ochecker(nullptr),
+      d_vtsCache(new VtsTermCache(env)),
       d_qmodel(nullptr)
 {
+  if (options().quantifiers.oracles)
+  {
+    d_ochecker.reset(new OracleChecker(env));
+  }
   if (options().quantifiers.sygus || options().quantifiers.sygusInst)
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(env, qs));
+    d_sygusTdb.reset(new TermDbSygus(env, qs, d_ochecker.get()));
   }
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
-  Trace("quant-engine-debug")
-      << "Initialize model, mbqi : " << options().quantifiers.mbqiMode
-      << std::endl;
 }
 
 void TermRegistry::finishInit(FirstOrderModel* fm,
@@ -138,6 +142,11 @@ TermDbSygus* TermRegistry::getTermDatabaseSygus() const
   return d_sygusTdb.get();
 }
 
+OracleChecker* TermRegistry::getOracleChecker() const
+{
+  return d_ochecker.get();
+}
+
 EntailmentCheck* TermRegistry::getEntailmentCheck() const
 {
   return d_echeck.get();
@@ -149,6 +158,8 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 }
 
 TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
+
+VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 

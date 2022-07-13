@@ -64,6 +64,12 @@ void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
 {
   initializeSubsolver(
       smte, env.getOptions(), env.getLogicInfo(), needsTimeout, timeout);
+  // set up separation logic heap if necessary
+  TypeNode sepLocType, sepDataType;
+  if (env.getSepHeapTypes(sepLocType, sepDataType))
+  {
+    smte->declareSepHeap(sepLocType, sepDataType);
+  }
 }
 
 Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
@@ -126,7 +132,7 @@ Result checkWithSubsolver(Node query,
   initializeSubsolver(smte, opts, logicInfo, needsTimeout, timeout);
   smte->assertFormula(query);
   r = smte->checkSat();
-  if (r.getStatus() == Result::SAT)
+  if (r.getStatus() == Result::SAT || r.getStatus() == Result::UNKNOWN)
   {
     for (const Node& v : vars)
     {

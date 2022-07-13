@@ -1,0 +1,91 @@
+id     = "PARALLEL"
+name   = "Parallel"
+
+[[option]]
+  name       = "computePartitions"
+  category   = "expert"
+  long       = "compute-partitions=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "make n partitions. n <2 disables computing partitions entirely"
+
+[[option]]
+  name       = "checksBeforePartitioning"
+  category   = "expert"
+  long       = "checks-before-partition=N"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "number of standard or full effort checks until partitioning"
+
+[[option]]
+  name       = "checksBetweenPartitions"
+  category   = "expert"
+  long       = "checks-between-partitions=N"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "number of checks between partitions"
+
+[[option]]
+  name       = "partitionConflictSize"
+  category   = "expert"
+  long       = "partition-conflict-size=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "number of literals in a cube; if no partition size is set, then the partition conflict size is chosen to be log2(number of requested partitions)"
+
+[[option]]
+  name       = "partitionStrategy"
+  alias      = ["partition"]
+  category   = "expert"
+  long       = "partition-strategy=MODE"
+  type       = "PartitionMode"
+  default    = "REVISED"
+  help       = "choose partition strategy mode"
+  help_mode  = "Partition strategy modes."
+[[option.mode.REVISED]]
+  name = "revised"
+  help = "For 4 partitions, creates cubes C1, C2, C3, !C1 & !C2 & !C3"
+[[option.mode.STRICT_CUBE]]
+  name = "strict-cube"
+  help = "For 4 partitions, creates cubes C1, !C1 & C2, !C1 & !C2 & C3, !C1 & !C2 & !C3"
+[[option.mode.DECISION_TRAIL]]
+  name = "decision-trail"
+  help = "Creates mutually exclusive cubes from the decisions in the SAT solver."
+[[option.mode.HEAP_TRAIL]]
+  name = "heap-trail"
+  help = "Creates mutually exclusive cubes from the order heap in the SAT solver."
+
+[[option]]
+  name       = "partitionCheck"
+  alias      = ["check"]
+  category   = "expert"
+  long       = "partition-check=MODE"
+  type       = "CheckMode"
+  default    = "STANDARD"
+  help       = "select whether partitioning happens at full or standard check"
+  help_mode  = "Partition check modes."
+[[option.mode.STANDARD]]
+  name = "standard"
+  help = "create partitions at standard checks"
+[[option.mode.FULL]]
+  name = "full"
+  help = "create partitions at full checks"
+
+[[option]]
+  name       = "partitionsOut"
+  alias      = ["partitions-out"]
+  category   = "expert"
+  long       = "write-partitions-to=output"
+  type       = "ManagedOut"
+  default    = "ManagedOut()"
+  includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "set the output channel for writing partitions"
+
+[[option]]
+  name       = "appendLearnedLiteralsToCubes"
+  category   = "expert"
+  long       = "append-learned-literals-to-cubes"
+  type       = "bool"
+  default    = "false"
+  help       = "emit learned literals with the cubes"
+

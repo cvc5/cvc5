@@ -1,5 +1,4 @@
 ; REQUIRES: poly
-; COMMAND-LINE: --check-proofs
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic QF_NRA)

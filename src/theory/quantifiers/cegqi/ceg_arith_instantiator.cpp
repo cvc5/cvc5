@@ -18,9 +18,10 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/linear/partial_model.h"
+#include "theory/arith/linear/theory_arith_private.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "util/random.h"
@@ -45,6 +46,7 @@ void ArithInstantiator::reset(CegInstantiator* ci,
                               Node pv,
                               CegInstEffort effort)
 {
+  Assert(pv.getType() == d_type);
   d_vts_sym[0] = d_vtc->getVtsInfinity(d_type, false, false);
   d_vts_sym[1] = d_vtc->getVtsDelta(false, false);
   for (unsigned i = 0; i < 2; i++)
@@ -93,7 +95,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
       eq_rhs = nm->mkNode(MULT, lhs_coeff, eq_rhs);
     }
   }
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = arith::mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Node val;
   TermProperties pv_prop;
@@ -421,7 +423,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                 MULT,
                 nm->mkConstReal(Rational(1)
                                 / d_mbp_coeff[rr][j].getConst<Rational>()),
-                value[t]);
+                nm->mkNode(TO_REAL, value[t]));
             value[t] = rewrite(value[t]);
           }
           // check if new best, if we have not already set it.
@@ -430,15 +432,20 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
             {
-              Kind k = rr == 0 ? GEQ : LEQ;
-              Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
-              cmp_bound = rewrite(cmp_bound);
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
               // the new best bound. We might not be comparing constant
               // values (for instance if transcendental functions are
-              // involved), in which case we do update the best bound value.
-              if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
+              // involved), in which case we do not update the best bound value.
+              if (!value[t].isConst() || !best_bound_value[t].isConst())
+              {
+                new_best = false;
+                break;
+              }
+              Rational rt = value[t].getConst<Rational>();
+              Rational brt = best_bound_value[t].getConst<Rational>();
+              bool cmp = rr == 0 ? rt >= brt : rt <= brt;
+              if (!cmp)
               {
                 new_best = false;
                 break;
@@ -684,7 +691,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
   // solve updated rewritten equality for vars[index], if coefficient is one,
   // then we are successful
   Node eq_rhs = sf.d_subs[index];
-  Node eq = eq_lhs.eqNode(eq_rhs);
+  Node eq = arith::mkEquality(eq_lhs, eq_rhs);
   eq = rewrite(eq);
   Trace("cegqi-arith-debug") << "...equality is " << eq << std::endl;
   std::map<Node, Node> msum;
@@ -899,10 +906,12 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       int ires_use =
           (msum[pv].isNull() || msum[pv].getConst<Rational>().sgn() == 1) ? 1
                                                                           : -1;
-      val = rewrite(
-          nm->mkNode(ires_use == -1 ? ADD : SUB,
-                     nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
-                     nm->mkNode(TO_INTEGER, realPart)));
+      val = nm->mkNode(TO_INTEGER, nm->mkNode(ires_use == -1 ? ADD : SUB,
+                       nm->mkNode(ires_use == -1 ? SUB : ADD, val, realPart),
+                       nm->mkNode(TO_INTEGER, realPart)));
+      Trace("cegqi-arith-debug")
+          << "result (pre-rewrite) : " << val << std::endl;
+      val = rewrite(val);
       // could round up for upper bounds here
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
       Assert(val.getType().isInteger());
@@ -914,6 +923,11 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   }
   vts_coeff_inf = vts_coeff[0];
   vts_coeff_delta = vts_coeff[1];
+  if (!pv.getType().isInteger() && val.getType().isInteger())
+  {
+    val = nm->mkNode(TO_REAL, val);
+  }
+  Assert(pv.getType() == val.getType());
   Trace("cegqi-arith-debug")
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
@@ -1005,7 +1019,9 @@ Node ArithInstantiator::mkVtsSum(const Node& val,
   {
     // create delta here if necessary
     vval = nm->mkNode(
-        ADD, vval, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
+        ADD,
+        vval,
+        nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta(false, true)));
   }
   vval = rewrite(vval);
   return vval;

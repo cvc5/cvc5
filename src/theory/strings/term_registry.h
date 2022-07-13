@@ -59,8 +59,7 @@ class TermRegistry : protected EnvObj
   TermRegistry(Env& env,
                Theory& t,
                SolverState& s,
-               SequencesStatistics& statistics,
-               ProofNodeManager* pnm);
+               SequencesStatistics& statistics);
   ~TermRegistry();
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;
@@ -164,8 +163,8 @@ class TermRegistry : protected EnvObj
    * @return true if any seq.nth or seq.update terms have been preregistered
    */
   bool hasSeqUpdate() const;
-  /** is handled update */
-  bool isHandledUpdate(Node n);
+  /** is handled update or substring */
+  bool isHandledUpdateOrSubstr(Node n);
   /** get base */
   Node getUpdateBase(Node n);
   //---------------------------- end queries

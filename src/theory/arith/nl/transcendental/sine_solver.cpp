@@ -37,19 +37,6 @@ namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
-namespace {
-
-/**
- * Ensure a is in the main phase:
- *   -pi <= a <= pi
- */
-inline Node mkValidPhase(TNode a, TNode pi)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  return mkBounded(
-      nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi), a, pi);
-}
-}  // namespace
 
 SineSolver::SineSolver(Env& env, TranscendentalState* tstate)
     : EnvObj(env), d_data(tstate)
@@ -159,39 +146,66 @@ void SineSolver::doReductions()
   }
 }
 
+Node SineSolver::getPhaseShiftLemma(const Node& x, const Node& y, const Node& s)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node xr = (x.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, x) : x);
+  Node yr = (y.getType().isInteger() ? nm->mkNode(Kind::TO_REAL, y) : y);
+  Node mone = nm->mkConstReal(Rational(-1));
+  Node pi = nm->mkNullaryOperator(nm->realType(), PI);
+  return nm->mkAnd(std::vector<Node>{
+      nm->mkNode(GEQ, y, nm->mkNode(MULT, mone, pi)),
+      nm->mkNode(LEQ, y, pi),
+      nm->mkNode(IS_INTEGER, s),
+      nm->mkNode(ITE,
+                 nm->mkAnd(std::vector<Node>{
+                     nm->mkNode(GEQ, x, nm->mkNode(MULT, mone, pi)),
+                     nm->mkNode(LEQ, x, pi),
+                 }),
+                 xr.eqNode(yr),
+                 xr.eqNode(nm->mkNode(
+                     ADD, y, nm->mkNode(MULT, nm->mkConstReal(2), s, pi)))),
+      nm->mkNode(SINE, y).eqNode(nm->mkNode(SINE, x))});
+}
+
 void SineSolver::doPhaseShift(TNode a, TNode new_a)
 {
-  TNode y = new_a[0];
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   Assert(a.getKind() == Kind::SINE);
-  Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
-  Node shift = sm->mkDummySkolem("s", nm->integerType(), "number of shifts");
-  // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
-  // refinement for constant shifts (cvc4-projects #1284)
-  Node lem = nm->mkNode(
-      Kind::AND,
-      mkValidPhase(y, d_pi),
-      nm->mkNode(
-          Kind::ITE,
-          mkValidPhase(a[0], d_pi),
-          a[0].eqNode(y),
-          a[0].eqNode(nm->mkNode(
-              Kind::ADD,
-              y,
-              nm->mkNode(
-                  Kind::MULT, nm->mkConstReal(Rational(2)), shift, d_pi)))),
-      new_a.eqNode(a));
   CDProof* proof = nullptr;
-  if (d_data->isProofEnabled())
+  Node lem;
+  Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
+  InferenceId iid;
+  if (TranscendentalState::isSimplePurify(a))
   {
-    proof = d_data->getProof();
-    proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], y, shift});
+    lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
+    if (d_data->isProofEnabled())
+    {
+      // simple to justify
+      proof = d_data->getProof();
+      proof->addStep(lem, PfRule::MACRO_SR_PRED_INTRO, {}, {lem});
+    }
+    iid = InferenceId::ARITH_NL_T_PURIFY_ARG;
+  }
+  else
+  {
+    Node shift = sm->mkDummySkolem("s", nm->realType(), "number of shifts");
+    // TODO (cvc4-projects #47) : do not introduce shift here, instead needs
+    // model-based refinement for constant shifts (cvc4-projects #1284)
+    lem = getPhaseShiftLemma(a[0], new_a[0], shift);
+    if (d_data->isProofEnabled())
+    {
+      proof = d_data->getProof();
+      proof->addStep(
+          lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], new_a[0], shift});
+    }
+    iid = InferenceId::ARITH_NL_T_PURIFY_ARG_PHASE_SHIFT;
   }
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_PURIFY_ARG, proof);
+  d_data->d_im.addPendingLemma(lem, iid, proof);
 }
 
 void SineSolver::checkInitialRefine()

@@ -75,6 +75,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/DatatypeDecl.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/DatatypeSelector.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Grammar.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IOracle.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IPointer.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java
@@ -162,7 +163,6 @@ target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
-target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
 target_link_libraries(cvc5jni PRIVATE cvc5)
 
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")

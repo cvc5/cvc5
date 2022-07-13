@@ -19,7 +19,9 @@
 #define CVC5__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
+
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 namespace cvc5::internal {
@@ -104,6 +106,8 @@ class BvInstantiator : public Instantiator
  private:
   /** pointer to the bv inverter class */
   BvInverter* d_inverter;
+  /** Utility class */
+  BvInstantiatorUtil d_util;
   //--------------------------------solved forms
   /** identifier counter, used to allocate ids to each solve form */
   unsigned d_inst_id_counter;
@@ -163,7 +167,7 @@ class BvInstantiator : public Instantiator
 class BvInstantiatorPreprocess : public InstantiatorPreprocess
 {
  public:
-  BvInstantiatorPreprocess() {}
+  BvInstantiatorPreprocess(const Options& opts) : d_opts(opts) {}
   ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
@@ -204,6 +208,8 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
   void collectExtracts(Node lem,
                        std::map<Node, std::vector<Node>>& extract_map,
                        std::unordered_set<TNode>& visited);
+  /** Reference to options */
+  const Options& d_opts;
 };
 
 }  // namespace quantifiers

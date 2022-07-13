@@ -48,8 +48,6 @@ PfManager::PfManager(Env& env)
       d_pfpp(nullptr),
       d_finalProof(nullptr)
 {
-  // enable proof support in the environment/rewriter
-  d_env.setProofNodeManager(d_pnm.get());
   // now construct preprocess proof generator
   d_pppg = std::make_unique<PreprocessProofGenerator>(
       env, env.getUserContext(), "smt::PreprocessProofGenerator");
@@ -178,13 +176,14 @@ void PfManager::printProof(std::ostream& out,
   // according to the proof format, post process and print the proof node
   if (options().proof.proofFormatMode == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter dotPrinter;
+    proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
-    proof::AletheProofPostprocess vpfpp(d_pnm.get(), anc);
+    proof::AletheProofPostprocess vpfpp(
+        d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
     proof::AletheProofPrinter vpp;
     vpp.print(out, fp);
@@ -194,7 +193,7 @@ void PfManager::printProof(std::ostream& out,
     std::vector<Node> assertions;
     getAssertions(as, assertions);
     proof::LfscNodeConverter ltp;
-    proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
+    proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
     proof::LfscPrinter lp(ltp);
     lp.print(out, assertions, fp.get());
@@ -249,7 +248,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Trace("difficulty-proc") << "Make SAT refutation" << std::endl;
   // assume a SAT refutation from all input assertions that were marked
   // as having a difficulty
-  CDProof cdp(d_pnm.get());
+  CDProof cdp(d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
@@ -262,7 +261,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   Assert(fpf->getRule() == PfRule::SAT_REFUTATION);
   const std::vector<std::shared_ptr<ProofNode>>& children = fpf->getChildren();
   DifficultyPostprocessCallback dpc;
-  ProofNodeUpdater dpnu(d_pnm.get(), dpc);
+  ProofNodeUpdater dpnu(d_env, dpc);
   Trace("difficulty-proc") << "Compute accumulated difficulty" << std::endl;
   // For each child of SAT_REFUTATION, we increment the difficulty on all
   // "source" free assumptions (see DifficultyPostprocessCallback) by the

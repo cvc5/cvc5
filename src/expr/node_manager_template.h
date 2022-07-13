@@ -45,17 +45,25 @@ class SkolemManager;
 class BoundVarManager;
 
 class DType;
+class Oracle;
 class Rational;
 
 namespace expr {
-  namespace attr {
-    class AttributeUniqueId;
-    class AttributeManager;
-    }  // namespace attr
 
-  class TypeChecker;
-  }  // namespace expr
+namespace attr {
+class AttributeUniqueId;
+class AttributeManager;
+}  // namespace attr
 
+class TypeChecker;
+}  // namespace expr
+
+/**
+ * The node manager.
+ *
+ * This class should not be used simulatenously in multiple threads. It is a
+ * singleton that is accessible via NodeManager::currentNM().
+ */
 class NodeManager
 {
   friend class cvc5::Solver;
@@ -66,24 +74,6 @@ class NodeManager
   friend class NodeBuilder;
 
  public:
-  /**
-   * Bits for use in mkDatatypeType() flags.
-   *
-   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
-   * out as a definition, for example, in models or during dumping.
-   */
-  enum
-  {
-    DATATYPE_FLAG_NONE = 0,
-    DATATYPE_FLAG_PLACEHOLDER = 1
-  }; /* enum */
-
-  /** Bits for use in mkSort() flags. */
-  enum
-  {
-    SORT_FLAG_NONE = 0,
-    SORT_FLAG_PLACEHOLDER = 1
-  }; /* enum */
 
   /**
    * Return true if given kind is n-ary. The test is based on n-ary kinds
@@ -91,18 +81,6 @@ class NodeManager
    * of a node.
    */
   static bool isNAryKind(Kind k);
-
-  /**
-   * Returns a node representing the operator of this `TypeNode`.
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these) have an
-   * operator. "Little-p parameterized" types (like Array), are OPERATORs, not
-   * PARAMETERIZEDs.
-   */
-  static Node operatorFromType(const TypeNode& tn)
-  {
-    Assert(tn.getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(tn.d_nv->getOperator());
-  }
 
   /** The node manager in the current public-facing cvc5 library context */
   static NodeManager* currentNM();
@@ -143,36 +121,27 @@ class NodeManager
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
 
-  /** Reclaim zombies while there are more than k nodes in the pool (if
-   * possible).*/
-  void reclaimZombiesUntil(uint32_t k);
-
-  /** Reclaims all zombies (if possible).*/
-  void reclaimAllZombies();
-
-  /** Size of the node pool. */
-  size_t poolSize() const;
-
-  /**
-   * This function gives developers a hook into the NodeManager.
-   * This can be changed in node_manager.cpp without recompiling most of cvc5.
-   *
-   * debugHook is a debugging only function, and should not be present in
-   * any published code!
-   */
-  void debugHook(int debugFlag);
-
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
-   * associated with datatypes through the DatatypeIndexConstant class. The
+   * associated with datatypes through the DatatypeIndexAttr attribute. The
    * argument index is intended to be a value taken from that class.
    *
    * Type nodes must access their DTypes through a level of indirection to
    * prevent cycles in the Node AST (as DTypes themselves contain Nodes), which
-   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
-   * which is used as an index to retrieve the DType via this call.
+   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexAttr
+   * attribute which is used as an index to retrieve the DType via this call.
    */
   const DType& getDTypeForIndex(size_t index) const;
+  /**
+   * Get the DType for a type. If tn is a datatype type, then we retrieve its
+   * internal index and use the above method to lookup its datatype.
+   *
+   * If it is a tuple, then we lookup its datatype representation and call
+   * this method on it.
+   */
+  const DType& getDTypeFor(TypeNode tn) const;
+  /** Same as above, for node */
+  const DType& getDTypeFor(Node n) const;
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType(TypeNode tn);
@@ -493,14 +462,14 @@ class NodeManager
   TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing the given datatype. */
-  TypeNode mkDatatypeType(DType& datatype, uint32_t flags = DATATYPE_FLAG_NONE);
+  TypeNode mkDatatypeType(DType& datatype);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::vector<DType>& datatypes);
 
   /**
    * Make a type representing a constructor with the given argument (subfield)
@@ -655,39 +624,8 @@ class NodeManager
   /** Create a raw symbol with the given type. */
   Node mkRawSymbol(const std::string& name, const TypeNode& type);
 
-  /** Make a new uninterpreted sort value with the given type. */
-  Node mkUninterpretedSortValue(const TypeNode& type);
-
   /** make unique (per Type,Kind) variable. */
   Node mkNullaryOperator(const TypeNode& type, Kind k);
-
-  /**
-   * Create a sequence unit from the given element n.
-   * @param t the element type of the returned sequence.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the sequence.
-   * @return a sequence unit constructed from the element n.
-   */
-  Node mkSeqUnit(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a singleton set from the given element n.
-   * @param t the element type of the returned set.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the singleton.
-   * @return a singleton set constructed from the element n.
-   */
-  Node mkSingleton(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a bag from the given element n along with its multiplicity m.
-   * @param t the element type of the returned bag.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the element that is used to to construct the bag
-   * @param m the multiplicity of the element n
-   * @return a bag that contains m occurrences of n.
-   */
-  Node mkBag(const TypeNode& t, const TNode n, const TNode m);
 
   /**
    * Create a constant of type T.  It will have the appropriate
@@ -722,6 +660,12 @@ class NodeManager
    * CONST_RATIONAL.
    */
   Node mkConstInt(const Rational& r);
+
+  /**
+   * Make constant real or int, which calls one of the above methods based
+   * on whether r is integral.
+   */
+  Node mkConstRealOrInt(const Rational& r);
 
   /**
    * Make constant real or int, which calls one of the above methods based
@@ -770,6 +714,18 @@ class NodeManager
   /** Make an unresolved datatype sort */
   TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
 
+  /**
+   * Make an oracle node. This returns a constant of kind ORACLE that stores
+   * the given method in an Oracle object. This Oracle can later be obtained by
+   * getOracleFor below.
+   */
+  Node mkOracle(Oracle& o);
+
+  /**
+   * Get the oracle for an oracle node n, which should have kind ORACLE.
+   */
+  const Oracle& getOracleFor(const Node& n) const;
+
  private:
   /**
    * Make a set of types representing the given datatypes, which may
@@ -802,8 +758,7 @@ class NodeManager
    */
   std::vector<TypeNode> mkMutualDatatypeTypesInternal(
       const std::vector<DType>& datatypes,
-      const std::set<TypeNode>& unresolvedTypes,
-      uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::set<TypeNode>& unresolvedTypes);
 
   typedef std::unordered_set<expr::NodeValue*,
                              expr::NodeValuePoolHashFunction,
@@ -836,10 +791,11 @@ class NodeManager
   {
     expr::NodeValue nv;
     expr::NodeValue* child[N];
-  }; /* struct NodeManager::NVStorage<N> */
+  };
 
   /**
-   * A map of tuple and record types to their corresponding datatype.
+   * A map of tuple types to their corresponding datatype type, which are
+   * TypeNode of kind TUPLE_TYPE.
    */
   class TupleTypeCache
   {
@@ -847,9 +803,10 @@ class NodeManager
     std::map<TypeNode, TupleTypeCache> d_children;
     TypeNode d_data;
     TypeNode getTupleType(NodeManager* nm,
-                          std::vector<TypeNode>& types,
+                          const std::vector<TypeNode>& types,
                           unsigned index = 0);
   };
+  /** Same as above, for records */
   class RecTypeCache
   {
    public:
@@ -1010,7 +967,8 @@ class NodeManager
 
   bool d_initialized;
 
-  size_t next_id;
+  /** The next node identifier */
+  size_t d_nextId;
 
   expr::attr::AttributeManager* d_attrManager;
 
@@ -1061,16 +1019,11 @@ class NodeManager
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType>> d_dtypes;
 
+  /** A list of oracles owned by this node manager */
+  std::vector<std::unique_ptr<Oracle>> d_oracles;
+
   TupleTypeCache d_tt_cache;
   RecTypeCache d_rt_cache;
-
-  /**
-   * Keep a count of all abstract values produced by this NodeManager.
-   * Abstract values have a type attribute, so if multiple SolverEngines
-   * are attached to this NodeManager, we don't want their abstract
-   * values to overlap.
-   */
-  uint32_t d_abstractValueCount;
 }; /* class NodeManager */
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,

@@ -23,11 +23,14 @@
 namespace cvc5::internal {
 
 /**
+ * \internal
+ * This documentation is target for the online documentation that can
+ * be found at https://cvc5.github.io/docs/latest/proofs/proof_rules.html
+ * \endinternal
+ *
  * \verbatim embed:rst:leading-asterisk
  * An enumeration for proof rules. This enumeration is analogous to Kind for
  * Node objects.
- * This documentation is target for the online documentation that can be found
- * at https://cvc5.github.io/docs/main/proofs/proof_rules.html.
  *
  * All proof rules are given as inference rules, presented in the following
  * form:
@@ -1313,7 +1316,7 @@ enum class PfRule : uint32_t
    *
    *   \inferrule{-\mid k}{k = t}
    *
-   * where :math:`t` is the original form of skolem :math:`k`.
+   * where :math:`t` is the unpurified form of skolem :math:`k`.
    * \endverbatim
    */
   SKOLEM_INTRO,
@@ -1433,7 +1436,20 @@ enum class PfRule : uint32_t
    * where :math:`b` indicates if the direction is reversed, :math:`c_1,\,c_2`
    * are constants such that :math:`\texttt{Word::splitConstant}(c_1,c_2,
    * \mathit{index},b)` is null, in other words, neither is a prefix of the
-   * other.
+   * other. Note it may be the case that one side of the equality denotes the
+   * empty string.
+   *
+   * Alternatively, if the equality is between sequences, this rule has the
+   * form:
+   *
+   * .. math::
+   *
+   *   \inferrule{(t_1\cdot t) = (s_1 \cdot s), t_1 \deq s_1 \mid b}{\bot}
+   *
+   * where t_1 and s_1 are constants of length one, or otherwise one side
+   * of the equality is the empty sequence and t_1 or s_1 corresponding to
+   * that side is the empty sequence.
+   *
    * \endverbatim
    */
   CONCAT_CONFLICT,

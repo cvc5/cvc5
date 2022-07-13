@@ -50,49 +50,13 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   TypeNode bvType = d_nodeManager->mkBitVectorType(32);
 
   Node x = d_nodeManager->mkBoundVar("x", realType);
-  Node xPos = d_nodeManager->mkNode(
-      GT, x, d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
+  Node xPos =
+      d_nodeManager->mkNode(GT, x, d_nodeManager->mkConstInt(Rational(0)));
   TypeNode funtype = d_nodeManager->mkFunctionType(integerType, booleanType);
   Node lambda = d_nodeManager->mkVar("lambda", funtype);
   std::vector<Node> formals;
   formals.push_back(x);
   d_slvEngine->defineFunction(lambda, formals, xPos);
-
-  ASSERT_FALSE(realType.isComparableTo(booleanType));
-  ASSERT_TRUE(realType.isComparableTo(integerType));
-  ASSERT_TRUE(realType.isComparableTo(realType));
-  ASSERT_FALSE(realType.isComparableTo(arrayType));
-  ASSERT_FALSE(realType.isComparableTo(bvType));
-
-  ASSERT_FALSE(booleanType.isComparableTo(integerType));
-  ASSERT_FALSE(booleanType.isComparableTo(realType));
-  ASSERT_TRUE(booleanType.isComparableTo(booleanType));
-  ASSERT_FALSE(booleanType.isComparableTo(arrayType));
-  ASSERT_FALSE(booleanType.isComparableTo(bvType));
-
-  ASSERT_TRUE(integerType.isComparableTo(realType));
-  ASSERT_TRUE(integerType.isComparableTo(integerType));
-  ASSERT_FALSE(integerType.isComparableTo(booleanType));
-  ASSERT_FALSE(integerType.isComparableTo(arrayType));
-  ASSERT_FALSE(integerType.isComparableTo(bvType));
-
-  ASSERT_FALSE(arrayType.isComparableTo(booleanType));
-  ASSERT_FALSE(arrayType.isComparableTo(integerType));
-  ASSERT_FALSE(arrayType.isComparableTo(realType));
-  ASSERT_TRUE(arrayType.isComparableTo(arrayType));
-  ASSERT_FALSE(arrayType.isComparableTo(bvType));
-
-  ASSERT_FALSE(bvType.isComparableTo(booleanType));
-  ASSERT_FALSE(bvType.isComparableTo(integerType));
-  ASSERT_FALSE(bvType.isComparableTo(realType));
-  ASSERT_FALSE(bvType.isComparableTo(arrayType));
-  ASSERT_TRUE(bvType.isComparableTo(bvType));
-
-  ASSERT_TRUE(realType.getBaseType() == realType);
-  ASSERT_TRUE(integerType.getBaseType() == realType);
-  ASSERT_TRUE(booleanType.getBaseType() == booleanType);
-  ASSERT_TRUE(arrayType.getBaseType() == arrayType);
-  ASSERT_TRUE(bvType.getBaseType() == bvType);
 }
 }  // namespace test
 }  // namespace cvc5::internal

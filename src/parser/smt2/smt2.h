@@ -18,6 +18,7 @@
 #ifndef CVC5__PARSER__SMT2_H
 #define CVC5__PARSER__SMT2_H
 
+#include <optional>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -225,23 +226,8 @@ class Smt2 : public Parser
   cvc5::Grammar* mkGrammar(const std::vector<cvc5::Term>& boundVars,
                            const std::vector<cvc5::Term>& ntSymbols);
 
-  /**
-   * Are we using smtlib 2.6 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6.
-   */
-  bool v2_6(bool exact = false) const
-  {
-    return d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6";
-  }
   /** Are we using a sygus language? */
   bool sygus() const;
-
-  /**
-   * Returns true if the language that we are parsing (SMT-LIB version >=2.5
-   * and SyGuS) treats duplicate double quotes ("") as an escape sequence
-   * denoting a single double quote (").
-   */
-  bool escapeDupDblQuote() const { return v2_6() || sygus(); }
 
   void checkThatLogicIsSet();
 
@@ -292,12 +278,13 @@ class Smt2 : public Parser
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
 
-  /** Make abstract value
+  /**
+   * Make real or int from numeral string.
    *
-   * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isUninterpretedSortValue(name) is true.
+   * In particular, if arithmetic is enabled, but integers are disabled, then
+   * we construct a real. Otherwise, we construct an integer.
    */
-  cvc5::Term mkUninterpretedSortValue(const std::string& name);
+  cvc5::Term mkRealOrIntFromNumeral(const std::string& str);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -396,6 +383,20 @@ class Smt2 : public Parser
    */
   cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
   //------------------------- end processing parse operators
+
+  /**
+   * Handles a push command.
+   *
+   * @return An instance of `PushCommand`
+   */
+  std::unique_ptr<Command> handlePush(std::optional<uint32_t> nscopes);
+  /**
+   * Handles a pop command.
+   *
+   * @return An instance of `PopCommand`
+   */
+  std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
+
  private:
 
   void addArithmeticOperators();

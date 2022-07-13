@@ -26,7 +26,7 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
@@ -102,7 +102,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   default:
   {
     TypeNode tn = n.getType();
-    if (tn.isRealOrInt() && Polynomial::isMember(n))
+    if (tn.isRealOrInt() && linear::Polynomial::isMember(n))
     {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
@@ -110,12 +110,12 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
         newn = rewrite(newn);
-        Assert(Polynomial::isMember(newn));
+        Assert(linear::Polynomial::isMember(newn));
       }else{
         newn = n;
       }
       NodeManager* nm = NodeManager::currentNM();
-      Polynomial p = Polynomial::parsePolynomial(newn);
+      linear::Polynomial p = linear::Polynomial::parsePolynomial(newn);
       if(p.isConstant()){
         d_constants[n] = newn;
         d_varParts[n] = nm->mkConstRealOrInt(tn, Rational(0));
@@ -127,7 +127,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         d_reduceVar[n] = p.getNode();
         return p.getNode();
       }else{
-        Monomial mc = p.getHead();
+        linear::Monomial mc = p.getHead();
         d_constants[n] = mc.getConstant().getNode();
         d_varParts[n] = p.getTail().getNode();
         d_reduceVar[n] = newn;
@@ -181,7 +181,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
   if(d_gcds.find(n) != d_gcds.end()){
     return d_gcds[n];
   }
-  if(n.getKind() == kind::CONST_RATIONAL){
+  if (n.isConst())
+  {
     const Rational& q = n.getConst<Rational>();
     if(q.isIntegral()){
       d_gcds[n] = q.getNumerator();
@@ -443,12 +444,12 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       Node useForCmpL = selectForCmp(otherL);
       Node useForCmpR = selectForCmp(otherR);
 
-      Assert(Polynomial::isMember(sel));
-      Assert(Polynomial::isMember(useForCmpL));
-      Assert(Polynomial::isMember(useForCmpR));
-      Polynomial lside = Polynomial::parsePolynomial( useForCmpL );
-      Polynomial rside = Polynomial::parsePolynomial( useForCmpR );
-      Polynomial diff = lside-rside;
+      Assert(linear::Polynomial::isMember(sel));
+      Assert(linear::Polynomial::isMember(useForCmpL));
+      Assert(linear::Polynomial::isMember(useForCmpR));
+      linear::Polynomial lside = linear::Polynomial::parsePolynomial( useForCmpL );
+      linear::Polynomial rside = linear::Polynomial::parsePolynomial( useForCmpR );
+      linear::Polynomial diff = lside-rside;
 
       Trace("arith::ite") << "diff: " << diff.getNode() << endl;
       if(diff.isConstant()){

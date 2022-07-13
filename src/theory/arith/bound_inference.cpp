@@ -16,7 +16,8 @@
 #include "theory/arith/bound_inference.h"
 
 #include "smt/env.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -62,7 +63,7 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
     return false;
   }
   // Parse the node as a comparison
-  auto comp = Comparison::parseNormalForm(tmp);
+  auto comp = linear::Comparison::parseNormalForm(tmp);
   auto dec = comp.decompose(true);
   if (onlyVariables && !std::get<0>(dec).isVariable())
   {
@@ -81,21 +82,20 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
     auto* nm = NodeManager::currentNM();
     switch (relation)
     {
-      case Kind::LEQ:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.floor());
-        break;
+      case Kind::LEQ: bound = nm->mkConstInt(br.floor()); break;
       case Kind::LT:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br - 1).ceiling());
+        bound = nm->mkConstInt((br - 1).ceiling());
         relation = Kind::LEQ;
         break;
       case Kind::GT:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, (br + 1).floor());
+        bound = nm->mkConstInt((br + 1).floor());
         relation = Kind::GEQ;
         break;
-      case Kind::GEQ:
-        bound = nm->mkConst<Rational>(CONST_RATIONAL, br.ceiling());
+      case Kind::GEQ: bound = nm->mkConstInt(br.ceiling()); break;
+      default:
+        // always ensure integer
+        bound = nm->mkConstInt(br);
         break;
-      default:;
     }
     Trace("bound-inf") << "Strengthened " << n << " to " << lhs << " "
                        << relation << " " << bound << std::endl;
@@ -162,6 +162,7 @@ void BoundInference::update_lower_bound(const Node& origin,
                                         const Node& value,
                                         bool strict)
 {
+  Assert(value.isConst());
   // lhs > or >= value because of origin
   Trace("bound-inf") << "\tNew bound " << lhs << (strict ? ">" : ">=") << value
                      << " due to " << origin << std::endl;
@@ -177,8 +178,8 @@ void BoundInference::update_lower_bound(const Node& origin,
 
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      b.lower_bound = b.upper_bound =
-          rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+      Node eq = mkEquality(lhs, value);
+      b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
     {
@@ -212,8 +213,8 @@ void BoundInference::update_upper_bound(const Node& origin,
     b.upper_origin = origin;
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      b.lower_bound = b.upper_bound =
-          rewrite(nm->mkNode(Kind::EQUAL, lhs, value));
+      Node eq = mkEquality(lhs, value);
+      b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
     {

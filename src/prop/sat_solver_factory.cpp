@@ -52,10 +52,7 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry& registry,
 {
   CadicalSolver* res = new CadicalSolver(registry, name);
   res->init();
-  if (resmgr->limitOn())
-  {
-    res->setTimeLimit(resmgr);
-  }
+  res->setResourceLimit(resmgr);
   return res;
 }
 

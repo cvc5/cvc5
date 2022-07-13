@@ -62,7 +62,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
   registerNode( qn, true, true );
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
-  d_mg.reset(new MatchGen(p, this, qn));
+  d_mg = std::make_unique<MatchGen>(d_env, p, this, qn);
 
   if( d_mg->isValid() ){
     for (size_t j = q[0].getNumChildren(), nvars = d_vars.size(); j < nvars;
@@ -77,7 +77,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
         }
         if (!is_tsym || options().quantifiers.cbqiTConstraint)
         {
-          d_var_mg[j] = std::make_unique<MatchGen>(p, this, d_vars[j], true);
+          d_var_mg[j] = std::make_unique<MatchGen>(d_env, p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
           Trace("qcf-invalid")
@@ -1110,8 +1110,9 @@ void QuantInfo::debugPrintMatch(const char* c) const
   }
 }
 
-MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
-    : d_tgt(),
+MatchGen::MatchGen(Env& env, QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
+    : EnvObj(env), 
+      d_tgt(),
       d_tgt_orig(),
       d_wasSet(),
       d_n(),
@@ -1177,7 +1178,7 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
         for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
           if( d_n.getKind()!=FORALL || i==1 ){
             std::unique_ptr<MatchGen> mg =
-                std::make_unique<MatchGen>(p, qi, d_n[i], false);
+                std::make_unique<MatchGen>(d_env, p, qi, d_n[i], false);
             if (!mg->isValid())
             {
               setInvalid();
@@ -1196,7 +1197,7 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
           Assert(d_n.getType().isBoolean());
           d_type = typ_bool_var;
         }
-        else if (d_n.getKind() == EQUAL || options::cbqiTConstraint())
+        else if (d_n.getKind() == EQUAL || options().quantifiers.cbqiTConstraint)
         {
           for (unsigned i = 0; i < d_n.getNumChildren(); i++)
           {
@@ -1302,7 +1303,7 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
               << vu_count[i] << std::endl;
           int score0 = 0;//has_nested[i] ? 0 : 1;
           int score;
-          if (!options::cbqiVoExp())
+          if (!options().quantifiers.cbqiVoExp)
           {
             score = vu_count[i];
           }
@@ -1450,7 +1451,7 @@ void MatchGen::reset(bool tgt)
       d_child_counter = 0;
     }
   }
-  else if (d_qi->isBaseMatchComplete() && options::cbqiEagerTest())
+  else if (d_qi->isBaseMatchComplete() && options().quantifiers.cbqiEagerTest)
   {
     d_use_children = false;
     d_child_counter = 0;
@@ -1946,7 +1947,7 @@ bool MatchGen::doMatching()
           {
             d_qni.push_back(it);
             // set the match
-            if (it->first.getType().isComparableTo(d_qi->d_var_types[repVar])
+            if (it->first.getType() == d_qi->d_var_types[repVar]
                 && d_qi->setMatch(d_qni_bound[index], it->first, true, true))
             {
               Trace("qcf-match-debug")
@@ -2224,8 +2225,8 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
-inline QuantConflictFind::Effort QcfEffortEnd() {
-  return options::cbqiMode() == options::QcfMode::PROP_EQ
+inline QuantConflictFind::Effort QcfEffortEnd(options::QcfMode m) {
+  return m == options::QcfMode::PROP_EQ
              ? QuantConflictFind::EFFORT_PROP_EQ
              : QuantConflictFind::EFFORT_CONFLICT;
 }
@@ -2277,7 +2278,8 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   FirstOrderModel* fm = d_treg.getModel();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
-  for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e)
+  unsigned end = QcfEffortEnd(options().quantifiers.cbqiMode);
+  for (unsigned e = QcfEffortStart(); e <= end; ++e)
   {
     // set the effort (data member for convienence of access)
     d_effort = static_cast<Effort>(e);

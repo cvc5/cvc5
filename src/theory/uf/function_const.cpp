@@ -16,11 +16,72 @@
 #include "theory/uf/function_const.h"
 
 #include "expr/array_store_all.h"
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
+#include "expr/function_array_const.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
+
+/**
+ * Attribute for constructing a unique bound variable list for the lambda
+ * corresponding to an array constant.
+ */
+struct FunctionBoundVarListTag
+{
+};
+using FunctionBoundVarListAttribute =
+    expr::Attribute<FunctionBoundVarListTag, Node>;
+/**
+ * An attribute to cache the conversion between array constants and lambdas.
+ */
+struct ArrayToLambdaTag
+{
+};
+using ArrayToLambdaAttribute = expr::Attribute<ArrayToLambdaTag, Node>;
+
+Node FunctionConst::toLambda(TNode n)
+{
+  Kind nk = n.getKind();
+  if (nk == kind::LAMBDA)
+  {
+    return n;
+  }
+  else if (nk == kind::FUNCTION_ARRAY_CONST)
+  {
+    ArrayToLambdaAttribute atla;
+    if (n.hasAttribute(atla))
+    {
+      return n.getAttribute(atla);
+    }
+    const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
+    Node avalue = fc.getArrayValue();
+    TypeNode tn = fc.getType();
+    Assert(tn.isFunction());
+    std::vector<TypeNode> argTypes = tn.getArgTypes();
+    std::vector<Node> bvs;
+    NodeManager* nm = NodeManager::currentNM();
+    BoundVarManager* bvm = nm->getBoundVarManager();
+    // associate a unique bound variable list with the value
+    for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
+    {
+      Node cacheVal =
+          BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
+      Node v =
+          bvm->mkBoundVar<FunctionBoundVarListAttribute>(cacheVal, argTypes[i]);
+      bvs.push_back(v);
+    }
+    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);
+    Node lam = getLambdaForArrayRepresentation(avalue, bvl);
+    n.setAttribute(atla, lam);
+    return lam;
+  }
+  return Node::null();
+}
 
 TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)
 {
@@ -78,11 +139,8 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
             a[2], bvl, bvlIndex + 1, visited);
         if (!val.isNull())
         {
-          Assert(!TypeNode::leastCommonTypeNode(a[1].getType(),
-                                                bvl[bvlIndex].getType())
-                      .isNull());
-          Assert(!TypeNode::leastCommonTypeNode(val.getType(), body.getType())
-                      .isNull());
+          Assert(a[1].getType() == bvl[bvlIndex].getType());
+          Assert(val.getType() == body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
           ret = NodeManager::currentNM()->mkNode(kind::ITE, cond, val, body);
         }
@@ -114,7 +172,6 @@ Node FunctionConst::getLambdaForArrayRepresentation(TNode a, TNode bvl)
   Node body = getLambdaForArrayRepresentationRec(a, bvl, 0, visited);
   if (!body.isNull())
   {
-    body = Rewriter::rewrite(body);
     Trace("builtin-rewrite-debug")
         << "...got lambda body " << body << std::endl;
     return NodeManager::currentNM()->mkNode(kind::LAMBDA, bvl, body);
@@ -271,13 +328,6 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
         return Node::null();
       }
     }
-    else if (Rewriter::rewrite(index_eq) != index_eq)
-    {
-      // equality must be oriented correctly based on rewriter
-      Trace("builtin-rewrite-debug2")
-          << "  ...equality not oriented properly." << std::endl;
-      return Node::null();
-    }
 
     // [3] We ensure that "index_eq" is an equality that is equivalent to
     // "first_arg" = "curr_index", where curr_index is a constant, and
@@ -368,7 +418,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     Trace("builtin-rewrite-debug2")
         << "  make array store all " << curr.getType()
         << " annotated : " << array_type << std::endl;
-    Assert(curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
+    Assert(curr.getType() == array_type.getArrayConstituentType());
     curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must
@@ -381,8 +431,11 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     for (size_t i = 0, numCond = conds.size(); i < numCond; i++)
     {
       size_t ii = (numCond - 1) - i;
-      Assert(conds[ii].getType().isSubtypeOf(first_arg.getType()));
+      Assert(conds[ii].getType() == first_arg.getType());
       curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
+      // normalize it using the array rewriter utility, which must be done at
+      // each iteration of this loop
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
@@ -394,19 +447,22 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
   return Node::null();
 }
 
-Node FunctionConst::getArrayRepresentationForLambda(TNode n)
+Node FunctionConst::toArrayConst(TNode n)
 {
-  Assert(n.getKind() == kind::LAMBDA);
-  // must carry the overall return type to deal with cases like (lambda ((x Int)
-  // (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for the else
-  // case above should be (arraystoreall (Array Int Real) 0.0)
-  Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());
-  if (anode.isNull())
+  Kind nk = n.getKind();
+  if (nk == kind::FUNCTION_ARRAY_CONST)
   {
-    return anode;
+    const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
+    return fc.getArrayValue();
   }
-  // must rewrite it to make canonical
-  return Rewriter::rewrite(anode);
+  else if (nk == kind::LAMBDA)
+  {
+    // must carry the overall return type to deal with cases like (lambda ((x
+    // Int) (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for
+    // the else case above should be (arraystoreall (Array Int Real) 0.0)
+    return getArrayRepresentationForLambdaRec(n, n[1].getType());
+  }
+  return Node::null();
 }
 
 }  // namespace uf

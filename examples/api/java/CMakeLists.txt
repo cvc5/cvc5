@@ -53,6 +53,4 @@ foreach(example ${EXAMPLES_API_JAVA})
         ${example}
   )
   set_tests_properties(${EXAMPLE_TEST_NAME} PROPERTIES SKIP_RETURN_CODE 77)
-  set_tests_properties(${EXAMPLE_TEST_NAME} PROPERTIES
-    ENVIRONMENT "LD_LIBRARY_PATH=${JNI_LIBRARIES_PATHS}")
 endforeach()

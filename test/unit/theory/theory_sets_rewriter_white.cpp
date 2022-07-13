@@ -43,7 +43,8 @@ class TestTheoryWhiteSetsRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsRewriter, map)
 {
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
+  Rewriter* rr = d_slvEngine->getRewriter();
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   TypeNode stringType = d_nodeManager->stringType();
   TypeNode integerType = d_nodeManager->integerType();
   Node emptysetInteger =
@@ -63,16 +64,16 @@ TEST_F(TestTheoryWhiteSetsRewriter, map)
 
   Node a = d_nodeManager->mkConst(String("a"));
   Node b = d_nodeManager->mkConst(String("b"));
-  Node A = d_nodeManager->mkSingleton(d_nodeManager->stringType(), a);
-  Node B = d_nodeManager->mkSingleton(d_nodeManager->stringType(), b);
+  Node A = d_nodeManager->mkNode(SET_SINGLETON, a);
+  Node B = d_nodeManager->mkNode(SET_SINGLETON, b);
   Node unionAB = d_nodeManager->mkNode(SET_UNION, A, B);
 
   // (set.map
   //   (lambda ((x String)) 1)
   //   (set.union (set.singleton "a") (set.singleton "b"))) = (set.singleton 1))
   Node n2 = d_nodeManager->mkNode(SET_MAP, lambda, unionAB);
-  Node rewritten2 = Rewriter::rewrite(n2);
-  Node bag = d_nodeManager->mkSingleton(d_nodeManager->integerType(), one);
+  Node rewritten2 = rr->rewrite(n2);
+  Node bag = d_nodeManager->mkNode(SET_SINGLETON, one);
   ASSERT_TRUE(rewritten2 == bag);
 
   //  - (set.map f (set.union K1 K2)) =
@@ -82,7 +83,7 @@ TEST_F(TestTheoryWhiteSetsRewriter, map)
   Node f = d_skolemManager->mkDummySkolem("f", lambda.getType());
   Node unionK1K2 = d_nodeManager->mkNode(SET_UNION, k1, k2);
   Node n3 = d_nodeManager->mkNode(SET_MAP, f, unionK1K2);
-  Node rewritten3 = Rewriter::rewrite(n3);
+  Node rewritten3 = rr->rewrite(n3);
   Node mapK1 = d_nodeManager->mkNode(SET_MAP, f, k1);
   Node mapK2 = d_nodeManager->mkNode(SET_MAP, f, k2);
   Node unionMapK1K2 = d_nodeManager->mkNode(SET_UNION, mapK1, mapK2);

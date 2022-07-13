@@ -23,6 +23,7 @@
 
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
@@ -34,6 +35,7 @@ namespace theory {
 namespace quantifiers {
 
 class FirstOrderModel;
+class OracleChecker;
 
 /**
  * Term Registry, which manages notifying modules within quantifiers about
@@ -84,12 +86,16 @@ class TermRegistry : protected EnvObj
   TermDb* getTermDatabase() const;
   /** get term database sygus */
   TermDbSygus* getTermDatabaseSygus() const;
+  /** get oracle checker */
+  OracleChecker* getOracleChecker() const;
   /** get entailment check utility */
   EntailmentCheck* getEntailmentCheck() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
   /** get the term pools utility */
   TermPools* getTermPools() const;
+  /** get the virtual term substitution term cache utility */
+  VtsTermCache* getVtsTermCache() const;
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -110,6 +116,10 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
+  /** oracle checker */
+  std::unique_ptr<OracleChecker> d_ochecker;
+  /** virtual term substitution term cache for arithmetic instantiation */
+  std::unique_ptr<VtsTermCache> d_vtsCache;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

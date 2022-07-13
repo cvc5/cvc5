@@ -33,10 +33,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(Env& env)
-    : EnvObj(env), EagerProofGenerator(d_env.getProofNodeManager())
-{
-}
+OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
 void OperatorElim::checkNonLinearLogic(Node term)
 {
@@ -105,7 +102,7 @@ Node OperatorElim::eliminateOperators(Node node,
       lems.push_back(mkSkolemLemma(lem, v));
       if (k == IS_INTEGER)
       {
-        return nm->mkNode(EQUAL, node[0], v);
+        return mkEquality(node[0], v);
       }
       Assert(k == TO_INTEGER);
       return v;
@@ -226,8 +223,8 @@ Node OperatorElim::eliminateOperators(Node node,
       Node v = sm->mkPurifySkolem(
           rw, "nonlinearDiv", "the result of a non-linear div term");
       Node lem = nm->mkNode(IMPLIES,
-                            den.eqNode(nm->mkConstReal(Rational(0))).negate(),
-                            nm->mkNode(MULT, den, v).eqNode(num));
+                            den.eqNode(mkZero(den.getType())).negate(),
+                            mkEquality(nm->mkNode(MULT, den, v), num));
       lems.push_back(mkSkolemLemma(lem, v));
       return v;
       break;
@@ -241,7 +238,7 @@ Node OperatorElim::eliminateOperators(Node node,
       {
         checkNonLinearLogic(node);
         Node divByZeroNum = getArithSkolemApp(num, SkolemFunId::DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(EQUAL, den, nm->mkConstReal(Rational(0)));
+        Node denEq0 = nm->mkNode(EQUAL, den, mkZero(den.getType()));
         ret = nm->mkNode(ITE, denEq0, divByZeroNum, ret);
       }
       return ret;
@@ -393,6 +390,8 @@ Node OperatorElim::eliminateOperators(Node node,
       return var;
     }
 
+    case BITVECTOR_TO_NAT: return eliminateBv2Nat(node); break;
+    case INT_TO_BITVECTOR: return eliminateInt2Bv(node); break;
     default: break;
   }
   return node;
@@ -440,7 +439,15 @@ Node OperatorElim::getArithSkolemApp(Node n, SkolemFunId id)
   Node skolem = getArithSkolem(id);
   if (usePartialFunction(id))
   {
-    skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
+    NodeManager* nm = NodeManager::currentNM();
+    Assert(skolem.getType().isFunction()
+           && skolem.getType().getNumChildren() == 2);
+    TypeNode argType = skolem.getType()[0];
+    if (!argType.isInteger() && n.getType().isInteger())
+    {
+      n = nm->mkNode(TO_REAL, n);
+    }
+    skolem = nm->mkNode(APPLY_UF, skolem, n);
   }
   return skolem;
 }
@@ -454,7 +461,7 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 {
   TrustNode tlem;
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
     tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }

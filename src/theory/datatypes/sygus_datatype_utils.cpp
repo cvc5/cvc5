@@ -170,7 +170,9 @@ Node mkSygusTerm(const DType& dt,
       opn = getExpandedDefinitionForm(op);
     }
   }
-  return mkSygusTerm(opn, children, doBetaReduction);
+  Node ret = mkSygusTerm(opn, children, doBetaReduction);
+  Assert(ret.getType() == dt.getSygusType());
+  return ret;
 }
 
 Node mkSygusTerm(Node op,
@@ -546,8 +548,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     datatypes.push_back(sdts[i].getDatatype());
   }
   // make the datatype types
-  std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
-      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(datatypes);
   TypeNode sdtS = datatypeTypes[0];
   if (TraceIsOn("dtsygus-gen-debug"))
   {

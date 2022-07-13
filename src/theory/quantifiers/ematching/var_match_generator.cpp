@@ -43,8 +43,9 @@ bool VarMatchGeneratorTermSubs::reset(Node eqc)
   return true;
 }
 
-int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
+int VarMatchGeneratorTermSubs::getNextMatch(InstMatch& m)
 {
+  size_t index = d_children_types[0];
   int ret_val = -1;
   if (!d_eq_class.isNull())
   {
@@ -56,16 +57,15 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
     Trace("var-trigger-matching")
         << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();
-    // if( s.getType().isSubtypeOf( d_var_type ) ){
-    d_rm_prev = m.get(d_children_types[0]).isNull();
-    if (!m.set(d_qstate, d_children_types[0], s))
+    d_rm_prev = m.get(index).isNull();
+    if (!m.set(index, s))
     {
       return -1;
     }
     else
     {
       ret_val = continueNextMatch(
-          q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
+          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
       if (ret_val > 0)
       {
         return ret_val;
@@ -74,7 +74,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
   }
   if (d_rm_prev)
   {
-    m.d_vals[d_children_types[0]] = Node::null();
+    m.reset(index);
     d_rm_prev = false;
   }
   return -1;

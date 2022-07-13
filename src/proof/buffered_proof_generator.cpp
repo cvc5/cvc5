@@ -20,9 +20,8 @@
 
 namespace cvc5::internal {
 
-BufferedProofGenerator::BufferedProofGenerator(context::Context* c,
-                                               ProofNodeManager* pnm)
-    : ProofGenerator(), d_facts(c), d_pnm(pnm)
+BufferedProofGenerator::BufferedProofGenerator(Env& env, context::Context* c)
+    : EnvObj(env), ProofGenerator(), d_facts(c)
 {
 }
 
@@ -76,7 +75,7 @@ std::shared_ptr<ProofNode> BufferedProofGenerator::getProofFor(Node fact)
     }
   }
   Trace("pfee-fact-gen") << "...return via step " << *(*it).second << std::endl;
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env);
   cdp.addStep(fact, *(*it).second);
   return cdp.getProofFor(fact);
 }

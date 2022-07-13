@@ -15,6 +15,7 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
+#include "util/bitvector.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -25,15 +26,23 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
 {
-  Assert(n.getKind() == kind::CONST_RATIONAL);
-  if (n.getConst<Rational>().isIntegral())
+  // we use different kinds for constant integers and reals
+  if (n.getKind() == kind::CONST_RATIONAL)
   {
-    return nodeManager->integerType();
-  }
-  else
-  {
+    // constant rationals are always real type, even if their value is integral
     return nodeManager->realType();
   }
+  Assert(n.getKind() == kind::CONST_INTEGER);
+  // constant integers should always have integral value
+  if (check)
+  {
+    if (!n.getConst<Rational>().isIntegral())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "making an integer constant from a non-integral rational");
+    }
+  }
+  return nodeManager->integerType();
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
@@ -84,8 +93,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
   switch (k)
   {
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return realType;
+    case kind::TO_REAL: return realType;
     case kind::TO_INTEGER: return integerType;
     default:
     {
@@ -102,17 +110,11 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     Assert(n.getNumChildren() == 2);
-    TypeNode t1 = n[0].getType(check);
-    if (!t1.isRealOrInt())
+    if (!n[0].getType(check).isRealOrInt()
+        || !n[1].getType(check).isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n, "expecting an arithmetic term for arithmetic relation");
-    }
-    TypeNode t2 = n[1].getType(check);
-    if (!t1.isComparableTo(t2))
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "expecting arithmetic terms of comparable type");
     }
   }
   return nodeManager->booleanType();
@@ -207,6 +209,42 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
     }
   }
   return nodeManager->booleanType();
+}
+
+TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
+                                               TNode n,
+                                               bool check)
+{
+  Assert(n.getKind() == kind::INT_TO_BITVECTOR_OP);
+  size_t bvSize = n.getConst<IntToBitVector>();
+  if (bvSize == 0)
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
+  }
+  return nodeManager->mkFunctionType(nodeManager->integerType(),
+                                     nodeManager->mkBitVectorType(bvSize));
+}
+
+TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
+                                                  TNode n,
+                                                  bool check)
+{
+  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    if (check && !n[0].getType(check).isBitVector())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
+    }
+    return nodeManager->integerType();
+  }
+
+  Assert(n.getKind() == kind::INT_TO_BITVECTOR);
+  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
+  if (check && !n[0].getType(check).isInteger())
+  {
+    throw TypeCheckingExceptionPrivate(n, "expecting integer term");
+  }
+  return nodeManager->mkBitVectorType(bvSize);
 }
 
 }  // namespace arith
