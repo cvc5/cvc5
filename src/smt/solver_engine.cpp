@@ -1221,6 +1221,8 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 std::vector<Node> SolverEngine::getAssertionsInternal() const
 {
   Assert(d_state->isFullyInited());
+  // ensure that global declarations are processed
+  d_asserts->refresh();
   const CDList<Node>& al = d_asserts->getAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
@@ -1732,8 +1734,10 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
+  // expand definitions in the conjecture as well
+  Node conje = d_smtSolver->getPreprocessor()->expandDefinitions(conj);
   Node abd;
-  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
+  bool success = d_abductSolver->getAbduct(axioms, conje, grammarType, abd);
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
