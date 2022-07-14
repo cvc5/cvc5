@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Liana Hadarean, Tim King
+ *   Gereon Kremer, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include <iostream>
 #include <memory>
 #include <new>
+#include <optional>
 
 #include "api/cpp/cvc5.h"
 #include "base/configuration.h"
@@ -31,6 +32,7 @@
 #include "main/interactive_shell.h"
 #include "main/main.h"
 #include "main/options.h"
+#include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "parser/parser.h"
@@ -161,7 +163,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    std::unique_ptr<cvc5::Command> cmd;
     bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
@@ -186,13 +187,22 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
           << std::endl
           << Configuration::copyright() << std::endl;
 
-      while(true) {
-        cmd.reset(shell.readCommand());
-        if (cmd == nullptr)
+      bool quit = false;
+      while (!quit)
+      {
+        std::optional<InteractiveShell::CmdSeq> cmds = shell.readCommand();
+        if (!cmds)
+        {
           break;
-        status = pExecutor->doCommand(cmd) && status;
-        if (cmd->interrupted()) {
-          break;
+        }
+        for (std::unique_ptr<cvc5::Command>& cmd : *cmds)
+        {
+          status = pExecutor->doCommand(cmd) && status;
+          if (cmd->interrupted())
+          {
+            quit = true;
+            break;
+          }
         }
       }
     }
@@ -222,37 +232,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
             Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
-      bool interrupted = false;
-      while (status)
-      {
-        if (interrupted) {
-          dopts.out() << cvc5::CommandInterrupted();
-          pExecutor->reset();
-          break;
-        }
-        cmd.reset(parser->nextCommand());
-        if (cmd == nullptr) break;
-
-        status = pExecutor->doCommand(cmd);
-        if (cmd->interrupted() && status == 0) {
-          interrupted = true;
-          break;
-        }
-
-        if (dynamic_cast<cvc5::QuitCommand*>(cmd.get()) != nullptr)
-        {
-          break;
-        }
-      }
-    }
-
-    cvc5::Result result;
-    if(status) {
-      result = pExecutor->getResult();
-      returnValue = 0;
-    } else {
-      // there was some kind of error
-      returnValue = 1;
+      PortfolioDriver driver(parser);
+      returnValue = driver.solve(pExecutor) ? 0 : 1;
     }
 
 #ifdef CVC5_COMPETITION_MODE

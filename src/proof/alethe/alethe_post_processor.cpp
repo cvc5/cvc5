@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt, Haniel Barbosa
+ *   Hanna Lachnitt, Haniel Barbosa, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
@@ -31,8 +32,8 @@ namespace cvc5::internal {
 namespace proof {
 
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm, AletheNodeConverter& anc)
-    : d_pnm(pnm), d_anc(anc)
+    Env& env, AletheNodeConverter& anc, bool resPivots)
+    : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
@@ -1512,9 +1513,8 @@ bool AletheProofPostprocessCallback::updatePost(
       }
       std::vector<Node> new_children = children;
       std::vector<Node> new_args =
-          options::proofAletheResPivots()
-              ? args
-              : std::vector<Node>(args.begin(), args.begin() + 3);
+          d_resPivots ? args
+                      : std::vector<Node>(args.begin(), args.begin() + 3);
       Node trueNode = nm->mkConst(true);
       Node falseNode = nm->mkConst(false);
       bool hasUpdated = false;
@@ -1612,7 +1612,7 @@ bool AletheProofPostprocessCallback::updatePost(
           }
         }
       }
-      if (hasUpdated || !options::proofAletheResPivots())
+      if (hasUpdated || !d_resPivots)
       {
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
@@ -1820,9 +1820,10 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 
-AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
-                                               AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc)
+AletheProofPostprocess::AletheProofPostprocess(Env& env,
+                                               AletheNodeConverter& anc,
+                                               bool resPivots)
+    : EnvObj(env), d_cb(env, anc, resPivots)
 {
 }
 
@@ -1831,7 +1832,7 @@ AletheProofPostprocess::~AletheProofPostprocess() {}
 void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb, true, false);
+  ProofNodeUpdater updater(d_env, d_cb, false, false);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after
@@ -1839,7 +1840,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // required.
   // The function has the additional purpose of sanitizing the attributes of the
   // first SCOPE
-  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", true);
+  CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", true);
   const std::vector<std::shared_ptr<ProofNode>>& cc = pf->getChildren();
   std::vector<Node> ccn;
   for (const std::shared_ptr<ProofNode>& cp : cc)
@@ -1856,7 +1857,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_pnm->updateNode(pf.get(), npn.get());
+    d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
   }
 }

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -710,6 +710,10 @@ private:
    * false, and 0 if it is not asserted.
    */
   int getGuardStatus( Node g );
+  /** Calls util::getSelector based on the value of options::dtShareSel */
+  Node getSelectorInternal(TypeNode dtt,
+                           const DTypeConstructor& dc,
+                           size_t index) const;
 };
 
 }

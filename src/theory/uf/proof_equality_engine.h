@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -81,7 +81,7 @@ class EqualityEngine;
  * - explain, for explaining why a literal is true in the current state.
  * Details on these methods can be found below.
  */
-class ProofEqEngine : protected EnvObj, public EagerProofGenerator
+class ProofEqEngine : public EagerProofGenerator
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofMap;
@@ -287,8 +287,6 @@ class ProofEqEngine : protected EnvObj, public EagerProofGenerator
   /** common nodes */
   Node d_true;
   Node d_false;
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The SAT-context-dependent proof object */
   LazyCDProof d_proof;
   /**

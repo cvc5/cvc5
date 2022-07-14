@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -116,7 +116,7 @@ void NormalForm::addToExplanation(Node exp,
 
 void NormalForm::getExplanation(int index, std::vector<Node>& curr_exp)
 {
-  if (index == -1 || !options::stringMinPrefixExplain())
+  if (index == -1)
   {
     curr_exp.insert(curr_exp.end(), d_exp.begin(), d_exp.end());
     return;

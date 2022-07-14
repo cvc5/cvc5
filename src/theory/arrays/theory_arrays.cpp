@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,7 +79,7 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal conflicts")),
       d_ppEqualityEngine(d_env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
-      d_rewriter(env.getRewriter(), d_pnm),
+      d_rewriter(env),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_literalsToPropagate(context()),

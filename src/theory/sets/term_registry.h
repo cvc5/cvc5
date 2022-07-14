@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,20 +44,7 @@ class TermRegistry : protected EnvObj
   TermRegistry(Env& env,
                SolverState& state,
                InferenceManager& im,
-               SkolemCache& skc,
-               ProofNodeManager* pnm);
-  /** Get type constraint skolem
-   *
-   * The sets theory solver outputs equality lemmas of the form:
-   *   n = d_tc_skolem[n][tn]
-   * where the type of d_tc_skolem[n][tn] is tn, and the type
-   * of n is not a subtype of tn. This is required to handle benchmarks like
-   *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
-   * where for s : (Set Int) and t : (Set Real), we have that
-   *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
-   * The type constraint Skolem for (y, Int) is the skolemization of k above.
-   */
-  Node getTypeConstraintSkolem(Node n, TypeNode tn);
+               SkolemCache& skc);
   /** get the proxy variable for set n
    *
    * Proxy variables are used to communicate information that otherwise would
@@ -88,8 +75,6 @@ class TermRegistry : protected EnvObj
   NodeMap d_proxy;
   /** Backwards map of above */
   NodeMap d_proxy_to_term;
-  /** Cache of type constraint skolems (see getTypeConstraintSkolem) */
-  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;
   /** Map from types to empty set of that type */
   std::map<TypeNode, Node> d_emptyset;
   /** Map from types to universe set of that type */

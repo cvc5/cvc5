@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Gereon Kremer
+ *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -289,7 +289,7 @@ class InferenceGenerator
    *     (= (bag.count e skolem) (bag.count e A)))
    * where skolem is a variable equals (bag.filter p A)
    */
-  InferInfo filterDownwards(Node n, Node e);
+  InferInfo filterDown(Node n, Node e);
 
   /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
@@ -303,30 +303,62 @@ class InferenceGenerator
    *     (and (not (p e)) (= (bag.count e skolem) 0)))
    * where skolem is a variable equals (bag.filter p A)
    */
-  InferInfo filterUpwards(Node n, Node e);
+  InferInfo filterUp(Node n, Node e);
 
   /**
-   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param n is a (table.product A B) where A, B are tables
    * @param e1 an element of the form (tuple a1 ... am)
    * @param e2 an element of the form (tuple b1 ... bn)
    * @return  an inference that represents the following
-   * (=
-   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
-   *   (* (bag.count e1 A) (bag.count e2 B)))
+   * (=> (and (bag.member e1 A) (bag.member e2 B))
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count e1 A) (bag.count e2 B))))
    * where skolem is a variable equals (bag.product A B)
    */
   InferInfo productUp(Node n, Node e1, Node e2);
 
   /**
-   * @param n is a (table.product A B) where A, B are bags of tuples
+   * @param n is a (table.product A B) where A, B are tables
    * @param e an element of the form (tuple a1 ... am b1 ... bn)
    * @return an inference that represents the following
-   * (=
-   *   (bag.count (tuple a1 ... am b1 ... bn) skolem)
-   *   (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B)))
+   * (=> (bag.member e skolem)
+   *   (=
+   *     (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *     (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B))))
    * where skolem is a variable equals (bag.product A B)
    */
   InferInfo productDown(Node n, Node e);
+
+  /**
+   * @param n is a ((_ table.join m1 n1 ... mk nk) A B) where A, B are tables
+   * @param e1 an element of the form (tuple a1 ... am)
+   * @param e2 an element of the form (tuple b1 ... bn)
+   * @return  an inference that represents the following
+   * (=> (and
+   *       (bag.member e1 A)
+   *       (bag.member e2 B)
+   *       (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk}))
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count e1 A) (bag.count e2 B))))
+   * where skolem is a variable equals ((_ table.join m1 n1 ... mk nk) A B)
+   */
+  InferInfo joinUp(Node n, Node e1, Node e2);
+
+  /**
+   * @param n is a (table.product A B) where A, B are tables
+   * @param e an element of the form (tuple a1 ... am b1 ... bn)
+   * @return an inference that represents the following
+   * (=> (bag.member e skolem)
+   *   (and
+   *     (= a_{m1} b_{n1}) ... (= a_{mk} b_{nk})
+   *     (=
+   *       (bag.count (tuple a1 ... am b1 ... bn) skolem)
+   *       (* (bag.count (tuple a1 ... am A) (bag.count (tuple b1 ... bn) B))))
+   * where skolem is a variable equals ((_ table.join m1 n1 ... mk nk) A B)
+   */
+  InferInfo joinDown(Node n, Node e);
 
   /**
    * @param element of type T
@@ -334,6 +366,147 @@ class InferenceGenerator
    * @return  a count term (bag.count element bag)
    */
   Node getMultiplicityTerm(Node element, Node bag);
+
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type T
+   * @return an inference that represents:
+   * (=>
+   *  (= A (as bag.empty T))
+   *  (= skolem (bag (as bag.empty T) 1))
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
+   */
+  InferInfo groupNotEmpty(Node n);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param e an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (bag.member x A)
+   *   (and
+   *     (= (bag.count (part x) skolem) 1)
+   *     (= (bag.count x (part x)) (bag.count x A))
+   *     (= (bag.count (as bag.empty (Table T)) skolem) 0)
+   *   )
+   * )
+   *
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
+   */
+  InferInfo groupUp1(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param e an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (= (bag.count x A) 0)
+   *   (= (part x) (as bag.empty (Table T)))
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
+   */
+  InferInfo groupUp2(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param B an element of type (Table T)
+   * @param x an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (bag.member B skolem)
+   *     (bag.member x B)
+   *   )
+   *   (and
+   *     (= (bag.count x B) (bag.count x A))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  InferInfo groupDown(Node n, Node B, Node x, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param B an element of type (Table T) and B is not of the form (part x)
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (bag.member B skolem)
+   *     (not (= A (as bag.empty (Table T)))
+   *   )
+   *   (and
+   *     (= (bag.count B skolem) 1)
+   *     (= B (part k_{n, B}))
+   *     (>= (bag.count k_{n,B} B) 1)
+   *     (= (bag.count k_{n,B} B) (bag.count k_{n,B} A))
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A), and
+   * k_{n, B} is a fresh skolem of type T.
+   */
+  InferInfo groupPartCount(Node n, Node B, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param B an element of type (Table T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (bag.member B skolem)
+   *     (bag.member x B)
+   *     (bag.member y B)
+   *     (distinct x y)
+   *   )
+   *   (and
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *     (= (part x) (part y))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  InferInfo groupSameProjection(Node n, Node B, Node x, Node y, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @param B an element of type (Table T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @param part a skolem function of type T -> (Table T) created uniquely for n
+   * by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (bag.member B skolem)
+   *     (bag.member x B)
+   *     (bag.member y A)
+   *     (distinct x y)
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *   )
+   *   (and
+   *     (= (bag.count y B) (bag.count y A))
+   *     (= (part x) (part y))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  InferInfo groupSamePart(Node n, Node B, Node x, Node y, Node part);
+  /**
+   * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
+   * @return a function of type T -> (Table T) that maps elements T to a part in
+   * the partition
+   */
+  Node defineSkolemPartFunction(Node n);
 
  private:
   /**

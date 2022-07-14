@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Andrew Reynolds
+ *   Morgan Deters, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,9 +13,9 @@
  * A node value.
  *
  * The actual node implementation.
- * Instances of this class are generally referenced through cvc5::internal::Node rather
- * than by pointer. Note that cvc5::internal::Node maintains the reference count on
- * NodeValue instances.
+ * Instances of this class are generally referenced through cvc5::internal::Node
+ * rather than by pointer. Note that cvc5::internal::Node maintains the
+ * reference count on NodeValue instances.
  */
 #include "expr/node_value.h"
 
@@ -37,21 +37,18 @@ namespace expr {
 
 string NodeValue::toString() const {
   stringstream ss;
-  toStream(ss, -1, false);
+  toStream(ss);
   return ss.str();
 }
 
-void NodeValue::toStream(std::ostream& out,
-                         int toDepth,
-                         size_t dag) const
+void NodeValue::toStream(std::ostream& out) const
 {
   // Ensure that this node value is live for the length of this call.
   // It really breaks things badly if we don't have a nonzero ref
   // count, even just for printing.
   RefCountGuard guard(this);
 
-  auto language = options::ioutils::getOutputLang(out);
-  Printer::getPrinter(language)->toStream(out, TNode(this), toDepth, dag);
+  Printer::getPrinter(out)->toStream(out, TNode(this));
 }
 
 void NodeValue::printAst(std::ostream& out, int ind) const {
@@ -94,9 +91,7 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
 
 std::ostream& operator<<(std::ostream& out, const NodeValue& nv)
 {
-  nv.toStream(out,
-              options::ioutils::getNodeDepth(out),
-              options::ioutils::getDagThresh(out));
+  nv.toStream(out);
   return out;
 }
 

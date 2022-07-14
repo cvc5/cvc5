@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mudathir Mohamed
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -213,6 +213,12 @@ class BaseSolver : protected EnvObj
   void checkCardinalityType(TypeNode tn,
                             std::vector<std::vector<Node> >& cols,
                             std::vector<Node>& lts);
+  /**
+   * Called when a and b are constant-like terms in the same equivalence class.
+   *
+   * @return true if a conflict was discovered
+   */
+  bool processConstantLike(Node a, Node b);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -233,6 +239,11 @@ class BaseSolver : protected EnvObj
    * various inference schemas implemented by this class.
    */
   NodeSet d_congruent;
+  /**
+   * Set of equalities that we have applied STRINGS_UNIT_INJ_OOB to
+   * in the current user context
+   */
+  NodeSet d_strUnitOobEq;
   /**
    * Maps equivalence classes to their info, see description of `BaseEqcInfo`
    * for more information.

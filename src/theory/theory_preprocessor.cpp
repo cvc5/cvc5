@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,19 +44,19 @@ TheoryPreprocessor::TheoryPreprocessor(Env& env, TheoryEngine& engine)
   {
     context::Context* u = userContext();
     d_tpg.reset(
-        new TConvProofGenerator(pnm,
+        new TConvProofGenerator(env,
                                 u,
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "TheoryPreprocessor::preprocess_rewrite",
                                 &d_rtfc));
-    d_tpgRew.reset(new TConvProofGenerator(pnm,
+    d_tpgRew.reset(new TConvProofGenerator(env,
                                            u,
                                            TConvPolicy::ONCE,
                                            TConvCachePolicy::NEVER,
                                            "TheoryPreprocessor::pprew"));
     d_lp.reset(
-        new LazyCDProof(pnm, nullptr, u, "TheoryPreprocessor::LazyCDProof"));
+        new LazyCDProof(env, nullptr, u, "TheoryPreprocessor::LazyCDProof"));
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) rewriting
@@ -147,7 +147,8 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     // node -> irNode via rewriting
     // irNode -> ppNode via theory-preprocessing + rewriting + tf removal
     tret = d_tspg->mkTrustRewriteSequence(cterms);
-    tret.debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_ret");
+    tret.debugCheckClosed(
+        options(), "tpp-debug", "TheoryPreprocessor::lemma_ret");
   }
   else
   {
@@ -479,8 +480,8 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
   {
     Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (generator) "
                        << term << " -> " << termr << std::endl;
-    trn.debugCheckClosed("tpp-debug",
-                         "TheoryPreprocessor::preprocessWithProof");
+    trn.debugCheckClosed(
+        options(), "tpp-debug", "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
         term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true, tctx);

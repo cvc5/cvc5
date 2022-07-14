@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Abdalrhman Mohamed, Mudathir Mohamed, Aina Niemetz
+ *   Abdalrhman Mohamed, Mathias Preiner, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +49,7 @@ int main()
   Term plus = slv.mkTerm(ADD, {x, start});
 
   // create the grammar object
-  Grammar g1 = slv.mkSygusGrammar({x}, {start});
+  Grammar g1 = slv.mkGrammar({x}, {start});
 
   // bind each non-terminal to its rules
   g1.addRules(start, {neg_x, plus});

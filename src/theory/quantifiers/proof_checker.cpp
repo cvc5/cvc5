@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +45,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Node t = SkolemManager::getOriginalForm(args[0]);
+    Node t = SkolemManager::getUnpurifiedForm(args[0]);
     return args[0].eqNode(t);
   }
   else if (id == PfRule::SKOLEMIZE)

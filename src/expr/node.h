@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -815,12 +815,10 @@ public:
    * print it fully
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       int toDepth = -1,
-                       size_t dagThreshold = 1) const
+  inline void toStream(std::ostream& out) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, dagThreshold);
+    d_nv->toStream(out);
   }
 
   void constToStream(std::ostream& out) const
@@ -862,9 +860,7 @@ public:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
-  n.toStream(out,
-             options::ioutils::getNodeDepth(out),
-             options::ioutils::getDagThresh(out));
+  n.toStream(out);
   return out;
 }
 

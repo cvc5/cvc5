@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,6 +27,7 @@
 #include "expr/node.h"
 #include "proof/lazy_tree_proof_generator.h"
 #include "proof/proof_set.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/coverings/cdcac_utils.h"
 
 namespace cvc5::internal {
@@ -50,12 +51,12 @@ namespace coverings {
  * It uses a LazyTreeProofGenerator internally to manage the tree-based proof
  * construction.
  */
-class CoveringsProofGenerator
+class CoveringsProofGenerator : protected EnvObj
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const CoveringsProofGenerator& proof);
-  CoveringsProofGenerator(context::Context* ctx, ProofNodeManager* pnm);
+  CoveringsProofGenerator(Env& env, context::Context* ctx);
 
   /** Start a new proof in this proof generator */
   void startNewProof();
@@ -130,8 +131,6 @@ class CoveringsProofGenerator
                                   VariableMapper& vm);
 
  private:
-  /** The proof node manager used for the proofs */
-  ProofNodeManager* d_pnm;
   /** The list of generated proofs */
   CDProofSet<LazyTreeProofGenerator> d_proofs;
   /** The current proof */

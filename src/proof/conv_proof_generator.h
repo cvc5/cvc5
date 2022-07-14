@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -114,14 +114,14 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  * replayed in the expected way, e.g. the occurrence of (and A B) that is not
  * in term position is not rewritten.
  */
-class TConvProofGenerator : public ProofGenerator
+class TConvProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
   /**
    * Constructor, which notice does fixpoint rewriting (since this is the
    * most common use case) and never caches.
    *
-   * @param pnm The proof node manager for constructing ProofNode objects.
+   * @param env Reference to the environment.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    * @param tpol The policy for applying rewrite steps of this class. For
@@ -132,7 +132,7 @@ class TConvProofGenerator : public ProofGenerator
    * is non-null, then this class stores a term-context-sensitive rewrite
    * system. The rewrite steps should be given term context identifiers.
    */
-  TConvProofGenerator(ProofNodeManager* pnm,
+  TConvProofGenerator(Env& env,
                       context::Context* c = nullptr,
                       TConvPolicy pol = TConvPolicy::FIXPOINT,
                       TConvCachePolicy cpol = TConvCachePolicy::NEVER,

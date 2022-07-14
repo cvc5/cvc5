@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +37,7 @@ class TestApiBlackSort : public TestApi
   Sort create_param_datatype_sort()
   {
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
+    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", {sort});
     DatatypeConstructorDecl paramCons =
         d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl paramNil =
@@ -48,6 +48,12 @@ class TestApiBlackSort : public TestApi
     return d_solver.mkDatatypeSort(paramDtypeSpec);
   }
 };
+
+TEST_F(TestApiBlackSort, hash)
+{
+  std::hash<cvc5::Sort> h;
+  ASSERT_NO_THROW(h(d_solver.getIntegerSort()));
+}
 
 TEST_F(TestApiBlackSort, operators_comparison)
 {
@@ -146,7 +152,7 @@ TEST_F(TestApiBlackSort, isConstructor)
 {
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
-  Sort cons_sort = dt[0].getConstructorTerm().getSort();
+  Sort cons_sort = dt[0].getTerm().getSort();
   ASSERT_TRUE(cons_sort.isDatatypeConstructor());
   ASSERT_NO_THROW(Sort().isDatatypeConstructor());
 }
@@ -155,7 +161,7 @@ TEST_F(TestApiBlackSort, isSelector)
 {
   Sort dt_sort = create_datatype_sort();
   Datatype dt = dt_sort.getDatatype();
-  Sort cons_sort = dt[0][1].getSelectorTerm().getSort();
+  Sort cons_sort = dt[0][1].getTerm().getSort();
   ASSERT_TRUE(cons_sort.isDatatypeSelector());
   ASSERT_NO_THROW(Sort().isDatatypeSelector());
 }
@@ -277,7 +283,7 @@ TEST_F(TestApiBlackSort, datatypeSorts)
 
   // get constructor
   DatatypeConstructor dcons = dt[0];
-  Term consTerm = dcons.getConstructorTerm();
+  Term consTerm = dcons.getTerm();
   Sort consSort = consTerm.getSort();
   ASSERT_TRUE(consSort.isDatatypeConstructor());
   ASSERT_FALSE(consSort.isDatatypeTester());
@@ -299,7 +305,7 @@ TEST_F(TestApiBlackSort, datatypeSorts)
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
-  Term tailTerm = dselTail.getSelectorTerm();
+  Term tailTerm = dselTail.getTerm();
   ASSERT_TRUE(tailTerm.getSort().isDatatypeSelector());
   ASSERT_EQ(tailTerm.getSort().getDatatypeSelectorDomainSort(), dtypeSort);
   ASSERT_EQ(tailTerm.getSort().getDatatypeSelectorCodomainSort(), dtypeSort);

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -125,7 +125,8 @@ Node EnumValueManager::getEnumeratedValue(bool& activeIncomplete)
             d_secd.get(),
             &d_stats,
             false,
-            options().quantifiers.sygusRepairConst);
+            options().quantifiers.sygusRepairConst,
+            options().quantifiers.sygusEnumFastNumConsts);
       }
     }
     Trace("sygus-active-gen")

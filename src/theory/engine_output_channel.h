@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,8 +53,6 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  void demandRestart() override;
-
   void requirePhase(TNode n, bool phase) override;
 
   void setIncomplete(IncompleteId id) override;
@@ -85,10 +83,9 @@ class EngineOutputChannel : public theory::OutputChannel
   {
    public:
     Statistics(theory::TheoryId theory);
-    /** Number of calls to conflict, propagate, lemma, requirePhase,
-     * restartDemands */
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands,
-        trustedConflicts, trustedLemmas;
+    /** Number of calls to conflict, propagate, lemma, requirePhase */
+    IntStat conflicts, propagations, lemmas, requirePhase, trustedConflicts,
+        trustedLemmas;
   };
   /** The theory engine we're communicating with. */
   TheoryEngine* d_engine;

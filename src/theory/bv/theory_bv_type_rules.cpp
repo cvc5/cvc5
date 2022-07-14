@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -264,42 +264,6 @@ TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
                               ? n.getOperator().getConst<BitVectorSignExtend>()
                               : n.getOperator().getConst<BitVectorZeroExtend>();
   return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());
-}
-
-TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
-                                               TNode n,
-                                               bool check)
-{
-  Assert(n.getKind() == kind::INT_TO_BITVECTOR_OP);
-  size_t bvSize = n.getConst<IntToBitVector>();
-  if (bvSize == 0)
-  {
-    throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
-  }
-  return nodeManager->mkFunctionType(nodeManager->integerType(),
-                                     nodeManager->mkBitVectorType(bvSize));
-}
-
-TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
-                                                  TNode n,
-                                                  bool check)
-{
-  if (n.getKind() == kind::BITVECTOR_TO_NAT)
-  {
-    if (check && !n[0].getType(check).isBitVector())
-    {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
-    }
-    return nodeManager->integerType();
-  }
-
-  Assert(n.getKind() == kind::INT_TO_BITVECTOR);
-  size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-  if (check && !n[0].getType(check).isInteger())
-  {
-    throw TypeCheckingExceptionPrivate(n, "expecting integer term");
-  }
-  return nodeManager->mkBitVectorType(bvSize);
 }
 
 TypeNode BitVectorEagerAtomTypeRule::computeType(NodeManager* nodeManager,

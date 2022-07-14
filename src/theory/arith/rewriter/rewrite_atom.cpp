@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -226,11 +226,13 @@ std::optional<bool> tryEvaluateRelation(Kind rel, TNode left, TNode right)
   return {};
 }
 
-std::optional<bool> tryEvaluateRelationReflexive(TNode atom)
+std::optional<bool> tryEvaluateRelationReflexive(Kind rel,
+                                                 TNode left,
+                                                 TNode right)
 {
-  if (atom.getNumChildren() == 2 && atom[0] == atom[1])
+  if (left == right)
   {
-    switch (atom.getKind())
+    switch (rel)
     {
       case Kind::LT: return false;
       case Kind::LEQ: return true;
@@ -295,7 +297,10 @@ Node buildIntegerEquality(Sum&& sum)
   Trace("arith-rewriter::debug")
       << "\tbuilding " << left << " = " << sum << std::endl;
 
-  return buildRelation(Kind::EQUAL, left, collectSum(sum));
+  Node rhs = collectSum(sum);
+  Assert(left.getType().isInteger());
+  Assert(rhs.getType().isInteger());
+  return buildRelation(Kind::EQUAL, left, rhs);
 }
 
 Node buildRealEquality(Sum&& sum)
@@ -311,7 +316,15 @@ Node buildRealEquality(Sum&& sum)
   {
     s.second = s.second / lcoeff;
   }
-  return buildRelation(Kind::EQUAL, lterm.first, collectSum(sum));
+  // Must ensure real for both sides. This may change one but not both
+  // terms.
+  Node lhs = lterm.first;
+  lhs = ensureReal(lhs);
+  Node rhs = collectSum(sum);
+  rhs = ensureReal(rhs);
+  Assert(lhs.getType().isReal() && !lhs.getType().isInteger());
+  Assert(rhs.getType().isReal() && !rhs.getType().isInteger());
+  return buildRelation(Kind::EQUAL, lhs, rhs);
 }
 
 Node buildIntegerInequality(Sum&& sum, Kind k)

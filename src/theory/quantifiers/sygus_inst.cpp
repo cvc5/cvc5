@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -268,7 +268,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   FirstOrderModel* model = d_treg.getModel();
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
-  SygusExplain syexplain(db);
+  SygusExplain syexplain(d_env, db);
   NodeManager* nm = NodeManager::currentNM();
   options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 
@@ -358,6 +358,11 @@ void SygusInst::registerQuantifier(Node q)
 {
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
 
+  if (!shouldProcess(q))
+  {
+    return;
+  }
+
   Trace("sygus-inst") << "Register " << q << std::endl;
 
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
@@ -441,7 +446,8 @@ void SygusInst::registerQuantifier(Node q)
   for (const Node& var : q[0])
   {
     addSpecialValues(var.getType(), extra_cons);
-    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
+    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(options(),
+                                                            var.getType(),
                                                             Node(),
                                                             var.toString(),
                                                             extra_cons,
@@ -463,6 +469,10 @@ void SygusInst::registerQuantifier(Node q)
  */
 void SygusInst::preRegisterQuantifier(Node q)
 {
+  if (!shouldProcess(q))
+  {
+    return;
+  }
   Trace("sygus-inst") << "preRegister " << q << std::endl;
   addCeLemma(q);
 }

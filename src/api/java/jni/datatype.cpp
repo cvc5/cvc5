@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,24 +63,6 @@ Java_io_github_cvc5_Datatype_getConstructor__JLjava_lang_String_2(
       new DatatypeConstructor(current->operator[](cName));
   env->ReleaseStringUTFChars(jName, s);
   return (jlong)retPointer;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Datatype
- * Method:    getConstructorTerm
- * Signature: (JLjava/lang/String;)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Datatype_getConstructorTerm(
-    JNIEnv* env, jobject, jlong pointer, jstring jName)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Datatype* current = (Datatype*)pointer;
-  const char* s = env->GetStringUTFChars(jName, nullptr);
-  std::string cName(s);
-  Term* retPointer = new Term(current->getConstructorTerm(cName));
-  env->ReleaseStringUTFChars(jName, s);
-  return ((jlong)retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

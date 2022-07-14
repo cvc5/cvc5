@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,9 +36,10 @@ namespace nl {
 
 class NlModel;
 
-struct ExtState
+class ExtState : protected EnvObj
 {
-  ExtState(InferenceManager& im, NlModel& model, Env& env);
+ public:
+  ExtState(Env& env, InferenceManager& im, NlModel& model);
 
   void init(const std::vector<Node>& xts);
 
@@ -61,8 +62,6 @@ struct ExtState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
-  /** Reference to the environment */
-  Env& d_env;
   /**
    * A CDProofSet that hands out CDProof objects for lemmas.
    */

@@ -32,5 +32,7 @@ Non-standard or extended theories
    bags
    datatypes
    separation-logic
+   sequences
    sets-and-relations
+   strings
    transcendentals

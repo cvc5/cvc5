@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,8 +59,7 @@ class TermRegistry : protected EnvObj
   TermRegistry(Env& env,
                Theory& t,
                SolverState& s,
-               SequencesStatistics& statistics,
-               ProofNodeManager* pnm);
+               SequencesStatistics& statistics);
   ~TermRegistry();
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;
@@ -164,8 +163,8 @@ class TermRegistry : protected EnvObj
    * @return true if any seq.nth or seq.update terms have been preregistered
    */
   bool hasSeqUpdate() const;
-  /** is handled update */
-  bool isHandledUpdate(Node n);
+  /** is handled update or substring */
+  bool isHandledUpdateOrSubstr(Node n);
   /** get base */
   Node getUpdateBase(Node n);
   //---------------------------- end queries

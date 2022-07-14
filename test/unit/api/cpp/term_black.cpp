@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Makai Mann, Andrew Reynolds
+ *   Aina Niemetz, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -175,7 +175,7 @@ TEST_F(TestApiBlackTerm, getOp)
 
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
+  DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", {sort});
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
@@ -188,10 +188,10 @@ TEST_F(TestApiBlackTerm, getOp)
   Term c = d_solver.mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
   // list datatype constructor and selector operator terms
-  Term consOpTerm = list.getConstructorTerm("cons");
-  Term nilOpTerm = list.getConstructorTerm("nil");
-  Term headOpTerm = list["cons"].getSelectorTerm("head");
-  Term tailOpTerm = list["cons"].getSelectorTerm("tail");
+  Term consOpTerm = list.getConstructor("cons").getTerm();
+  Term nilOpTerm = list.getConstructor("nil").getTerm();
+  Term headOpTerm = list["cons"].getSelector("head").getTerm();
+  Term tailOpTerm = list["cons"].getSelector("tail").getTerm();
 
   Term nilTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR, {nilOpTerm});
   Term consTerm = d_solver.mkTerm(APPLY_CONSTRUCTOR,
@@ -666,6 +666,14 @@ TEST_F(TestApiBlackTerm, termChildren)
   ASSERT_EQ(t1.getNumChildren(), 2);
   Term tnull;
   ASSERT_THROW(tnull.getNumChildren(), CVC5ApiException);
+
+  Term::const_iterator it;
+  it = t1.begin();
+  ASSERT_TRUE((*it).isIntegerValue());
+  it++;
+  ASSERT_TRUE((*it).isIntegerValue());
+  ++it;
+  ASSERT_EQ(it, t1.end());
 
   // apply term f(2)
   Sort intSort = d_solver.getIntegerSort();
@@ -1159,6 +1167,16 @@ TEST_F(TestApiBlackTerm, termScopedToString)
   ASSERT_EQ(x.toString(), "x");
 }
 
-TEST_F(TestApiBlackTerm, toString) { ASSERT_NO_THROW(Term().toString()); }
+TEST_F(TestApiBlackTerm, toString) {
+  ASSERT_NO_THROW(Term().toString());
+
+  Sort intsort = d_solver.getIntegerSort();
+  Term x = d_solver.mkConst(intsort, "x");
+  std::stringstream ss;
+
+  ss << std::vector<Term>{x, x};
+  ss << std::set<Term>{x, x};
+  ss << std::unordered_set<Term>{x, x};
+}
 }  // namespace test
 }  // namespace cvc5::internal

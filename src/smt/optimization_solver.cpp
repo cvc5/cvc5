@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Michael Chang, Aina Niemetz
+ *   Yancheng Ou, Andrew Reynolds, Michael Chang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +35,7 @@ namespace smt {
 std::ostream& operator<<(std::ostream& out, const OptimizationResult& result)
 {
   // check the output language first
-  Language lang = options::ioutils::getOutputLang(out);
+  Language lang = options::ioutils::getOutputLanguage(out);
   if (!language::isLangSmt2(lang))
   {
     Unimplemented()
@@ -69,7 +69,7 @@ std::ostream& operator<<(std::ostream& out,
                          const OptimizationObjective& objective)
 {
   // check the output language first
-  Language lang = options::ioutils::getOutputLang(out);
+  Language lang = options::ioutils::getOutputLanguage(out);
   if (!language::isLangSmt2(lang))
   {
     Unimplemented()

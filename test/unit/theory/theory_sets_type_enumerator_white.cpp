@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +41,7 @@ class TestTheoryWhiteSetsTypeEnumerator : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsTypeEnumerator, set_of_booleans)
 {
+  Rewriter* rr = d_slvEngine->getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   SetEnumerator setEnumerator(d_nodeManager->mkSetType(boolType));
   ASSERT_FALSE(setEnumerator.isFinished());
@@ -59,7 +60,7 @@ TEST_F(TestTheoryWhiteSetsTypeEnumerator, set_of_booleans)
   addAndCheckUnique(actual2, elems);
   ASSERT_FALSE(setEnumerator.isFinished());
 
-  Node actual3 = Rewriter::rewrite(*++setEnumerator);
+  Node actual3 = rr->rewrite(*++setEnumerator);
   addAndCheckUnique(actual3, elems);
   ASSERT_FALSE(setEnumerator.isFinished());
 

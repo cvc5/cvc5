@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,8 +79,6 @@ class NonClausalSimp : public PreprocessingPass
   Node processRewrittenLearnedLit(TrustNode trn);
   /** Is proof enabled? */
   bool isProofEnabled() const;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** the learned literal preprocess proof generator */
   std::unique_ptr<smt::PreprocessProofGenerator> d_llpg;
   /**

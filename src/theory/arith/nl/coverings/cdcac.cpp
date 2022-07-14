@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +24,7 @@
 #include "theory/arith/nl/coverings/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/rewriter.h"
+#include "util/resource_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -48,8 +49,7 @@ CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
 {
   if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(
-        new CoveringsProofGenerator(userContext(), d_env.getProofNodeManager()));
+    d_proof.reset(new CoveringsProofGenerator(env, userContext()));
   }
 }
 
@@ -268,7 +268,7 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  auto zero = NodeManager::currentNM()->mkConstReal(Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
     conditions.emplace_back(NodeManager::currentNM()->mkNode(
@@ -352,6 +352,14 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
           << "Discriminant of " << p << " -> " << discriminant(p) << std::endl;
       // Add all discriminants
       res.add(discriminant(p));
+
+      // Add pairwise resultants
+      for (const auto& q : i.d_mainPolys)
+      {
+        // avoid symmetric duplicates
+        if (p >= q) continue;
+        res.add(resultant(p, q));
+      }
 
       for (const auto& q : requiredCoefficients(p))
       {
@@ -515,6 +523,7 @@ CACInterval CDCAC::intervalFromCharacterization(
 std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
                                                   bool returnFirstInterval)
 {
+  d_env.getResourceManager()->spendResource(Resource::ArithNlCoveringStep);
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);

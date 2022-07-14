@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andres Noetzli, Liana Hadarean
+ *   Mathias Preiner, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,23 +82,27 @@ void CadicalSolver::init()
 CadicalSolver::~CadicalSolver() {}
 
 /**
- * Terminator class that notifies CaDiCaL to terminate when time limit is
- * reached (used for time limits specified via --tlimit-per).
+ * Terminator class that notifies CaDiCaL to terminate when the resource limit
+ * is reached (used for resource limits specified via --rlimit or --tlimit).
  */
-class TimeLimitTerminator : public CaDiCaL::Terminator
+class ResourceLimitTerminator : public CaDiCaL::Terminator
 {
  public:
-  TimeLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr){};
+  ResourceLimitTerminator(ResourceManager& resmgr) : d_resmgr(resmgr){};
 
-  bool terminate() override { return d_resmgr.outOfTime(); }
+  bool terminate() override
+  {
+    d_resmgr.spendResource(Resource::BvSatStep);
+    return d_resmgr.outOfResources() || d_resmgr.outOfTime();
+  }
 
  private:
   ResourceManager& d_resmgr;
 };
 
-void CadicalSolver::setTimeLimit(ResourceManager* resmgr)
+void CadicalSolver::setResourceLimit(ResourceManager* resmgr)
 {
-  d_terminator.reset(new TimeLimitTerminator(*resmgr));
+  d_terminator.reset(new ResourceLimitTerminator(*resmgr));
   d_solver->connect_terminator(d_terminator.get());
 }
 

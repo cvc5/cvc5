@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -249,6 +249,20 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
   // reductions inference of the sine solver) may have introduced substitutions
   // internally during check.
   Node svalue = d_model.getSubstitutedForm(value);
+  // ensure the value has integer type if var has integer type
+  if (var.getType().isInteger())
+  {
+    if (svalue.getKind() == Kind::TO_REAL)
+    {
+      svalue = svalue[0];
+    }
+    else if (svalue.getKind() == Kind::CONST_RATIONAL)
+    {
+      Assert(svalue.getConst<Rational>().isIntegral());
+      svalue =
+          NodeManager::currentNM()->mkConstInt(svalue.getConst<Rational>());
+    }
+  }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
   d_model.addSubstitution(var, svalue);
 }

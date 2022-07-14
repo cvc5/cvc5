@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "proof/proof_generator.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -31,12 +32,12 @@ class ProofStep;
  * mapping from formulas to proof steps. It does not generate ProofNodes until
  * it is asked to provide a proof for a given fact.
  */
-class BufferedProofGenerator : public ProofGenerator
+class BufferedProofGenerator : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>> NodeProofStepMap;
 
  public:
-  BufferedProofGenerator(context::Context* c, ProofNodeManager* pnm);
+  BufferedProofGenerator(Env& env, context::Context* c);
   ~BufferedProofGenerator() {}
   /** add step
    * Unless the overwrite policy is ALWAYS it does not replace previously
@@ -55,8 +56,6 @@ class BufferedProofGenerator : public ProofGenerator
  private:
   /** maps expected to ProofStep */
   NodeProofStepMap d_facts;
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace cvc5::internal

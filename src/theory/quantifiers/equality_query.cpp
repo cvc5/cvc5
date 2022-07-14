@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -128,7 +128,7 @@ Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
   Trace("internal-rep-select")
       << "...Choose " << r_best << " with score " << r_best_score
       << " and type " << r_best.getType() << std::endl;
-  Assert(r_best.getType().isSubtypeOf(v_tn));
+  Assert(r_best.getType() == v_tn);
   v_int_rep[r] = r_best;
   if (TraceIsOn("internal-rep-debug"))
   {
@@ -168,11 +168,11 @@ Node EqualityQuery::getInstance(Node n,
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
 int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 {
-  if (options().quantifiers.cegqi && quantifiers::TermUtil::hasInstConstAttr(n))
+  if (quantifiers::TermUtil::hasInstConstAttr(n))
   {  // reject
     return -2;
   }
-  else if (!n.getType().isSubtypeOf(v_tn))
+  else if (n.getType() != v_tn)
   {  // reject if incorrect type
     return -2;
   }

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +21,7 @@
 
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
 #include "smt/command.h"
@@ -31,11 +32,10 @@ namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          size_t dag) const
+void AstPrinter::toStream(std::ostream& out, TNode n) const
 {
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
   if(dag != 0) {
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
@@ -187,13 +187,14 @@ void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "Assert(" << n << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdPush(std::ostream& out) const
+void AstPrinter::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "Push()" << std::endl;
+  out << "Push(" << nscopes << ")" << std::endl;
 }
 
-void AstPrinter::toStreamCmdPop(std::ostream& out) const {
-  out << "Pop()" << std::endl;
+void AstPrinter::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
+{
+  out << "Pop(" << nscopes << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const
@@ -227,32 +228,6 @@ void AstPrinter::toStreamCmdResetAssertions(std::ostream& out) const
 void AstPrinter::toStreamCmdQuit(std::ostream& out) const
 {
   out << "Quit()" << std::endl;
-}
-
-void AstPrinter::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  out << "DeclarationSequence[" << endl;
-  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
-}
-
-void AstPrinter::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  out << "cvc5::CommandSequence[" << endl;
-  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
 }
 
 void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
@@ -436,10 +411,7 @@ static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 
 static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-  if (cvc5::Command::printsuccess::getPrintSuccess(out))
-  {
-    out << "OK" << endl;
-  }
+  out << "OK" << endl;
 }
 
 static void toStream(std::ostream& out, const cvc5::CommandInterrupted* s)

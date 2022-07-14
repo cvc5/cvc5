@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,12 +25,11 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/kind.h"
-#include "expr/symbol_manager.h"
-#include "expr/symbol_table.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
+#include "symbol_table.h"
 
 namespace cvc5 {
 
@@ -118,7 +117,7 @@ private:
  /**
   * This current symbol table used by this parser, from symbol manager.
   */
- internal::SymbolTable* d_symtab;
+ internal::parser::SymbolTable* d_symtab;
 
  /**
   * The level of the assertions in the declaration scope.  Things declared
@@ -163,15 +162,6 @@ private:
 
  /** The set of attributes already warned about. */
  std::set<std::string> d_attributesWarnedAbout;
-
- /**
-  * The current set of unresolved types.  We can get by with this NOT
-  * being on the scope, because we can only have one DATATYPE
-  * definition going on at one time.  This is a bit hackish; we
-  * depend on mkMutualDatatypeTypes() to check everything and clear
-  * this out.
-  */
- std::set<cvc5::Sort> d_unresolved;
 
  /**
   * "Preemption commands": extra commands implied by subterms that
@@ -219,9 +209,6 @@ public:
 
   /** Get the associated input. */
   Input* getInput() const { return d_input.get(); }
-
-  /** Get unresolved sorts */
-  inline std::set<cvc5::Sort>& getUnresolvedSorts() { return d_unresolved; }
 
   /** Deletes and replaces the current parser input. */
   void setInput(Input* input)  {
@@ -507,11 +494,6 @@ public:
    * depending on the arity.
    */
   cvc5::Sort mkUnresolvedType(const std::string& name, size_t arity);
-
-  /**
-   * Returns true IFF name is an unresolved type.
-   */
-  bool isUnresolvedType(const std::string& name);
 
   /**
    * Creates and binds sorts of a list of mutually-recursive datatype

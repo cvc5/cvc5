@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +40,7 @@ class LazyCDProofChain : public CDProof
  public:
   /** Constructor
    *
-   * @param pnm The proof node manager for constructing ProofNode objects.
+   * @param env Reference to the environment
    * @param cyclic Whether this instance is robust to cycles in the chain.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
@@ -48,7 +48,7 @@ class LazyCDProofChain : public CDProof
    * for a step.
    * @param defRec Whether this instance expands proofs from defGen recursively.
    */
-  LazyCDProofChain(ProofNodeManager* pnm,
+  LazyCDProofChain(Env& env,
                    bool cyclic = true,
                    context::Context* c = nullptr,
                    ProofGenerator* defGen = nullptr,
@@ -147,9 +147,6 @@ class LazyCDProofChain : public CDProof
    * Returns a nullptr when no internal proof stored.
    */
   std::shared_ptr<ProofNode> getProofForInternal(Node fact, bool& rec);
-
-  /** The proof manager, used for allocating new ProofNode objects */
-  ProofNodeManager* d_manager;
   /** Whether this instance is robust to cycles in the chain. */
   bool d_cyclic;
   /** Whether we expand recursively (for the default generator) */

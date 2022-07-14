@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Ying Sheng
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -303,7 +303,8 @@ void SolverEngineState::doPendingPops()
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {
-    d_slv.notifyPostSolvePre();
+    d_slv.notifyPostSolve();
+    d_needPostsolve = false;
   }
   while (d_pendingPops > 0)
   {
@@ -313,11 +314,6 @@ void SolverEngineState::doPendingPops()
     userContext()->pop();
     --d_pendingPops;
     // no need for pop post (for now)
-  }
-  if (d_needPostsolve)
-  {
-    d_slv.notifyPostSolvePost();
-    d_needPostsolve = false;
   }
 }
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   MikolasJanota, Andrew Reynolds
+ *   Mikolas Janota, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+class Instantiate;
 class TermPools;
 class QuantifiersState;
-class TermDb;
+class TermRegistry;
 class RelevantDomain;
 
 /**  Interface for enumeration of tuples of terms.
@@ -65,6 +66,8 @@ struct TermTupleEnumeratorEnv
   bool d_fullEffort;
   /** Whether we increase tuples based on sum instead of max (see below) */
   bool d_increaseSum;
+  /** Term registry */
+  TermRegistry* d_tr;
 };
 
 /**  A function to construct a tuple enumerator.
@@ -87,17 +90,14 @@ struct TermTupleEnumeratorEnv
  * duplicates modulo equality.
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
-    Node q,
-    const TermTupleEnumeratorEnv* env,
-    QuantifiersState& qs,
-    TermDb* td);
+    Node q, const TermTupleEnumeratorEnv* env, QuantifiersState& qs);
 /** Same as above, but draws terms from the relevant domain utility (rd). */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorRd(
     Node q, const TermTupleEnumeratorEnv* env, RelevantDomain* rd);
 
 /** Make term pool enumerator */
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
-    Node q, const TermTupleEnumeratorEnv* env, TermPools* tp, Node p);
+    Node q, const TermTupleEnumeratorEnv* env, Node p);
 
 }  // namespace quantifiers
 }  // namespace theory

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Morgan Deters
+ *   Aina Niemetz, Christopher L. Conway, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,20 +17,20 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
 #include "smt/command.h"
 #include "test.h"
 
+using namespace cvc5::parser;
+using namespace cvc5::internal::parser;
+
 namespace cvc5::internal {
-
-using namespace parser;
-
 namespace test {
 
 class TestParserBlackParser : public TestInternal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed
+ *   Mudathir Mohamed, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,8 +65,33 @@ Java_io_github_cvc5_DatatypeConstructorDecl_addSelectorSelf(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeConstructorDecl* current = (DatatypeConstructorDecl*)pointer;
   const char* s = env->GetStringUTFChars(jName, nullptr);
-  std::string cName(s);
-  current->addSelectorSelf(cName);
+  std::string sName(s);
+  current->addSelectorSelf(sName);
+  env->ReleaseStringUTFChars(jName, s);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_DatatypeConstructorDecl
+ * Method:    addSelectorUnresolved
+ * Signature: (JLjava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_DatatypeConstructorDecl_addSelectorUnresolved(
+    JNIEnv* env,
+    jobject,
+    jlong pointer,
+    jstring jName,
+    jstring jUnresDataypeName)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeConstructorDecl* current = (DatatypeConstructorDecl*)pointer;
+  const char* s = env->GetStringUTFChars(jName, nullptr);
+  std::string sName(s);
+  const char* du = env->GetStringUTFChars(jUnresDataypeName, nullptr);
+  std::string duName(du);
+  current->addSelectorUnresolved(sName, duName);
+  env->ReleaseStringUTFChars(jUnresDataypeName, du);
   env->ReleaseStringUTFChars(jName, s);
   CVC5_JAVA_API_TRY_CATCH_END(env);
 }

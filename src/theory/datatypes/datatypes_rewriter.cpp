@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,10 @@
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
+#include "tuple_utils.h"
 #include "util/rational.h"
 #include "util/uninterpreted_sort_value.h"
 
@@ -36,8 +37,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval)
-    : d_sygusEval(sygusEval)
+DatatypesRewriter::DatatypesRewriter(Evaluator* sygusEval, const Options& opts)
+    : d_sygusEval(sygusEval), d_opts(opts)
 {
 }
 
@@ -146,7 +147,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Node ret = sygusToBuiltinEval(ev, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       Trace("dt-sygus-util") << "Type is " << ret.getType() << std::endl;
-      Assert(in.getType().isComparableTo(ret.getType()));
+      Assert(in.getType() == ret.getType());
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
@@ -165,29 +166,11 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     // where each i_j is less than the length of t
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
-    TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
+
+    ProjectOp op = in.getOperator().getConst<ProjectOp>();
     std::vector<uint32_t> indices = op.getIndices();
     Node tuple = in[0];
-    std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
-    std::vector<TypeNode> types;
-    std::vector<Node> elements;
-    for (uint32_t index : indices)
-    {
-      TypeNode type = tupleTypes[index];
-      types.push_back(type);
-    }
-    TypeNode projectType = nm->mkTupleType(types);
-    const DType& dt = projectType.getDType();
-    elements.push_back(dt[0].getConstructor());
-    const DType& tupleDType = tuple.getType().getDType();
-    const DTypeConstructor& constructor = tupleDType[0];
-    for (uint32_t index : indices)
-    {
-      Node selector = constructor[index].getSelector();
-      Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
-      elements.push_back(element);
-    }
-    Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+    Node ret = TupleUtils::getTupleProjection(indices, tuple);
 
     Trace("dt-rewrite-project")
         << "Rewrite project: " << in << " ... " << ret << std::endl;
@@ -797,12 +780,11 @@ Node DatatypesRewriter::replaceDebruijn(Node n,
   return n;
 }
 
-Node DatatypesRewriter::expandApplySelector(Node n)
+Node DatatypesRewriter::expandApplySelector(Node n, bool sharedSel)
 {
   Assert(n.getKind() == APPLY_SELECTOR);
   Node selector = n.getOperator();
-  if (!options::dtSharedSelectors()
-      || !selector.hasAttribute(DTypeConsIndexAttr()))
+  if (!sharedSel || !selector.hasAttribute(DTypeConsIndexAttr()))
   {
     return n;
   }
@@ -815,10 +797,7 @@ Node DatatypesRewriter::expandApplySelector(Node n)
   size_t selectorIndex = utils::indexOf(selector);
   Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
   Assert(selectorIndex < c.getNumArgs());
-  Node selector_use = c.getSelectorInternal(ndt, selectorIndex);
-  NodeManager* nm = NodeManager::currentNM();
-  Node sel = nm->mkNode(kind::APPLY_SELECTOR, selector_use, n[0]);
-  return sel;
+  return utils::applySelector(c, selectorIndex, true, n[0]);
 }
 
 TrustNode DatatypesRewriter::expandDefinition(Node n)
@@ -830,7 +809,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
   {
     case kind::APPLY_SELECTOR:
     {
-      ret = expandApplySelector(n);
+      ret = expandApplySelector(n, d_opts.datatypes.dtSharedSelectors);
     }
     break;
     case APPLY_UPDATER:
@@ -854,6 +833,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
       Trace("dt-expand") << "expr is " << n << std::endl;
       Trace("dt-expand") << "updateIndex is " << updateIndex << std::endl;
       Trace("dt-expand") << "t is " << tn << std::endl;
+      bool shareSel = d_opts.datatypes.dtSharedSelectors;
       for (size_t i = 0, size = dc.getNumArgs(); i < size; ++i)
       {
         if (i == updateIndex)
@@ -862,7 +842,7 @@ TrustNode DatatypesRewriter::expandDefinition(Node n)
         }
         else
         {
-          b << nm->mkNode(APPLY_SELECTOR, dc.getSelectorInternal(tn, i), n[0]);
+          b << utils::applySelector(dc, i, shareSel, n[0]);
         }
       }
       ret = b;

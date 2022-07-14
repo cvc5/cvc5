@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,8 @@ namespace theory {
 namespace bv {
 
 BitblastProofGenerator::BitblastProofGenerator(Env& env,
-                                               ProofNodeManager* pnm,
                                                TConvProofGenerator* tcpg)
-    : EnvObj(env), d_pnm(pnm), d_tcpg(tcpg)
+    : EnvObj(env), d_tcpg(tcpg)
 {
 }
 
@@ -32,7 +31,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
 {
   const auto& [t, bbt] = d_cache.at(eq);
 
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env);
   /* Coarse-grained bit-blast step. */
   if (t.isNull())
   {

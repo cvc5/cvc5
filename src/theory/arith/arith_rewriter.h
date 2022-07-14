@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Tim King
+ *   Gereon Kremer, Andrew Reynolds, Dejan Jovanovic
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +13,6 @@
  * Rewriter for the theory of arithmetic.
  *
  * This rewrites to the normal form for arithmetic.
- * See theory/arith/normal_form.h for more information.
  */
 
 #include "cvc5_private.h"
@@ -41,7 +40,6 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   TrustNode expandDefinition(Node node) override;
-
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
@@ -73,6 +71,8 @@ class ArithRewriter : public TheoryRewriter
 
   /** rewrite division */
   static RewriteResponse rewriteDiv(TNode t, bool pre);
+  /** rewrite to_real */
+  static RewriteResponse rewriteToReal(TNode t);
   /** rewrite absolute */
   static RewriteResponse rewriteAbs(TNode t);
   /** rewrite integer division and modulus */
@@ -91,6 +91,11 @@ class ArithRewriter : public TheoryRewriter
   static RewriteResponse preRewriteTranscendental(TNode t);
   /** postRewrite transcendental functions */
   static RewriteResponse postRewriteTranscendental(TNode t);
+
+  /** rewrite bv2nat */
+  static RewriteResponse rewriteBVToNat(TNode node);
+  /** rewrite int2bv */
+  static RewriteResponse rewriteIntToBV(TNode node);
 
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);

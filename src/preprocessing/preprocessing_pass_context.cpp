@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,8 +16,8 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -83,23 +83,11 @@ std::vector<Node> PreprocessingPassContext::getLearnedLiterals() const
   return d_llm.getLearnedLiterals();
 }
 
-void PreprocessingPassContext::printSubstitution(const Node& lhs,
-                                                 const Node& rhs) const
-{
-  Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
-  output(OutputTag::LEARNED_LITS)
-      << "(learned-lit " << eq << " :preprocess-subs)" << std::endl;
-  output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
-}
-
 void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                const Node& rhs,
                                                ProofGenerator* pg)
 {
-  if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
-  {
-    printSubstitution(lhs, rhs);
-  }
+  d_propEngine->notifyTopLevelSubstitution(lhs, rhs);
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, pg);
 }
 
@@ -108,23 +96,17 @@ void PreprocessingPassContext::addSubstitution(const Node& lhs,
                                                PfRule id,
                                                const std::vector<Node>& args)
 {
-  if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
-  {
-    printSubstitution(lhs, rhs);
-  }
+  d_propEngine->notifyTopLevelSubstitution(lhs, rhs);
   d_env.getTopLevelSubstitutions().addSubstitution(lhs, rhs, id, {}, args);
 }
 
 void PreprocessingPassContext::addSubstitutions(
     theory::TrustSubstitutionMap& tm)
 {
-  if (isOutputOn(OutputTag::LEARNED_LITS) || isOutputOn(OutputTag::SUBS))
+  std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
+  for (const std::pair<const Node, Node>& s : subs)
   {
-    std::unordered_map<Node, Node> subs = tm.get().getSubstitutions();
-    for (const std::pair<const Node, Node>& s : subs)
-    {
-      printSubstitution(s.first, s.second);
-    }
+    d_propEngine->notifyTopLevelSubstitution(s.first, s.second);
   }
   d_env.getTopLevelSubstitutions().addSubstitutions(tm);
 }

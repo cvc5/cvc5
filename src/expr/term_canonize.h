@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,7 +71,12 @@ class TermCanonize
    */
   bool getTermOrder(Node a, Node b);
   /** get canonical free variable #i of type tn */
-  Node getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc = 0);
+  Node getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc = 0);
+  /**
+   * Return the range of the free variable in the above map, or 0 if it does not
+   * exist.
+   */
+  size_t getIndexForFreeVariable(Node v) const;
   /** get canonical term
    *
    * This returns a canonical (alpha-equivalent) version of n, where
@@ -115,11 +120,6 @@ class TermCanonize
   std::map<Node, size_t> d_fvIndex;
   /** Get type class */
   uint32_t getTypeClass(TNode v);
-  /**
-   * Return the range of the free variable in the above map, or 0 if it does not
-   * exist.
-   */
-  size_t getIndexForFreeVariable(Node v) const;
   /** get canonical term
    *
    * This is a helper function for getCanonicalTerm above. We maintain a

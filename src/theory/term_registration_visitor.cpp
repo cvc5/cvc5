@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *   Andrew Reynolds, Dejan Jovanovic, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -194,16 +194,9 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     // guaranteed to be initialized.
     if (!te->isTheoryEnabled(id))
     {
-      const LogicInfo& l = te->getLogicInfo();
-      LogicInfo newLogicInfo = l.getUnlockedCopy();
-      newLogicInfo.enableTheory(id);
-      newLogicInfo.lock();
       std::stringstream ss;
-      ss << "The logic was specified as " << l.getLogicString()
-         << ", which doesn't include " << id
-         << ", but found a term in that theory." << std::endl
-         << "You might want to extend your logic to "
-         << newLogicInfo.getLogicString() << std::endl;
+      ss << "The logic doesn't include theory " << id
+         << ", but found a term in that theory." << std::endl;
       throw LogicException(ss.str());
     }
   }

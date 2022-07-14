@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -224,9 +224,15 @@ class SygusUnifRl : public SygusUnif
      * A solution is possible when all different valued heads can be separated,
      * i.e. the current set of conditions separates them in a decision tree
      */
-    Node buildSol(Node cons, std::vector<Node>& lemmas);
+    Node buildSol(Node cons,
+                  std::vector<Node>& lemmas,
+                  bool shuffleCond,
+                  bool condIndNoRepeatSol);
     /** bulids a solution by considering all condition values ever enumerated */
-    Node buildSolAllCond(Node cons, std::vector<Node>& lemmas);
+    Node buildSolAllCond(Node cons,
+                         std::vector<Node>& lemmas,
+                         bool shuffleCond,
+                         bool condIndNoRepeatSol);
     /** builds a solution by incrementally adding points and conditions to DT
      *
      * Differently from the above method, here a condition is only added to the

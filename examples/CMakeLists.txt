@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Andres Noetzli
+#   Aina Niemetz, Mudathir Mohamed, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -78,18 +78,8 @@ add_subdirectory(api/cpp)
 
 if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
-  find_package(JNI REQUIRED)
   include(UseJava)
-  message(STATUS "JNI_LIBRARIES: ${JNI_LIBRARIES}")
 
-  # get the directories of libraries libjawt.so and libjvm.so
-  set(JNI_LIBRARIES_PATHS "")
-  foreach(LIB ${JNI_LIBRARIES})
-    get_filename_component(LIB_PATH ${LIB} DIRECTORY)
-    set(JNI_LIBRARIES_PATHS "${JNI_LIBRARIES_PATHS}${LIB_PATH}:")
-  endforeach()
-
-  message(STATUS "JNI_LIBRARIES_PATHS: ${JNI_LIBRARIES_PATHS}")
   # get directory build/install/lib where libcvc5jni.so is installed
   get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
   get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
@@ -108,8 +98,6 @@ if(TARGET cvc5::cvc5jar)
         -Djava.library.path=${CVC5_JNI_PATH}
         SimpleVC
   )
-  set_tests_properties(java/SimpleVC PROPERTIES
-    ENVIRONMENT "LD_LIBRARY_PATH=${JNI_LIBRARIES_PATHS}")
   add_subdirectory(api/java)
 endif()
 

@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Aina Niemetz, Andrew Reynolds
+ *   Liana Hadarean, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Theory BV rewriter.
  */
 
 #include "options/bv_options.h"
@@ -64,16 +61,6 @@ TrustNode TheoryBVRewriter::expandDefinition(Node node)
     case kind::BITVECTOR_SDIV:
     case kind::BITVECTOR_SREM:
     case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
-    case kind::BITVECTOR_TO_NAT:
-
-        ret = utils::eliminateBv2Nat(node);
-      
-      break;
-    case kind::INT_TO_BITVECTOR:
-
-        ret = utils::eliminateInt2Bv(node);
-      
-      break;
     default: break;
   }
   if (!ret.isNull() && node != ret)
@@ -252,13 +239,6 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite) {
   if (RewriteRule<ExtractNot>::applies(node)) {
     resultNode = RewriteRule<ExtractNot>::run<false>(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-  }
-
-  if (options::bvExtractArithRewrite()) {
-    if (RewriteRule<ExtractArith>::applies(node)) {
-      resultNode = RewriteRule<ExtractArith>::run<false>(node);
-      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
-    }
   }
 
   resultNode = LinearRewriteStrategy<
@@ -654,31 +634,6 @@ RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteBVToNat(TNode node, bool prerewrite) {
-  if (node[0].isConst())
-  {
-    Node resultNode = LinearRewriteStrategy
-      < RewriteRule<BVToNatEliminate>
-      >::apply(node);
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-  }else{
-    return RewriteResponse(REWRITE_DONE, node); 
-  }
-}
-
-RewriteResponse TheoryBVRewriter::RewriteIntToBV(TNode node, bool prerewrite) {
-  if (node[0].isConst())
-  {
-    Node resultNode = LinearRewriteStrategy
-      < RewriteRule<IntToBVEliminate>
-      >::apply(node);
-
-    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
-  }else{
-    return RewriteResponse(REWRITE_DONE, node); 
-  }
-}
-
 RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
   if (prerewrite) {
     Node resultNode = LinearRewriteStrategy
@@ -766,9 +721,6 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
-
-  d_rewriteTable [ kind::BITVECTOR_TO_NAT ] = RewriteBVToNat;
-  d_rewriteTable [ kind::INT_TO_BITVECTOR ] = RewriteIntToBV;
 }
 
 Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {

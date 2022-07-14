@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,13 +38,15 @@ SygusEnumerator::SygusEnumerator(Env& env,
                                  SygusEnumeratorCallback* sec,
                                  SygusStatistics* s,
                                  bool enumShapes,
-                                 bool enumAnyConstHoles)
+                                 bool enumAnyConstHoles,
+                                 size_t numConstants)
     : EnumValGenerator(env),
       d_tds(tds),
       d_sec(sec),
       d_stats(s),
       d_enumShapes(enumShapes),
       d_enumAnyConstHoles(enumAnyConstHoles),
+      d_enumNumConsts(numConstants),
       d_tlEnum(nullptr),
       d_abortSize(-1)
 {
@@ -598,7 +600,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
   }
   initializeTermCache(tn);
   // create the master enumerator
-  d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn));
+  d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn, d_enumNumConsts));
   // initialize the master enumerator
   TermEnumMasterInterp* temi = d_masterEnumInt[tn].get();
   bool ret = temi->initialize(this, tn);
@@ -1147,8 +1149,13 @@ Node SygusEnumerator::TermEnumMaster::convertShape(
   return visited[n];
 }
 
-SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn)
-    : TermEnum(), d_te(tn), d_currNumConsts(0), d_nextIndexEnd(0)
+SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn,
+                                                            size_t numConstants)
+    : TermEnum(),
+      d_te(tn),
+      d_currNumConsts(0),
+      d_nextIndexEnd(0),
+      d_enumNumConsts(numConstants)
 {
 }
 
@@ -1177,7 +1184,7 @@ bool SygusEnumerator::TermEnumMasterInterp::increment()
   {
     tc.pushEnumSizeIndex();
     d_currSize++;
-    d_currNumConsts = d_currNumConsts * options::sygusEnumFastNumConsts();
+    d_currNumConsts = d_currNumConsts * d_enumNumConsts;
     d_nextIndexEnd = d_nextIndexEnd + d_currNumConsts;
   }
   ++d_te;

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -137,12 +137,6 @@ class Env
   /* Option helpers---------------------------------------------------------- */
 
   /**
-   * Get the current printer based on the current options
-   * @return the current printer
-   */
-  const Printer& getPrinter();
-
-  /**
    * Check whether the output for the given output tag is enabled. Output tags
    * are enabled via the `output` option (or `-o` on the command line).
    */
@@ -256,11 +250,24 @@ class Env
    */
   theory::TheoryId theoryOf(TNode node) const;
 
+  /**
+   * Declare heap. This is used for separation logics to set the location
+   * and data types. It should be called only once, and before any separation
+   * logic constraints are asserted to the theory engine.
+   */
+  void declareSepHeap(TypeNode locT, TypeNode dataT);
+
+  /** Have we called declareSepHeap? */
+  bool hasSepHeap() const;
+
+  /** get the separation logic heap types */
+  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
+
  private:
   /* Private initialization ------------------------------------------------- */
 
   /** Set proof node manager if it exists */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  void finishInit(ProofNodeManager* pnm);
 
   /* Private shutdown ------------------------------------------------------- */
   /**
@@ -331,6 +338,9 @@ class Env
   std::unique_ptr<ResourceManager> d_resourceManager;
   /** The theory that owns the uninterpreted sort. */
   theory::TheoryId d_uninterpretedSortOwner;
+  /** The separation logic location and data types */
+  TypeNode d_sepLocType;
+  TypeNode d_sepDataType;
 }; /* class Env */
 
 }  // namespace cvc5::internal

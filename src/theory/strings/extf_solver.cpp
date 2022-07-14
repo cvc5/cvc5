@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +48,7 @@ ExtfSolver::ExtfSolver(Env& env,
       d_csolver(cs),
       d_extt(et),
       d_statistics(statistics),
-      d_preproc(d_termReg.getSkolemCache(), &statistics.d_reductions),
+      d_preproc(env, d_termReg.getSkolemCache(), &statistics.d_reductions),
       d_hasExtf(context(), false),
       d_extfInferCache(context()),
       d_reduced(userContext())
@@ -70,6 +70,7 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(kind::STRING_TO_LOWER);
   d_extt.addFunctionKind(kind::STRING_TO_UPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::STRING_UNIT);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
   d_extt.addFunctionKind(kind::SEQ_NTH);
 
@@ -150,8 +151,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
       return false;
     }
   }
-  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP || k == STRING_TO_CODE
-           || (k == STRING_CONTAINS && pol == 0))
+  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
+           || k == STRING_TO_CODE || (k == STRING_CONTAINS && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
@@ -168,7 +169,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
         return false;
       }
       else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
-               && d_termReg.isHandledUpdate(n))
+               && d_termReg.isHandledUpdateOrSubstr(n))
       {
         // don't need to reduce certain seq.update
         // don't need to reduce certain seq.extract with length 1

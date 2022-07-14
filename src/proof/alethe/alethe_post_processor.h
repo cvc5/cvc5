@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,11 +28,13 @@ namespace proof {
  * A callback class used by the Alethe converter for post-processing proof nodes
  * by replacing internal rules by the rules in the Alethe calculus.
  */
-class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
+class AletheProofPostprocessCallback : protected EnvObj,
+                                       public ProofNodeUpdaterCallback
 {
  public:
-  AletheProofPostprocessCallback(ProofNodeManager* pnm,
-                                 AletheNodeConverter& anc);
+  AletheProofPostprocessCallback(Env& env,
+                                 AletheNodeConverter& anc,
+                                 bool resPivots);
   ~AletheProofPostprocessCallback() {}
   /** Should proof pn be updated? Only if its top-level proof rule is not an
    *  Alethe proof rule.
@@ -87,10 +89,10 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
                  CDProof* cdp);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The Alethe node converter */
   AletheNodeConverter& d_anc;
+  /** Whether to keep the pivots in the alguments of the resolution rule */
+  bool d_resPivots;
   /** The cl operator
    * For every step the conclusion is a clause. But since the or operator
    *requires at least two arguments it is extended by the cl operator. In case
@@ -142,17 +144,15 @@ class AletheProofPostprocessCallback : public ProofNodeUpdaterCallback
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Alethe calculus.
  */
-class AletheProofPostprocess
+class AletheProofPostprocess : protected EnvObj
 {
  public:
-  AletheProofPostprocess(ProofNodeManager* pnm, AletheNodeConverter& anc);
+  AletheProofPostprocess(Env& env, AletheNodeConverter& anc, bool resPivots);
   ~AletheProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
 };

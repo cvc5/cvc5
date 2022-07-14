@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,7 @@
  * Designed for use by ContextManager.
  */
 
-#include "cvc5_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__CONTEXT__CONTEXT_MM_H
 #define CVC5__CONTEXT__CONTEXT_MM_H
@@ -24,6 +24,8 @@
 #include <deque>
 #endif
 #include <vector>
+
+#include "cvc5_export.h"
 
 namespace cvc5::context {
 
@@ -39,8 +41,8 @@ namespace cvc5::context {
  * releases the new region and restores the top region from the stack.
  *
  */
-class ContextMemoryManager {
-
+class CVC5_EXPORT ContextMemoryManager
+{
   /**
    * Memory in regions is allocated in chunks.  This is the chunk size
    */
@@ -146,7 +148,7 @@ class ContextMemoryManager {
    */
   void pop();
 
-};/* class ContextMemoryManager */
+}; /* class ContextMemoryManager */
 
 #else /* CVC5_DEBUG_CONTEXT_MEMORY_MANAGER */
 

@@ -288,6 +288,15 @@ public:
                      bool b);  // Declare if a variable should be eligible for
                                // selection in the decision heuristic.
 
+ // Return the decision trail
+ const vec<Lit>& getMiniSatDecisions() { return trail; }
+
+ // Return the order_heap, which is a priority queue of variables ordered with
+ // respect to the variable activity. The order heap is made available here
+ // in order to make partitions based on the literals contained in the heap.
+
+ const std::vector<Node> getMiniSatOrderHeap();
+
  // Read state:
  //
  lbool value(Var x) const;  // The current value of a variable.

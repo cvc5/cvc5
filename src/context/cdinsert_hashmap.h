@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Morgan Deters
+ *   Tim King, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,11 @@
  * - Does not accept TNodes as keys.
  */
 
+#include "cvc5parser_public.h"
+
+#ifndef CVC5__CONTEXT__CDINSERT_HASHMAP_H
+#define CVC5__CONTEXT__CDINSERT_HASHMAP_H
+
 #include <deque>
 #include <functional>
 #include <unordered_map>
@@ -39,12 +44,15 @@
 #include "base/output.h"
 #include "context/cdinsert_hashmap_forward.h"
 #include "context/context.h"
-#include "cvc5_private.h"
-#include "expr/node.h"
 
-#pragma once
+namespace cvc5 {
 
-namespace cvc5::context {
+namespace internal {
+template <bool ref_count>
+class NodeTemplate;
+}
+
+namespace context {
 
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
@@ -347,7 +355,8 @@ public:
 };/* class CDInsertHashMap<> */
 
 template <class Data, class HashFcn>
-class CDInsertHashMap<internal::TNode, Data, HashFcn> : public ContextObj
+class CDInsertHashMap<internal::NodeTemplate<false>, Data, HashFcn>
+    : public ContextObj
 {
   /* CDInsertHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
@@ -364,4 +373,7 @@ class CDInsertHashMap<internal::TNode, Data, HashFcn> : public ContextObj
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}  // namespace cvc5::context
+}  // namespace context
+}  // namespace cvc5
+
+#endif

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar, Makai Mann
+#   Yoni Zohar, Aina Niemetz, Makai Mann
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -41,7 +41,7 @@ def create_datatype_sort(solver):
 
 def create_param_datatype_sort(solver):
     sort = solver.mkParamSort("T")
-    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", sort)
+    paramDtypeSpec = solver.mkDatatypeDecl("paramlist", [sort])
     paramCons = solver.mkDatatypeConstructorDecl("cons")
     paramNil = solver.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)
@@ -49,6 +49,10 @@ def create_param_datatype_sort(solver):
     paramDtypeSpec.addConstructor(paramNil)
     paramDtypeSort = solver.mkDatatypeSort(paramDtypeSpec)
     return paramDtypeSort
+
+
+def test_hash(solver):
+    hash(solver.getIntegerSort())
 
 
 def test_operators_comparison(solver):
@@ -136,7 +140,7 @@ def test_is_datatype(solver):
 def test_is_constructor(solver):
     dt_sort = create_datatype_sort(solver)
     dt = dt_sort.getDatatype()
-    cons_sort = dt[0].getConstructorTerm().getSort()
+    cons_sort = dt[0].getTerm().getSort()
     assert cons_sort.isDatatypeConstructor()
     Sort(solver).isDatatypeConstructor()
 
@@ -146,7 +150,7 @@ def test_is_selector(solver):
     dt = dt_sort.getDatatype()
     dt0 = dt[0]
     dt01 = dt0[1]
-    cons_sort = dt01.getSelectorTerm().getSort()
+    cons_sort = dt01.getTerm().getSort()
     assert cons_sort.isDatatypeSelector()
     Sort(solver).isDatatypeSelector()
 
@@ -185,7 +189,7 @@ def test_is_tuple(solver):
 
 
 def test_is_record(solver):
-    rec_sort = solver.mkRecordSort([("asdf", solver.getRealSort())])
+    rec_sort = solver.mkRecordSort(("asdf", solver.getRealSort()))
     assert rec_sort.isRecord()
     Sort(solver).isRecord()
 
@@ -250,7 +254,7 @@ def test_datatype_sorts(solver):
 
     # get constructor
     dcons = dt[0]
-    consTerm = dcons.getConstructorTerm()
+    consTerm = dcons.getTerm()
     consSort = consTerm.getSort()
     assert consSort.isDatatypeConstructor()
     assert not consSort.isDatatypeTester()
@@ -275,7 +279,7 @@ def test_datatype_sorts(solver):
 
     # get selector
     dselTail = dcons[1]
-    tailTerm = dselTail.getSelectorTerm()
+    tailTerm = dselTail.getTerm()
     assert tailTerm.getSort().isDatatypeSelector()
     assert tailTerm.getSort().getDatatypeSelectorDomainSort() == dtypeSort
     assert tailTerm.getSort().getDatatypeSelectorCodomainSort() == dtypeSort
@@ -519,8 +523,8 @@ def test_get_datatype_arity(solver):
 
 def test_get_tuple_length(solver):
     tupleSort = solver.mkTupleSort(
-        [solver.getIntegerSort(),
-         solver.getIntegerSort()])
+        solver.getIntegerSort(),
+        solver.getIntegerSort())
     tupleSort.getTupleLength()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):
@@ -529,8 +533,8 @@ def test_get_tuple_length(solver):
 
 def test_get_tuple_sorts(solver):
     tupleSort = solver.mkTupleSort(
-        [solver.getIntegerSort(),
-         solver.getIntegerSort()])
+        solver.getIntegerSort(),
+        solver.getIntegerSort())
     tupleSort.getTupleSorts()
     bvSort = solver.mkBitVectorSort(32)
     with pytest.raises(RuntimeError):

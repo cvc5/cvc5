@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +19,7 @@
 #define CVC5__PROP__OPT_CLAUSES_MANAGER_H
 
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/proof.h"
 
@@ -51,6 +52,21 @@ class OptimizedClausesManager : context::ContextNotifyObj
       CDProof* parentProof,
       std::map<int, std::vector<std::shared_ptr<ProofNode>>>& optProofs);
 
+  /** Adds a hash set of nodes to be tracked and updated when popping
+   *
+   * This method can be used when it is necessary to track, in a
+   * context-dependent manner, other information, in a node hash set, beyond the
+   * proofs associated with given clauses. For example, the SAT proof manager
+   * needs to bookeep the current assumptions of the SAT solver, which are
+   * stored in a node hash set.
+   *
+   * @param nodeHashSet the node hash set to be updated when context pops
+   * @param nodeLevels a mapping from context levels to nodes to be reinserted
+   * at these levels
+   */
+  void trackNodeHashSet(context::CDHashSet<Node>* nodeHashSet,
+                        std::map<int, std::vector<Node>>* nodeLevels);
+
  private:
   /** Event triggered by the tracked contexting popping
    *
@@ -66,6 +82,10 @@ class OptimizedClausesManager : context::ContextNotifyObj
   std::map<int, std::vector<std::shared_ptr<ProofNode>>>& d_optProofs;
   /** Proof to be updated when context pops. */
   CDProof* d_parentProof;
+  /** Node hash set to be updated when context pops, if such a set is tracked */
+  context::CDHashSet<Node>* d_nodeHashSet;
+  /** Map from levels to proof nodes. */
+  std::map<int, std::vector<Node>>* d_nodeLevels;
 };
 
 }  // namespace prop

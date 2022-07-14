@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Ying Sheng, Morgan Deters
+ *   Andrew Reynolds, Aina Niemetz, Ying Sheng
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -220,7 +220,7 @@ class SolverEngineState : protected EnvObj
 
   /**
    * Whether or not a notifyCheckSat call has been made, which corresponds to
-   * when a checkEntailed() or checkSatisfiability() has already been
+   * when a checkSatisfiability() has already been
    * made through the SolverEngine.  If true, and incrementalSolving is false,
    * then attempting an additional checks for satisfiability will fail with
    * a ModalException during notifyCheckSat.
@@ -230,12 +230,12 @@ class SolverEngineState : protected EnvObj
   /**
    * Internal status flag to indicate whether we have been issued a
    * notifyCheckSat call and have yet to process the "postsolve" methods of
-   * SolverEngine via SolverEngine::notifyPostSolvePre/notifyPostSolvePost.
+   * SolverEngine via SolverEngine::notifyPostSolve().
    */
   bool d_needPostsolve;
 
   /**
-   * Most recent result of last checkSatisfiability/checkEntailed in the
+   * Most recent result of last checkSatisfiability in the
    * SolverEngine.
    */
   Result d_status;

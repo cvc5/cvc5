@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@ int main(void)
 {
   Solver slv;
   slv.setOption("produce-unsat-cores", "true");
+  slv.setOption("strings-exp", "true");
   Sort s1 = slv.mkBitVectorSort(1);
   Sort s2 = slv.mkFloatingPointSort(8, 24);
   Term val = slv.mkBitVector(32, "10000000110010111010111011000101", 2);

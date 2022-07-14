@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
+#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 
@@ -46,7 +46,7 @@ class CommandExecutor
    * Certain commands (e.g. reset-assertions) have a specific impact on the
    * symbol manager.
    */
-  std::unique_ptr<SymbolManager> d_symman;
+  std::unique_ptr<parser::SymbolManager> d_symman;
 
   cvc5::Result d_result;
 
@@ -71,7 +71,7 @@ class CommandExecutor
   cvc5::Solver* getSolver() { return d_solver.get(); }
 
   /** Get a pointer to the symbol manager owned by this CommandExecutor */
-  SymbolManager* getSymbolManager() { return d_symman.get(); }
+  parser::SymbolManager* getSymbolManager() { return d_symman.get(); }
 
   cvc5::Result getResult() const { return d_result; }
   void reset();
@@ -106,7 +106,7 @@ private:
 }; /* class CommandExecutor */
 
 bool solverInvoke(cvc5::Solver* solver,
-                  SymbolManager* sm,
+                  parser::SymbolManager* sm,
                   Command* cmd,
                   std::ostream& out);
 

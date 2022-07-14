@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,24 +21,25 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
+#include "theory/quantifiers/inst_match.h"
 
 namespace cvc5::internal {
 namespace theory {
 
-class QuantifiersEngine;
 class Valuation;
 
 namespace quantifiers {
+
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
 class TermRegistry;
-class InstMatch;
 
 namespace inst {
 
 class IMGenerator;
 class InstMatchGenerator;
+
 /** A collection of nodes representing a trigger.
  *
  * This class encapsulates all implementations of E-matching in cvc5.
@@ -161,8 +162,6 @@ class Trigger : protected EnvObj
    * Instantiate::addInstantiation(...).
    */
   virtual bool sendInstantiation(std::vector<Node>& m, InferenceId id);
-  /** inst match version, calls the above method */
-  bool sendInstantiation(InstMatch& m, InferenceId id);
   /**
    * Ensure that all ground subterms of n have been preprocessed. This makes
    * calls to the provided valuation to obtain the preprocessed form of these
@@ -216,6 +215,11 @@ class Trigger : protected EnvObj
   * algorithm associated with this trigger.
   */
   IMGenerator* d_mg;
+  /**
+   * An instantiation match, for building instantiation terms and doing
+   * incremental entailment checking.
+   */
+  InstMatch d_instMatch;
 }; /* class Trigger */
 
 }  // namespace inst

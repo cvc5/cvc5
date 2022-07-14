@@ -1,14 +1,14 @@
-##############################################################################
+###############################################################################
 # Top contributors (to current version):
-#   Yoni Zohar
+#   Yoni Zohar, Alex Ozdemir, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
-# ############################################################################
+# #############################################################################
 #
 # A simple test for SolverEngine::resetAssertions()
 #
@@ -26,8 +26,8 @@ slv.setOption("incremental", "true")
 
 real = slv.getRealSort()
 x = slv.mkConst(real, "x")
-four = slv.mkInteger(4)
-xEqFour = slv.mkTerm(Kind.Equal, x, four)
+four = slv.mkReal(4)
+xEqFour = slv.mkTerm(Kind.EQUAL, x, four)
 slv.assertFormula(xEqFour)
 print(slv.checkSat())
 
@@ -37,8 +37,9 @@ elementType = slv.getIntegerSort()
 indexType = slv.getIntegerSort()
 arrayType = slv.mkArraySort(indexType, elementType)
 array = slv.mkConst(arrayType, "array")
-arrayAtFour = slv.mkTerm(Kind.Select, array, four)
+fourInt = slv.mkInteger(4)
+arrayAtFour = slv.mkTerm(Kind.SELECT, array, fourInt)
 ten = slv.mkInteger(10)
-arrayAtFour_eq_ten = slv.mkTerm(Kind.Equal, arrayAtFour, ten)
+arrayAtFour_eq_ten = slv.mkTerm(Kind.EQUAL, arrayAtFour, ten)
 slv.assertFormula(arrayAtFour_eq_ten)
 print(slv.checkSat())

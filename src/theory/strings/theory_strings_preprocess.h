@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Mathias Preiner
+ *   Andrew Reynolds, Tianyi Liang, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,9 @@
 #define CVC5__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
+
 #include "context/cdhashmap.h"
+#include "smt/env_obj.h"
 #include "theory/rewriter.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/skolem_cache.h"
@@ -37,9 +39,11 @@ namespace strings {
  * used for reducing extended functions on-demand during the "extended function
  * reductions" inference schema of TheoryStrings.
  */
-class StringsPreprocess {
+class StringsPreprocess : protected EnvObj
+{
  public:
-  StringsPreprocess(SkolemCache* sc,
+  StringsPreprocess(Env& env,
+                    SkolemCache* sc,
                     HistogramStat<Kind>* statReductions = nullptr);
   ~StringsPreprocess();
   /** The reduce routine
@@ -61,9 +65,13 @@ class StringsPreprocess {
    * @param asserts The vector for storing the assertions that correspond to
    * the reduction of t,
    * @param sc The skolem cache for generating new variables,
+   * @param alphaCard The cardinality of the alphabet
    * @return The reduced form of t.
    */
-  static Node reduce(Node t, std::vector<Node>& asserts, SkolemCache* sc);
+  static Node reduce(Node t,
+                     std::vector<Node>& asserts,
+                     SkolemCache* sc,
+                     size_t alphaCard);
   /**
    * Calls the above method for the skolem cache owned by this class, and
    * records statistics.
@@ -75,6 +83,8 @@ class StringsPreprocess {
    *   (exists k) asserts => t = t'
    * is valid, where k are the free skolems introduced when constructing
    * asserts.
+   *
+   * This method is called only for eager preprocessing of extended functions.
    */
   Node processAssertion(Node t, std::vector<Node>& asserts);
 
@@ -89,8 +99,14 @@ class StringsPreprocess {
    * Applies simplify to all top-level extended function subterms of t. New
    * assertions created in this reduction are added to asserts. The argument
    * visited stores a cache of previous results.
+   *
+   * This method is called only for eager preprocessing of extended functions.
    */
   Node simplifyRec(Node t, std::vector<Node>& asserts);
+  /**
+   * Makes the term returning the code point of string x at point i.
+   */
+  static Node mkCodePointAtIndex(Node x, Node i);
 };
 
 }  // namespace strings

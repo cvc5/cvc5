@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,7 +15,10 @@
 
 #include "theory/quantifiers/term_util.h"
 
+#include "expr/array_store_all.h"
+#include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/term_database.h"
@@ -90,7 +93,9 @@ Node TermUtil::getInstConstAttr( Node n ) {
   return n.getAttribute(InstConstantAttribute());
 }
 
-bool TermUtil::hasInstConstAttr( Node n ) {
+bool TermUtil::hasInstConstAttr(Node n)
+{
+  n = SkolemManager::getOriginalForm(n);
   return !getInstConstAttr(n).isNull();
 }
 
@@ -212,26 +217,40 @@ int TermUtil::getTermDepth( Node n ) {
 }
 
 bool TermUtil::containsUninterpretedConstant( Node n ) {
-  if (!n.hasAttribute(ContainsUConstAttribute()) ){
-    bool ret = false;
-    if (n.getKind() == UNINTERPRETED_SORT_VALUE
-        && n.getType().isUninterpretedSort())
+  if (n.hasAttribute(ContainsUConstAttribute()))
+  {
+    return n.getAttribute(ContainsUConstAttribute()) != 0;
+  }
+  bool ret = false;
+  Kind k = n.getKind();
+  if (k == UNINTERPRETED_SORT_VALUE)
+  {
+    Assert(n.getType().isUninterpretedSort());
+    ret = true;
+  }
+  else if (k == STORE_ALL)
+  {
+    ret = containsUninterpretedConstant(n.getConst<ArrayStoreAll>().getValue());
+  }
+  else if (k == FUNCTION_ARRAY_CONST)
+  {
+    ret = containsUninterpretedConstant(
+        n.getConst<FunctionArrayConst>().getArrayValue());
+  }
+  else
+  {
+    for (const Node& nc : n)
     {
-      ret = true;
-    }
-    else
-    {
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( containsUninterpretedConstant( n[i] ) ){
-          ret = true;
-          break;
-        }
+      if (containsUninterpretedConstant(nc))
+      {
+        ret = true;
+        break;
       }
     }
-    ContainsUConstAttribute cuca;
-    n.setAttribute(cuca, ret ? 1 : 0);
   }
-  return n.getAttribute(ContainsUConstAttribute())!=0;
+  ContainsUConstAttribute cuca;
+  n.setAttribute(cuca, ret ? 1 : 0);
+  return ret;
 }
 
 Node TermUtil::simpleNegate(Node n)

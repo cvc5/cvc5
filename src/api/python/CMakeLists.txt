@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Mathias Preiner, Yoni Zohar
+#   Makai Mann, Mathias Preiner, Andres Noetzli
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -44,6 +44,20 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 find_package(PythonExtensions REQUIRED)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
+   CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
+  # On macOS, find_package(PythonLibs ...) does not find the Python include
+  # directory or library when they were installed via homebrew.
+  # find_package(Python ...) is more robust, but only available on newer
+  # versions of CMake. If we are compiling cvc5 on macOS and we have a newer
+  # version of CMake available, we try to use find_package(Python ...) to find
+  # the paths.
+  find_package(Python COMPONENTS Development)
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+  set(PYTHON_LIBRARY "${Python_LIBRARIES}")
+endif()
+
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
@@ -140,7 +154,7 @@ add_custom_target(
   cvc5_python_api
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory
-    "${CVC5PythonicAPI_BASEDIR}/cvc5_z3py_compat"
+    "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
     "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
   DEPENDS cvc5_python_base CVC5PythonicAPI
 )

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(Rewriter* r) : d_rewriter(r) {}
+BvInverter::BvInverter(const Options& opts, Rewriter* r)
+    : d_opts(opts), d_rewriter(r)
+{
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -342,7 +345,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      if (litk == EQUAL && options::cegqiBvConcInv())
+      if (litk == EQUAL && d_opts.quantifiers.cegqiBvConcInv)
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)

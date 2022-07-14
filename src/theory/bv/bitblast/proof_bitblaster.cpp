@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner
+ *   Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,29 +24,23 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-BBProof::BBProof(Env& env,
-                 TheoryState* state,
-                 ProofNodeManager* pnm,
-                 bool fineGrained)
+BBProof::BBProof(Env& env, TheoryState* state, bool fineGrained)
     : EnvObj(env),
       d_bb(new NodeBitblaster(env, state)),
-      d_pnm(pnm),
       d_tcontext(new TheoryLeafTermContext(theory::THEORY_BV)),
-      d_tcpg(pnm ? new TConvProofGenerator(
-                 pnm,
-                 nullptr,
-                 /* ONCE to visit each term only once, post-order.  FIXPOINT
-                  * could lead to infinite loops due to terms being rewritten
-                  * to terms that contain themselves */
-                 TConvPolicy::ONCE,
-                 /* STATIC to get the same ProofNode for a shared subterm. */
-                 TConvCachePolicy::STATIC,
-                 "BBProof::TConvProofGenerator",
-                 d_tcontext.get(),
-                 false)
-                 : nullptr),
-      d_bbpg(pnm ? new BitblastProofGenerator(env, pnm, d_tcpg.get())
-                 : nullptr),
+      d_tcpg(new TConvProofGenerator(
+          env,
+          nullptr,
+          /* ONCE to visit each term only once, post-order.  FIXPOINT
+           * could lead to infinite loops due to terms being rewritten
+           * to terms that contain themselves */
+          TConvPolicy::ONCE,
+          /* STATIC to get the same ProofNode for a shared subterm. */
+          TConvCachePolicy::STATIC,
+          "BBProof::TConvProofGenerator",
+          d_tcontext.get(),
+          false)),
+      d_bbpg(new BitblastProofGenerator(env, d_tcpg.get())),
       d_recordFineGrainedProofs(fineGrained)
 {
 }
@@ -210,7 +204,7 @@ bool BBProof::collectModelValues(TheoryModel* m,
 
 BitblastProofGenerator* BBProof::getProofGenerator() { return d_bbpg.get(); }
 
-bool BBProof::isProofsEnabled() const { return d_pnm != nullptr; }
+bool BBProof::isProofsEnabled() const { return d_env.isTheoryProofProducing(); }
 
 }  // namespace bv
 }  // namespace theory

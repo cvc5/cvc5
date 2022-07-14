@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,13 +23,13 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
+LazyCDProof::LazyCDProof(Env& env,
                          ProofGenerator* dpg,
                          context::Context* c,
                          const std::string& name,
                          bool autoSym,
                          bool doCache)
-    : CDProof(pnm, c, name, autoSym),
+    : CDProof(env, c, name, autoSym),
       d_gens(c ? c : &d_context),
       d_defaultGen(dpg),
       d_doCache(doCache),
@@ -122,16 +122,16 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
             {
               if (pgc->getRule() == PfRule::SYMM)
               {
-                d_manager->updateNode(cur, pgc->getChildren()[0].get());
+                getManager()->updateNode(cur, pgc->getChildren()[0].get());
               }
               else
               {
-                d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+                getManager()->updateNode(cur, PfRule::SYMM, {pgc}, {});
               }
             }
             else
             {
-              d_manager->updateNode(cur, pgc.get());
+              getManager()->updateNode(cur, pgc.get());
             }
             Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
                                   << cfactGen << std::endl;
@@ -201,7 +201,7 @@ void LazyCDProof::addLazyStep(Node expected,
   if (isClosed)
   {
     Trace("lazy-cdproof-debug") << "Checking closed..." << std::endl;
-    pfgEnsureClosed(expected, pg, "lazy-cdproof-debug", ctx);
+    pfgEnsureClosed(options(), expected, pg, "lazy-cdproof-debug", ctx);
   }
 }
 

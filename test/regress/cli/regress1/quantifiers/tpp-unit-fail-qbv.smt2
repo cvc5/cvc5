@@ -1,3 +1,4 @@
+; DISABLE-TESTER: lfsc
 (set-logic BV)
 (set-info :status unsat)
 (declare-fun t () (_ BitVec 4))

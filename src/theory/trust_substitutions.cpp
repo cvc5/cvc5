@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,17 +15,19 @@
 
 #include "theory/trust_substitutions.h"
 
+#include "smt/env.h"
 #include "theory/rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
 
-TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
-                                           ProofNodeManager* pnm,
+TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
+                                           context::Context* c,
                                            std::string name,
                                            PfRule trustId,
                                            MethodId ids)
-    : d_ctx(c),
+    : EnvObj(env),
+      d_ctx(c),
       d_subs(c),
       d_tsubs(c),
       d_tspb(nullptr),
@@ -37,21 +39,15 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
       d_ids(ids),
       d_eqtIndex(c)
 {
-  setProofNodeManager(pnm);
-}
-
-void TrustSubstitutionMap::setProofNodeManager(ProofNodeManager* pnm)
-{
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm != nullptr)
   {
-    // should not set the proof node manager more than once
-    Assert(d_tspb == nullptr);
-    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker())),
-        d_subsPg.reset(new LazyCDProof(
-            pnm, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
+    d_tspb.reset(new TheoryProofStepBuffer(pnm->getChecker()));
+    d_subsPg.reset(
+        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::subsPg"));
     d_applyPg.reset(
-        new LazyCDProof(pnm, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
-    d_helperPf.reset(new CDProofSet<LazyCDProof>(pnm, d_ctx));
+        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
+    d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));
   }
 }
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Morgan Deters
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +22,7 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/justification_strategy.h"
+#include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -73,7 +74,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
-      d_theoryLemmaPg(d_env.getProofNodeManager(), d_env.getUserContext()),
+      d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -124,7 +125,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
         *d_cnfStream,
         static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
-        new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
+        new PropPfManager(env, userContext, d_satSolver, d_pfCnfStream.get()));
   }
 }
 
@@ -165,6 +166,18 @@ TrustNode PropEngine::removeItes(TNode node,
   return d_theoryProxy->removeItes(node, newLemmas);
 }
 
+void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
+                                            const Node& rhs) const
+{
+  d_theoryProxy->notifyTopLevelSubstitution(lhs, rhs);
+  if (isOutputOn(OutputTag::SUBS))
+  {
+    Node eq = SkolemManager::getOriginalForm(lhs.eqNode(rhs));
+    output(OutputTag::SUBS) << "(substitution " << eq << ")" << std::endl;
+  }
+  Assert(lhs.getType() == rhs.getType());
+}
+
 void PropEngine::assertInputFormulas(
     const std::vector<Node>& assertions,
     std::unordered_map<size_t, Node>& skolemMap)
@@ -192,11 +205,13 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
-    tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    tplemma.debugCheckClosed(
+        options(), "te-proof-debug", "TheoryEngine::lemma");
     for (theory::SkolemLemma& lem : ppLemmas)
     {
       Assert(lem.d_lemma.getGenerator() != nullptr);
-      lem.d_lemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+      lem.d_lemma.debugCheckClosed(
+          options(), "te-proof-debug", "TheoryEngine::lemma_new");
     }
   }
 
@@ -208,6 +223,7 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
       Trace("te-lemma") << "Lemma, new lemma: " << lem.d_lemma.getProven()
                         << " (skolem is " << lem.d_skolem << ")" << std::endl;
     }
+    Trace("te-lemma") << "removable = " << removable << std::endl;
   }
 
   // now, assert the lemmas
@@ -227,7 +243,8 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
   if (isProofEnabled() && !d_env.isTheoryProofProducing()
       && !trn.getGenerator())
   {
-    d_theoryLemmaPg.addStep(node, PfRule::THEORY_LEMMA, {}, {node});
+    Node actualNode = negated ? node.notNode() : node;
+    d_theoryLemmaPg.addStep(actualNode, PfRule::THEORY_LEMMA, {}, {actualNode});
     trn = TrustNode::mkReplaceGenTrustNode(trn, &d_theoryLemmaPg);
   }
   assertInternal(node, negated, removable, false, trn.getGenerator());
@@ -276,13 +293,37 @@ void PropEngine::assertLemmasInternal(
     const std::vector<theory::SkolemLemma>& ppLemmas,
     bool removable)
 {
-  // Assert to decision engine. Notice this must come before the calls to
-  // assertTrustedLemmaInternal below, since the decision engine requires
-  // setting up information about the relevance of skolems before literals
-  // are potentially asserted to the theory engine, which it listens to for
-  // tracking active skolem definitions.
   if (!removable)
   {
+    // notify skolem definitions first to ensure that the computation of
+    // when a literal contains a skolem is accurate in the calls below.
+    Trace("prop") << "Notify skolem definitions..." << std::endl;
+    for (const theory::SkolemLemma& lem : ppLemmas)
+    {
+      d_theoryProxy->notifySkolemDefinition(lem.getProven(), lem.d_skolem);
+    }
+  }
+  // Assert to the SAT solver first
+  Trace("prop") << "Push to SAT..." << std::endl;
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::SkolemLemma& lem : ppLemmas)
+  {
+    assertTrustedLemmaInternal(lem.d_lemma, removable);
+  }
+  // Note that this order is important for theories that send lemmas during
+  // preregistration, as it impacts the order in which lemmas are processed
+  // by default by the decision engine. In particular, sending to the SAT
+  // solver first means that lemmas sent during preregistration in response to
+  // the current lemma are processed after that lemma. This makes a difference
+  // e.g. for string reduction lemmas, where preregistration lemmas are
+  // introduced for skolems that appear in reductions. Moving the above
+  // block after the one below has mixed performance on SMT-LIB strings logics.
+  if (!removable)
+  {
+    Trace("prop") << "Notify assertions..." << std::endl;
     // also add to the decision engine, where notice we don't need proofs
     if (!trn.isNull())
     {
@@ -294,14 +335,7 @@ void PropEngine::assertLemmasInternal(
       d_theoryProxy->notifyAssertion(lem.getProven(), lem.d_skolem, true);
     }
   }
-  if (!trn.isNull())
-  {
-    assertTrustedLemmaInternal(trn, removable);
-  }
-  for (const theory::SkolemLemma& lem : ppLemmas)
-  {
-    assertTrustedLemmaInternal(lem.d_lemma, removable);
-  }
+  Trace("prop") << "Finish " << trn << std::endl;
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
@@ -315,6 +349,22 @@ void PropEngine::requirePhase(TNode n, bool phase) {
 bool PropEngine::isDecision(Node lit) const {
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
+}
+
+std::vector<Node> PropEngine::getPropDecisions() const
+{
+  std::vector<Node> decisions;
+  std::vector<SatLiteral> miniDecisions = d_satSolver->getDecisions();
+  for (SatLiteral d : miniDecisions)
+  {
+    decisions.push_back(d_cnfStream->getNode(d));
+  }
+  return decisions;
+}
+
+std::vector<Node> PropEngine::getPropOrderHeap() const
+{
+  return d_satSolver->getOrderHeap();
 }
 
 int32_t PropEngine::getDecisionLevel(Node lit) const
@@ -676,15 +726,26 @@ std::shared_ptr<ProofNode> PropEngine::getRefutation()
   Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
   std::vector<Node> core;
   getUnsatCore(core);
-  CDProof cdp(d_env.getProofNodeManager());
+  CDProof cdp(d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
   return cdp.getProofFor(fnode);
 }
 
-std::vector<Node> PropEngine::getLearnedZeroLevelLiterals() const
+std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(
+    modes::LearnedLitType ltype) const
 {
-  return d_theoryProxy->getLearnedZeroLevelLiterals();
+  return d_theoryProxy->getLearnedZeroLevelLiterals(ltype);
+}
+
+std::vector<Node> PropEngine::getLearnedZeroLevelLiteralsForRestart() const
+{
+  return d_theoryProxy->getLearnedZeroLevelLiteralsForRestart();
+}
+
+modes::LearnedLitType PropEngine::getLiteralType(const Node& lit) const
+{
+  return d_theoryProxy->getLiteralType(lit);
 }
 
 }  // namespace prop

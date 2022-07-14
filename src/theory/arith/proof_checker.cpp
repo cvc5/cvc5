@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alex Ozdemir, Gereon Kremer, Andres Noetzli
+ *   Alex Ozdemir, Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +21,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
 
 using namespace cvc5::internal::kind;
@@ -75,7 +74,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
              || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
+      Node zero = nm->mkConstInt(Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
@@ -94,7 +93,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
+      Node zero = nm->mkConstInt(Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::LT, mult, zero), args[1]}),

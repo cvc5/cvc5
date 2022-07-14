@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar, Liana Hadarean, Aina Niemetz
+ *   Liana Hadarean, Yoni Zohar, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Theory BV Operator elimination rewrites.
  */
 
 #include "cvc5_private.h"
@@ -265,40 +262,6 @@ inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
   Node result = utils::mkConcat(left, right);
 
   return result;
-}
-
-template <>
-inline bool RewriteRule<BVToNatEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::BITVECTOR_TO_NAT);
-}
-
-template <>
-inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<BVToNatEliminate>(" << node << ")" << std::endl;
-
-  //if( node[0].isConst() ){
-    //TODO? direct computation instead of term construction+rewriting
-  //}
-  return utils::eliminateBv2Nat(node);
-}
-
-template <>
-inline bool RewriteRule<IntToBVEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::INT_TO_BITVECTOR);
-}
-
-template <>
-inline Node RewriteRule<IntToBVEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<IntToBVEliminate>(" << node << ")" << std::endl;
-
-  //if( node[0].isConst() ){
-    //TODO? direct computation instead of term construction+rewriting
-  //}
-  return utils::eliminateInt2Bv(node);
 }
 
 template <>

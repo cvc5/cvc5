@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,6 +91,12 @@ ProofChecker::ProofChecker(bool eagerCheck,
                            rewriter::RewriteDb* rdb)
     : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
 {
+}
+
+void ProofChecker::reset()
+{
+  d_checker.clear();
+  d_plevel.clear();
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,8 +169,7 @@ void ExpandDefs::enableProofs()
   // initialize if not done already
   if (d_tpg == nullptr)
   {
-    Assert(d_env.getProofNodeManager() != nullptr);
-    d_tpg.reset(new TConvProofGenerator(d_env.getProofNodeManager(),
+    d_tpg.reset(new TConvProofGenerator(d_env,
                                         d_env.getUserContext(),
                                         TConvPolicy::FIXPOINT,
                                         TConvCachePolicy::NEVER,

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -953,12 +953,12 @@ bool SynthConjecture::getSynthSolutions(
       // since we don't have function subtyping, this assertion should only
       // check the return type
       Assert(fvar.getType().isFunction());
-      Assert(fvar.getType().getRangeType().isComparableTo(bsol.getType()));
+      Assert(fvar.getType().getRangeType() == bsol.getType());
       bsol = nm->mkNode(LAMBDA, bvl, bsol);
     }
     else
     {
-      Assert(fvar.getType().isComparableTo(bsol.getType()));
+      Assert(fvar.getType() == bsol.getType());
     }
     // store in map
     smc[fvar] = bsol;

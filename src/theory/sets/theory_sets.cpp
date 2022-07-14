@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *   Andrew Reynolds, Aina Niemetz, Kshitij Bansal
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +16,7 @@
 #include "theory/sets/theory_sets.h"
 
 #include "options/sets_options.h"
+#include "theory/sets/set_reduction.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory_model.h"
@@ -33,8 +34,8 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
       d_state(env, valuation, d_skCache),
       d_im(env, *this, d_state),
       d_cpacb(*this),
-      d_internal(new TheorySetsPrivate(
-          env, *this, d_state, d_im, d_skCache, d_pnm, d_cpacb)),
+      d_internal(
+          new TheorySetsPrivate(env, *this, d_state, d_im, d_skCache, d_cpacb)),
       d_notify(*d_internal.get(), d_im)
 {
   // use the official theory state and inference manager objects
@@ -158,6 +159,25 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  if (nk == SET_FOLD)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceFoldOperator(n, asserts);
+    NodeManager* nm = NodeManager::currentNM();
+    Node andNode = nm->mkNode(AND, asserts);
+    d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  if (nk == RELATION_AGGREGATE)
+  {
+    Node ret = SetReduction::reduceAggregateOperator(n);
+    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+  }
+  if (nk == RELATION_PROJECT)
+  {
+    Node ret = SetReduction::reduceProjectOperator(n);
+    return TrustNode::mkTrustRewrite(ret, ret, nullptr);
+  }
   return d_internal->ppRewrite(n, lems);
 }
 
@@ -189,13 +209,6 @@ Theory::PPAssertStatus TheorySets::ppAssert(
       {
         outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
         status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
       }
     }
   }

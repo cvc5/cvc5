@@ -3,9 +3,9 @@
 (set-logic ALL)
 
 
-(declare-fun x () (Set (Tuple Int Int)))
-(declare-fun y () (Set (Tuple Int)))
-(declare-fun z () (Set (Tuple Int)))
+(declare-fun x () (Relation Int Int))
+(declare-fun y () (Relation Int))
+(declare-fun z () (Relation Int))
 (declare-fun b () (Tuple Int Int))
 (assert (= b (tuple 2 1)))
 (assert (set.member b x))

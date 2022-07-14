@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Christopher L. Conway
+ *   Aina Niemetz, Mathias Preiner, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,13 +20,14 @@
 #include "base/exception.h"
 #include "context/context.h"
 #include "expr/kind.h"
-#include "expr/symbol_table.h"
+#include "parser/symbol_table.h"
 #include "test_api.h"
 
 namespace cvc5::internal {
 
 using namespace kind;
 using namespace context;
+using namespace parser;
 
 namespace test {
 

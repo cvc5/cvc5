@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Gereon Kremer
+ *   Haniel Barbosa, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +23,7 @@
 #include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
 #include "prop/sat_proof_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -37,11 +38,11 @@ class CDCLTSatSolverInterface;
  * The expected proof to be built is a refutation proof with preprocessed
  * assertions as free assumptions.
  */
-class PropPfManager
+class PropPfManager : protected EnvObj
 {
  public:
-  PropPfManager(context::UserContext* userContext,
-                ProofNodeManager* pnm,
+  PropPfManager(Env& env,
+                context::UserContext* userContext,
                 CDCLTSatSolverInterface* satSolver,
                 ProofCnfStream* cnfProof);
 
@@ -76,8 +77,6 @@ class PropPfManager
   void checkProof(const context::CDList<Node>& assertions);
 
  private:
-  /** A node manager */
-  ProofNodeManager* d_pnm;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
   /**

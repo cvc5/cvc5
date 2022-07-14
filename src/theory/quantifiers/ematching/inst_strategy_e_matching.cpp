@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -414,7 +414,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   if (patTermsF.empty())
   {
     Node bd = d_qreg.getInstConstantBody(f);
-    PatternTermSelector pts(f, d_tr_strategy, d_user_no_gen[f], true);
+    PatternTermSelector pts(
+        d_env.getOptions(), f, d_tr_strategy, d_user_no_gen[f], true);
     pts.collect(bd, patTermsF, tinfo);
     if (ntrivTriggers)
     {
