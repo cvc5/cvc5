@@ -1700,9 +1700,11 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
+  // expand definitions in the conjecture as well
+  Node conje = d_smtSolver->getPreprocessor()->expandDefinitions(conj);
   Node interpol;
   bool success =
-      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conje, grammarType, interpol);
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
