@@ -21,9 +21,9 @@
 #include <map>
 
 #include "expr/node.h"
+#include "options/proof_options.h"
 #include "proof/proof_rule.h"
 #include "util/statistics_stats.h"
-#include "options/proof_options.h"
 
 namespace cvc5::internal {
 
