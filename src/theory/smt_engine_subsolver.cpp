@@ -49,7 +49,6 @@ SubsolverSetupInfo::SubsolverSetupInfo(Env& env, const Options& opts)
       d_sepLocType(env.getSepLocType()),
       d_sepDataType(env.getSepDataType())
 {
-  
 }
 
 // optimization: try to rewrite to constant
