@@ -84,8 +84,8 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
-    : d_env(new Env(nm, optr)),
+SolverEngine::SolverEngine(const Options* optr)
+    : d_env(new Env(optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
@@ -1928,11 +1928,6 @@ unsigned long SolverEngine::getTimeUsage() const
 unsigned long SolverEngine::getResourceRemaining() const
 {
   return getResourceManager()->getResourceRemaining();
-}
-
-NodeManager* SolverEngine::getNodeManager() const
-{
-  return d_env->getNodeManager();
 }
 
 void SolverEngine::printStatisticsSafe(int fd) const
