@@ -437,6 +437,8 @@ enum class PfRule : uint32_t
    */
   SAT_REFUTATION,
 
+  DRAT_REFUTATION,
+
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Boolean -- Resolution**

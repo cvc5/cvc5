@@ -41,7 +41,8 @@ class SatSolverFactory
 
   static SatSolver* createCadical(StatisticsRegistry& registry,
                                   ResourceManager* resmgr,
-                                  const std::string& name = "");
+                                  const std::string& name = "",
+                                  bool produceProofs = false);
 
   static SatSolver* createKissat(StatisticsRegistry& registry,
                                  const std::string& name = "");

@@ -327,6 +327,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
+  bool isTheoryProofProducing = d_env.isTheoryProofProducing();
   switch (options().bv.bvSatSolver)
   {
     case options::SatSolverMode::CRYPTOMINISAT:
@@ -339,14 +340,16 @@ void BVSolverBitblast::initSatSolver()
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
           statisticsRegistry(),
           d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
+          "theory::bv::BVSolverBitblast::",
+          isTheoryProofProducing));
   }
-  d_cnfStream.reset(new prop::CnfStream(d_env,
-                                        d_satSolver.get(),
-                                        d_bbRegistrar.get(),
-                                        d_nullContext.get(),
-                                        prop::FormulaLitPolicy::INTERNAL,
-                                        "theory::bv::BVSolverBitblast"));
+  d_cnfStream.reset(new prop::CnfStream(
+    d_env,
+    d_satSolver.get(),
+    d_bbRegistrar.get(),
+    d_nullContext.get(),
+    isTheoryProofProducing ? prop::FormulaLitPolicy::TRACK : prop::FormulaLitPolicy::INTERNAL,
+    "theory::bv::BVSolverBitblast"));
 }
 
 Node BVSolverBitblast::getValue(TNode node, bool initialize)
@@ -406,6 +409,47 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   }
   // Clear cache since we only need to do this once per bit-blasted atom.
   registeredAtoms.clear();
+}
+
+std::vector<Node> BVSolverBitblast::getProofNodes(proof::DratProof dratProof)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node cl = nm->mkBoundVar("cl", nm->booleanType());
+  Node del = nm->mkBoundVar("del", nm->booleanType());
+  Node lastFalseResolution = nm->mkConst<bool>(false);
+
+  std::vector<Node> args;
+  for (const proof::DratInstruction instruction : dratProof.getInstructions())
+  {
+    if (instruction.d_clause.size() == 0 && instruction.d_clause[0].toInt() == 0)
+    {
+      args.push_back(nm->mkNode(kind::SEXPR, {cl, lastFalseResolution}));
+      break;
+    }
+    std::vector<Node> clauseNodes;
+    if (instruction.d_kind == proof::DratInstructionKind::DELETION)
+    {
+      clauseNodes.emplace_back(del);
+    }
+    else
+    {
+      clauseNodes.emplace_back(cl);
+    }
+    for (const prop::SatLiteral literal : instruction.d_clause)
+    {
+      Node fact = d_cnfStream->getNode(literal);
+      if (fact.isNull()) {
+        std::ostringstream errmsg;
+        errmsg << "Not found node corresponding to literal from drat proof: \""
+                << literal
+                << "\"";
+        throw Exception(errmsg.str());
+      }
+      clauseNodes.emplace_back(fact);
+    }
+    args.push_back(nm->mkNode(kind::SEXPR, clauseNodes));
+  }
+  return args;
 }
 
 }  // namespace bv
