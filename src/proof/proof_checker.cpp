@@ -226,6 +226,11 @@ Node ProofChecker::checkInternal(PfRule id,
       return Node::null();
     }
   }
+  // if we aren't doing checking, trust the expected if it exists
+  if (d_pcMode == options::ProofCheckMode::NONE && !expected.isNull())
+  {
+    return expected;
+  }
   // check it with the corresponding checker
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull())
