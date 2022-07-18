@@ -92,6 +92,11 @@ class ArithRewriter : public TheoryRewriter
   /** postRewrite transcendental functions */
   static RewriteResponse postRewriteTranscendental(TNode t);
 
+  /** rewrite bv2nat */
+  static RewriteResponse rewriteBVToNat(TNode node);
+  /** rewrite int2bv */
+  static RewriteResponse rewriteIntToBV(TNode node);
+
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
   /** The operator elimination utility */

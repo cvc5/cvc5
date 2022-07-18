@@ -209,7 +209,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
       }
       // compute if bound is not satisfied, and store what is required
       // for a possible refinement
-      if (d_data->d_env.getOptions().arith.nlExtTangentPlanes)
+      if (options().arith.nlExtTangentPlanes)
       {
         if (is_false_lit)
         {
@@ -346,9 +346,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                            : PfRule::ARITH_MULT_NEG,
                              {},
                              {mult, simpleeq});
-              theory::Rewriter* rew = d_data->d_env.getRewriter();
-              if (type == Kind::EQUAL
-                  && (rew->rewrite(simpleeq) != rew->rewrite(exp[1])))
+              if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
               {
                 // it is not identical under rewriting and we need to do some work here
                 // The proof looks like this:
@@ -379,7 +377,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                {nm->mkConstInt(Rational(1))});
                 Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
                 Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
-                if (rew->rewrite(lb) == rew->rewrite(exp[1][0]))
+                if (rewrite(lb) == rewrite(exp[1][0]))
                 {
                   proof->addStep(
                       lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {lb});

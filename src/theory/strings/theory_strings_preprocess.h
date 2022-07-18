@@ -83,6 +83,8 @@ class StringsPreprocess : protected EnvObj
    *   (exists k) asserts => t = t'
    * is valid, where k are the free skolems introduced when constructing
    * asserts.
+   *
+   * This method is called only for eager preprocessing of extended functions.
    */
   Node processAssertion(Node t, std::vector<Node>& asserts);
 
@@ -97,6 +99,8 @@ class StringsPreprocess : protected EnvObj
    * Applies simplify to all top-level extended function subterms of t. New
    * assertions created in this reduction are added to asserts. The argument
    * visited stores a cache of previous results.
+   *
+   * This method is called only for eager preprocessing of extended functions.
    */
   Node simplifyRec(Node t, std::vector<Node>& asserts);
   /**

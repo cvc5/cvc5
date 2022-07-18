@@ -44,7 +44,6 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc,
-                                     ProofNodeManager* pnm,
                                      CarePairArgumentCallback& cpacb)
     : EnvObj(env),
       d_deq(context()),
@@ -55,7 +54,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(d_env, state, im, skc, pnm),
+      d_treg(d_env, state, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
@@ -1723,8 +1722,6 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
         Node sk = sm->mkPurifySkolem(node[0], "univ");
-        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk
-                          << std::endl;
         Node eq = sk.eqNode(node[0]);
         lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
         Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);

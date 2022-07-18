@@ -29,10 +29,7 @@ ProofCnfStream::ProofCnfStream(Env& env,
     : EnvObj(env),
       d_cnfStream(cnfStream),
       d_satPM(satPM),
-      d_proof(env.getProofNodeManager(),
-              nullptr,
-              userContext(),
-              "ProofCnfStream::LazyCDProof"),
+      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof"),
       d_blocked(userContext()),
       d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
