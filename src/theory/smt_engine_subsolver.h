@@ -71,6 +71,14 @@ void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          unsigned long timeout = 0);
 
 /**
+ * Version that uses the options and logicInfo in an environment.
+ */
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
+                         const Env& env,
+                         bool needsTimeout = false,
+                         unsigned long timeout = 0);
+
+/**
  * This returns the result of checking the satisfiability of formula query.
  *
  * If necessary, smte is initialized to the SMT engine that checked its

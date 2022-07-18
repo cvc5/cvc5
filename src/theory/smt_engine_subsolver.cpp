@@ -80,6 +80,14 @@ void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
     smte->declareSepHeap(info.d_sepLocType, info.d_sepDataType);
   }
 }
+void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
+                         const Env& env,
+                         bool needsTimeout,
+                         unsigned long timeout)
+{
+  SubsolverSetupInfo ssi(env);
+  initializeSubsolver(smte, ssi, needsTimeout, timeout);
+}
 
 Result checkWithSubsolver(std::unique_ptr<SolverEngine>& smte,
                           Node query,
