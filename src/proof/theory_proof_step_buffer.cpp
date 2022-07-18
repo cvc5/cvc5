@@ -79,7 +79,7 @@ bool TheoryProofStepBuffer::applyPredTransform(Node src,
   children.insert(children.end(), exp.begin(), exp.end());
   args.push_back(tgt);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
+  Node res = tryStep(PfRule::MACRO_SR_PRED_TRANSFORM, children, args, tgt);
   if (res.isNull())
   {
     // failed to apply
@@ -99,7 +99,7 @@ bool TheoryProofStepBuffer::applyPredIntro(Node tgt,
   std::vector<Node> args;
   args.push_back(tgt);
   addMethodIds(args, ids, ida, idr);
-  Node res = tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args);
+  Node res = tryStep(PfRule::MACRO_SR_PRED_INTRO, exp, args, tgt);
   if (res.isNull())
   {
     return false;
