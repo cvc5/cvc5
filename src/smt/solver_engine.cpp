@@ -1299,7 +1299,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
-  if (d_env->hasSepHeap())
+  if (!d_env->hasSepHeap())
   {
     return false;
   }
