@@ -16,7 +16,6 @@
 #include "proof/proof_checker.h"
 
 #include "expr/skolem_manager.h"
-#include "options/proof_options.h"
 #include "proof/proof_node.h"
 #include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
@@ -86,10 +85,10 @@ ProofCheckerStatistics::ProofCheckerStatistics()
 {
 }
 
-ProofChecker::ProofChecker(bool eagerCheck,
+ProofChecker::ProofChecker(options::ProofCheckMode pcMode,
                            uint32_t pclevel,
                            rewriter::RewriteDb* rdb)
-    : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
+    : d_pcMode(pcMode), d_pclevel(pclevel), d_rdb(rdb)
 {
 }
 
@@ -254,7 +253,7 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (d_eagerCheck)
+  if (d_pcMode == options::ProofCheckMode::EAGER)
   {
     std::stringstream serr;
     if (isPedanticFailure(id, serr, enableOutput))

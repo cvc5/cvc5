@@ -40,7 +40,7 @@ namespace smt {
 PfManager::PfManager(Env& env)
     : EnvObj(env),
       d_pchecker(new ProofChecker(
-          options().proof.proofCheck == options::ProofCheckMode::EAGER,
+          options().proof.proofCheck,
           static_cast<uint32_t>(options().proof.proofPedantic))),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
