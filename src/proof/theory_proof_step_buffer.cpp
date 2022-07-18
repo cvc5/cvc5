@@ -39,14 +39,14 @@ bool TheoryProofStepBuffer::applyEqIntro(Node src,
   args.push_back(src);
   addMethodIds(args, ids, ida, idr);
   bool added;
-  Node res = tryStep(added, PfRule::MACRO_SR_EQ_INTRO, exp, args);
+  Node expected = src.eqNode(tgt);
+  Node res = tryStep(added, PfRule::MACRO_SR_EQ_INTRO, exp, args, expected);
   if (res.isNull())
   {
     // failed to apply
     return false;
   }
   // should have concluded the expected equality
-  Node expected = src.eqNode(tgt);
   if (res != expected)
   {
     // did not provide the correct target
