@@ -68,6 +68,8 @@ class SynthVerify : protected EnvObj
   TermDbSygus* d_tds;
   /** The options for subsolver calls */
   Options d_subOptions;
+  /** The logic info for subsolver calls */
+  const LogicInfo& d_subLogicInfo;
 };
 
 }  // namespace quantifiers

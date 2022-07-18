@@ -33,7 +33,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SynthVerify::SynthVerify(Env& env, TermDbSygus* tds) : EnvObj(env), d_tds(tds)
+SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds), d_subLogicInfo(logicInfo())
 {
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
@@ -79,7 +80,7 @@ Result SynthVerify::verify(Node query,
       }
       // sat, but we need to get arbtirary model values below
     }
-    SubsolverSetupInfo ssi(d_env);
+    SubsolverSetupInfo ssi(d_subOptions, d_subLogicInfo, d_env.getSepLocType(), d_env.getSepDataType());
     r = checkWithSubsolver(queryp,
                            vars,
                            mvs,
