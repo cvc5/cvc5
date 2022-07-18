@@ -36,7 +36,10 @@ SubsolverSetupInfo::SubsolverSetupInfo(const Options& opts,
 }
 
 SubsolverSetupInfo::SubsolverSetupInfo(Env& env)
-    : d_opts(env.getOptions()), d_logicInfo(env.getLogicInfo()), d_sepLocType(env.getSepLocType()), d_sepDataType(env.getSepDataType())
+    : d_opts(env.getOptions()),
+      d_logicInfo(env.getLogicInfo()),
+      d_sepLocType(env.getSepLocType()),
+      d_sepDataType(env.getSepDataType())
 {
 }
 
