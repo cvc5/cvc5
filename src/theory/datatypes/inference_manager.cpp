@@ -32,14 +32,10 @@ namespace datatypes {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
-      d_ipc(isProofEnabled()
-                ? new InferProofCons(context(), env.getProofNodeManager())
-                : nullptr),
-      d_lemPg(isProofEnabled()
-                  ? new EagerProofGenerator(env.getProofNodeManager(),
-                                            userContext(),
-                                            "datatypes::lemPg")
-                  : nullptr)
+      d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
+      d_lemPg(isProofEnabled() ? new EagerProofGenerator(
+                  env, userContext(), "datatypes::lemPg")
+                               : nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -110,8 +106,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
   std::shared_ptr<InferProofCons> ipcl;
   if (isProofEnabled())
   {
-    ipcl =
-        std::make_shared<InferProofCons>(nullptr, d_env.getProofNodeManager());
+    ipcl = std::make_shared<InferProofCons>(d_env, nullptr);
   }
   conc = prepareDtInference(conc, exp, id, ipcl.get());
   // send it as a lemma

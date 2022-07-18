@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE: --strings-exp -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

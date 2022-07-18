@@ -44,7 +44,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_astate(env, valuation),
       d_im(env, *this, d_astate),
       d_ppre(d_env),
-      d_bab(env, d_astate, d_im, d_ppre, d_pnm),
+      d_bab(env, d_astate, d_im, d_ppre),
       d_eqSolver(nullptr),
       d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),

@@ -537,7 +537,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
               Node n = rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
-              TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
+              TrustSubstitutionMap tnullMap(d_env, &fakeContext);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);

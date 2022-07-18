@@ -247,6 +247,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case kind::ABS: return rewriteAbs(t);
+      case kind::BITVECTOR_TO_NAT:
+      case kind::INT_TO_BITVECTOR:
       case kind::IS_INTEGER:
       case kind::TO_INTEGER:
       case kind::TO_REAL:
@@ -344,10 +346,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         ss << "  " << t;
         throw LogicException(ss.str());
       }
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default:
-      Unreachable();
+      case kind::BITVECTOR_TO_NAT: return rewriteBVToNat(t);
+      case kind::INT_TO_BITVECTOR: return rewriteIntToBV(t);
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unreachable();
     }
   }
 }
@@ -1107,6 +1109,26 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
     default: break;
   }
   return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteBVToNat(TNode node)
+{
+  if (node[0].isConst())
+  {
+    Node resultNode = eliminateBv2Nat(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+
+RewriteResponse ArithRewriter::rewriteIntToBV(TNode node)
+{
+  if (node[0].isConst())
+  {
+    Node resultNode = eliminateInt2Bv(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 TrustNode ArithRewriter::expandDefinition(Node node)

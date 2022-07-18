@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_step_buffer.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
@@ -132,7 +133,7 @@ class ProofNodeManager;
  * of ID_2. More generally, CDProof::isSame(F,G) returns true if F and G are
  * essentially the same formula according to this class.
  */
-class CDProof : public ProofGenerator
+class CDProof : protected EnvObj, public ProofGenerator
 {
  public:
   /**
@@ -142,7 +143,7 @@ class CDProof : public ProofGenerator
    * @param autoSymm Whether this proof automatically adds symmetry steps based
    * on policy documented above.
    */
-  CDProof(ProofNodeManager* pnm,
+  CDProof(Env& env,
           context::Context* c = nullptr,
           const std::string& name = "CDProof",
           bool autoSymm = true);
@@ -249,8 +250,6 @@ class CDProof : public ProofGenerator
 
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
-  /** The proof manager, used for allocating new ProofNode objects */
-  ProofNodeManager* d_manager;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The nodes of the proof */

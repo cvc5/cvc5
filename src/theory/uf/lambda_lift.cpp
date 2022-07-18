@@ -31,9 +31,9 @@ LambdaLift::LambdaLift(Env& env)
     : EnvObj(env),
       d_lifted(userContext()),
       d_lambdaMap(userContext()),
-      d_epg(env.isTheoryProofProducing() ? new EagerProofGenerator(
-                env.getProofNodeManager(), userContext(), "LambdaLift::epg")
-                                         : nullptr)
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(env, userContext(), "LambdaLift::epg")
+                : nullptr)
 {
 }
 
