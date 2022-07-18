@@ -28,6 +28,25 @@
 namespace cvc5::internal {
 namespace theory {
 
+/** Set of information required for setting up a subsolver */
+struct SubsolverSetupInfo
+{
+  /** Construct the info from explicit arguments */
+  SubsolverSetupInfo(const Options& opts,
+                const LogicInfo& logicInfo,
+                TypeNode sepLocType = TypeNode::null(),
+                TypeNode sepDataType = TypeNode::null());
+  /** Construct the info from Env */
+  SubsolverSetupInfo(Env& env);
+  /** The options of the subsolver */
+  const Options& d_opts;
+  /** The logic info of the subsolver */
+  const LogicInfo& d_logicInfo;
+  /** The separation logic location and data types */
+  TypeNode d_sepLocType;
+  TypeNode d_sepDataType;
+};
+
 /**
  * This function initializes the smt engine smte to check the satisfiability
  * of the argument "query". It takes the logic and options of the current
