@@ -192,7 +192,7 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
-    getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
+    NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
@@ -589,7 +589,7 @@ void SolverEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  NodeManager* nm = getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula

@@ -4897,7 +4897,7 @@ Solver::Solver(std::unique_ptr<internal::Options>&& original)
   d_nodeMgr = internal::NodeManager::currentNM();
   d_nodeMgr->init();
   d_originalOptions = std::move(original);
-  d_slv.reset(new internal::SolverEngine(d_nodeMgr, d_originalOptions.get()));
+  d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
   resetStatistics();
