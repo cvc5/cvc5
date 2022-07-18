@@ -134,7 +134,7 @@ class TheoryBags : public Theory
 
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
-  /** map kinds to their terms */
+  /** map kinds to their terms. It is cleared during post check */
   std::map<Kind, std::vector<Node>> d_opMap;
 
   /** The representation of the strategy */

@@ -168,6 +168,7 @@ void TheoryBags::initialize()
   d_state.reset();
   d_state.collectDisequalBagTerms();
   collectBagsAndCountTerms();
+  d_opMap.clear();
 }
 
 void TheoryBags::collectBagsAndCountTerms()
