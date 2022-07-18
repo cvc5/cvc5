@@ -38,6 +38,8 @@ struct SubsolverSetupInfo
                      TypeNode sepDataType = TypeNode::null());
   /** Construct the info from Env */
   SubsolverSetupInfo(Env& env);
+  /** Construct from env, but with options replaced */
+  SubsolverSetupInfo(Env& env, const Options& opts);
   /** The options of the subsolver */
   const Options& d_opts;
   /** The logic info of the subsolver */

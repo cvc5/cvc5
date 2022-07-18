@@ -57,26 +57,25 @@ Node ExprMiner::convertToSkolem(Node n)
 void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query)
 {
-  initializeChecker(checker, query, options(), logicInfo());
+  SubsolverSetupInfo ssi(d_env);
+  initializeChecker(checker, query, ssi);
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query,
-                                  const Options& opts,
-                                  const LogicInfo& logicInfo)
+                                  const SubsolverSetupInfo& info)
 {
   Assert (!query.isNull());
   if (options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
     initializeSubsolver(checker,
-                        opts,
-                        logicInfo,
+                        info,
                         true,
                         options().quantifiers.sygusExprMinerCheckTimeout);
   }
   else
   {
-    initializeSubsolver(checker, opts, logicInfo);
+    initializeSubsolver(checker, info);
   }
   // also set the options
   checker->setOption("sygus-rr-synth-input", "false");

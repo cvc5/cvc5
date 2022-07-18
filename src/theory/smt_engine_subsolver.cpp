@@ -43,6 +43,15 @@ SubsolverSetupInfo::SubsolverSetupInfo(Env& env)
 {
 }
 
+SubsolverSetupInfo::SubsolverSetupInfo(Env& env, const Options& opts)
+    : d_opts(opts),
+      d_logicInfo(env.getLogicInfo()),
+      d_sepLocType(env.getSepLocType()),
+      d_sepDataType(env.getSepDataType())
+{
+  
+}
+
 // optimization: try to rewrite to constant
 Result quickCheck(Node& query)
 {
