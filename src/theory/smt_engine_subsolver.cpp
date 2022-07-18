@@ -35,7 +35,7 @@ SubsolverSetupInfo::SubsolverSetupInfo(const Options& opts,
 {
 }
 
-SubsolverSetupInfo::SubsolverSetupInfo(Env& env)
+SubsolverSetupInfo::SubsolverSetupInfo(const Env& env)
     : d_opts(env.getOptions()),
       d_logicInfo(env.getLogicInfo()),
       d_sepLocType(env.getSepLocType()),
@@ -43,7 +43,7 @@ SubsolverSetupInfo::SubsolverSetupInfo(Env& env)
 {
 }
 
-SubsolverSetupInfo::SubsolverSetupInfo(Env& env, const Options& opts)
+SubsolverSetupInfo::SubsolverSetupInfo(const Env& env, const Options& opts)
     : d_opts(opts),
       d_logicInfo(env.getLogicInfo()),
       d_sepLocType(env.getSepLocType()),

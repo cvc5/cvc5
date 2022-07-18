@@ -34,7 +34,7 @@ namespace theory {
 namespace quantifiers {
 
 SynthVerify::SynthVerify(Env& env, TermDbSygus* tds)
-    : EnvObj(env), d_tds(tds), d_subLogicInfo(logicInfo())
+    : EnvObj(env), d_tds(tds)
 {
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
@@ -80,11 +80,11 @@ Result SynthVerify::verify(Node query,
       }
       // sat, but we need to get arbtirary model values below
     }
+    SubsolverSetupInfo ssi(d_env);
     r = checkWithSubsolver(queryp,
                            vars,
                            mvs,
-                           d_subOptions,
-                           d_subLogicInfo,
+                           ssi,
                            options().quantifiers.sygusVerifyTimeout != 0,
                            options().quantifiers.sygusVerifyTimeout);
     finished = true;

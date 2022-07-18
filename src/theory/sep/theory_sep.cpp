@@ -80,7 +80,7 @@ void TheorySep::initializeHeapTypes()
     Trace("sep-type") << "Sep: assume location type " << d_type_ref
                       << " is associated with data type " << d_type_data
                       << std::endl;
-    d_nil_ref = NodeManager::currentNM()->mkNullaryOperator(locT, SEP_NIL);
+    d_nil_ref = NodeManager::currentNM()->mkNullaryOperator(d_type_ref, SEP_NIL);
     d_bound_kind = bound_default;
   }
 }

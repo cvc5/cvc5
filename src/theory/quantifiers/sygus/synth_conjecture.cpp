@@ -614,7 +614,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     sc = rewrite(sc);
-    Result r = checkWithSubsolver(sc, options(), logicInfo());
+    Result r = checkWithSubsolver(sc, d_env);
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
     if (r == Result::UNSAT)
     {
