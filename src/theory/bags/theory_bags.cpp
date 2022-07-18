@@ -526,8 +526,9 @@ bool TheoryBags::isCareArg(Node n, unsigned a)
     return true;
   }
   else if ((n.getKind() == kind::BAG_COUNT || n.getKind() == kind::BAG_MAKE)
-           && a == 0 && n[0].getType().isSet())
+           && a == 0 && n[0].getType().isBag())
   {
+    // when the elements themselves are bags
     return true;
   }
   return false;

@@ -1486,6 +1486,7 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
             || n.getKind() == kind::SET_SINGLETON)
            && a == 0 && n[0].getType().isSet())
   {
+    // when the elements themselves are sets
     return true;
   }
   return false;
