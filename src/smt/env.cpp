@@ -257,15 +257,14 @@ theory::TheoryId Env::theoryOf(TNode node) const
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
 
-bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
+TypeNode Env::getSepLocType() const
 {
-  if (!hasSepHeap())
-  {
-    return false;
-  }
-  locType = d_sepLocType;
-  dataType = d_sepDataType;
-  return true;
+  return d_sepLocType;
+}
+
+TypeNode Env::getSepDataType() const
+{
+  return d_sepDataType;
 }
 
 void Env::declareSepHeap(TypeNode locT, TypeNode dataT)

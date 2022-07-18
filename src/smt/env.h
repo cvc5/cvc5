@@ -260,8 +260,10 @@ class Env
   /** Have we called declareSepHeap? */
   bool hasSepHeap() const;
 
-  /** get the separation logic heap types */
-  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
+  /** get the separation logic location type */
+  TypeNode getSepLocType() const;
+  /** get the separation logic data type */
+  TypeNode getSepDataType() const;
 
  private:
   /* Private initialization ------------------------------------------------- */

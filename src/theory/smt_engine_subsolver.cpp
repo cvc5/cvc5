@@ -34,15 +34,10 @@ SubsolverSetupInfo::SubsolverSetupInfo(const Options& opts,
       d_sepDataType(sepDataType)
 {
 }
+
 SubsolverSetupInfo::SubsolverSetupInfo(Env& env)
-    : d_opts(env.getOptions()), d_logicInfo(env.getLogicInfo())
+    : d_opts(env.getOptions()), d_logicInfo(env.getLogicInfo()), d_sepLocType(env.getSepLocType()), d_sepDataType(env.getSepDataType())
 {
-  // set up separation logic heap if necessary
-  TypeNode sepLocType, sepDataType;
-  if (env.getSepHeapTypes(sepLocType, sepDataType))
-  {
-    smte->declareSepHeap(sepLocType, sepDataType);
-  }
 }
 
 // optimization: try to rewrite to constant
