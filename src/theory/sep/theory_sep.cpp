@@ -78,7 +78,8 @@ void TheorySep::initializeHeapTypes()
     d_type_ref = d_env.getSepLocType();
     d_type_data = d_env.getSepDataType();
     Trace("sep-type") << "Sep: assume location type " << d_type_ref
-                      << " is associated with data type " << d_type_data << std::endl;
+                      << " is associated with data type " << d_type_data
+                      << std::endl;
     d_nil_ref = NodeManager::currentNM()->mkNullaryOperator(locT, SEP_NIL);
     d_bound_kind = bound_default;
   }

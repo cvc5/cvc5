@@ -61,7 +61,7 @@ Result quickCheck(Node& query)
 }
 
 void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
-                        const SubsolverSetupInfo& info,
+                         const SubsolverSetupInfo& info,
                          bool needsTimeout,
                          unsigned long timeout)
 {
