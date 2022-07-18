@@ -2887,6 +2887,7 @@ set(regress_1_tests
   regress1/sygus/replicate-mod.sy
   regress1/sygus/replicate-mod-assume.sy
   regress1/sygus/rex-strings-alarm.sy
+  regress1/sygus/sep-sygus.sy
   regress1/sygus/sets-pred-test.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
