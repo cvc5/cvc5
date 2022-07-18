@@ -33,9 +33,9 @@ struct SubsolverSetupInfo
 {
   /** Construct the info from explicit arguments */
   SubsolverSetupInfo(const Options& opts,
-                const LogicInfo& logicInfo,
-                TypeNode sepLocType = TypeNode::null(),
-                TypeNode sepDataType = TypeNode::null());
+                     const LogicInfo& logicInfo,
+                     TypeNode sepLocType = TypeNode::null(),
+                     TypeNode sepDataType = TypeNode::null());
   /** Construct the info from Env */
   SubsolverSetupInfo(Env& env);
   /** The options of the subsolver */

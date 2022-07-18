@@ -25,13 +25,17 @@ namespace cvc5::internal {
 namespace theory {
 
 SubsolverSetupInfo::SubsolverSetupInfo(const Options& opts,
-              const LogicInfo& logicInfo,
-              TypeNode sepLocType,
-              TypeNode sepDataType) : d_opts(opts), d_logicInfo(logicInfo), d_sepLocType(sepLocType), d_sepDataType(sepDataType)
-              {
-                
-              }
-SubsolverSetupInfo::SubsolverSetupInfo(Env& env) : d_opts(env.getOptions()), d_logicInfo(env.getLogicInfo())
+                                       const LogicInfo& logicInfo,
+                                       TypeNode sepLocType,
+                                       TypeNode sepDataType)
+    : d_opts(opts),
+      d_logicInfo(logicInfo),
+      d_sepLocType(sepLocType),
+      d_sepDataType(sepDataType)
+{
+}
+SubsolverSetupInfo::SubsolverSetupInfo(Env& env)
+    : d_opts(env.getOptions()), d_logicInfo(env.getLogicInfo())
 {
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -40,7 +44,7 @@ SubsolverSetupInfo::SubsolverSetupInfo(Env& env) : d_opts(env.getOptions()), d_l
     smte->declareSepHeap(sepLocType, sepDataType);
   }
 }
-  
+
 // optimization: try to rewrite to constant
 Result quickCheck(Node& query)
 {
