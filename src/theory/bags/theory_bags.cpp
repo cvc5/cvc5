@@ -41,7 +41,8 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
-      d_cardSolver(env, d_state, d_im)
+      d_cardSolver(env, d_state, d_im),
+      d_cpacb(*this)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -187,6 +188,7 @@ void TheoryBags::collectBagsAndCountTerms()
     while (!it.isFinished())
     {
       Node n = (*it);
+      d_opMap[n.getKind()].push_back(n);
       Trace("bags-eqc") << (*it) << " ";
       Kind k = n.getKind();
       if (k == BAG_MAKE)
@@ -515,6 +517,88 @@ void TheoryBags::NotifyClass::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
                    << " n1 = " << n1 << " n2 = " << n2 << " reason = " << reason
                    << std::endl;
   d_theory.eqNotifyDisequal(n1, n2, reason);
+}
+
+bool TheoryBags::isCareArg(Node n, unsigned a)
+{
+  if (d_equalityEngine->isTriggerTerm(n[a], THEORY_BAGS))
+  {
+    return true;
+  }
+  else if ((n.getKind() == kind::BAG_COUNT || n.getKind() == kind::BAG_MAKE)
+           && a == 0 && n[0].getType().isSet())
+  {
+    return true;
+  }
+  return false;
+}
+
+void TheoryBags::computeCareGraph()
+{
+  for (const std::pair<const Kind, std::vector<Node>>& it : d_opMap)
+  {
+    Kind k = it.first;
+    if (k == kind::BAG_MAKE || k == kind::BAG_COUNT)
+    {
+      unsigned n_pairs = 0;
+      Trace("bags-cg-summary") << "Compute graph for sets, op=" << k << "..."
+                               << it.second.size() << std::endl;
+      Trace("bags-cg") << "Build index for " << k << "..." << std::endl;
+      std::map<TypeNode, TNodeTrie> index;
+      unsigned arity = 0;
+      // populate indices
+      for (TNode f1 : it.second)
+      {
+        Trace("bags-cg-debug") << "...build for " << f1 << std::endl;
+        Assert(d_equalityEngine->hasTerm(f1));
+        // break into index based on operator, and the type of the element
+        // type of the proper set, which notice must be safe wrt subtyping.
+        TypeNode tn;
+        if (k == kind::BAG_MAKE)
+        {
+          // get the type of the singleton set (not the type of its element)
+          tn = f1.getType().getBagElementType();
+        }
+        else
+        {
+          Assert(k == kind::BAG_COUNT);
+          // get the element type of the set (not the type of the element)
+          tn = f1[1].getType().getBagElementType();
+        }
+        std::vector<TNode> reps;
+        bool hasCareArg = false;
+        for (unsigned j = 0; j < f1.getNumChildren(); j++)
+        {
+          reps.push_back(d_equalityEngine->getRepresentative(f1[j]));
+          if (isCareArg(f1, j))
+          {
+            hasCareArg = true;
+          }
+        }
+        if (hasCareArg)
+        {
+          Trace("bags-cg-debug") << "......adding." << std::endl;
+          index[tn].addTerm(f1, reps);
+          arity = reps.size();
+        }
+        else
+        {
+          Trace("bags-cg-debug") << "......skip." << std::endl;
+        }
+      }
+      if (arity > 0)
+      {
+        // for each index
+        for (std::pair<const TypeNode, TNodeTrie>& tt : index)
+        {
+          Trace("bags-cg") << "Process index " << tt.first << "..."
+                           << std::endl;
+          nodeTriePathPairProcess(&tt.second, arity, d_cpacb);
+        }
+      }
+      Trace("bags-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
+    }
+  }
 }
 
 }  // namespace bags
