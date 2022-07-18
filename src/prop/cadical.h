@@ -62,6 +62,10 @@ class CadicalSolver : public SatSolver
 
   bool ok() const override;
 
+  void setDrat() override;
+
+  std::string getDrat() override;
+
  private:
   /**
    * Private to disallow creation outside of SatSolverFactory.
@@ -92,6 +96,8 @@ class CadicalSolver : public SatSolver
   bool d_inSatMode;
   SatVariable d_true;
   SatVariable d_false;
+  FILE* d_dratFile;
+  const char* tempDratFilePath = "temp-drat-file.drat";
 
   struct Statistics
   {

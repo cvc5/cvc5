@@ -159,6 +159,8 @@ libcvc5_add_sources(
   proof/clause_id.h
   proof/dot/dot_printer.cpp
   proof/dot/dot_printer.h
+  proof/drat/drat_proof.cpp
+  proof/drat/drat_proof.h
   proof/eager_proof_generator.cpp
   proof/eager_proof_generator.h
   proof/lazy_proof.cpp

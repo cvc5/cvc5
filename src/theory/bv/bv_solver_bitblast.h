@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "context/cdqueue.h"
+#include "proof/drat/drat_proof.h"
 #include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -88,6 +89,9 @@ class BVSolverBitblast : public BVSolver
    * assumed (false).
    */
   void handleEagerAtom(TNode fact, bool assertFact);
+
+  /** Convert drat proof to proof nodes **/
+  std::vector<Node> getProofNodes(proof::DratProof dratProof);
 
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<NodeBitblaster> d_bitblaster;

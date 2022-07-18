@@ -204,6 +204,23 @@ unsigned CadicalSolver::getAssertionLevel() const
 
 bool CadicalSolver::ok() const { return d_inSatMode; }
 
+void CadicalSolver::setDrat()
+{
+  d_dratFile = fopen(tempDratFilePath, "wb");
+  d_solver->set_long_option("--no-binary");
+  d_solver->trace_proof(d_dratFile, tempDratFilePath);
+}
+
+std::string CadicalSolver::getDrat()
+{
+  fclose(d_dratFile);
+  d_solver->close_proof_trace();
+  std::ifstream dratFile(tempDratFilePath, std::ios::binary);
+  std::ostringstream dratFileStringStream;
+  dratFileStringStream << dratFile.rdbuf();
+  return dratFileStringStream.str();
+}
+
 CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                       const std::string& prefix)
     : d_numSatCalls(registry.registerInt(prefix + "cadical::calls_to_solve")),

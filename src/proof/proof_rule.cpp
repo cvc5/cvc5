@@ -51,6 +51,7 @@ const char* toString(PfRule id)
     case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
     case PfRule::THEORY_INFERENCE: return "THEORY_INFERENCE";
     case PfRule::SAT_REFUTATION: return "SAT_REFUTATION";
+    case PfRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
