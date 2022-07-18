@@ -221,8 +221,9 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   // substitution can either be implemented as n traversals of the term to
   // apply the substitution to, or a single traversal of the term, but n^2/2
   // traversals of the range of the substitution to prepare a simultaneous
-  // substitution. Both of these options are inefficient.
-  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT))
+  // substitution. Both of these options are inefficient. Note that we
+  // expect this rule to succeed, so useExpected is set to true.
+  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT, MethodId::RW_REWRITE, true))
   {
     // if we fail for any reason, we must use a trusted step instead
     d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
