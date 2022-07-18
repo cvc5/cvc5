@@ -223,7 +223,13 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   // traversals of the range of the substitution to prepare a simultaneous
   // substitution. Both of these options are inefficient. Note that we
   // expect this rule to succeed, so useExpected is set to true.
-  if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids, MethodId::SBA_FIXPOINT, MethodId::RW_REWRITE, true))
+  if (!d_tspb->applyEqIntro(n,
+                            ns,
+                            pfChildren,
+                            d_ids,
+                            MethodId::SBA_FIXPOINT,
+                            MethodId::RW_REWRITE,
+                            true))
   {
     // if we fail for any reason, we must use a trusted step instead
     d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
