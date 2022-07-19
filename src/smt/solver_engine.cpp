@@ -229,7 +229,7 @@ void SolverEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
-  if (d_env->getOptions().smt.interpolants)
+  if (d_env->getOptions().smt.produceInterpolants)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
