@@ -51,6 +51,7 @@ class SetDefaults : protected EnvObj
    * the options that are passed to subsolvers.
    */
   static void disableChecking(Options& opts);
+
  private:
   //------------------------- utility methods
   /**
