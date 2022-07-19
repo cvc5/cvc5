@@ -1,0 +1,9 @@
+# To build cvc5
+toml
+scikit-build
+
+# To build cvc5's Python bindings
+cython
+
+# To test cvc5's Python bindings
+pytest
