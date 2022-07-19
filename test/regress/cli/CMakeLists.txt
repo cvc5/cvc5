@@ -1074,6 +1074,7 @@ set(regress_0_tests
   regress0/quantifiers/ex3.smt2
   regress0/quantifiers/ex6.smt2
   regress0/quantifiers/floor.smt2
+  regress0/quantifiers/global_negate.smt2
   regress0/quantifiers/horn-ground-pre-post.smt2
   regress0/quantifiers/is-even-pred.smt2
   regress0/quantifiers/is-int.smt2
