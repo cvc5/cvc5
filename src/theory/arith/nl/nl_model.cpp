@@ -270,7 +270,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
 
 bool NlModel::addSubstitution(TNode v, TNode s)
 {
-  Assert (v.getKind()!=TO_REAL);
+  Assert(v.getKind() != TO_REAL);
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
                         << std::endl;
   Assert(getSubstitutedForm(s) == s)
