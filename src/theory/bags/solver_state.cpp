@@ -39,12 +39,6 @@ void SolverState::registerBag(TNode n)
 {
   Assert(n.getType().isBag());
   d_bags.insert(n);
-  if (n.getKind() == TABLE_GROUP)
-  {
-    std::shared_ptr<context::CDHashSet<Node>> set =
-        std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
-    d_partElementSkolems[n] = set;
-  }
 }
 
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
@@ -59,6 +53,13 @@ void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
   {
     d_bagElements[bag].push_back(pair);
   }
+}
+
+void SolverState::registerGroupTerm(Node n)
+{
+  std::shared_ptr<context::CDHashSet<Node>> set =
+      std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+  d_partElementSkolems[n] = set;
 }
 
 void SolverState::registerCardinalityTerm(Node n, Node skolem)
