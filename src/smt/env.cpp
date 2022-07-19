@@ -49,7 +49,6 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
-      d_originalOptions(opts),
       d_resourceManager(),
       d_uninterpretedSortOwner(theory::THEORY_UF)
 {
@@ -128,8 +127,6 @@ StatisticsRegistry& Env::getStatisticsRegistry()
 }
 
 const Options& Env::getOptions() const { return d_options; }
-
-const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
 
 ResourceManager* Env::getResourceManager() const
 {

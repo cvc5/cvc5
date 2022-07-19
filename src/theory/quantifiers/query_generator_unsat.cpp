@@ -31,7 +31,7 @@ QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
   d_false = NodeManager::currentNM()->mkConst(false);
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
-  d_subOptions.copyValues(d_env.getOriginalOptions());
+  d_subOptions.copyValues(d_env.getOptions());
   d_subOptions.writeQuantifiers().sygus = false;
   d_subOptions.writeSmt().produceProofs = true;
   d_subOptions.writeSmt().checkProofs = true;

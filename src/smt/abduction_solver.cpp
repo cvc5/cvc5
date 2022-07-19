@@ -65,8 +65,13 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   d_sssf = aconj[0][0];
   Trace("sygus-abduct") << "SolverEngine::getAbduct: made conjecture : "
                         << aconj << ", solving for " << d_sssf << std::endl;
+
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeQuantifiers().sygus = true;
+  subOptions.writeSmt().produceProofs = false;
   // we generate a new smt engine to do the abduction query
-  initializeSubsolver(d_subsolver, d_env);
+  initializeSubsolver(d_subsolver, subOptions, logicInfo());
   // get the logic
   LogicInfo l = d_subsolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
@@ -158,6 +163,10 @@ void AbductionSolver::checkAbduct(Node a)
   std::vector<Node> asserts(d_axioms.begin(), d_axioms.end());
   asserts.push_back(a);
 
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeSmt().produceAbducts = false;
+  subOptions.writeSmt().produceProofs = false;
   // two checks: first, consistent with assertions, second, implies negated goal
   // is unsatisfiable.
   for (unsigned j = 0; j < 2; j++)
@@ -166,7 +175,7 @@ void AbductionSolver::checkAbduct(Node a)
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> abdChecker;
-    initializeSubsolver(abdChecker, d_env);
+    initializeSubsolver(abdChecker, subOptions, logicInfo());
     Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Node& e : asserts)
