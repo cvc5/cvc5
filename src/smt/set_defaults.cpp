@@ -935,9 +935,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
     // functions are incompatible with our equality proofs. Moreover, enabling
     // proofs for sygus (sub)solvers is irrelevant, since they are not given
-    // check-sat queries.
-    reason << "sygus";
-    return true;
+    // check-sat queries. Note however that we allow proofs in non-full modes
+    // (e.g. unsat cores).
+    if (opts.smt.proofMode == options::ProofMode::FULL)
+    {
+      reason << "sygus";
+      return true;
+    }
   }
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
@@ -1790,6 +1794,13 @@ void SetDefaults::notifyModifyOption(const std::string& x,
     verbose(1) << " due to " << reason;
   }
   verbose(1) << std::endl;
+}
+
+void SetDefaults::disableChecking(Options& opts)
+{
+  opts.writeSmt().checkUnsatCores = false;
+  opts.writeSmt().produceProofs = false;
+  opts.writeSmt().checkProofs = false;
 }
 
 }  // namespace smt

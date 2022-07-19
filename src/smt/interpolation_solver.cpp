@@ -41,7 +41,7 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
                                          const TypeNode& grammarType,
                                          Node& interpol)
 {
-  if (!options().smt.interpolants)
+  if (!options().smt.produceInterpolants)
   {
     const char* msg =
         "Cannot get interpolation when produce-interpolants options is off.";

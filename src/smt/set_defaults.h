@@ -46,6 +46,11 @@ class SetDefaults : protected EnvObj
    */
   void setDefaults(LogicInfo& logic, Options& opts);
 
+  /**
+   * Disable checking for the given options. This is typically done for
+   * the options that are passed to subsolvers.
+   */
+  static void disableChecking(Options& opts);
  private:
   //------------------------- utility methods
   /**

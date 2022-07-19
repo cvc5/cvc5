@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
+#include "smt/set_defaults.h"
 
 using namespace cvc5::internal::theory;
 
@@ -69,7 +70,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeQuantifiers().sygus = true;
-  subOptions.writeSmt().produceProofs = false;
+  SetDefaults::disableChecking(subOptions);
   // we generate a new smt engine to do the abduction query
   initializeSubsolver(d_subsolver, subOptions, logicInfo());
   // get the logic
@@ -166,7 +167,7 @@ void AbductionSolver::checkAbduct(Node a)
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeSmt().produceAbducts = false;
-  subOptions.writeSmt().produceProofs = false;
+  SetDefaults::disableChecking(subOptions);
   // two checks: first, consistent with assertions, second, implies negated goal
   // is unsatisfiable.
   for (unsigned j = 0; j < 2; j++)
