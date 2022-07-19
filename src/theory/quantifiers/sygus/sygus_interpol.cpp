@@ -27,6 +27,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
+#include "smt/set_defaults.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -103,7 +104,7 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.interpolants);
+  Assert(options().smt.produceInterpolants);
   // ASSUMPTIONS
   if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
@@ -341,7 +342,7 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeQuantifiers().sygus = true;
-  SetDefaults::disableChecking(subOptions);
+  smt::SetDefaults::disableChecking(subOptions);
   initializeSubsolver(d_subSolver, subOptions, logicInfo());
 
   for (const Node& var : d_vars)
