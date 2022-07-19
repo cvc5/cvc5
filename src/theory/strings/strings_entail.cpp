@@ -202,7 +202,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
       }
     }
   }
-  if (strict && curr!=zero)
+  if (strict && curr != zero)
   {
     // return false if we did not strip the entire length
     ret = false;
