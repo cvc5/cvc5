@@ -102,6 +102,16 @@ if(NOT GMP_FOUND_SYSTEM)
     endif()
   endif()
 
+  # If it isn't a wasm compilation
+  if(WASM STREQUAL "OFF")
+    set(GMP_CONFIGURE_CMD "")
+    set(GMP_WASM_FLAGS "")
+  # Otherwise
+  else()
+    set(GMP_CONFIGURE_CMD emconfigure)
+    set(GMP_WASM_FLAGS --host=none --disable-assembly --disable-fft)
+  endif()
+
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
   # Without the `--build` flag, `configure` may fail for cross-compilation
@@ -113,15 +123,13 @@ if(NOT GMP_FOUND_SYSTEM)
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-        emconfigure <SOURCE_DIR>/configure
+          ${GMP_CONFIGURE_CMD} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic
           --enable-cxx
 
-          --host=none
-          --disable-assembly
-          --disable-fft
+          ${GMP_WASM_FLAGS}
 
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}

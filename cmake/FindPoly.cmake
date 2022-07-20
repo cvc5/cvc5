@@ -143,15 +143,21 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
+  # If it isn't a wasm compilation
+  if(WASM STREQUAL "OFF")
+    set(POLY_PATCH_CMD_WASM "")
+  # Otherwise
+  else()
+    set(POLY_PATCH_CMD_WASM ${POLY_PATCH_CMD_WASM}
+      COMMAND
+        bash ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-wasm-patch.sh ${DEPS_BASE}
+    )
+  endif()
+
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
   # paths make it impossible to find the locally built GMP library otherwise.
-  set(POLY_PATCH_CMD_WASM ${POLY_PATCH_CMD_WASM}
-    COMMAND
-      bash ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-wasm-patch.sh ${DEPS_BASE}
-  )
-  
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
