@@ -69,6 +69,9 @@ Optional Path to Optional Packages:
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
 
+Wasm Options
+  --wasm=VALUE             compilation extension for WebAssembly (OFF, WASM, JS or HTML)
+
 EOF
   exit 0
 }
@@ -133,6 +136,8 @@ werror=default
 ipo=default
 
 glpk_dir=default
+
+wasm=OFF
 
 #--------------------------------------------------------------------------#
 
@@ -272,6 +277,9 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
+    --wasm) wasm=WASM ;;
+    --wasm=*) wasm="${1##*=}" ;;
+
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -370,6 +378,8 @@ fi
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \
   && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
+[ "$wasm" != default ] \
+  && cmake_opts="$cmake_opts -DWASM=$wasm"
 
 root_dir=$(pwd)
 

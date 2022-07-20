@@ -114,6 +114,9 @@ option(USE_COCOA              "Use CoCoALib for further polynomial operations")
 # immediately fail if the dependency was not found at the specified location.
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
+# Custom extension for WebAssembly compilation
+cvc5_option(WASM "Use a specific extension for WebAssembly compilation")
+
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
