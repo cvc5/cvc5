@@ -64,11 +64,15 @@ std::ostream& operator<<(std::ostream& out, ProofComponent pc)
 {
   switch (pc)
   {
-    case ProofComponent::PROOF_COMPONENT_PREPROCESS: out << "PREPROCESS";break;
-    case ProofComponent::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE: out << "PREPROCESS_UNSAT_CORE";break;
-    case ProofComponent::PROOF_COMPONENT_SAT: out << "SAT";break;
-    case ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS: out << "THEORY_LEMMAS";break;
-    case ProofComponent::PROOF_COMPONENT_FULL: out << "FULL";break;
+    case ProofComponent::PROOF_COMPONENT_PREPROCESS: out << "PREPROCESS"; break;
+    case ProofComponent::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE:
+      out << "PREPROCESS_UNSAT_CORE";
+      break;
+    case ProofComponent::PROOF_COMPONENT_SAT: out << "SAT"; break;
+    case ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS:
+      out << "THEORY_LEMMAS";
+      break;
+    case ProofComponent::PROOF_COMPONENT_FULL: out << "FULL"; break;
     default: out << "?";
   }
   return out;
