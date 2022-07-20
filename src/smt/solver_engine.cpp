@@ -1546,7 +1546,7 @@ void SolverEngine::getRelevantInstantiationTermVectors(
   d_ucManager->getRelevantInstantiations(pfn, insts, getDebugInfo);
 }
 
-std::string SolverEngine::getProof()
+std::string SolverEngine::getProof(modes::ProofComponent c)
 {
   Trace("smt") << "SMT getProof()\n";
   SolverEngineScope smts(this);
@@ -1561,6 +1561,7 @@ std::string SolverEngine::getProof()
         "Cannot get a proof unless immediately preceded by "
         "UNSAT/ENTAILED response.");
   }
+  // determine if we should get the full proof from the SAT solver
   // the prop engine has the proof of false
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);

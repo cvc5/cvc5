@@ -706,7 +706,7 @@ class CVC5_EXPORT SolverEngine
    * Get a refutation proof (only if immediately preceded by an UNSAT or
    * ENTAILED query). Only permitted if cvc5 was built with proof support and
    * the proof option is on. */
-  std::string getProof();
+  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the

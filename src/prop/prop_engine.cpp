@@ -696,7 +696,7 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
 
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
-std::shared_ptr<ProofNode> PropEngine::getProof()
+std::shared_ptr<ProofNode> PropEngine::getProof(bool connectTheoryLemmas)
 {
   if (!d_env.isSatProofProducing())
   {
@@ -706,6 +706,13 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
                         "lazycdproof cxt lvl "
                      << userContext()->getLevel() << "\n";
   return d_ppm->getProof();
+}
+
+std::vector<std::shared_ptr<ProofNode>> getTheoryLemmaProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> ret;
+  // TODO
+  return ret;
 }
 
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }

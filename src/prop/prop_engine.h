@@ -308,8 +308,19 @@ class PropEngine : protected EnvObj
    * Return the prop engine proof. This should be called only when proofs are
    * enabled. Returns a proof of false whose free assumptions are the
    * preprocessed assertions.
+   * 
+   * @param connectTheoryLemmas If this flag is false, then all theory lemmas
+   * are free assumptions in the returned proof instead of being connected to
+   * their proofs.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof(bool connectTheoryLemmas = true);
+  
+  /**
+   * Return the vector of theory lemmas used in the proof, which correspond
+   * to the set of free assumptions of the above proof, minus the free
+   * assumptions for preprocessed assertions.
+   */
+  std::vector<std::shared_ptr<ProofNode>> getTheoryLemmaProofs();
 
   /** Is proof enabled? */
   bool isProofEnabled() const;
