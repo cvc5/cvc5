@@ -316,6 +316,32 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
   return modes::BlockModelsMode::LITERALS;
 }
 
+modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
+{
+  if (pc == "preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
+  }
+  else if (pc == "preprocess_unsat_core")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE;
+  }
+  else if (pc == "sat")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_SAT;
+  }
+  else if (pc == "theory-lemmas")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS;
+  }
+  else if (pc == "full")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_FULL;
+  }
+  parseError(std::string("Unknown proof component `") + pc + "'");
+  return modes::ProofComponent::PROOF_COMPONENT_FULL;
+}
+
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);

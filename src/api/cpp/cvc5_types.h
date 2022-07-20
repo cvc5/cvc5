@@ -201,17 +201,17 @@ enum ProofComponent
    * - G1, ... Gn are the preprocessed input formulas,
    * - F1, ... Fm are the input formulas.
    */
-  PREPROCESS,
+  PROOF_COMPONENT_PREPROCESS,
   /**
    * A proof of (and Gu1 ... Gun) whose free assumptions are Fu1, ... Fum,
    * where:
    * - Gu1, ... Gun are the preprocessed input formulas used in the SAT proof,
-   * - Fu1, ... Fum is a subset of the input formulas that are used in the SAT
+   * - Fu1, ... Fum is the subset of the input formulas that are used in the SAT
    * proof (i.e. the unsat core).
    *
    * Only valid immediately after an unsat response.
    */
-  PREPROCESS_UNSAT_CORE,
+  PROOF_COMPONENT_PREPROCESS_UNSAT_CORE,
   /**
    * A proof of false whose free assumptions are Fu1, ... Fum, L1 ... Lk,
    * where:
@@ -220,22 +220,21 @@ enum ProofComponent
    *
    * Only valid immediately after an unsat response.
    */
-  SAT,
+  PROOF_COMPONENT_SAT,
   /**
    * A proof of (and L1 ... Lk) where:
-   *- L1, ..., Lk are the theory lemmas corresponding to those used in the SAT
-   * proof above.
+   *- L1, ..., Lk are the theory lemmas used in the SAT proof.
    *
    * Only valid immediately after an unsat response.
    */
-  THEORY_LEMMAS,
+  PROOF_COMPONENT_THEORY_LEMMAS,
   /**
    * A proof of false whose free assumptions are a subset of the input formulas
    * F1, ... Fm.
    *
    * Only valid immediately after an unsat response.
    */
-  FULL,
+  PROOF_COMPONENT_FULL,
 };
 /** Writes a proof component identifier to a stream. */
 std::ostream& operator<<(std::ostream& out, ProofComponent pc);
