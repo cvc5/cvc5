@@ -719,12 +719,20 @@ bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
-  Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
-  std::vector<SatLiteral> unsat_assumptions;
-  d_satSolver->getUnsatAssumptions(unsat_assumptions);
-  for (const SatLiteral& lit : unsat_assumptions)
+  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    core.push_back(d_cnfStream->getNode(lit));
+    std::vector<SatLiteral> unsat_assumptions;
+    d_satSolver->getUnsatAssumptions(unsat_assumptions);
+    for (const SatLiteral& lit : unsat_assumptions)
+    {
+      core.push_back(d_cnfStream->getNode(lit));
+    }
+  }
+  else
+  {
+    // otherwise, it is just the free assumptions of the proof
+    std::shared_ptr<ProofNode> pfn = getProof();
+    expr::getFreeAssumptions(pnp, core);
   }
 }
 
