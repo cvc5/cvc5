@@ -129,6 +129,7 @@ Node Preprocessor::expandDefinitions(const Node& node,
   }
   // apply substitutions here (without rewriting), before expanding definitions
   n = d_env.getTopLevelSubstitutions().apply(n);
+  Trace("smt-debug") << "...after top-level subs: " << n << std::endl;
   // now call expand definitions
   n = d_exDefs.expandDefinitions(n, cache);
   return n;
