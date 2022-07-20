@@ -208,7 +208,7 @@ enum ProofComponent
    * - Gu1, ... Gun are the preprocessed input formulas used in the SAT proof,
    * - Fu1, ... Fum is a subset of the input formulas that are used in the SAT
    * proof (i.e. the unsat core).
-   * 
+   *
    * Only valid immediately after an unsat response.
    */
   PREPROCESS_UNSAT_CORE,
@@ -217,7 +217,7 @@ enum ProofComponent
    * where:
    * - Fu1, ... Fum, is a subset of the input formulas,
    * - L1, ..., Lk is a set of theory lemmas.
-   * 
+   *
    * Only valid immediately after an unsat response.
    */
   SAT,
@@ -237,7 +237,6 @@ enum ProofComponent
    */
   FULL,
 };
-
 }
 
 #endif
