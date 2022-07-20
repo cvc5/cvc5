@@ -400,13 +400,14 @@ void PropEngine::printSatisfyingAssignment(){
     }
   }
 }
-void PropEngine::outputIncompleteReason(UnknownExplanation uexp, theory::IncompleteId iid)
+void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
+                                        theory::IncompleteId iid)
 {
   if (isOutputOn(OutputTag::INCOMPLETE))
   {
     output(OutputTag::INCOMPLETE) << "(incomplete ";
     output(OutputTag::INCOMPLETE) << uexp;
-    if (iid!=theory::IncompleteId::UNKNOWN)
+    if (iid != theory::IncompleteId::UNKNOWN)
     {
       output(OutputTag::INCOMPLETE) << " " << iid;
     }
@@ -472,7 +473,8 @@ Result PropEngine::checkSat() {
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
-    outputIncompleteReason(UnknownExplanation::INCOMPLETE, d_theoryProxy->getIncompleteId());
+    outputIncompleteReason(UnknownExplanation::INCOMPLETE,
+                           d_theoryProxy->getIncompleteId());
     return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
