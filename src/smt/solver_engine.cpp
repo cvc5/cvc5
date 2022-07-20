@@ -1363,7 +1363,12 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pepf;
   if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    pepf = pe->getRefutation();
+    std::vector<Node> core;
+    pe->getUnsatCore(core);
+    CDProof cdp(d_env);
+    Node fnode = NodeManager::currentNM()->mkConst(false);
+    cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
+    pepf = cdp.getProofFor(fnode);
   }
   else
   {
