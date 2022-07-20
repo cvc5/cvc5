@@ -7356,8 +7356,8 @@ void Solver::setOption(const std::string& option,
       || std::find(options.cbegin(), options.cend(), option) != options.cend())
       << "Unrecognized option: " << option << '.';
   // this list includes options that are prescribed to be changable in any
-  // context based on the SMT-LIB standard, as well as options (e.g. tlimit-per) that have
-  // no impact on solver initialization or imply other options.
+  // context based on the SMT-LIB standard, as well as options (e.g. tlimit-per)
+  // that have no impact on solver initialization or imply other options.
   static constexpr auto mutableOpts = {"diagnostic-output-channel",
                                        "print-success",
                                        "regular-output-channel",
