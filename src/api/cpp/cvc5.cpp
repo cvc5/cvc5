@@ -7359,7 +7359,9 @@ void Solver::setOption(const std::string& option,
                                        "print-success",
                                        "regular-output-channel",
                                        "reproducible-resource-limit",
-                                       "verbosity"};
+                                       "verbosity",
+    "tlimit-per"
+  };
   if (std::find(mutableOpts.begin(), mutableOpts.end(), option)
       == mutableOpts.end())
   {
