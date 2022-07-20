@@ -105,13 +105,13 @@ PfManager::PfManager(Env& env)
 
 PfManager::~PfManager() {}
 
-
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, Assertions& as)
 {
-  // Note this assumes that connectProofToAssertions is only called once per unsat
-  // response. This method would need to cache its result otherwise.
-  Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): get proof body...\n";
+  // Note this assumes that connectProofToAssertions is only called once per
+  // unsat response. This method would need to cache its result otherwise.
+  Trace("smt-proof")
+      << "SolverEngine::connectProofToAssertions(): get proof body...\n";
 
   if (TraceIsOn("smt-proof-debug"))
   {
@@ -131,14 +131,15 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
         << std::endl;
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
-    Trace("smt-proof")
-        << "SolverEngine::connectProofToAssertions(): initial free assumptions are:\n";
+    Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): initial "
+                          "free assumptions are:\n";
     for (const Node& a : fassumps)
     {
       Trace("smt-proof") << "- " << a << std::endl;
     }
 
-    Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): assertions are:\n";
+    Trace("smt-proof")
+        << "SolverEngine::connectProofToAssertions(): assertions are:\n";
     for (const Node& n : assertions)
     {
       Trace("smt-proof") << "- " << n << std::endl;
@@ -146,21 +147,21 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof") << "=====" << std::endl;
   }
 
-  Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): postprocess...\n";
+  Trace("smt-proof")
+      << "SolverEngine::connectProofToAssertions(): postprocess...\n";
   Assert(d_pfpp != nullptr);
   d_pfpp->process(pfn);
 
-  Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): make scope...\n";
+  Trace("smt-proof")
+      << "SolverEngine::connectProofToAssertions(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
   // proof are the assertions. If we are pruning the input, we will try to
   // minimize the used assertions.
-  return
-      d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
+  return d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
 }
 
-void PfManager::printProof(std::ostream& out,
-                           std::shared_ptr<ProofNode> fp)
+void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   // if we are in incremental mode, we don't want to invalidate the proof
@@ -188,7 +189,7 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
   {
-    Assert (fp->getRule()==PfRule::SCOPE);
+    Assert(fp->getRule() == PfRule::SCOPE);
     std::vector<Node> assertions = fp->getArguments();
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);

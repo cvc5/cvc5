@@ -80,8 +80,7 @@ class PfManager : protected EnvObj
   /**
    * Print the proof on the given output stream.
    */
-  void printProof(std::ostream& out,
-                  std::shared_ptr<ProofNode> fp);
+  void printProof(std::ostream& out, std::shared_ptr<ProofNode> fp);
 
   /**
    * Translate difficulty map. This takes a mapping dmap from preprocessed
@@ -111,8 +110,8 @@ class PfManager : protected EnvObj
    * (= f (lambda (...) t)) which originate from define-fun commands for f.
    * These are considered assertions in the final proof.
    */
-  std::shared_ptr<ProofNode> connectProofToAssertions(std::shared_ptr<ProofNode> pfn,
-                                           Assertions& as);
+  std::shared_ptr<ProofNode> connectProofToAssertions(
+      std::shared_ptr<ProofNode> pfn, Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

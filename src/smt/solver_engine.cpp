@@ -1376,7 +1376,8 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
     pepf = pe->getProof();
   }
   Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn = d_pfManager->connectProofToAssertions(pepf, *d_asserts);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->connectProofToAssertions(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   if (options().smt.minimalUnsatCores)
