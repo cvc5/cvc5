@@ -60,5 +60,18 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
   }
   return out;
 }
+std::ostream& operator<<(std::ostream& out, ProofComponent pc)
+{
+  switch (pc)
+  {
+    case ProofComponent::PREPROCESS: out << "PREPROCESS";break;
+    case ProofComponent::PREPROCESS_UNSAT_CORE: out << "PREPROCESS_UNSAT_CORE";break;
+    case ProofComponent::SAT: out << "SAT";break;
+    case ProofComponent::THEORY_LEMMAS: out << "THEORY_LEMMAS";break;
+    case ProofComponent::FULL: out << "FULL";break;
+    default: out << "?";
+  }
+  return out;
+}
 
 }  // namespace cvc5::modes

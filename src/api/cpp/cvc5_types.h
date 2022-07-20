@@ -237,6 +237,8 @@ enum ProofComponent
    */
   FULL,
 };
+/** Writes a proof component identifier to a stream. */
+std::ostream& operator<<(std::ostream& out, ProofComponent pc);
 }
 
 #endif
