@@ -69,7 +69,7 @@ class Env
   /**
    * Construct an Env with the given node manager.
    */
-  Env(NodeManager* nm, const Options* opts);
+  Env(const Options* opts);
   /** Destruct the env.  */
   ~Env();
 
@@ -79,9 +79,6 @@ class Env
 
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
-
-  /** Get a pointer to the underlying NodeManager. */
-  NodeManager* getNodeManager() const;
 
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
@@ -281,11 +278,6 @@ class Env
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
   std::unique_ptr<context::UserContext> d_userContext;
-  /**
-   * A pointer to the node manager of this environment. A node manager is
-   * not necessarily unique to an SolverEngine instance.
-   */
-  NodeManager* d_nodeManager;
   /**
    * A pointer to the proof node manager, which is non-null if proofs are
    * enabled. This is owned by the proof manager of the SolverEngine that owns

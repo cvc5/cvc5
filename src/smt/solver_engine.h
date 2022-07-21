@@ -49,7 +49,6 @@ typedef NodeTemplate<false> TNode;
 class TypeNode;
 
 class Env;
-class NodeManager;
 class TheoryEngine;
 class UnsatCore;
 class StatisticsRegistry;
@@ -77,7 +76,6 @@ class SolverEngineState;
 class AbstractValues;
 class Assertions;
 class ResourceOutListener;
-class SmtNodeManagerListener;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
@@ -118,7 +116,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
+  SolverEngine(const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 
@@ -821,9 +819,6 @@ class CVC5_EXPORT SolverEngine
    * @throw ModalException
    */
   unsigned long getResourceRemaining() const;
-
-  /** Permit access to the underlying NodeManager. */
-  NodeManager* getNodeManager() const;
 
   /**
    * Print statistics from the statistics registry in the env object owned by
