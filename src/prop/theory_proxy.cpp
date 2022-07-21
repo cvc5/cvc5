@@ -29,7 +29,6 @@
 #include "prop/skolem_def_manager.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"

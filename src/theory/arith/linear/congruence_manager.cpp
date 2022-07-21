@@ -23,7 +23,6 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -63,7 +62,8 @@ ArithCongruenceManager::ArithCongruenceManager(
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
           d_env, userContext(), "ArithCongruenceManager::pfGenExplain")),
-      d_pfee(nullptr)
+      d_pfee(nullptr),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -81,21 +81,19 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   Assert(isProofEnabled() == (d_pfee != nullptr));
 }
 
-ArithCongruenceManager::Statistics::Statistics()
-    : d_watchedVariables(smtStatisticsRegistry().registerInt(
-        "theory::arith::congruence::watchedVariables")),
-      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::watchedVariableIsZero")),
-      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+ArithCongruenceManager::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_watchedVariables(
+        sr.registerInt("theory::arith::congruence::watchedVariables")),
+      d_watchedVariableIsZero(
+          sr.registerInt("theory::arith::congruence::watchedVariableIsZero")),
+      d_watchedVariableIsNotZero(sr.registerInt(
           "theory::arith::congruence::watchedVariableIsNotZero")),
-      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::equalsConstantCalls")),
-      d_propagations(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::propagations")),
-      d_propagateConstraints(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::propagateConstraints")),
-      d_conflicts(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::conflicts"))
+      d_equalsConstantCalls(
+          sr.registerInt("theory::arith::congruence::equalsConstantCalls")),
+      d_propagations(sr.registerInt("theory::arith::congruence::propagations")),
+      d_propagateConstraints(
+          sr.registerInt("theory::arith::congruence::propagateConstraints")),
+      d_conflicts(sr.registerInt("theory::arith::congruence::conflicts"))
 {
 }
 

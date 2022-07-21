@@ -1232,6 +1232,7 @@ CardinalityExtension::CardinalityExtension(Env& env,
                                            TheoryInferenceManager& im,
                                            TheoryUF* th)
     : EnvObj(env),
+      d_statistics(statisticsRegistry()),
       d_state(state),
       d_im(im),
       d_th(th),
@@ -1787,15 +1788,12 @@ void CardinalityExtension::checkCombinedCardinality()
   }
 }
 
-CardinalityExtension::Statistics::Statistics()
-    : d_clique_conflicts(smtStatisticsRegistry().registerInt(
-        "CardinalityExtension::Clique_Conflicts")),
-      d_clique_lemmas(smtStatisticsRegistry().registerInt(
-          "CardinalityExtension::Clique_Lemmas")),
-      d_split_lemmas(smtStatisticsRegistry().registerInt(
-          "CardinalityExtension::Split_Lemmas")),
-      d_max_model_size(smtStatisticsRegistry().registerInt(
-          "CardinalityExtension::Max_Model_Size"))
+CardinalityExtension::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_clique_conflicts(
+        sr.registerInt("CardinalityExtension::Clique_Conflicts")),
+      d_clique_lemmas(sr.registerInt("CardinalityExtension::Clique_Lemmas")),
+      d_split_lemmas(sr.registerInt("CardinalityExtension::Split_Lemmas")),
+      d_max_model_size(sr.registerInt("CardinalityExtension::Max_Model_Size"))
 {
   d_max_model_size.maxAssign(1);
 }

@@ -309,7 +309,7 @@ class CnfStream : protected EnvObj
  private:
   struct Statistics
   {
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& sr, const std::string& name);
     TimerStat d_cnfConversionTime;
   } d_stats;
 
