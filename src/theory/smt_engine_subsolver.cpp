@@ -73,7 +73,7 @@ void initializeSubsolver(std::unique_ptr<SolverEngine>& smte,
                          bool needsTimeout,
                          unsigned long timeout)
 {
-  smte.reset(new SolverEngine(&opts));
+  smte.reset(new SolverEngine(&info.d_opts));
   smte->setIsInternalSubsolver();
   smte->setLogic(info.d_logicInfo);
   // set the options
