@@ -18,8 +18,8 @@
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "proof/proof_node.h"
-#include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
 
@@ -78,18 +78,19 @@ Node ProofRuleChecker::mkKindNode(Kind k)
       Rational(static_cast<uint32_t>(k)));
 }
 
-ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
-          "ProofCheckerStatistics::ruleChecks")),
-      d_totalRuleChecks(smtStatisticsRegistry().registerInt(
-          "ProofCheckerStatistics::totalRuleChecks"))
+ProofCheckerStatistics::ProofCheckerStatistics(StatisticsRegistry& sr)
+    : d_ruleChecks(
+        sr.registerHistogram<PfRule>("ProofCheckerStatistics::ruleChecks")),
+      d_totalRuleChecks(
+          sr.registerInt("ProofCheckerStatistics::totalRuleChecks"))
 {
 }
 
-ProofChecker::ProofChecker(bool eagerCheck,
+ProofChecker::ProofChecker(StatisticsRegistry& sr,
+                           bool eagerCheck,
                            uint32_t pclevel,
                            rewriter::RewriteDb* rdb)
-    : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
+    : d_stats(sr), d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
 {
 }
 

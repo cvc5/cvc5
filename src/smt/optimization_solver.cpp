@@ -251,7 +251,7 @@ Result OptimizationSolver::optimizeLexicographicIterative()
     {
       case Result::SAT:
         // assert target[i] == value[i] and proceed
-        d_optChecker->assertFormula(d_optChecker->getNodeManager()->mkNode(
+        d_optChecker->assertFormula(NodeManager::currentNM()->mkNode(
             kind::EQUAL, d_objectives[i].getTarget(), d_results[i].getValue()));
         break;
       case Result::UNSAT:
@@ -280,7 +280,7 @@ Result OptimizationSolver::optimizeParetoNaiveGIA()
   {
     d_optChecker = createOptCheckerWithTimeout(d_parent);
   }
-  NodeManager* nm = d_optChecker->getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
 
   // checks whether the current set of assertions are satisfied or not
   Result satResult = d_optChecker->checkSat();

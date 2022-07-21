@@ -84,8 +84,8 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
-    : d_env(new Env(nm, optr)),
+SolverEngine::SolverEngine(const Options* optr)
+    : d_env(new Env(optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
@@ -117,7 +117,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
-  d_stats.reset(new SolverEngineStatistics());
+  d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
   // make the SyGuS solver
@@ -192,7 +192,7 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
-    getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
+    NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
@@ -589,7 +589,7 @@ void SolverEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  NodeManager* nm = getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -1221,6 +1221,8 @@ std::pair<Node, Node> SolverEngine::getSepHeapAndNilExpr(void)
 std::vector<Node> SolverEngine::getAssertionsInternal() const
 {
   Assert(d_state->isFullyInited());
+  // ensure that global declarations are processed
+  d_asserts->refresh();
   const CDList<Node>& al = d_asserts->getAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
@@ -1698,9 +1700,11 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
+  // expand definitions in the conjecture as well
+  Node conje = d_smtSolver->getPreprocessor()->expandDefinitions(conj);
   Node interpol;
   bool success =
-      d_interpolSolver->getInterpolant(axioms, conj, grammarType, interpol);
+      d_interpolSolver->getInterpolant(axioms, conje, grammarType, interpol);
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
@@ -1732,8 +1736,10 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   SolverEngineScope smts(this);
   finishInit();
   std::vector<Node> axioms = getExpandedAssertions();
+  // expand definitions in the conjecture as well
+  Node conje = d_smtSolver->getPreprocessor()->expandDefinitions(conj);
   Node abd;
-  bool success = d_abductSolver->getAbduct(axioms, conj, grammarType, abd);
+  bool success = d_abductSolver->getAbduct(axioms, conje, grammarType, abd);
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
@@ -1928,11 +1934,6 @@ unsigned long SolverEngine::getTimeUsage() const
 unsigned long SolverEngine::getResourceRemaining() const
 {
   return getResourceManager()->getResourceRemaining();
-}
-
-NodeManager* SolverEngine::getNodeManager() const
-{
-  return d_env->getNodeManager();
 }
 
 void SolverEngine::printStatisticsSafe(int fd) const

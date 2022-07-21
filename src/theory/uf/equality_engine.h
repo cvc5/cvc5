@@ -127,7 +127,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
     /** Number of constant terms managed by the system */
     IntStat d_constantTermsCount;
 
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& sr, const std::string& name);
   };/* struct EqualityEngine::statistics */
 
  private:

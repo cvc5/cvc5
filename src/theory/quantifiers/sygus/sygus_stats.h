@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -30,7 +31,7 @@ namespace quantifiers {
 class SygusStatistics
 {
  public:
-  SygusStatistics();
+  SygusStatistics(StatisticsRegistry& sr);
   /** Number of solutions printed (could be >1 for --sygus-stream) */
   IntStat d_solutions;
   /** Number of solutions filtered */
