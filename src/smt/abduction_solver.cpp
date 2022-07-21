@@ -45,6 +45,7 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
     const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
   }
+  Trace("sygus-abduct") << "Axioms: " << axioms << std::endl;
   Trace("sygus-abduct") << "SolverEngine::getAbduct: goal " << goal
                         << std::endl;
   std::vector<Node> asserts(axioms.begin(), axioms.end());
