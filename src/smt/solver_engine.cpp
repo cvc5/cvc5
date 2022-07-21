@@ -1568,7 +1568,6 @@ std::string SolverEngine::getProof()
         "Cannot get a proof unless immediately preceded by "
         "UNSAT/ENTAILED response.");
   }
-  // determine if we should get the full proof from the SAT solver
   // the prop engine has the proof of false
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
