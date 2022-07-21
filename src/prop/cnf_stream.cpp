@@ -27,7 +27,6 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "smt/solver_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -51,7 +50,7 @@ CnfStream::CnfStream(Env& env,
       d_registrar(registrar),
       d_name(name),
       d_removable(false),
-      d_stats(name)
+      d_stats(statisticsRegistry(), name)
 {
 }
 
@@ -740,9 +739,10 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-CnfStream::Statistics::Statistics(const std::string& name)
-    : d_cnfConversionTime(smtStatisticsRegistry().registerTimer(
-        name + "::CnfStream::cnfConversionTime"))
+CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
+                                  const std::string& name)
+    : d_cnfConversionTime(
+        sr.registerTimer(name + "::CnfStream::cnfConversionTime"))
 {
 }
 

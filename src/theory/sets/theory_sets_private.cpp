@@ -22,7 +22,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/sets_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
@@ -1722,8 +1721,6 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
         Node sk = sm->mkPurifySkolem(node[0], "univ");
-        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk
-                          << std::endl;
         Node eq = sk.eqNode(node[0]);
         lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
         Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);

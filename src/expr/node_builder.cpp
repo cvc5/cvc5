@@ -431,13 +431,13 @@ expr::NodeValue* NodeBuilder::constructNV()
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
   Assert(getNumChildren() >= kind::metakind::getMinArityForKind(getKind()))
-      << "Nodes with kind " << getKind() << " must have at least "
+      << "Nodes with kind `" << getKind() << "` must have at least "
       << kind::metakind::getMinArityForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
   Assert(getNumChildren() <= kind::metakind::getMaxArityForKind(getKind()))
-      << "Nodes with kind " << getKind() << " must have at most "
+      << "Nodes with kind `" << getKind() << "` must have at most "
       << kind::metakind::getMaxArityForKind(getKind())
       << " children (the one under "
          "construction has "

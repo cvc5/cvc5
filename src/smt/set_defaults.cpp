@@ -1243,6 +1243,13 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
     logic = log;
     logic.lock();
   }
+  if (opts.quantifiers.globalNegate)
+  {
+    LogicInfo log(logic.getUnlockedCopy());
+    log.enableQuantifiers();
+    logic = log;
+    logic.lock();
+  }
   if (opts.quantifiers.preSkolemQuantNested
       && opts.quantifiers.preSkolemQuantNestedWasSetByUser)
   {

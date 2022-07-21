@@ -95,7 +95,7 @@ class ProofRuleChecker
 class ProofCheckerStatistics
 {
  public:
-  ProofCheckerStatistics();
+  ProofCheckerStatistics(StatisticsRegistry& sr);
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
@@ -106,7 +106,8 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(options::ProofCheckMode pcMode,
+  ProofChecker(StatisticsRegistry& sr,
+               options::ProofCheckMode pcMode,
                uint32_t pclevel = 0,
                rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
