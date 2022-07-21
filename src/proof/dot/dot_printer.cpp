@@ -32,7 +32,7 @@ namespace proof {
 
 DotPrinter::DotPrinter(Env& env)
     : EnvObj(env),
-      d_lbind(options::dagThresh() ? options::dagThresh() + 1 : 0),
+      d_lbind(options().printer.dagThresh ? options().printer.dagThresh + 1 : 0),
       d_ruleID(0)
 {
   const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};

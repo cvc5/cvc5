@@ -811,9 +811,6 @@ public:
    * given stream
    *
    * @param out the stream to serialize this node to
-   * @param toDepth the depth to which to print this expression, or -1 to
-   * print it fully
-   * @param language the language in which to output
    */
   inline void toStream(std::ostream& out) const
   {

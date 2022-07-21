@@ -17,7 +17,6 @@
 
 #include "expr/skolem_manager.h"
 #include "prop/prop_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 
 using namespace cvc5::internal::kind;
@@ -25,25 +24,22 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
-    : conflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                    + "conflicts")),
-      propagations(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "propagations")),
-      lemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                 + "lemmas")),
-      requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "requirePhase")),
-      trustedConflicts(smtStatisticsRegistry().registerInt(
-          getStatsPrefix(theory) + "trustedConflicts")),
-      trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                        + "trustedLemmas"))
+EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
+                                            theory::TheoryId theory)
+    : conflicts(sr.registerInt(getStatsPrefix(theory) + "conflicts")),
+      propagations(sr.registerInt(getStatsPrefix(theory) + "propagations")),
+      lemmas(sr.registerInt(getStatsPrefix(theory) + "lemmas")),
+      requirePhase(sr.registerInt(getStatsPrefix(theory) + "requirePhase")),
+      trustedConflicts(
+          sr.registerInt(getStatsPrefix(theory) + "trustedConflicts")),
+      trustedLemmas(sr.registerInt(getStatsPrefix(theory) + "trustedLemmas"))
 {
 }
 
-EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
+EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
+                                         TheoryEngine* engine,
                                          theory::TheoryId theory)
-    : d_engine(engine), d_statistics(theory), d_theory(theory)
+    : d_engine(engine), d_statistics(sr, theory), d_theory(theory)
 {
 }
 
