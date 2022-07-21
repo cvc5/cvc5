@@ -381,7 +381,7 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node diff = d_env.getNodeManager()->mkNode(Kind::SUB, a, b);
+  Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
   std::optional<bool> isZero = isExpressionZero(d_env, diff, d_arithModelCache);
   if (isZero)
   {
