@@ -2664,6 +2664,11 @@ set(regress_1_tests
   regress1/strings/issue8932-cmi-unit.smt2
   regress1/strings/issue8944-sygus-inst.smt2
   regress1/strings/issue8970-strip-sym-len.smt2
+  regress1/strings/issue8975-1.smt2
+  regress1/strings/issue8975-2.smt2
+  regress1/strings/issue8975-3.smt2
+  regress1/strings/issue8981-strings-deq-ext-nth.smt2
+  regress1/strings/issue8981-2-strings-deq-ext-nth.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

@@ -36,7 +36,7 @@ class TestNodeWhiteTypeNode : public TestNode
   void SetUp() override
   {
     TestNode::SetUp();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
   }
   std::unique_ptr<SolverEngine> d_slvEngine;
 };

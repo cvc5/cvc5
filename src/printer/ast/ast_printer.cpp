@@ -44,6 +44,11 @@ void AstPrinter::toStream(std::ostream& out, TNode n) const
   }
 }
 
+void AstPrinter::toStream(std::ostream& out, Kind k) const
+{
+  out << kind::kindToString(k);
+}
+
 void AstPrinter::toStream(std::ostream& out,
                           TNode n,
                           int toDepth,
