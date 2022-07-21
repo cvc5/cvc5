@@ -333,6 +333,10 @@ class PropEngine : protected EnvObj
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+  /** Print reason for answering unknown on output when applicable */
+  void outputIncompleteReason(
+      UnknownExplanation uexp,
+      theory::IncompleteId iid = theory::IncompleteId::UNKNOWN);
 
   /**
    * Converts the given formula to CNF and asserts the CNF to the SAT solver.

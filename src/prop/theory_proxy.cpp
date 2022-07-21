@@ -288,6 +288,15 @@ bool TheoryProxy::isIncomplete() const
   return d_stopSearch.get() || d_theoryEngine->isIncomplete();
 }
 
+theory::IncompleteId TheoryProxy::getIncompleteId() const
+{
+  if (d_stopSearch.get())
+  {
+    return theory::IncompleteId::STOP_SEARCH;
+  }
+  return d_theoryEngine->getIncompleteId();
+}
+
 TNode TheoryProxy::getNode(SatLiteral lit) {
   return d_cnfStream->getNode(lit);
 }
