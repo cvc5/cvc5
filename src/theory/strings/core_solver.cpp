@@ -2428,7 +2428,7 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   Node deq = eq.negate();
   // we could use seq.nth instead of substr
   Node ss1, ss2;
-   if (n1.getType().isString())
+  if (n1.getType().isString())
   {
     // substring of length 1
     ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
