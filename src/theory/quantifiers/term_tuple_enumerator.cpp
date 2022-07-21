@@ -24,7 +24,6 @@
 #include "base/map_util.h"
 #include "base/output.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/index_trie.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_module.h"
