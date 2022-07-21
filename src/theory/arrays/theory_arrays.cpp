@@ -25,7 +25,6 @@
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/decision_manager.h"
@@ -87,7 +86,7 @@ TheoryArrays::TheoryArrays(Env& env,
       d_isPreRegistered(context()),
       d_mayEqualEqualityEngine(d_env, context(), name + "mayEqual", true),
       d_notify(*this),
-      d_infoMap(context(), name),
+      d_infoMap(statisticsRegistry(), context(), name),
       d_mergeQueue(context()),
       d_mergeInProgress(false),
       d_RowQueue(context()),
@@ -301,8 +300,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     if (k == kind::EQ_RANGE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
-         << " not supported in default mode, try --arrays-exp";
+      ss << "Term of kind `" << k
+         << "` not supported in default mode, try `--arrays-exp`.";
       throw LogicException(ss.str());
     }
   }

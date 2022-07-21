@@ -19,7 +19,6 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {

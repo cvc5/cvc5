@@ -17,7 +17,6 @@
 
 #include "options/base_options.h"
 #include "printer/printer.h"
-#include "smt/smt_statistics_registry.h"
 #include "smt/solver_engine.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"

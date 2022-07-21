@@ -1,0 +1,11 @@
+; EXPECT: sat
+(set-option :global-declarations true)
+(set-logic QF_FP)
+(set-option :global-negate true)
+(set-option :fp-exp true)
+(declare-const _x0 (_ BitVec 23))
+(declare-const _x1 (_ BitVec 5))
+(declare-const _x2 (_ BitVec 16))
+(declare-const _x3 (_ BitVec 5))
+(assert (let ((_let0 ((_ to_fp 5 11) _x2)))(fp.leq _let0 _let0 _let0)))
+(check-sat)

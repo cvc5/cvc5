@@ -91,7 +91,7 @@ private:
     TimerStat d_queueTime;
     IntStat d_conflicts;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   } d_statistics;
 };/* class AttemptSolutionSDP */
 

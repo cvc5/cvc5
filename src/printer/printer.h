@@ -51,6 +51,9 @@ class Printer
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
 
+  /** Write a Kind out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, Kind k) const = 0;
+
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
 
