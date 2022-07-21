@@ -115,7 +115,13 @@ option(USE_COCOA              "Use CoCoALib for further polynomial operations")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
 # Custom extension for WebAssembly compilation
-cvc5_option(WASM "Use a specific extension for WebAssembly compilation")
+wasm_option(WASM "Use a specific extension for WebAssembly compilation")
+if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML"))
+  set(WASM "OFF")
+# If it's a wasm compilation, but isn't using static libraries
+elseif(BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "Use --static flag for WebAssembly compilation. GMP will not compile with shared libraries")
+endif()
 
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")

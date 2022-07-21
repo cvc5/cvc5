@@ -146,6 +146,16 @@ macro(cvc5_option var description)
   set_property(CACHE ${var} PROPERTY STRINGS IGNORE ON OFF)
 endmacro()
 
+# Wasm options are four-valued to detect the if the WebAssembly compilation will
+# happen and if it's true, find out the extension used in this process.
+# The options are: OFF (not a WebAssembly compilation), WASM (.wasm), JS (.js) 
+# or HTML (.html).
+macro(wasm_option var description)
+  set(${var} IGNORE CACHE STRING "${description}")
+  # Provide drop down menu options in cmake-gui
+  set_property(CACHE ${var} PROPERTY STRINGS OFF WASM JS HTML)
+endmacro()
+
 # Only set option if the user did not set an option.
 macro(cvc5_set_option var value)
   if(${var} STREQUAL "IGNORE")
