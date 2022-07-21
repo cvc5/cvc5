@@ -206,6 +206,10 @@ void TheoryBags::collectBagsAndCountTerms()
       {
         d_ig.registerCardinalityTerm(n);
       }
+      if (k == TABLE_GROUP)
+      {
+        d_state.registerGroupTerm(n);
+      }
       ++it;
     }
     Trace("bags-eqc") << " } " << std::endl;

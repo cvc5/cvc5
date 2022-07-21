@@ -120,7 +120,7 @@ void TheoryArith::preRegisterTerm(TNode n)
     if (d_nonlinearExtension == nullptr)
     {
       std::stringstream ss;
-      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+      ss << "Term of kind " << k
          << " requires the logic to include non-linear arithmetic";
       throw LogicException(ss.str());
     }
@@ -131,7 +131,7 @@ void TheoryArith::preRegisterTerm(TNode n)
       if (options().arith.nlExt != options::NlExtMode::FULL)
       {
         std::stringstream ss;
-        ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+        ss << "Term of kind " << k
            << " requires nl-ext mode to be set to value 'full'";
         throw LogicException(ss.str());
       }
@@ -139,7 +139,7 @@ void TheoryArith::preRegisterTerm(TNode n)
     if (options().arith.nlCov && !options().arith.nlCovForce)
     {
       std::stringstream ss;
-      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+      ss << "Term of kind " << k
          << " is not compatible with using the coverings-based solver. If "
             "you know what you are doing, "
             "you can try --nl-cov-force, but expect crashes or incorrect "

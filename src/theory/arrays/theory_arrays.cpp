@@ -300,8 +300,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     if (k == kind::EQ_RANGE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
-         << " not supported in default mode, try --arrays-exp";
+      ss << "Term of kind `" << k
+         << "` not supported in default mode, try `--arrays-exp`.";
       throw LogicException(ss.str());
     }
   }
