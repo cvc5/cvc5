@@ -37,10 +37,9 @@ using namespace cvc5::internal::smt;
 
 namespace cvc5::internal {
 
-Env::Env(NodeManager* nm, const Options* opts)
+Env::Env(const Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
-      d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_evalRew(nullptr),
@@ -91,8 +90,6 @@ void Env::shutdown()
 context::Context* Env::getContext() { return d_context.get(); }
 
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
-
-NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 

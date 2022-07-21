@@ -84,8 +84,8 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
-    : d_env(new Env(nm, optr)),
+SolverEngine::SolverEngine(const Options* optr)
+    : d_env(new Env(optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
@@ -192,7 +192,7 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
-    getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
+    NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
@@ -589,7 +589,7 @@ void SolverEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  NodeManager* nm = getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -1940,11 +1940,6 @@ unsigned long SolverEngine::getTimeUsage() const
 unsigned long SolverEngine::getResourceRemaining() const
 {
   return getResourceManager()->getResourceRemaining();
-}
-
-NodeManager* SolverEngine::getNodeManager() const
-{
-  return d_env->getNodeManager();
 }
 
 void SolverEngine::printStatisticsSafe(int fd) const
