@@ -50,6 +50,9 @@ class SolverState : public TheoryState
    */
   void registerCountTerm(Node bag, Node element, Node skolem);
 
+  /** register a table.group term */
+  void registerGroupTerm(Node n);
+
   /**
    * store cardinality term and its skolem in a cahce
    * @param n has the form (bag.card A) where A is a representative
