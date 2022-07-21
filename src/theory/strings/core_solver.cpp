@@ -2409,12 +2409,14 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
 
 void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 {
+  Trace("strings-deq-ext") << "Processing " << n1 << " != " << n2 << std::endl;
   // hash based on equality
   Node eq = n1 < n2 ? n1.eqNode(n2) : n2.eqNode(n1);
   NodeSet::const_iterator it = d_extDeq.find(eq);
   if (it != d_extDeq.end())
   {
     // already processed
+    Trace("strings-deq-ext") << "- already processed" << std::endl;
     return;
   }
   d_extDeq.insert(eq);
@@ -2424,9 +2426,20 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   TypeNode intType = nm->integerType();
   Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
-  // use seq.nth instead of substr
-  Node ss1 = nm->mkNode(SEQ_NTH, n1, k);
-  Node ss2 = nm->mkNode(SEQ_NTH, n2, k);
+  // we could use seq.nth instead of substr
+  Node ss1, ss2;
+  if (n1.getType().isString())
+  {
+    // substring of length 1
+    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
+    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(SEQ_NTH, n1, k);
+    ss2 = nm->mkNode(SEQ_NTH, n2, k);
+  }
 
   // disequality between nth/substr
   Node conc1 = ss1.eqNode(ss2).negate();
