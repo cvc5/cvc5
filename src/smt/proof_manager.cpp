@@ -157,7 +157,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   {
     return pfn;
   }
-  
+
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): make scope...\n";
 
