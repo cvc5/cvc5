@@ -23,7 +23,6 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/node_value.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test_node.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
