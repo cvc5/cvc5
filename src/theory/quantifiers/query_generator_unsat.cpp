@@ -130,7 +130,8 @@ Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
   Trace("sygus-qgen-check") << "Check: " << qy << std::endl;
   out << "(query " << qy << ")" << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
-  initializeChecker(queryChecker, qy, d_subOptions, logicInfo());
+  SubsolverSetupInfo ssi(d_env, d_subOptions);
+  initializeChecker(queryChecker, qy, ssi);
   Result r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
