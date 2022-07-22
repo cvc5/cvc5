@@ -72,17 +72,16 @@ TheorySep::~TheorySep() {
 
 void TheorySep::initializeHeapTypes()
 {
-  TypeNode locT;
-  TypeNode dataT;
-  if (d_env.getSepHeapTypes(locT, dataT))
+  if (d_env.hasSepHeap())
   {
-    // otherwise set it
-    Trace("sep-type") << "Sep: assume location type " << locT
-                      << " is associated with data type " << dataT << std::endl;
     // for now, we only allow heap constraints of one type
-    d_type_ref = locT;
-    d_type_data = dataT;
-    d_nil_ref = NodeManager::currentNM()->mkNullaryOperator(locT, SEP_NIL);
+    d_type_ref = d_env.getSepLocType();
+    d_type_data = d_env.getSepDataType();
+    Trace("sep-type") << "Sep: assume location type " << d_type_ref
+                      << " is associated with data type " << d_type_data
+                      << std::endl;
+    d_nil_ref =
+        NodeManager::currentNM()->mkNullaryOperator(d_type_ref, SEP_NIL);
     d_bound_kind = bound_default;
   }
 }

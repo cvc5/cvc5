@@ -411,7 +411,7 @@ public:
     TimerStat d_conflictTimer;
     TimerStat d_cutTimer;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
 
   Statistics d_statistics;
