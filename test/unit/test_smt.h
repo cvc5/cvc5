@@ -22,7 +22,6 @@
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
