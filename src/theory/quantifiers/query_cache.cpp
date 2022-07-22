@@ -78,8 +78,9 @@ bool QueryCache::addTerm(Node sol)
     {
       sol = convertToSkolem(sol);
       std::vector<Node> modelVals;
+      SubsolverSetupInfo ssi(d_env, d_subOptions);
       Result r = checkWithSubsolver(
-          sol, d_skolems, modelVals, d_subOptions, d_env.getLogicInfo());
+          sol, d_skolems, modelVals, ssi);
       if (r.getStatus() != Result::UNSAT)
       {
         // check the sample point

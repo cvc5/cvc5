@@ -278,7 +278,7 @@ bool AletheProofPostprocessCallback::update(Node res,
             vp2a,
             vp2a,
             premisesVP2,
-            options::proofAletheResPivots() ? args : std::vector<Node>(),
+            options().proof.proofAletheResPivots ? args : std::vector<Node>(),
             *cdp);
 
         notAnd.erase(notAnd.begin() + 1);  //(cl (not (and F1 ... Fn))^n)
@@ -304,7 +304,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                vp5,
                                vp5,
                                {vp4, vp3},
-                               options::proofAletheResPivots()
+                               options().proof.proofAletheResPivots
                                    ? std::vector<Node>{andNode}
                                    : std::vector<Node>(),
                                *cdp);
@@ -318,7 +318,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                vp7,
                                vp7,
                                {vp5, vp6},
-                               options::proofAletheResPivots()
+                               options().proof.proofAletheResPivots
                                    ? std::vector<Node>{children[0]}
                                    : std::vector<Node>(),
                                *cdp);
@@ -349,7 +349,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                  res,
                                  nm->mkNode(kind::SEXPR, d_cl, res),
                                  {vp8, vp10},
-                                 options::proofAletheResPivots()
+                                 options().proof.proofAletheResPivots
                                      ? std::vector<Node>{vp8[1]}
                                      : std::vector<Node>(),
                                  *cdp);
@@ -450,7 +450,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs =
-          options::proofAletheResPivots() ? args : std::vector<Node>();
+          options().proof.proofAletheResPivots ? args : std::vector<Node>();
       if (!expr::isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
@@ -531,7 +531,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                  AletheRule::RESOLUTION,
                  res,
                  {vp1, vp2},
-                 options::proofAletheResPivots()
+                 options().proof.proofAletheResPivots
                      ? std::vector<Node>{args[0].notNode().notNode().notNode()}
                      : std::vector<Node>(),
                  *cdp);
@@ -618,7 +618,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                    vp3,
                                    vp3,
                                    vp2Nodes,
-                                   options::proofAletheResPivots()
+                                   options().proof.proofAletheResPivots
                                        ? std::vector<Node>{children[0]}
                                        : std::vector<Node>(),
                                    *cdp);
@@ -638,7 +638,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                  res == nm->mkConst(false) ? nm->mkNode(kind::SEXPR, d_cl)
                                            : nm->mkNode(kind::SEXPR, d_cl, res),
                  {vp1, children[1], child1},
-                 options::proofAletheResPivots()
+                 options().proof.proofAletheResPivots
                      ? std::vector<Node>{children[1], children[0]}
                      : std::vector<Node>(),
                  *cdp);
@@ -664,7 +664,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp1, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -688,7 +688,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp1, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -708,7 +708,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl),
                            children,
-                           options::proofAletheResPivots()
+                           options().proof.proofAletheResPivots
                                ? std::vector<Node>{children[0]}
                                : std::vector<Node>(),
                            *cdp);
@@ -754,7 +754,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? children
                                   : std::vector<Node>(),
                               *cdp);
@@ -976,7 +976,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               vp3,
                               vp3,
                               {vp1, vp2},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{args[0][0]}
                                   : std::vector<Node>(),
                               *cdp)
@@ -1017,7 +1017,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               vp3,
                               vp3,
                               {vp1, vp2},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{args[0][0]}
                                   : std::vector<Node>(),
                               *cdp)
@@ -1135,7 +1135,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -1160,7 +1160,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -1199,7 +1199,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp4, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -1230,7 +1230,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -1476,7 +1476,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? std::vector<Node>{children[0]}
                                   : std::vector<Node>(),
                               *cdp);
@@ -1560,7 +1560,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? children
                                   : std::vector<Node>(),
                               *cdp);
@@ -1585,7 +1585,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? children
                                   : std::vector<Node>(),
                               *cdp);
@@ -1610,7 +1610,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               new_children,
-                              options::proofAletheResPivots()
+                              options().proof.proofAletheResPivots
                                   ? children
                                   : std::vector<Node>(),
                               *cdp);
@@ -1758,7 +1758,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 res,
                                 nm->mkNode(kind::SEXPR, d_cl, res),
                                 {vp2, vp_child1, vp_child2},
-                                options::proofAletheResPivots()
+                                options().proof.proofAletheResPivots
                                     ? std::vector<Node>{vp_child1, vp_child2}
                                     : std::vector<Node>(),
                                 *cdp);
@@ -1793,7 +1793,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 vp3,
                                 vp3,
                                 {vp2, vp_child1, vp_child2},
-                                options::proofAletheResPivots()
+                                options().proof.proofAletheResPivots
                                     ? std::vector<Node>{vp_child1, vp_child2}
                                     : std::vector<Node>(),
                                 *cdp)
@@ -1804,7 +1804,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 res,
                                 nm->mkNode(kind::SEXPR, d_cl, res),
                                 {vp3, vp4, vp5},
-                                options::proofAletheResPivots()
+                                options().proof.proofAletheResPivots
                                     ? std::vector<Node>{vp_child1, vp_child2}
                                     : std::vector<Node>(),
                                 *cdp);
@@ -2162,7 +2162,7 @@ bool AletheProofPostprocessCallback::finalStep(
                     res,
                     res2,
                     {vp2, vp1},
-                    options::proofAletheResPivots() ? std::vector<Node>{res}
+                    options().proof.proofAletheResPivots ? std::vector<Node>{res}
                                                     : std::vector<Node>(),
                     *cdp);
   Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "

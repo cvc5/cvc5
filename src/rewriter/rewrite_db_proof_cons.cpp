@@ -18,7 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
@@ -37,11 +36,11 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_eval(nullptr),
       d_currRecLimit(0),
       d_currFixedPointId(DslPfRule::FAIL),
-      d_statTotalInputs(smtStatisticsRegistry().registerInt(
+      d_statTotalInputs(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputs")),
-      d_statTotalAttempts(smtStatisticsRegistry().registerInt(
+      d_statTotalAttempts(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
-      d_statTotalInputSuccess(smtStatisticsRegistry().registerInt(
+      d_statTotalInputSuccess(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalInputSuccess")),
       d_qcache(env,
                false,

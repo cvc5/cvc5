@@ -89,11 +89,11 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
-    if (options::proofFormatMode() != options::ProofFormatMode::ALETHE)
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
     {
       d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
     }
-    if (options::proofGranularityMode()
+    if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
       d_pfpp->setEliminateRule(PfRule::SUBS);
@@ -190,9 +190,9 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
   }
   else if (options().proof.proofFormatMode == options::ProofFormatMode::LEAN)
   {
+    Assert(fp->getRule() == PfRule::SCOPE);
+    std::vector<Node> assertions = fp->getArguments();
     proof::LeanProofPostprocess lpfpp(d_env);
-    std::vector<Node> assertions;
-    getAssertions(as, assertions);
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }

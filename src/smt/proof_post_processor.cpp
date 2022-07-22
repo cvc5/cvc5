@@ -1371,7 +1371,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
     MethodId mid = MethodId::RW_REWRITE;
     getMethodId(args[2], mid);
-    uint32_t recLimit = options::proofRewriteRconsRecLimit();
+    uint32_t recLimit = options().proof.proofRewriteRconsRecLimit;
     // attempt to reconstruct the proof of the equality into cdp using the
     // rewrite database proof reconstructor
     if (d_rdbPc.prove(cdp, args[0][0], args[0][1], tid, mid, recLimit))
@@ -1593,7 +1593,7 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
-  if (options::proofUpdateDebug())
+  if (options().proof.proofUpdateDebug)
   {
     d_updater.setDebugFreeAssumptions(assertions);
   }

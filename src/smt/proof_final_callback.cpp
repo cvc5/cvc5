@@ -39,7 +39,7 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
           statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
       d_dslRuleCount(
-          smtStatisticsRegistry().registerHistogram<rewriter::DslPfRule>(
+          statisticsRegistry().registerHistogram<rewriter::DslPfRule>(
               "finalProof::dslRuleCount")),
       d_totalRuleCount(
           statisticsRegistry().registerInt("finalProof::totalRuleCount")),
