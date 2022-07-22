@@ -233,7 +233,7 @@ enum ProofComponent
    * proof.
    *
    * In contrast to proofs given for preprocess, L1 ... Lk are clauses that are
-   *added to the SAT solver after its main search.
+   * added to the SAT solver after its main search.
    *
    * Only valid immediately after an unsat response.
    */
