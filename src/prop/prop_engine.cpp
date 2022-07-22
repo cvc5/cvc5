@@ -726,7 +726,7 @@ std::shared_ptr<ProofNode> PropEngine::getProof(bool connectTheoryLemmas)
   return d_ppm->getProof();
 }
 
-std::vector<std::shared_ptr<ProofNode>> getTheoryLemmaProofs()
+std::vector<std::shared_ptr<ProofNode>> PropEngine::getTheoryLemmaProofs()
 {
   std::vector<std::shared_ptr<ProofNode>> ret;
   // TODO
@@ -750,7 +750,7 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   {
     // otherwise, it is just the free assumptions of the proof
     std::shared_ptr<ProofNode> pfn = getProof();
-    expr::getFreeAssumptions(pnp, core);
+    expr::getFreeAssumptions(pfn.get(), core);
   }
 }
 

@@ -1369,11 +1369,11 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
 
   // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
   // unsat core computed by the prop engine
-  std::vector<Node> core;
-  pe->getUnsatCore(core);
+  std::vector<Node> pcore;
+  pe->getUnsatCore(pcore);
   CDProof cdp(*d_env);
   Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, pcore, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
 
   Assert(pepf != nullptr);
@@ -1571,15 +1571,64 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
         "UNSAT/ENTAILED response.");
   }
   // determine if we should get the full proof from the SAT solver
-  // the prop engine has the proof of false
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
+  std::vector<std::shared_ptr<ProofNode>> ps;
+  bool connectToPreprocess = false;
+  if (c==modes::PROOF_COMPONENT_PREPROCESS || c==modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
+  {
+    std::vector<Node> assertions;
+    if (c==modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
+    {
+      pe->getUnsatCore(assertions);
+    }
+    else
+    {
+      // use all preprocessed assertions
+    }
+    connectToPreprocess = true;
+    ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
+    for (const Node& a : assertions)
+    {
+      ps.push_back(pnm->mkAssume(a));
+    }
+  }
+  else if (c==modes::PROOF_COMPONENT_SAT)
+  {
+    ps.push_back(pe->getProof(false));
+  }
+  else if (c==modes::PROOF_COMPONENT_THEORY_LEMMAS)
+  {
+    ps = pe->getTheoryLemmaProofs();
+  }
+  else if (c==modes::PROOF_COMPONENT_FULL)
+  {
+    ps.push_back(pe->getProof(true));
+    connectToPreprocess = true;
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "Unknown proof component " << c << std::endl;
+    throw RecoverableModalException(ss.str());
+  }
+  
+  Assert(p != nullptr);
   Assert(d_pfManager);
   std::ostringstream ss;
-  std::shared_ptr<ProofNode> fp =
-      d_pfManager->connectProofToAssertions(pe->getProof(), *d_asserts);
-  d_pfManager->printProof(ss, fp);
+  // connect proofs to preprocessing, if specified
+  if (connectToPreprocess)
+  {
+    for (std::shared_ptr<ProofNode>& p : ps)
+    {
+      p = d_pfManager->connectProofToAssertions(p, *d_asserts);
+    }
+  }
+  // print all proofs
+  for (std::shared_ptr<ProofNode>& p : ps)
+  {
+    d_pfManager->printProof(ss, p);
+  }
   return ss.str();
 }
 
