@@ -1770,7 +1770,7 @@ public class Solver implements IPointer, AutoCloseable
     return Utils.getTerms(this, retPointers);
   }
 
-  private native long[] getLearnedLiterals(long pointer, LearnedLitType type);
+  private native long[] getLearnedLiterals(long pointer, int type);
 
   /**
    * Get the list of asserted formulas.
