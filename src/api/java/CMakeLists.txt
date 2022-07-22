@@ -43,6 +43,7 @@ set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/RoundingMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/UnknownExplanation.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/LearnedLitType.java"
 )
 add_custom_command(
   OUTPUT
