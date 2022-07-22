@@ -211,7 +211,9 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
   {
     // otherwise, print using default printer
     out << "(proof\n";
-    out << *fp;
+    // we call the printing method explicitly because we may want to print the
+    // final proof node with conclusions
+    fp->printDebug(out, options().proof.proofPrintConclusion);
     out << "\n)\n";
   }
 }
