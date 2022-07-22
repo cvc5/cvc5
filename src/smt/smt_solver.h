@@ -102,7 +102,7 @@ class SmtSolver : protected EnvObj
    * into the SMT solver, and clears the buffer.
    */
   void processAssertions(Assertions& as);
-  /** 
+  /**
    * Get the list of preprocessed assertions
    */
   const std::vector<Node>& getPreprocessedAssertions() const;

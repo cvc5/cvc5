@@ -166,7 +166,9 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   return d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
 }
 
-void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp, options::ProofFormatMode mode)
+void PfManager::printProof(std::ostream& out,
+                           std::shared_ptr<ProofNode> fp,
+                           options::ProofFormatMode mode)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   // if we are in incremental mode, we don't want to invalidate the proof

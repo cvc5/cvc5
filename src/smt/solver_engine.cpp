@@ -1580,7 +1580,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   bool connectToPreprocess = false;
   bool mkOuterScope = false;
   bool commentProves = true;
-  options::ProofFormatMode mode = options::ProofFormatMode::NONE;  
+  options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   if (c == modes::PROOF_COMPONENT_PREPROCESS
       || c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
   {
