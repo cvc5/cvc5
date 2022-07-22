@@ -309,18 +309,20 @@ class PropEngine : protected EnvObj
    * enabled. Returns a proof of false whose free assumptions are the
    * preprocessed assertions.
    *
-   * @param connectTheoryLemmas If this flag is false, then all theory lemmas
-   * are free assumptions in the returned proof instead of being connected to
-   * their proofs.
+   * @param connectCnf If this flag is false, then all clausified preprocessed
+   * assertion and theory lemmas are free assumptions in the returned proof
+   * instead of being connected to their proofs.
    */
-  std::shared_ptr<ProofNode> getProof(bool connectTheoryLemmas = true);
+  std::shared_ptr<ProofNode> getProof(bool connectCnf = true);
 
-  /**
-   * Return the vector of theory lemmas used in the proof, which correspond
-   * to the set of free assumptions of the above proof, minus the free
-   * assumptions for preprocessed assertions.
+  /** Return the vector of proofs for the respective proof component requested.
+   *
+   * The components may be of theory lemma proofs (closed proofs of valid theory
+   * clauses) or of preprocessed assertion proofs (them the preprocessed
+   * assertion assumptions to the added clauses to the SAT solver).
    */
-  std::vector<std::shared_ptr<ProofNode>> getTheoryLemmaProofs();
+  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
+      modes::ProofComponent pc);
 
   /** Is proof enabled? */
   bool isProofEnabled() const;

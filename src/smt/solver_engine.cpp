@@ -1576,8 +1576,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS
            || c == modes::PROOF_COMPONENT_PREPROCESS)
   {
-    // TODO: update to pass `c`
-    ps = pe->getTheoryLemmaProofs();
+    ps = pe->getProofLeaves(c);
     // connect to preprocess proofs for preprocess mode
     connectToPreprocess = (c == modes::PROOF_COMPONENT_PREPROCESS);
   }

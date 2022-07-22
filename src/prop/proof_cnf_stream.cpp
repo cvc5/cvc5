@@ -28,6 +28,8 @@ ProofCnfStream::ProofCnfStream(Env& env,
                                SatProofManager* satPM)
     : EnvObj(env),
       d_cnfStream(cnfStream),
+      d_inputClauses(userContext()),
+      d_lemmaClauses(userContext()),
       d_satPM(satPM),
       d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof"),
       d_blocked(userContext()),
@@ -43,6 +45,26 @@ void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn)
 bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn)
 {
   return d_blocked.contains(pfn);
+}
+
+std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getInputClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_inputClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
+}
+
+std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getLemmaClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_lemmaClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
 }
 
 std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
@@ -68,12 +90,21 @@ Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
                  << pop;
   }
   d_satPM->registerSatAssumptions({normClauseNode});
+  if (d_input)
+  {
+    d_inputClauses.insert(normClauseNode);
+  }
+  else
+  {
+    d_lemmaClauses.insert(normClauseNode);
+  }
   return normClauseNode;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node,
                                       bool negated,
                                       bool removable,
+                                      bool input,
                                       ProofGenerator* pg)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
@@ -81,6 +112,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << "), level " << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
+  d_input = input;
   if (pg)
   {
     Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
@@ -100,6 +132,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
     d_proof.addStep(step.first, step.second);
   }
   d_psb.clear();
+  d_input = false;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
@@ -158,6 +191,14 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         // not a clause and double negation is tracked in a dedicated manner
         // above
         d_satPM->registerSatAssumptions({nnode});
+        if (d_input)
+        {
+          d_inputClauses.insert(nnode);
+        }
+        else
+        {
+          d_lemmaClauses.insert(nnode);
+        }
       }
     }
   }
