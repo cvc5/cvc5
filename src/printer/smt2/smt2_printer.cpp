@@ -1819,7 +1819,7 @@ void Smt2Printer::toStreamCmdGetProof(std::ostream& out,
                                       modes::ProofComponent c) const
 {
   out << "(get-proof";
-  if (c!=modes::ProofComponent::FULL)
+  if (c!=modes::PROOF_COMPONENT_FULL)
   {
     out << " :" << c;
   }

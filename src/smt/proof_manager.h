@@ -111,7 +111,7 @@ class PfManager : protected EnvObj
    * These are considered assertions in the final proof.
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
-      std::shared_ptr<ProofNode> pfn, Assertions& as);
+      std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope = true);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

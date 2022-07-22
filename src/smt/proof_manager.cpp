@@ -107,7 +107,7 @@ PfManager::PfManager(Env& env)
 PfManager::~PfManager() {}
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
-    std::shared_ptr<ProofNode> pfn, Assertions& as)
+    std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope)
 {
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
@@ -153,6 +153,11 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   Assert(d_pfpp != nullptr);
   d_pfpp->process(pfn);
 
+  if (!mkOuterScope)
+  {
+    return pfn;
+  }
+  
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): make scope...\n";
 

@@ -394,7 +394,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   | /* get-proof */
     GET_PROOF_TOK ( KEYWORD { parsedKeyword = true; }  )? {
       PARSER_STATE->checkThatLogicIsSet();
-      modes::ProofComponent pc = modes::ProofComponent::FULL;
+      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
       if (parsedKeyword)
       {
         pc = PARSER_STATE->getProofComponent(

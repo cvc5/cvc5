@@ -1578,6 +1578,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   Assert(pe != nullptr);
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
+  bool mkOuterScope = false;
   if (c == modes::PROOF_COMPONENT_PREPROCESS
       || c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
   {
@@ -1616,6 +1617,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
+    mkOuterScope = true;
   }
   else
   {
@@ -1632,7 +1634,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     for (std::shared_ptr<ProofNode>& p : ps)
     {
-      p = d_pfManager->connectProofToAssertions(p, *d_asserts);
+      p = d_pfManager->connectProofToAssertions(p, *d_asserts, mkOuterScope);
     }
   }
   // print all proofs
