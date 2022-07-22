@@ -313,7 +313,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         string getProof() except +
-        vector[Term] getLearnedLiterals() except +
+        vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
         string getOption(const string& option) except +

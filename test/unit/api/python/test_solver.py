@@ -1485,9 +1485,9 @@ def test_get_unsat_core_and_proof(solver):
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")
     with pytest.raises(RuntimeError):
-        solver.getLearnedLiterals()
+        solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
     solver.checkSat()
-    solver.getLearnedLiterals()
+    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
