@@ -16,6 +16,7 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.LearnedLitType;
 import java.io.IOException;
 import java.util.*;
 
