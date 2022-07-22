@@ -57,7 +57,6 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
     case LearnedLitType::LEARNED_LIT_CONSTANT_PROP: out << "constant_prop"; break;
     case LearnedLitType::LEARNED_LIT_INTERNAL: out << "internal"; break;
     case LearnedLitType::LEARNED_LIT_UNKNOWN: out << "unknown"; break;
-    case LearnedLitType::LEARNED_LIT_ALL: out << "all"; break;
     default: out << "?";
   }
   return out;
