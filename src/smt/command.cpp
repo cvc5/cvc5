@@ -1987,8 +1987,8 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* class GetLearnedLiteralsCommand */
 /* -------------------------------------------------------------------------- */
 
-GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t) :
-    d_type(t)
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t)
+    : d_type(t)
 {
 }
 void GetLearnedLiteralsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
