@@ -1578,7 +1578,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   Assert(pe != nullptr);
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
-  bool mkOuterScope = false;
+  bool connectMkOuterScope = false;
   bool commentProves = true;
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
   if (c == modes::PROOF_COMPONENT_PREPROCESS
@@ -1619,7 +1619,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
-    mkOuterScope = true;
+    connectMkOuterScope = true;
+    // don't need to comment that it proves false
     commentProves = false;
     // we print in the format based on the proof mode
     mode = options().proof.proofFormatMode;
@@ -1631,7 +1632,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     throw RecoverableModalException(ss.str());
   }
 
-  Assert(p != nullptr);
   Assert(d_pfManager);
   std::ostringstream ss;
   // connect proofs to preprocessing, if specified
@@ -1639,14 +1639,12 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     for (std::shared_ptr<ProofNode>& p : ps)
     {
-      p = d_pfManager->connectProofToAssertions(p, *d_asserts, mkOuterScope);
+      Assert(p != nullptr);
+      p = d_pfManager->connectProofToAssertions(p, *d_asserts, connectMkOuterScope);
     }
   }
   // print all proofs
-  if (mode == options::ProofFormatMode::NONE)
-  {
-    ss << "(proof" << std::endl;
-  }
+  ss << "(" << std::endl;
   for (std::shared_ptr<ProofNode>& p : ps)
   {
     if (commentProves)
@@ -1659,10 +1657,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ss << ":proves " << p->getResult() << ")" << std::endl;
     }
   }
-  if (mode == options::ProofFormatMode::NONE)
-  {
-    ss << ")" << std::endl;
-  }
+  ss << ")" << std::endl;
   return ss.str();
 }
 
