@@ -1610,6 +1610,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   else if (c == modes::PROOF_COMPONENT_SAT)
   {
     ps.push_back(pe->getProof(false));
+    // don't need to comment that it proves false
+    commentProves = false;
   }
   else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS)
   {
@@ -1653,6 +1655,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ss << "(!" << std::endl;
     }
     d_pfManager->printProof(ss, p, mode);
+    ss << std::endl;
     if (commentProves)
     {
       ss << ":proves " << p->getResult() << ")" << std::endl;

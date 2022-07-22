@@ -322,7 +322,7 @@ modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
   {
     return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
   }
-  else if (pc == "preprocess-unsat-core")
+  else if (pc == "preprocess_unsat_core")
   {
     return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE;
   }
@@ -330,7 +330,7 @@ modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
   {
     return modes::ProofComponent::PROOF_COMPONENT_SAT;
   }
-  else if (pc == "theory-lemmas")
+  else if (pc == "theory_lemmas")
   {
     return modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS;
   }
