@@ -189,6 +189,55 @@ enum LearnedLitType
 };
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
+
+/**
+ * Components to include in a proof.
+ */
+enum ProofComponent
+{
+  /**
+   * A proof of (and G1 ... Gn) whose free assumptions are a subset of
+   * F1, ... Fm, where:
+   * - G1, ... Gn are the preprocessed input formulas,
+   * - F1, ... Fm are the input formulas.
+   */
+  PROOF_COMPONENT_PREPROCESS,
+  /**
+   * A proof of (and Gu1 ... Gun) whose free assumptions are Fu1, ... Fum,
+   * where:
+   * - Gu1, ... Gun are the preprocessed input formulas used in the SAT proof,
+   * - Fu1, ... Fum is the subset of the input formulas that are used in the SAT
+   * proof (i.e. the unsat core).
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_PREPROCESS_UNSAT_CORE,
+  /**
+   * A proof of false whose free assumptions are Fu1, ... Fum, L1 ... Lk,
+   * where:
+   * - Fu1, ... Fum, is a subset of the input formulas,
+   * - L1, ..., Lk is a set of theory lemmas.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_SAT,
+  /**
+   * A proof of (and L1 ... Lk) where:
+   *- L1, ..., Lk are the theory lemmas used in the SAT proof.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_THEORY_LEMMAS,
+  /**
+   * A proof of false whose free assumptions are a subset of the input formulas
+   * F1, ... Fm.
+   *
+   * Only valid immediately after an unsat response.
+   */
+  PROOF_COMPONENT_FULL,
+};
+/** Writes a proof component identifier to a stream. */
+std::ostream& operator<<(std::ostream& out, ProofComponent pc);
 }
 
 #endif

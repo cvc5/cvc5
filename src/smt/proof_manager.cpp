@@ -17,7 +17,6 @@
 
 #include "options/base_options.h"
 #include "options/main_options.h"
-#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
@@ -115,7 +114,7 @@ PfManager::PfManager(Env& env)
 PfManager::~PfManager() {}
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
-    std::shared_ptr<ProofNode> pfn, Assertions& as)
+    std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope)
 {
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
@@ -162,6 +161,10 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   d_pfpp->setAssertions(assertions);
   d_pfpp->process(pfn);
 
+  if (!mkOuterScope)
+  {
+    return pfn;
+  }
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): make scope...\n";
 
@@ -171,24 +174,25 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   return d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
 }
 
-void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
+void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp,
+                           options::ProofFormatMode mode)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   // if we are in incremental mode, we don't want to invalidate the proof
   // nodes in fp, since these may be reused in further check-sat calls
   if (options().base.incrementalSolving
-      && options().proof.proofFormatMode != options::ProofFormatMode::NONE)
+      && mode != options::ProofFormatMode::NONE)
   {
     fp = d_pnm->clone(fp);
   }
 
   // according to the proof format, post process and print the proof node
-  if (options().proof.proofFormatMode == options::ProofFormatMode::DOT)
+  if (mode == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::LEAN)
+  else if (mode == options::ProofFormatMode::LEAN)
   {
     Assert(fp->getRule() == PfRule::SCOPE);
     std::vector<Node> assertions = fp->getArguments();
@@ -196,7 +200,7 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
+  else if (mode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(
@@ -205,7 +209,7 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
     proof::AletheProofPrinter vpp(d_env);
     vpp.print(out, fp);
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+  else if (mode == options::ProofFormatMode::LFSC)
   {
     Assert(fp->getRule() == PfRule::SCOPE);
     std::vector<Node> assertions = fp->getArguments();
@@ -215,7 +219,7 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
     proof::LfscPrinter lp(ltp, d_rewriteDb.get());
     lp.print(out, assertions, fp.get());
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::TPTP)
+  else if (mode == options::ProofFormatMode::TPTP)
   {
     out << "% SZS output start Proof for " << options().driver.filename
         << std::endl;
@@ -227,11 +231,9 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
   else
   {
     // otherwise, print using default printer
-    out << "(proof\n";
     // we call the printing method explicitly because we may want to print the
     // final proof node with conclusions
     fp->printDebug(out, options().proof.proofPrintConclusion);
-    out << "\n)\n";
   }
 }
 

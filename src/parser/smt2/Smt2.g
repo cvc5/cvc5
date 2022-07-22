@@ -202,6 +202,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Sort> sorts;
   std::vector<std::pair<std::string, cvc5::Sort> > sortedVarNames;
   std::vector<cvc5::Term> flattenVars;
+  bool parsedKeyword = false;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -391,8 +392,16 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssertionsCommand()); }
   | /* get-proof */
-    GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetProofCommand()); }
+    GET_PROOF_TOK ( KEYWORD { parsedKeyword = true; }  )? {
+      PARSER_STATE->checkThatLogicIsSet();
+      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
+      if (parsedKeyword)
+      {
+        pc = PARSER_STATE->getProofComponent(
+               AntlrInput::tokenText($KEYWORD).c_str() + 1);
+      }
+      cmd->reset(new GetProofCommand(pc));
+    }
   | /* get-unsat-assumptions */
     GET_UNSAT_ASSUMPTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatAssumptionsCommand); }

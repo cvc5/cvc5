@@ -21,6 +21,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "options/proof_options.h"
 
 namespace cvc5::internal {
 
@@ -80,7 +81,8 @@ class PfManager : protected EnvObj
   /**
    * Print the proof on the given output stream.
    */
-  void printProof(std::ostream& out, std::shared_ptr<ProofNode> fp);
+  void printProof(std::ostream& out, std::shared_ptr<ProofNode> fp,
+                           options::ProofFormatMode mode);
 
   /**
    * Translate difficulty map. This takes a mapping dmap from preprocessed
@@ -111,7 +113,7 @@ class PfManager : protected EnvObj
    * These are considered assertions in the final proof.
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
-      std::shared_ptr<ProofNode> pfn, Assertions& as);
+      std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope = true);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

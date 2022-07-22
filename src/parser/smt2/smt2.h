@@ -101,7 +101,11 @@ class Smt2 : public Parser
 
   bool isOperatorEnabled(const std::string& name) const;
 
+  /**
+   * Parsing for modes
+   */
   modes::BlockModelsMode getBlockModelsMode(const std::string& mode);
+  modes::ProofComponent getProofComponent(const std::string& pc);
 
   bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 

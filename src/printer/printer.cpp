@@ -372,7 +372,8 @@ void Printer::toStreamCmdBlockModelValues(std::ostream& out,
   printUnknownCommand(out, "block-model-values");
 }
 
-void Printer::toStreamCmdGetProof(std::ostream& out) const
+void Printer::toStreamCmdGetProof(std::ostream& out,
+                                  modes::ProofComponent c) const
 {
   printUnknownCommand(out, "get-proof");
 }

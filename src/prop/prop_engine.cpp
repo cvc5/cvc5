@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_proof_manager.h"
@@ -713,7 +714,7 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
 
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
-std::shared_ptr<ProofNode> PropEngine::getProof()
+std::shared_ptr<ProofNode> PropEngine::getProof(bool connectTheoryLemmas)
 {
   if (!d_env.isSatProofProducing())
   {
@@ -725,16 +726,31 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   return d_ppm->getProof();
 }
 
+std::vector<std::shared_ptr<ProofNode>> PropEngine::getTheoryLemmaProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> ret;
+  // TODO
+  return ret;
+}
+
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
-  Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
-  std::vector<SatLiteral> unsat_assumptions;
-  d_satSolver->getUnsatAssumptions(unsat_assumptions);
-  for (const SatLiteral& lit : unsat_assumptions)
+  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    core.push_back(d_cnfStream->getNode(lit));
+    std::vector<SatLiteral> unsat_assumptions;
+    d_satSolver->getUnsatAssumptions(unsat_assumptions);
+    for (const SatLiteral& lit : unsat_assumptions)
+    {
+      core.push_back(d_cnfStream->getNode(lit));
+    }
+  }
+  else
+  {
+    // otherwise, it is just the free assumptions of the proof
+    std::shared_ptr<ProofNode> pfn = getProof();
+    expr::getFreeAssumptions(pfn.get(), core);
   }
 }
 

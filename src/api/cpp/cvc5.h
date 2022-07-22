@@ -4207,9 +4207,11 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
+   * @param c The component of the proof to return
    * @return A string representing the proof.
    */
-  std::string getProof() const;
+  std::string getProof(
+      modes::ProofComponent c = modes::PROOF_COMPONENT_FULL) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
