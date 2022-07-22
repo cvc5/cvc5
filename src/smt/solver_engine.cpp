@@ -1640,7 +1640,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
-      p = d_pfManager->connectProofToAssertions(p, *d_asserts, connectMkOuterScope);
+      p = d_pfManager->connectProofToAssertions(
+          p, *d_asserts, connectMkOuterScope);
     }
   }
   // print all proofs
