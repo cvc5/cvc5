@@ -1564,7 +1564,9 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
-  if (d_state->getMode() != SmtMode::UNSAT)
+  // The component modes::PROOF_COMPONENT_PREPROCESS returns the proof of
+  // all preprocessed assertions. It does not require being in an unsat state.
+  if (c != modes::PROOF_COMPONENT_PREPROCESS && d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by "
