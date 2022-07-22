@@ -1987,7 +1987,7 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* class GetLearnedLiteralsCommand */
 /* -------------------------------------------------------------------------- */
 
-GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t)
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t) :
     d_type(t)
 {
 }
