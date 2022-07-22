@@ -36,7 +36,6 @@
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
@@ -95,7 +94,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   }
 
   d_satSolver =
-      SatSolverFactory::createCDCLTMinisat(d_env, smtStatisticsRegistry());
+      SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
@@ -400,6 +399,20 @@ void PropEngine::printSatisfyingAssignment(){
     }
   }
 }
+void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
+                                        theory::IncompleteId iid)
+{
+  if (isOutputOn(OutputTag::INCOMPLETE))
+  {
+    output(OutputTag::INCOMPLETE) << "(incomplete ";
+    output(OutputTag::INCOMPLETE) << uexp;
+    if (iid != theory::IncompleteId::UNKNOWN)
+    {
+      output(OutputTag::INCOMPLETE) << " " << iid;
+    }
+    output(OutputTag::INCOMPLETE) << ")" << std::endl;
+  }
+}
 
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
@@ -414,6 +427,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
+    outputIncompleteReason(UnknownExplanation::REQUIRES_FULL_CHECK);
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
 
@@ -447,6 +461,7 @@ Result PropEngine::checkSat() {
     {
       why = UnknownExplanation::RESOURCEOUT;
     }
+    outputIncompleteReason(why);
     return Result(Result::UNKNOWN, why);
   }
 
@@ -457,6 +472,8 @@ Result PropEngine::checkSat() {
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
+    outputIncompleteReason(UnknownExplanation::INCOMPLETE,
+                           d_theoryProxy->getIncompleteId());
     return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);

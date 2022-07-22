@@ -22,7 +22,6 @@
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -47,6 +46,7 @@ Instantiate::Instantiate(Env& env,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
     : QuantifiersUtil(env),
+      d_statistics(statisticsRegistry()),
       d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
@@ -767,15 +767,12 @@ InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
   return ill.get();
 }
 
-Instantiate::Statistics::Statistics()
-    : d_instantiations(smtStatisticsRegistry().registerInt(
-        "Instantiate::Instantiations_Total")),
-      d_inst_duplicate(
-          smtStatisticsRegistry().registerInt("Instantiate::Duplicate_Inst")),
-      d_inst_duplicate_eq(smtStatisticsRegistry().registerInt(
-          "Instantiate::Duplicate_Inst_Eq")),
-      d_inst_duplicate_ent(smtStatisticsRegistry().registerInt(
-          "Instantiate::Duplicate_Inst_Entailed"))
+Instantiate::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_instantiations(sr.registerInt("Instantiate::Instantiations_Total")),
+      d_inst_duplicate(sr.registerInt("Instantiate::Duplicate_Inst")),
+      d_inst_duplicate_eq(sr.registerInt("Instantiate::Duplicate_Inst_Eq")),
+      d_inst_duplicate_ent(
+          sr.registerInt("Instantiate::Duplicate_Inst_Entailed"))
 {
 }
 

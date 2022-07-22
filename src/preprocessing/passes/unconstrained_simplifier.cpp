@@ -24,11 +24,11 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

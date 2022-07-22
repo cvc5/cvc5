@@ -20,7 +20,6 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -2125,6 +2124,7 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
+      d_statistics(statisticsRegistry()),
       d_conflict(context(), false),
       d_effort(EFFORT_INVALID)
 {
@@ -2546,11 +2546,10 @@ void QuantConflictFind::debugPrintQuantBody(const char* c,
   Trace(c) << ")";
 }
 
-QuantConflictFind::Statistics::Statistics()
-    : d_inst_rounds(
-        smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
-      d_entailment_checks(smtStatisticsRegistry().registerInt(
-          "QuantConflictFind::Entailment_Checks"))
+QuantConflictFind::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_inst_rounds(sr.registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(
+          sr.registerInt("QuantConflictFind::Entailment_Checks"))
 {
 }
 

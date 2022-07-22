@@ -28,6 +28,7 @@
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
+#include "theory/incomplete_id.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
@@ -132,6 +133,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Is incomplete */
   bool isIncomplete() const;
+
+  /** Get incomplete id, valid immediately after an `unknown` response. */
+  theory::IncompleteId getIncompleteId() const;
 
   /**
    * Notifies of a new variable at a decision level.

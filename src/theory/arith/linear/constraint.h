@@ -1249,7 +1249,7 @@ class ConstraintDatabase : protected EnvObj
     IntStat d_unatePropagateCalls;
     IntStat d_unatePropagateImplications;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   } d_statistics;
 
 }; /* ConstraintDatabase */
