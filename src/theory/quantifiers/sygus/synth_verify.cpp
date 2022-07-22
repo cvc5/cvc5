@@ -79,11 +79,14 @@ Result SynthVerify::verify(Node query,
       }
       // sat, but we need to get arbtirary model values below
     }
+    SubsolverSetupInfo ssi(d_subOptions,
+                           d_subLogicInfo,
+                           d_env.getSepLocType(),
+                           d_env.getSepDataType());
     r = checkWithSubsolver(queryp,
                            vars,
                            mvs,
-                           d_subOptions,
-                           d_subLogicInfo,
+                           ssi,
                            options().quantifiers.sygusVerifyTimeout != 0,
                            options().quantifiers.sygusVerifyTimeout);
     finished = true;

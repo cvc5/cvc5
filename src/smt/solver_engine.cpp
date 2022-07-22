@@ -1287,7 +1287,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
     throw RecoverableModalException(msg);
   }
   TypeNode locT2, dataT2;
-  if (d_env->getSepHeapTypes(locT2, dataT2))
+  if (getSepHeapTypes(locT2, dataT2))
   {
     std::stringstream ss;
     ss << "ERROR: cannot declare heap types for separation logic more than "
@@ -1301,7 +1301,13 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
-  return d_env->getSepHeapTypes(locT, dataT);
+  if (!d_env->hasSepHeap())
+  {
+    return false;
+  }
+  locT = d_env->getSepLocType();
+  dataT = d_env->getSepDataType();
+  return true;
 }
 
 Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
