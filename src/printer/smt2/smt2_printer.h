@@ -172,7 +172,8 @@ class Smt2Printer : public cvc5::internal::Printer
       std::ostream& out, const std::vector<Node>& nodes) const override;
 
   /** Print get-proof command */
-  void toStreamCmdGetProof(std::ostream& out, modes::ProofComponent c) const override;
+  void toStreamCmdGetProof(std::ostream& out,
+                           modes::ProofComponent c) const override;
 
   /** Print get-interpolant command */
   void toStreamCmdGetInterpol(std::ostream& out,

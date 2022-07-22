@@ -1815,7 +1815,8 @@ void Smt2Printer::toStreamCmdGetAssertions(std::ostream& out) const
   out << "(get-assertions)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdGetProof(std::ostream& out, modes::ProofComponent c) const
+void Smt2Printer::toStreamCmdGetProof(std::ostream& out,
+                                      modes::ProofComponent c) const
 {
   out << "(get-proof :" << c << ")" << std::endl;
 }
