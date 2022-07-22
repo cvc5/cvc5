@@ -198,7 +198,7 @@ class Printer
       std::ostream& out, const std::vector<Node>& nodes) const;
 
   /** Print get-proof command */
-  virtual void toStreamCmdGetProof(std::ostream& out) const;
+  virtual void toStreamCmdGetProof(std::ostream& out, modes::ProofComponent c) const;
 
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
