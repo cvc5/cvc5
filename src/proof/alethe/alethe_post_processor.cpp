@@ -2157,14 +2157,14 @@ bool AletheProofPostprocessCallback::finalStep(
                         << nm->mkNode(kind::SEXPR, d_cl, vp2) << " "
                         << AletheRule::FALSE << " {} / {}" << std::endl;
 
-  success &=
-      addAletheStep(AletheRule::RESOLUTION,
-                    res,
-                    res2,
-                    {vp2, vp1},
-                    options().proof.proofAletheResPivots ? std::vector<Node>{res}
-                                                    : std::vector<Node>(),
-                    *cdp);
+  success &= addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           res2,
+                           {vp2, vp1},
+                           options().proof.proofAletheResPivots
+                               ? std::vector<Node>{res}
+                               : std::vector<Node>(),
+                           *cdp);
   Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "
                         << AletheRule::RESOLUTION << " {" << vp2 << ", " << vp1
                         << " / {}" << std::endl;

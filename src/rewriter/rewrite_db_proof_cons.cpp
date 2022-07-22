@@ -36,8 +36,8 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_eval(nullptr),
       d_currRecLimit(0),
       d_currFixedPointId(DslPfRule::FAIL),
-      d_statTotalInputs(statisticsRegistry().registerInt(
-          "RewriteDbProofCons::totalInputs")),
+      d_statTotalInputs(
+          statisticsRegistry().registerInt("RewriteDbProofCons::totalInputs")),
       d_statTotalAttempts(statisticsRegistry().registerInt(
           "RewriteDbProofCons::totalAttempts")),
       d_statTotalInputSuccess(statisticsRegistry().registerInt(

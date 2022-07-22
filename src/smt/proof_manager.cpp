@@ -42,11 +42,11 @@ namespace smt {
 PfManager::PfManager(Env& env)
     : EnvObj(env),
       d_rewriteDb(new rewriter::RewriteDb),
-      d_pchecker(new ProofChecker(
-          statisticsRegistry(),
-          options().proof.proofCheck,
-          static_cast<uint32_t>(options().proof.proofPedantic),
-          d_rewriteDb.get())),
+      d_pchecker(
+          new ProofChecker(statisticsRegistry(),
+                           options().proof.proofCheck,
+                           static_cast<uint32_t>(options().proof.proofPedantic),
+                           d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(nullptr),
@@ -174,7 +174,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   return d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
 }
 
-void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp,
+void PfManager::printProof(std::ostream& out,
+                           std::shared_ptr<ProofNode> fp,
                            options::ProofFormatMode mode)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
