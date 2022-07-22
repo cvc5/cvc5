@@ -88,6 +88,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
   subOptions.copyValues(d_env.getOptions());
   subOptions.writeSmt().produceInterpolants = false;
   SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, axioms imply interpol, second, interpol implies conj.
   for (unsigned j = 0; j < 2; j++)
   {
@@ -100,7 +101,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> itpChecker;
-    initializeSubsolver(itpChecker, subOptions, logicInfo());
+    initializeSubsolver(itpChecker, ssi);
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)
