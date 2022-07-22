@@ -1588,8 +1588,15 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     else
     {
       // use all preprocessed assertions
+      const context::CDList<Node>& al = d_asserts->getAssertionList();
+      for (const Node& a : al)
+      {
+        assertions.push_back(a);
+      }
     }
     connectToPreprocess = true;
+    // make base assume proofs which will be connected to its proof of
+    // preprocessing
     ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
     for (const Node& a : assertions)
     {
