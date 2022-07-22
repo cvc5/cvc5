@@ -58,12 +58,6 @@ struct InstantiationList;
 
 /* -------------------------------------------------------------------------- */
 
-namespace preprocessing {
-class PreprocessingPassContext;
-}
-
-/* -------------------------------------------------------------------------- */
-
 namespace prop {
 class PropEngine;
 }  // namespace prop

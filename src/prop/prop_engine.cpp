@@ -39,6 +39,7 @@
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
+#include "proof/proof_node_algorithm.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
