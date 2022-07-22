@@ -19,7 +19,6 @@
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 
 namespace cvc5::internal {
 namespace theory {

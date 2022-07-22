@@ -471,10 +471,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     synthConj.push_back(body);
   }
   Node trueNode = nm->mkConst(true);
-  Node res =
-      synthConj.empty()
-          ? trueNode
-          : (synthConj.size() == 1 ? synthConj[0] : nm->mkNode(AND, synthConj));
+  Node res = nm->mkAnd(synthConj);
 
   Trace("srs-input") << "got : " << res << std::endl;
   Trace("srs-input") << "...finished." << std::endl;
