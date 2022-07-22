@@ -129,6 +129,11 @@ void Smt2Printer::toStream(std::ostream& out, TNode n) const
   toStream(out, n, toDepth, dag);
 }
 
+void Smt2Printer::toStream(std::ostream& out, Kind k) const
+{
+  out << smtKindString(k);
+}
+
 void Smt2Printer::toStreamWithLetify(std::ostream& out,
                                      Node n,
                                      int toDepth,
@@ -246,7 +251,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << (n.getConst<bool>() ? "true" : "false");
       break;
     case kind::BUILTIN:
-      out << smtKindString(n.getConst<Kind>(), d_variant);
+      out << smtKindString(n.getConst<Kind>());
       break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
@@ -577,7 +582,7 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::HO_APPLY:
       if (!options::ioutils::getFlattenHOChains(out))
       {
-        out << smtKindString(k, d_variant) << ' ';
+        out << smtKindString(k) << ' ';
         break;
       }
       // collapse "@" chains, i.e.
@@ -604,7 +609,7 @@ void Smt2Printer::toStream(std::ostream& out,
       return;
 
     case kind::MATCH:
-      out << smtKindString(k, d_variant) << " ";
+      out << smtKindString(k) << " ";
       toStream(out, n[0], toDepth, lbind);
       out << " (";
       for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
@@ -669,7 +674,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_MULT:
   case kind::BITVECTOR_ADD:
   {
-    out << smtKindString(k, d_variant) << " ";
+    out << smtKindString(k) << " ";
     forceBinary = true;
   }
   break;
@@ -694,7 +699,7 @@ void Smt2Printer::toStream(std::ostream& out,
   // strings
   case kind::SEQ_UNIT:
   {
-    out << smtKindString(k, d_variant) << " ";
+    out << smtKindString(k) << " ";
     toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << ")";
     return;
@@ -704,7 +709,7 @@ void Smt2Printer::toStream(std::ostream& out,
   // sets
   case kind::SET_SINGLETON:
   {
-    out << smtKindString(k, d_variant) << " ";
+    out << smtKindString(k) << " ";
     toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << ")";
     return;
@@ -716,7 +721,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BAG_MAKE:
   {
     // print (bag (BAG_MAKE_OP Real) 1 3) as (bag 1.0 3)
-    out << smtKindString(k, d_variant) << " ";
+    out << smtKindString(k) << " ";
     toStream(out, n[0], toDepth < 0 ? toDepth : toDepth - 1);
     out << " " << n[1] << ")";
     return;
@@ -940,7 +945,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::LAMBDA:
   case kind::WITNESS:
   {
-    out << smtKindString(k, d_variant) << " ";
+    out << smtKindString(k) << " ";
     // do not letify the bound variable list
     toStream(out, n[0], toDepth, nullptr);
     out << " ";
@@ -1018,7 +1023,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::INST_PATTERN_LIST: break;
   default:
     // by default, print the kind using the smtKindString utility
-    out << smtKindString(k, d_variant);
+    out << smtKindString(k);
     if (n.getNumChildren() > 0)
     {
       out << " ";
@@ -1049,7 +1054,7 @@ void Smt2Printer::toStream(std::ostream& out,
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
         Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
-        out << " (" << smtKindStringOf(n, d_variant) << ' ';
+        out << " (" << smtKindStringOf(n) << ' ';
         parens << ')';
         ++c;
       } else {
@@ -1063,7 +1068,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
-std::string Smt2Printer::smtKindString(Kind k, Variant v)
+std::string Smt2Printer::smtKindString(Kind k)
 {
   switch(k) {
     // builtin theory
@@ -1358,7 +1363,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   return kind::kindToString(k);
 }
 
-std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
+std::string Smt2Printer::smtKindStringOf(const Node& n)
 {
   Kind k = n.getKind();
   if (n.getNumChildren() > 0 && n[0].getType().isSequence())
@@ -1384,7 +1389,7 @@ std::string Smt2Printer::smtKindStringOf(const Node& n, Variant v)
     }
   }
   // by default
-  return smtKindString(k, v);
+  return smtKindString(k);
 }
 
 void Smt2Printer::toStreamDeclareType(std::ostream& out, TypeNode tn) const

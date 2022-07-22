@@ -40,7 +40,8 @@ namespace smt {
 PfManager::PfManager(Env& env)
     : EnvObj(env),
       d_pchecker(new ProofChecker(
-          options().proof.proofCheck == options::ProofCheckMode::EAGER,
+          statisticsRegistry(),
+          options().proof.proofCheck,
           static_cast<uint32_t>(options().proof.proofPedantic))),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
@@ -210,7 +211,9 @@ void PfManager::printProof(std::ostream& out, std::shared_ptr<ProofNode> fp)
   {
     // otherwise, print using default printer
     out << "(proof\n";
-    out << *fp;
+    // we call the printing method explicitly because we may want to print the
+    // final proof node with conclusions
+    fp->printDebug(out, options().proof.proofPrintConclusion);
     out << "\n)\n";
   }
 }

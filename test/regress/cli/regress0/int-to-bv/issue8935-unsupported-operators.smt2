@@ -1,4 +1,4 @@
-; EXPECT: (error "Cannot translate the operator STRING_STOI to a bit-vector operator. Remove option `--solve-int-as-bv`.")
+; EXPECT: (error "Cannot translate the operator str.to_int to a bit-vector operator. Remove option `--solve-int-as-bv`.")
 ; EXIT: 1
 (set-option :solve-int-as-bv 1)
 (set-logic ALL)

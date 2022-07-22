@@ -46,7 +46,7 @@ class TestSmt : public TestInternal
     d_nodeManager = NodeManager::currentNM();
     d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
     d_slvEngine->finishInit();
   }
 
@@ -63,7 +63,7 @@ class TestSmtNoFinishInit : public TestInternal
     d_nodeManager = NodeManager::currentNM();
     d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
   }
 
   NodeManager* d_nodeManager;

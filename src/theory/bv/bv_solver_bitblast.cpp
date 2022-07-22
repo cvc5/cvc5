@@ -17,7 +17,6 @@
 
 #include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -332,13 +331,13 @@ void BVSolverBitblast::initSatSolver()
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(),
+          statisticsRegistry(),
           d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(),
+          statisticsRegistry(),
           d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
   }

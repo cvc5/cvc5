@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include "expr/kind.h"
+#include "printer/printer.h"
 
 namespace cvc5::internal {
 namespace kind {
@@ -42,7 +43,7 @@ const char* toString(cvc5::internal::Kind k)
 
 std::ostream& operator<<(std::ostream& out, cvc5::internal::Kind k)
 {
-  out << toString(k);
+  Printer::getPrinter(out)->toStream(out, k);
   return out;
 }
 

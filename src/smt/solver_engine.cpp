@@ -84,8 +84,8 @@ using namespace cvc5::internal::theory;
 
 namespace cvc5::internal {
 
-SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
-    : d_env(new Env(nm, optr)),
+SolverEngine::SolverEngine(const Options* optr)
+    : d_env(new Env(optr)),
       d_state(new SolverEngineState(*d_env.get(), *this)),
       d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
@@ -117,7 +117,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   // listen to resource out
   getResourceManager()->registerListener(d_routListener.get());
   // make statistics
-  d_stats.reset(new SolverEngineStatistics());
+  d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
   // make the SyGuS solver
@@ -192,7 +192,7 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceProofs)
   {
     // ensure bound variable uses canonical bound variables
-    getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
+    NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
@@ -589,7 +589,7 @@ void SolverEngine::defineFunctionsRec(
     debugCheckFunctionBody(formulas[i], formals[i], funcs[i]);
   }
 
-  NodeManager* nm = getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -1287,7 +1287,7 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
     throw RecoverableModalException(msg);
   }
   TypeNode locT2, dataT2;
-  if (d_env->getSepHeapTypes(locT2, dataT2))
+  if (getSepHeapTypes(locT2, dataT2))
   {
     std::stringstream ss;
     ss << "ERROR: cannot declare heap types for separation logic more than "
@@ -1301,7 +1301,13 @@ void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 
 bool SolverEngine::getSepHeapTypes(TypeNode& locT, TypeNode& dataT)
 {
-  return d_env->getSepHeapTypes(locT, dataT);
+  if (!d_env->hasSepHeap())
+  {
+    return false;
+  }
+  locT = d_env->getSepLocType();
+  dataT = d_env->getSepDataType();
+  return true;
 }
 
 Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
@@ -1944,11 +1950,6 @@ unsigned long SolverEngine::getTimeUsage() const
 unsigned long SolverEngine::getResourceRemaining() const
 {
   return getResourceManager()->getResourceRemaining();
-}
-
-NodeManager* SolverEngine::getNodeManager() const
-{
-  return d_env->getNodeManager();
 }
 
 void SolverEngine::printStatisticsSafe(int fd) const

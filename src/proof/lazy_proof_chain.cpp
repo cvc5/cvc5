@@ -308,7 +308,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
   // note this will rewrite the generator for expected, if any
   d_gens.insert(expected, pg);
   // check if chain is closed if eager checking is on
-  if (options::proofCheck() == options::ProofCheckMode::EAGER)
+  if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";
