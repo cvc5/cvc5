@@ -27,7 +27,6 @@
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 

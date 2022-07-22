@@ -424,7 +424,7 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "interpolants"
+  name       = "produceInterpolants"
   category   = "regular"
   long       = "produce-interpolants"
   type       = "bool"
