@@ -1579,6 +1579,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
   bool mkOuterScope = false;
+  bool commentProves = true;
+  options::ProofFormatMode mode = options::ProofFormatMode::NONE;  
   if (c == modes::PROOF_COMPONENT_PREPROCESS
       || c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
   {
@@ -1590,8 +1592,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     else
     {
       // use all preprocessed assertions
-      const context::CDList<Node>& al = d_asserts->getAssertionList();
-      for (const Node& a : al)
+      const std::vector<Node>& ppa = d_asserts->getAssertionPipeline().ref();
+      for (const Node& a : ppa)
       {
         assertions.push_back(a);
       }
@@ -1618,6 +1620,9 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
     mkOuterScope = true;
+    commentProves = false;
+    // we print in the format based on the proof mode
+    mode = options().proof.proofFormatMode;
   }
   else
   {
@@ -1638,9 +1643,25 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     }
   }
   // print all proofs
+  if (mode == options::ProofFormatMode::NONE)
+  {
+    ss << "(proof" << std::endl;
+  }
   for (std::shared_ptr<ProofNode>& p : ps)
   {
-    d_pfManager->printProof(ss, p);
+    if (commentProves)
+    {
+      ss << "(!" << std::endl;
+    }
+    d_pfManager->printProof(ss, p, mode);
+    if (commentProves)
+    {
+      ss << ":proves " << p->getResult() << ")" << std::endl;
+    }
+  }
+  if (mode == options::ProofFormatMode::NONE)
+  {
+    ss << ")" << std::endl;
   }
   return ss.str();
 }

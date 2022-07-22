@@ -21,6 +21,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "options/proof_options.h"
 
 namespace cvc5::internal {
 
@@ -78,9 +79,9 @@ class PfManager : protected EnvObj
   PfManager(Env& env);
   ~PfManager();
   /**
-   * Print the proof on the given output stream.
+   * Print the proof on the given output stream in the given format.
    */
-  void printProof(std::ostream& out, std::shared_ptr<ProofNode> fp);
+  void printProof(std::ostream& out, std::shared_ptr<ProofNode> fp, options::ProofFormatMode mode);
 
   /**
    * Translate difficulty map. This takes a mapping dmap from preprocessed
