@@ -117,11 +117,6 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
       toProcess.insert(toProcess.end(), lit.begin(), lit.end());
       continue;
     }
-    // ignore the true node
-    if (lit.isConst() && lit.getConst<bool>())
-    {
-      continue;
-    }
     TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
     if (expr::isBooleanConnective(atom))
     {
@@ -129,10 +124,14 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
     }
     // we mark that we visited this
     visited.insert(atom);
-    // output learned literals from preprocessing
-    processLearnedLiteral(lit, modes::LEARNED_LIT_PREPROCESS);
-    // also get its symbols
-    expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
+    // ignore the true node
+    if (!lit.isConst() || !lit.getConst<bool>())
+    {
+      // output learned literals from preprocessing
+      processLearnedLiteral(lit, modes::LEARNED_LIT_PREPROCESS);
+      // also get its symbols
+      expr::getSymbols(atom, inputSymbols, visitedWithinAtom);
+    }
     // remember we've seen it
     d_levelZeroAsserts.insert(lit);
   }
