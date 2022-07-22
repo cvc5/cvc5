@@ -1927,7 +1927,7 @@ class SolverTest
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
   }
 
   @Test
