@@ -59,8 +59,7 @@ context::CDHashSet<Node>& LearnedDb::getLiteralSet(modes::LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case modes::LEARNED_LIT_PREPROCESS_SOLVED:
-      return d_preprocessSolvedLits;
+    case modes::LEARNED_LIT_PREPROCESS_SOLVED: return d_preprocessSolvedLits;
     case modes::LEARNED_LIT_PREPROCESS: return d_preprocessLits;
     case modes::LEARNED_LIT_INPUT: return d_inputLits;
     case modes::LEARNED_LIT_SOLVABLE: return d_solvableLits;
@@ -75,8 +74,7 @@ const context::CDHashSet<Node>& LearnedDb::getLiteralSet(
 {
   switch (ltype)
   {
-    case modes::LEARNED_LIT_PREPROCESS_SOLVED:
-      return d_preprocessSolvedLits;
+    case modes::LEARNED_LIT_PREPROCESS_SOLVED: return d_preprocessSolvedLits;
     case modes::LEARNED_LIT_PREPROCESS: return d_preprocessLits;
     case modes::LEARNED_LIT_INPUT: return d_inputLits;
     case modes::LEARNED_LIT_SOLVABLE: return d_solvableLits;

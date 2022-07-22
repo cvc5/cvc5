@@ -1835,10 +1835,11 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   out << "(get-difficulty)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out, modes::LearnedLitType t) const
+void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                                modes::LearnedLitType t) const
 {
   out << "(get-learned-literals";
-  if (t!=modes::LEARNED_LIT_INPUT)
+  if (t != modes::LEARNED_LIT_INPUT)
   {
     out << " :" << t;
   }

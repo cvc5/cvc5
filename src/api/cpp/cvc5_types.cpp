@@ -50,11 +50,15 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 {
   switch (ltype)
   {
-    case LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED: out << "preprocess_solved"; break;
+    case LearnedLitType::LEARNED_LIT_PREPROCESS_SOLVED:
+      out << "preprocess_solved";
+      break;
     case LearnedLitType::LEARNED_LIT_PREPROCESS: out << "preprocess"; break;
     case LearnedLitType::LEARNED_LIT_INPUT: out << "input"; break;
     case LearnedLitType::LEARNED_LIT_SOLVABLE: out << "solvable"; break;
-    case LearnedLitType::LEARNED_LIT_CONSTANT_PROP: out << "constant_prop"; break;
+    case LearnedLitType::LEARNED_LIT_CONSTANT_PROP:
+      out << "constant_prop";
+      break;
     case LearnedLitType::LEARNED_LIT_INTERNAL: out << "internal"; break;
     case LearnedLitType::LEARNED_LIT_UNKNOWN: out << "unknown"; break;
     default: out << "?";

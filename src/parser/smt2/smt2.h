@@ -105,7 +105,7 @@ class Smt2 : public Parser
   modes::BlockModelsMode getBlockModelsMode(const std::string& mode);
   /** Parse learned literal type */
   modes::LearnedLitType getLearnedLitType(const std::string& mode);
-  
+
   bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 
   /**
