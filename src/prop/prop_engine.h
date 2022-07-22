@@ -325,9 +325,9 @@ class PropEngine : protected EnvObj
   /** Is proof enabled? */
   bool isProofEnabled() const;
 
-  /** 
+  /**
    * Retrieve unsat core of preprocessing assertions.
-   * 
+   *
    * For assumption-based unsat cores, this is retrived from the SAT solver.
    * For proof-based unsat cores, this is computed via the free assumptions of
    * the proof.

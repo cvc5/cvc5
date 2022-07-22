@@ -1575,10 +1575,11 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   Assert(pe != nullptr);
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
-  if (c==modes::PROOF_COMPONENT_PREPROCESS || c==modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
+  if (c == modes::PROOF_COMPONENT_PREPROCESS
+      || c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
   {
     std::vector<Node> assertions;
-    if (c==modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
+    if (c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
     {
       pe->getUnsatCore(assertions);
     }
@@ -1593,15 +1594,15 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ps.push_back(pnm->mkAssume(a));
     }
   }
-  else if (c==modes::PROOF_COMPONENT_SAT)
+  else if (c == modes::PROOF_COMPONENT_SAT)
   {
     ps.push_back(pe->getProof(false));
   }
-  else if (c==modes::PROOF_COMPONENT_THEORY_LEMMAS)
+  else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS)
   {
     ps = pe->getTheoryLemmaProofs();
   }
-  else if (c==modes::PROOF_COMPONENT_FULL)
+  else if (c == modes::PROOF_COMPONENT_FULL)
   {
     ps.push_back(pe->getProof(true));
     connectToPreprocess = true;
@@ -1612,7 +1613,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     ss << "Unknown proof component " << c << std::endl;
     throw RecoverableModalException(ss.str());
   }
-  
+
   Assert(p != nullptr);
   Assert(d_pfManager);
   std::ostringstream ss;
