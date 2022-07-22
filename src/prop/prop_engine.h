@@ -317,9 +317,6 @@ class PropEngine : protected EnvObj
   /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
   void getUnsatCore(std::vector<Node>& core);
 
-  /** Return the prop engine proof for assumption-based unsat cores. */
-  std::shared_ptr<ProofNode> getRefutation();
-
   /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;
@@ -333,6 +330,10 @@ class PropEngine : protected EnvObj
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+  /** Print reason for answering unknown on output when applicable */
+  void outputIncompleteReason(
+      UnknownExplanation uexp,
+      theory::IncompleteId iid = theory::IncompleteId::UNKNOWN);
 
   /**
    * Converts the given formula to CNF and asserts the CNF to the SAT solver.

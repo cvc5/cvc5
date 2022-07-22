@@ -49,7 +49,6 @@ typedef NodeTemplate<false> TNode;
 class TypeNode;
 
 class Env;
-class NodeManager;
 class TheoryEngine;
 class UnsatCore;
 class StatisticsRegistry;
@@ -77,7 +76,6 @@ class SolverEngineState;
 class AbstractValues;
 class Assertions;
 class ResourceOutListener;
-class SmtNodeManagerListener;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
@@ -87,7 +85,6 @@ class InterpolationSolver;
 class QuantElimSolver;
 
 struct SolverEngineStatistics;
-class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -107,7 +104,6 @@ class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
   friend class smt::SolverEngineState;
-  friend class smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -118,7 +114,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
+  SolverEngine(const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 
@@ -822,9 +818,6 @@ class CVC5_EXPORT SolverEngine
    */
   unsigned long getResourceRemaining() const;
 
-  /** Permit access to the underlying NodeManager. */
-  NodeManager* getNodeManager() const;
-
   /**
    * Print statistics from the statistics registry in the env object owned by
    * this SolverEngine. Safe to use in a signal handler.
@@ -1111,13 +1104,6 @@ class CVC5_EXPORT SolverEngine
 
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
-
-  /**
-   * The global scope object. Upon creation of this SolverEngine, it becomes the
-   * SolverEngine in scope. It says the SolverEngine in scope until it is
-   * destructed, or another SolverEngine is created.
-   */
-  std::unique_ptr<smt::SolverEngineScope> d_scope;
 }; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */

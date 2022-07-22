@@ -31,12 +31,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(context::Context* c,
-                               ProofNodeManager* pnm,
+InferProofCons::InferProofCons(Env& env,
+                               context::Context* c,
                                SequencesStatistics& statistics)
-    : d_pnm(pnm), d_lazyFactMap(c), d_statistics(statistics)
+    : EnvObj(env), d_lazyFactMap(c), d_statistics(statistics)
 {
-  Assert(d_pnm != nullptr);
 }
 
 void InferProofCons::notifyFact(const InferInfo& ii)
@@ -1170,7 +1169,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   Assert(ii->d_conc == fact);
   // make a placeholder proof using STRINGS_INFERENCE, which is reconstructed
   // during post-process
-  CDProof pf(d_pnm);
+  CDProof pf(d_env);
   std::vector<Node> args;
   packArgs(ii->d_conc, ii->getId(), ii->d_idRev, ii->d_premises, args);
   // must flatten

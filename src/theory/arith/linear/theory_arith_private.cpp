@@ -43,23 +43,22 @@
 #include "proof/proof_node_manager.h"
 #include "proof/proof_rule.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
-#include "theory/arith/linear/approx_simplex.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/approx_simplex.h"
+#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/cut_log.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear/linear_equality.h"
 #include "theory/arith/linear/matrix.h"
-#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -95,7 +94,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       d_checker(),
-      d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
+      d_pfGen(new EagerProofGenerator(env, userContext())),
       d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
@@ -104,7 +103,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_qflraStatus(Result::UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(userContext()),
+      d_learner(statisticsRegistry(), userContext()),
       d_assertionsThatDoNotMatchTheirLiterals(context()),
       d_nextIntegerCheckVar(0),
       d_constantIntegerVariables(context()),
@@ -113,10 +112,13 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_learnedBounds(context()),
       d_preregisteredNodes(context()),
       d_partialModel(context(), DeltaComputeCallback(*this)),
-      d_errorSet(
-          d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
+      d_errorSet(statisticsRegistry(),
+                 d_partialModel,
+                 TableauSizes(&d_tableau),
+                 BoundCountingLookup(*this)),
       d_tableau(),
-      d_linEq(d_partialModel,
+      d_linEq(statisticsRegistry(),
+              d_partialModel,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
@@ -2543,7 +2545,7 @@ TreeLog& TheoryArithPrivate::getTreeLog(){
 
 ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
   if(d_approxStats == NULL){
-    d_approxStats = new ApproximateStatistics();
+    d_approxStats = new ApproximateStatistics(statisticsRegistry());
   }
   return *d_approxStats;
 }

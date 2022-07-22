@@ -328,7 +328,6 @@ class TheorySetsPrivate : protected EnvObj
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
-                    ProofNodeManager* pnm,
                     CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();

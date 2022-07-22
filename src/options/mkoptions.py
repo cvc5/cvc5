@@ -448,18 +448,6 @@ def generate_module_holder_decl(module):
         res.append('bool {}WasSetByUser = false;'.format(option.name))
     return '\n  '.join(res)
 
-
-def generate_module_wrapper_functions(module):
-    res = []
-    for option in module.options:
-        if option.name is None:
-            continue
-        res.append(
-            'inline {type} {name}() {{ return Options::current().{module}.{name}; }}'
-            .format(module=module.id, name=option.name, type=option.type))
-    return '\n'.join(res)
-
-
 ################################################################################
 # for options/<module>.cpp
 
@@ -900,7 +888,6 @@ def codegen_module(module, dst_dir, tpls):
         'includes': generate_module_includes(module),
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
-        'wrapper_functions': generate_module_wrapper_functions(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),

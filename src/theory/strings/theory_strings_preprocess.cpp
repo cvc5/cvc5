@@ -1065,7 +1065,12 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
       if( changed ){
         tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
       }
-      retNode = simplify(tmp, asserts);
+      // We cannot statically reduce seq.nth due to it being partial function.
+      // Reducing it here would violate the functional property of seq.nth.
+      if (tmp.getKind() != SEQ_NTH)
+      {
+        retNode = simplify(tmp, asserts);
+      }
     }
     d_visited[t] = retNode;
     return retNode;
@@ -1073,10 +1078,12 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 }
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
-  // we use (SEQ_NTH, x, i) instead of
+  // we could use (SEQ_NTH, x, i) instead of
   // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1))
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(SEQ_NTH, x, i);
+  return nm->mkNode(
+      STRING_TO_CODE,
+      nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(Rational(1))));
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)

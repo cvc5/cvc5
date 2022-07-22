@@ -33,10 +33,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(Env& env)
-    : EnvObj(env), EagerProofGenerator(d_env.getProofNodeManager())
-{
-}
+OperatorElim::OperatorElim(Env& env) : EagerProofGenerator(env) {}
 
 void OperatorElim::checkNonLinearLogic(Node term)
 {
@@ -393,6 +390,8 @@ Node OperatorElim::eliminateOperators(Node node,
       return var;
     }
 
+    case BITVECTOR_TO_NAT: return eliminateBv2Nat(node); break;
+    case INT_TO_BITVECTOR: return eliminateInt2Bv(node); break;
     default: break;
   }
   return node;
@@ -462,7 +461,7 @@ bool OperatorElim::usePartialFunction(SkolemFunId id) const
 SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
 {
   TrustNode tlem;
-  if (d_pnm != nullptr)
+  if (d_env.isTheoryProofProducing())
   {
     tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
   }

@@ -22,7 +22,6 @@
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
@@ -46,7 +45,7 @@ class TestSmt : public TestInternal
     d_nodeManager = NodeManager::currentNM();
     d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
     d_slvEngine->finishInit();
   }
 
@@ -63,7 +62,7 @@ class TestSmtNoFinishInit : public TestInternal
     d_nodeManager = NodeManager::currentNM();
     d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
   }
 
   NodeManager* d_nodeManager;

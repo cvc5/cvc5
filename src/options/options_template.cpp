@@ -26,8 +26,6 @@ ${headers_module}$
 
 namespace cvc5::internal
 {
-  thread_local Options* Options::s_current = nullptr;
-
   Options::Options()
       :
 // clang-format off

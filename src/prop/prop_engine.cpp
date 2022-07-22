@@ -36,7 +36,6 @@
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
@@ -74,9 +73,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
       d_satSolver(nullptr),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
-      d_theoryLemmaPg(d_env.getProofNodeManager(),
-                      d_env.getUserContext(),
-                      "PropEngine::ThLemmaPg"),
+      d_theoryLemmaPg(d_env, d_env.getUserContext(), "PropEngine::ThLemmaPg"),
       d_ppm(nullptr),
       d_interrupted(false),
       d_assumptions(d_env.getUserContext())
@@ -97,7 +94,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   }
 
   d_satSolver =
-      SatSolverFactory::createCDCLTMinisat(d_env, smtStatisticsRegistry());
+      SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
@@ -127,7 +124,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
         *d_cnfStream,
         static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager()));
     d_ppm.reset(
-        new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
+        new PropPfManager(env, userContext, d_satSolver, d_pfCnfStream.get()));
   }
 }
 
@@ -207,11 +204,13 @@ void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
-    tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    tplemma.debugCheckClosed(
+        options(), "te-proof-debug", "TheoryEngine::lemma");
     for (theory::SkolemLemma& lem : ppLemmas)
     {
       Assert(lem.d_lemma.getGenerator() != nullptr);
-      lem.d_lemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+      lem.d_lemma.debugCheckClosed(
+          options(), "te-proof-debug", "TheoryEngine::lemma_new");
     }
   }
 
@@ -270,7 +269,7 @@ void PropEngine::assertInternal(
     }
     else
     {
-      d_cnfStream->convertAndAssert(node, removable, negated, input);
+      d_cnfStream->convertAndAssert(node, removable, negated);
     }
   }
   else if (isProofEnabled())
@@ -284,7 +283,7 @@ void PropEngine::assertInternal(
   }
   else
   {
-    d_cnfStream->convertAndAssert(node, removable, negated, input);
+    d_cnfStream->convertAndAssert(node, removable, negated);
   }
 }
 
@@ -400,6 +399,20 @@ void PropEngine::printSatisfyingAssignment(){
     }
   }
 }
+void PropEngine::outputIncompleteReason(UnknownExplanation uexp,
+                                        theory::IncompleteId iid)
+{
+  if (isOutputOn(OutputTag::INCOMPLETE))
+  {
+    output(OutputTag::INCOMPLETE) << "(incomplete ";
+    output(OutputTag::INCOMPLETE) << uexp;
+    if (iid != theory::IncompleteId::UNKNOWN)
+    {
+      output(OutputTag::INCOMPLETE) << " " << iid;
+    }
+    output(OutputTag::INCOMPLETE) << ")" << std::endl;
+  }
+}
 
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
@@ -414,6 +427,7 @@ Result PropEngine::checkSat() {
 
   if (options().base.preprocessOnly)
   {
+    outputIncompleteReason(UnknownExplanation::REQUIRES_FULL_CHECK);
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_FULL_CHECK);
   }
 
@@ -447,6 +461,7 @@ Result PropEngine::checkSat() {
     {
       why = UnknownExplanation::RESOURCEOUT;
     }
+    outputIncompleteReason(why);
     return Result(Result::UNKNOWN, why);
   }
 
@@ -457,6 +472,8 @@ Result PropEngine::checkSat() {
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
   {
+    outputIncompleteReason(UnknownExplanation::INCOMPLETE,
+                           d_theoryProxy->getIncompleteId());
     return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
@@ -719,17 +736,6 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   {
     core.push_back(d_cnfStream->getNode(lit));
   }
-}
-
-std::shared_ptr<ProofNode> PropEngine::getRefutation()
-{
-  Assert(options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS);
-  std::vector<Node> core;
-  getUnsatCore(core);
-  CDProof cdp(d_env.getProofNodeManager());
-  Node fnode = NodeManager::currentNM()->mkConst(false);
-  cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
-  return cdp.getProofFor(fnode);
 }
 
 std::vector<Node> PropEngine::getLearnedZeroLevelLiterals(

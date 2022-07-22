@@ -564,7 +564,8 @@ Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
   Trace("sygus-ccore-debug") << "...check-sat " << n << "..." << std::endl;
   n = rewrite(n);
-  Result r = checkWithSubsolver(n, d_vars, mvs, options(), logicInfo());
+  SubsolverSetupInfo ssi(d_env);
+  Result r = checkWithSubsolver(n, d_vars, mvs, ssi);
   Trace("sygus-ccore-debug") << "...got " << r << std::endl;
   return r;
 }

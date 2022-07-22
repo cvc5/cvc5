@@ -290,18 +290,19 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 
- private:
-  /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
   /**
    * Ensure that n has type tn, return a term equivalent to it for that type
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
+
+ private:
+  /** record instantiation, return true if it was not a duplicate */
+  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
   /** Get or make the instantiation list for quantified formula q */
   InstLemmaList* getOrMkInstLemmaList(TNode q);
 

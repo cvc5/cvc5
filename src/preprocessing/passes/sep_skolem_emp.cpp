@@ -108,14 +108,15 @@ SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  TypeNode locType, dataType;
-  if (!d_env.getSepHeapTypes(locType, dataType))
+  if (!d_env.hasSepHeap())
   {
     warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
                  "heap types during preprocessing"
               << std::endl;
     return PreprocessingPassResult::NO_CONFLICT;
   }
+  TypeNode locType = d_env.getSepLocType();
+  TypeNode dataType = d_env.getSepDataType();
   std::map<bool, std::map<Node, Node>> visited;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {

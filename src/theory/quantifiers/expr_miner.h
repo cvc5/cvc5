@@ -89,8 +89,7 @@ class ExprMiner : protected EnvObj
   /** Also with configurable options and logic */
   void initializeChecker(std::unique_ptr<SolverEngine>& checker,
                          Node query,
-                         const Options& opts,
-                         const LogicInfo& logicInfo);
+                         const SubsolverSetupInfo& info);
   /**
    * Run the satisfiability check on query and return the result
    * (sat/unsat/unknown).

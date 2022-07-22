@@ -339,8 +339,6 @@ libcvc5_add_sources(
   smt/set_defaults.h
   smt/solver_engine.cpp
   smt/solver_engine.h
-  smt/solver_engine_scope.cpp
-  smt/solver_engine_scope.h
   smt/solver_engine_state.cpp
   smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
@@ -349,8 +347,6 @@ libcvc5_add_sources(
   smt/smt_mode.h
   smt/smt_solver.cpp
   smt/smt_solver.h
-  smt/smt_statistics_registry.cpp
-  smt/smt_statistics_registry.h
   smt/sygus_solver.cpp
   smt/sygus_solver.h
   smt/term_formula_removal.cpp

@@ -18,11 +18,9 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
-
 
 using namespace std;
 
@@ -38,23 +36,22 @@ DualSimplexDecisionProcedure::DualSimplexDecisionProcedure(
     TempVarMalloc tvmalloc)
     : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
       d_pivotsInRound(),
-      d_statistics(d_pivots)
+      d_statistics(statisticsRegistry(), d_pivots)
 { }
 
-DualSimplexDecisionProcedure::Statistics::Statistics(uint32_t& pivots)
-    : d_statUpdateConflicts(smtStatisticsRegistry().registerInt(
-        "theory::arith::dual::UpdateConflicts")),
-      d_processSignalsTime(smtStatisticsRegistry().registerTimer(
-          "theory::arith::dual::findConflictOnTheQueueTime")),
-      d_simplexConflicts(smtStatisticsRegistry().registerInt(
-          "theory::arith::dual::simplexConflicts")),
-      d_recentViolationCatches(smtStatisticsRegistry().registerInt(
-          "theory::arith::dual::recentViolationCatches")),
-      d_searchTime(smtStatisticsRegistry().registerTimer(
-          "theory::arith::dual::searchTime")),
-      d_finalCheckPivotCounter(
-          smtStatisticsRegistry().registerReference<uint32_t>(
-              "theory::arith::dual::lastPivots", pivots))
+DualSimplexDecisionProcedure::Statistics::Statistics(StatisticsRegistry& sr,
+                                                     uint32_t& pivots)
+    : d_statUpdateConflicts(
+        sr.registerInt("theory::arith::dual::UpdateConflicts")),
+      d_processSignalsTime(
+          sr.registerTimer("theory::arith::dual::findConflictOnTheQueueTime")),
+      d_simplexConflicts(
+          sr.registerInt("theory::arith::dual::simplexConflicts")),
+      d_recentViolationCatches(
+          sr.registerInt("theory::arith::dual::recentViolationCatches")),
+      d_searchTime(sr.registerTimer("theory::arith::dual::searchTime")),
+      d_finalCheckPivotCounter(sr.registerReference<uint32_t>(
+          "theory::arith::dual::lastPivots", pivots))
 {
 }
 

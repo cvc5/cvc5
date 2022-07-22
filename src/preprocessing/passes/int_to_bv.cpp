@@ -30,6 +30,7 @@
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/bitvector.h"
@@ -179,12 +180,14 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           case kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
-              throw TypeCheckingExceptionPrivate(
-                  current,
-                  string("Cannot translate to BV: ") + current.toString());
+              std::stringstream ss;
+              ss << "Cannot translate " << current
+                 << " to a bit-vector term. Remove option `--solve-int-as-bv`.";
+              throw LogicException(ss.str());
             }
             break;
         }
+
         for (size_t i = 0, csize = children.size(); i < csize; ++i)
         {
           TypeNode type = children[i].getType();
@@ -201,6 +204,14 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
             children[i] = nm->mkNode(signExtendOp, children[i]);
           }
         }
+      }
+
+      if (tn.isInteger() && newKind == current.getKind())
+      {
+        std::stringstream ss;
+        ss << "Cannot translate the operator " << current.getKind()
+           << " to a bit-vector operator. Remove option `--solve-int-as-bv`.";
+        throw LogicException(ss.str());
       }
       NodeBuilder builder(newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
