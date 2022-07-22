@@ -1339,7 +1339,8 @@ void SolverEngine::checkProof()
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   if (d_env->getOptions().smt.checkProofs)
   {
-    d_pfManager->checkProof(pePfn, *d_asserts);
+    // connect proof to assertions, which will fail if the proof is malformed
+    d_pfManager->connectProofToAssertions(pePfn, *d_asserts);
   }
 }
 
@@ -1369,14 +1370,20 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pepf;
   if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    pepf = pe->getRefutation();
+    std::vector<Node> core;
+    pe->getUnsatCore(core);
+    CDProof cdp(*d_env);
+    Node fnode = NodeManager::currentNM()->mkConst(false);
+    cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
+    pepf = cdp.getProofFor(fnode);
   }
   else
   {
     pepf = pe->getProof();
   }
   Assert(pepf != nullptr);
-  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(pepf, *d_asserts);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->connectProofToAssertions(pepf, *d_asserts);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   if (options().smt.minimalUnsatCores)
@@ -1544,7 +1551,7 @@ void SolverEngine::getRelevantInstantiationTermVectors(
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
   std::shared_ptr<ProofNode> pfn =
-      d_pfManager->getFinalProof(pe->getProof(), *d_asserts);
+      d_pfManager->connectProofToAssertions(pe->getProof(), *d_asserts);
   d_ucManager->getRelevantInstantiations(pfn, insts, getDebugInfo);
 }
 
@@ -1569,7 +1576,9 @@ std::string SolverEngine::getProof()
   Assert(pe->getProof() != nullptr);
   Assert(d_pfManager);
   std::ostringstream ss;
-  d_pfManager->printProof(ss, pe->getProof(), *d_asserts);
+  std::shared_ptr<ProofNode> fp =
+      d_pfManager->connectProofToAssertions(pe->getProof(), *d_asserts);
+  d_pfManager->printProof(ss, fp);
   return ss.str();
 }
 

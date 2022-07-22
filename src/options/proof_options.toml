@@ -26,6 +26,14 @@ name   = "Proof"
   help       = "Output TPTP proof (work in progress)"
 
 [[option]]
+  name       = "proofPrintConclusion"
+  category   = "expert"
+  long       = "proof-print-conclusion"
+  type       = "bool"
+  default    = "false"
+  help       = "Print conclusion of proof steps when printing AST"
+
+[[option]]
   name       = "proofPedantic"
   category   = "expert"
   long       = "proof-pedantic=N"

@@ -317,9 +317,6 @@ class PropEngine : protected EnvObj
   /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
   void getUnsatCore(std::vector<Node>& core);
 
-  /** Return the prop engine proof for assumption-based unsat cores. */
-  std::shared_ptr<ProofNode> getRefutation();
-
   /** Get the zero-level assertions of the given type */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;
