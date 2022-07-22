@@ -21,6 +21,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "options/proof_options.h"
 #include "proof/proof_rule.h"
 #include "util/statistics_stats.h"
 
@@ -106,7 +107,7 @@ class ProofChecker
 {
  public:
   ProofChecker(StatisticsRegistry& sr,
-               bool eagerCheck,
+               options::ProofCheckMode pcMode,
                uint32_t pclevel = 0,
                rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
@@ -194,8 +195,8 @@ class ProofChecker
   std::map<PfRule, ProofRuleChecker*> d_checker;
   /** Maps proof trusted rules to their pedantic level */
   std::map<PfRule, uint32_t> d_plevel;
-  /** Whether we check for pedantic failures eagerly */
-  bool d_eagerCheck;
+  /** The proof checking mode */
+  options::ProofCheckMode d_pcMode;
   /** The pedantic level of this checker */
   uint32_t d_pclevel;
   /** Pointer to the rewrite database */
