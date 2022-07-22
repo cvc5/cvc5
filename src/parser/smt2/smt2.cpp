@@ -318,13 +318,13 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
 
 modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
 {
-  if (pc == "preprocess")
+  if (pc == "raw-preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
+  }
+  else if (pc == "preprocess")
   {
     return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
-  }
-  else if (pc == "preprocess_unsat_core")
-  {
-    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE;
   }
   else if (pc == "sat")
   {
