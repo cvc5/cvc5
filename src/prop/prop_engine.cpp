@@ -269,7 +269,7 @@ void PropEngine::assertInternal(
     }
     else
     {
-      d_cnfStream->convertAndAssert(node, removable, negated, input);
+      d_cnfStream->convertAndAssert(node, removable, negated);
     }
   }
   else if (isProofEnabled())
@@ -283,7 +283,7 @@ void PropEngine::assertInternal(
   }
   else
   {
-    d_cnfStream->convertAndAssert(node, removable, negated, input);
+    d_cnfStream->convertAndAssert(node, removable, negated);
   }
 }
 
