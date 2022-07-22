@@ -117,6 +117,11 @@ void ZeroLevelLearner::notifyInputFormulas(const std::vector<Node>& assertions)
       toProcess.insert(toProcess.end(), lit.begin(), lit.end());
       continue;
     }
+    // ignore the true node
+    if (lit.isConst() && lit.getConst<bool>())
+    {
+      continue;
+    }
     TNode atom = lit.getKind() == kind::NOT ? lit[0] : lit;
     if (expr::isBooleanConnective(atom))
     {
