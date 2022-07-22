@@ -207,13 +207,14 @@ enum ProofComponent
   /**
    * Proofs of Gu1 ... Gun whose free assumptions are Fu1, ... Fum,
    * where:
-   * - Gu1, ... Gun are clauses corresponding to input formulas used in the SAT proof,
+   * - Gu1, ... Gun are clauses corresponding to input formulas used in the SAT
+   * proof,
    * - Fu1, ... Fum is the subset of the input formulas that are used in the SAT
    * proof (i.e. the unsat core).
    *
    * Note that Gu1 ... Gun are clauses that are added to the SAT solver before
    * its main search.
-   * 
+   *
    * Only valid immediately after an unsat response.
    */
   PROOF_COMPONENT_PREPROCESS,
@@ -231,8 +232,8 @@ enum ProofComponent
    *- L1, ..., Lk are clauses corresponding to theory lemmas used in the SAT
    * proof.
    *
-   * In contrast to proofs given for preprocess, L1 ... Lk are clauses that are added to the SAT solver after
-   * its main search.
+   * In contrast to proofs given for preprocess, L1 ... Lk are clauses that are
+   *added to the SAT solver after its main search.
    *
    * Only valid immediately after an unsat response.
    */

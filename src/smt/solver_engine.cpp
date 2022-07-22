@@ -1556,7 +1556,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
   {
     // use all preprocessed assertions
-    const std::vector<Node>& assertions = d_smtSolver->getPreprocessedAssertions();
+    const std::vector<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
     // make base assume proofs which will be connected to its proof of
     // preprocessing
@@ -1573,7 +1574,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     commentProves = false;
   }
   else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS
-      || c == modes::PROOF_COMPONENT_PREPROCESS)
+           || c == modes::PROOF_COMPONENT_PREPROCESS)
   {
     // TODO: update to pass `c`
     ps = pe->getTheoryLemmaProofs();
