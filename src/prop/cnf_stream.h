@@ -104,13 +104,8 @@ class CnfStream : protected EnvObj
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
-   * @param input whether it is an input assertion (rather than a lemma). This
-   * information is only relevant for unsat core tracking.
    */
-  void convertAndAssert(TNode node,
-                        bool removable,
-                        bool negated,
-                        bool input = false);
+  void convertAndAssert(TNode node, bool removable, bool negated);
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
