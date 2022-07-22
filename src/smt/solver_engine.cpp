@@ -1566,7 +1566,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   }
   // The component modes::PROOF_COMPONENT_PREPROCESS returns the proof of
   // all preprocessed assertions. It does not require being in an unsat state.
-  if (c != modes::PROOF_COMPONENT_PREPROCESS && d_state->getMode() != SmtMode::UNSAT)
+  if (c != modes::PROOF_COMPONENT_PREPROCESS
+      && d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by "
