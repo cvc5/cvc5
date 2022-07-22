@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "options/proof_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "prop/prop_proof_manager.h"
@@ -39,7 +40,6 @@
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
-#include "proof/proof_node_algorithm.h"
 #include "util/result.h"
 
 namespace cvc5::internal {

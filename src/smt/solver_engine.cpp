@@ -1375,7 +1375,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   Node fnode = NodeManager::currentNM()->mkConst(false);
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
-  
+
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
       d_pfManager->connectProofToAssertions(pepf, *d_asserts);
