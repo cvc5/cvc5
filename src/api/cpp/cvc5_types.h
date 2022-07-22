@@ -185,7 +185,9 @@ enum LearnedLitType
   /** Any internal literal that does not fall into the above categories. */
   LEARNED_LIT_INTERNAL,
   /** Special case for when produce-learned-literals is not set.  */
-  LEARNED_LIT_UNKNOWN
+  LEARNED_LIT_UNKNOWN,
+  /** Used to request all learned literals.  */
+  LEARNED_LIT_ALL
 };
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);

@@ -263,10 +263,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Get the list of top-level learned literals that are entailed by the current
    * set of assertions.
-   *
-   * TODO (wishue #104): implement for different modes
    */
-  std::vector<Node> getLearnedLiterals();
+  std::vector<Node> getLearnedLiterals(modes::LearnedLitType t);
 
   /**
    * Get an aspect of the current SMT execution environment.

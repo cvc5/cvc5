@@ -76,7 +76,7 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
     case ZLL:
     {
       unfilteredLiterals = d_propEngine->getLearnedZeroLevelLiterals(
-          modes::LearnedLitType::INPUT);
+          modes::LEARNED_LIT_INPUT);
       break;
     }
     default: return filteredLiterals;
@@ -97,7 +97,7 @@ std::vector<Node> PartitionGenerator::collectLiterals(LiteralListType litType)
           || !d_valuation->isSatLiteral(original)
           || Theory::theoryOf(original) == THEORY_BOOL
           || n.isConst()
-          || nType != modes::LearnedLitType::INPUT
+          || nType != modes::LEARNED_LIT_INPUT
           || !d_valuation->isDecision(original))
       {
         continue;
@@ -223,7 +223,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     if (emitZLL) 
     {
       std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
-          modes::LearnedLitType::INPUT);
+          modes::LEARNED_LIT_INPUT);
       std::vector<Node>* cubes = strict ? &d_strict_cubes : &d_cubes;
       
       for (const auto& c : *cubes)
@@ -245,7 +245,7 @@ TrustNode PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
     if (emitZLL) 
     {
       std::vector<Node> zllLiterals = d_propEngine->getLearnedZeroLevelLiterals(
-          modes::LearnedLitType::INPUT);
+          modes::LEARNED_LIT_INPUT);
       zllLiterals.push_back(lemma);
       Node zllLemma = NodeManager::currentNM()->mkAnd(zllLiterals);
       emitCube(zllLemma);

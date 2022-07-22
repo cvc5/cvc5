@@ -4217,9 +4217,10 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
+   * @param t The type of learned literals to return
    * @return A list of literals that were learned at top-level.
    */
-  std::vector<Term> getLearnedLiterals() const;
+  std::vector<Term> getLearnedLiterals(modes::LearnedLitType t = modes::LEARNED_LIT_ALL) const;
 
   /**
    * Get the value of the given term in the current model.
