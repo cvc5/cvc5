@@ -119,9 +119,6 @@ class Env
   /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
 
-  /** Get the original options object (const version only). */
-  const Options& getOriginalOptions() const;
-
   /** Get the resource manager owned by this Env. */
   ResourceManager* getResourceManager() const;
 
@@ -257,8 +254,10 @@ class Env
   /** Have we called declareSepHeap? */
   bool hasSepHeap() const;
 
-  /** get the separation logic heap types */
-  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
+  /** get the separation logic location type */
+  TypeNode getSepLocType() const;
+  /** get the separation logic data type */
+  TypeNode getSepDataType() const;
 
  private:
   /* Private initialization ------------------------------------------------- */
@@ -320,12 +319,6 @@ class Env
    * consider during solving and initialization.
    */
   Options d_options;
-  /**
-   * A pointer to the original options object as stored in the cvc5::Solver.
-   * The referenced objects holds the options as initially parsed before being
-   * changed, e.g., by setDefaults().
-   */
-  const Options* d_originalOptions;
   /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
   /** The theory that owns the uninterpreted sort. */

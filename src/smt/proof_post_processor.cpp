@@ -1238,7 +1238,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, children, {eqq});
       }
     }
     else

@@ -48,7 +48,6 @@ Env::Env(const Options* opts)
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
-      d_originalOptions(opts),
       d_resourceManager(),
       d_uninterpretedSortOwner(theory::THEORY_UF)
 {
@@ -125,8 +124,6 @@ StatisticsRegistry& Env::getStatisticsRegistry()
 }
 
 const Options& Env::getOptions() const { return d_options; }
-
-const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
 
 ResourceManager* Env::getResourceManager() const
 {
@@ -254,16 +251,9 @@ theory::TheoryId Env::theoryOf(TNode node) const
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
 
-bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
-{
-  if (!hasSepHeap())
-  {
-    return false;
-  }
-  locType = d_sepLocType;
-  dataType = d_sepDataType;
-  return true;
-}
+TypeNode Env::getSepLocType() const { return d_sepLocType; }
+
+TypeNode Env::getSepDataType() const { return d_sepDataType; }
 
 void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
 {

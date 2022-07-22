@@ -20,7 +20,6 @@
 #include "options/base_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"
 

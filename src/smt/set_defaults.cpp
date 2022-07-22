@@ -889,7 +889,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   }
   if (!d_isInternalSubsolver)
   {
-    if (opts.smt.produceAbducts || opts.smt.interpolants
+    if (opts.smt.produceAbducts || opts.smt.produceInterpolants
         || opts.quantifiers.sygusInference
         || opts.quantifiers.sygusRewSynthInput)
     {
@@ -950,9 +950,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
     // functions are incompatible with our equality proofs. Moreover, enabling
     // proofs for sygus (sub)solvers is irrelevant, since they are not given
-    // check-sat queries.
-    reason << "sygus";
-    return true;
+    // check-sat queries. Note however that we allow proofs in non-full modes
+    // (e.g. unsat cores).
+    if (opts.smt.proofMode == options::ProofMode::FULL)
+    {
+      reason << "sygus";
+      return true;
+    }
   }
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
@@ -1805,6 +1809,15 @@ void SetDefaults::notifyModifyOption(const std::string& x,
     verbose(1) << " due to " << reason;
   }
   verbose(1) << std::endl;
+}
+
+void SetDefaults::disableChecking(Options& opts)
+{
+  opts.writeSmt().checkUnsatCores = false;
+  opts.writeSmt().produceProofs = false;
+  opts.writeSmt().checkProofs = false;
+  opts.writeSmt().checkModels = false;
+  opts.writeProof().proofReq = false;
 }
 
 }  // namespace smt
