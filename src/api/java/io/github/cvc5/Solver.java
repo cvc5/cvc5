@@ -1760,11 +1760,12 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
+   * @param type The type of learned literals to return
    * @return The list of learned literals.
    */
-  public Term[] getLearnedLiterals()
+  public Term[] getLearnedLiterals(LearnedLitType type)
   {
-    long[] retPointers = getLearnedLiterals(pointer);
+    long[] retPointers = getLearnedLiterals(pointer, type.getValue());
     return Utils.getTerms(this, retPointers);
   }
 
