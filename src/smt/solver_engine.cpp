@@ -229,7 +229,7 @@ void SolverEngine::finishInit()
   {
     d_abductSolver.reset(new AbductionSolver(*d_env.get()));
   }
-  if (d_env->getOptions().smt.interpolants)
+  if (d_env->getOptions().smt.produceInterpolants)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
   }
@@ -1406,10 +1406,8 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     std::unique_ptr<SolverEngine> coreChecker;
     initializeSubsolver(coreChecker, *d_env.get());
     coreChecker->setLogic(getLogicInfo());
-    coreChecker->getOptions().writeSmt().checkUnsatCores = false;
     // disable all proof options
-    coreChecker->getOptions().writeSmt().produceProofs = false;
-    coreChecker->getOptions().writeSmt().checkProofs = false;
+    SetDefaults::disableChecking(coreChecker->getOptions());
 
     for (const Node& ucAssertion : core)
     {
@@ -1473,10 +1471,8 @@ void SolverEngine::checkUnsatCore()
   // initialize the core checker
   std::unique_ptr<SolverEngine> coreChecker;
   initializeSubsolver(coreChecker, *d_env.get());
-  coreChecker->getOptions().writeSmt().checkUnsatCores = false;
   // disable all proof options
-  coreChecker->getOptions().writeSmt().produceProofs = false;
-  coreChecker->getOptions().writeSmt().checkProofs = false;
+  SetDefaults::disableChecking(coreChecker->getOptions());
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;
