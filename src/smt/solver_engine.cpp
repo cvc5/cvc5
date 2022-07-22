@@ -1592,7 +1592,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     else
     {
       // use all preprocessed assertions
-      const std::vector<Node>& ppa = d_asserts->getAssertionPipeline().ref();
+      const std::vector<Node>& ppa = d_smtSolver->getPreprocessedAssertions();
       for (const Node& a : ppa)
       {
         assertions.push_back(a);

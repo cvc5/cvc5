@@ -332,7 +332,7 @@ void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
 
 bool SmtSolver::trackPreprocessedAssertions() const
 {
-  return options().smt.deepRestartMode != options::DeepRestartMode::NONE;
+  return options().smt.deepRestartMode != options::DeepRestartMode::NONE || options().smt.produceProofs;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
