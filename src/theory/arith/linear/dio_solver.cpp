@@ -22,7 +22,6 @@
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/partial_model.h"
 
 using namespace std;
@@ -54,22 +53,18 @@ DioSolver::DioSolver(Env& env)
       d_usedDecomposeIndex(context(), false),
       d_lastPureSubstitution(context(), 0),
       d_pureSubstitionIter(context(), 0),
-      d_decompositionLemmaQueue(context())
+      d_decompositionLemmaQueue(context()),
+      d_statistics(statisticsRegistry())
 {
 }
 
-DioSolver::Statistics::Statistics()
-    : d_conflictCalls(smtStatisticsRegistry().registerInt(
-        "theory::arith::dio::conflictCalls")),
-      d_cutCalls(
-          smtStatisticsRegistry().registerInt("theory::arith::dio::cutCalls")),
-      d_cuts(smtStatisticsRegistry().registerInt("theory::arith::dio::cuts")),
-      d_conflicts(
-          smtStatisticsRegistry().registerInt("theory::arith::dio::conflicts")),
-      d_conflictTimer(smtStatisticsRegistry().registerTimer(
-          "theory::arith::dio::conflictTimer")),
-      d_cutTimer(
-          smtStatisticsRegistry().registerTimer("theory::arith::dio::cutTimer"))
+DioSolver::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_conflictCalls(sr.registerInt("theory::arith::dio::conflictCalls")),
+      d_cutCalls(sr.registerInt("theory::arith::dio::cutCalls")),
+      d_cuts(sr.registerInt("theory::arith::dio::cuts")),
+      d_conflicts(sr.registerInt("theory::arith::dio::conflicts")),
+      d_conflictTimer(sr.registerTimer("theory::arith::dio::conflictTimer")),
+      d_cutTimer(sr.registerTimer("theory::arith::dio::cutTimer"))
 {
 }
 

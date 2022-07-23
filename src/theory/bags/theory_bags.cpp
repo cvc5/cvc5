@@ -37,7 +37,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_im(env, *this, d_state),
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
-      d_statistics(),
+      d_statistics(statisticsRegistry()),
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
@@ -205,6 +205,10 @@ void TheoryBags::collectBagsAndCountTerms()
       if (k == BAG_CARD)
       {
         d_ig.registerCardinalityTerm(n);
+      }
+      if (k == TABLE_GROUP)
+      {
+        d_state.registerGroupTerm(n);
       }
       ++it;
     }

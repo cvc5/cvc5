@@ -1,0 +1,5 @@
+(set-logic QF_S)
+(declare-fun t () String)
+(assert (str.< t (str.to_lower t)))
+(set-info :status sat)
+(check-sat)

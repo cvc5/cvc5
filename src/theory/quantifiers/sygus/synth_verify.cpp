@@ -20,7 +20,6 @@
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
@@ -80,11 +79,14 @@ Result SynthVerify::verify(Node query,
       }
       // sat, but we need to get arbtirary model values below
     }
+    SubsolverSetupInfo ssi(d_subOptions,
+                           d_subLogicInfo,
+                           d_env.getSepLocType(),
+                           d_env.getSepDataType());
     r = checkWithSubsolver(queryp,
                            vars,
                            mvs,
-                           d_subOptions,
-                           d_subLogicInfo,
+                           ssi,
                            options().quantifiers.sygusVerifyTimeout != 0,
                            options().quantifiers.sygusVerifyTimeout);
     finished = true;

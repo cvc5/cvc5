@@ -4897,7 +4897,7 @@ Solver::Solver(std::unique_ptr<internal::Options>&& original)
   d_nodeMgr = internal::NodeManager::currentNM();
   d_nodeMgr->init();
   d_originalOptions = std::move(original);
-  d_slv.reset(new internal::SolverEngine(d_nodeMgr, d_originalOptions.get()));
+  d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
   resetStatistics();
@@ -7144,7 +7144,7 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
   //////// all checks before this line
@@ -7159,7 +7159,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
   //////// all checks before this line
@@ -7173,7 +7173,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
@@ -7355,11 +7355,15 @@ void Solver::setOption(const std::string& option,
       option.find("command-verbosity") != std::string::npos
       || std::find(options.cbegin(), options.cend(), option) != options.cend())
       << "Unrecognized option: " << option << '.';
+  // this list includes options that are prescribed to be changable in any
+  // context based on the SMT-LIB standard, as well as options (e.g. tlimit-per)
+  // that have no impact on solver initialization or imply other options.
   static constexpr auto mutableOpts = {"diagnostic-output-channel",
                                        "print-success",
                                        "regular-output-channel",
                                        "reproducible-resource-limit",
-                                       "verbosity"};
+                                       "verbosity",
+                                       "tlimit-per"};
   if (std::find(mutableOpts.begin(), mutableOpts.end(), option)
       == mutableOpts.end())
   {
