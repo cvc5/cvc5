@@ -166,9 +166,9 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 void TheoryBags::initialize()
 {
   d_state.reset();
+  d_opMap.clear();
   d_state.collectDisequalBagTerms();
   collectBagsAndCountTerms();
-  d_opMap.clear();
 }
 
 void TheoryBags::collectBagsAndCountTerms()
