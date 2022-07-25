@@ -70,7 +70,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * @param node formula to convert and assert
    * @param negated whether we are asserting the node negated
    * @param removable whether the SAT solver can choose to remove the clauses
-   * @param input whether the SAT solver can choose to remove the clauses
+   * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
   void convertAndAssert(TNode node,
