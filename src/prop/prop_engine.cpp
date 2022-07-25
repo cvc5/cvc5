@@ -275,7 +275,7 @@ void PropEngine::assertInternal(
   }
   else if (isProofEnabled())
   {
-    d_pfCnfStream->convertAndAssert(node, negated, removable, pg);
+    d_pfCnfStream->convertAndAssert(node, negated, removable, input, pg);
     // if input, register the assertion in the proof manager
     if (input)
     {
