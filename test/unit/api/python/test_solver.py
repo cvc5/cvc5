@@ -774,6 +774,8 @@ def test_mk_term(solver):
     # Test cases that are nary via the API but have arity = 2 internally
     s_bool = solver.getBooleanSort()
     t_bool = solver.mkConst(s_bool, "t_bool")
+    solver.mkTerm(Kind.AND, t_bool, t_bool, t_bool)
+    solver.mkTerm(Kind.AND, [t_bool, t_bool, t_bool])
     solver.mkTerm(Kind.IMPLIES, t_bool, t_bool, t_bool)
     solver.mkTerm(Kind.XOR, t_bool, t_bool, t_bool)
     solver.mkTerm(solver.mkOp(Kind.XOR), t_bool, t_bool, t_bool)

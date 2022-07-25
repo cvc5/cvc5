@@ -1141,8 +1141,17 @@ cdef class Solver:
         if len(args) == 0:
             term.cterm = self.csolver.mkTerm((<Op?> op).cop)
         else:
-            for a in args:
-                v.push_back((<Term?> a).cterm)
+            if len(args) == 1 and isinstance(args[0], list):
+                # if a proper list was given, extract it and
+                # iterate.
+                children = args[0]
+                for a in children:
+                    v.push_back((<Term?> a).cterm)
+            else:
+                # if arguments are comma-separated,
+                # iterate them directly.
+                for a in args:
+                    v.push_back((<Term?> a).cterm)
             term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
