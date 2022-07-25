@@ -77,9 +77,23 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   std::vector<Node> fassumps;
   Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
          || pc == modes::PROOF_COMPONENT_PREPROCESS);
-  return pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
-             ? d_proofCnfStream->getLemmaClausesProofs()
-             : d_proofCnfStream->getInputClausesProofs();
+  std::vector<std::shared_ptr<ProofNode>> pfs =
+      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+          ? d_proofCnfStream->getLemmaClausesProofs()
+          : d_proofCnfStream->getInputClausesProofs();
+  std::shared_ptr<ProofNode> satPf = getProof(false);
+  std::vector<Node> satLeaves;
+  expr::getFreeAssumptions(satPf.get(), satLeaves);
+  std::vector<std::shared_ptr<ProofNode>> usedPfs;
+  for (const std::shared_ptr<ProofNode>& pf : pfs)
+  {
+    Node proven = pf->getResult();
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    {
+      usedPfs.push_back(pf);
+    }
+  }
+  return usedPfs;
 }
 
 std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
