@@ -1413,7 +1413,6 @@ void TheorySetsPrivate::computeCareGraph()
     Kind k = it.first;
     if (k == kind::SET_SINGLETON || k == kind::SET_MEMBER)
     {
-      unsigned n_pairs = 0;
       Trace("sets-cg-summary") << "Compute graph for sets, op=" << k << "..."
                                << it.second.size() << std::endl;
       Trace("sets-cg") << "Build index for " << k << "..." << std::endl;
@@ -1469,7 +1468,7 @@ void TheorySetsPrivate::computeCareGraph()
           nodeTriePathPairProcess(&tt.second, arity, d_cpacb);
         }
       }
-      Trace("sets-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
+      Trace("sets-cg-summary") << "...done" << std::endl;
     }
   }
 }

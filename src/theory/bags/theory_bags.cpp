@@ -546,29 +546,24 @@ void TheoryBags::computeCareGraph()
     Kind k = it.first;
     if (k == kind::BAG_MAKE || k == kind::BAG_COUNT)
     {
-      unsigned n_pairs = 0;
-      Trace("bags-cg-summary") << "Compute graph for sets, op=" << k << "..."
-                               << it.second.size() << std::endl;
+      Trace("bags-cg") << "Compute graph for sets, op=" << k << "..."
+                       << it.second.size() << std::endl;
       Trace("bags-cg") << "Build index for " << k << "..." << std::endl;
       std::map<TypeNode, TNodeTrie> index;
       unsigned arity = 0;
       // populate indices
       for (TNode f1 : it.second)
       {
-        Trace("bags-cg-debug") << "...build for " << f1 << std::endl;
+        Trace("bags-cg") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
-        // break into index based on operator, and the type of the element
-        // type of the proper set, which notice must be safe wrt subtyping.
         TypeNode tn;
         if (k == kind::BAG_MAKE)
         {
-          // get the type of the singleton set (not the type of its element)
           tn = f1.getType().getBagElementType();
         }
         else
         {
           Assert(k == kind::BAG_COUNT);
-          // get the element type of the set (not the type of the element)
           tn = f1[1].getType().getBagElementType();
         }
         std::vector<TNode> reps;
@@ -583,13 +578,13 @@ void TheoryBags::computeCareGraph()
         }
         if (hasCareArg)
         {
-          Trace("bags-cg-debug") << "......adding." << std::endl;
+          Trace("bags-cg") << "......adding." << std::endl;
           index[tn].addTerm(f1, reps);
           arity = reps.size();
         }
         else
         {
-          Trace("bags-cg-debug") << "......skip." << std::endl;
+          Trace("bags-cg") << "......skip." << std::endl;
         }
       }
       if (arity > 0)
@@ -602,7 +597,7 @@ void TheoryBags::computeCareGraph()
           nodeTriePathPairProcess(&tt.second, arity, d_cpacb);
         }
       }
-      Trace("bags-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
+      Trace("bags-cg") << "...done" << std::endl;
     }
   }
 }
