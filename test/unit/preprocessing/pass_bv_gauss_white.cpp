@@ -23,7 +23,6 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"

@@ -28,7 +28,7 @@ OptimizationResult OMTOptimizerInteger::optimize(SolverEngine* optChecker,
   // linear search for integer goal
   // the smt engine to which we send intermediate queries
   // for the linear search.
-  NodeManager* nm = optChecker->getNodeManager();
+  NodeManager* nm = NodeManager::currentNM();
   optChecker->push();
   Result intermediateSatResult = optChecker->checkSat();
   // Model-value of objective (used in optimization loop)

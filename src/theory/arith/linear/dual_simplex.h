@@ -111,7 +111,7 @@ private:
 
     ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
-    Statistics(uint32_t& pivots);
+    Statistics(StatisticsRegistry& sr, uint32_t& pivots);
   } d_statistics;
 };/* class DualSimplexDecisionProcedure */
 

@@ -395,7 +395,7 @@ class CardinalityExtension : protected EnvObj
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
     IntStat d_max_model_size;
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
   /** statistics class */
   Statistics d_statistics;

@@ -290,7 +290,7 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 
