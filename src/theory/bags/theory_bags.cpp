@@ -616,9 +616,7 @@ void TheoryBags::checkPair(TNode r1, TNode r2)
                           "called when false in model"
                        << std::endl;
       return;
-    default:
-      // Covers EQUALITY_TRUE_IN_MODEL (common case) and EQUALITY_UNKNOWN
-      break;
+    default: break;
   }
 
   // Add this pair
