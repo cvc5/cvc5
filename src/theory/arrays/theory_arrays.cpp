@@ -1000,8 +1000,7 @@ void TheoryArrays::computeCareGraph()
       }
       else {
         // We don't know the model value for x.  Just do brute force examination of all pairs of reads
-        for (unsigned j = i + 1; j < size; ++j)
-        {
+        for (unsigned j = 0; j < size; ++j) {
           TNode r2 = d_reads[j];
           Assert(d_equalityEngine->hasTerm(r2));
           checkPair(r1,r2);
