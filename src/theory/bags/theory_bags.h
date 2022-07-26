@@ -84,6 +84,7 @@ class TheoryBags : public Theory
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void computeCareGraph() override;
+  void processCarePairArgs(TNode a, TNode b) override;
   bool isCareArg(Node n, unsigned a);
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);

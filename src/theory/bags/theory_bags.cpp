@@ -541,46 +541,47 @@ bool TheoryBags::isCareArg(Node n, unsigned a)
 
 void TheoryBags::computeCareGraph()
 {
+  Trace("bags-cg") << "Compute graph for bags" << std::endl;
   for (const std::pair<const Kind, std::vector<Node>>& it : d_opMap)
   {
     Kind k = it.first;
     if (k == kind::BAG_MAKE || k == kind::BAG_COUNT)
     {
-      Trace("bags-cg") << "Compute graph for sets, op=" << k << "..."
-                       << it.second.size() << std::endl;
-      Trace("bags-cg") << "Build index for " << k << "..." << std::endl;
+      Trace("bags-cg") << "kind: " << k << ", size = " << it.second.size()
+                       << std::endl;
       std::map<TypeNode, TNodeTrie> index;
       unsigned arity = 0;
       // populate indices
-      for (TNode f1 : it.second)
+      for (TNode n : it.second)
       {
-        Trace("bags-cg") << "...build for " << f1 << std::endl;
-        Assert(d_equalityEngine->hasTerm(f1));
+        Trace("bags-cg") << "computing n:  " << n << std::endl;
+        Assert(d_equalityEngine->hasTerm(n));
         TypeNode tn;
         if (k == kind::BAG_MAKE)
         {
-          tn = f1.getType().getBagElementType();
+          tn = n.getType().getBagElementType();
         }
         else
         {
           Assert(k == kind::BAG_COUNT);
-          tn = f1[1].getType().getBagElementType();
+          tn = n[1].getType().getBagElementType();
         }
-        std::vector<TNode> reps;
+        std::vector<TNode> childrenReps;
         bool hasCareArg = false;
-        for (unsigned j = 0; j < f1.getNumChildren(); j++)
+        for (unsigned j = 0; j < n.getNumChildren(); j++)
         {
-          reps.push_back(d_equalityEngine->getRepresentative(f1[j]));
-          if (isCareArg(f1, j))
+          childrenReps.push_back(d_equalityEngine->getRepresentative(n[j]));
+          if (isCareArg(n, j))
           {
             hasCareArg = true;
           }
         }
         if (hasCareArg)
         {
-          Trace("bags-cg") << "......adding." << std::endl;
-          index[tn].addTerm(f1, reps);
-          arity = reps.size();
+          Trace("bags-cg") << "addTerm(" << n << ", " << childrenReps << ")"
+                           << std::endl;
+          index[tn].addTerm(n, childrenReps);
+          arity = childrenReps.size();
         }
         else
         {
@@ -598,6 +599,40 @@ void TheoryBags::computeCareGraph()
         }
       }
       Trace("bags-cg") << "...done" << std::endl;
+    }
+  }
+}
+
+void TheoryBags::processCarePairArgs(TNode a, TNode b)
+{
+  // we care about the equality or disequality between x, y
+  // when (bag.count x A) = (bag.count y A)
+  if (a.getKind() != BAG_COUNT && d_state.areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
+  size_t childrenSize = a.getNumChildren();
+  for (size_t i = 0; i < childrenSize; ++i)
+  {
+    TNode x = a[i];
+    TNode y = b[i];
+    if (!d_equalityEngine->areEqual(x, y))
+    {
+      if (isCareArg(a, i) && isCareArg(b, i))
+      {
+        // splitting on bags (necessary for handling bag of bags properly)
+        if (x.getType().isBag())
+        {
+          Assert(y.getType().isBag());
+          Trace("bags-cg-lemma")
+              << "Should split on : " << x << "==" << y << std::endl;
+          Node equal = x.eqNode(y);
+          Node lemma = equal.orNode(equal.notNode());
+          d_im.lemma(lemma, InferenceId::BAGS_CG_SPLIT);
+        }
+      }
     }
   }
 }
