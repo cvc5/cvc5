@@ -88,6 +88,11 @@ class TheoryBags : public Theory
   /** run the given inference step */
   bool runInferStep(InferStep s, int effort);
 
+  void notifySharedTerm(TNode t) override;
+  // Helper for computeCareGraph
+  void checkPair(TNode r1, TNode r2);
+  void computeCareGraph() override;
+
  private:
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public TheoryEqNotifyClass
@@ -124,6 +129,11 @@ class TheoryBags : public Theory
   BagsRewriter d_rewriter;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  context::CDHashSet<Node> d_sharedBags;
+  context::CDO<bool> d_sharedTerms;
+  /** splits on bag variables */
+  IntStat d_numSharedBagVarSplits;
+  std::vector<Node> d_countTerms;
   /** the main solver for bags */
   BagSolver d_solver;
 

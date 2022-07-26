@@ -40,6 +40,10 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
+      d_sharedBags(context()),
+      d_sharedTerms(context()),
+      d_numSharedBagVarSplits(statisticsRegistry().registerInt(
+          "theory::bags number of shared bag var splits")),
       d_solver(env, d_state, d_im, d_termReg),
       d_cardSolver(env, d_state, d_im)
 {
@@ -165,6 +169,7 @@ TrustNode TheoryBags::expandChooseOperator(const Node& node,
 void TheoryBags::initialize()
 {
   d_state.reset();
+  d_countTerms.clear();
   d_state.collectDisequalBagTerms();
   collectBagsAndCountTerms();
 }
@@ -201,6 +206,7 @@ void TheoryBags::collectBagsAndCountTerms()
       {
         // this takes care of all count terms in each equivalent class
         d_ig.registerCountTerm(n);
+        d_countTerms.push_back(n);
       }
       if (k == BAG_CARD)
       {
@@ -519,6 +525,203 @@ void TheoryBags::NotifyClass::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
                    << " n1 = " << n1 << " n2 = " << n2 << " reason = " << reason
                    << std::endl;
   d_theory.eqNotifyDisequal(n1, n2, reason);
+}
+
+void TheoryBags::notifySharedTerm(TNode t)
+{
+  Trace("bags::sharing") << "TheoryBags::notifySharedTerm(" << t << ")"
+                         << std::endl;
+  if (t.getType().isBag())
+  {
+    d_sharedBags.insert(t);
+  }
+  else
+  {
+    d_sharedTerms = true;
+  }
+}
+
+void TheoryBags::checkPair(TNode r1, TNode r2)
+{
+  Assert(r1.getKind() == BAG_COUNT && r2.getKind() == BAG_COUNT);
+  Trace("bags::cg") << "TheoryBags::checkPair: checking  " << r1 << " and "
+                    << r2 << std::endl;
+
+  TNode x = r1[0];
+  TNode y = r2[0];
+  TNode A = r1[1];
+  TNode B = r2[1];
+  Assert(d_equalityEngine->isTriggerTerm(x, THEORY_BAGS));
+
+  if (d_equalityEngine->hasTerm(x) && d_equalityEngine->hasTerm(y)
+      && (d_equalityEngine->areEqual(x, y)
+          || d_equalityEngine->areDisequal(x, y, false)))
+  {
+    return;
+  }
+
+  // If the terms are already known to be equal, we are also in good shape
+  if (d_equalityEngine->areEqual(r1, r2))
+  {
+    return;
+  }
+
+  if (A != B)
+  {
+    // If bags are known to be disequal, or cannot become equal, we can
+    // continue
+
+    if (A.getType() != B.getType()
+        || d_equalityEngine->areDisequal(A, B, false))
+    {
+      return;
+    }
+  }
+
+  if (!d_equalityEngine->isTriggerTerm(y, THEORY_BAGS))
+  {
+    return;
+  }
+
+  // Get representative trigger terms
+  TNode x_shared =
+      d_equalityEngine->getTriggerTermRepresentative(x, THEORY_BAGS);
+  TNode y_shared =
+      d_equalityEngine->getTriggerTermRepresentative(y, THEORY_BAGS);
+  EqualityStatus eqStatusDomain =
+      d_valuation.getEqualityStatus(x_shared, y_shared);
+  switch (eqStatusDomain)
+  {
+    case EQUALITY_TRUE_AND_PROPAGATED:
+      // Should have been propagated to us
+      Assert(false);
+      break;
+    case EQUALITY_TRUE:
+      // Missed propagation - need to add the pair so that theory engine can
+      // force propagation
+      Trace("bags-cg") << "TheoryBags::checkPair: missed propagation"
+                       << std::endl;
+      break;
+    case EQUALITY_FALSE_AND_PROPAGATED:
+      Trace("bags-cg") << "TheoryBags::checkPair: checkPair "
+                          "called when false in model"
+                       << std::endl;
+      // Should have been propagated to us
+      Assert(false);
+      break;
+    case EQUALITY_FALSE: CVC5_FALLTHROUGH;
+    case EQUALITY_FALSE_IN_MODEL:
+      // This is unlikely, but I think it could happen
+      Trace("bags-cg") << "TheoryBags::checkPair: checkPair "
+                          "called when false in model"
+                       << std::endl;
+      return;
+    default:
+      // Covers EQUALITY_TRUE_IN_MODEL (common case) and EQUALITY_UNKNOWN
+      break;
+  }
+
+  // Add this pair
+  Trace("bags-cg") << "TheoryBags::checkPair: adding to care-graph ("
+                   << x_shared << ", " << y_shared << ")" << std::endl;
+  addCarePair(x_shared, y_shared);
+}
+
+void TheoryBags::computeCareGraph()
+{
+  if (d_sharedBags.size() > 0)
+  {
+    context::CDHashSet<Node>::key_iterator it1 = d_sharedBags.key_begin(), it2,
+                                           iend = d_sharedBags.key_end();
+    for (; it1 != iend; ++it1)
+    {
+      for (it2 = it1, ++it2; it2 != iend; ++it2)
+      {
+        if ((*it1).getType() != (*it2).getType())
+        {
+          continue;
+        }
+        EqualityStatus eqStatusArr = getEqualityStatus((*it1), (*it2));
+        if (eqStatusArr != EQUALITY_UNKNOWN)
+        {
+          continue;
+        }
+        Assert(d_valuation.getEqualityStatus((*it1), (*it2))
+               == EQUALITY_UNKNOWN);
+        addCarePair((*it1), (*it2));
+        Trace("bags-cg") << "addCarePair(" << *it1 << ", " << *it2 << ")"
+                         << std::endl;
+        ++d_numSharedBagVarSplits;
+        return;
+      }
+    }
+  }
+  if (d_sharedTerms)
+  {
+    size_t size = d_countTerms.size();
+    Trace("bags-cg") << "d_countTerms.size(): " << d_countTerms.size()
+                     << std::endl;
+    Trace("bags-cg") << "d_countTerms: " << d_countTerms << std::endl;
+    std::cout << std::endl;
+
+    std::unordered_map<Node, std::vector<Node>> countMap;
+    for (unsigned i = 0; i < size; ++i)
+    {
+      TNode r1 = d_countTerms[i];
+
+      Trace("bags-cg") << "TheoryBags::computeCareGraph: checking  " << r1
+                       << std::endl;
+      Assert(d_equalityEngine->hasTerm(r1));
+      Assert(r1.getKind() == BAG_COUNT);
+      TNode x = r1[0];
+
+      if (!d_equalityEngine->isTriggerTerm(x, THEORY_BAGS))
+      {
+        Trace("bags-cg") << "TheoryBags::computeCareGraph: not "
+                            "connected to shared terms, skipping"
+                         << std::endl;
+        continue;
+      }
+      Node x_shared =
+          d_equalityEngine->getTriggerTermRepresentative(x, THEORY_BAGS);
+      Trace("bags-cg") << "TheoryBags::computeCareGraph::x_shared: " << x_shared
+                       << std::endl;
+      if (!x_shared.isConst())
+      {
+        x_shared = d_valuation.getModelValue(x_shared);
+      }
+      if (!x_shared.isNull())
+      {
+        std::unordered_map<Node, std::vector<Node>>::iterator it =
+            countMap.find(x_shared);
+        if (it == countMap.end())
+        {
+          // This is the only x_shared with this model value - no need to create
+          // any splits
+          countMap[x_shared] = std::vector<Node>();
+        }
+        else
+        {
+          for (size_t j = 0; j < it->second.size(); ++j)
+          {
+            checkPair(r1, it->second[j]);
+          }
+          it->second.push_back(r1);
+        }
+      }
+      else
+      {
+        // We don't know the model value for x.  Just do brute force examination
+        // of all pairs of reads
+        for (size_t j = 0; j < size; ++j)
+        {
+          TNode r2 = d_countTerms[j];
+          Assert(d_equalityEngine->hasTerm(r2));
+          checkPair(r1, r2);
+        }
+      }
+    }
+  }
 }
 
 }  // namespace bags
