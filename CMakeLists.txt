@@ -116,6 +116,7 @@ set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
 # Custom extension for WebAssembly compilation
 wasm_option(WASM "Use a specific extension for WebAssembly compilation")
+# Make sure no other avaible value will be assigned to this variable
 if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML"))
   set(WASM "OFF")
 # If it's a wasm compilation, but isn't using static libraries

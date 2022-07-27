@@ -146,8 +146,8 @@ macro(cvc5_option var description)
   set_property(CACHE ${var} PROPERTY STRINGS IGNORE ON OFF)
 endmacro()
 
-# Wasm options are four-valued to detect the if the WebAssembly compilation will
-# happen and if it's true, find out the extension used in this process.
+# Wasm options are four-valued to detect if the WebAssembly compilation will
+# happen and if so, find out the extension used in this process.
 # The options are: OFF (not a WebAssembly compilation), WASM (.wasm), JS (.js) 
 # or HTML (.html).
 macro(wasm_option var description)
