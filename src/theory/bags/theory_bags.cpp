@@ -711,7 +711,7 @@ void TheoryBags::computeCareGraph()
       {
         // We don't know the model value for x.  Just do brute force examination
         // of all pairs of reads
-        for (size_t j = 0; j < size; ++j)
+        for (size_t j = i + 1; j < size; ++j)
         {
           TNode r2 = d_countTerms[j];
           Assert(d_equalityEngine->hasTerm(r2));
