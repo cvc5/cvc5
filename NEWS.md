@@ -1,5 +1,14 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.0.2
+==========
+
+**Changes**
+
+- Reenable functionality that allows `(get-model)` commands after answering
+  `unknown` when `:produce-models` is set to `true`. Note that there is no
+  guarantee that building a model succeeds.
+
 cvc5 1.0.1
 ==========
 

@@ -350,20 +350,6 @@ class TheoryEngine : protected EnvObj
   Node getModelValue(TNode var);
 
   /**
-   * Get relevant assertions. This returns a set of assertions that are
-   * currently asserted to this TheoryEngine that propositionally entail the
-   * (preprocessed) input formula and all theory lemmas that have been marked
-   * NEEDS_JUSTIFY. For more details on this, see relevance_manager.h.
-   *
-   * This method updates success to false if the set of relevant assertions
-   * is not available. This may occur if we are not in SAT mode, if the
-   * relevance manager is disabled (see option::relevanceFilter) or if the
-   * relevance manager failed to compute relevant assertions due to an internal
-   * error.
-   */
-  std::unordered_set<TNode> getRelevantAssertions(bool& success);
-
-  /**
    * Get difficulty map, which populates dmap, mapping preprocessed assertions
    * to a value that estimates their difficulty for solving the current problem.
    *
@@ -520,9 +506,6 @@ class TheoryEngine : protected EnvObj
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
 
-  /** are we in eager model building mode? (see setEagerModelBuilding). */
-  bool d_eager_model_building;
-
   /**
    * Output channels for individual theories.
    */
@@ -532,13 +515,6 @@ class TheoryEngine : protected EnvObj
    * Are we in conflict.
    */
   context::CDO<bool> d_inConflict;
-
-  /**
-   * Are we in "SAT mode"? In this state, the user can query for the model.
-   * This corresponds to the state in Figure 4.1, page 52 of the SMT-LIB
-   * standard, version 2.6.
-   */
-  bool d_inSatMode;
 
   /**
    * True if a theory has notified us of incompleteness (at this

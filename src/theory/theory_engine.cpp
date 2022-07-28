@@ -225,7 +225,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_decManager(new DecisionManager(userContext())),
       d_relManager(nullptr),
       d_inConflict(context(), false),
-      d_inSatMode(false),
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
@@ -494,12 +493,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         d_relManager->notifyCandidateModel(getModel());
       }
-      if (!d_inConflict && !needCheck())
-      {
-        // We only mark that we are in "SAT mode". We build the model later only
-        // if the user asks for it via getBuiltModel.
-        d_inSatMode = true;
-      }
     }
 
     Trace("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
@@ -609,11 +602,6 @@ TheoryModel* TheoryEngine::getBuiltModel()
   // If this method was called, we should be in SAT mode, and produceModels
   // should be true.
   AlwaysAssert(options().smt.produceModels);
-  if (!d_inSatMode)
-  {
-    // not available, perhaps due to interuption.
-    return nullptr;
-  }
   // must build model at this point
   if (!d_tc->buildModel())
   {
@@ -679,8 +667,6 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
-  // no longer in SAT mode
-  d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
 }
@@ -1084,18 +1070,6 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
 {
   Assert(a.getType() == b.getType());
   return d_sharedSolver->getEqualityStatus(a, b);
-}
-
-std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
-{
-  // if we are not in SAT mode, or there is no relevance manager, we fail
-  if (!d_inSatMode || d_relManager == nullptr)
-  {
-    success = false;
-    // return empty set
-    return std::unordered_set<TNode>();
-  }
-  return d_relManager->getRelevantAssertions(success);
 }
 
 void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
