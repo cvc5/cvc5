@@ -52,11 +52,8 @@ TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
   return s.getNone();
 }
 
-TNode TermEvaluatorEntailed::partialEvaluateChild(const State& s,
-                                                  TNode n,
-                                                  TNode child,
-                                                  TNode val,
-                                                  Node& exp)
+TNode TermEvaluatorEntailed::partialEvaluateChild(
+    const State& s, TNode n, TNode child, TNode val, Node& exp)
 {
   // if a Boolean connective, handle short circuiting
   Kind k = n.getKind();

@@ -67,11 +67,8 @@ class TermEvaluator : protected EnvObj
    * If returning non-null, exp may be set to a child of n that was the
    * reason for the evaluation. This can be used for explanations.
    */
-  virtual TNode partialEvaluateChild(const State& s,
-                                     TNode n,
-                                     TNode child,
-                                     TNode val,
-                                     Node& exp) = 0;
+  virtual TNode partialEvaluateChild(
+      const State& s, TNode n, TNode child, TNode val, Node& exp) = 0;
   /**
    * Evaluate term
    * Called when all children of n have been assigned values childValues.
@@ -95,11 +92,8 @@ class TermEvaluatorEntailed : public TermEvaluator
   /** Evaluate base */
   TNode evaluateBase(const State& s, TNode n) override;
   /** Partial evaluate child */
-  TNode partialEvaluateChild(const State& s,
-                             TNode n,
-                             TNode child,
-                             TNode val,
-                             Node& exp) override;
+  TNode partialEvaluateChild(
+      const State& s, TNode n, TNode child, TNode val, Node& exp) override;
   /** Evaluate term */
   TNode evaluate(const State& s,
                  TNode n,
