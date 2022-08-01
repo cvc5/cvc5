@@ -1520,7 +1520,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   }
   // The component modes::PROOF_COMPONENT_PREPROCESS returns the proof of
   // all preprocessed assertions. It does not require being in an unsat state.
-  if (c != modes::PROOF_COMPONENT_PREPROCESS
+  if (c != modes::PROOF_COMPONENT_RAW_PREPROCESS
       && d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
@@ -1535,23 +1535,11 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   bool connectMkOuterScope = false;
   bool commentProves = true;
   options::ProofFormatMode mode = options::ProofFormatMode::NONE;
-  if (c == modes::PROOF_COMPONENT_PREPROCESS
-      || c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
+  if (c == modes::PROOF_COMPONENT_RAW_PREPROCESS)
   {
-    std::vector<Node> assertions;
-    if (c == modes::PROOF_COMPONENT_PREPROCESS_UNSAT_CORE)
-    {
-      pe->getUnsatCore(assertions);
-    }
-    else
-    {
-      // use all preprocessed assertions
-      const std::vector<Node>& ppa = d_smtSolver->getPreprocessedAssertions();
-      for (const Node& a : ppa)
-      {
-        assertions.push_back(a);
-      }
-    }
+    // use all preprocessed assertions
+    const std::vector<Node>& assertions =
+        d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
     // make base assume proofs which will be connected to its proof of
     // preprocessing
@@ -1567,9 +1555,12 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     // don't need to comment that it proves false
     commentProves = false;
   }
-  else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS)
+  else if (c == modes::PROOF_COMPONENT_THEORY_LEMMAS
+           || c == modes::PROOF_COMPONENT_PREPROCESS)
   {
-    ps = pe->getTheoryLemmaProofs();
+    ps = pe->getProofLeaves(c);
+    // connect to preprocess proofs for preprocess mode
+    connectToPreprocess = (c == modes::PROOF_COMPONENT_PREPROCESS);
   }
   else if (c == modes::PROOF_COMPONENT_FULL)
   {
