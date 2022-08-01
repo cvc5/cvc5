@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, BlockModelsMode, RoundingMode
+from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType
 
 
 @pytest.fixture
@@ -1504,7 +1504,7 @@ def test_learned_literals2(solver):
     solver.assertFormula(f0)
     solver.assertFormula(f1)
     solver.checkSat()
-    solver.getLearnedLiterals()
+    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
 
 def test_get_value1(solver):
