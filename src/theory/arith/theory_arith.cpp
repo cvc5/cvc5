@@ -263,6 +263,7 @@ void TheoryArith::postCheck(Effort level)
       updateModelCache(termSet);
     }
     sanityCheckIntegerModel();
+    finalizeModelCache();
   }
 }
 
@@ -428,18 +429,23 @@ void TheoryArith::updateModelCacheInternal(const std::set<Node>& termSet)
     d_arithModelCacheSet = true;
     d_internal->collectModelValues(
         termSet, d_arithModelCache, d_arithModelCacheIllTyped);
-    // make into substitution
-    for (const auto& [node, repl] : d_arithModelCache)
+  }
+}
+
+void TheoryArith::finalizeModelCache()
+{
+  // make into substitution
+  for (const auto& [node, repl] : d_arithModelCache)
+  {
+    Assert(repl.getType().isRealOrInt());
+    if (Theory::isLeafOf(repl, TheoryId::THEORY_ARITH))
     {
-      Assert(repl.getType().isRealOrInt());
-      if (Theory::isLeafOf(repl, TheoryId::THEORY_ARITH))
-      {
-        d_arithModelCacheVars.emplace_back(node);
-        d_arithModelCacheSubs.emplace_back(repl);
-      }
+      d_arithModelCacheVars.emplace_back(node);
+      d_arithModelCacheSubs.emplace_back(repl);
     }
   }
 }
+
 bool TheoryArith::sanityCheckIntegerModel()
 {
   // Double check that the model from the linear solver respects integer types,

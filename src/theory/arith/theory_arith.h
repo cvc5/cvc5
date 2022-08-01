@@ -136,6 +136,8 @@ class TheoryArith : public Theory {
    * termSet.
    */
   void updateModelCacheInternal(const std::set<Node>& termSet);
+  /** Finalized model cache */
+  void finalizeModelCache();
   /**
    * Perform a sanity check on the model that all integer variables are assigned
    * to integer values. If an integer variables is assigned to a non-integer
