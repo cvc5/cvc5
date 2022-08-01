@@ -70,7 +70,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * @param node formula to convert and assert
    * @param negated whether we are asserting the node negated
    * @param removable whether the SAT solver can choose to remove the clauses
-   * @param input whether the SAT solver can choose to remove the clauses
+   * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
   void convertAndAssert(TNode node,
@@ -92,6 +92,23 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * don't-assert" version of convertAndAssert().
    */
   void ensureLiteral(TNode n);
+
+  /**
+   * Returns true iff the node has an assigned literal (it might not be
+   * translated).
+   */
+  bool hasLiteral(TNode node) const;
+
+  /**
+   * Returns the literal that represents the given node in the SAT CNF
+   * representation.
+   */
+  SatLiteral getLiteral(TNode node);
+
+  /**
+   * Returns the Boolean variables from the input problem.
+   */
+  void getBooleanVariables(std::vector<TNode>& outputVariables) const;
 
   /**
    * Blocks a proof, so that it is not further updated by a post processor of
