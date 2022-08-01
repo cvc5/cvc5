@@ -196,34 +196,44 @@ std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
 enum ProofComponent
 {
   /**
-   * A proof of (and G1 ... Gn) whose free assumptions are a subset of
+   * Proofs of G1 ... Gn whose free assumptions are a subset of
    * F1, ... Fm, where:
    * - G1, ... Gn are the preprocessed input formulas,
    * - F1, ... Fm are the input formulas.
+   *
+   * Note that G1 ... Gn may be arbitrary formulas, not necessarily clauses.
    */
-  PROOF_COMPONENT_PREPROCESS,
+  PROOF_COMPONENT_RAW_PREPROCESS,
   /**
-   * A proof of (and Gu1 ... Gun) whose free assumptions are Fu1, ... Fum,
+   * Proofs of Gu1 ... Gun whose free assumptions are Fu1, ... Fum,
    * where:
-   * - Gu1, ... Gun are the preprocessed input formulas used in the SAT proof,
+   * - Gu1, ... Gun are clauses corresponding to input formulas used in the SAT
+   * proof,
    * - Fu1, ... Fum is the subset of the input formulas that are used in the SAT
    * proof (i.e. the unsat core).
    *
+   * Note that Gu1 ... Gun are clauses that are added to the SAT solver before
+   * its main search.
+   *
    * Only valid immediately after an unsat response.
    */
-  PROOF_COMPONENT_PREPROCESS_UNSAT_CORE,
+  PROOF_COMPONENT_PREPROCESS,
   /**
-   * A proof of false whose free assumptions are Fu1, ... Fum, L1 ... Lk,
+   * A proof of false whose free assumptions are Gu1, ... Gun, L1 ... Lk,
    * where:
-   * - Fu1, ... Fum, is a subset of the input formulas,
-   * - L1, ..., Lk is a set of theory lemmas.
+   * - Gu1, ... Gun, is a set of clauses corresponding to input formulas,
+   * - L1, ..., Lk is a set of clauses corresponding to theory lemmas.
    *
    * Only valid immediately after an unsat response.
    */
   PROOF_COMPONENT_SAT,
   /**
-   * A proof of (and L1 ... Lk) where:
-   *- L1, ..., Lk are the theory lemmas used in the SAT proof.
+   * Proofs of L1 ... Lk where:
+   *- L1, ..., Lk are clauses corresponding to theory lemmas used in the SAT
+   * proof.
+   *
+   * In contrast to proofs given for preprocess, L1 ... Lk are clauses that are
+   * added to the SAT solver after its main search.
    *
    * Only valid immediately after an unsat response.
    */

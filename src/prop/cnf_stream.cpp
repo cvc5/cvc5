@@ -690,10 +690,7 @@ void CnfStream::convertAndAssertIte(TNode node, bool negated)
 // At the top level we must ensure that all clauses that are asserted are
 // not unit, except for the direct assertions. This allows us to remove the
 // clauses later when they are not needed anymore (lemmas for example).
-void CnfStream::convertAndAssert(TNode node,
-                                 bool removable,
-                                 bool negated,
-                                 bool input)
+void CnfStream::convertAndAssert(TNode node, bool removable, bool negated)
 {
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
