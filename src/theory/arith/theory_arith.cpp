@@ -263,6 +263,8 @@ void TheoryArith::postCheck(Effort level)
       updateModelCache(termSet);
     }
     sanityCheckIntegerModel();
+    // Now, finalize the model cache, which constructs a substitution to be
+    // used for getEqualityStatus.
     finalizeModelCache();
   }
 }
