@@ -94,6 +94,23 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   void ensureLiteral(TNode n);
 
   /**
+   * Returns true iff the node has an assigned literal (it might not be
+   * translated).
+   */
+  bool hasLiteral(TNode node) const;
+
+  /**
+   * Returns the literal that represents the given node in the SAT CNF
+   * representation.
+   */
+  SatLiteral getLiteral(TNode node);
+
+  /**
+   * Returns the Boolean variables from the input problem.
+   */
+  void getBooleanVariables(std::vector<TNode>& outputVariables) const;
+
+  /**
    * Blocks a proof, so that it is not further updated by a post processor of
    * this class's proof. */
   void addBlocked(std::shared_ptr<ProofNode> pfn);
