@@ -515,6 +515,10 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
+  if (d_equalityEngine->areDisequal(x,y,false))
+  {
+    return true;
+  }
   if (!d_equalityEngine->isTriggerTerm(x, d_id)
       || !d_equalityEngine->isTriggerTerm(y, d_id))
   {
