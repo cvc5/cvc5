@@ -136,7 +136,11 @@ class TheoryArith : public Theory {
    * termSet.
    */
   void updateModelCacheInternal(const std::set<Node>& termSet);
-  /** Finalized model cache */
+  /**
+   * Finalized model cache. Called after d_arithModelCache is finalized during
+   * a full effort check. It computes d_arithModelCacheSubs/Vars, which are
+   * used during theory combination, for getEqualityStatus.
+   */
   void finalizeModelCache();
   /**
    * Perform a sanity check on the model that all integer variables are assigned
