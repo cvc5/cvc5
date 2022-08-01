@@ -30,9 +30,8 @@ namespace rewriter {
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
       d_notify(*this),
-      d_trrc(env.getProofNodeManager()),
+      d_trrc(env),
       d_db(db),
-      d_pnm(env.getProofNodeManager()),
       d_eval(nullptr),
       d_currRecLimit(0),
       d_currFixedPointId(DslPfRule::FAIL),

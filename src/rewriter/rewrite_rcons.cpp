@@ -17,13 +17,14 @@
 #include "rewriter/rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
+#include "smt/env.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace rewriter {
 
-TheoryRewriteRCons::TheoryRewriteRCons(ProofNodeManager* pnm) : d_pnm(pnm) {}
+TheoryRewriteRCons::TheoryRewriteRCons(Env& env) : EnvObj(env) {}
 
 bool TheoryRewriteRCons::prove(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
@@ -55,7 +56,7 @@ bool TheoryRewriteRCons::tryRule(CDProof* cdp,
                                  PfRule r,
                                  const std::vector<Node>& args)
 {
-  ProofChecker* pc = d_pnm->getChecker();
+  ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   Node res = pc->checkDebug(r, {}, args, eq, "trewrite-rcons");
   if (!res.isNull() && res == eq)
   {

@@ -137,8 +137,6 @@ class RewriteDbProofCons : protected EnvObj
   RewriteDbNodeConverter d_rdnc;
   /** Pointer to rewrite database */
   RewriteDb* d_db;
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
   /** the evaluator utility */
   theory::Evaluator d_eval;
   /** currently proving */

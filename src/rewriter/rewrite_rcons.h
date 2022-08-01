@@ -25,16 +25,17 @@
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/proof_checker.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace rewriter {
 
 /**
  */
-class TheoryRewriteRCons
+class TheoryRewriteRCons : protected EnvObj
 {
  public:
-  TheoryRewriteRCons(ProofNodeManager* pnm);
+  TheoryRewriteRCons(Env& env);
   ~TheoryRewriteRCons() {}
   /**
    * Reconstruct
@@ -44,8 +45,6 @@ class TheoryRewriteRCons
  private:
   /** Try rule */
   bool tryRule(CDProof* cdp, Node eq, PfRule r, const std::vector<Node>& args);
-  /** Proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace rewriter
