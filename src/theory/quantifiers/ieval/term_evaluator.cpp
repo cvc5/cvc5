@@ -15,10 +15,6 @@
 
 #include "theory/quantifiers/ieval/term_evaluator.h"
 
-#include "theory/quantifiers/ieval/state.h"
-#include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/term_database.h"
-
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {

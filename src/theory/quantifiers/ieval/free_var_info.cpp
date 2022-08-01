@@ -15,8 +15,6 @@
 
 #include "theory/quantifiers/ieval/free_var_info.h"
 
-#include "theory/quantifiers/ieval/state.h"
-
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
