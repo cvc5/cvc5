@@ -67,11 +67,8 @@ class TermEvaluator : protected EnvObj
    * If returning non-null, exp may be set to a child of n that was the
    * reason for the evaluation. This can be used for explanations.
    */
-  virtual TNode partialEvaluateChild(const State& s,
-                                     TNode n,
-                                     TNode child,
-                                     TNode val,
-                                     Node& exp) = 0;
+  virtual TNode partialEvaluateChild(
+      const State& s, TNode n, TNode child, TNode val, Node& exp) = 0;
   /**
    * Evaluate term
    * Called when all children of n have been assigned values childValues.
@@ -84,51 +81,6 @@ class TermEvaluator : protected EnvObj
   /** The mode */
   TermEvaluatorMode d_tevMode;
 };
-
-class TermEvaluatorEntailed : public TermEvaluator
-{
- public:
-  TermEvaluatorEntailed(Env& env,
-                        TermEvaluatorMode tev,
-                        QuantifiersState& qs,
-                        TermDb& tdb);
-  /** Evaluate base */
-  TNode evaluateBase(const State& s, TNode n) override;
-  /** Partial evaluate child */
-  TNode partialEvaluateChild(const State& s,
-                             TNode n,
-                             TNode child,
-                             TNode val,
-                             Node& exp) override;
-  /** Evaluate term */
-  TNode evaluate(const State& s,
-                 TNode n,
-                 const std::vector<TNode>& childValues) override;
-
- private:
-  /** Quantifiers state */
-  QuantifiersState& d_qs;
-  /** Pointer to the term database */
-  TermDb& d_tdb;
-  /** Whether we are using an optimization for checking the relevant domain */
-  bool d_checkRelDom;
-};
-
-#if 0
-class TermEvaluatorModel : public TermEvaluator
-{
-public:
-  TermEvaluatorModel(Env& env, TermDb* tdb);
-  /** Evaluate base */
-  Node evaluateBase(const State& s, Node n) override;
-  /** Partial evaluate child */
-  Node partialEvaluateChild(const State& s, Node n, TNode child, TNode val) override;
-  /** Evaluate term */
-  Node evaluate(const State& s, Node n, const std::vector<TNode>& childValues) override;
-private:
-  TermDb* d_tdb;
-};
-#endif
 
 }  // namespace ieval
 }  // namespace quantifiers

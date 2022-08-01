@@ -60,7 +60,7 @@ class QuantInfo
   bool isActive() const;
   /** set active */
   void setActive(bool val);
-  /** 
+  /**
    * Is maybe conflict? True if it may be possible to generate a conflicting
    * instance for this quantified formula for the current substituion.
    */
