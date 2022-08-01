@@ -24,8 +24,8 @@
 #include "expr/node.h"
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
-#include "theory/builtin/proof_checker.h"
 #include "smt/env_obj.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace cvc5::internal {
 namespace rewriter {
