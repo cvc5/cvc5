@@ -51,6 +51,9 @@ class Printer
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
 
+  /** Write a Kind out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, Kind k) const = 0;
+
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
 
@@ -282,14 +285,6 @@ class Printer
   virtual void toStreamCmdDeclareHeap(std::ostream& out,
                                       TypeNode locType,
                                       TypeNode dataType) const;
-
-  /** Print command sequence command */
-  virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
-  /** Print declaration sequence command */
-  virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
  protected:
   /** Derived classes can construct, but no one else. */

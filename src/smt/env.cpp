@@ -37,19 +37,17 @@ using namespace cvc5::internal::smt;
 
 namespace cvc5::internal {
 
-Env::Env(NodeManager* nm, const Options* opts)
+Env::Env(const Options* opts)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
-      d_nodeManager(nm),
       d_proofNodeManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_evalRew(nullptr),
       d_eval(nullptr),
-      d_topLevelSubs(new theory::TrustSubstitutionMap(d_userContext.get())),
+      d_topLevelSubs(nullptr),
       d_logic(),
       d_statisticsRegistry(std::make_unique<StatisticsRegistry>(*this)),
       d_options(),
-      d_originalOptions(opts),
       d_resourceManager(),
       d_uninterpretedSortOwner(theory::THEORY_UF)
 {
@@ -69,13 +67,16 @@ Env::Env(NodeManager* nm, const Options* opts)
 
 Env::~Env() {}
 
-void Env::setProofNodeManager(ProofNodeManager* pnm)
+void Env::finishInit(ProofNodeManager* pnm)
 {
-  Assert(pnm != nullptr);
-  Assert(d_proofNodeManager == nullptr);
-  d_proofNodeManager = pnm;
-  d_rewriter->setProofNodeManager(pnm);
-  d_topLevelSubs->setProofNodeManager(pnm);
+  if (pnm != nullptr)
+  {
+    Assert(d_proofNodeManager == nullptr);
+    d_proofNodeManager = pnm;
+    d_rewriter->finishInit(*this);
+  }
+  d_topLevelSubs.reset(
+      new theory::TrustSubstitutionMap(*this, d_userContext.get()));
 }
 
 void Env::shutdown()
@@ -88,8 +89,6 @@ void Env::shutdown()
 context::Context* Env::getContext() { return d_context.get(); }
 
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
-
-NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
 ProofNodeManager* Env::getProofNodeManager() { return d_proofNodeManager; }
 
@@ -125,8 +124,6 @@ StatisticsRegistry& Env::getStatisticsRegistry()
 }
 
 const Options& Env::getOptions() const { return d_options; }
-
-const Options& Env::getOriginalOptions() const { return *d_originalOptions; }
 
 ResourceManager* Env::getResourceManager() const
 {
@@ -254,16 +251,9 @@ theory::TheoryId Env::theoryOf(TNode node) const
 
 bool Env::hasSepHeap() const { return !d_sepLocType.isNull(); }
 
-bool Env::getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const
-{
-  if (!hasSepHeap())
-  {
-    return false;
-  }
-  locType = d_sepLocType;
-  dataType = d_sepDataType;
-  return true;
-}
+TypeNode Env::getSepLocType() const { return d_sepLocType; }
+
+TypeNode Env::getSepDataType() const { return d_sepDataType; }
 
 void Env::declareSepHeap(TypeNode locT, TypeNode dataT)
 {

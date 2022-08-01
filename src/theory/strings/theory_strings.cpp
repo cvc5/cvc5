@@ -53,9 +53,9 @@ using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
 TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
-      d_statistics(),
+      d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
-      d_termReg(env, *this, d_state, d_statistics, d_pnm),
+      d_termReg(env, *this, d_state, d_statistics),
       d_rewriter(env.getRewriter(),
                  &d_statistics.d_rewrites,
                  d_termReg.getAlphabetCardinality()),
@@ -83,8 +83,8 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
       d_rsolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(
+          env,
           options().strings.regExpElim == options::RegExpElimMode::AGG,
-          d_pnm,
           userContext()),
       d_stringsFmf(env, valuation, d_termReg),
       d_strat(d_env),
@@ -452,8 +452,18 @@ bool TheoryStrings::collectModelInfoType(
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
-      if (nfe.d_nf[0].getKind() == SEQ_UNIT
-          || nfe.d_nf[0].getKind() == STRING_UNIT)
+      if (nfe.d_nf[0].getKind() == STRING_UNIT)
+      {
+        // str.unit is applied to integers, where we are guaranteed the model
+        // exists. We preempitively get the model value here, so that we
+        // avoid repeated model values for strings.
+        Node val = d_valuation.getModelValue(nfe.d_nf[0][0]);
+        assignedValue = utils::mkUnit(eqc.getType(), val);
+        assignedValue = rewrite(assignedValue);
+        Trace("strings-model")
+            << "-> assign via str.unit: " << assignedValue << std::endl;
+      }
+      else if (nfe.d_nf[0].getKind() == SEQ_UNIT)
       {
         if (nfe.d_nf[0][0].getType().isStringLike())
         {

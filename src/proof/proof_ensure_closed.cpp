@@ -29,7 +29,8 @@ namespace cvc5::internal {
  * Ensure closed with respect to assumptions, internal version, which
  * generalizes the check for a proof generator or a proof node.
  */
-void ensureClosedWrtInternal(Node proven,
+void ensureClosedWrtInternal(const Options& opts,
+                             Node proven,
                              ProofGenerator* pg,
                              ProofNode* pnp,
                              const std::vector<Node>& assumps,
@@ -37,13 +38,13 @@ void ensureClosedWrtInternal(Node proven,
                              const char* ctx,
                              bool reqGen)
 {
-  if (!options::produceProofs())
+  if (!opts.smt.produceProofs)
   {
     // proofs not enabled, do not do check
     return;
   }
   bool isTraceDebug = TraceIsOn(c);
-  if (options::proofCheck() != options::ProofCheckMode::EAGER && !isTraceDebug)
+  if (opts.proof.proofCheck != options::ProofCheckMode::EAGER && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;
@@ -143,7 +144,8 @@ void ensureClosedWrtInternal(Node proven,
   Trace(c) << "====" << std::endl;
 }
 
-void pfgEnsureClosed(Node proven,
+void pfgEnsureClosed(const Options& opts,
+                     Node proven,
                      ProofGenerator* pg,
                      const char* c,
                      const char* ctx,
@@ -152,10 +154,11 @@ void pfgEnsureClosed(Node proven,
   Assert(!proven.isNull());
   // proof generator may be null
   std::vector<Node> assumps;
-  ensureClosedWrtInternal(proven, pg, nullptr, assumps, c, ctx, reqGen);
+  ensureClosedWrtInternal(opts, proven, pg, nullptr, assumps, c, ctx, reqGen);
 }
 
-void pfgEnsureClosedWrt(Node proven,
+void pfgEnsureClosedWrt(const Options& opts,
+                        Node proven,
                         ProofGenerator* pg,
                         const std::vector<Node>& assumps,
                         const char* c,
@@ -164,20 +167,25 @@ void pfgEnsureClosedWrt(Node proven,
 {
   Assert(!proven.isNull());
   // proof generator may be null
-  ensureClosedWrtInternal(proven, pg, nullptr, assumps, c, ctx, reqGen);
+  ensureClosedWrtInternal(opts, proven, pg, nullptr, assumps, c, ctx, reqGen);
 }
 
-void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx)
+void pfnEnsureClosed(const Options& opts,
+                     ProofNode* pn,
+                     const char* c,
+                     const char* ctx)
 {
-  ensureClosedWrtInternal(Node::null(), nullptr, pn, {}, c, ctx, false);
+  ensureClosedWrtInternal(opts, Node::null(), nullptr, pn, {}, c, ctx, false);
 }
 
-void pfnEnsureClosedWrt(ProofNode* pn,
+void pfnEnsureClosedWrt(const Options& opts,
+                        ProofNode* pn,
                         const std::vector<Node>& assumps,
                         const char* c,
                         const char* ctx)
 {
-  ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
+  ensureClosedWrtInternal(
+      opts, Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
 }  // namespace cvc5::internal

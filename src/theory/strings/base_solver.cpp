@@ -37,7 +37,12 @@ BaseSolver::BaseSolver(Env& env,
                        SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr)
-    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_congruent(context())
+    : EnvObj(env),
+      d_state(s),
+      d_im(im),
+      d_termReg(tr),
+      d_congruent(context()),
+      d_strUnitOobEq(userContext())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = options().strings.stringsAlphaCard;
@@ -74,6 +79,10 @@ void BaseSolver::checkInit()
       }
       Node var;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+      std::vector<Node> prevConstLike;
+      bool isString = eqc.getType().isString();
+      // have we found a constant in this equivalence class
+      bool foundConst = false;
       while (!eqc_i.isFinished())
       {
         Node n = *eqc_i;
@@ -82,59 +91,41 @@ void BaseSolver::checkInit()
         // process constant-like terms
         if (utils::isConstantLike(n))
         {
-          Node prev = d_eqcInfo[eqc].d_bestContent;
-          if (!prev.isNull())
+          // compare against the other constant-like terms in this equivalence
+          // class
+          for (const Node& prev : prevConstLike)
           {
-            // we have either (seq.unit x) = C, or (seq.unit x) = (seq.unit y)
-            // where C is a sequence constant.
-            Node cval =
-                prev.isConst() ? prev : (n.isConst() ? n : Node::null());
-            std::vector<Node> exp;
-            exp.push_back(prev.eqNode(n));
-            Node s, t;
-            if (cval.isNull())
+            if (processConstantLike(n, prev))
             {
-              // injectivity of seq.unit
-              s = prev[0];
-              t = n[0];
-            }
-            else
-            {
-              // should not have two constants in the same equivalence class
-              std::vector<Node> cchars = Word::getChars(cval);
-              if (cchars.size() == 1)
-              {
-                Node oval = prev.isConst() ? n : prev;
-                Assert(oval.getKind() == SEQ_UNIT
-                       || oval.getKind() == STRING_UNIT);
-                s = oval[0];
-                t = Word::getNth(cchars[0], 0);
-                // oval is congruent (ignored) in this context
-                d_congruent.insert(oval);
-              }
-              else
-              {
-                // (seq.unit x) = C => false if |C| != 1.
-                d_im.sendInference(
-                    exp, d_false, InferenceId::STRINGS_UNIT_CONST_CONFLICT);
-                return;
-              }
-            }
-            if (!d_state.areEqual(s, t))
-            {
-              // (seq.unit x) = (seq.unit y) => x=y, or
-              // (seq.unit x) = (seq.unit c) => x=c
-              Assert(s.getType() == t.getType());
-              d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
+              // in conflict, return
+              return;
             }
           }
+          bool addToConstLike = isString && !foundConst;
           // update best content
-          if (prev.isNull() || n.isConst())
+          if (prevConstLike.empty() || n.isConst())
           {
             d_eqcInfo[eqc].d_bestContent = n;
             d_eqcInfo[eqc].d_bestScore = 0;
             d_eqcInfo[eqc].d_base = n;
             d_eqcInfo[eqc].d_exp = Node::null();
+            if (n.isConst())
+            {
+              // only keep the current
+              prevConstLike.clear();
+              foundConst = true;
+            }
+          }
+          // Determine if we need to track n to compare it to other constant
+          // like terms in this equivalence class. This is done if we do not
+          // have any other constant-like terms we are tracking, or if we have
+          // not yet encountered a constant and we are a string equivalence
+          // class. This is because all *pairs* of str.unit must be compared
+          // to one another, whereas since seq.unit is injective, we can
+          // compare seq.unit with a single representative seq.unit term.
+          if (prevConstLike.empty() || addToConstLike)
+          {
+            prevConstLike.push_back(n);
           }
         }
         if (tn.isInteger())
@@ -302,6 +293,88 @@ void BaseSolver::checkInit()
     }
   }
   Trace("strings-base") << "BaseSolver::checkInit finished" << std::endl;
+}
+
+bool BaseSolver::processConstantLike(Node a, Node b)
+{
+  // we have either (seq.unit x) = C, or (seq.unit x) = (seq.unit y)
+  // where C is a sequence constant.
+  Node cval = b.isConst() ? b : (a.isConst() ? a : Node::null());
+  std::vector<Node> exp;
+  exp.push_back(b.eqNode(a));
+  Node s, t;
+  if (cval.isNull())
+  {
+    // injectivity of seq.unit
+    s = b[0];
+    t = a[0];
+  }
+  else
+  {
+    // should not have two constants in the same equivalence class
+    std::vector<Node> cchars = Word::getChars(cval);
+    if (cchars.size() == 1)
+    {
+      Node oval = b.isConst() ? a : b;
+      Assert(oval.getKind() == SEQ_UNIT || oval.getKind() == STRING_UNIT);
+      s = oval[0];
+      t = Word::getNth(cchars[0], 0);
+      // oval is congruent (ignored) in this context
+      d_congruent.insert(oval);
+    }
+    else
+    {
+      // (seq.unit x) = C => false if |C| != 1.
+      d_im.sendInference(
+          exp, d_false, InferenceId::STRINGS_UNIT_CONST_CONFLICT);
+      return true;
+    }
+  }
+  Trace("strings-base") << "Process constant-like pair " << s << ", " << t
+                        << " from " << a << ", " << b << std::endl;
+  if (!d_state.areEqual(s, t))
+  {
+    Assert(s.getType() == t.getType());
+    Node eq = s.eqNode(t);
+    if (a.getType().isString())
+    {
+      // String unit is not injective, due to invalid code points.
+      // We do an inference scheme in two parts.
+      // for (str.unit x), (str.unit y): x = y or x != y
+      if (!d_state.areDisequal(s, t))
+      {
+        d_im.sendSplit(s, t, InferenceId::STRINGS_UNIT_SPLIT);
+      }
+      else if (d_strUnitOobEq.find(eq) == d_strUnitOobEq.end())
+      {
+        // cache that we have performed this inference
+        Node eqSym = t.eqNode(s);
+        d_strUnitOobEq.insert(eq);
+        d_strUnitOobEq.insert(eqSym);
+        exp.push_back(eq.notNode());
+        // (str.unit x) = (str.unit y) ^ x != y =>
+        // x or y is not a valid code point
+        Node scr = utils::mkCodeRange(s, d_cardSize);
+        Node tcr = utils::mkCodeRange(t, d_cardSize);
+        Node conc =
+            NodeManager::currentNM()->mkNode(OR, scr.notNode(), tcr.notNode());
+        // We do not explain exp for two reasons. First, we are
+        // caching this inference based on the user context and thus
+        // it should not depend on the current explanation. Second,
+        // s or t may be concrete integers corresponding to code
+        // points of string constants, and thus are not guaranteed to
+        // be terms in the equality engine.
+        d_im.sendInference(exp, exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+      }
+    }
+    else
+    {
+      // (seq.unit x) = (seq.unit y) => x=y, or
+      // (seq.unit x) = (seq.unit c) => x=c
+      d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+    }
+  }
+  return false;
 }
 
 void BaseSolver::checkConstantEquivalenceClasses()

@@ -35,9 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(SkolemCache* sc,
+StringsPreprocess::StringsPreprocess(Env& env,
+                                     SkolemCache* sc,
                                      HistogramStat<Kind>* statReductions)
-    : d_sc(sc), d_statReductions(statReductions)
+    : EnvObj(env), d_sc(sc), d_statReductions(statReductions)
 {
 }
 
@@ -47,7 +48,8 @@ StringsPreprocess::~StringsPreprocess(){
 
 Node StringsPreprocess::reduce(Node t,
                                std::vector<Node>& asserts,
-                               SkolemCache* sc)
+                               SkolemCache* sc,
+                               size_t alphaCard)
 {
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
@@ -514,7 +516,13 @@ Node StringsPreprocess::reduce(Node t,
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, t12));
-    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    std::vector<Node> bchildren { b11, b12, b13 };
+    if (s.getType().isString())
+    {
+      Node crange = utils::mkCodeRange(skt, alphaCard);
+      bchildren.push_back(crange);
+    }
+    Node b1 = nm->mkNode(AND, bchildren);
 
     // the lemma for `seq.nth`
     Node lemma = nm->mkNode(IMPLIES, cond, b1);
@@ -524,6 +532,7 @@ Node StringsPreprocess::reduce(Node t,
     // IMPLIES: s = sk1 ++ unit(skt) ++ sk2 AND
     //          len( sk1 ) = n AND
     //          len( sk2 ) = len( s )- (n+1)
+    // We also ensure skt is a valid code point if s is of type String
     asserts.push_back(lemma);
     retNode = skt;
   }
@@ -1001,7 +1010,7 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
 {
   size_t prev_asserts = asserts.size();
   // call the static reduce routine
-  Node retNode = reduce(t, asserts, d_sc);
+  Node retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
   if( t!=retNode ){
     Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if (!asserts.empty())
@@ -1056,7 +1065,12 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
       if( changed ){
         tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
       }
-      retNode = simplify(tmp, asserts);
+      // We cannot statically reduce seq.nth due to it being partial function.
+      // Reducing it here would violate the functional property of seq.nth.
+      if (tmp.getKind() != SEQ_NTH)
+      {
+        retNode = simplify(tmp, asserts);
+      }
     }
     d_visited[t] = retNode;
     return retNode;
@@ -1064,10 +1078,12 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 }
 Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
 {
-  // we use (SEQ_NTH, x, i) instead of
+  // we could use (SEQ_NTH, x, i) instead of
   // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1))
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(SEQ_NTH, x, i);
+  return nm->mkNode(
+      STRING_TO_CODE,
+      nm->mkNode(STRING_SUBSTR, x, i, nm->mkConstInt(Rational(1))));
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)

@@ -301,6 +301,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(SET_IS_SINGLETON, internal::Kind::SET_IS_SINGLETON),
         KIND_ENUM(SET_MAP, internal::Kind::SET_MAP),
         KIND_ENUM(SET_FILTER, internal::Kind::SET_FILTER),
+        KIND_ENUM(SET_FOLD, internal::Kind::SET_FOLD),
         /* Relations -------------------------------------------------------- */
         KIND_ENUM(RELATION_JOIN, internal::Kind::RELATION_JOIN),
         KIND_ENUM(RELATION_PRODUCT, internal::Kind::RELATION_PRODUCT),
@@ -308,6 +309,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(RELATION_TCLOSURE, internal::Kind::RELATION_TCLOSURE),
         KIND_ENUM(RELATION_JOIN_IMAGE, internal::Kind::RELATION_JOIN_IMAGE),
         KIND_ENUM(RELATION_IDEN, internal::Kind::RELATION_IDEN),
+        KIND_ENUM(RELATION_GROUP, internal::Kind::RELATION_GROUP),
+        KIND_ENUM(RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE),
+        KIND_ENUM(RELATION_PROJECT, internal::Kind::RELATION_PROJECT),
         /* Bags ------------------------------------------------------------- */
         KIND_ENUM(BAG_UNION_MAX, internal::Kind::BAG_UNION_MAX),
         KIND_ENUM(BAG_UNION_DISJOINT, internal::Kind::BAG_UNION_DISJOINT),
@@ -624,6 +628,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SET_IS_SINGLETON, SET_IS_SINGLETON},
         {internal::Kind::SET_MAP, SET_MAP},
         {internal::Kind::SET_FILTER, SET_FILTER},
+        {internal::Kind::SET_FOLD, SET_FOLD},
         /* Relations ------------------------------------------------------- */
         {internal::Kind::RELATION_JOIN, RELATION_JOIN},
         {internal::Kind::RELATION_PRODUCT, RELATION_PRODUCT},
@@ -631,6 +636,11 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::RELATION_TCLOSURE, RELATION_TCLOSURE},
         {internal::Kind::RELATION_JOIN_IMAGE, RELATION_JOIN_IMAGE},
         {internal::Kind::RELATION_IDEN, RELATION_IDEN},
+        {internal::Kind::RELATION_GROUP, RELATION_GROUP},
+        {internal::Kind::RELATION_AGGREGATE_OP, RELATION_AGGREGATE},
+        {internal::Kind::RELATION_AGGREGATE, RELATION_AGGREGATE},
+        {internal::Kind::RELATION_PROJECT_OP, RELATION_PROJECT},
+        {internal::Kind::RELATION_PROJECT, RELATION_PROJECT},
         /* Bags ------------------------------------------------------------ */
         {internal::Kind::BAG_UNION_MAX, BAG_UNION_MAX},
         {internal::Kind::BAG_UNION_DISJOINT, BAG_UNION_DISJOINT},
@@ -770,6 +780,9 @@ const static std::unordered_map<Kind, internal::Kind> s_op_kinds{
     {REGEXP_REPEAT, internal::Kind::REGEXP_REPEAT_OP},
     {REGEXP_LOOP, internal::Kind::REGEXP_LOOP_OP},
     {TUPLE_PROJECT, internal::Kind::TUPLE_PROJECT_OP},
+    {RELATION_AGGREGATE, internal::Kind::RELATION_AGGREGATE_OP},
+    {RELATION_GROUP, internal::Kind::RELATION_GROUP_OP},
+    {RELATION_PROJECT, internal::Kind::RELATION_PROJECT_OP},
     {TABLE_PROJECT, internal::Kind::TABLE_PROJECT_OP},
     {TABLE_AGGREGATE, internal::Kind::TABLE_AGGREGATE_OP},
     {TABLE_JOIN, internal::Kind::TABLE_JOIN_OP},
@@ -1948,6 +1961,9 @@ size_t Op::getNumIndicesHelper() const
     case FLOATINGPOINT_TO_FP_FROM_UBV: size = 2; break;
     case REGEXP_LOOP: size = 2; break;
     case TUPLE_PROJECT:
+    case RELATION_AGGREGATE:
+    case RELATION_GROUP:
+    case RELATION_PROJECT:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
@@ -2108,6 +2124,9 @@ Term Op::getIndexHelper(size_t index) const
       break;
     }
     case TUPLE_PROJECT:
+    case RELATION_AGGREGATE:
+    case RELATION_GROUP:
+    case RELATION_PROJECT:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
@@ -4878,7 +4897,7 @@ Solver::Solver(std::unique_ptr<internal::Options>&& original)
   d_nodeMgr = internal::NodeManager::currentNM();
   d_nodeMgr->init();
   d_originalOptions = std::move(original);
-  d_slv.reset(new internal::SolverEngine(d_nodeMgr, d_originalOptions.get()));
+  d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
   resetStatistics();
@@ -6149,6 +6168,9 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       res = mkOpHelper(kind, internal::RegExpLoop(args[0], args[1]));
       break;
     case TUPLE_PROJECT:
+    case RELATION_AGGREGATE:
+    case RELATION_GROUP:
+    case RELATION_PROJECT:
     case TABLE_AGGREGATE:
     case TABLE_GROUP:
     case TABLE_JOIN:
@@ -7122,7 +7144,7 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
   //////// all checks before this line
@@ -7137,7 +7159,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
   //////// all checks before this line
@@ -7151,7 +7173,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 Term Solver::getInterpolantNext() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK(d_slv->getOptions().smt.interpolants)
+  CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "Cannot get interpolant unless interpolants are enabled (try "
          "--produce-interpolants)";
   CVC5_API_CHECK(d_slv->getOptions().base.incrementalSolving)
@@ -7333,11 +7355,15 @@ void Solver::setOption(const std::string& option,
       option.find("command-verbosity") != std::string::npos
       || std::find(options.cbegin(), options.cend(), option) != options.cend())
       << "Unrecognized option: " << option << '.';
+  // this list includes options that are prescribed to be changable in any
+  // context based on the SMT-LIB standard, as well as options (e.g. tlimit-per)
+  // that have no impact on solver initialization or imply other options.
   static constexpr auto mutableOpts = {"diagnostic-output-channel",
                                        "print-success",
                                        "regular-output-channel",
                                        "reproducible-resource-limit",
-                                       "verbosity"};
+                                       "verbosity",
+                                       "tlimit-per"};
   if (std::find(mutableOpts.begin(), mutableOpts.end(), option)
       == mutableOpts.end())
   {

@@ -259,7 +259,7 @@ class ArithCongruenceManager : protected EnvObj
     IntStat d_propagateConstraints;
     IntStat d_conflicts;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   } d_statistics;
 
 }; /* class ArithCongruenceManager */

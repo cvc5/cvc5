@@ -76,8 +76,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  private:
   /** Common constants */
   Node d_true;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The witness form proof generator */

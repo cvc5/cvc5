@@ -29,7 +29,6 @@
 #include "prop/skolem_def_manager.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
@@ -108,6 +107,10 @@ void TheoryProxy::notifyInputFormulas(
     {
       skolem = it->second;
     }
+    if (!skolem.isNull())
+    {
+      notifySkolemDefinition(assertions[i], skolem);
+    }
     notifyAssertion(assertions[i], skolem, false);
   }
 
@@ -119,6 +122,12 @@ void TheoryProxy::notifyInputFormulas(
   }
 }
 
+void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
+{
+  Assert(!skolem.isNull());
+  d_skdm->notifySkolemDefinition(skolem, a);
+}
+
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())
@@ -127,7 +136,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   }
   else
   {
-    d_skdm->notifySkolemDefinition(skolem, a);
     d_decisionEngine->addSkolemDefinition(a, skolem, isLemma);
   }
 }
@@ -278,6 +286,15 @@ bool TheoryProxy::theoryNeedCheck() const {
 bool TheoryProxy::isIncomplete() const
 {
   return d_stopSearch.get() || d_theoryEngine->isIncomplete();
+}
+
+theory::IncompleteId TheoryProxy::getIncompleteId() const
+{
+  if (d_stopSearch.get())
+  {
+    return theory::IncompleteId::STOP_SEARCH;
+  }
+  return d_theoryEngine->getIncompleteId();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {

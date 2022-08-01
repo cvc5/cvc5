@@ -17,13 +17,11 @@
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
-#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -48,16 +46,16 @@ Instantiate::Instantiate(Env& env,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
     : QuantifiersUtil(env),
+      d_statistics(statisticsRegistry()),
       d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
       d_insts(userContext()),
       d_c_inst_match_trie_dom(userContext()),
-      d_pfInst(isProofEnabled() ? new CDProof(env.getProofNodeManager(),
-                                              userContext(),
-                                              "Instantiate::pfInst")
-                                : nullptr)
+      d_pfInst(isProofEnabled()
+                   ? new CDProof(env, userContext(), "Instantiate::pfInst")
+                   : nullptr)
 {
 }
 
@@ -249,10 +247,8 @@ bool Instantiate::addInstantiation(Node q,
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(d_env.getProofNodeManager(),
-                                nullptr,
-                                nullptr,
-                                "Instantiate::LazyCDProof::tmp"));
+    pfTmp.reset(new LazyCDProof(
+        d_env, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
   }
 
   // construct the instantiation
@@ -712,7 +708,7 @@ void Instantiate::notifyEndRound()
   }
   if (isOutputOn(OutputTag::INST))
   {
-    bool req = !options().printer.printInstFull;
+    bool req = !options().quantifiers.printInstFull;
     for (std::pair<const Node, uint32_t>& i : d_instDebugTemp)
     {
       Node name;
@@ -771,15 +767,12 @@ InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
   return ill.get();
 }
 
-Instantiate::Statistics::Statistics()
-    : d_instantiations(smtStatisticsRegistry().registerInt(
-        "Instantiate::Instantiations_Total")),
-      d_inst_duplicate(
-          smtStatisticsRegistry().registerInt("Instantiate::Duplicate_Inst")),
-      d_inst_duplicate_eq(smtStatisticsRegistry().registerInt(
-          "Instantiate::Duplicate_Inst_Eq")),
-      d_inst_duplicate_ent(smtStatisticsRegistry().registerInt(
-          "Instantiate::Duplicate_Inst_Entailed"))
+Instantiate::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_instantiations(sr.registerInt("Instantiate::Instantiations_Total")),
+      d_inst_duplicate(sr.registerInt("Instantiate::Duplicate_Inst")),
+      d_inst_duplicate_eq(sr.registerInt("Instantiate::Duplicate_Inst_Eq")),
+      d_inst_duplicate_ent(
+          sr.registerInt("Instantiate::Duplicate_Inst_Entailed"))
 {
 }
 

@@ -44,8 +44,7 @@ class BranchAndBound : protected EnvObj
   BranchAndBound(Env& env,
                  ArithState& s,
                  InferenceManager& im,
-                 PreprocessRewriteEq& ppre,
-                 ProofNodeManager* pnm);
+                 PreprocessRewriteEq& ppre);
   ~BranchAndBound() {}
   /**
    * Branch variable, called when integer var has given value
@@ -64,8 +63,6 @@ class BranchAndBound : protected EnvObj
   PreprocessRewriteEq& d_ppre;
   /** Proof generator. */
   std::unique_ptr<EagerProofGenerator> d_pfGen;
-  /** Proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace arith

@@ -37,7 +37,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_im(env, *this, d_state),
       d_ig(&d_state, &d_im),
       d_notify(*this, d_im),
-      d_statistics(),
+      d_statistics(statisticsRegistry()),
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_solver(env, d_state, d_im, d_termReg),
@@ -109,6 +109,12 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     case kind::TABLE_AGGREGATE:
     {
       Node ret = BagReduction::reduceAggregateOperator(atom);
+      Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+    case kind::TABLE_PROJECT:
+    {
+      Node ret = BagReduction::reduceProjectOperator(atom);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret << std::endl;
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
@@ -199,6 +205,10 @@ void TheoryBags::collectBagsAndCountTerms()
       if (k == BAG_CARD)
       {
         d_ig.registerCardinalityTerm(n);
+      }
+      if (k == TABLE_GROUP)
+      {
+        d_state.registerGroupTerm(n);
       }
       ++it;
     }
@@ -465,7 +475,6 @@ void TheoryBags::preRegisterTerm(TNode n)
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
     case BAG_PARTITION:
-    case TABLE_PROJECT:
     {
       std::stringstream ss;
       ss << "Term of kind " << n.getKind() << " is not supported yet";

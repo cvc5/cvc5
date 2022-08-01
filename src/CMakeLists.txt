@@ -56,6 +56,18 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
+  # !!! TEMPORARY !!!
+  # We currently add the symbol manager and the symbol table to both libcvc5
+  # and libcvc5parser as a stopgap solution, because the command infrastructure
+  # is still in libcvc5. Once PR #8893 is merged, they can be removed from
+  # libcvc5. We have to add them to libcvc5 because linking a DLL for Windows
+  # requires all symbols to be present. Concretely, because of the commands, we
+  # need the symbols for the symbol manager/table to link libcvc5.
+  parser/api/cpp/symbol_manager.cpp
+  parser/api/cpp/symbol_manager.h
+  parser/symbol_table.cpp
+  parser/symbol_table.h
+  # !!! /TEMPORARY !!!
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -327,8 +339,6 @@ libcvc5_add_sources(
   smt/set_defaults.h
   smt/solver_engine.cpp
   smt/solver_engine.h
-  smt/solver_engine_scope.cpp
-  smt/solver_engine_scope.h
   smt/solver_engine_state.cpp
   smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
@@ -337,8 +347,6 @@ libcvc5_add_sources(
   smt/smt_mode.h
   smt/smt_solver.cpp
   smt/smt_solver.h
-  smt/smt_statistics_registry.cpp
-  smt/smt_statistics_registry.h
   smt/sygus_solver.cpp
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
@@ -1012,6 +1020,8 @@ libcvc5_add_sources(
   theory/sets/normal_form.h
   theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
+  theory/sets/set_reduction.cpp
+  theory/sets/set_reduction.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp

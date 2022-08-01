@@ -46,6 +46,19 @@ class SetDefaults : protected EnvObj
    */
   void setDefaults(LogicInfo& logic, Options& opts);
 
+  /**
+   * Disable checking for the given options. This is typically done for
+   * the options that are passed to subsolvers.
+   *
+   * This disables basic checking options that is run for check-sat calls,
+   * including checkProofs, checkUnsatCores, checkModels. It also disables
+   * produceProofs.
+   *
+   * It does not disable more advanced checking (e.g. checkSynthSol,
+   * checkAbduct, etc.), since these features are not exercised on subsolvers.
+   */
+  static void disableChecking(Options& opts);
+
  private:
   //------------------------- utility methods
   /**

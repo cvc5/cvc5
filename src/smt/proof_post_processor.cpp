@@ -41,7 +41,6 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
-      d_pnm(env.getProofNodeManager()),
       d_pppg(pppg),
       d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
@@ -316,6 +315,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::vector<Node> childrenResArgs;
   Node resPlaceHolder;
   size_t nextGuardedElimPos = eliminators[0];
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   do
   {
     size_t start = lastElim + 1;
@@ -333,11 +333,11 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
                            args.begin() + (2 * end) + 1);
     Trace("smt-proof-pp-debug2") << "\tres children: " << childrenRes << "\n";
     Trace("smt-proof-pp-debug2") << "\tres args: " << childrenResArgs << "\n";
-    resPlaceHolder = d_pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
-                                                     childrenRes,
-                                                     childrenResArgs,
-                                                     Node::null(),
-                                                     "");
+    resPlaceHolder = pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
+                                                   childrenRes,
+                                                   childrenResArgs,
+                                                   Node::null(),
+                                                   "");
     Trace("smt-proof-pp-debug2")
         << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("smt-proof-pp-debug2") << "-------\n";
@@ -347,7 +347,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     // to be handled by the caller
     if (end < children.size() - 1)
     {
-      lastClause = d_pnm->getChecker()->checkDebug(
+      lastClause = pnm->getChecker()->checkDebug(
           PfRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
       if (!lastClause.isNull())
       {
@@ -666,9 +666,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   else if (id == PfRule::MACRO_RESOLUTION
            || id == PfRule::MACRO_RESOLUTION_TRUST)
   {
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
-    Node chainConclusion = d_pnm->getChecker()->checkDebug(
+    Node chainConclusion = pnm->getChecker()->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
     Trace("smt-proof-pp-debug")
@@ -886,10 +887,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
               << "......updated to " << var << " -> " << ss
               << " based on previous substitution" << std::endl;
           // make the proof for the tranitivity step
-          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
+          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_env);
           pfs.push_back(pf);
           // prove the updated substitution
-          TConvProofGenerator tcg(d_pnm,
+          TConvProofGenerator tcg(d_env,
                                   nullptr,
                                   TConvPolicy::ONCE,
                                   TConvCachePolicy::NEVER,
@@ -934,7 +935,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // should be implied by the substitution now
     TConvPolicy tcpolicy = ida == MethodId::SBA_FIXPOINT ? TConvPolicy::FIXPOINT
                                                          : TConvPolicy::ONCE;
-    TConvProofGenerator tcpg(d_pnm,
+    TConvProofGenerator tcpg(d_env,
                              nullptr,
                              tcpolicy,
                              TConvCachePolicy::NEVER,
@@ -993,7 +994,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, children, {eqq});
       }
     }
     else
@@ -1082,9 +1083,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(!args.empty());
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // try to replay theory rewrite
     // first, check that maybe its just an evaluation step
-    ProofChecker* pc = d_pnm->getChecker();
+    ProofChecker* pc = pnm->getChecker();
     Node ceval =
         pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "smt-proof-pp-debug");
     if (!ceval.isNull() && ceval == eq)
@@ -1107,8 +1109,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     NodeManager* nm = NodeManager::currentNM();
-    ProofStepBuffer steps{d_pnm->getChecker()};
+    ProofStepBuffer steps{pnm->getChecker()};
 
     // Scale all children, accumulating
     std::vector<Node> scaledRels;
@@ -1164,7 +1167,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::BV_BITBLAST)
   {
-    bv::BBProof bb(d_env, nullptr, d_pnm, true);
+    bv::BBProof bb(d_env, nullptr, true);
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
     bb.bbAtom(eq[0]);
@@ -1267,9 +1270,9 @@ ProofPostproccess::ProofPostproccess(Env& env,
     : EnvObj(env),
       d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
+      d_updater(env, d_cb, options().proof.proofPpMerge),
       d_finalCb(env),
-      d_finalizer(env.getProofNodeManager(), d_finalCb)
+      d_finalizer(env, d_finalCb)
 {
 }
 
