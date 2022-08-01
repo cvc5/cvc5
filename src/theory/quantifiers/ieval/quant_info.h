@@ -22,7 +22,6 @@
 
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "theory/uf/equality_engine.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -54,23 +53,29 @@ class QuantInfo
   /** Decremental unassigned var */
   void decrementUnassignedVar();
   //-------------------------- queries local to round
-  /** Is alive? */
+  /**
+   * Is active? True if the current substitution for this quantified formula
+   * does not generate an entailed instance.
+   */
   bool isActive() const;
-  /** set dead */
+  /** set active */
   void setActive(bool val);
+  /** 
+   * Is maybe conflict? True if it may be possible to generate a conflicting
+   * instance for this quantified formula for the current substituion.
+   */
+  bool isMaybeConflict() const;
   /** Set no conflict */
   void setNoConflict();
-  /** Is maybe conflict */
-  bool isMaybeConflict() const;
   /**
-   * Set the failure constraint. This is a term in the domain of d_req
+   * Get the failure constraint. This is a term in the domain of d_req
    * that was the reason why this quantified formula is inactive.
    */
-  void setFailureConstraint(TNode c);
-  /** Get the failure constraint set by the above method */
   TNode getFailureConstraint() const;
+  /** Set the failure constraint */
+  void setFailureConstraint(TNode c);
   //-------------------------- utilities
-  /** Do we traverse this node? */
+  /** Do we traverse this node when considering evaluation? */
   static bool isTraverseTerm(TNode n);
   /** Debug print */
   std::string toStringDebug() const;

@@ -15,10 +15,7 @@
 
 #include "theory/quantifiers/ieval/quant_info.h"
 
-#include "expr/node_algorithm.h"
-#include "expr/term_canonize.h"
-#include "theory/quantifiers/ematching/trigger_term_info.h"
-#include "theory/quantifiers/term_database.h"
+#include <sstream>
 
 using namespace cvc5::internal::kind;
 
