@@ -25,24 +25,14 @@ namespace arith {
 
 std::optional<bool> isExpressionZero(Env& env,
                                      Node expr,
-                                     const std::map<Node, Node>& model)
+                                     const std::vector<TNode>& nodes,
+  const std::vector<TNode>& repls)
 {
   // Substitute constants and rewrite
   expr = env.getRewriter()->rewrite(expr);
   if (expr.isConst())
   {
     return expr.getConst<Rational>().isZero();
-  }
-  std::vector<TNode> nodes;
-  std::vector<TNode> repls;
-  for (const auto& [node, repl] : model)
-  {
-    if (repl.getType().isRealOrInt()
-        && Theory::isLeafOf(repl, TheoryId::THEORY_ARITH))
-    {
-      nodes.emplace_back(node);
-      repls.emplace_back(repl);
-    }
   }
   expr =
       expr.substitute(nodes.begin(), nodes.end(), repls.begin(), repls.end());

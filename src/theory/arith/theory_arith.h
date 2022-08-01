@@ -135,7 +135,7 @@ class TheoryArith : public Theory {
    * Update d_arithModelCache (if it is empty right now) using the given
    * termSet.
    */
-  void updateModelCache(const std::set<Node>& termSet);
+  void updateModelCacheInternal(const std::set<Node>& termSet);
   /**
    * Perform a sanity check on the model that all integer variables are assigned
    * to integer values. If an integer variables is assigned to a non-integer
@@ -185,6 +185,9 @@ class TheoryArith : public Theory {
   std::map<Node, Node> d_arithModelCache;
   /** Component of the above that was ill-typed */
   std::map<Node, Node> d_arithModelCacheIllTyped;
+  /** The above model cache, in substitution form. */
+  std::vector<TNode> d_arithModelCacheVars;
+  std::vector<TNode> d_arithModelCacheSubs;
   /** Is the above map computed? */
   bool d_arithModelCacheSet;
 
