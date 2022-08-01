@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --rlimit-per=100
+; SCRUBBER: sed 's/(define-fun .*)/define-fun/g'
 ; EXPECT: unknown
 ; EXPECT: (:reason-unknown resourceout)
 ; EXPECT: (
