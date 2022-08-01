@@ -70,7 +70,7 @@ CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
 
 Wasm Options
-  --wasm=VALUE             compilation extension for WebAssembly (OFF, WASM, JS or HTML)
+  --wasm=VALUE             set compilation extension for WebAssembly [OFF, WASM, JS or HTML]
 
 EOF
   exit 0

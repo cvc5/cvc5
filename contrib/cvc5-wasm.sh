@@ -3,6 +3,7 @@
 # Description: This script allows the user to compile CVC5 
 #               (https://github.com/cvc5/cvc5) to a WebAssembly version. The 
 #               user can select between WASM, JS or HTML extension.
+# Observations: This script is only supported for linux.
 # Author: Vinícius Braga Freire (vinicius.braga.freire@gmail.com)
 ################################################################################
 
