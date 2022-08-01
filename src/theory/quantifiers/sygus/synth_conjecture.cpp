@@ -610,11 +610,12 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals)
   if (!cvals.empty())
   {
     sc = sc.substitute(
-      d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
+        d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
   }
   Trace("sygus-engine") << "Check side condition..." << std::endl;
   Result r = d_verify.verify(sc);
-  Trace("sygus-engine") << "...result of check side condition : " << r << std::endl;
+  Trace("sygus-engine") << "...result of check side condition : " << r
+                        << std::endl;
   if (r == Result::UNSAT)
   {
     return false;
