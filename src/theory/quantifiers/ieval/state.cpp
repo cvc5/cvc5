@@ -36,6 +36,65 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
 {
 }
 
+
+QuantInfo& State::getQuantInfo(TNode q)
+{
+  std::map<Node, QuantInfo>::iterator it = d_quantInfo.find(q);
+  Assert(it != d_quantInfo.end());
+  return it->second;
+}
+
+const QuantInfo& State::getQuantInfo(TNode q) const
+{
+  std::map<Node, QuantInfo>::const_iterator it = d_quantInfo.find(q);
+  Assert(it != d_quantInfo.end());
+  return it->second;
+}
+
+FreeVarInfo& State::getOrMkFreeVarInfo(TNode v)
+{
+  std::map<Node, FreeVarInfo>::iterator it = d_fvInfo.find(v);
+  if (it == d_fvInfo.end())
+  {
+    d_fvInfo.emplace(v, d_ctx);
+    it = d_fvInfo.find(v);
+  }
+  return it->second;
+}
+
+FreeVarInfo& State::getFreeVarInfo(TNode v)
+{
+  std::map<Node, FreeVarInfo>::iterator it = d_fvInfo.find(v);
+  Assert(it != d_fvInfo.end());
+  return it->second;
+}
+
+PatTermInfo& State::getOrMkPatTermInfo(TNode p)
+{
+  std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
+  if (it == d_pInfo.end())
+  {
+    it = d_pInfo.emplace(p, d_ctx).first;
+    // initialize the pattern
+    it->second.initialize(p);
+  }
+  return it->second;
+}
+
+PatTermInfo& State::getPatTermInfo(TNode p)
+{
+  std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
+  Assert(it != d_pInfo.end());
+  return it->second;
+}
+
+const PatTermInfo& State::getPatTermInfo(TNode p) const
+{
+  std::map<Node, PatTermInfo>::const_iterator it = d_pInfo.find(p);
+  Assert(it != d_pInfo.end());
+  return it->second;
+}
+
 TNode State::evaluate(TNode n) const
 {
   if (n.isConst())
