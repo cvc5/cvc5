@@ -524,7 +524,7 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   {
     // just check if they are disequal, which is the used in the case for
     // non-shared terms.
-    if (d_equalityEngine->areDisequal(x,y,false))
+    if (d_equalityEngine->areDisequal(x, y, false))
     {
       return true;
     }
@@ -533,12 +533,12 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
   TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
   EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-  if ( eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
-         || eqStatus == EQUALITY_FALSE_IN_MODEL)
+  if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+      || eqStatus == EQUALITY_FALSE_IN_MODEL)
   {
     return true;
   }
-  Assert (!d_equalityEngine->areDisequal(x,y,false));
+  Assert(!d_equalityEngine->areDisequal(x, y, false));
   return false;
 }
 
