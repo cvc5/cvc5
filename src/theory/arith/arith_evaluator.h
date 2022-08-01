@@ -39,7 +39,7 @@ namespace arith {
 std::optional<bool> isExpressionZero(Env& env,
                                      Node expr,
                                      const std::vector<TNode>& nodes,
-  const std::vector<TNode>& repls);
+                                     const std::vector<TNode>& repls);
 }
 }  // namespace theory
 }  // namespace cvc5::internal
