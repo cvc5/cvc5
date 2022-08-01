@@ -17,10 +17,10 @@
 
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "theory/logic_info.h"
 
 using namespace cvc5::internal::kind;
 
@@ -250,7 +250,8 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           // ignore e.g. constructors
           continue;
         }
-        if (!logicInfo().isHigherOrder() && s.getType().getKind() == kind::FUNCTION_TYPE)
+        if (!logicInfo().isHigherOrder()
+            && s.getType().getKind() == kind::FUNCTION_TYPE)
         {
           // ignore functions if not higher-order
           continue;
@@ -281,7 +282,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       }
     }
     for (const std::pair<const TypeNode, std::vector<Node> >& es :
-          nonClosedEnum)
+         nonClosedEnum)
     {
       size_t nenum = es.second.size();
       for (size_t i = 0; i < nenum; i++)
