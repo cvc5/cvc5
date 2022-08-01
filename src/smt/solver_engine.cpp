@@ -1532,7 +1532,7 @@ std::string SolverEngine::getProof()
   std::ostringstream ss;
   std::shared_ptr<ProofNode> fp =
       d_pfManager->connectProofToAssertions(pe->getProof(), *d_asserts);
-  d_pfManager->printProof(ss, fp);
+  d_pfManager->printProof(ss, fp, options().proof.proofFormatMode);
   return ss.str();
 }
 
