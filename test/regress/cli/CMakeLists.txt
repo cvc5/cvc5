@@ -1735,6 +1735,7 @@ set(regress_1_tests
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848.smt2
   regress1/abduction/issue6605-1.smt2
+  regress1/abduction/issue9001-sample-fail.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -2020,6 +2021,7 @@ set(regress_1_tests
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
+  regress1/model-blocker-no-spec-values.smt2
   regress1/model-blocker-simple.smt2
   regress1/model-blocker-values.smt2
   regress1/nl/approx-sqrt.smt2
@@ -2461,6 +2463,8 @@ set(regress_1_tests
   regress1/sets/choose3.smt2
   regress1/sets/choose4.smt2
   regress1/sets/issue5705-cg-subtyping.smt2
+  regress1/sets/issue8987-ho.smt2
+  regress1/sets/issue8987-ho-exception.smt2
   regress1/sets/ListElem.hs.fqout.cvc4.38.smt2
   regress1/sets/ListElts.hs.fqout.cvc4.317.smt2
   regress1/sets/TalkingAboutSets.hs.fqout.cvc4.3577.smt2
