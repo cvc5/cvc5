@@ -184,9 +184,9 @@ name   = "Proof"
   help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
 
 [[option]]
-  name       = "debugFinalProof"
+  name       = "checkProofSteps"
   category   = "expert"
-  long       = "debug-final-proof"
+  long       = "check-proof-steps"
   type       = "bool"
   default    = "false"
-  help       = "Debug final proof"
+  help       = "Check each proof step for satisfiability, for refutation soundness testing"

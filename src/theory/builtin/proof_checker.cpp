@@ -44,18 +44,18 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ASSUME, this);
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
-  pc->registerChecker(PfRule::REWRITE, this);
   pc->registerChecker(PfRule::EVALUATE, this);
-  pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
-  pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::ANNOTATION, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
   pc->registerChecker(PfRule::ENCODE_PRED_TRANSFORM, this);
-  pc->registerChecker(PfRule::ANNOTATION, this);
   pc->registerChecker(PfRule::DSL_REWRITE, this);
+  // rules depending on the rewriter
+  pc->registerTrustedChecker(PfRule::REWRITE, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_EQ_INTRO, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_INTRO, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_ELIM, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this, 4);
+  pc->registerTrustedChecker(PfRule::THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);

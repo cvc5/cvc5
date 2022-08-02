@@ -156,53 +156,45 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
     }
   }
-  if (options().proof.debugFinalProof)
+  if (options().proof.checkProofSteps)
   {
-    std::vector<Node> premises;
-    const std::vector<std::shared_ptr<ProofNode>>& pnc = pn->getChildren();
-    for (const std::shared_ptr<ProofNode>& pncc : pnc)
-    {
-      premises.push_back(pncc->getResult());
-    }
     Node conc = pn->getResult();
-    NodeManager* nm = NodeManager::currentNM();
-    Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
-    bool holds = false;
-    if (r== PfRule::ASSUME)
+    ProofChecker * pc = pnm->getChecker();
+    if (pc->getPedanticLevel(r)==0)
     {
-      holds = true;
+      // no need to check
     }
-    else if (r != PfRule::THEORY_REWRITE && r != PfRule::REWRITE)
+    else if (r == PfRule::THEORY_REWRITE || r == PfRule::REWRITE)
     {
-      ProofChecker * pc = pnm->getChecker();
-      if (pc->getPedanticLevel(r)<10)
-      {
-        Options subOptions;
-        subOptions.copyValues(d_env.getOptions());
-        smt::SetDefaults::disableChecking(subOptions);
-        SubsolverSetupInfo ssi(d_env, subOptions);
-        query = SkolemManager::getOriginalForm(query);
-        Trace("debug-pf") << "Check: " << r << " : " << query << std::endl;
-        Result res = checkWithSubsolver(query.notNode(), ssi, true, 5000);
-        Trace("debug-pf") << "...got " << res << std::endl;
-        if (res==Result::UNSAT)
-        {
-          holds = true;
-        }
-        else
-        {
-          // use original form?
-        }
-      }
-      else
-      {
-        holds = true;
-      }
+      // always warn about things that are trivial to prove
+      Warning() << "May not hold: " << r << " for " << conc << std::endl;
     }
-    if (!holds)
+    else
     {
-      Warning() << "May not hold: " << r << " for " << query << std::endl;
-      Trace("debug-pf") << "Original conclusion: " << conc << std::endl;
+      std::vector<Node> premises;
+      const std::vector<std::shared_ptr<ProofNode>>& pnc = pn->getChildren();
+      for (const std::shared_ptr<ProofNode>& pncc : pnc)
+      {
+        premises.push_back(pncc->getResult());
+      }
+      NodeManager* nm = NodeManager::currentNM();
+      Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
+      // We use the original form of the query, which is a logically
+      // stronger formula. This may make it possible or easier to prove.
+      query = SkolemManager::getOriginalForm(query);
+      // set up the subsolver
+      Options subOptions;
+      subOptions.copyValues(d_env.getOptions());
+      smt::SetDefaults::disableChecking(subOptions);
+      SubsolverSetupInfo ssi(d_env, subOptions);
+      Trace("check-proof-steps") << "Check: " << r << " : " << query << std::endl;
+      Result res = checkWithSubsolver(query.notNode(), ssi, true, 5000);
+      Trace("check-proof-steps") << "...got " << res << std::endl;
+      if (res!=Result::UNSAT)
+      {
+        Warning() << "May not hold: " << r << " for " << query << std::endl;
+        Trace("check-proof-steps") << "Original conclusion: " << conc << std::endl;
+      }
     }
   }
   return false;

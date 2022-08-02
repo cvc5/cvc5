@@ -105,6 +105,16 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
+  if (opts.proof.checkProofSteps)
+  {
+    notifyModifyOption("checkProofs", "true", "check-proof-steps");
+    opts.writeSmt().checkProofs = true;
+    if (!opts.proof.proofGranularityModeWasSetByUser)
+    {
+      notifyModifyOption("proofGranularityMode", "dsl-rewrite", "check-proof-steps");
+      opts.writeProof().proofGranularityMode = options::ProofGranularityMode::DSL_REWRITE;
+    }
+  }
   if (opts.smt.checkProofs || opts.driver.dumpProofs
       || opts.smt.proofMode == options::ProofMode::FULL)
   {
