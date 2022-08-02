@@ -16,8 +16,13 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_term_process.h"
+#include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "smt/term_formula_removal.h"
+#include "theory/evaluator.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
@@ -29,22 +34,26 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env) : d_env(env) {}
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
+    : d_env(env)
+{
+}
 
 void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ASSUME, this);
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
-  pc->registerChecker(PfRule::REWRITE, this);
   pc->registerChecker(PfRule::EVALUATE, this);
-  pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
-  pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
-  pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::ANNOTATION, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
+  // rules depending on the rewriter
+  pc->registerTrustedChecker(PfRule::REWRITE, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_EQ_INTRO, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_INTRO, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_ELIM, this, 4);
+  pc->registerTrustedChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this, 4);
+  pc->registerTrustedChecker(PfRule::THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
@@ -357,6 +366,9 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // if not already equal, do rewriting
     if (res1 != res2)
     {
+      Trace("builtin-pfcheck-debug")
+          << "Failed to show " << res1 << " == " << res2
+          << ", resort to original forms..." << std::endl;
       // can rewrite the witness forms
       res1 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res1));
       res2 = d_env.getRewriter()->rewrite(SkolemManager::getOriginalForm(res2));
