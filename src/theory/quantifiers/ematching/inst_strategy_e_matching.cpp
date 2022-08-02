@@ -260,18 +260,6 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
     if (options().quantifiers.relevantTriggers)
     {
       sortPatTermsByRelevance(patTermsSingle);
-      if (TraceIsOn("relevant-trigger"))
-      {
-        Trace("relevant-trigger") << "Terms based on relevance: " << std::endl;
-        for (const Node& p : patTermsSingle)
-        {
-          Trace("relevant-trigger")
-              << "   " << p << " from " << d_pat_to_mpat[p] << " (";
-          Trace("relevant-trigger") << d_quant_rel->getNumQuantifiersForSymbol(
-              d_pat_to_mpat[p].getOperator())
-                                    << ")" << std::endl;
-        }
-      }
       // consider only those that have the same score as the best
       numSingleTriggersToUse = 1;
       unsigned nqfs_curr = d_quant_rel->getNumQuantifiersForSymbol(
@@ -669,6 +657,18 @@ void InstStrategyAutoGenTriggers::sortPatTermsByRelevance(
   // sort based on # occurrences (this will cause Trigger to select rarer
   // symbols)
   std::sort(patTerms.begin(), patTerms.end(), sqfs);
+  if (TraceIsOn("relevant-trigger"))
+  {
+    Trace("relevant-trigger") << "Terms based on relevance: " << std::endl;
+    for (const Node& p : patTerms)
+    {
+      Trace("relevant-trigger")
+          << "   " << p << " from " << d_pat_to_mpat[p] << " (";
+      Trace("relevant-trigger") << d_quant_rel->getNumQuantifiersForSymbol(
+          d_pat_to_mpat[p].getOperator())
+                                << ")" << std::endl;
+    }
+  }
 }
 
 }  // namespace quantifiers
