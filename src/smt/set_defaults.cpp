@@ -103,6 +103,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.writeSmt().checkProofs = true;
     if (!opts.proof.proofGranularityModeWasSetByUser)
     {
+      // maximize the granularity
       notifyModifyOption(
           "proofGranularityMode", "dsl-rewrite", "check-proof-steps");
       opts.writeProof().proofGranularityMode =
