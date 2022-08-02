@@ -64,7 +64,7 @@ set(CYTHON_FLAGS "-X embedsignature=True")
 
 configure_file(genenums.py.in genenums.py)
 
-# Generate cvc5kinds.{pxd,pyx}
+# Generate cvc5kinds.{pxd,pxi}
 set(GENERATED_KINDS_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxi"
