@@ -159,16 +159,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk == SET_FOLD)
-  {
-    std::vector<Node> asserts;
-    Node ret = SetReduction::reduceFoldOperator(n, asserts);
-    NodeManager* nm = NodeManager::currentNM();
-    Node andNode = nm->mkNode(AND, asserts);
-    d_im.lemma(andNode, InferenceId::BAGS_FOLD);
-    return TrustNode::mkTrustRewrite(n, ret, nullptr);
-  }
-  if (nk==RELATION_AGGREGATE || nk == RELATION_PROJECT)
+  if (nk==RELATION_AGGREGATE || nk == RELATION_PROJECT || nk == SET_FOLD)
   {
     // requires higher order
     if (!logicInfo().isHigherOrder())
@@ -178,6 +169,15 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
             "higher-order logic. Try adding the logic prefix HO_.";
       throw LogicException(ss.str());
     }
+  }
+  if (nk == SET_FOLD)
+  {
+    std::vector<Node> asserts;
+    Node ret = SetReduction::reduceFoldOperator(n, asserts);
+    NodeManager* nm = NodeManager::currentNM();
+    Node andNode = nm->mkNode(AND, asserts);
+    d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   if (nk == RELATION_AGGREGATE)
   {
