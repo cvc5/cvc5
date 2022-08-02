@@ -103,8 +103,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
-  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
-  // enabled is implied
   if (opts.proof.checkProofSteps)
   {
     notifyModifyOption("checkProofs", "true", "check-proof-steps");
@@ -117,6 +115,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
           options::ProofGranularityMode::DSL_REWRITE;
     }
   }
+  // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
+  // enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
       || opts.smt.proofMode == options::ProofMode::FULL)
   {
@@ -1829,6 +1829,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.writeSmt().produceProofs = false;
   opts.writeSmt().checkProofs = false;
   opts.writeSmt().checkModels = false;
+  opts.writeProof().checkProofSteps = false;
   opts.writeProof().proofReq = false;
 }
 
