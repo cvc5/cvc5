@@ -171,12 +171,14 @@ namespace cvc5 {
  * Node manager check for member functions of classes other than class Solver.
  * Check if given node manager matches the node manager this solver object is
  * associated with.
+ *
+ * @note This is an assertion rather than an API guard since all Solver
+ *       instances in a thread share the same NodeManager instance.
  */
-#define CVC5_API_ARG_CHECK_NM(nm, what, arg)              \
-  CVC5_API_CHECK(nm == arg.d_nm)                          \
-      << "Given " << (what)                               \
-      << " is not associated with the node manager this " \
-      << "object is associated with";
+#define CVC5_API_ARG_ASSERT_NM(nm, what, arg)                                \
+  Assert(nm == arg.d_nm) << "Given " << (what)                               \
+                         << " is not associated with the node manager this " \
+                         << "object is associated with";
 
 /* -------------------------------------------------------------------------- */
 /* Sort checks.                                                               */
@@ -187,11 +189,11 @@ namespace cvc5 {
  * Check if given sort is not null and associated with the node manager this
  * object is associated with.
  */
-#define CVC5_API_CHECK_SORT(nm, sort)        \
-  do                                         \
-  {                                          \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);       \
-    CVC5_API_ARG_CHECK_NM(nm, "sort", sort); \
+#define CVC5_API_CHECK_SORT(nm, sort)         \
+  do                                          \
+  {                                           \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);        \
+    CVC5_API_ARG_ASSERT_NM(nm, "sort", sort); \
   } while (0)
 
 /**
@@ -245,11 +247,11 @@ namespace cvc5 {
  * Check if given term is not null and associated with the node manager this
  * object is associated with.
  */
-#define CVC5_API_CHECK_TERM(nm, term)        \
-  do                                         \
-  {                                          \
-    CVC5_API_ARG_CHECK_NOT_NULL(term);       \
-    CVC5_API_ARG_CHECK_NM(nm, "term", term); \
+#define CVC5_API_CHECK_TERM(nm, term)         \
+  do                                          \
+  {                                           \
+    CVC5_API_ARG_CHECK_NOT_NULL(term);        \
+    CVC5_API_ARG_ASSERT_NM(nm, "term", term); \
   } while (0)
 
 /**

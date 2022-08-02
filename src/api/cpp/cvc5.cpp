@@ -3572,7 +3572,7 @@ void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_ARG_CHECK_NOT_NULL(ctor);
-  CVC5_API_ARG_CHECK_NM(d_nm, "datatype constructor declaration", ctor);
+  CVC5_API_ARG_ASSERT_NM(d_nm, "datatype constructor declaration", ctor);
   //////// all checks before this line
   d_dtype->addConstructor(ctor.d_ctor);
   ////////
