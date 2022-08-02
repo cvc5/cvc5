@@ -168,6 +168,17 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     d_im.lemma(andNode, InferenceId::BAGS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
+  if (nk==RELATION_AGGREGATE || nk == RELATION_PROJECT)
+  {
+    // requires higher order
+    if (!logicInfo().isHigherOrder())
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << nk << " are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
+      throw LogicException(ss.str());
+    }
+  }
   if (nk == RELATION_AGGREGATE)
   {
     Node ret = SetReduction::reduceAggregateOperator(n);
