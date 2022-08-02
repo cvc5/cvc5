@@ -248,25 +248,18 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
         << "...failed to generate pattern terms" << std::endl;
     return;
   }
+  bool alreadyMadeTriggers = d_madeTriggers.find(q) != d_madeTriggers.end();
+  d_madeTriggers.insert(q);
   // first, generate single triggers
   std::vector<Node>& patTermsSingle = d_patTerms[0][q];
-  if (!patTermsSingle.empty())
+  // generating single triggers is deterministic only do this the first time
+  // (when alreadyMadeTriggers is false)
+  if (!alreadyMadeTriggers && !patTermsSingle.empty())
   {
     size_t numSingleTriggersToUse = patTermsSingle.size();
     if (options().quantifiers.relevantTriggers)
     {
-      Assert(d_quant_rel);
-      sortQuantifiersForSymbol sqfs;
-      sqfs.d_quant_rel = d_quant_rel;
-      for (const Node& p : patTermsSingle)
-      {
-        Assert(d_pat_to_mpat.find(p) != d_pat_to_mpat.end());
-        Assert(d_pat_to_mpat[p].hasOperator());
-        sqfs.d_op_map[p] = d_pat_to_mpat[p].getOperator();
-      }
-      // sort based on # occurrences (this will cause Trigger to select rarer
-      // symbols)
-      std::sort(patTermsSingle.begin(), patTermsSingle.end(), sqfs);
+      sortPatTermsByRelevance(patTermsSingle);
       if (TraceIsOn("relevant-trigger"))
       {
         Trace("relevant-trigger") << "Terms based on relevance: " << std::endl;
@@ -310,7 +303,11 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
   }
   // now consider multi-triggers
   std::vector<Node>& patTermsMulti = d_patTerms[1][q];
-  if (d_made_multi_trigger.find(q) != d_made_multi_trigger.end())
+  if (patTermsMulti.empty())
+  {
+    return;
+  }
+  if (alreadyMadeTriggers)
   {
     // shuffle randomly if we've already made a multi trigger
     std::shuffle(
@@ -318,7 +315,8 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
   }
   else
   {
-    d_made_multi_trigger.insert(q);
+    // otherwise, the default ordering may incorporate relevance
+    sortPatTermsByRelevance(patTermsMulti);
   }
   // will possibly want to get an old trigger
   Trigger* tr = d_td.mkTrigger(q,
@@ -650,6 +648,27 @@ void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
     Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q << std::endl;
     ung.push_back(pat[0]);
   }
+}
+
+void InstStrategyAutoGenTriggers::sortPatTermsByRelevance(
+    std::vector<Node>& patTerms)
+{
+  if (!options().quantifiers.relevantTriggers)
+  {
+    return;
+  }
+  Assert(d_quant_rel);
+  sortQuantifiersForSymbol sqfs;
+  sqfs.d_quant_rel = d_quant_rel;
+  for (const Node& p : patTerms)
+  {
+    Assert(d_pat_to_mpat.find(p) != d_pat_to_mpat.end());
+    Assert(d_pat_to_mpat[p].hasOperator());
+    sqfs.d_op_map[p] = d_pat_to_mpat[p].getOperator();
+  }
+  // sort based on # occurrences (this will cause Trigger to select rarer
+  // symbols)
+  std::sort(patTerms.begin(), patTerms.end(), sqfs);
 }
 
 }  // namespace quantifiers
