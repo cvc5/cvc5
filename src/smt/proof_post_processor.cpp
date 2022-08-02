@@ -1087,8 +1087,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // try to replay theory rewrite
     // first, check that maybe its just an evaluation step
     ProofChecker* pc = pnm->getChecker();
-    Node ceval =
-        pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, Node::null(), "smt-proof-pp-debug");
+    Node ceval = pc->checkDebug(
+        PfRule::EVALUATE, {}, {eq[0]}, Node::null(), "smt-proof-pp-debug");
     if (!ceval.isNull() && ceval == eq)
     {
       cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
