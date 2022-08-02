@@ -2754,7 +2754,7 @@ class CVC5_EXPORT Grammar
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
-  Grammar(const Solver* slv,
+  Grammar(internal::NodeManager* nm,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
@@ -2826,8 +2826,8 @@ class CVC5_EXPORT Grammar
    */
   bool containsFreeVariables(const Term& rule) const;
 
-  /** The solver that created this grammar. */
-  const Solver* d_solver;
+  /** The node manager associated with this grammar. */
+  internal::NodeManager* d_nm;
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Term> d_sygusVars;
   /** The non-terminal symbols of this grammar. */

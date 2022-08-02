@@ -175,10 +175,10 @@ namespace cvc5 {
  * @note This is an assertion rather than an API guard since all Solver
  *       instances in a thread share the same NodeManager instance.
  */
-#define CVC5_API_ARG_ASSERT_NM(nm, what, arg)                                \
-  Assert(nm == arg.d_nm) << "Given " << (what)                               \
-                         << " is not associated with the node manager this " \
-                         << "object is associated with";
+#define CVC5_API_ARG_ASSERT_NM(what, arg)                                      \
+  Assert(d_nm == arg.d_nm) << "Given " << (what)                               \
+                           << " is not associated with the node manager this " \
+                           << "object is associated with";
 
 /* -------------------------------------------------------------------------- */
 /* Sort checks.                                                               */
@@ -189,11 +189,11 @@ namespace cvc5 {
  * Check if given sort is not null and associated with the node manager this
  * object is associated with.
  */
-#define CVC5_API_CHECK_SORT(nm, sort)         \
-  do                                          \
-  {                                           \
-    CVC5_API_ARG_CHECK_NOT_NULL(sort);        \
-    CVC5_API_ARG_ASSERT_NM(nm, "sort", sort); \
+#define CVC5_API_CHECK_SORT(sort)         \
+  do                                      \
+  {                                       \
+    CVC5_API_ARG_CHECK_NOT_NULL(sort);    \
+    CVC5_API_ARG_ASSERT_NM("sort", sort); \
   } while (0)
 
 /**
@@ -201,14 +201,14 @@ namespace cvc5 {
  * Check if each sort in the given container of sorts is not null and
  * associated with the node manager this object is associated with.
  */
-#define CVC5_API_CHECK_SORTS(nm, sorts)                                       \
+#define CVC5_API_CHECK_SORTS(sorts)                                           \
   do                                                                          \
   {                                                                           \
     size_t i = 0;                                                             \
     for (const auto& s : sorts)                                               \
     {                                                                         \
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);              \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == s.d_nm, "sort", sorts, i)    \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "sort", sorts, i)  \
           << "a sort associated with node manager this object is associated " \
              "with";                                                          \
       i += 1;                                                                 \
@@ -221,21 +221,21 @@ namespace cvc5 {
  * associated with the node manager this object is associated with, and is a
  * first-class sort.
  */
-#define CVC5_API_CHECK_DOMAIN_SORTS(nm, sorts)                             \
-  do                                                                       \
-  {                                                                        \
-    size_t i = 0;                                                          \
-    for (const auto& s : sorts)                                            \
-    {                                                                      \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);           \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == s.d_nm, "sort", sorts, i) \
-          << "a sort associated with the node manager this object is "     \
-             "associated "                                                 \
-             "with";                                                       \
-      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)       \
-          << "first-class sort as domain sort";                            \
-      i += 1;                                                              \
-    }                                                                      \
+#define CVC5_API_CHECK_DOMAIN_SORTS(sorts)                                   \
+  do                                                                         \
+  {                                                                          \
+    size_t i = 0;                                                            \
+    for (const auto& s : sorts)                                              \
+    {                                                                        \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "sort", sorts, i) \
+          << "a sort associated with the node manager this object is "       \
+             "associated "                                                   \
+             "with";                                                         \
+      CVC5_API_ARG_CHECK_EXPECTED(s.getTypeNode().isFirstClass(), s)         \
+          << "first-class sort as domain sort";                              \
+      i += 1;                                                                \
+    }                                                                        \
   } while (0)
 
 /* -------------------------------------------------------------------------- */
@@ -247,11 +247,11 @@ namespace cvc5 {
  * Check if given term is not null and associated with the node manager this
  * object is associated with.
  */
-#define CVC5_API_CHECK_TERM(nm, term)         \
-  do                                          \
-  {                                           \
-    CVC5_API_ARG_CHECK_NOT_NULL(term);        \
-    CVC5_API_ARG_ASSERT_NM(nm, "term", term); \
+#define CVC5_API_CHECK_TERM(term)         \
+  do                                      \
+  {                                       \
+    CVC5_API_ARG_CHECK_NOT_NULL(term);    \
+    CVC5_API_ARG_ASSERT_NM("term", term); \
   } while (0)
 
 /**
@@ -259,19 +259,19 @@ namespace cvc5 {
  * Check if each term in the given container of terms is not null and
  * associated with the node manager this object is associated with.
  */
-#define CVC5_API_CHECK_TERMS(nm, terms)                                    \
-  do                                                                       \
-  {                                                                        \
-    size_t i = 0;                                                          \
-    for (const auto& s : terms)                                            \
-    {                                                                      \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", s, terms, i);           \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == s.d_nm, "term", terms, i) \
-          << "a term associated with the node manager this object is "     \
-             "associated "                                                 \
-             "with";                                                       \
-      i += 1;                                                              \
-    }                                                                      \
+#define CVC5_API_CHECK_TERMS(terms)                                          \
+  do                                                                         \
+  {                                                                          \
+    size_t i = 0;                                                            \
+    for (const auto& s : terms)                                              \
+    {                                                                        \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", s, terms, i);             \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == s.d_nm, "term", terms, i) \
+          << "a term associated with the node manager this object is "       \
+             "associated "                                                   \
+             "with";                                                         \
+      i += 1;                                                                \
+    }                                                                        \
   } while (0)
 
 /**
@@ -280,25 +280,26 @@ namespace cvc5 {
  * not null and associated with the node manager this object is associated
  * with.
  */
-#define CVC5_API_CHECK_TERMS_MAP(nm, map)                                      \
-  do                                                                           \
-  {                                                                            \
-    size_t i = 0;                                                              \
-    for (const auto& p : map)                                                  \
-    {                                                                          \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", p.first, map, i);           \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == p.first.d_nm, "term", map, i) \
-          << "a term associated with the node manager this object is "         \
-             "associated "                                                     \
-             "with";                                                           \
-      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", p.second, map, i);          \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
-          nm == p.second.d_nm, "sort", map, i)                                 \
-          << "a sort associated with the node manager this object is "         \
-             "associated "                                                     \
-             "with";                                                           \
-      i += 1;                                                                  \
-    }                                                                          \
+#define CVC5_API_CHECK_TERMS_MAP(map)                                  \
+  do                                                                   \
+  {                                                                    \
+    size_t i = 0;                                                      \
+    for (const auto& p : map)                                          \
+    {                                                                  \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", p.first, map, i);   \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
+          d_nm == p.first.d_nm, "term", map, i)                        \
+          << "a term associated with the node manager this object is " \
+             "associated "                                             \
+             "with";                                                   \
+      CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", p.second, map, i);  \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                            \
+          d_nm == p.second.d_nm, "sort", map, i)                       \
+          << "a sort associated with the node manager this object is " \
+             "associated "                                             \
+             "with";                                                   \
+      i += 1;                                                          \
+    }                                                                  \
   } while (0)
 
 /**
@@ -306,14 +307,14 @@ namespace cvc5 {
  * Check if each term in the given container is not null, associated with the
  * node manager object this object is associated with, and of the given sort.
  */
-#define CVC5_API_CHECK_TERMS_WITH_SORT(nm, terms, sort)                        \
+#define CVC5_API_CHECK_TERMS_WITH_SORT(terms, sort)                            \
   do                                                                           \
   {                                                                            \
     size_t i = 0;                                                              \
     for (const auto& t : terms)                                                \
     {                                                                          \
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);               \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == t.d_nm, "term", terms, i)     \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t.d_nm, "term", terms, i)   \
           << "a term associated with the node manager this object is "         \
              "associated "                                                     \
              "with";                                                           \
@@ -330,7 +331,7 @@ namespace cvc5 {
  * the node manager this object is associated with, and their sorts are
  * pairwise equal.
  */
-#define CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(nm, terms1, terms2) \
+#define CVC5_API_TERM_CHECK_TERMS_WITH_TERMS_SORT_EQUAL_TO(terms1, terms2)     \
   do                                                                           \
   {                                                                            \
     size_t i = 0;                                                              \
@@ -338,12 +339,12 @@ namespace cvc5 {
     {                                                                          \
       const auto& t2 = terms2[i];                                              \
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t1, terms1, i);             \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == t1.d_nm, "term", terms1, i)   \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t1.d_nm, "term", terms1, i) \
           << "a term associated with the node manager this object is "         \
              "associated "                                                     \
              "with";                                                           \
       CVC5_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t2, terms2, i);             \
-      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(nm == t2.d_nm, "term", terms2, i)   \
+      CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(d_nm == t2.d_nm, "term", terms2, i) \
           << "a term associated with the node manager this object is "         \
              "associated "                                                     \
              "with";                                                           \
@@ -362,11 +363,11 @@ namespace cvc5 {
  * Check if given datatype declaration is not null and associated with the
  * node manager this DatatypeDecl object is associated with.
  */
-#define CVC5_API_CHECK_DTDECL(nm, decl)                                  \
+#define CVC5_API_CHECK_DTDECL(decl)                                      \
   do                                                                     \
   {                                                                      \
     CVC5_API_ARG_CHECK_NOT_NULL(decl);                                   \
-    CVC5_API_CHECK(nm == decl.d_nm)                                      \
+    CVC5_API_CHECK(d_nm == decl.d_nm)                                    \
         << "Given datatype declaration is not associated with the node " \
            "manager this "                                               \
         << "object is associated with";                                  \
