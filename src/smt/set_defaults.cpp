@@ -111,8 +111,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.writeSmt().checkProofs = true;
     if (!opts.proof.proofGranularityModeWasSetByUser)
     {
-      notifyModifyOption("proofGranularityMode", "dsl-rewrite", "check-proof-steps");
-      opts.writeProof().proofGranularityMode = options::ProofGranularityMode::DSL_REWRITE;
+      notifyModifyOption(
+          "proofGranularityMode", "dsl-rewrite", "check-proof-steps");
+      opts.writeProof().proofGranularityMode =
+          options::ProofGranularityMode::DSL_REWRITE;
     }
   }
   if (opts.smt.checkProofs || opts.driver.dumpProofs

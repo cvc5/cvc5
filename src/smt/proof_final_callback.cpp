@@ -15,16 +15,16 @@
 
 #include "smt/proof_final_callback.h"
 
+#include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
-#include "theory/builtin/proof_checker.h"
-#include "theory/theory_id.h"
 #include "smt/set_defaults.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/smt_engine_subsolver.h"
-#include "expr/skolem_manager.h"
+#include "theory/theory_id.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -159,8 +159,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   if (options().proof.checkProofSteps)
   {
     Node conc = pn->getResult();
-    ProofChecker * pc = pnm->getChecker();
-    if (pc->getPedanticLevel(r)==0)
+    ProofChecker* pc = pnm->getChecker();
+    if (pc->getPedanticLevel(r) == 0)
     {
       // no need to check
     }
@@ -187,13 +187,15 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       subOptions.copyValues(d_env.getOptions());
       smt::SetDefaults::disableChecking(subOptions);
       SubsolverSetupInfo ssi(d_env, subOptions);
-      Trace("check-proof-steps") << "Check: " << r << " : " << query << std::endl;
+      Trace("check-proof-steps")
+          << "Check: " << r << " : " << query << std::endl;
       Result res = checkWithSubsolver(query.notNode(), ssi, true, 5000);
       Trace("check-proof-steps") << "...got " << res << std::endl;
-      if (res!=Result::UNSAT)
+      if (res != Result::UNSAT)
       {
         Warning() << "May not hold: " << r << " for " << query << std::endl;
-        Trace("check-proof-steps") << "Original conclusion: " << conc << std::endl;
+        Trace("check-proof-steps")
+            << "Original conclusion: " << conc << std::endl;
       }
     }
   }
