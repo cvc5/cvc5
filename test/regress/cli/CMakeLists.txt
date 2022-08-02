@@ -2852,6 +2852,7 @@ set(regress_1_tests
   regress1/sygus/issue7925-dt-share-config.sy
   regress1/sygus/issue8216-rr-input-re.smt2
   regress1/sygus/issue8956-2.smt2
+  regress1/sygus/issue8976-interp-check.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
