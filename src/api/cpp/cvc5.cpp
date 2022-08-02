@@ -4318,9 +4318,8 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  internal::NodeManager* nm = d_solver->getNodeManager();
-  CVC5_API_CHECK_TERM(nm, ntSymbol);
-  CVC5_API_CHECK_TERM(nm, rule);
+  CVC5_API_CHECK_TERM(d_solver->getNodeManager(), ntSymbol);
+  CVC5_API_CHECK_TERM(d_solver->getNodeManager(), rule);
   CVC5_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
@@ -4341,9 +4340,9 @@ void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  internal::NodeManager* nm = d_solver->getNodeManager();
-  CVC5_API_CHECK_TERM(nm, ntSymbol);
-  CVC5_API_CHECK_TERMS_WITH_SORT(nm, rules, ntSymbol.getSort());
+  CVC5_API_CHECK_TERM(d_solver->getNodeManager(), ntSymbol);
+  CVC5_API_CHECK_TERMS_WITH_SORT(
+      d_solver->getNodeManager(), rules, ntSymbol.getSort());
   CVC5_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
