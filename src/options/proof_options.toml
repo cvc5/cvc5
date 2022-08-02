@@ -182,3 +182,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
+
+[[option]]
+  name       = "debugFinalProof"
+  category   = "expert"
+  long       = "debug-final-proof"
+  type       = "bool"
+  default    = "false"
+  help       = "Debug final proof"

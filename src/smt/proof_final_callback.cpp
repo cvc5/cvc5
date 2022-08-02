@@ -22,6 +22,9 @@
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/theory_id.h"
+#include "smt/set_defaults.h"
+#include "theory/smt_engine_subsolver.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory;
@@ -151,6 +154,54 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
       Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
+    }
+  }
+  if (options().proof.debugFinalProof)
+  {
+    std::vector<Node> premises;
+    const std::vector<std::shared_ptr<ProofNode>>& pnc = pn->getChildren();
+    for (const std::shared_ptr<ProofNode>& pncc : pnc)
+    {
+      premises.push_back(pncc->getResult());
+    }
+    Node conc = pn->getResult();
+    NodeManager* nm = NodeManager::currentNM();
+    Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
+    bool holds = false;
+    if (r== PfRule::ASSUME)
+    {
+      holds = true;
+    }
+    else if (r != PfRule::THEORY_REWRITE && r != PfRule::REWRITE)
+    {
+      ProofChecker * pc = pnm->getChecker();
+      if (pc->getPedanticLevel(r)<10)
+      {
+        Options subOptions;
+        subOptions.copyValues(d_env.getOptions());
+        smt::SetDefaults::disableChecking(subOptions);
+        SubsolverSetupInfo ssi(d_env, subOptions);
+        query = SkolemManager::getOriginalForm(query);
+        Trace("debug-pf") << "Check: " << r << " : " << query << std::endl;
+        Result res = checkWithSubsolver(query.notNode(), ssi, true, 5000);
+        Trace("debug-pf") << "...got " << res << std::endl;
+        if (res==Result::UNSAT)
+        {
+          holds = true;
+        }
+        else
+        {
+          // use original form?
+        }
+      }
+      else
+      {
+        holds = true;
+      }
+    }
+    if (!holds)
+    {
+      Warning() << "May not hold: " << r << " for " << query << std::endl;
     }
   }
   return false;
