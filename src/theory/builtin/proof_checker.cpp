@@ -31,10 +31,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env)
-    : d_env(env)
-{
-}
+BuiltinProofRuleChecker::BuiltinProofRuleChecker(Env& env) : d_env(env) {}
 
 void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 {

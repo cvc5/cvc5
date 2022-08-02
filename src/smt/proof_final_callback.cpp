@@ -147,7 +147,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     else if (r == PfRule::THEORY_REWRITE || r == PfRule::REWRITE)
     {
       // always warn about things that are trivial to prove
-      Warning() << "A proof step may not hold: " << r << " proving " << conc << std::endl;
+      Warning() << "A proof step may not hold: " << r << " proving " << conc
+                << std::endl;
     }
     else
     {
