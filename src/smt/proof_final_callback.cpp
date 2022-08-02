@@ -160,6 +160,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
       NodeManager* nm = NodeManager::currentNM();
       Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
+      // trust the rewriter here, since the subsolver will rewrite anyways
+      query = rewrite(query);
       // We use the original form of the query, which is a logically
       // stronger formula. This may make it possible or easier to prove.
       query = SkolemManager::getOriginalForm(query);
