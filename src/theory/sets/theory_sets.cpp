@@ -149,6 +149,15 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  if (n[1].getKind() == kind::SET_MINUS && n[1][0] == n[0])
+  {
+    // note this cannot be a rewrite rule, since it impacts the cardinality
+    // graph.
+    // (setminus A (setminus A B)) = (intersection A B)
+    NodeManager* nm = NodeManager::currentNM();
+    Node intersection = nm->mkNode(SET_INTER, n[0], n[1][1]);
+    return TrustNode::mkTrustRewrite(n, intersection, nullptr);
+  }
   if (nk == SET_COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic

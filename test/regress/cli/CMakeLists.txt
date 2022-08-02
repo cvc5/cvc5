@@ -2519,6 +2519,7 @@ set(regress_1_tests
   regress1/sets/issue5342.smt2
   regress1/sets/issue5342_difference_version.smt2
   regress1/sets/issue5942-witness.smt2
+  regress1/sets/issue8995-minus-rr.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
