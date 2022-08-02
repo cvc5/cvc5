@@ -57,7 +57,9 @@ bool TheoryRewriteRCons::tryRule(CDProof* cdp,
                                  const std::vector<Node>& args)
 {
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-  Node res = pc->checkDebug(r, {}, args, eq, "trewrite-rcons");
+  // do not provide expected, as this will always succeed if proof checking
+  // is disabled
+  Node res = pc->checkDebug(r, {}, args, Node::null(), "trewrite-rcons");
   if (!res.isNull() && res == eq)
   {
     cdp->addStep(eq, r, {}, args);

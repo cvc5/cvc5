@@ -202,6 +202,7 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     if (!holds)
     {
       Warning() << "May not hold: " << r << " for " << query << std::endl;
+      Trace("debug-pf") << "Original conclusion: " << conc << std::endl;
     }
   }
   return false;
