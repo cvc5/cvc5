@@ -1,5 +1,5 @@
-; COMMAND-LINE: --sygus-rr-synth-input
-; SCRUBBER: grep -v -E '\(define-fun'
+; COMMAND-LINE: --sygus-rr-synth-input --tlimit-per=500
+; SCRUBBER: grep -v -E '\('
 ; EXPECT: unknown
 (set-logic QF_S)
 (declare-fun s () String)
