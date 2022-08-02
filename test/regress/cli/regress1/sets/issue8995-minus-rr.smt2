@@ -1,3 +1,5 @@
+; EXPECT: sat
+(set-logic ALL)
 (declare-fun x () (Set Int))
 (declare-fun t () (Set Int))
 (assert (distinct true (= 0 (set.card x))))

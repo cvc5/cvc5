@@ -149,7 +149,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (n[1].getKind() == kind::SET_MINUS && n[1][0] == n[0])
+  if (n.getKind()==SET_MINUS && n[1].getKind() == SET_MINUS && n[1][0] == n[0])
   {
     // note this cannot be a rewrite rule, since it impacts the cardinality
     // graph.
