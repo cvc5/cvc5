@@ -159,7 +159,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  if (nk==RELATION_AGGREGATE || nk == RELATION_PROJECT || nk == SET_FOLD)
+  if (nk==RELATION_AGGREGATE || nk == RELATION_PROJECT || nk == SET_MAP || nk == SET_FOLD)
   {
     // requires higher order
     if (!logicInfo().isHigherOrder())
