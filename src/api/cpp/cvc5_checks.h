@@ -654,7 +654,7 @@ namespace cvc5 {
              "this solver";                                                \
       CVC5_API_CHECK(!d.isResolved())                                      \
           << "Given datatype declaration is already resolved (has "        \
-          << "already been used to create a datatype sort";                \
+          << "already been used to create a datatype sort)";               \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                \
           d.getDatatype().getNumConstructors() > 0,                        \
           "datatype declaration",                                          \
