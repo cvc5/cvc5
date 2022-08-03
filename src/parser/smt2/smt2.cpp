@@ -1367,14 +1367,15 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  if (getSymbolManager()->setExpressionName(expr, name, false)
-      == NamingResult::ERROR_IN_BINDER)
+  NamingResult nr = getSymbolManager()->setExpressionName(expr, name, false);
+  if (nr == NamingResult::ERROR_IN_BINDER)
   {
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // define the variable
-  defineVar(name, expr);
+  // Note that we do not bind the symbol here; this is done separately
+  // in a define-fun command in Smt.g to ensure -o raw-benchmark results in a
+  // parsable result.
   // set the last named term, which ensures that we catch when assertions are
   // named
   setLastNamedTerm(expr, name);
