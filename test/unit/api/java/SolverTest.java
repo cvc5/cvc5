@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.LearnedLitType;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1906,9 +1907,10 @@ class SolverTest
   {
     d_solver.setOption("produce-learned-literals", "true");
     // cannot ask before a check sat
-    assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
+    assertThrows(CVC5ApiException.class,
+        () -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
   }
 
   @Test
@@ -1925,7 +1927,7 @@ class SolverTest
     d_solver.assertFormula(f0);
     d_solver.assertFormula(f1);
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
   }
 
   @Test

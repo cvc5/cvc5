@@ -92,7 +92,7 @@ TEST_F(TestApiBlackUncovered, term_iterators)
 TEST_F(TestApiBlackUncovered, streaming_operators)
 {
   std::stringstream ss;
-  ss << cvc5::modes::LearnedLitType::PREPROCESS;
+  ss << cvc5::modes::LEARNED_LIT_PREPROCESS;
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
   ss << cvc5::Result();
   ss << cvc5::Op();
