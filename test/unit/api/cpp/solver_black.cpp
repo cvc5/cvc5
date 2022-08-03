@@ -186,6 +186,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSort)
   dtypeSpec.addConstructor(nil);
   ASSERT_NO_THROW(d_solver.mkDatatypeSort(dtypeSpec));
 
+  ASSERT_THROW(d_solver.mkDatatypeSort(dtypeSpec), CVC5ApiException);
   Solver slv;
   ASSERT_THROW(slv.mkDatatypeSort(dtypeSpec), CVC5ApiException);
 

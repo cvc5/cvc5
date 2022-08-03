@@ -197,6 +197,7 @@ class SolverTest
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
     assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(udecls));
 
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(udecls));
     assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
     slv.close();
 
