@@ -233,7 +233,7 @@ bool OverloadedTypeTrie::bind(const string& name,
                               cvc5::Term prev_bound_obj,
                               cvc5::Term obj)
 {
-  Assert (prev_bound_obj!=obj);
+  Assert(prev_bound_obj != obj);
   bool retprev = true;
   if (!isOverloadedFunction(prev_bound_obj))
   {
@@ -248,7 +248,8 @@ bool OverloadedTypeTrie::bind(const string& name,
 bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
 {
   Trace("parser-overloading") << "Overloaded function : " << name;
-  Trace("parser-overloading") << " with type " << obj.getSort() << ", obj is " << obj << std::endl;
+  Trace("parser-overloading")
+      << " with type " << obj.getSort() << ", obj is " << obj << std::endl;
   // get the argument types
   cvc5::Sort t = obj.getSort();
   cvc5::Sort rangeType = t;
