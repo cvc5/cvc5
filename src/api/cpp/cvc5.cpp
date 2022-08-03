@@ -3583,7 +3583,7 @@ bool DatatypeDecl::isResolved() const
       return true;
     }
   }
-  Assert (!d_dtype->isResolved());
+  Assert(!d_dtype->isResolved());
   return false;
 }
 
