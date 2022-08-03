@@ -1468,7 +1468,7 @@ std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
 void GetProofCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdGetProof(out);
+  Printer::getPrinter(out)->toStreamCmdGetProof(out, modes::PROOF_COMPONENT_FULL);
 }
 
 /* -------------------------------------------------------------------------- */
