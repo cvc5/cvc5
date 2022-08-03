@@ -31,7 +31,8 @@ PropPfManager::PropPfManager(Env& env,
     : EnvObj(env),
       d_pfpp(new ProofPostproccess(env, cnfProof)),
       d_satSolver(satSolver),
-      d_assertions(userContext)
+      d_assertions(userContext),
+      d_proofCnfStream(cnfProof)
 {
   // add trivial assumption. This is so that we can check the that the prop
   // engine's proof is closed, as the SAT solver's refutation proof may use True
@@ -68,7 +69,34 @@ void PropPfManager::checkProof(const context::CDList<Node>& assertions)
                      "PropPfManager::checkProof");
 }
 
-std::shared_ptr<ProofNode> PropPfManager::getProof()
+std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
+    modes::ProofComponent pc)
+{
+  Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
+                     << " component proofs\n";
+  std::vector<Node> fassumps;
+  Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+         || pc == modes::PROOF_COMPONENT_PREPROCESS);
+  std::vector<std::shared_ptr<ProofNode>> pfs =
+      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+          ? d_proofCnfStream->getLemmaClausesProofs()
+          : d_proofCnfStream->getInputClausesProofs();
+  std::shared_ptr<ProofNode> satPf = getProof(false);
+  std::vector<Node> satLeaves;
+  expr::getFreeAssumptions(satPf.get(), satLeaves);
+  std::vector<std::shared_ptr<ProofNode>> usedPfs;
+  for (const std::shared_ptr<ProofNode>& pf : pfs)
+  {
+    Node proven = pf->getResult();
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    {
+      usedPfs.push_back(pf);
+    }
+  }
+  return usedPfs;
+}
+
+std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
 {
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
@@ -89,6 +117,10 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
         << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
     Trace("sat-proof")
         << "PropPfManager::getProof: Connecting with CNF proof\n";
+  }
+  if (!connectCnf)
+  {
+    return conflictProof;
   }
   // connect it with CNF proof
   d_pfpp->process(conflictProof);

@@ -1125,11 +1125,11 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Term mkTerm(Kind kind)``
-            - ``Term mkTerm(Kind kind, List[Term] children)``
             - ``Term mkTerm(Op op)``
-            - ``Term mkTerm(Op op, List[Term] children)``
+            - ``Term mkTerm(Kind kind, *args)``
+            - ``Term mkTerm(Op op, *args)``
 
-            where ``List[Term]`` can also be comma-separated arguments
+            where ``*args`` is a comma-separated list of terms.
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v

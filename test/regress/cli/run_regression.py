@@ -153,7 +153,7 @@ class ProofTester(Tester):
         return super().run(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=theory-rewrite"]
+                ["--check-proofs", "--proof-granularity=theory-rewrite", "--proof-check=lazy"]
             )
         )
 
@@ -171,6 +171,7 @@ class LfscTester(Tester):
                 "--dump-proofs",
                 "--proof-format=lfsc",
                 "--proof-granularity=theory-rewrite",
+                "--proof-check=lazy",
             ]
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]

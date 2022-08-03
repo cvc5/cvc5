@@ -1327,20 +1327,15 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
 
-  std::shared_ptr<ProofNode> pepf;
-  if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
-  {
-    std::vector<Node> core;
-    pe->getUnsatCore(core);
-    CDProof cdp(*d_env);
-    Node fnode = NodeManager::currentNM()->mkConst(false);
-    cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
-    pepf = cdp.getProofFor(fnode);
-  }
-  else
-  {
-    pepf = pe->getProof();
-  }
+  // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
+  // unsat core computed by the prop engine
+  std::vector<Node> pcore;
+  pe->getUnsatCore(pcore);
+  CDProof cdp(*d_env);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, pcore, {});
+  std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
+
   Assert(pepf != nullptr);
   std::shared_ptr<ProofNode> pfn =
       d_pfManager->connectProofToAssertions(pepf, *d_asserts);
@@ -1509,8 +1504,9 @@ void SolverEngine::getRelevantInstantiationTermVectors(
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pe->getProof(), *d_asserts);
+  std::shared_ptr<ProofNode> pfn = pe->getProof();
+  // note that we don't have to connect the SAT proof to the input assertions,
+  // and preprocessing proofs don't impact what instantiations are used
   d_ucManager->getRelevantInstantiations(pfn, insts, getDebugInfo);
 }
 
