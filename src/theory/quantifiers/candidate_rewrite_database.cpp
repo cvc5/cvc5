@@ -192,7 +192,8 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
           // add the solution again
           // by construction of the above point, we should be unique now
           eq_sol = d_sampler->registerTerm(sol);
-          Assert(eq_sol == sol) << "Model failed to distinguish terms " << eq_sol << " and " << sol;
+          Assert(eq_sol == sol) << "Model failed to distinguish terms "
+                                << eq_sol << " and " << sol;
         }
         else
         {

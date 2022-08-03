@@ -117,7 +117,7 @@ bool ProcessAssertions::apply(Assertions& as)
     // nothing to do
     return true;
   }
-  
+
   // this must be applied to assertions before they are preprocessed, so that
   // we do not synthesize rewrite rules for internally generated symbols.
   if (options().quantifiers.sygusRewSynthInput)
@@ -130,7 +130,7 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     applyPass("bv-gauss", as);
   }
-  
+
   // Add dummy assertion in last position - to be used as a
   // placeholder for any new assertions to get added
   assertions.push_back(d_true);

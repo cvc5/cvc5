@@ -20,10 +20,10 @@
 
 #include <vector>
 
+#include "options/options.h"
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "options/options.h"
 
 namespace cvc5::internal {
 namespace theory {
