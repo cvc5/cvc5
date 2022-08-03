@@ -615,6 +615,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   DatatypeIndexAttr dia;
   for (const DType& dt : datatypes)
   {
+    if (dt.isResolved())
+    {
+      throw Exception("datatype is already resolved");
+    }
     uint32_t index = d_dtypes.size();
     d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
     DType* dtp = d_dtypes.back().get();
@@ -722,7 +726,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
       Assert (testerType.isDatatypeTester())
           << "malformed tester in datatype post-resolution";
       Assert (testerType[0] == ut)
-          << "malformed tester in datatype post-resolution";
+          << "mismatched tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
