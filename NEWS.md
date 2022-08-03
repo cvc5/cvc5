@@ -2,10 +2,8 @@ This file contains a summary of important user-visible changes.
 
 **Changes**
 
-- API: Sort, Term, Op, Grammar and datatype objects do not maintain a reference
-      (and depend) on Solver anymore. Instead, they are now associated with a
-      NodeManager object. This allows sharing of these NodeManager objects
-      between Solver instances.
+- API: Previosuly, it was disallowed to share Sort, Term, Op, Grammar and
+       datatype objects between Solver instances. This is now allowed.
 
 cvc5 1.0.1
 ==========
