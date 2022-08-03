@@ -3532,12 +3532,17 @@ bool DatatypeConstructorDecl::isResolved() const
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl() : d_nm(nullptr), d_dtype(nullptr), d_isResolved(false) {}
+DatatypeDecl::DatatypeDecl()
+    : d_nm(nullptr), d_dtype(nullptr), d_isResolved(false)
+{
+}
 
 DatatypeDecl::DatatypeDecl(internal::NodeManager* nm,
                            const std::string& name,
                            bool isCoDatatype)
-    : d_nm(nm), d_dtype(new internal::DType(name, isCoDatatype)), d_isResolved(false)
+    : d_nm(nm),
+      d_dtype(new internal::DType(name, isCoDatatype)),
+      d_isResolved(false)
 {
 }
 

@@ -368,8 +368,7 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
     Solver slv;
     slv.mkDatatypeSorts(datatypes);
     Trace("ajr-temp") << "Finish test reuse..." << std::endl;
-    
-    
+
     Assert(datatypes.size() == types.size());
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
