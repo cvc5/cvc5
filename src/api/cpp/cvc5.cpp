@@ -3532,17 +3532,12 @@ bool DatatypeConstructorDecl::isResolved() const
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl()
-    : d_nm(nullptr), d_dtype(nullptr), d_isResolved(false)
-{
-}
+DatatypeDecl::DatatypeDecl() : d_nm(nullptr), d_dtype(nullptr) {}
 
 DatatypeDecl::DatatypeDecl(internal::NodeManager* nm,
                            const std::string& name,
                            bool isCoDatatype)
-    : d_nm(nm),
-      d_dtype(new internal::DType(name, isCoDatatype)),
-      d_isResolved(false)
+    : d_nm(nm), d_dtype(new internal::DType(name, isCoDatatype))
 {
 }
 
@@ -3569,9 +3564,7 @@ DatatypeDecl::~DatatypeDecl()
 
 bool DatatypeDecl::isResolved() const
 {
-  // note that since datatypes are deep copied, we cannot trust whether
-  // d_dtype is resolved or not, hence we explicitly track
-  return d_isResolved;
+  return d_dtype == nullptr || d_dtype->isResolved();
 }
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
@@ -5452,7 +5445,6 @@ Sort Solver::mkDatatypeSort(const DatatypeDecl& dtypedecl) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DTDECL(dtypedecl);
   //////// all checks before this line
-  dtypedecl.d_isResolved = true;
   return Sort(d_nm, d_nm->mkDatatypeType(*dtypedecl.d_dtype));
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5468,7 +5460,6 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
   {
     datatypes.push_back(dtypedecls[i].getDatatype());
-    dtypedecls[i].d_isResolved = true;
   }
   std::vector<internal::TypeNode> dtypes =
       d_nm->mkMutualDatatypeTypes(datatypes);

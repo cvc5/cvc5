@@ -2015,8 +2015,6 @@ class CVC5_EXPORT DatatypeDecl
    *       since ``internal::DType`` is not ref counted.
    */
   std::shared_ptr<internal::DType> d_dtype;
-  /** Have we called Solver::mkDatatypeSorts with this declaration? */
-  mutable bool d_isResolved;
 };
 
 /**
