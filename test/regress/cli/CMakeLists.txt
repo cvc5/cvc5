@@ -1730,6 +1730,7 @@ set(regress_1_tests
   regress1/abduction/abd-simple-conj-4.smt2
   regress1/abduction/arjun-global-dec.smt2
   regress1/abduction/arjun-unsat-core-opt.smt2
+  regress1/abduction/dd.abduct-check-sc.smt2
   regress1/abduction/issue5848-2.smt2
   regress1/abduction/issue5848-3-trivial-no-abduct.smt2
   regress1/abduction/issue5848-4.smt2
@@ -1989,6 +1990,7 @@ set(regress_1_tests
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
   regress1/get-learned-literals.smt2
+  regress1/get-learned-literals-types.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.p
@@ -2673,6 +2675,7 @@ set(regress_1_tests
   regress1/strings/issue8975-3.smt2
   regress1/strings/issue8981-strings-deq-ext-nth.smt2
   regress1/strings/issue8981-2-strings-deq-ext-nth.smt2
+  regress1/strings/issue9003-deq-split.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
