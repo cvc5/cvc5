@@ -1275,14 +1275,14 @@ Node SolverEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Node SolverEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
-std::vector<Node> SolverEngine::getLearnedLiterals()
+std::vector<Node> SolverEngine::getLearnedLiterals(modes::LearnedLitType t)
 {
   Trace("smt") << "SMT getLearnedLiterals()" << std::endl;
   // note that the default mode for learned literals is via the prop engine,
   // although other modes could use the preprocessor
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  return pe->getLearnedZeroLevelLiterals(modes::LearnedLitType::INPUT);
+  return pe->getLearnedZeroLevelLiterals(t);
 }
 
 void SolverEngine::checkProof()
@@ -1532,7 +1532,7 @@ std::string SolverEngine::getProof()
   std::ostringstream ss;
   std::shared_ptr<ProofNode> fp =
       d_pfManager->connectProofToAssertions(pe->getProof(), *d_asserts);
-  d_pfManager->printProof(ss, fp);
+  d_pfManager->printProof(ss, fp, options().proof.proofFormatMode);
   return ss.str();
 }
 
