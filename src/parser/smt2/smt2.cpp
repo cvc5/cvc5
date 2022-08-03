@@ -316,6 +316,36 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
   return modes::BlockModelsMode::LITERALS;
 }
 
+modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
+{
+  if (mode == "preprocess_solved")
+  {
+    return modes::LEARNED_LIT_PREPROCESS_SOLVED;
+  }
+  else if (mode == "preprocess")
+  {
+    return modes::LEARNED_LIT_PREPROCESS;
+  }
+  else if (mode == "input")
+  {
+    return modes::LEARNED_LIT_INPUT;
+  }
+  else if (mode == "solvable")
+  {
+    return modes::LEARNED_LIT_SOLVABLE;
+  }
+  else if (mode == "constant_prop")
+  {
+    return modes::LEARNED_LIT_CONSTANT_PROP;
+  }
+  else if (mode == "internal")
+  {
+    return modes::LEARNED_LIT_INTERNAL;
+  }
+  parseError(std::string("Unknown learned literal type `") + mode + "'");
+  return modes::LEARNED_LIT_UNKNOWN;
+}
+
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);

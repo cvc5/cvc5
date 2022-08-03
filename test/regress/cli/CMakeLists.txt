@@ -1735,6 +1735,7 @@ set(regress_1_tests
   regress1/abduction/issue5848-4.smt2
   regress1/abduction/issue5848.smt2
   regress1/abduction/issue6605-1.smt2
+  regress1/abduction/issue9001-sample-fail.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -1988,6 +1989,7 @@ set(regress_1_tests
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
   regress1/get-learned-literals.smt2
+  regress1/get-learned-literals-types.smt2
   regress1/ho/bug_freeVar_BDD_General_data_270.p
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   regress1/ho/bound_var_bug.p
@@ -2462,6 +2464,8 @@ set(regress_1_tests
   regress1/sets/choose3.smt2
   regress1/sets/choose4.smt2
   regress1/sets/issue5705-cg-subtyping.smt2
+  regress1/sets/issue8987-ho.smt2
+  regress1/sets/issue8987-ho-exception.smt2
   regress1/sets/ListElem.hs.fqout.cvc4.38.smt2
   regress1/sets/ListElts.hs.fqout.cvc4.317.smt2
   regress1/sets/TalkingAboutSets.hs.fqout.cvc4.3577.smt2
@@ -2669,6 +2673,7 @@ set(regress_1_tests
   regress1/strings/issue8975-3.smt2
   regress1/strings/issue8981-strings-deq-ext-nth.smt2
   regress1/strings/issue8981-2-strings-deq-ext-nth.smt2
+  regress1/strings/issue9003-deq-split.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

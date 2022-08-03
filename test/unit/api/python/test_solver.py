@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, BlockModelsMode, RoundingMode
+from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType
 
 
 @pytest.fixture
@@ -1440,9 +1440,9 @@ def test_get_unsat_core_and_proof(solver):
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")
     with pytest.raises(RuntimeError):
-        solver.getLearnedLiterals()
+        solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
     solver.checkSat()
-    solver.getLearnedLiterals()
+    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
@@ -1459,7 +1459,7 @@ def test_learned_literals2(solver):
     solver.assertFormula(f0)
     solver.assertFormula(f1)
     solver.checkSat()
-    solver.getLearnedLiterals()
+    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
 
 
 def test_get_value1(solver):

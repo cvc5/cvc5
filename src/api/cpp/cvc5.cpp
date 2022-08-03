@@ -6880,7 +6880,7 @@ std::string Solver::getProof(void) const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::vector<Term> Solver::getLearnedLiterals(void) const
+std::vector<Term> Solver::getLearnedLiterals(modes::LearnedLitType t) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceLearnedLiterals)
@@ -6893,7 +6893,7 @@ std::vector<Term> Solver::getLearnedLiterals(void) const
       << "Cannot get learned literals unless after a UNSAT, SAT or UNKNOWN "
          "response.";
   //////// all checks before this line
-  std::vector<internal::Node> lits = d_slv->getLearnedLiterals();
+  std::vector<internal::Node> lits = d_slv->getLearnedLiterals(t);
   return Term::nodeVectorToTerms(d_nm, lits);
   ////////
   CVC5_API_TRY_CATCH_END;
