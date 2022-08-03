@@ -718,8 +718,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isDatatypeTester()
-             && testerType[0] == ut)
+      Assert(c.isResolved()) << "constructor not resolved";
+      Assert (testerType.isDatatypeTester())
+          << "malformed tester in datatype post-resolution";
+      Assert (testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isDatatypeConstructor()
