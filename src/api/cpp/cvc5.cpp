@@ -3572,6 +3572,8 @@ bool DatatypeDecl::isResolved() const
   // internal::DType objects are copied in Solver::mkDatatypeSorts, the
   // constructors of d_dtype are passed to NodeManager but not d_type itself.
   // Thus, we must check whether our constructors are resolved.
+  // This is a workaround; a clearer implementation would avoid the
+  // copying of DType in Solver::mkDatatypeSorts.
   const std::vector<std::shared_ptr<internal::DTypeConstructor>>& cons =
       d_dtype->getConstructors();
   for (const std::shared_ptr<internal::DTypeConstructor>& c : cons)
@@ -3581,6 +3583,7 @@ bool DatatypeDecl::isResolved() const
       return true;
     }
   }
+  Assert (!d_dtype->isResolved());
   return false;
 }
 
