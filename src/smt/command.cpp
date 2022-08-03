@@ -1987,12 +1987,15 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* class GetLearnedLiteralsCommand */
 /* -------------------------------------------------------------------------- */
 
-GetLearnedLiteralsCommand::GetLearnedLiteralsCommand() {}
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t)
+    : d_type(t)
+{
+}
 void GetLearnedLiteralsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getLearnedLiterals();
+    d_result = solver->getLearnedLiterals(d_type);
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2030,7 +2033,7 @@ std::string GetLearnedLiteralsCommand::getCommandName() const
 
 void GetLearnedLiteralsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out);
+  Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out, d_type);
 }
 
 /* -------------------------------------------------------------------------- */

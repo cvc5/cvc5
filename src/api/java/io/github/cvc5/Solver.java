@@ -16,6 +16,7 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.LearnedLitType;
 import java.io.IOException;
 import java.util.*;
 
@@ -1760,15 +1761,16 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
+   * @param type The type of learned literals to return
    * @return The list of learned literals.
    */
-  public Term[] getLearnedLiterals()
+  public Term[] getLearnedLiterals(LearnedLitType type)
   {
-    long[] retPointers = getLearnedLiterals(pointer);
+    long[] retPointers = getLearnedLiterals(pointer, type.getValue());
     return Utils.getTerms(this, retPointers);
   }
 
-  private native long[] getLearnedLiterals(long pointer);
+  private native long[] getLearnedLiterals(long pointer, int type);
 
   /**
    * Get the list of asserted formulas.

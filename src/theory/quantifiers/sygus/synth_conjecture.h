@@ -147,7 +147,7 @@ class SynthConjecture : protected EnvObj
    * satisfy the side condition of the conjecture maintained by this class,
    * if it exists, and true otherwise.
    */
-  bool checkSideCondition(const std::vector<Node>& cvals) const;
+  bool checkSideCondition(const std::vector<Node>& cvals);
 
   /** get a reference to the statistics of parent */
   SygusStatistics& getSygusStatistics() { return d_stats; };

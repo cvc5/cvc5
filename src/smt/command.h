@@ -1064,7 +1064,7 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
 class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
 {
  public:
-  GetLearnedLiteralsCommand();
+  GetLearnedLiteralsCommand(modes::LearnedLitType t);
   const std::vector<cvc5::Term>& getLearnedLiterals() const;
 
   void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
@@ -1076,6 +1076,8 @@ class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
  protected:
   /** the result of the get learned literals call */
   std::vector<cvc5::Term> d_result;
+  /** The type of learned literals to get */
+  modes::LearnedLitType d_type;
 };
 
 class CVC5_EXPORT GetAssertionsCommand : public Command
