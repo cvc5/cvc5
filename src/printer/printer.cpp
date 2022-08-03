@@ -431,7 +431,8 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   printUnknownCommand(out, "get-difficulty");
 }
 
-void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                            modes::LearnedLitType t) const
 {
   printUnknownCommand(out, "get-learned-literals");
 }
