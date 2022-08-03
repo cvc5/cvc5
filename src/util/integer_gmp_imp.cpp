@@ -530,6 +530,11 @@ size_t Integer::length() const
   }
 }
 
+bool Integer::isProbablePrime() const
+{
+  return mpz_probab_prime_p(d_value.get_mpz_t(), 30) > 0;
+}
+
 void Integer::extendedGcd(
     Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b)
 {
