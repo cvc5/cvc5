@@ -9,7 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
-from cvc5types cimport BlockModelsMode, RoundingMode, UnknownExplanation
+from cvc5types cimport BlockModelsMode, LearnedLitType, RoundingMode, UnknownExplanation
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -313,7 +313,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         string getProof() except +
-        vector[Term] getLearnedLiterals() except +
+        vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
         string getOption(const string& option) except +
