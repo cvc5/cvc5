@@ -1901,6 +1901,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals)
   ASSERT_THROW(d_solver.getLearnedLiterals(), CVC5ApiException);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getLearnedLiterals());
+  ASSERT_NO_THROW(d_solver.getLearnedLiterals(modes::LEARNED_LIT_PREPROCESS));
 }
 
 TEST_F(TestApiBlackSolver, getLearnedLiterals2)
