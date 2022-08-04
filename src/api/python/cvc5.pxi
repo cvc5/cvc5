@@ -2122,13 +2122,13 @@ cdef class Solver:
 
     def getProof(self, c):
         """
-            Get the refutation proof
+            Get a proof associated with the most recent call to checkSat.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-               (get-proof)
+               (get-proof :c)
 
             Requires to enable option
             :ref:`produce-proofs <lbl-option-produce-proofs>`.

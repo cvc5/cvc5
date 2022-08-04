@@ -1919,11 +1919,11 @@ public class Solver implements IPointer, AutoCloseable
   private native Map<Long, Long> getDifficulty(long pointer);
 
   /**
-   * Get the refutation proof
+   * Get a proof associated with the most recent call to checkSat.
    *
    * SMT-LIB:
    * {@code
-   * ( get-proof )
+   * ( get-proof :c)
    * }
    *
    * Requires to enable option {@code produce-proofs}.
