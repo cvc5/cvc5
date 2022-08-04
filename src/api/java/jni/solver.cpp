@@ -1956,7 +1956,7 @@ Java_io_github_cvc5_Solver_getDifficulty(JNIEnv* env, jobject, jlong pointer)
  */
 JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof(JNIEnv* env,
                                                               jobject,
-                                                              jlong pointer, 
+                                                              jlong pointer,
                                                               jint pcvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
