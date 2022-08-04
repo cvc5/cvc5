@@ -1898,8 +1898,7 @@ class SolverTest
   {
     d_solver.setOption("produce-learned-literals", "true");
     // cannot ask before a check sat
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.getLearnedLiterals());
+    assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
     d_solver.checkSat();
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
     assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS));
