@@ -1541,8 +1541,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     const std::vector<Node>& assertions =
         d_smtSolver->getPreprocessedAssertions();
     connectToPreprocess = true;
-    // make base assume proofs which will be connected to its proof of
-    // preprocessing
+    // We start with (ASSUME a) for each preprocessed assertion a. This
+    // proof will be connected to the proof of preprocessing for a.
     ProofNodeManager* pnm = d_pfManager->getProofNodeManager();
     for (const Node& a : assertions)
     {
