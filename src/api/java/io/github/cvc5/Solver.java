@@ -1772,7 +1772,7 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long[] getLearnedLiterals(long pointer);
-  
+
   /**
    * Get a list of literals that are entailed by the current set of assertions.
    *
@@ -1960,7 +1960,7 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native String getProof(long pointer);
-  
+
   /**
    * Get a proof associated with the most recent call to checkSat.
    *
