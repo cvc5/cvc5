@@ -1753,11 +1753,32 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Get a list of literals that are entailed by the current set of assertions.
+   * Get a list of input literals that are entailed by the current set of
+   * assertions.
    *
    * SMT-LIB:
    * {@code
    * ( get-learned-literals )
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return The list of learned literals.
+   */
+  public Term[] getLearnedLiterals()
+  {
+    long[] retPointers = getLearnedLiterals(pointer);
+    return Utils.getTerms(this, retPointers);
+  }
+
+  private native long[] getLearnedLiterals(long pointer);
+  
+  /**
+   * Get a list of literals that are entailed by the current set of assertions.
+   *
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals :type )
    * }
    *
    * @api.note This method is experimental and may change in future versions.
@@ -1918,6 +1939,28 @@ public class Solver implements IPointer, AutoCloseable
 
   private native Map<Long, Long> getDifficulty(long pointer);
 
+  /**
+   * Get refutation proof for the most recent call to checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * ( get-proof :c)
+   * }
+   *
+   * Requires to enable option {@code produce-proofs}.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @return A string representing the proof. This is impacted by the value of
+   * proof-format-mode when c is PROOF_COMPONENT_FULL.
+   */
+  public String getProof()
+  {
+    return getProof(pointer);
+  }
+
+  private native String getProof(long pointer);
+  
   /**
    * Get a proof associated with the most recent call to checkSat.
    *

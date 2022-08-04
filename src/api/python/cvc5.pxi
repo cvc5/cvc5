@@ -2141,7 +2141,7 @@ cdef class Solver:
         """
         return self.csolver.getProof(<c_ProofComponent> c.value)
 
-    def getLearnedLiterals(self, type):
+    def getLearnedLiterals(self, type = LearnedLitType.LEARNED_LIT_INPUT):
         """
             Get a list of literals that are entailed by the current set of assertions
 
