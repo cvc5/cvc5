@@ -1766,7 +1766,7 @@ Java_io_github_cvc5_Solver_defineFunsRec(JNIEnv* env,
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals(
-    JNIEnv* env, jobject, jlong pointer, jint typeValue)
+    JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);

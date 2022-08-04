@@ -1944,7 +1944,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * SMT-LIB:
    * {@code
-   * ( get-proof :c)
+   * ( get-proof )
    * }
    *
    * Requires to enable option {@code produce-proofs}.
@@ -1952,7 +1952,7 @@ public class Solver implements IPointer, AutoCloseable
    * @api.note This method is experimental and may change in future versions.
    *
    * @return A string representing the proof. This is impacted by the value of
-   * proof-format-mode when c is PROOF_COMPONENT_FULL.
+   * proof-format-mode.
    */
   public String getProof()
   {
@@ -1974,8 +1974,8 @@ public class Solver implements IPointer, AutoCloseable
    * @api.note This method is experimental and may change in future versions.
    *
    * @param c The component of the proof to return
-   * @return A string representing the proof. This is impacted by the value of
-   * proof-format-mode when c is PROOF_COMPONENT_FULL.
+   * @return A string representing the proof. This is equivalent to getProof
+   * when c is PROOF_COMPONENT_FULL.
    */
   public String getProof(ProofComponent c)
   {
