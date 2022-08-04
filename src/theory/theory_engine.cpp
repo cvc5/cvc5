@@ -1094,6 +1094,18 @@ Node TheoryEngine::getModelValue(TNode var) {
   return theoryOf(d_env.theoryOf(var.getType()))->getModelValue(var);
 }
 
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
+{
+  // if there is no relevance manager, we fail
+  if (d_relManager == nullptr)
+  {
+    success = false;
+    // return empty set
+    return std::unordered_set<TNode>();
+  }
+  return d_relManager->getRelevantAssertions(success);
+}
+
 TrustNode TheoryEngine::getExplanation(TNode node)
 {
   Trace("theory::explain") << "TheoryEngine::getExplanation(" << node
