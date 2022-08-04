@@ -297,8 +297,7 @@ class TheoryEngine : protected EnvObj
    * If the model is not already built, this will cause this theory engine
    * to build the model.
    *
-   * If the model is not available (for instance, if the last call to check-sat
-   * was interrupted), then this returns the null pointer.
+   * If the model cannot be built, then this returns the null pointer.
    */
   theory::TheoryModel* getBuiltModel();
   /**
