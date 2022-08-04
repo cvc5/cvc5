@@ -1956,11 +1956,13 @@ Java_io_github_cvc5_Solver_getDifficulty(JNIEnv* env, jobject, jlong pointer)
  */
 JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof(JNIEnv* env,
                                                               jobject,
-                                                              jlong pointer)
+                                                              jlong pointer, 
+                                                              jint pcvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::string proof = solver->getProof();
+  modes::ProofComponent pc = static_cast<modes::ProofComponent>(pcvalue);
+  std::string proof = solver->getProof(pc);
   return env->NewStringUTF(proof.c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

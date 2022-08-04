@@ -17,6 +17,7 @@ package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
 import java.util.*;
 
@@ -1929,15 +1930,16 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof, according to the value of.
-   * proof-format-mode.
+   * @param c The component of the proof to return
+   * @return A string representing the proof. This is impacted by the value of
+   * proof-format-mode when c is PROOF_COMPONENT_FULL.
    */
-  public String getProof()
+  public String getProof(ProofComponent c)
   {
-    return getProof(pointer);
+    return getProof(pointer, c.getValue());
   }
 
-  private native String getProof(long pointer);
+  private native String getProof(long pointer, int c);
 
   /**
    * Get the value of the given term in the current model.
