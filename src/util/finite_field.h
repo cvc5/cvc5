@@ -167,7 +167,7 @@ struct FiniteFieldSize
  */
 struct FiniteFieldHashFunction
 {
-  inline size_t operator()(const FiniteField& ff) const { return ff.hash(); }
+  size_t operator()(const FiniteField& ff) const { return ff.hash(); }
 }; /* struct FiniteFieldHashFunction */
 
 /*
@@ -175,7 +175,7 @@ struct FiniteFieldHashFunction
  */
 struct FiniteFieldSizeHashFunction
 {
-  inline size_t operator()(const FiniteFieldSize& size) const
+  size_t operator()(const FiniteFieldSize& size) const
   {
     return size.d_size.hash();
   }
@@ -185,7 +185,7 @@ struct FiniteFieldSizeHashFunction
  * Output stream
  * ----------------------------------------------------------------------- */
 
-inline std::ostream& operator<<(std::ostream& os, const FiniteField& ff)
+std::ostream& operator<<(std::ostream& os, const FiniteField& ff)
 {
   return os << ff.toString();
 }
