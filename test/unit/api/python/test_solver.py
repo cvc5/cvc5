@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType
+from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent
 
 
 @pytest.fixture
@@ -1429,6 +1429,9 @@ def test_get_unsat_core_and_proof(solver):
     assert solver.checkSat().isUnsat()
 
     unsat_core = solver.getUnsatCore()
+    
+    solver.getProof()
+    solver.getProofComponent(ProofComponent.PROOF_COMPONENT_SAT)
 
     solver.resetAssertions()
     for t in unsat_core:

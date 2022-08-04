@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.ProofComponent;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -1840,6 +1841,7 @@ class SolverTest
     Term[] unsat_core = d_solver.getUnsatCore();
 
     assertDoesNotThrow(() -> d_solver.getProof());
+    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT));
 
     d_solver.resetAssertions();
     for (Term t : unsat_core)

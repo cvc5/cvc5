@@ -1844,6 +1844,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   ASSERT_FALSE(uc.empty());
 
   ASSERT_NO_THROW(d_solver.getProof());
+  ASSERT_NO_THROW(d_solver.getProof(modes::PROOF_COMPONENT_SAT));
 
   d_solver.resetAssertions();
   for (const auto& t : uc)
