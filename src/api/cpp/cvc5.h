@@ -4211,7 +4211,7 @@ class CVC5_EXPORT Solver
    *
    * @param c The component of the proof to return
    * @return A string representing the proof. This takes into account
-   * proof-format-mode when c is PROOF_COMPONENT_FULL.
+   * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is `PROOF_COMPONENT_FULL`.
    */
   std::string getProof(
       modes::ProofComponent c = modes::PROOF_COMPONENT_FULL) const;
