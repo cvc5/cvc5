@@ -16,6 +16,7 @@
 #include "util/finite_field.h"
 
 #include "base/exception.h"
+#include "util/hash.h"
 
 namespace cvc5::internal {
 
@@ -31,12 +32,16 @@ Integer FiniteField::toSignedInteger() const
   return (d_value < half_size) ? d_value : d_value - d_size;
 }
 
-std::string FiniteField::toString(unsigned int base) const
+std::string FiniteField::toString() const
 {
   return toSignedInteger().toString();
 }
 
-size_t FiniteField::hash() const { return d_value.hash() + d_size.hash(); }
+size_t FiniteField::hash() const
+{
+  PairHashFunction<size_t, size_t> h;
+  return h(std::make_pair(d_value.hash(), d_size.hash()));
+}
 
 /* -----------------------------------------------------------------------
  * Operators
@@ -44,73 +49,73 @@ size_t FiniteField::hash() const { return d_value.hash() + d_size.hash(); }
 
 /* (Dis)Equality --------------------------------------------------------- */
 
-bool FiniteField::operator==(const FiniteField& y) const
+bool operator==(const FiniteField& x, const FiniteField& y)
 {
-  if (d_size != y.d_size) return false;
-  return d_value == y.d_value;
+  if (x.d_size != y.d_size) return false;
+  return x.d_value == y.d_value;
 }
 
-bool FiniteField::operator!=(const FiniteField& y) const
+bool operator!=(const FiniteField& x, const FiniteField& y)
 {
-  if (d_size != y.d_size) return true;
-  return d_value != y.d_value;
+  if (x.d_size != y.d_size) return true;
+  return x.d_value != y.d_value;
 }
 
 /* Unsigned Inequality --------------------------------------------------- */
 
-bool FiniteField::operator<(const FiniteField& y) const
+bool operator<(const FiniteField& x, const FiniteField& y)
 {
-  return d_value < y.d_value;
+  return x.d_value < y.d_value;
 }
 
-bool FiniteField::operator<=(const FiniteField& y) const
+bool operator<=(const FiniteField& x, const FiniteField& y)
 {
-  return d_value <= y.d_value;
+  return x.d_value <= y.d_value;
 }
 
-bool FiniteField::operator>(const FiniteField& y) const
+bool operator>(const FiniteField& x, const FiniteField& y)
 {
-  return d_value > y.d_value;
+  return x.d_value > y.d_value;
 }
 
-bool FiniteField::operator>=(const FiniteField& y) const
+bool operator>=(const FiniteField& x, const FiniteField& y)
 {
-  return d_value >= y.d_value;
+  return x.d_value >= y.d_value;
 }
 
 /* Arithmetic operations ------------------------------------------------- */
 
-FiniteField FiniteField::operator+(const FiniteField& y) const
+FiniteField operator+(const FiniteField& x, const FiniteField& y)
 {
-  Assert(d_size == y.d_size)
-      << "Size mismatch: " << d_size << " != " << y.d_size;
-  Integer sum = d_value.modAdd(y.d_value, d_size);
-  return {sum, d_size};
+  Assert(x.d_size == y.d_size)
+      << "Size mismatch: " << x.d_size << " != " << y.d_size;
+  Integer sum = x.d_value.modAdd(y.d_value, x.d_size);
+  return {sum, x.d_size};
 }
 
-FiniteField FiniteField::operator-(const FiniteField& y) const
+FiniteField operator-(const FiniteField& x, const FiniteField& y)
 {
-  Assert(d_size == y.d_size)
-      << "Size mismatch: " << d_size << " != " << y.d_size;
-  return {d_value - y.d_value, d_size};
+  Assert(x.d_size == y.d_size)
+      << "Size mismatch: " << x.d_size << " != " << y.d_size;
+  return {x.d_value - y.d_value, x.d_size};
 }
 
-FiniteField FiniteField::operator-() const
+FiniteField operator-(const FiniteField& x)
 {
-  return {d_size - d_value, d_size};
+  return {x.d_size - x.d_value, x.d_size};
 }
 
-FiniteField FiniteField::operator*(const FiniteField& y) const
+FiniteField operator*(const FiniteField& x, const FiniteField& y)
 {
-  Assert(d_size == y.d_size)
-      << "Size mismatch: " << d_size << " != " << y.d_size;
-  Integer prod = d_value.modMultiply(y.d_value, d_size);
-  return {prod, d_size};
+  Assert(x.d_size == y.d_size)
+      << "Size mismatch: " << x.d_size << " != " << y.d_size;
+  Integer prod = x.d_value.modMultiply(y.d_value, x.d_size);
+  return {prod, x.d_size};
 }
 
-FiniteField FiniteField::operator/(const FiniteField& y) const
+FiniteField operator/(const FiniteField& x, const FiniteField& y)
 {
-  return *this * y.recip();
+  return x * y.recip();
 }
 
 FiniteField FiniteField::recip() const
