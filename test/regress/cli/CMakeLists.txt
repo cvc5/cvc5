@@ -1731,6 +1731,7 @@ set(regress_1_tests
   regress1/abduction/abd-simple-conj-4.smt2
   regress1/abduction/arjun-global-dec.smt2
   regress1/abduction/arjun-unsat-core-opt.smt2
+  regress1/abduction/dd.abduct-check-sc.smt2
   regress1/abduction/issue5848-2.smt2
   regress1/abduction/issue5848-3-trivial-no-abduct.smt2
   regress1/abduction/issue5848-4.smt2
@@ -2668,6 +2669,7 @@ set(regress_1_tests
   regress1/strings/issue8918-str-nth-crange-red.smt2
   regress1/strings/issue8932-cmi-unit.smt2
   regress1/strings/issue8944-sygus-inst.smt2
+  regress1/strings/issue8956-1.smt2
   regress1/strings/issue8970-strip-sym-len.smt2
   regress1/strings/issue8975-1.smt2
   regress1/strings/issue8975-2.smt2
@@ -2853,6 +2855,8 @@ set(regress_1_tests
   regress1/sygus/issue4425-sets-sygus-infer.smt2
   regress1/sygus/issue7925-dt-share-config.sy
   regress1/sygus/issue8216-rr-input-re.smt2
+  regress1/sygus/issue8956-2.smt2
+  regress1/sygus/issue8976-interp-check.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy

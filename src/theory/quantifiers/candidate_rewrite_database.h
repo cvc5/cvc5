@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "options/options.h"
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -128,6 +129,8 @@ class CandidateRewriteDatabase : public ExprMiner
   CandidateRewriteFilter d_crewrite_filter;
   /** the cache for results of addTerm */
   std::unordered_map<Node, Node> d_add_term_cache;
+  /** The options for subsolver calls */
+  Options d_subOptions;
 };
 
 }  // namespace quantifiers
