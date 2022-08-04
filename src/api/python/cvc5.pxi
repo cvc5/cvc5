@@ -2120,7 +2120,7 @@ cdef class Solver:
 
         self.csolver.defineFunsRec(vf, vbv, vt, glb)
 
-    def getProof(self, c):
+    def getProof(self, c = ProofComponent.PROOF_COMPONENT_FULL):
         """
             Get a proof associated with the most recent call to checkSat.
 
