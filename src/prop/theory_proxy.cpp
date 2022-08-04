@@ -29,7 +29,6 @@
 #include "prop/skolem_def_manager.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
@@ -289,6 +288,15 @@ bool TheoryProxy::isIncomplete() const
   return d_stopSearch.get() || d_theoryEngine->isIncomplete();
 }
 
+theory::IncompleteId TheoryProxy::getIncompleteId() const
+{
+  if (d_stopSearch.get())
+  {
+    return theory::IncompleteId::STOP_SEARCH;
+  }
+  return d_theoryEngine->getIncompleteId();
+}
+
 TNode TheoryProxy::getNode(SatLiteral lit) {
   return d_cnfStream->getNode(lit);
 }
@@ -365,7 +373,7 @@ modes::LearnedLitType TheoryProxy::getLiteralType(const Node& lit) const
   {
     return d_zll->computeLearnedLiteralType(lit);
   }
-  return modes::LearnedLitType::UNKNOWN;
+  return modes::LEARNED_LIT_UNKNOWN;
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const

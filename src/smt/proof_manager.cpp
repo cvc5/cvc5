@@ -17,7 +17,6 @@
 
 #include "options/base_options.h"
 #include "options/main_options.h"
-#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_post_processor.h"
@@ -40,13 +39,13 @@ namespace smt {
 PfManager::PfManager(Env& env)
     : EnvObj(env),
       d_pchecker(new ProofChecker(
-          options().proof.proofCheck == options::ProofCheckMode::EAGER,
+          statisticsRegistry(),
+          options().proof.proofCheck,
           static_cast<uint32_t>(options().proof.proofPedantic))),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pppg(nullptr),
-      d_pfpp(nullptr),
-      d_finalProof(nullptr)
+      d_pfpp(nullptr)
 {
   // now construct preprocess proof generator
   d_pppg = std::make_unique<PreprocessProofGenerator>(
@@ -106,16 +105,18 @@ PfManager::PfManager(Env& env)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
+std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
+    std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope)
 {
-  // Note this assumes that setFinalProof is only called once per unsat
-  // response. This method would need to cache its result otherwise.
-  Trace("smt-proof") << "SolverEngine::setFinalProof(): get proof body...\n";
+  // Note this assumes that connectProofToAssertions is only called once per
+  // unsat response. This method would need to cache its result otherwise.
+  Trace("smt-proof")
+      << "SolverEngine::connectProofToAssertions(): get proof body...\n";
 
   if (TraceIsOn("smt-proof-debug"))
   {
     Trace("smt-proof-debug")
-        << "SolverEngine::setFinalProof(): Proof node for false:\n";
+        << "SolverEngine::connectProofToAssertions(): Proof node for false:\n";
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
@@ -126,18 +127,19 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   if (TraceIsOn("smt-proof"))
   {
     Trace("smt-proof")
-        << "SolverEngine::setFinalProof(): get free assumptions..."
+        << "SolverEngine::connectProofToAssertions(): get free assumptions..."
         << std::endl;
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
-    Trace("smt-proof")
-        << "SolverEngine::setFinalProof(): initial free assumptions are:\n";
+    Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): initial "
+                          "free assumptions are:\n";
     for (const Node& a : fassumps)
     {
       Trace("smt-proof") << "- " << a << std::endl;
     }
 
-    Trace("smt-proof") << "SolverEngine::setFinalProof(): assertions are:\n";
+    Trace("smt-proof")
+        << "SolverEngine::connectProofToAssertions(): assertions are:\n";
     for (const Node& n : assertions)
     {
       Trace("smt-proof") << "- " << n << std::endl;
@@ -145,41 +147,45 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     Trace("smt-proof") << "=====" << std::endl;
   }
 
-  Trace("smt-proof") << "SolverEngine::setFinalProof(): postprocess...\n";
+  Trace("smt-proof")
+      << "SolverEngine::connectProofToAssertions(): postprocess...\n";
   Assert(d_pfpp != nullptr);
   d_pfpp->process(pfn);
 
-  Trace("smt-proof") << "SolverEngine::setFinalProof(): make scope...\n";
+  if (!mkOuterScope)
+  {
+    return pfn;
+  }
+
+  Trace("smt-proof")
+      << "SolverEngine::connectProofToAssertions(): make scope...\n";
 
   // Now make the final scope, which ensures that the only open leaves of the
   // proof are the assertions. If we are pruning the input, we will try to
   // minimize the used assertions.
-  d_finalProof =
-      d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
-  Trace("smt-proof") << "SolverEngine::setFinalProof(): finished.\n";
+  return d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
 }
 
 void PfManager::printProof(std::ostream& out,
-                           std::shared_ptr<ProofNode> pfn,
-                           Assertions& as)
+                           std::shared_ptr<ProofNode> fp,
+                           options::ProofFormatMode mode)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
   // if we are in incremental mode, we don't want to invalidate the proof
   // nodes in fp, since these may be reused in further check-sat calls
   if (options().base.incrementalSolving
-      && options().proof.proofFormatMode != options::ProofFormatMode::NONE)
+      && mode != options::ProofFormatMode::NONE)
   {
     fp = d_pnm->clone(fp);
   }
 
   // according to the proof format, post process and print the proof node
-  if (options().proof.proofFormatMode == options::ProofFormatMode::DOT)
+  if (mode == options::ProofFormatMode::DOT)
   {
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::ALETHE)
+  else if (mode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;
     proof::AletheProofPostprocess vpfpp(
@@ -188,17 +194,17 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPrinter vpp;
     vpp.print(out, fp);
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+  else if (mode == options::ProofFormatMode::LFSC)
   {
-    std::vector<Node> assertions;
-    getAssertions(as, assertions);
+    Assert(fp->getRule() == PfRule::SCOPE);
+    std::vector<Node> assertions = fp->getArguments();
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
     proof::LfscPrinter lp(ltp);
     lp.print(out, assertions, fp.get());
   }
-  else if (options().proof.proofFormatMode == options::ProofFormatMode::TPTP)
+  else if (mode == options::ProofFormatMode::TPTP)
   {
     out << "% SZS output start Proof for " << options().driver.filename
         << std::endl;
@@ -210,17 +216,10 @@ void PfManager::printProof(std::ostream& out,
   else
   {
     // otherwise, print using default printer
-    out << "(proof\n";
-    out << *fp;
-    out << "\n)\n";
+    // we call the printing method explicitly because we may want to print the
+    // final proof node with conclusions
+    fp->printDebug(out, options().proof.proofPrintConclusion);
   }
-}
-void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
-{
-  Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
-  Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
-                           << std::endl;
 }
 
 void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
@@ -253,7 +252,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;
-  std::shared_ptr<ProofNode> fpf = getFinalProof(pf, as);
+  std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, as);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
   Assert(fpf->getRule() == PfRule::SCOPE);
   fpf = fpf->getChildren()[0];
@@ -293,14 +292,6 @@ rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
 smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 {
   return d_pppg.get();
-}
-
-std::shared_ptr<ProofNode> PfManager::getFinalProof(
-    std::shared_ptr<ProofNode> pfn, Assertions& as)
-{
-  setFinalProof(pfn, as);
-  Assert(d_finalProof);
-  return d_finalProof;
 }
 
 void PfManager::getAssertions(Assertions& as,

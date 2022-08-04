@@ -48,6 +48,7 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_HO_EXT_DISABLED: return "UF_HO_EXT_DISABLED";
     case IncompleteId::UF_CARD_DISABLED: return "UF_CARD_DISABLED";
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
+    case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
     default: return "?IncompleteId?";
   }

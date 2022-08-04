@@ -57,30 +57,26 @@ Node ExprMiner::convertToSkolem(Node n)
 void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query)
 {
-  initializeChecker(checker, query, options(), logicInfo());
+  SubsolverSetupInfo ssi(d_env);
+  initializeChecker(checker, query, ssi);
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query,
-                                  const Options& opts,
-                                  const LogicInfo& logicInfo)
+                                  const SubsolverSetupInfo& info)
 {
   Assert (!query.isNull());
   if (options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
   {
-    initializeSubsolver(checker,
-                        opts,
-                        logicInfo,
-                        true,
-                        options().quantifiers.sygusExprMinerCheckTimeout);
+    initializeSubsolver(
+        checker, info, true, options().quantifiers.sygusExprMinerCheckTimeout);
   }
   else
   {
-    initializeSubsolver(checker, opts, logicInfo);
+    initializeSubsolver(checker, info);
   }
-  // also set the options
+  // disable options that would lead to infinite loops
   checker->setOption("sygus-rr-synth-input", "false");
-  checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);

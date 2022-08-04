@@ -1766,11 +1766,12 @@ Java_io_github_cvc5_Solver_defineFunsRec(JNIEnv* env,
  * Signature: (J)[J
  */
 JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals(
-    JNIEnv* env, jobject, jlong pointer)
+    JNIEnv* env, jobject, jlong pointer, jint typeValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  std::vector<Term> assertions = solver->getLearnedLiterals();
+  modes::LearnedLitType t = static_cast<modes::LearnedLitType>(typeValue);
+  std::vector<Term> assertions = solver->getLearnedLiterals(t);
   jlongArray ret = getPointersFromObjects<Term>(env, assertions);
   return ret;
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);

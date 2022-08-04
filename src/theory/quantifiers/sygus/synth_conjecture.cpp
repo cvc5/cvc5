@@ -23,7 +23,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -601,27 +600,27 @@ bool SynthConjecture::doCheck()
   return true;
 }
 
-bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
+bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals)
 {
-  if (!d_embedSideCondition.isNull())
+  if (d_embedSideCondition.isNull())
   {
-    Node sc = d_embedSideCondition;
-    if (!cvals.empty())
-    {
-      sc = sc.substitute(
-        d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
-    }
-    Trace("sygus-engine") << "Check side condition..." << std::endl;
-    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    sc = rewrite(sc);
-    Result r = checkWithSubsolver(sc, options(), logicInfo());
-    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if (r == Result::UNSAT)
-    {
-      return false;
-    }
-    Trace("sygus-engine") << "...passed side condition" << std::endl;
+    return true;
   }
+  Node sc = d_embedSideCondition;
+  if (!cvals.empty())
+  {
+    sc = sc.substitute(
+        d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
+  }
+  Trace("sygus-engine") << "Check side condition..." << std::endl;
+  Result r = d_verify.verify(sc);
+  Trace("sygus-engine") << "...result of check side condition : " << r
+                        << std::endl;
+  if (r == Result::UNSAT)
+  {
+    return false;
+  }
+  Trace("sygus-engine") << "...passed side condition" << std::endl;
   return true;
 }
 

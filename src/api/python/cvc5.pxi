@@ -1125,11 +1125,11 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Term mkTerm(Kind kind)``
-            - ``Term mkTerm(Kind kind, List[Term] children)``
             - ``Term mkTerm(Op op)``
-            - ``Term mkTerm(Op op, List[Term] children)``
+            - ``Term mkTerm(Kind kind, *args)``
+            - ``Term mkTerm(Op op, *args)``
 
-            where ``List[Term]`` can also be comma-separated arguments
+            where ``*args`` is a comma-separated list of terms.
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -2141,7 +2141,7 @@ cdef class Solver:
         """
         return self.csolver.getProof()
 
-    def getLearnedLiterals(self):
+    def getLearnedLiterals(self, type):
         """
             Get a list of literals that are entailed by the current set of assertions
 
@@ -2154,10 +2154,11 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
 
+            :param type: The type of learned literals to return
             :return: The list of literals.
         """
         lits = []
-        for a in self.csolver.getLearnedLiterals():
+        for a in self.csolver.getLearnedLiterals(<c_LearnedLitType> type.value):
             term = Term(self)
             term.cterm = a
             lits.append(term)

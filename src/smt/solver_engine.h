@@ -49,19 +49,12 @@ typedef NodeTemplate<false> TNode;
 class TypeNode;
 
 class Env;
-class NodeManager;
 class TheoryEngine;
 class UnsatCore;
 class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 struct InstantiationList;
-
-/* -------------------------------------------------------------------------- */
-
-namespace preprocessing {
-class PreprocessingPassContext;
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -77,7 +70,6 @@ class SolverEngineState;
 class AbstractValues;
 class Assertions;
 class ResourceOutListener;
-class SmtNodeManagerListener;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
@@ -87,7 +79,6 @@ class InterpolationSolver;
 class QuantElimSolver;
 
 struct SolverEngineStatistics;
-class SolverEngineScope;
 class PfManager;
 class UnsatCoreManager;
 
@@ -107,7 +98,6 @@ class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
   friend class smt::SolverEngineState;
-  friend class smt::SolverEngineScope;
 
   /* .......................................................................  */
  public:
@@ -118,7 +108,7 @@ class CVC5_EXPORT SolverEngine
    * If provided, optr is a pointer to a set of options that should initialize
    * the values of the options object owned by this class.
    */
-  SolverEngine(NodeManager* nm, const Options* optr = nullptr);
+  SolverEngine(const Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SolverEngine();
 
@@ -267,10 +257,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Get the list of top-level learned literals that are entailed by the current
    * set of assertions.
-   *
-   * TODO (wishue #104): implement for different modes
    */
-  std::vector<Node> getLearnedLiterals();
+  std::vector<Node> getLearnedLiterals(modes::LearnedLitType t);
 
   /**
    * Get an aspect of the current SMT execution environment.
@@ -706,7 +694,7 @@ class CVC5_EXPORT SolverEngine
    * Get a refutation proof (only if immediately preceded by an UNSAT or
    * ENTAILED query). Only permitted if cvc5 was built with proof support and
    * the proof option is on. */
-  std::string getProof();
+  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -821,9 +809,6 @@ class CVC5_EXPORT SolverEngine
    * @throw ModalException
    */
   unsigned long getResourceRemaining() const;
-
-  /** Permit access to the underlying NodeManager. */
-  NodeManager* getNodeManager() const;
 
   /**
    * Print statistics from the statistics registry in the env object owned by
@@ -1111,13 +1096,6 @@ class CVC5_EXPORT SolverEngine
 
   /** The statistics class */
   std::unique_ptr<smt::SolverEngineStatistics> d_stats;
-
-  /**
-   * The global scope object. Upon creation of this SolverEngine, it becomes the
-   * SolverEngine in scope. It says the SolverEngine in scope until it is
-   * destructed, or another SolverEngine is created.
-   */
-  std::unique_ptr<smt::SolverEngineScope> d_scope;
 }; /* class SolverEngine */
 
 /* -------------------------------------------------------------------------- */

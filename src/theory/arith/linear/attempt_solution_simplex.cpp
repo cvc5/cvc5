@@ -19,11 +19,11 @@
 
 #include "base/output.h"
 #include "options/arith_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/error_set.h"
 #include "theory/arith/linear/linear_equality.h"
 #include "theory/arith/linear/tableau.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 
@@ -37,16 +37,13 @@ AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
                                        RaiseConflict conflictChannel,
                                        TempVarMalloc tvmalloc)
     : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
-      d_statistics()
+      d_statistics(statisticsRegistry())
 { }
 
-AttemptSolutionSDP::Statistics::Statistics()
-    : d_searchTime(smtStatisticsRegistry().registerTimer(
-        "theory::arith::attempt::searchTime")),
-      d_queueTime(smtStatisticsRegistry().registerTimer(
-          "theory::arith::attempt::queueTime")),
-      d_conflicts(smtStatisticsRegistry().registerInt(
-          "theory::arith::attempt::conflicts"))
+AttemptSolutionSDP::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_searchTime(sr.registerTimer("theory::arith::attempt::searchTime")),
+      d_queueTime(sr.registerTimer("theory::arith::attempt::queueTime")),
+      d_conflicts(sr.registerInt("theory::arith::attempt::conflicts"))
 {
 }
 

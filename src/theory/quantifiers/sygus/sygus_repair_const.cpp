@@ -230,10 +230,10 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
   std::unique_ptr<SolverEngine> repcChecker;
+  SubsolverSetupInfo ssi(d_env);
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
-                      d_env.getOptions(),
-                      d_env.getLogicInfo(),
+                      ssi,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus
