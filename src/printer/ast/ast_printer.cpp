@@ -307,9 +307,10 @@ void AstPrinter::toStreamCmdGetAssertions(std::ostream& out) const
   out << "GetAssertions()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdGetProof(std::ostream& out) const
+void AstPrinter::toStreamCmdGetProof(std::ostream& out,
+                                     modes::ProofComponent c) const
 {
-  out << "GetProof()" << std::endl;
+  out << "GetProof(" << c << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const

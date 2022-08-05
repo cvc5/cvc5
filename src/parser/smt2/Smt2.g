@@ -202,6 +202,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Sort> sorts;
   std::vector<std::pair<std::string, cvc5::Sort> > sortedVarNames;
   std::vector<cvc5::Term> flattenVars;
+  bool readKeyword = false;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -361,10 +362,12 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new AssertCommand(expr));
       if (PARSER_STATE->lastNamedTerm().first == expr)
       {
+        Trace("parser") << "Process top-level name: " << expr << std::endl;
         // set the expression name, if there was a named term
         std::pair<cvc5::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
         SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
+        Trace("parser") << "finished process top-level name" << std::endl;
       }
     }
   | /* check-sat */
@@ -403,8 +406,15 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
   | /* get-learned-literals */
-    GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetLearnedLiteralsCommand); }
+    GET_LEARNED_LITERALS_TOK ( KEYWORD { readKeyword = true; } )? { 
+      PARSER_STATE->checkThatLogicIsSet();
+      modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
+      if (readKeyword)
+      {
+        llt = PARSER_STATE->getLearnedLitType(
+                AntlrInput::tokenText($KEYWORD).c_str() + 1);
+      }
+      cmd->reset(new GetLearnedLiteralsCommand(llt)); }
   | /* push */
     PUSH_TOK
     ( k=INTEGER_LITERAL
@@ -1799,6 +1809,7 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
+      Trace("parser") << "Named: " << s << " for " << expr << std::endl;
       // notify that expression was given a name
       DefineFunctionCommand* defFunCmd =
           new DefineFunctionCommand(s, expr.getSort(), expr);
