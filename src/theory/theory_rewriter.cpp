@@ -72,11 +72,5 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryRewriter::expandDefinition(Node node)
-{
-  // no expansion
-  return TrustNode::null();
-}
-
 }  // namespace theory
 }  // namespace cvc5::internal
