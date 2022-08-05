@@ -159,6 +159,19 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  if (nk == RELATION_AGGREGATE || nk == RELATION_PROJECT || nk == SET_MAP
+      || nk == SET_FOLD)
+  {
+    // requires higher order
+    if (!logicInfo().isHigherOrder())
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << nk
+         << " are only supported with "
+            "higher-order logic. Try adding the logic prefix HO_.";
+      throw LogicException(ss.str());
+    }
+  }
   if (nk == SET_FOLD)
   {
     std::vector<Node> asserts;

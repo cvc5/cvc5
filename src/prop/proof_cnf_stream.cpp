@@ -89,7 +89,6 @@ Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
                  << normClauseNode << "\n"
                  << pop;
   }
-  d_satPM->registerSatAssumptions({normClauseNode});
   if (d_input)
   {
     d_inputClauses.insert(normClauseNode);
@@ -97,6 +96,10 @@ Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
   else
   {
     d_lemmaClauses.insert(normClauseNode);
+  }
+  if (d_satPM)
+  {
+    d_satPM->registerSatAssumptions({normClauseNode});
   }
   return normClauseNode;
 }
@@ -185,7 +188,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
             << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
             << nnode << "\n";
       }
-      if (added)
+      if (added && d_satPM)
       {
         // note that we do not need to do the normalization here since this is
         // not a clause and double negation is tracked in a dedicated manner
@@ -680,8 +683,11 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
-  d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
-                                           d_currPropagationProccessed);
+  if (d_satPM)
+  {
+    d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
+                                             d_currPropagationProccessed);
+  }
   // Reset
   d_currPropagationProccessed = Node::null();
 }
@@ -702,7 +708,10 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
-  d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+  if (d_satPM)
+  {
+    d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+  }
 }
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
@@ -743,6 +752,22 @@ void ProofCnfStream::ensureLiteral(TNode n)
   {
     d_cnfStream.convertAtom(n);
   }
+}
+
+bool ProofCnfStream::hasLiteral(TNode n) const
+{
+  return d_cnfStream.hasLiteral(n);
+}
+
+SatLiteral ProofCnfStream::getLiteral(TNode node)
+{
+  return d_cnfStream.getLiteral(node);
+}
+
+void ProofCnfStream::getBooleanVariables(
+    std::vector<TNode>& outputVariables) const
+{
+  d_cnfStream.getBooleanVariables(outputVariables);
 }
 
 SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
