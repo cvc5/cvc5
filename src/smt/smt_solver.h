@@ -103,11 +103,13 @@ class SmtSolver : protected EnvObj
    */
   void processAssertions(Assertions& as);
   /**
-   * Get the list of preprocessed assertions
+   * Get the list of preprocessed assertions. Only valid if
+   * trackPreprocessedAssertions is true.
    */
   const std::vector<Node>& getPreprocessedAssertions() const;
   /**
-   *
+   * Get the skolem map corresponding to the preprocessed assertions. Only valid
+   * if trackPreprocessedAssertions is true.
    */
   const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
   /**
