@@ -1431,7 +1431,7 @@ def test_get_unsat_core_and_proof(solver):
     unsat_core = solver.getUnsatCore()
     
     solver.getProof()
-    solver.getProofComponent(ProofComponent.PROOF_COMPONENT_SAT)
+    solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
 
     solver.resetAssertions()
     for t in unsat_core:
