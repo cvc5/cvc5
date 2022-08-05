@@ -109,16 +109,16 @@ std::vector<Node> Preprocessor::getLearnedLiterals() const
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
-Node Preprocessor::expandDefinitions(const Node& n)
+Node Preprocessor::applySubstitutions(const Node& n)
 {
   std::unordered_map<Node, Node> cache;
-  return expandDefinitions(n, cache);
+  return applySubstitutions(n, cache);
 }
 
-Node Preprocessor::expandDefinitions(const Node& node,
+Node Preprocessor::applySubstitutions(const Node& node,
                                      std::unordered_map<Node, Node>& cache)
 {
-  Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
+  Trace("smt") << "SMT applySubstitutions(" << node << ")" << endl;
   // Substitute out any abstract values in node.
   Node n = d_absValues.substituteAbstractValues(node);
   if (options().expr.typeChecking)
@@ -132,19 +132,19 @@ Node Preprocessor::expandDefinitions(const Node& node,
   return n;
 }
 
-void Preprocessor::expandDefinitions(std::vector<Node>& ns)
+void Preprocessor::applySubstitutions(std::vector<Node>& ns)
 {
   std::unordered_map<Node, Node> cache;
   for (size_t i = 0, nasserts = ns.size(); i < nasserts; i++)
   {
-    ns[i] = expandDefinitions(ns[i], cache);
+    ns[i] = applySubstitutions(ns[i], cache);
   }
 }
 
 Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
-  Node ret = expandDefinitions(node);
+  Node ret = applySubstitutions(node);
   ret = rewrite(ret);
   return ret;
 }

@@ -666,7 +666,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     // we get the assertions using the getAssertionsInternal, which does not
     // impact whether we are in "sat" mode
     std::vector<Node> asserts = getAssertionsInternal();
-    d_smtSolver->getPreprocessor()->expandDefinitions(asserts);
+    d_smtSolver->getPreprocessor()->applySubstitutions(asserts);
     ModelCoreBuilder mcb(*d_env.get());
     mcb.setModelCore(asserts, m, opts.smt.modelCoresMode);
   }
@@ -984,14 +984,6 @@ Node SolverEngine::simplify(const Node& ex)
   return d_smtSolver->getPreprocessor()->simplify(ex);
 }
 
-Node SolverEngine::expandDefinitions(const Node& ex)
-{
-  getResourceManager()->spendResource(Resource::PreprocessStep);
-  finishInit();
-  d_state->doPendingPops();
-  return d_smtSolver->getPreprocessor()->expandDefinitions(ex);
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 Node SolverEngine::getValue(const Node& ex) const
 {
@@ -1000,7 +992,7 @@ Node SolverEngine::getValue(const Node& ex) const
   TypeNode expectedType = ex.getType();
 
   // Substitute out any abstract values in ex and expand
-  Node n = d_smtSolver->getPreprocessor()->expandDefinitions(ex);
+  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(ex);
 
   Trace("smt") << "--- getting value of " << n << endl;
   // There are two ways model values for terms are computed (for historical
@@ -1128,7 +1120,7 @@ void SolverEngine::blockModel(modes::BlockModelsMode mode)
   TheoryModel* m = getAvailableModel("block model");
 
   // get expanded assertions
-  std::vector<Node> eassertsProc = getExpandedAssertions();
+  std::vector<Node> eassertsProc = getSubstitutedAssertions();
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(eassertsProc, m, mode);
   Trace("smt") << "Block formula: " << eblocker << std::endl;
@@ -1149,7 +1141,7 @@ void SolverEngine::blockModelValues(const std::vector<Node>& exprs)
   TheoryModel* m = getAvailableModel("block model values");
 
   // get expanded assertions
-  std::vector<Node> eassertsProc = getExpandedAssertions();
+  std::vector<Node> eassertsProc = getSubstitutedAssertions();
   // we always do block model values mode here
   ModelBlocker mb(*d_env.get());
   Node eblocker = mb.getModelBlocker(
@@ -1224,11 +1216,11 @@ void SolverEngine::ensureWellFormedTerms(const std::vector<Node>& ns,
   }
 }
 
-std::vector<Node> SolverEngine::getExpandedAssertions()
+std::vector<Node> SolverEngine::getSubstitutedAssertions()
 {
   std::vector<Node> easserts = getAssertions();
   // must expand definitions
-  d_smtSolver->getPreprocessor()->expandDefinitions(easserts);
+  d_smtSolver->getPreprocessor()->applySubstitutions(easserts);
   return easserts;
 }
 Env& SolverEngine::getEnv() { return *d_env.get(); }
@@ -1368,7 +1360,7 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     {
       if (ucAssertion != skip && removed.find(ucAssertion) == removed.end())
       {
-        Node assertionAfterExpansion = expandDefinitions(ucAssertion);
+        Node assertionAfterExpansion = d_smtSolver->getPreprocessor()->applySubstitutions(ucAssertion);
         coreChecker->assertFormula(assertionAfterExpansion);
       }
     }
@@ -1732,9 +1724,9 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
   finishInit();
-  std::vector<Node> axioms = getExpandedAssertions();
+  std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->expandDefinitions(conj);
+  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
   Node interpol;
   bool success =
       d_interpolSolver->getInterpolant(axioms, conje, grammarType, interpol);
@@ -1766,9 +1758,9 @@ Node SolverEngine::getInterpolantNext()
 Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
   finishInit();
-  std::vector<Node> axioms = getExpandedAssertions();
+  std::vector<Node> axioms = getSubstitutedAssertions();
   // expand definitions in the conjecture as well
-  Node conje = d_smtSolver->getPreprocessor()->expandDefinitions(conj);
+  Node conje = d_smtSolver->getPreprocessor()->applySubstitutions(conj);
   Node abd;
   bool success = d_abductSolver->getAbduct(axioms, conje, grammarType, abd);
   // notify the state of whether the get-abduct call was successful, which

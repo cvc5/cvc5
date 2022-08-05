@@ -88,17 +88,17 @@ class Preprocessor : protected EnvObj
    */
   Node simplify(const Node& n);
   /**
-   * Expand the definitions in a term or formula n.  No other
-   * simplification or normalization is done.
+   * Apply top-level substitutions and eliminate abstract values in a term or
+   * formula n,  No other simplification or normalization is done.
    *
    * @param n The node to expand
    * @return The expanded term.
    */
-  Node expandDefinitions(const Node& n);
+  Node applySubstitutions(const Node& n);
   /** Same as above, with a cache of previous results. */
-  Node expandDefinitions(const Node& n, std::unordered_map<Node, Node>& cache);
+  Node applySubstitutions(const Node& n, std::unordered_map<Node, Node>& cache);
   /** Same as above, for a list of assertions, updating in place */
-  void expandDefinitions(std::vector<Node>& ns);
+  void applySubstitutions(std::vector<Node>& ns);
   /**
    * Enable proofs for this preprocessor. This must be called
    * explicitly since we construct the preprocessor before we know

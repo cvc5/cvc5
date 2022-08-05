@@ -381,9 +381,9 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
     Assert(conj.getKind() == FORALL);
     Node conjBody = conj[1];
-    // we must expand definitions here, since define-fun may contain the
+    // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
-    conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
+    conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
     // Apply solution map to conjecture body
     conjBody = conjBody.substitute(
         fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
@@ -484,7 +484,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       // expandDefinitions.
       Node eop = op.isConst()
                      ? op
-                     : d_smtSolver.getPreprocessor()->expandDefinitions(op);
+                     : d_smtSolver.getPreprocessor()->applySubstitutions(op);
       eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments

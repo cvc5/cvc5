@@ -473,15 +473,6 @@ class CVC5_EXPORT SolverEngine
   Node simplify(const Node& e);
 
   /**
-   * Expand the definitions in a term or formula.
-   *
-   * @param n The node to expand
-   *
-   * @throw TypeCheckingException, LogicException
-   */
-  Node expandDefinitions(const Node& n);
-
-  /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
    * or NOT_ENTAILED query).  Only permitted if the SolverEngine is set to
    * operate interactively and produce-models is on.
@@ -846,11 +837,11 @@ class CVC5_EXPORT SolverEngine
   /** Get a pointer to the Rewriter owned by this SolverEngine. */
   theory::Rewriter* getRewriter();
   /**
-   * Get expanded assertions.
+   * Get substituted assertions.
    *
-   * Return the set of assertions, after expanding definitions.
+   * Return the set of assertions, after applying top-level substitutions.
    */
-  std::vector<Node> getExpandedAssertions();
+  std::vector<Node> getSubstitutedAssertions();
 
   /**
    * Get the enviornment from this solver engine.
