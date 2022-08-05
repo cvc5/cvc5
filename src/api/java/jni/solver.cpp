@@ -1765,7 +1765,7 @@ Java_io_github_cvc5_Solver_defineFunsRec(JNIEnv* env,
  * Method:    getLearnedLiterals
  * Signature: (J)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals__J(
     JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1781,7 +1781,7 @@ JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals(
  * Method:    getLearnedLiterals
  * Signature: (JI)[J
  */
-JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals(
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getLearnedLiterals__JI(
     JNIEnv* env, jobject, jlong pointer, jint typeValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -1970,7 +1970,7 @@ Java_io_github_cvc5_Solver_getDifficulty(JNIEnv* env, jobject, jlong pointer)
  * Method:    getProof
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer)
 {
@@ -1986,7 +1986,7 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof(JNIEnv* env,
  * Method:    getProof
  * Signature: (JI)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof(JNIEnv* env,
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__JI(JNIEnv* env,
                                                               jobject,
                                                               jlong pointer,
                                                               jint pcvalue)
