@@ -120,9 +120,8 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   Result result;
   try
   {
-
     // then, initialize the assertions
-    as.initializeCheckSat(assumptions);
+    as.setAssumptions(assumptions);
 
     // make the check, where notice smt engine should be fully inited by now
 
@@ -139,60 +138,26 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     else
     {
       rm->beginCall();
-
+      
+      // Preprocess the assertions
+      Trace("smt") << "SmtSolver::check(): preprocess" << endl;
+      preprocess(as);
+      Trace("smt") << "SmtSolver::check(): done preprocess" << endl;
+      
       // Make sure the prop layer has all of the assertions
-      Trace("smt") << "SmtSolver::check(): processing assertions" << endl;
-      processAssertions(as);
-      Trace("smt") << "SmtSolver::check(): done processing assertions" << endl;
-
-      TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
+      Trace("smt") << "SmtSolver::check(): assert to internal" << endl;
+      assertToInternal(as);
+      Trace("smt") << "SmtSolver::check(): done assert to internal" << endl;
 
       d_env.verbose(2) << "solving..." << std::endl;
       Trace("smt") << "SmtSolver::check(): running check" << endl;
-      result = d_propEngine->checkSat();
+      result = checkSatInternal();
       Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
 
       rm->endCall();
       Trace("limit") << "SmtSolver::check(): cumulative millis "
                      << rm->getTimeUsage() << ", resources "
                      << rm->getResourceUsage() << endl;
-
-      if ((d_env.getOptions().smt.solveRealAsInt
-           || d_env.getOptions().smt.solveIntAsBV > 0)
-          && result.getStatus() == Result::UNSAT)
-      {
-        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
-      }
-      // flipped if we did a global negation
-      if (as.isGlobalNegated())
-      {
-        Trace("smt") << "SmtSolver::process global negate " << result
-                     << std::endl;
-        if (result.getStatus() == Result::UNSAT)
-        {
-          result = Result(Result::SAT);
-        }
-        else if (result.getStatus() == Result::SAT)
-        {
-          // Only can answer unsat if the theory is satisfaction complete. This
-          // includes linear arithmetic and bitvectors, which are the primary
-          // targets for the global negate option. Other logics are possible
-          // here but not considered.
-          LogicInfo logic = d_env.getLogicInfo();
-          if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear())
-              || logic.isPure(theory::THEORY_BV))
-          {
-            result = Result(Result::UNSAT);
-          }
-          else
-          {
-            result =
-                Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
-          }
-        }
-        Trace("smt") << "SmtSolver::global negate returned " << result
-                     << std::endl;
-      }
     }
   }
   catch (const LogicException& e)
@@ -203,23 +168,61 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     throw;
   }
 
-  // set the filename on the result
-  const std::string& filename = d_env.getOptions().driver.filename;
-  return Result(result, filename);
+  return result;
+}
+
+Result SmtSolver::checkSatInternal()
+{
+  // call the prop engine to check sat
+  Result result = d_propEngine->checkSat();
+  // handle options-specific modifications to result
+  if ((options().smt.solveRealAsInt || options().smt.solveIntAsBV > 0)
+      && result.getStatus() == Result::UNSAT)
+  {
+    result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
+  }
+  // handle preprocessing-specific modifications to result
+  if (options().quantifiers.globalNegate)
+  {
+    Trace("smt") << "SmtSolver::process global negate " << result << std::endl;
+    if (result.getStatus() == Result::UNSAT)
+    {
+      result = Result(Result::SAT);
+    }
+    else if (result.getStatus() == Result::SAT)
+    {
+      // Only can answer unsat if the theory is satisfaction complete. This
+      // includes linear arithmetic and bitvectors, which are the primary
+      // targets for the global negate option. Other logics are possible
+      // here but not considered.
+      LogicInfo logic = logicInfo();
+      if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear())
+          || logic.isPure(theory::THEORY_BV))
+      {
+        result = Result(Result::UNSAT);
+      }
+      else
+      {
+        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
+      }
+    }
+    Trace("smt") << "SmtSolver::global negate returned " << result << std::endl;
+  }
+  return result;
 }
 
 void SmtSolver::processAssertions(Assertions& as)
 {
+  // preprocess
+  preprocess(as);
+  // assert to internal
+  assertToInternal(as);
+}
+
+void SmtSolver::preprocess(Assertions& as)
+{
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
-
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
-
-  if (ap.size() == 0)
-  {
-    // nothing to do
-    return;
-  }
 
   // process the assertions with the preprocessor
   d_pp.process(as);
@@ -227,51 +230,57 @@ void SmtSolver::processAssertions(Assertions& as)
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  // Push the formula to SAT
+  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  const std::vector<Node>& assertions = ap.ref();
+  // It is important to distinguish the input assertions from the skolem
+  // definitions, as the decision justification heuristic treates the latter
+  // specially. Note that we don't pass the preprocess learned literals
+  // d_pp.getLearnedLiterals() here, since they may not exactly correspond
+  // to the actual preprocessed learned literals, as the input may have
+  // undergone further preprocessing.
+  preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+  // if we can deep restart, we always remember the preprocessed formulas,
+  // which are the basis for the next check-sat.
+  if (trackPreprocessedAssertions())
   {
-    d_env.verbose(2) << "converting to CNF..." << endl;
-    const std::vector<Node>& assertions = ap.ref();
-    // It is important to distinguish the input assertions from the skolem
-    // definitions, as the decision justification heuristic treates the latter
-    // specially. Note that we don't pass the preprocess learned literals
-    // d_pp.getLearnedLiterals() here, since they may not exactly correspond
-    // to the actual preprocessed learned literals, as the input may have
-    // undergone further preprocessing.
-    preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    // if we can deep restart, we always remember the preprocessed formulas,
-    // which are the basis for the next check-sat.
-    if (trackPreprocessedAssertions())
+    // incompatible with global negation
+    Assert(!options().quantifiers.globalNegate);
+    theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
+    // note that if a skolem is eliminated in preprocessing, we remove it
+    // from the preprocessed skolem map
+    std::vector<size_t> elimSkolems;
+    for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
     {
-      // incompatible with global negation
-      Assert(!as.isGlobalNegated());
-      theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-      // note that if a skolem is eliminated in preprocessing, we remove it
-      // from the preprocessed skolem map
-      std::vector<size_t> elimSkolems;
-      for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
+      if (sm.hasSubstitution(k.second))
       {
-        if (sm.hasSubstitution(k.second))
-        {
-          Trace("deep-restart-ism")
-              << "SKOLEM:" << k.second << " was eliminated during preprocessing"
-              << std::endl;
-          elimSkolems.push_back(k.first);
-          continue;
-        }
-        Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
-                                  << assertions[k.first] << std::endl;
+        Trace("deep-restart-ism")
+            << "SKOLEM:" << k.second << " was eliminated during preprocessing"
+            << std::endl;
+        elimSkolems.push_back(k.first);
+        continue;
       }
-      for (size_t i : elimSkolems)
-      {
-        ism.erase(i);
-      }
-      // remember the assertions and Skolem mapping
-      d_ppAssertions = assertions;
-      d_ppSkolemMap = ism;
+      Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
+                                << assertions[k.first] << std::endl;
     }
-    d_propEngine->assertInputFormulas(assertions, ism);
+    for (size_t i : elimSkolems)
+    {
+      ism.erase(i);
+    }
+    // remember the assertions and Skolem mapping
+    d_ppAssertions = assertions;
+    d_ppSkolemMap = ism;
   }
+}
 
+void SmtSolver::assertToInternal(Assertions& as)
+{
+  // get the assertions
+  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  const std::vector<Node>& assertions = ap.ref();
+  preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+  // assert to prop engine, which will convert to CNF
+  d_env.verbose(2) << "converting to CNF..." << endl;
+  d_propEngine->assertInputFormulas(assertions, ism);
   // clear the current assertions
   as.clearCurrent();
 }
@@ -279,6 +288,12 @@ void SmtSolver::processAssertions(Assertions& as)
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const
 {
   return d_ppAssertions;
+}
+
+const std::unordered_map<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
+    const
+{
+  return d_ppSkolemMap;
 }
 
 void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)

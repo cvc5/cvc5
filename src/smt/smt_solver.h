@@ -107,6 +107,10 @@ class SmtSolver : protected EnvObj
    */
   const std::vector<Node>& getPreprocessedAssertions() const;
   /**
+   *
+   */
+  const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
+  /**
    * Perform a deep restart.
    *
    * This constructs a fresh copy of the theory engine and prop engine, and
@@ -131,6 +135,23 @@ class SmtSolver : protected EnvObj
   //------------------------------------------ end access methods
 
  private:
+  /**
+   * Preprocess the assertions. This calls the preprocessor on the assertions
+   * and sets d_ppAssertions / d_ppSkolemMap if necessary.
+   */
+  void preprocess(Assertions& as);
+  /**
+   * Push the assertions to the prop engine. Assumes that as has been
+   * preprocessed. This pushes the assertions in as into the prop engine of
+   * this solver and subsequently clears as.
+   */
+  void assertToInternal(Assertions& as);
+  /**
+   * Check satisfiability based on the current state of the prop engine.
+   * This assumes we have pushed the necessary assertions to it. It post
+   * processes the results based on the options.
+   */
+  Result checkSatInternal();
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
   /** The preprocessor of this SMT solver */
