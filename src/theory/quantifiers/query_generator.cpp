@@ -85,8 +85,9 @@ bool QueryGeneratorBasic::addTerm(Node n, std::ostream& out)
 {
   ensureBoolean(n);
   out << "(query " << n << ")" << std::endl;
+  SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
-  initializeChecker(queryChecker, n);
+  initializeChecker(queryChecker, n, ssi);
   Result r = queryChecker->checkSat();
   dumpQuery(n, r);
   return true;
