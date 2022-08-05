@@ -41,7 +41,6 @@ Preprocessor::Preprocessor(Env& env,
       d_absValues(abs),
       d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
-      d_exDefs(env),
       d_processor(env, stats)
 {
 
@@ -130,8 +129,6 @@ Node Preprocessor::expandDefinitions(const Node& node,
   // apply substitutions here (without rewriting), before expanding definitions
   n = d_env.getTopLevelSubstitutions().apply(n);
   Trace("smt-debug") << "...after top-level subs: " << n << std::endl;
-  // now call expand definitions
-  n = d_exDefs.expandDefinitions(n, cache);
   return n;
 }
 
@@ -155,7 +152,6 @@ Node Preprocessor::simplify(const Node& node)
 void Preprocessor::enableProofs(PreprocessProofGenerator* pppg)
 {
   Assert(pppg != nullptr);
-  d_exDefs.enableProofs();
   d_propagator.enableProofs(userContext(), pppg);
 }
 

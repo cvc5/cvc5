@@ -121,8 +121,6 @@ class Preprocessor : protected EnvObj
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
   std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
-  /** Expand definitions module, responsible for expanding definitions */
-  ExpandDefs d_exDefs;
   /**
    * Process assertions module, responsible for implementing the preprocessing
    * passes.
