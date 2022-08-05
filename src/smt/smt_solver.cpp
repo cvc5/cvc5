@@ -138,12 +138,12 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     else
     {
       rm->beginCall();
-      
+
       // Preprocess the assertions
       Trace("smt") << "SmtSolver::check(): preprocess" << endl;
       preprocess(as);
       Trace("smt") << "SmtSolver::check(): done preprocess" << endl;
-      
+
       // Make sure the prop layer has all of the assertions
       Trace("smt") << "SmtSolver::check(): assert to internal" << endl;
       assertToInternal(as);
