@@ -298,6 +298,8 @@ libcvc5_add_sources(
   smt/check_models.h
   smt/command.cpp
   smt/command.h
+  smt/context_manager.cpp
+  smt/context_manager.h
   smt/difficulty_post_processor.cpp
   smt/difficulty_post_processor.h
   smt/env.cpp
@@ -347,6 +349,8 @@ libcvc5_add_sources(
   smt/smt_mode.h
   smt/smt_solver.cpp
   smt/smt_solver.h
+  smt/smt_solver_driver.cpp
+  smt/smt_solver_driver.h
   smt/sygus_solver.cpp
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
