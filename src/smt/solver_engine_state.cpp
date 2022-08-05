@@ -309,7 +309,9 @@ void SolverEngineState::doPendingPops()
   while (d_pendingPops > 0)
   {
     // the context pop is done inside of the SAT solver
-    d_slv.notifyPopPre();
+    {
+      
+    }
     // pop the context
     userContext()->pop();
     --d_pendingPops;

@@ -24,10 +24,10 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
-
-class SolverEngine;
-
 namespace smt {
+
+class SmtSolver;
+struct SolverEngineStatistics;
 
 /**
  * This utility is responsible for maintaining the basic state of the
@@ -49,18 +49,9 @@ namespace smt {
 class ContextManager : protected EnvObj
 {
  public:
-  ContextManager(Env& env, SolverEngine& smt);
+  ContextManager(Env& env, SmtSolver& smt,
+            SolverEngineStatistics& stats);
   ~ContextManager() {}
-  /**
-   * Notify that the expected status of the next check-sat is given by the
-   * string status, which should be one of "sat", "unsat" or "unknown".
-   */
-  void notifyExpectedStatus(const std::string& status);
-  /**
-   * Notify that the SolverEngine is fully initialized, which is called when
-   * options are finalized.
-   */
-  void notifyFullyInited();
   /**
    * Notify that we are resetting the assertions, called when a reset-assertions
    * command is issued by the user.
@@ -124,7 +115,9 @@ class ContextManager : protected EnvObj
    */
   void internalPop(bool immediate = false);
   /** Reference to the SolverEngine */
-  SolverEngine& d_slv;
+  SmtSolver& d_smt;
+  /** Reference to the statistics of SolverEngine */
+  SolverEngineStatistics& d_stats;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 

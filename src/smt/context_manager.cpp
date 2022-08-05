@@ -21,13 +21,16 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
+#include "smt/smt_solver.h"
+#include "prop/prop_engine.h"
+#include "smt/solver_engine_stats.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-ContextManager::ContextManager(Env& env, SolverEngine& slv)
-    : EnvObj(env), d_slv(slv), d_pendingPops(0)
+ContextManager::ContextManager(Env& env, SmtSolver& smt,
+            SolverEngineStatistics& stats)
+    : EnvObj(env), d_smt(smt), d_stats(stats), d_pendingPops(0)
 {
 }
 void ContextManager::notifyResetAssertions()
@@ -99,6 +102,7 @@ void ContextManager::userPop()
   }
   d_userLevels.pop_back();
 }
+
 void ContextManager::push()
 {
   userContext()->push();
@@ -128,10 +132,17 @@ void ContextManager::internalPush()
   if (options().base.incrementalSolving)
   {
     // notifies the SolverEngine to process the assertions immediately
-    d_slv.notifyPushPre();
+    {
+      
+      //d_smt.processAssertions(*d_asserts);
+    }
     userContext()->push();
     // the context push is done inside of the SAT solver
-    d_slv.notifyPushPost();
+    {
+      TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
+      Assert(d_smt.getPropEngine() != nullptr);
+      d_smt.getPropEngine()->push();
+    }
   }
 }
 
@@ -156,7 +167,12 @@ void ContextManager::doPendingPops()
   while (d_pendingPops > 0)
   {
     // the context pop is done inside of the SAT solver
-    d_slv.notifyPopPre();
+    {
+      TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
+      prop::PropEngine* pe = d_smt.getPropEngine();
+      Assert(pe != nullptr);
+      pe->pop();
+    }
     // pop the context
     userContext()->pop();
     --d_pendingPops;
