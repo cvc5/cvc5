@@ -1815,9 +1815,15 @@ void Smt2Printer::toStreamCmdGetAssertions(std::ostream& out) const
   out << "(get-assertions)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdGetProof(std::ostream& out) const
+void Smt2Printer::toStreamCmdGetProof(std::ostream& out,
+                                      modes::ProofComponent c) const
 {
-  out << "(get-proof)" << std::endl;
+  out << "(get-proof";
+  if (c != modes::PROOF_COMPONENT_FULL)
+  {
+    out << " :" << c;
+  }
+  out << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetUnsatAssumptions(std::ostream& out) const
@@ -1835,9 +1841,15 @@ void Smt2Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   out << "(get-difficulty)" << std::endl;
 }
 
-void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+void Smt2Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                                modes::LearnedLitType t) const
 {
-  out << "(get-learned-literals)" << std::endl;
+  out << "(get-learned-literals";
+  if (t != modes::LEARNED_LIT_INPUT)
+  {
+    out << " :" << t;
+  }
+  out << ")" << std::endl;
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,

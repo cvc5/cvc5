@@ -1,5 +1,10 @@
 This file contains a summary of important user-visible changes.
 
+**Changes**
+
+- API: Previously, it was not possible to share Sort, Term, Op, Grammar and
+       datatype objects between Solver instances. This is now allowed.
+
 cvc5 1.0.1
 ==========
 
