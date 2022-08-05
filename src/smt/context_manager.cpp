@@ -27,9 +27,7 @@ namespace cvc5::internal {
 namespace smt {
 
 ContextManager::ContextManager(Env& env, SolverEngine& slv)
-    : EnvObj(env),
-      d_slv(slv),
-      d_pendingPops(0)
+    : EnvObj(env), d_slv(slv), d_pendingPops(0)
 {
 }
 void ContextManager::notifyResetAssertions()
@@ -124,7 +122,7 @@ size_t ContextManager::getNumPendingPops() const { return d_pendingPops; }
 
 void ContextManager::internalPush()
 {
-  //Assert(d_fullyInited);
+  // Assert(d_fullyInited);
   Trace("smt") << "ContextManager::internalPush()" << std::endl;
   doPendingPops();
   if (options().base.incrementalSolving)
@@ -139,7 +137,7 @@ void ContextManager::internalPush()
 
 void ContextManager::internalPop(bool immediate)
 {
-  //Assert(d_fullyInited);
+  // Assert(d_fullyInited);
   Trace("smt") << "ContextManager::internalPop()" << std::endl;
   if (options().base.incrementalSolving)
   {
@@ -165,7 +163,6 @@ void ContextManager::doPendingPops()
     // no need for pop post (for now)
   }
 }
-
 
 }  // namespace smt
 }  // namespace cvc5::internal
