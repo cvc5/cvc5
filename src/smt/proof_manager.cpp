@@ -165,6 +165,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   {
     return pfn;
   }
+
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): make scope...\n";
 
@@ -193,6 +194,7 @@ void PfManager::printProof(std::ostream& out,
     proof::DotPrinter dotPrinter(d_env);
     dotPrinter.print(out, fp.get());
   }
+<<<<<<< HEAD
   else if (mode == options::ProofFormatMode::LEAN)
   {
     Assert(fp->getRule() == PfRule::SCOPE);
@@ -201,6 +203,8 @@ void PfManager::printProof(std::ostream& out,
     lpfpp.process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
+=======
+>>>>>>> 9669fed4591d3e3a2e3455e8d599aaacc16989a8
   else if (mode == options::ProofFormatMode::ALETHE)
   {
     proof::AletheNodeConverter anc;

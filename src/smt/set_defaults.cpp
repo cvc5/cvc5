@@ -109,6 +109,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     opts.writeSmt().checkProofs = true;
     if (!opts.proof.proofGranularityModeWasSetByUser)
     {
+      // maximize the granularity
       notifyModifyOption(
           "proofGranularityMode", "dsl-rewrite", "check-proof-steps");
       opts.writeProof().proofGranularityMode =
@@ -1828,6 +1829,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.writeSmt().checkUnsatCores = false;
   opts.writeSmt().produceProofs = false;
   opts.writeSmt().checkProofs = false;
+  opts.writeSmt().debugCheckModels = false;
   opts.writeSmt().checkModels = false;
   opts.writeProof().checkProofSteps = false;
   opts.writeProof().proofReq = false;

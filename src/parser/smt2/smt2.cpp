@@ -316,9 +316,39 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
   return modes::BlockModelsMode::LITERALS;
 }
 
+modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
+{
+  if (mode == "preprocess_solved")
+  {
+    return modes::LEARNED_LIT_PREPROCESS_SOLVED;
+  }
+  else if (mode == "preprocess")
+  {
+    return modes::LEARNED_LIT_PREPROCESS;
+  }
+  else if (mode == "input")
+  {
+    return modes::LEARNED_LIT_INPUT;
+  }
+  else if (mode == "solvable")
+  {
+    return modes::LEARNED_LIT_SOLVABLE;
+  }
+  else if (mode == "constant_prop")
+  {
+    return modes::LEARNED_LIT_CONSTANT_PROP;
+  }
+  else if (mode == "internal")
+  {
+    return modes::LEARNED_LIT_INTERNAL;
+  }
+  parseError(std::string("Unknown learned literal type `") + mode + "'");
+  return modes::LEARNED_LIT_UNKNOWN;
+}
+
 modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
 {
-  if (pc == "raw-preprocess")
+  if (pc == "raw_preprocess")
   {
     return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
   }
@@ -1363,14 +1393,15 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  if (getSymbolManager()->setExpressionName(expr, name, false)
-      == NamingResult::ERROR_IN_BINDER)
+  NamingResult nr = getSymbolManager()->setExpressionName(expr, name, false);
+  if (nr == NamingResult::ERROR_IN_BINDER)
   {
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // define the variable
-  defineVar(name, expr);
+  // Note that we do not bind the symbol here; this is done separately
+  // in a define-fun command in Smt.g to ensure -o raw-benchmark results in a
+  // parsable result.
   // set the last named term, which ensures that we catch when assertions are
   // named
   setLastNamedTerm(expr, name);

@@ -164,11 +164,6 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     {
       // no need to check
     }
-    else if (r == PfRule::THEORY_REWRITE || r == PfRule::REWRITE)
-    {
-      // always warn about things that are trivial to prove
-      Warning() << "May not hold: " << r << " for " << conc << std::endl;
-    }
     else
     {
       std::vector<Node> premises;
@@ -195,7 +190,8 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       Trace("check-proof-steps") << "...got " << res << std::endl;
       if (res != Result::UNSAT)
       {
-        Warning() << "May not hold: " << r << " for " << query << std::endl;
+        Warning() << "A proof step may not hold: " << r << " proving " << query;
+        Warning() << ", result from check-sat was: " << res << std::endl;
         Trace("check-proof-steps")
             << "Original conclusion: " << conc << std::endl;
       }

@@ -208,7 +208,8 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdGetDifficulty(std::ostream& out) const override;
 
   /** Print get-learned-literals command */
-  void toStreamCmdGetLearnedLiterals(std::ostream& out) const override;
+  void toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                     modes::LearnedLitType t) const override;
 
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;

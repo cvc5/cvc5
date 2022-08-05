@@ -237,7 +237,8 @@ class Printer
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
 
   /** Print get-learned-literals command */
-  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out) const;
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                             modes::LearnedLitType t) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
