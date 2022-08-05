@@ -21,7 +21,6 @@
 #include <memory>
 
 #include "smt/env_obj.h"
-#include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
