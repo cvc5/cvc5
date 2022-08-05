@@ -18,8 +18,8 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
 #define CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
 
-#include "options/options.h"
 #include "expr/node.h"
+#include "options/options.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"

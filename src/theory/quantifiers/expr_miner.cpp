@@ -60,7 +60,10 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
 {
   Assert (!query.isNull());
   initializeSubsolver(
-      checker, info, options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser, options().quantifiers.sygusExprMinerCheckTimeout);
+      checker,
+      info,
+      options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser,
+      options().quantifiers.sygusExprMinerCheckTimeout);
   // disable options that would lead to infinite loops
   checker->setOption("sygus-rr-synth-input", "false");
   // Convert bound variables to skolems. This ensures the satisfiability
@@ -69,8 +72,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
   checker->assertFormula(squery);
 }
 
-Result ExprMiner::doCheck(Node query,
-                                  const SubsolverSetupInfo& info)
+Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
 {
   Node queryr = rewrite(query);
   if (queryr.isConst())

@@ -21,8 +21,8 @@
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "util/random.h"
 #include "smt/set_defaults.h"
+#include "util/random.h"
 
 using namespace cvc5::internal::kind;
 

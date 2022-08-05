@@ -95,8 +95,7 @@ class ExprMiner : protected EnvObj
    * In contrast to the above method, this call should be used for cases where
    * the model for the query is not important.
    */
-  Result doCheck(Node query,
-                                  const SubsolverSetupInfo& info);
+  Result doCheck(Node query, const SubsolverSetupInfo& info);
 };
 
 }  // namespace quantifiers
