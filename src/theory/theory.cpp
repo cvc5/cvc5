@@ -524,7 +524,8 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   {
     // just check if they are disequal, which is the used in the case for
     // non-shared terms.
-    if (d_equalityEngine != nullptr && d_equalityEngine->areDisequal(x, y, false))
+    if (d_equalityEngine != nullptr
+        && d_equalityEngine->areDisequal(x, y, false))
     {
       return true;
     }
@@ -538,7 +539,8 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   {
     return true;
   }
-  Assert(d_equalityEngine == nullptr || !d_equalityEngine->areDisequal(x, y, false));
+  Assert(d_equalityEngine == nullptr
+         || !d_equalityEngine->areDisequal(x, y, false));
   return false;
 }
 
