@@ -15,19 +15,22 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__CONTEXT_MANAGER_H
-#define CVC5__SMT__CONTEXT_MANAGER_H
+#ifndef CVC5__SMT__SMT_ENGINE_STATE_H
+#define CVC5__SMT__SMT_ENGINE_STATE_H
 
 #include <string>
 
 #include "context/context.h"
 #include "smt/env_obj.h"
+#include "smt/smt_mode.h"
+#include "util/result.h"
+#include "util/synth_result.h"
 
 namespace cvc5::internal {
-namespace smt {
 
-class SmtSolver;
-struct SolverEngineStatistics;
+class SolverEngine;
+
+namespace smt {
 
 /**
  * This utility is responsible for maintaining the basic state of the
@@ -49,18 +52,46 @@ struct SolverEngineStatistics;
 class ContextManager : protected EnvObj
 {
  public:
-  ContextManager(Env& env, SmtSolver& smt, SolverEngineStatistics& stats);
+  ContextManager(Env& env, SolverEngine& smt);
   ~ContextManager() {}
+  /**
+   * Notify that the SolverEngine is fully initialized, which is called when
+   * options are finalized.
+   */
+  void notifyFullyInited();
   /**
    * Notify that we are resetting the assertions, called when a reset-assertions
    * command is issued by the user.
    */
   void notifyResetAssertions();
   /**
+   * Notify that we are about to call check-sat. This call is made prior to
+   * initializing the assertions. It processes pending pops and pushes a
+   * (user) context if necessary.
+   *
+   * @param hasAssumptions Whether the call to check-sat has assumptions. If
+   * so, we push a context.
+   */
+  void notifyCheckSat(bool hasAssumptions);
+  /**
+   * Notify that the result of the last check-sat was r. This should be called
+   * once immediately following notifyCheckSat() if the check-sat call
+   * returned normal (i.e. it was not interupted).
+   *
+   * @param hasAssumptions Whether the prior call to check-sat had assumptions.
+   * If so, we pop a context.
+   * @param r The result of the check-sat call.
+   */
+  void notifyCheckSatResult(bool hasAssumptions, const Result& r);
+  /**
    * Setup the context, which makes a single push to maintain a global
    * context around everything.
    */
   void setup();
+  /**
+   * Set that we are in a fully initialized state.
+   */
+  void finishInit();
   /**
    * Prepare for a shutdown of the SolverEngine, which does pending pops and
    * pops the user context to zero.
@@ -90,10 +121,10 @@ class ContextManager : protected EnvObj
   void userPop();
   //---------------------------- end context management
 
+  //---------------------------- queries
   /** Return the user context level.  */
   size_t getNumUserLevels() const;
-  /** Get the number of pending pops */
-  size_t getNumPendingPops() const;
+  //---------------------------- end queries
 
  private:
   /** Pushes the user and SAT contexts */
@@ -114,9 +145,7 @@ class ContextManager : protected EnvObj
    */
   void internalPop(bool immediate = false);
   /** Reference to the SolverEngine */
-  SmtSolver& d_smt;
-  /** Reference to the statistics of SolverEngine */
-  SolverEngineStatistics& d_stats;
+  SolverEngine& d_slv;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 
