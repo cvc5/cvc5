@@ -233,6 +233,7 @@ bool OverloadedTypeTrie::bind(const string& name,
                               cvc5::Term prev_bound_obj,
                               cvc5::Term obj)
 {
+  Assert(prev_bound_obj != obj);
   bool retprev = true;
   if (!isOverloadedFunction(prev_bound_obj))
   {
@@ -247,7 +248,8 @@ bool OverloadedTypeTrie::bind(const string& name,
 bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
 {
   Trace("parser-overloading") << "Overloaded function : " << name;
-  Trace("parser-overloading") << " with type " << obj.getSort() << std::endl;
+  Trace("parser-overloading")
+      << " with type " << obj.getSort() << ", obj is " << obj << std::endl;
   // get the argument types
   cvc5::Sort t = obj.getSort();
   cvc5::Sort rangeType = t;
@@ -413,7 +415,7 @@ bool SymbolTable::Implementation::bind(const string& name,
                                        bool doOverload)
 {
   PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null cvc5::Term");
-  Trace("sym-table") << "SymbolTable: bind " << name
+  Trace("sym-table") << "SymbolTable: bind " << name << " to " << obj
                      << ", doOverload=" << doOverload << std::endl;
   if (doOverload)
   {

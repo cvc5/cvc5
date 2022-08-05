@@ -1814,6 +1814,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.writeSmt().checkUnsatCores = false;
   opts.writeSmt().produceProofs = false;
   opts.writeSmt().checkProofs = false;
+  opts.writeSmt().debugCheckModels = false;
   opts.writeSmt().checkModels = false;
   opts.writeProof().checkProofSteps = false;
 }

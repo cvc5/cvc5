@@ -75,9 +75,8 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
   {
     initializeSubsolver(checker, info);
   }
-  // also set the options
+  // disable options that would lead to infinite loops
   checker->setOption("sygus-rr-synth-input", "false");
-  checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
