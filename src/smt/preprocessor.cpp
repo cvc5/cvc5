@@ -116,7 +116,7 @@ Node Preprocessor::applySubstitutions(const Node& n)
 }
 
 Node Preprocessor::applySubstitutions(const Node& node,
-                                     std::unordered_map<Node, Node>& cache)
+                                      std::unordered_map<Node, Node>& cache)
 {
   Trace("smt") << "SMT applySubstitutions(" << node << ")" << endl;
   // Substitute out any abstract values in node.

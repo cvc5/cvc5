@@ -1360,7 +1360,8 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     {
       if (ucAssertion != skip && removed.find(ucAssertion) == removed.end())
       {
-        Node assertionAfterExpansion = d_smtSolver->getPreprocessor()->applySubstitutions(ucAssertion);
+        Node assertionAfterExpansion =
+            d_smtSolver->getPreprocessor()->applySubstitutions(ucAssertion);
         coreChecker->assertFormula(assertionAfterExpansion);
       }
     }
