@@ -13,8 +13,6 @@
  * Utility for maintaining the state of the SMT engine.
  */
 
-#include "smt/solver_engine_state.h"
-
 #include "base/modal_exception.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
@@ -22,6 +20,7 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
+#include "smt/solver_engine_state.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -139,10 +138,7 @@ bool ContextManager::isFullyReady() const
   return d_fullyInited && d_pendingPops == 0;
 }
 bool ContextManager::isQueryMade() const { return d_queryMade; }
-size_t ContextManager::getNumUserLevels() const
-{
-  return d_userLevels.size();
-}
+size_t ContextManager::getNumUserLevels() const { return d_userLevels.size(); }
 void ContextManager::internalPush()
 {
   Assert(d_fullyInited);
