@@ -170,7 +170,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
-      Assert(false);
       std::stringstream ss;
       ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
       throw OptionException(ss.str());
