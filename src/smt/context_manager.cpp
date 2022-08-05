@@ -13,6 +13,8 @@
  * Utility for maintaining the state of the SMT engine.
  */
 
+#include "smt/context_manager.h"
+
 #include "base/modal_exception.h"
 #include "options/base_options.h"
 #include "options/main_options.h"
@@ -20,7 +22,6 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_state.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -28,13 +29,7 @@ namespace smt {
 ContextManager::ContextManager(Env& env, SolverEngine& slv)
     : EnvObj(env),
       d_slv(slv),
-      d_pendingPops(0),
-      d_fullyInited(false),
-      d_queryMade(false),
-      d_needPostsolve(false),
-      d_status(),
-      d_expectedStatus(),
-      d_smtMode(SmtMode::START)
+      d_pendingPops(0)
 {
 }
 void ContextManager::notifyResetAssertions()
@@ -54,12 +49,6 @@ void ContextManager::setup()
 {
   // push a context
   push();
-}
-
-void ContextManager::finishInit()
-{
-  // set the flag to remember that we are fully initialized
-  d_fullyInited = true;
 }
 
 void ContextManager::shutdown()
@@ -129,19 +118,13 @@ void ContextManager::popto(int toLevel)
   context()->popto(toLevel);
   userContext()->popto(toLevel);
 }
-
-Result ContextManager::getStatus() const { return d_status; }
-
-bool ContextManager::isFullyInited() const { return d_fullyInited; }
-bool ContextManager::isFullyReady() const
-{
-  return d_fullyInited && d_pendingPops == 0;
-}
-bool ContextManager::isQueryMade() const { return d_queryMade; }
 size_t ContextManager::getNumUserLevels() const { return d_userLevels.size(); }
+
+size_t ContextManager::getNumPendingPops() const { return d_pendingPops; }
+
 void ContextManager::internalPush()
 {
-  Assert(d_fullyInited);
+  //Assert(d_fullyInited);
   Trace("smt") << "ContextManager::internalPush()" << std::endl;
   doPendingPops();
   if (options().base.incrementalSolving)
@@ -156,7 +139,7 @@ void ContextManager::internalPush()
 
 void ContextManager::internalPop(bool immediate)
 {
-  Assert(d_fullyInited);
+  //Assert(d_fullyInited);
   Trace("smt") << "ContextManager::internalPop()" << std::endl;
   if (options().base.incrementalSolving)
   {
@@ -172,12 +155,6 @@ void ContextManager::doPendingPops()
 {
   Trace("smt") << "ContextManager::doPendingPops()" << std::endl;
   Assert(d_pendingPops == 0 || options().base.incrementalSolving);
-  // check to see if a postsolve() is pending
-  if (d_needPostsolve)
-  {
-    d_slv.notifyPostSolve();
-    d_needPostsolve = false;
-  }
   while (d_pendingPops > 0)
   {
     // the context pop is done inside of the SAT solver
@@ -188,6 +165,7 @@ void ContextManager::doPendingPops()
     // no need for pop post (for now)
   }
 }
+
 
 }  // namespace smt
 }  // namespace cvc5::internal

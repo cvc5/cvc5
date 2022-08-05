@@ -72,10 +72,6 @@ class ContextManager : protected EnvObj
    */
   void setup();
   /**
-   * Set that we are in a fully initialized state.
-   */
-  void finishInit();
-  /**
    * Prepare for a shutdown of the SolverEngine, which does pending pops and
    * pops the user context to zero.
    */
@@ -104,31 +100,10 @@ class ContextManager : protected EnvObj
   void userPop();
   //---------------------------- end context management
 
-  //---------------------------- queries
-  /**
-   * Return true if the SolverEngine is fully initialized (post-construction).
-   * This post-construction initialization is automatically triggered by the
-   * use of the SolverEngine; e.g. when the first formula is asserted, a call
-   * to simplify() is issued, a scope is pushed, etc.
-   */
-  bool isFullyInited() const;
-  /**
-   * Return true if the SolverEngine is fully initialized and there are no
-   * pending pops.
-   */
-  bool isFullyReady() const;
-  /**
-   * Return true if a notifyCheckSat call has been made, e.g. a query has been
-   * issued to the SolverEngine.
-   */
-  bool isQueryMade() const;
   /** Return the user context level.  */
   size_t getNumUserLevels() const;
-  /** Get the status of the last check-sat */
-  Result getStatus() const;
-  /** Get the SMT mode we are in */
-  SmtMode getMode() const;
-  //---------------------------- end queries
+  /** Get the number of pending pops */
+  size_t getNumPendingPops() const;
 
  private:
   /** Pushes the user and SAT contexts */
