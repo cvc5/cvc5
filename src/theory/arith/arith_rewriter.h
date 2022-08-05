@@ -40,6 +40,7 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   TrustNode expandDefinition(Node node);
+
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
