@@ -1971,8 +1971,8 @@ Java_io_github_cvc5_Solver_getDifficulty(JNIEnv* env, jobject, jlong pointer)
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer)
+                                                                 jobject,
+                                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -1987,9 +1987,9 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__J(JNIEnv* env,
  * Signature: (JI)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getProof__JI(JNIEnv* env,
-                                                              jobject,
-                                                              jlong pointer,
-                                                              jint pcvalue)
+                                                                  jobject,
+                                                                  jlong pointer,
+                                                                  jint pcvalue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Solver* solver = reinterpret_cast<Solver*>(pointer);
