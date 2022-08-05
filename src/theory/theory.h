@@ -128,8 +128,10 @@ class Theory : protected EnvObj
    */
   virtual void processCarePairArgs(TNode a, TNode b);
   /**
-   * Are care disequal? Return true if x and y are shared terms that are
-   * disequal according to the valuation.
+   * Are care disequal? Return true if x and y are distinct constanrs, shared
+   * terms that are disequal according to the valuation, or otherwise
+   * disequal according to the equality engine of this theory if x or y is
+   * not shared.
    */
   virtual bool areCareDisequal(TNode x, TNode y);
 
