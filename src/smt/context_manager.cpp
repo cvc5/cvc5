@@ -20,16 +20,17 @@
 #include "options/main_options.h"
 #include "options/option_exception.h"
 #include "options/smt_options.h"
+#include "prop/prop_engine.h"
 #include "smt/env.h"
 #include "smt/smt_solver.h"
-#include "prop/prop_engine.h"
 #include "smt/solver_engine_stats.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-ContextManager::ContextManager(Env& env, SmtSolver& smt,
-            SolverEngineStatistics& stats)
+ContextManager::ContextManager(Env& env,
+                               SmtSolver& smt,
+                               SolverEngineStatistics& stats)
     : EnvObj(env), d_smt(smt), d_stats(stats), d_pendingPops(0)
 {
 }
@@ -133,8 +134,7 @@ void ContextManager::internalPush()
   {
     // notifies the SolverEngine to process the assertions immediately
     {
-      
-      //d_smt.processAssertions(*d_asserts);
+      // d_smt.processAssertions(*d_asserts);
     }
     userContext()->push();
     // the context push is done inside of the SAT solver

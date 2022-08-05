@@ -49,8 +49,7 @@ struct SolverEngineStatistics;
 class ContextManager : protected EnvObj
 {
  public:
-  ContextManager(Env& env, SmtSolver& smt,
-            SolverEngineStatistics& stats);
+  ContextManager(Env& env, SmtSolver& smt, SolverEngineStatistics& stats);
   ~ContextManager() {}
   /**
    * Notify that we are resetting the assertions, called when a reset-assertions

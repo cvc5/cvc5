@@ -310,7 +310,6 @@ void SolverEngineState::doPendingPops()
   {
     // the context pop is done inside of the SAT solver
     {
-      
     }
     // pop the context
     userContext()->pop();
