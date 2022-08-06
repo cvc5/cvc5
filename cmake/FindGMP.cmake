@@ -104,12 +104,10 @@ if(NOT GMP_FOUND_SYSTEM)
 
   # If it isn't a wasm compilation
   if(WASM STREQUAL "OFF")
-    set(GMP_CONFIGURE_CMD "")
     set(GMP_WASM_FLAGS "")
   # Otherwise
   else()
-    set(GMP_CONFIGURE_CMD emconfigure)
-    set(GMP_WASM_FLAGS --host=none --disable-assembly --disable-fft)
+    set(GMP_WASM_FLAGS --disable-assembly --disable-fft)
   endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
@@ -123,7 +121,7 @@ if(NOT GMP_FOUND_SYSTEM)
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-          ${GMP_CONFIGURE_CMD} <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic

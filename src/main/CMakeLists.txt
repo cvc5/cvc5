@@ -68,12 +68,15 @@ elseif(WASM STREQUAL "HTML")
 else()
   set(BINARY_EXTENSION "")
 endif()
+string(REGEX REPLACE "-s +" "-s" WASM_FLAGS "${WASM_FLAGS}")
 
 add_executable(cvc5-bin driver_unified.cpp main.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_EXPORTS)
+target_link_options(cvc5-bin PRIVATE ${WASM_FLAGS})
 set_target_properties(cvc5-bin
   PROPERTIES
-    OUTPUT_NAME cvc5${BINARY_EXTENSION}
+    OUTPUT_NAME cvc5 
+    SUFFIX "${BINARY_EXTENSION}"
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
