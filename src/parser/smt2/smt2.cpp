@@ -348,7 +348,7 @@ modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
 
 modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
 {
-  if (pc == "raw-preprocess")
+  if (pc == "raw_preprocess")
   {
     return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
   }
