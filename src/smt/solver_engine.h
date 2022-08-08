@@ -1026,8 +1026,8 @@ class CVC5_EXPORT SolverEngine
    */
   std::unique_ptr<smt::SolverEngineState> d_state;
   /**
-   * The context manager of this SolverEngine, which is responsible for maintaining which
-   * the contexts.
+   * The context manager of this SolverEngine, which is responsible for
+   * maintaining which the contexts.
    */
   std::unique_ptr<smt::ContextManager> d_ctxManager;
 

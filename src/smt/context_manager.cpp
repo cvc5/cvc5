@@ -27,7 +27,9 @@
 namespace cvc5::internal {
 namespace smt {
 
-ContextManager::ContextManager(Env& env, SolverEngineState& state, SmtSolver& smt)
+ContextManager::ContextManager(Env& env,
+                               SolverEngineState& state,
+                               SmtSolver& smt)
     : EnvObj(env),
       d_state(state),
       d_smt(smt),
@@ -104,7 +106,7 @@ void ContextManager::userPop()
 {
   // notify the state
   d_state.notifyUserPush();
-  
+
   if (d_userLevels.size() == 0)
   {
     throw ModalException("Cannot pop beyond the first user frame");
@@ -136,10 +138,7 @@ void ContextManager::popto(int toLevel)
   userContext()->popto(toLevel);
 }
 
-size_t ContextManager::getNumUserLevels() const
-{
-  return d_userLevels.size();
-}
+size_t ContextManager::getNumUserLevels() const { return d_userLevels.size(); }
 
 void ContextManager::internalPush()
 {
@@ -188,9 +187,6 @@ void ContextManager::doPendingPops()
     // no need for pop post (for now)
   }
 }
-
-
-
 
 }  // namespace smt
 }  // namespace cvc5::internal

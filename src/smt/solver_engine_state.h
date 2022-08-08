@@ -41,9 +41,9 @@ namespace smt {
  *
  * This class has three sets of interfaces:
  * (1) notification methods that are used by SolverEngine to notify when an
- * event occurs (e.g. the beginning of a check-sat call), (2) general information
- * queries, including the mode that the SolverEngine is in, based on the
- * notifications it has received.
+ * event occurs (e.g. the beginning of a check-sat call), (2) general
+ * information queries, including the mode that the SolverEngine is in, based on
+ * the notifications it has received.
  */
 class SolverEngineState : protected EnvObj
 {

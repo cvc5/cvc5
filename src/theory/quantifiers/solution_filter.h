@@ -20,6 +20,7 @@
 
 #include <map>
 #include <unordered_set>
+
 #include "expr/node.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/lazy_trie.h"
