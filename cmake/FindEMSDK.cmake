@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-include(FetchContent)
+include(ExternalProject)
 
 set(EMSDK_VERSION "3.1.18")
 set(EMSDK_FOUND FALSE)
@@ -18,11 +18,12 @@ if(EMSDK_FOUND)
 
 else()
     # Donwload the emsdk
-    file(DOWNLOAD https://codeload.github.com/emscripten-core/emsdk/zip/refs/heads/main ${DEPS_DIR}/${DEP_NAME}.zip)
-    file(ARCHIVE_EXTRACT 
-        INPUT ${DEPS_DIR}/${DEP_NAME}.zip 
-        DESTINATION ${DEPS_DIR})
-    add_custom_command(aaa unZip)
+    
+    # file(DOWNLOAD https://codeload.github.com/emscripten-core/emsdk/zip/refs/heads/main ${DEPS_DIR}/${DEP_NAME}.zip)
+    # file(ARCHIVE_EXTRACT 
+    #     INPUT ${DEPS_DIR}/${DEP_NAME}.zip 
+    #     DESTINATION ${DEPS_DIR})
+    # add_custom_command(aaa unZip)
 
     # git pull
     # ./emsdk install latest
