@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__SMT_ENGINE_STATE_H
-#define CVC5__SMT__SMT_ENGINE_STATE_H
+#ifndef CVC5__SMT__CONTEXT_MANAGER_H
+#define CVC5__SMT__CONTEXT_MANAGER_H
 
 #include <string>
 
@@ -27,10 +27,10 @@
 #include "util/synth_result.h"
 
 namespace cvc5::internal {
-
-class SolverEngine;
-
 namespace smt {
+
+class SmtSolver;
+class SolverEngineState;
 
 /**
  * This utility is responsible for maintaining the basic state of the
@@ -52,13 +52,8 @@ namespace smt {
 class ContextManager : protected EnvObj
 {
  public:
-  ContextManager(Env& env, SolverEngine& smt);
+  ContextManager(Env& env, SolverEngineState& state, SmtSolver& smt);
   ~ContextManager() {}
-  /**
-   * Notify that the SolverEngine is fully initialized, which is called when
-   * options are finalized.
-   */
-  void notifyFullyInited();
   /**
    * Notify that we are resetting the assertions, called when a reset-assertions
    * command is issued by the user.
@@ -80,18 +75,13 @@ class ContextManager : protected EnvObj
    *
    * @param hasAssumptions Whether the prior call to check-sat had assumptions.
    * If so, we pop a context.
-   * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(bool hasAssumptions, const Result& r);
+  void notifyCheckSatResult(bool hasAssumptions);
   /**
    * Setup the context, which makes a single push to maintain a global
    * context around everything.
    */
   void setup();
-  /**
-   * Set that we are in a fully initialized state.
-   */
-  void finishInit();
   /**
    * Prepare for a shutdown of the SolverEngine, which does pending pops and
    * pops the user context to zero.
@@ -144,8 +134,10 @@ class ContextManager : protected EnvObj
    * counter and does nothing.
    */
   void internalPop(bool immediate = false);
-  /** Reference to the SolverEngine */
-  SolverEngine& d_slv;
+  /** Reference to the SolverEngineState */
+  SolverEngineState& d_state;
+  /** Reference to the SmtSolver */
+  SmtSolver& d_smt;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 
@@ -153,6 +145,12 @@ class ContextManager : protected EnvObj
    * Number of internal pops that have been deferred.
    */
   unsigned d_pendingPops;
+  /**
+   * Internal status flag to indicate whether we have been issued a
+   * notifyCheckSat call and have yet to process the "postsolve" methods of
+   * SolverEngine via SolverEngine::notifyPostSolve().
+   */
+  bool d_needPostsolve;
 };
 
 }  // namespace smt

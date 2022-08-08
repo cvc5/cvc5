@@ -119,6 +119,29 @@ class SmtSolver : protected EnvObj
    * checkSatisfiability.
    */
   void deepRestart(Assertions& as, const std::vector<Node>& zll);
+  // --------------------------------------- callbacks from the context manager
+  /**
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
+   */
+  void notifyPushPre();
+  /**
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
+   */
+  void notifyPopPre();
+  /**
+   * Notify post solve, which is called once per check-sat query. It is
+   * triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
+   */
+  void notifyPostSolve();
+  // ----------------------------------- end callbacks from the context manager
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();

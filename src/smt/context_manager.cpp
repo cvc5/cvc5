@@ -21,15 +21,18 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
+#include "smt/smt_solver.h"
+#include "smt/solver_engine_state.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-ContextManager::ContextManager(Env& env, SolverEngine& slv)
+ContextManager::ContextManager(Env& env, SolverEngineState& state, SmtSolver& smt)
     : EnvObj(env),
-      d_slv(slv),
-      d_pendingPops(0)
+      d_state(state),
+      d_smt(smt),
+      d_pendingPops(0),
+      d_needPostsolve(false)
 {
 }
 
@@ -48,9 +51,6 @@ void ContextManager::notifyResetAssertions()
 
 void ContextManager::notifyCheckSat(bool hasAssumptions)
 {
-  // process the pending pops
-  doPendingPops();
-
   // push if there are assumptions
   if (hasAssumptions)
   {
@@ -58,8 +58,7 @@ void ContextManager::notifyCheckSat(bool hasAssumptions)
   }
 }
 
-void ContextManager::notifyCheckSatResult(bool hasAssumptions,
-                                             const Result& r)
+void ContextManager::notifyCheckSatResult(bool hasAssumptions)
 {
   // Pop the context
   if (hasAssumptions)
@@ -92,11 +91,8 @@ void ContextManager::cleanup()
 
 void ContextManager::userPush()
 {
-  if (!options().base.incrementalSolving)
-  {
-    throw ModalException(
-        "Cannot push when not solving incrementally (use --incremental)");
-  }
+  // notify the state
+  d_state.notifyUserPop();
 
   d_userLevels.push_back(userContext()->getLevel());
   internalPush();
@@ -106,11 +102,9 @@ void ContextManager::userPush()
 
 void ContextManager::userPop()
 {
-  if (!options().base.incrementalSolving)
-  {
-    throw ModalException(
-        "Cannot pop when not solving incrementally (use --incremental)");
-  }
+  // notify the state
+  d_state.notifyUserPush();
+  
   if (d_userLevels.size() == 0)
   {
     throw ModalException("Cannot pop beyond the first user frame");
@@ -154,10 +148,10 @@ void ContextManager::internalPush()
   if (options().base.incrementalSolving)
   {
     // notifies the SolverEngine to process the assertions immediately
-    d_slv.notifyPushPre();
+    d_smt.notifyPushPre();
     userContext()->push();
     // the context push is done inside of the SAT solver
-    d_slv.notifyPushPost();
+    d_smt.notifyPushPost();
   }
 }
 
@@ -179,23 +173,24 @@ void ContextManager::doPendingPops()
   Trace("smt") << "ContextManager::doPendingPops()" << std::endl;
   Assert(d_pendingPops == 0 || options().base.incrementalSolving);
   // check to see if a postsolve() is pending
-#if 0
   if (d_needPostsolve)
   {
-    d_slv.notifyPostSolve();
+    d_smt.notifyPostSolve();
     d_needPostsolve = false;
   }
-#endif
   while (d_pendingPops > 0)
   {
     // the context pop is done inside of the SAT solver
-    d_slv.notifyPopPre();
+    d_smt.notifyPopPre();
     // pop the context
     userContext()->pop();
     --d_pendingPops;
     // no need for pop post (for now)
   }
 }
+
+
+
 
 }  // namespace smt
 }  // namespace cvc5::internal

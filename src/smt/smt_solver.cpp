@@ -348,5 +348,35 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
+
+void SmtSolver::notifyPushPre()
+{
+  processAssertions(*d_asserts);
+}
+
+void SmtSolver::notifyPushPost()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
+  Assert(d_propEngine  != nullptr);
+  d_propEngine->push();
+}
+
+void SmtSolver::notifyPopPre()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
+  Assert(d_propEngine != nullptr);
+  d_propEngine->pop();
+}
+
+void SmtSolver::notifyPostSolve()
+{
+  Assert(d_propEngine != nullptr);
+  d_propEngine->resetTrail();
+
+  Assert(d_theoryEngine != nullptr);
+  d_theoryEngine->postsolve();
+}
+
+
 }  // namespace smt
 }  // namespace cvc5::internal

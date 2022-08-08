@@ -128,7 +128,7 @@ void SolverEngineState::notifyGetInterpol(bool success)
   }
 }
 
-void SolverEngineState::finishInit()
+void SolverEngineState::markFinishInit()
 {
   // set the flag to remember that we are fully initialized
   d_fullyInited = true;

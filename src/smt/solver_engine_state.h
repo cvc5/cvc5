@@ -41,18 +41,14 @@ namespace smt {
  *
  * This class has three sets of interfaces:
  * (1) notification methods that are used by SolverEngine to notify when an
- * event occurs (e.g. the beginning of a check-sat call), (2) maintaining the
- * SAT and user contexts to be used by the SolverEngine, (3) general information
+ * event occurs (e.g. the beginning of a check-sat call), (2) general information
  * queries, including the mode that the SolverEngine is in, based on the
  * notifications it has received.
- *
- * It maintains a reference to the SolverEngine for the sake of making
- * callbacks.
  */
 class SolverEngineState : protected EnvObj
 {
  public:
-  SolverEngineState(Env& env, SolverEngine& smt);
+  SolverEngineState(Env& env);
   ~SolverEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
@@ -91,7 +87,7 @@ class SolverEngineState : protected EnvObj
    *
    * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(bool hasAssumptions, const Result& r);
+  void notifyCheckSatResult(const Result& r);
   /**
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
@@ -124,7 +120,7 @@ class SolverEngineState : protected EnvObj
   /**
    * Set that we are in a fully initialized state.
    */
-  void finishInit();
+  void markFinishInit();
 
   //---------------------------- queries
   /**
