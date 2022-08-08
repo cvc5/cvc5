@@ -90,9 +90,7 @@ class QuantElimSolver : protected EnvObj
    * witness form.
    * @return The result of eliminating quantifiers from q.
    */
-  Node getQuantifierElimination(Node q,
-                                bool doFull,
-                                bool isInternalSubsolver);
+  Node getQuantifierElimination(Node q, bool doFull, bool isInternalSubsolver);
 
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */

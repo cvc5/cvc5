@@ -353,10 +353,11 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
-void SmtSolver::notifyPushPre() { 
+void SmtSolver::notifyPushPre()
+{
   // must preprocess the assertions and push them to the SAT solver, to make
   // the state accurate prior to pushing
-  processAssertions(d_asserts); 
+  processAssertions(d_asserts);
 }
 
 void SmtSolver::notifyPushPost()
