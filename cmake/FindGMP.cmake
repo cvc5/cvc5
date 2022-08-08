@@ -128,7 +128,6 @@ if(NOT GMP_FOUND_SYSTEM)
           --enable-cxx
 
           ${GMP_WASM_FLAGS}
-
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )

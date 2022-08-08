@@ -390,6 +390,13 @@ fi
 
 root_dir=$(pwd)
 
+emsdk_wrapper=
+if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
+  # emsdk_wrapper=emcmake cmake -E env ENV_WASM_FLAGS="${wasm_flags}";
+  emsdk_wrapper=emcmake
+  # Download the emsdk
+fi
+
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
@@ -397,13 +404,6 @@ root_dir=$(pwd)
 mkdir -p "$build_dir"
 
 cd "$build_dir"
-
-emsdk_wrapper=
-if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
-  # emsdk_wrapper=emcmake cmake -E env ENV_WASM_FLAGS="${wasm_flags}";
-  emsdk_wrapper=emcmake
-  # Download the emsdk
-fi
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
