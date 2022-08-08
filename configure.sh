@@ -395,6 +395,8 @@ if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
   # emsdk_wrapper=emcmake cmake -E env ENV_WASM_FLAGS="${wasm_flags}";
   emsdk_wrapper=emcmake
   # Download the emsdk
+  cmake -DROOT_DIR="$root_dir" -P $root_dir/cmake/FindEMSDK.cmake
+  exit 0
 fi
 
 # The cmake toolchain can't be changed once it is configured in $build_dir.
