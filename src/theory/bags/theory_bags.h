@@ -28,6 +28,7 @@
 #include "theory/bags/solver_state.h"
 #include "theory/bags/strategy.h"
 #include "theory/bags/term_registry.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 
@@ -82,7 +83,9 @@ class TheoryBags : public Theory
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
   void presolve() override;
-
+  void computeCareGraph() override;
+  void processCarePairArgs(TNode a, TNode b) override;
+  bool isCareArg(Node n, unsigned a);
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
   /** run the given inference step */
@@ -129,6 +132,11 @@ class TheoryBags : public Theory
 
   /** the main solver for bags */
   CardSolver d_cardSolver;
+
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
+  /** map kinds to their terms. It is cleared during post check */
+  std::map<Kind, std::vector<Node>> d_opMap;
 
   /** The representation of the strategy */
   Strategy d_strat;

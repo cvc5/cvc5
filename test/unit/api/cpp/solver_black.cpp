@@ -1844,6 +1844,7 @@ TEST_F(TestApiBlackSolver, getUnsatCoreAndProof)
   ASSERT_FALSE(uc.empty());
 
   ASSERT_NO_THROW(d_solver.getProof());
+  ASSERT_NO_THROW(d_solver.getProof(modes::PROOF_COMPONENT_SAT));
 
   d_solver.resetAssertions();
   for (const auto& t : uc)
@@ -1900,6 +1901,7 @@ TEST_F(TestApiBlackSolver, getLearnedLiterals)
   ASSERT_THROW(d_solver.getLearnedLiterals(), CVC5ApiException);
   d_solver.checkSat();
   ASSERT_NO_THROW(d_solver.getLearnedLiterals());
+  ASSERT_NO_THROW(d_solver.getLearnedLiterals(modes::LEARNED_LIT_PREPROCESS));
 }
 
 TEST_F(TestApiBlackSolver, getLearnedLiterals2)

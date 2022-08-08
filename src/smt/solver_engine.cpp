@@ -1594,7 +1594,11 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     }
   }
   // print all proofs
-  ss << "(" << std::endl;
+  // we currently only print outermost parentheses if the format is NONE
+  if (mode == options::ProofFormatMode::NONE)
+  {
+    ss << "(" << std::endl;
+  }
   for (std::shared_ptr<ProofNode>& p : ps)
   {
     if (commentProves)
@@ -1608,7 +1612,10 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ss << ":proves " << p->getResult() << ")" << std::endl;
     }
   }
-  ss << ")" << std::endl;
+  if (mode == options::ProofFormatMode::NONE)
+  {
+    ss << ")" << std::endl;
+  }
   return ss.str();
 }
 

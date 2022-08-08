@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType
+from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent
 
 
 @pytest.fixture
@@ -1429,6 +1429,9 @@ def test_get_unsat_core_and_proof(solver):
     assert solver.checkSat().isUnsat()
 
     unsat_core = solver.getUnsatCore()
+    
+    solver.getProof()
+    solver.getProof(ProofComponent.PROOF_COMPONENT_SAT)
 
     solver.resetAssertions()
     for t in unsat_core:
@@ -1440,9 +1443,10 @@ def test_get_unsat_core_and_proof(solver):
 def test_learned_literals(solver):
     solver.setOption("produce-learned-literals", "true")
     with pytest.raises(RuntimeError):
-        solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
+        solver.getLearnedLiterals()
     solver.checkSat()
-    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT)
+    solver.getLearnedLiterals()
+    solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS)
 
 def test_learned_literals2(solver):
     solver.setOption("produce-learned-literals", "true")
