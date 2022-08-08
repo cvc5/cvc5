@@ -1,6 +1,7 @@
 ; SCRUBBER: grep -v -E '(\(|\)|\:proves)'
 ; COMMAND-LINE: --simplification=none
 ; EXPECT: unsat
+; DISABLE-TESTER: lfsc
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
