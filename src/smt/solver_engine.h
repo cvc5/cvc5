@@ -98,7 +98,6 @@ class QuantifiersEngine;
 class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
-  friend class smt::ContextManager;
 
   /* .......................................................................  */
  public:

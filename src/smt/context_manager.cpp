@@ -62,6 +62,7 @@ void ContextManager::notifyCheckSat(bool hasAssumptions)
 
 void ContextManager::notifyCheckSatResult(bool hasAssumptions)
 {
+  d_needPostsolve = true;
   // Pop the context
   if (hasAssumptions)
   {
