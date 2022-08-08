@@ -71,6 +71,7 @@ CMake Options (Advanced)
 
 Wasm Options
   --wasm=VALUE             set compilation extension for WebAssembly [OFF, WASM, JS or HTML]
+  --wasm-flags=STR         emscripten flags used in the WebAssembly binary compilation
 
 EOF
   exit 0
@@ -138,6 +139,7 @@ ipo=default
 glpk_dir=default
 
 wasm=OFF
+wasm_flags=""
 
 #--------------------------------------------------------------------------#
 
@@ -280,6 +282,9 @@ do
     --wasm) wasm=WASM ;;
     --wasm=*) wasm="${1##*=}" ;;
 
+    --wasm-flags) die "missing argument to $1 (try -h)" ;;
+    --wasm-flags=*) wasm_flags="${1#*=}" ;;
+
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -380,6 +385,8 @@ fi
   && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
 [ "$wasm" != default ] \
   && cmake_opts="$cmake_opts -DWASM=$wasm"
+# [ "$wasm_flags" != default ] \
+#   && cmake_opts="$cmake_opts -DWASM_FLAGS=${wasm_flags}"]
 
 root_dir=$(pwd)
 
@@ -391,7 +398,14 @@ mkdir -p "$build_dir"
 
 cd "$build_dir"
 
+emsdk_wrapper=
+if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
+  # emsdk_wrapper=emcmake cmake -E env ENV_WASM_FLAGS="${wasm_flags}";
+  emsdk_wrapper=emcmake
+  # Download the emsdk
+fi
+
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
-cmake "$root_dir" $cmake_opts 2>&1 | \
+$emsdk_wrapper cmake "$root_dir" $cmake_opts -DWASM_FLAGS="${wasm_flags}" 2>&1 | \
   sed "s/^Now just/Now change to '$build_dir_escaped' and/"

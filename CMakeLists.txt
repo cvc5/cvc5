@@ -133,7 +133,7 @@ if(WASM STREQUAL "OFF")
 # Then the WebAssembly compilation is going to happen
 else()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
-  set(TOOLCHAIN_PREFIX none)
+  set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
 endif()
 
 # Prepend binaries with prefix on make install
