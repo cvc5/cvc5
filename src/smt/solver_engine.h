@@ -1021,7 +1021,7 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<Env> d_env;
   /**
    * The state of this SolverEngine, which is responsible for maintaining which
-   * SMT mode we are in, the contexts, the last result, etc.
+   * SMT mode we are in, the last result, etc.
    */
   std::unique_ptr<smt::SolverEngineState> d_state;
   /**
