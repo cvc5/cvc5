@@ -107,7 +107,7 @@ SolverEngine::SolverEngine(const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_asserts, *d_stats));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state, *d_smtSolver));
   // make the SyGuS solver
@@ -726,8 +726,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   d_ctxManager->notifyCheckSat(hasAssumptions);
 
   // check the satisfiability with the solver object
-  Assertions& as = *d_asserts.get();
-  Result r = d_smtSolver->checkSatisfiability(as, assumptions);
+  Result r = d_smtSolver->checkSatisfiability(assumptions);
 
   // If the result is unknown, we may optionally do a "deep restart" where
   // the members of the SMT solver are reconstructed and given the
@@ -737,7 +736,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   while (r.getStatus() == Result::UNKNOWN && deepRestart())
   {
     Trace("smt") << "SolverEngine::checkSat after deep restart" << std::endl;
-    r = d_smtSolver->checkSatisfiability(as, {});
+    r = d_smtSolver->checkSatisfiability({});
   }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
@@ -1699,7 +1698,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   finishInit();
   return d_quantElimSolver->getQuantifierElimination(
-      *d_asserts, q, doFull, d_isInternalSubsolver);
+      q, doFull, d_isInternalSubsolver);
 }
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)

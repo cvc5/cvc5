@@ -67,6 +67,7 @@ class SmtSolver : protected EnvObj
  public:
   SmtSolver(Env& env,
             AbstractValues& abs,
+            Assertions& asserts,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -83,19 +84,12 @@ class SmtSolver : protected EnvObj
   void interrupt();
   /**
    * Check satisfiability (used to check satisfiability and entailment)
-   * in SolverEngine. This is done via adding assumptions (when necessary) to
-   * assertions as, preprocessing and pushing assertions into the prop engine
-   * of this class, and checking for satisfiability via the prop engine.
+   * in SolverEngine for the given assumptions and the current assertions.
    *
-   * @param as The object managing the assertions in SolverEngine. This class
-   * maintains a current set of (unprocessed) assertions which are pushed
-   * into the internal members of this class (TheoryEngine and PropEngine)
-   * during this call.
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
    */
-  Result checkSatisfiability(Assertions& as,
-                             const std::vector<Node>& assumptions);
+  Result checkSatisfiability(const std::vector<Node>& assumptions);
   /**
    * Process the assertions that have been asserted in as. This moves the set of
    * assertions that have been buffered into as, preprocesses them, pushes them
@@ -154,10 +148,27 @@ class SmtSolver : protected EnvObj
   //------------------------------------------ end access methods
 
  private:
+  /**
+   * Check satisfiability (used to check satisfiability and entailment)
+   * in SolverEngine. This is done via adding assumptions (when necessary) to
+   * assertions as, preprocessing and pushing assertions into the prop engine
+   * of this class, and checking for satisfiability via the prop engine.
+   *
+   * @param as The object managing the assertions in SolverEngine. This class
+   * maintains a current set of (unprocessed) assertions which are pushed
+   * into the internal members of this class (TheoryEngine and PropEngine)
+   * during this call.
+   * @param assumptions The assumptions for this check-sat call, which are
+   * temporary assertions.
+   */
+  Result checkSatisfiability(Assertions& as,
+                             const std::vector<Node>& assumptions);
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
+  /** The assertions of the parent solver engine */
+  Assertions& d_asserts;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */

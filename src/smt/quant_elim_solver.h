@@ -90,8 +90,7 @@ class QuantElimSolver : protected EnvObj
    * witness form.
    * @return The result of eliminating quantifiers from q.
    */
-  Node getQuantifierElimination(Assertions& as,
-                                Node q,
+  Node getQuantifierElimination(Node q,
                                 bool doFull,
                                 bool isInternalSubsolver);
 
