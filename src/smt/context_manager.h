@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Ying Sheng
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Utility for maintaining the state of the SMT engine.
+ * Utility for managing the contexts
  */
 
 #include "cvc5_private.h"
@@ -33,21 +33,8 @@ class SmtSolver;
 class SolverEngineState;
 
 /**
- * This utility is responsible for maintaining the basic state of the
- * SolverEngine.
- *
- * It has no concept of anything related to the assertions of the SolverEngine,
- * or more generally it does not depend on Node.
- *
- * This class has three sets of interfaces:
- * (1) notification methods that are used by SolverEngine to notify when an
- * event occurs (e.g. the beginning of a check-sat call), (2) maintaining the
- * SAT and user contexts to be used by the SolverEngine, (3) general information
- * queries, including the mode that the SolverEngine is in, based on the
- * notifications it has received.
- *
- * It maintains a reference to the SolverEngine for the sake of making
- * callbacks.
+ * This class manages how the SAT and user contexts should be used in
+ * cooperation with the SmtSolver.
  */
 class ContextManager : protected EnvObj
 {
@@ -140,10 +127,7 @@ class ContextManager : protected EnvObj
   SmtSolver& d_smt;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
-
-  /**
-   * Number of internal pops that have been deferred.
-   */
+  /** Number of internal pops that have been deferred. */
   unsigned d_pendingPops;
   /**
    * Internal status flag to indicate whether we have been issued a
