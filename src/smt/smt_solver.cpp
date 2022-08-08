@@ -127,7 +127,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   try
   {
     // then, initialize the assertions
-    d_asserts.setAssumptions(assumptions);
+    as.setAssumptions(assumptions);
 
     // make the check, where notice smt engine should be fully inited by now
 
