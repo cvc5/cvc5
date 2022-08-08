@@ -1880,7 +1880,7 @@ bool SolverEngine::deepRestart()
   }
 
   d_asserts->clearCurrent();
-  d_state->notifyResetAssertions();
+  d_ctxManager->notifyResetAssertions();
   // deep restart the SMT solver, which reconstructs the theory engine and
   // prop engine.
   d_smtSolver->deepRestart(*d_asserts.get(), zll);

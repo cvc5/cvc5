@@ -61,11 +61,6 @@ class SolverEngineState : protected EnvObj
    */
   void notifyFullyInited();
   /**
-   * Notify that we are resetting the assertions, called when a reset-assertions
-   * command is issued by the user.
-   */
-  void notifyResetAssertions();
-  /**
    * Notify that we are about to call check-sat. This call is made prior to
    * initializing the assertions.
    */
