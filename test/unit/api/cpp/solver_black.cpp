@@ -232,6 +232,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   std::vector<DatatypeDecl> udecls = {ulist};
   ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls));
 
+  ASSERT_THROW(d_solver.mkDatatypeSorts(udecls), CVC5ApiException);
   ASSERT_THROW(slv.mkDatatypeSorts(udecls), CVC5ApiException);
 
   /* mutually recursive with unresolved parameterized sorts */
