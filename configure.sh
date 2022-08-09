@@ -392,7 +392,7 @@ cmake_wrapper=
 cmake_opts=($cmake_opts)
 if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
   cmake_wrapper=emcmake
-  cmake_opts=($cmake_opts -DWASM_FLAGS="${wasm_flags}")
+  cmake_opts=(${cmake_opts[@]} -DWASM_FLAGS="${wasm_flags}")
 fi
 
 # The cmake toolchain can't be changed once it is configured in $build_dir.
