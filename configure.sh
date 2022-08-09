@@ -70,7 +70,7 @@ CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
 
 Wasm Options
-  --wasm=VALUE             set compilation extension for WebAssembly [OFF, WASM, JS or HTML]
+  --wasm=VALUE             set compilation extension for WebAssembly <OFF, WASM, JS or HTML>
   --wasm-flags=STR         emscripten flags used in the WebAssembly binary compilation
 
 EOF
@@ -385,18 +385,14 @@ fi
   && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
 [ "$wasm" != default ] \
   && cmake_opts="$cmake_opts -DWASM=$wasm"
-# [ "$wasm_flags" != default ] \
-#   && cmake_opts="$cmake_opts -DWASM_FLAGS=${wasm_flags}"]
 
 root_dir=$(pwd)
 
-emsdk_wrapper=
+cmake_wrapper=
+cmake_opts=($cmake_opts)
 if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
-  # emsdk_wrapper=emcmake cmake -E env ENV_WASM_FLAGS="${wasm_flags}";
-  emsdk_wrapper=emcmake
-  # Download the emsdk
-  cmake -DROOT_DIR="$root_dir" -P $root_dir/cmake/FindEMSDK.cmake
-  exit 0
+  cmake_wrapper=emcmake
+  cmake_opts=($cmake_opts -DWASM_FLAGS="${wasm_flags}")
 fi
 
 # The cmake toolchain can't be changed once it is configured in $build_dir.
@@ -409,5 +405,5 @@ cd "$build_dir"
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
-$emsdk_wrapper cmake "$root_dir" $cmake_opts -DWASM_FLAGS="${wasm_flags}" 2>&1 | \
+$cmake_wrapper cmake "$root_dir" "${cmake_opts[@]}" 2>&1 | \
   sed "s/^Now just/Now change to '$build_dir_escaped' and/"

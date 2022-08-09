@@ -130,7 +130,7 @@ endif()
 if(WASM STREQUAL "OFF")
   set(WASM_FLAGS "")
   set(CONFIGURE_CMD_WRAPPER "")
-# Then the WebAssembly compilation is going to happen
+# Then the WebAssembly compilation will happen
 else()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
