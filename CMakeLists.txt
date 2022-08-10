@@ -114,28 +114,6 @@ option(USE_COCOA              "Use CoCoALib for further polynomial operations")
 # immediately fail if the dependency was not found at the specified location.
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 
-# Custom extension for WebAssembly compilation
-set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
-wasm_option(WASM "Use a specific extension for WebAssembly compilation")
-
-# Make sure no other avaible value will be assigned to this variable
-if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML"))
-  set(WASM "OFF")
-# If it's a wasm compilation, but isn't using static libraries
-elseif(BUILD_SHARED_LIBS)
-  message(FATAL_ERROR "Use --static flag for WebAssembly compilation. GMP will not compile with shared libraries")
-endif()
-
-# Not WebAssembly compilation
-if(WASM STREQUAL "OFF")
-  set(WASM_FLAGS "")
-  set(CONFIGURE_CMD_WRAPPER "")
-# Then the WebAssembly compilation will happen
-else()
-  set(CONFIGURE_CMD_WRAPPER emconfigure)
-  set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
-endif()
-
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
@@ -149,6 +127,28 @@ option(BUILD_DOCS "Build Api documentation")
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
+
+# Custom extension for WebAssembly compilation
+set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
+wasm_option(WASM "Use a specific extension for WebAssembly compilation")
+
+# Make sure no other avaible value will be assigned to this variable
+if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML"))
+  set(WASM "OFF")
+# If it's a wasm compilation, but isn't using static libraries
+elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY))
+  message(FATAL_ERROR "Use --static and --static-binary flags for WebAssembly compilation. GMP will not compile with shared libraries.")
+endif()
+
+# Not WebAssembly compilation
+if(WASM STREQUAL "OFF")
+  set(WASM_FLAGS "")
+  set(CONFIGURE_CMD_WRAPPER "")
+# Then the WebAssembly compilation will happen
+else()
+  set(CONFIGURE_CMD_WRAPPER emconfigure)
+  set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
