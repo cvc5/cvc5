@@ -86,11 +86,9 @@ class SygusInterpol : protected EnvObj
                           Node& interpol);
 
   /**
-   * Internal call for getting next interpolant. This can only be called after a
-   * successful call to solveInterpolation.
-   * It solve the interpolation problem constructed already and 
-   * returns true if an interpolant was found, and sets interpol to the
-   * interpolant.
+   * Internal call for getting next interpolant. This can only be called after a successful call to solveInterpolation.
+   * It solve the interpolation problem constructed already and returns true if an interpolant was found,
+   * and sets interpol to the interpolant.
    *
    * @interpol the solution to the sygus conjecture.
    */
