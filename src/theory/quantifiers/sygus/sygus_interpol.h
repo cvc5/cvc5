@@ -47,7 +47,8 @@ namespace quantifiers {
  * we just need to synthesis A( x ).
  *
  * This class uses a fresh copy of the SMT engine which is used for solving the
- * interpolation problem. In particular, consider the input: (assert A)
+ * interpolation problem. In particular, consider the input:
+ *   (assert A)
  *   (get-interpolant s B)
  * In the copy of the SMT engine where these commands are issued, we maintain
  * A in the assertion stack. In solving the interpolation problem, we will
