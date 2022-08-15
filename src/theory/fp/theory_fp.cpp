@@ -92,28 +92,22 @@ bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryFp::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
-  // Kinds that are to be handled in the congruence closure
 
+  // Kinds that are to be handled in the congruence closure
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ABS);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_NEG);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ADD);
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MULT);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_DIV);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_FMA);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SQRT);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_REM);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_RTI);
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MIN); // Removed
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MAX); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MIN_TOTAL);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MAX_TOTAL);
 
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_EQ); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LEQ);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LT);
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GEQ); // Removed
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GT); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_NORMAL);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_SUBNORMAL);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_IS_ZERO);
@@ -128,9 +122,6 @@ void TheoryFp::finishInit()
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_SBV);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FROM_UBV);
 
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV); // Removed
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV); // Removed
-  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_REAL); // Removed
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV_TOTAL);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
   d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
@@ -147,11 +138,25 @@ void TheoryFp::finishInit()
 TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
+
   // first, see if we need to expand definitions
   TrustNode texp = d_rewriter.expandDefinition(node);
   if (!texp.isNull())
   {
     return texp;
+  }
+
+  if (Configuration::isAssertionBuild())
+  {
+    // The following kinds should have been removed by the
+    // rewriter/expandDefinition
+    Kind k = node.getKind();
+    Assert(k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_MIN
+           && k != kind::FLOATINGPOINT_MAX && k != kind::FLOATINGPOINT_EQ
+           && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT
+           && k != kind::FLOATINGPOINT_TO_UBV && k != kind::FLOATINGPOINT_TO_SBV
+           && k != kind::FLOATINGPOINT_TO_REAL)
+        << "Expected floating-point kind " << k << " to be removed";
   }
 
   Node res = node;
