@@ -106,10 +106,9 @@ def test_mk_datatype_sort(solver):
     dtypeSpec.addConstructor(nil)
     solver.mkDatatypeSort(dtypeSpec)
 
-    # FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    #slv = cvc5.Solver()
-    #with pytest.raises(RuntimeError):
-    #    slv.mkDatatypeSort(dtypeSpec)
+    slv = cvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSort(dtypeSpec)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     with pytest.raises(RuntimeError):
@@ -136,9 +135,8 @@ def test_mk_datatype_sorts(solver):
     decls = [dtypeSpec1, dtypeSpec2]
     solver.mkDatatypeSorts(decls)
 
-    # FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    #with pytest.raises(RuntimeError):
-    #    slv.mkDatatypeSorts(decls)
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSorts(decls)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     throwsDecls = [throwsDtypeSpec]
@@ -157,9 +155,8 @@ def test_mk_datatype_sorts(solver):
     udecls = [ulist]
 
     solver.mkDatatypeSorts(udecls)
-    # FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    #with pytest.raises(RuntimeError):
-    #    slv.mkDatatypeSorts(udecls)
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSorts(udecls)
 
     # mutually recursive with unresolved parameterized sorts
     p0 = solver.mkParamSort("p0")
