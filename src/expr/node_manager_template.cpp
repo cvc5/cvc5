@@ -615,10 +615,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   DatatypeIndexAttr dia;
   for (const DType& dt : datatypes)
   {
-    if (dt.isResolved())
-    {
-      throw Exception("datatype is already resolved");
-    }
+    Assert (!dt.isResolved()) << "datatype is already resolved";
     uint32_t index = d_dtypes.size();
     d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
     DType* dtp = d_dtypes.back().get();
