@@ -1,3 +1,5 @@
+; EXPECT: sat
+; EXPECT: sat
 (set-logic QF_ABV)
 (set-info :status sat)
 (set-option :incremental true)
