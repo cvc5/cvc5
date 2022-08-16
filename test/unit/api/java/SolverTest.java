@@ -180,7 +180,7 @@ class SolverTest
     DatatypeDecl[] decls = {dtypeSpec1, dtypeSpec2};
     assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(decls));
 
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(decls))
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(decls));
     assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(decls));
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
