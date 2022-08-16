@@ -106,6 +106,8 @@ def test_mk_datatype_sort(solver):
     dtypeSpec.addConstructor(nil)
     solver.mkDatatypeSort(dtypeSpec)
 
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSort(dtypeSpec)
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSort(dtypeSpec)
@@ -136,6 +138,8 @@ def test_mk_datatype_sorts(solver):
     solver.mkDatatypeSorts(decls)
 
     with pytest.raises(RuntimeError):
+        solver.mkDatatypeSorts(decls)
+    with pytest.raises(RuntimeError):
         slv.mkDatatypeSorts(decls)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
@@ -155,6 +159,8 @@ def test_mk_datatype_sorts(solver):
     udecls = [ulist]
 
     solver.mkDatatypeSorts(udecls)
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSorts(udecls)
     with pytest.raises(RuntimeError):
         slv.mkDatatypeSorts(udecls)
 
