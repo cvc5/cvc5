@@ -362,10 +362,12 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new AssertCommand(expr));
       if (PARSER_STATE->lastNamedTerm().first == expr)
       {
+        Trace("parser") << "Process top-level name: " << expr << std::endl;
         // set the expression name, if there was a named term
         std::pair<cvc5::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
         SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
+        Trace("parser") << "finished process top-level name" << std::endl;
       }
     }
   | /* check-sat */
@@ -392,8 +394,16 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssertionsCommand()); }
   | /* get-proof */
-    GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetProofCommand()); }
+    GET_PROOF_TOK ( KEYWORD { readKeyword = true; }  )? {
+      PARSER_STATE->checkThatLogicIsSet();
+      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
+      if (readKeyword)
+      {
+        pc = PARSER_STATE->getProofComponent(
+               AntlrInput::tokenText($KEYWORD).c_str() + 1);
+      }
+      cmd->reset(new GetProofCommand(pc));
+    }
   | /* get-unsat-assumptions */
     GET_UNSAT_ASSUMPTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatAssumptionsCommand); }
@@ -1807,6 +1817,7 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
+      Trace("parser") << "Named: " << s << " for " << expr << std::endl;
       // notify that expression was given a name
       DefineFunctionCommand* defFunCmd =
           new DefineFunctionCommand(s, expr.getSort(), expr);

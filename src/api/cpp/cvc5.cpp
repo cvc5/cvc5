@@ -6889,14 +6889,14 @@ std::map<Term, Term> Solver::getDifficulty() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::string Solver::getProof(void) const
+std::string Solver::getProof(modes::ProofComponent c) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK(d_slv->getOptions().smt.produceProofs)
       << "Cannot get proof unless proofs are enabled (try --produce-proofs)";
   CVC5_API_RECOVERABLE_CHECK(d_slv->getSmtMode() == internal::SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
-  return d_slv->getProof();
+  return d_slv->getProof(c);
   CVC5_API_TRY_CATCH_END;
 }
 

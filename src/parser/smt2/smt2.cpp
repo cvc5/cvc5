@@ -346,6 +346,32 @@ modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
   return modes::LEARNED_LIT_UNKNOWN;
 }
 
+modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
+{
+  if (pc == "raw_preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
+  }
+  else if (pc == "preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
+  }
+  else if (pc == "sat")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_SAT;
+  }
+  else if (pc == "theory_lemmas")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS;
+  }
+  else if (pc == "full")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_FULL;
+  }
+  parseError(std::string("Unknown proof component `") + pc + "'");
+  return modes::ProofComponent::PROOF_COMPONENT_FULL;
+}
+
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);
@@ -1367,14 +1393,15 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  if (getSymbolManager()->setExpressionName(expr, name, false)
-      == NamingResult::ERROR_IN_BINDER)
+  NamingResult nr = getSymbolManager()->setExpressionName(expr, name, false);
+  if (nr == NamingResult::ERROR_IN_BINDER)
   {
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // define the variable
-  defineVar(name, expr);
+  // Note that we do not bind the symbol here; this is done separately
+  // in a define-fun command in Smt.g to ensure -o raw-benchmark results in a
+  // parsable result.
   // set the last named term, which ensures that we catch when assertions are
   // named
   setLastNamedTerm(expr, name);
