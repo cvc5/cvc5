@@ -16,6 +16,7 @@
 #include "util/bitvector.h"
 
 #include "base/check.h"
+#include "util/hash.h"
 
 namespace cvc5::internal {
 
@@ -69,7 +70,8 @@ std::string BitVector::toString(unsigned int base) const
 
 size_t BitVector::hash() const
 {
-  return d_value.hash() + d_size;
+  PairHashFunction<size_t, size_t> h;
+  return h(std::make_pair(d_value.hash(), d_size));
 }
 
 BitVector& BitVector::setBit(uint32_t i, bool value)
