@@ -820,11 +820,7 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
 
     TypeNode t = current.getType();
 
-    // We do not attempt to compute a model for bound variables. It can happen
-    // that a relevant term contains a bound variable if it for example
-    // contains a set comprehension.
-    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current)
-        && current.getKind() != BOUND_VARIABLE)
+    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current))
     {
       relevantVariables.insert(current);
     }
