@@ -122,13 +122,14 @@ class FiniteField
 
 struct FiniteFieldSize
 {
-  Integer d_size;
   FiniteFieldSize(Integer size) : d_size(size) {}
   operator Integer() const { return d_size; }
   bool operator==(const FiniteFieldSize& y) const
   {
     return d_size == y.d_size;
   }
+  
+  Integer d_size;
 }; /* struct FiniteFieldSize */
 
 /*
