@@ -15,7 +15,6 @@
 
 #include "util/finite_field.h"
 
-#include "base/exception.h"
 #include "util/hash.h"
 
 namespace cvc5::internal {
