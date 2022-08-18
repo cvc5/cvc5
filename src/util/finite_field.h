@@ -39,7 +39,7 @@ class FiniteField
         d_value(val.floorDivideRemainder(size))
   {
     // we only support prime fields right now
-    CheckArgument(size.isProbablePrime(), size);
+    Assert(size.isProbablePrime());
   }
 
   /**
