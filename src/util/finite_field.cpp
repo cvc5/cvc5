@@ -119,7 +119,7 @@ FiniteField operator/(const FiniteField& x, const FiniteField& y)
 
 FiniteField FiniteField::recip() const
 {
-  CheckArgument(!d_value.isZero(), *this);
+  Assert(!d_value.isZero());
   return {d_value.modInverse(d_size), d_size};
 }
 
