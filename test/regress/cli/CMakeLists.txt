@@ -663,6 +663,7 @@ set(regress_0_tests
   regress0/fp/ext-rew-test.smt2
   regress0/fp/from_ubv.smt2
   regress0/fp/from_sbv.smt2
+  regress0/fp/fp-set-comprehension-basic.smt2
   regress0/fp/issue-5524.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
@@ -674,6 +675,8 @@ set(regress_0_tests
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
+  regress0/fp/proj-issue477-fp-set-comprehension.smt2
+  regress0/fp/proj-issue509-fp-set-comprehension.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2

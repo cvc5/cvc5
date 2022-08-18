@@ -808,16 +808,23 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
     TNode current = working.back();
     working.pop_back();
 
-    if (visited.find(current) != visited.end())
+    if (visited.find(current) != visited.end() || current.isClosure())
     {
-      // Ignore things that have already been explored
+      // Ignore things that have already been explored and closures. For
+      // variables in closures (e.g., set comprehension), we rely on the
+      // reduction of the closures to handle the body.
       continue;
     }
+
     visited.insert(current);
 
     TypeNode t = current.getType();
 
-    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current))
+    // We do not attempt to compute a model for bound variables. It can happen
+    // that a relevant term contains a bound variable if it for example
+    // contains a set comprehension.
+    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current)
+        && current.getKind() != BOUND_VARIABLE)
     {
       relevantVariables.insert(current);
     }
