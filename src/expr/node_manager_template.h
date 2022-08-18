@@ -31,6 +31,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
+#include "util/integer.h"
 
 namespace cvc5 {
 
@@ -449,6 +450,9 @@ class NodeManager
   /** Make the type of bitvectors of size <code>size</code> */
   TypeNode mkBitVectorType(unsigned size);
 
+  /** Make the type of finite field elements modulo <code>modulus</code> */
+  TypeNode mkFiniteFieldType(const Integer& modulus);
+
   /** Make the type of arrays with the given parameterization */
   TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
@@ -660,6 +664,13 @@ class NodeManager
    * CONST_RATIONAL.
    */
   Node mkConstInt(const Rational& r);
+
+  /**
+   * Make a contant finite field element.
+   *
+   * Given the integer value of the element and its type.
+   */
+  Node mkConstFiniteFieldElem(const Integer& v, const TypeNode& type);
 
   /**
    * Make constant real or int, which calls one of the above methods based

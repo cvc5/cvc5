@@ -201,10 +201,7 @@ FiniteField operator/(const FiniteField& x, const FiniteField& y);
  * Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os, const FiniteField& ff)
-{
-  return os << ff.toString();
-}
+std::ostream& operator<<(std::ostream& os, const FiniteField& ff);
 
 }  // namespace cvc5::internal
 

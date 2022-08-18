@@ -31,6 +31,7 @@
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
 #include "util/bitvector.h"
+#include "util/finite_field.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
@@ -178,6 +179,11 @@ TypeNode NodeManager::builtinOperatorType()
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+}
+
+TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
+{
+  return mkTypeConst<FiniteFieldSize>(FiniteFieldSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
@@ -1312,6 +1318,13 @@ Node NodeManager::mkConstRealOrInt(const Rational& r)
     return mkConstInt(r);
   }
   return mkConstReal(r);
+}
+
+Node NodeManager::mkConstFiniteFieldElem(const Integer& v, const TypeNode& type)
+{
+  Assert(type.isFiniteField());
+  return mkConst(kind::CONST_FINITE_FIELD,
+                 FiniteField(v, type.getFiniteFieldSize()));
 }
 
 Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)
