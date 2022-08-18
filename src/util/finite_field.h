@@ -55,7 +55,10 @@ class FiniteField
 
   FiniteField& operator=(const FiniteField& x)
   {
-    if (this == &x) return *this;
+    if (this == &x)
+    {
+      return *this;
+    }
     d_size = x.d_size;
     d_value = x.d_value;
     return *this;
