@@ -48,7 +48,7 @@ class FiniteField
   FiniteField(const Integer& size) : d_size(size), d_value(0)
   {
     // we only support prime fields right now
-    CheckArgument(size.isProbablePrime(), size);
+    Assert(size.isProbablePrime());
   }
 
   ~FiniteField() {}
