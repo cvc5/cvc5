@@ -31,7 +31,10 @@ public class Utils
    */
   public static void loadLibraries()
   {
-    System.loadLibrary("cvc5jni");
+    if (!Boolean.parseBoolean(System.getProperty("cvc5.skipLibraryLoad")))
+    {
+      System.loadLibrary("cvc5jni");
+    }
   }
 
   /**
