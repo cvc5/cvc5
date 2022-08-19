@@ -303,7 +303,8 @@ void SolverEngineState::doPendingPops()
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {
-    d_slv.notifyPostSolvePre();
+    d_slv.notifyPostSolve();
+    d_needPostsolve = false;
   }
   while (d_pendingPops > 0)
   {
@@ -313,11 +314,6 @@ void SolverEngineState::doPendingPops()
     userContext()->pop();
     --d_pendingPops;
     // no need for pop post (for now)
-  }
-  if (d_needPostsolve)
-  {
-    d_slv.notifyPostSolvePost();
-    d_needPostsolve = false;
   }
 }
 

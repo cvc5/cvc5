@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --theoryof-mode=type --quiet --nl-ext-tplanes
+; REQUIRES: no-asan
 (set-logic QF_NIA)
 (declare-fun a () Int)
 (declare-fun b () Int)

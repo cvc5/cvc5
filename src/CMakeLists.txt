@@ -46,8 +46,6 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
-  options/io_utils.cpp
-  options/io_utils.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -58,6 +56,18 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
+  # !!! TEMPORARY !!!
+  # We currently add the symbol manager and the symbol table to both libcvc5
+  # and libcvc5parser as a stopgap solution, because the command infrastructure
+  # is still in libcvc5. Once PR #8893 is merged, they can be removed from
+  # libcvc5. We have to add them to libcvc5 because linking a DLL for Windows
+  # requires all symbols to be present. Concretely, because of the commands, we
+  # need the symbols for the symbol manager/table to link libcvc5.
+  parser/api/cpp/symbol_manager.cpp
+  parser/api/cpp/symbol_manager.h
+  parser/symbol_table.cpp
+  parser/symbol_table.h
+  # !!! /TEMPORARY !!!
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -134,6 +144,8 @@ libcvc5_add_sources(
   preprocessing/preprocessing_pass_context.h
   preprocessing/preprocessing_pass_registry.cpp
   preprocessing/preprocessing_pass_registry.h
+  preprocessing/util/boolean_simplification.cpp
+  preprocessing/util/boolean_simplification.h
   preprocessing/util/ite_utilities.cpp
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
@@ -327,8 +339,6 @@ libcvc5_add_sources(
   smt/set_defaults.h
   smt/solver_engine.cpp
   smt/solver_engine.h
-  smt/solver_engine_scope.cpp
-  smt/solver_engine_scope.h
   smt/solver_engine_state.cpp
   smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
@@ -337,8 +347,6 @@ libcvc5_add_sources(
   smt/smt_mode.h
   smt/smt_solver.cpp
   smt/smt_solver.h
-  smt/smt_statistics_registry.cpp
-  smt/smt_statistics_registry.h
   smt/sygus_solver.cpp
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
@@ -347,8 +355,6 @@ libcvc5_add_sources(
   smt/unsat_core_manager.h
   smt/witness_form.cpp
   smt/witness_form.h
-  smt_util/boolean_simplification.cpp
-  smt_util/boolean_simplification.h
   theory/arith/arith_evaluator.cpp
   theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
@@ -363,6 +369,8 @@ libcvc5_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_state.cpp
   theory/arith/arith_state.h
+  theory/arith/arith_subs.cpp
+  theory/arith/arith_subs.h
   theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
   theory/arith/bound_inference.cpp
@@ -539,14 +547,10 @@ libcvc5_add_sources(
   theory/arrays/theory_arrays_type_rules.h
   theory/arrays/type_enumerator.h
   theory/arrays/type_enumerator.cpp
-  theory/arrays/union_find.cpp
-  theory/arrays/union_find.h
   theory/assertion.cpp
   theory/assertion.h
   theory/atom_requests.cpp
   theory/atom_requests.h
-  theory/bags/bag_make_op.cpp
-  theory/bags/bag_make_op.h
   theory/bags/bags_rewriter.cpp
   theory/bags/bags_rewriter.h
   theory/bags/bag_solver.cpp
@@ -571,8 +575,6 @@ libcvc5_add_sources(
   theory/bags/solver_state.h
   theory/bags/strategy.cpp
   theory/bags/strategy.h
-  theory/bags/table_project_op.cpp
-  theory/bags/table_project_op.h
   theory/bags/term_registry.cpp
   theory/bags/term_registry.h
   theory/bags/theory_bags.cpp
@@ -666,8 +668,8 @@ libcvc5_add_sources(
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
-  theory/datatypes/tuple_project_op.cpp
-  theory/datatypes/tuple_project_op.h
+  theory/datatypes/project_op.cpp
+  theory/datatypes/project_op.h
   theory/datatypes/tuple_utils.cpp
   theory/datatypes/tuple_utils.h
   theory/datatypes/type_enumerator.cpp
@@ -819,6 +821,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/inst_strategy_mbqi.cpp
+  theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
   theory/quantifiers/instantiate.cpp
@@ -1016,8 +1020,8 @@ libcvc5_add_sources(
   theory/sets/normal_form.h
   theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
-  theory/sets/singleton_op.cpp
-  theory/sets/singleton_op.h
+  theory/sets/set_reduction.cpp
+  theory/sets/set_reduction.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
@@ -1088,8 +1092,6 @@ libcvc5_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/rewrites.cpp
   theory/strings/rewrites.h
-  theory/strings/seq_unit_op.cpp
-  theory/strings/seq_unit_op.h
   theory/strings/sequences_rewriter.cpp
   theory/strings/sequences_rewriter.h
   theory/strings/sequences_stats.cpp
@@ -1230,8 +1232,8 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
-list(APPEND options_gen_h_files "options/options.h")
+list(APPEND options_gen_cpp_files "options/io_utils.cpp" "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
+list(APPEND options_gen_h_files "options/io_utils.h" "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
 
@@ -1274,6 +1276,8 @@ add_custom_command(
     options/mkoptions.py
     ${options_toml_files}
     main/options_template.cpp
+    options/io_utils_template.h
+    options/io_utils_template.cpp
     options/module_template.h
     options/module_template.cpp
     options/options_public_template.cpp
@@ -1338,8 +1342,7 @@ target_include_directories(cvc5
 )
 install(TARGETS cvc5
   EXPORT cvc5-targets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 include(GenerateExportHeader)

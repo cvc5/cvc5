@@ -443,8 +443,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       // If a literal is false at 0 level (both sat and user level) we also
       // ignore it, unless we are tracking the SAT solver's reasoning
       if (value(ps[i]) == l_False) {
-        if (!options().smt.unsatCores && !needProof() && level(var(ps[i])) == 0
-            && user_level(var(ps[i])) == 0)
+        if (!options().smt.produceUnsatCores && !needProof()
+            && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0)
         {
           continue;
         }
@@ -481,7 +481,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if (options().smt.unsatCores || needProof())
+        if (options().smt.produceUnsatCores || needProof())
         {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
@@ -527,7 +527,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           MinisatSatSolver::toSatClause(ca[cr], satClause);
           d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
         }
-        if (options().smt.unsatCores || needProof())
+        if (options().smt.produceUnsatCores || needProof())
         {
           if (ps.size() == falseLiteralsCount)
           {
@@ -2072,7 +2072,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!options().smt.unsatCores && !needProof());
+        Assert(!options().smt.produceUnsatCores && !needProof());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Trace("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2240,8 +2240,19 @@ bool Solver::needProof() const
 
 bool Solver::assertionLevelOnly() const
 {
-  return options().smt.unsatCores && !needProof()
+  return options().smt.produceUnsatCores && !needProof()
          && options().base.incrementalSolving;
+}
+
+const std::vector<Node> Solver::getMiniSatOrderHeap()
+{
+  std::vector<Node> heapList;
+  for (size_t i = 0, hsize = order_heap.size(); i < hsize; ++i)
+  {
+    Node n = d_proxy->getNode(order_heap[i]);
+    heapList.push_back(n);
+  }
+  return heapList;
 }
 
 }  // namespace Minisat

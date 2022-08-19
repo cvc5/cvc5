@@ -21,6 +21,7 @@
 
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
 #include "smt/command.h"
@@ -31,17 +32,21 @@ namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          size_t dag) const
+void AstPrinter::toStream(std::ostream& out, TNode n) const
 {
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
   if(dag != 0) {
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
   } else {
     toStream(out, n, toDepth);
   }
+}
+
+void AstPrinter::toStream(std::ostream& out, Kind k) const
+{
+  out << kind::kindToString(k);
 }
 
 void AstPrinter::toStream(std::ostream& out,
@@ -230,32 +235,6 @@ void AstPrinter::toStreamCmdQuit(std::ostream& out) const
   out << "Quit()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  out << "DeclarationSequence[" << endl;
-  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
-}
-
-void AstPrinter::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  out << "cvc5::CommandSequence[" << endl;
-  for (cvc5::CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
-}
-
 void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
                                             const std::string& id,
                                             TypeNode type) const
@@ -328,9 +307,10 @@ void AstPrinter::toStreamCmdGetAssertions(std::ostream& out) const
   out << "GetAssertions()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdGetProof(std::ostream& out) const
+void AstPrinter::toStreamCmdGetProof(std::ostream& out,
+                                     modes::ProofComponent c) const
 {
-  out << "GetProof()" << std::endl;
+  out << "GetProof(" << c << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
@@ -437,10 +417,7 @@ static bool tryToStream(std::ostream& out, const cvc5::Command* c)
 
 static void toStream(std::ostream& out, const cvc5::CommandSuccess* s)
 {
-  if (cvc5::Command::printsuccess::getPrintSuccess(out))
-  {
-    out << "OK" << endl;
-  }
+  out << "OK" << endl;
 }
 
 static void toStream(std::ostream& out, const cvc5::CommandInterrupted* s)

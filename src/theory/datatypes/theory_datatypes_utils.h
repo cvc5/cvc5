@@ -29,12 +29,29 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
+/**
+ * Get the index^th selector of datatype constructor dc whose type is dtt. If
+ * shareSel is true, this returns the shared selector of dc.
+ */
+Node getSelector(TypeNode dtt,
+                 const DTypeConstructor& dc,
+                 size_t index,
+                 bool shareSel);
+/**
+ * Apply the indext^th selector of datatype constructor dc to term n. If
+ * shareSel is true, we use the shared selector of dc.
+ */
+Node applySelector(const DTypeConstructor& dc,
+                   size_t index,
+                   bool shareSel,
+                   const Node& n);
+
 /** get instantiate cons
  *
  * This returns the term C( sel^{C,1}( n ), ..., sel^{C,m}( n ) ),
  * where C is the index^{th} constructor of datatype dt.
  */
-Node getInstCons(Node n, const DType& dt, size_t index);
+Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel);
 /**
  * Apply constructor, taking into account whether the datatype is parametric.
  *
@@ -45,13 +62,6 @@ Node mkApplyCons(TypeNode tn,
                  const DType& dt,
                  size_t index,
                  const std::vector<Node>& children);
-/** is instantiation cons
- *
- * If this method returns a value >=0, then that value, call it index,
- * is such that n = C( sel^{C,1}( t ), ..., sel^{C,m}( t ) ),
- * where C is the index^{th} constructor of dt.
- */
-int isInstCons(Node t, Node n, const DType& dt);
 /** is tester
  *
  * This method returns a value >=0 if n is a tester predicate. The return

@@ -239,8 +239,8 @@ public:
      case kind::INTS_DIVISION_TOTAL:
      case kind::INTS_MODULUS_TOTAL:
      case kind::DIVISION_TOTAL: return isDivMember(n);
-     case kind::IAND: return isIAndMember(n);
-     case kind::POW2: return isPow2Member(n);
+     case kind::IAND:
+     case kind::POW2:
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:
@@ -255,7 +255,9 @@ public:
      case kind::ARCSECANT:
      case kind::ARCCOTANGENT:
      case kind::SQRT:
-     case kind::PI: return isTranscendentalMember(n);
+     case kind::PI:
+     case kind::INT_TO_BITVECTOR:
+     case kind::BITVECTOR_TO_NAT: return areChildrenPolynomialMembers(n);
      case kind::ABS:
      case kind::TO_INTEGER:
        // Treat to_int as a variable; it is replaced in early preprocessing
@@ -266,13 +268,15 @@ public:
  }
 
   static bool isLeafMember(Node n);
-  static bool isIAndMember(Node n);
-  static bool isPow2Member(Node n);
   static bool isDivMember(Node n);
   bool isDivLike() const{
     return isDivMember(getNode());
   }
-  static bool isTranscendentalMember(Node n);
+  /**
+   * Return true if all direct children of n are polynomial members (returns
+   * true for Polynomial::isMember).
+   */
+  static bool areChildrenPolynomialMembers(Node n);
 
   bool isNormalForm() { return isMember(getNode()); }
 
@@ -341,7 +345,6 @@ public:
 
   bool operator==(const Variable& v) const { return getNode() == v.getNode();}
 
-  size_t getComplexity() const;
 };/* class Variable */
 
 class Constant : public NodeWrapper {
@@ -428,8 +431,6 @@ public:
     Assert(isIntegral());
     return getValue().getNumerator().length();
   }
-
-  size_t getComplexity() const;
 
 };/* class Constant */
 
@@ -609,7 +610,6 @@ public:
     }
     return true;
   }
-  size_t getComplexity() const;
 
 private:
   bool isSorted(iterator start, iterator end);
@@ -788,7 +788,6 @@ public:
   void print() const;
   static void printList(const std::vector<Monomial>& list);
 
-  size_t getComplexity() const;
 };/* class Monomial */
 
 class SumPair;
@@ -1130,8 +1129,6 @@ public:
     return getHead().getVarList();
   }
 
-  size_t getComplexity() const;
-
   friend class SumPair;
   friend class Comparison;
 
@@ -1444,8 +1441,6 @@ public:
     Comparison parse = Comparison::parseNormalForm(n);
     return parse.isNormalForm();
   }
-
-  size_t getComplexity() const;
 
   SumPair toSumPair() const;
 

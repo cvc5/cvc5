@@ -50,6 +50,10 @@ class SynthVerify : protected EnvObj
   Result verify(Node query,
                 const std::vector<Node>& vars,
                 std::vector<Node>& mvs);
+  /**
+   * Same as above, without getting a model.
+   */
+  Result verify(Node query);
 
  private:
   /**

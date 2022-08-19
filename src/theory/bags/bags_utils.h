@@ -133,6 +133,14 @@ class BagsUtils
   static Node evaluateJoin(Rewriter* rewriter, TNode n);
 
   /**
+   * @param n of the form ((_ table.group (n_1 ... n_k) ) A) where A is a
+   * constant table
+   * @return a partition of A such that each part contains tuples with the same
+   * projection with indices n_1 ... n_k
+   */
+  static Node evaluateGroup(TNode n);
+
+  /**
    * @param n of the form ((_ table.project i_1 ... i_n) A) where A is a
    * constant
    * @return the evaluation of the projection

@@ -18,13 +18,14 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
-EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
+EagerProofGenerator::EagerProofGenerator(Env& env,
                                          context::Context* c,
                                          std::string name)
-    : d_pnm(pnm), d_name(name), d_proofs(c == nullptr ? &d_context : c)
+    : EnvObj(env), d_name(name), d_proofs(c == nullptr ? &d_context : c)
 {
 }
 
@@ -104,20 +105,21 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
                                            const std::vector<Node>& args,
                                            bool isConflict)
 {
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   // if no children, its easy
   if (exp.empty())
   {
-    std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, {}, args, conc);
+    std::shared_ptr<ProofNode> pf = pnm->mkNode(id, {}, args, conc);
     return mkTrustNode(conc, pf, isConflict);
   }
   // otherwise, we use CDProof + SCOPE
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env);
   cdp.addStep(conc, id, exp, args);
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(conc);
   // We use mkNode instead of mkScope, since there is no reason to check
   // whether the free assumptions of pf are in exp, since they are by the
   // construction above.
-  std::shared_ptr<ProofNode> pfs = d_pnm->mkNode(PfRule::SCOPE, {pf}, exp);
+  std::shared_ptr<ProofNode> pfs = pnm->mkNode(PfRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
@@ -140,7 +142,7 @@ TrustNode EagerProofGenerator::mkTrustedRewrite(Node a,
                                                 const std::vector<Node>& args)
 {
   Node eq = a.eqNode(b);
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env);
   cdp.addStep(eq, id, {}, args);
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(eq);
   return mkTrustedRewrite(a, b, pf);

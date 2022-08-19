@@ -98,7 +98,7 @@ void ExponentialSolver::checkInitialRefine()
         }
         {
           // must use real one/zero in equalities
-          Node rzero = nm->mkConstReal(Rational(0));
+          Node rzero = mkZero(t[0].getType());
           Node rone = nm->mkConstReal(Rational(1));
           // exp at zero: (t = 0.0) <=> (exp(t) = 1.0)
           Node lem =

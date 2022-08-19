@@ -126,11 +126,10 @@ class DtSygusEvalTypeRule
  * - The head is a datatype T,
  * - The remaining children are either MATCH_BIND_CASE or MATCH_CASE,
  * - The patterns for the cases are over the same datatype as the head term,
- * - The return types for the cases are comparable,
+ * - The return types for the cases are the same,
  * - The patterns specified by the children are exhaustive for T.
  *
- * The type rule returns the (least common subtype) of the return types of the
- * cases.
+ * The type rule returns the return type of the cases.
  */
 class MatchTypeRule
 {

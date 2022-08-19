@@ -109,14 +109,7 @@ parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root p
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
 operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
-operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in cvc5, as integer is a subtype of real)"
-
-# CAST_TO_REAL is added to distinguish between integers casted to reals internally, and
-# integers casted to reals or using the API \
-# Solver::mkReal(int val) would return an internal node (CAST_TO_REAL val), but in the api it appears as term (val) \
-# Solver::mkTerm(TO_REAL, Solver::mkInteger(int val)) would return both term and node (TO_REAL val) \
-# This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
-operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
+operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term)"
 
 typerule ADD ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
@@ -141,7 +134,6 @@ typerule INDEXED_ROOT_PREDICATE_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule INDEXED_ROOT_PREDICATE ::cvc5::internal::theory::arith::IndexedRootPredicateTypeRule
 
 typerule TO_REAL "SimpleTypeRule<RReal, ARealOrInteger>"
-typerule CAST_TO_REAL "SimpleTypeRule<RReal, ARealOrInteger>"
 typerule TO_INTEGER "SimpleTypeRule<RInteger, ARealOrInteger>"
 typerule IS_INTEGER "SimpleTypeRule<RBool, ARealOrInteger>"
 
@@ -190,5 +182,21 @@ parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter i
 
 typerule IAND_OP ::cvc5::internal::theory::arith::IAndOpTypeRule
 typerule IAND ::cvc5::internal::theory::arith::IAndTypeRule
+
+## conversion kinds
+operator BITVECTOR_TO_NAT 1 "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
+
+constant INT_TO_BITVECTOR_OP \
+  struct \
+  IntToBitVector \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntToBitVector >" \
+  "util/bitvector.h" \
+  "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::internal::IntToBitVector class"
+parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
+
+## conversion kinds
+typerule BITVECTOR_TO_NAT ::cvc5::internal::theory::arith::BitVectorConversionTypeRule
+typerule INT_TO_BITVECTOR_OP ::cvc5::internal::theory::arith::IntToBitVectorOpTypeRule
+typerule INT_TO_BITVECTOR ::cvc5::internal::theory::arith::BitVectorConversionTypeRule
 
 endtheory

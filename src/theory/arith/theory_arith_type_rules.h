@@ -123,6 +123,18 @@ class IndexedRootPredicateTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
+class IntToBitVectorOpTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+class BitVectorConversionTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

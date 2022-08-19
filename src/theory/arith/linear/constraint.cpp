@@ -26,7 +26,6 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
@@ -658,8 +657,11 @@ bool Constraint::sanityChecking(Node n) const {
   Kind k = cmp.comparisonKind();
   Polynomial pleft = cmp.normalizedVariablePart();
   Assert(k == EQUAL || k == DISTINCT || pleft.leadingCoefficientIsPositive());
-  Assert(k != EQUAL || Monomial::isMember(n[0]));
-  Assert(k != DISTINCT || Monomial::isMember(n[0][0]));
+  Assert(k != EQUAL
+         || Monomial::isMember(n[0].getKind() == TO_REAL ? n[0][0] : n[0]));
+  Assert(k != DISTINCT
+         || Monomial::isMember(n[0][0].getKind() == TO_REAL ? n[0][0][0]
+                                                            : n[0][0]));
 
   TNode left = pleft.getNode();
   DeltaRational right = cmp.normalizedDeltaRational();
@@ -918,7 +920,8 @@ ConstraintDatabase::ConstraintDatabase(Env& env,
                                            : nullptr),
       d_raiseConflict(raiseConflict),
       d_one(1),
-      d_negOne(-1)
+      d_negOne(-1),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -1034,11 +1037,11 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics()
-    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
-        "theory::arith::cd::unatePropagateCalls")),
-      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
-          "theory::arith::cd::unatePropagateImplications"))
+ConstraintDatabase::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_unatePropagateCalls(
+        sr.registerInt("theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(
+          sr.registerInt("theory::arith::cd::unatePropagateImplications"))
 {
 }
 

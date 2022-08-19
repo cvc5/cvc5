@@ -40,12 +40,10 @@ class Rewriter {
   Rewriter();
 
   /**
-   * !!! Temporary until static access to rewriter is eliminated.
-   *
    * Rewrites the node using theoryOf() to determine which rewriter to
    * use on the node.
    */
-  static Node rewrite(TNode node);
+  Node rewrite(TNode node);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -86,8 +84,8 @@ class Rewriter {
   TrustNode rewriteWithProof(TNode node,
                              bool isExtEq = false);
 
-  /** Set proof node manager */
-  void setProofNodeManager(ProofNodeManager* pnm);
+  /** Finish init, which sets up the proof manager if applicable */
+  void finishInit(Env& env);
 
   /**
    * Registers a theory rewriter with this rewriter. The rewriter does not own
@@ -102,13 +100,6 @@ class Rewriter {
   TheoryRewriter* getTheoryRewriter(theory::TheoryId theoryId);
 
  private:
-  /**
-   * Get the rewriter associated with the SolverEngine in scope.
-   *
-   * TODO(#3468): Get rid of this function (it relies on there being an
-   * singleton with the current SolverEngine in scope)
-   */
-  static Rewriter* getInstance();
 
   /** Returns the appropriate cache for a node */
   Node getPreRewriteCache(theory::TheoryId theoryId, TNode node);

@@ -15,11 +15,14 @@
 
 #include "smt/proof_final_callback.h"
 
+#include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
-#include "smt/smt_statistics_registry.h"
+#include "smt/env.h"
+#include "smt/set_defaults.h"
 #include "theory/builtin/proof_checker.h"
+#include "theory/smt_engine_subsolver.h"
 #include "theory/theory_id.h"
 
 using namespace cvc5::internal::kind;
@@ -28,22 +31,21 @@ using namespace cvc5::internal::theory;
 namespace cvc5::internal {
 namespace smt {
 
-ProofFinalCallback::ProofFinalCallback(ProofNodeManager* pnm)
-    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>(
+ProofFinalCallback::ProofFinalCallback(Env& env)
+    : EnvObj(env),
+      d_ruleCount(statisticsRegistry().registerHistogram<PfRule>(
           "finalProof::ruleCount")),
-      d_instRuleIds(
-          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
-              "finalProof::instRuleId")),
+      d_instRuleIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
+          "finalProof::instRuleId")),
       d_annotationRuleIds(
-          smtStatisticsRegistry().registerHistogram<theory::InferenceId>(
+          statisticsRegistry().registerHistogram<theory::InferenceId>(
               "finalProof::annotationRuleId")),
       d_totalRuleCount(
-          smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
+          statisticsRegistry().registerInt("finalProof::totalRuleCount")),
       d_minPedanticLevel(
-          smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
+          statisticsRegistry().registerInt("finalProof::minPedanticLevel")),
       d_numFinalProofs(
-          smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pnm(pnm),
+          statisticsRegistry().registerInt("finalProofs::numFinalProofs")),
       d_pedanticFailure(false)
 {
   d_minPedanticLevel += 10;
@@ -61,23 +63,25 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                       bool& continueUpdate)
 {
   PfRule r = pn->getRule();
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
   // if not doing eager pedantic checking, fail if below threshold
-  if (options::proofCheck() != options::ProofCheckMode::EAGER)
+  if (options().proof.proofCheck != options::ProofCheckMode::EAGER)
   {
     if (!d_pedanticFailure)
     {
       Assert(d_pedanticFailureOut.str().empty());
-      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
+      if (pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
       {
         d_pedanticFailure = true;
       }
     }
   }
-  if (options::proofCheck() != options::ProofCheckMode::NONE)
+  if (options().proof.proofCheck != options::ProofCheckMode::NONE)
   {
-    d_pnm->ensureChecked(pn.get());
+    pnm->ensureChecked(pn.get());
   }
-  uint32_t plevel = d_pnm->getChecker()->getPedanticLevel(r);
+  uint32_t plevel = pnm->getChecker()->getPedanticLevel(r);
   if (plevel != 0)
   {
     d_minPedanticLevel.minAssign(plevel);
@@ -130,6 +134,53 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
       Trace("final-pf-hole") << "hole " << r << " " << tid << " : " << eq[0]
                              << " ---> " << eq[1] << std::endl;
+    }
+    else if (r == PfRule::REWRITE)
+    {
+      const std::vector<Node>& args = pn->getArguments();
+      Node eq = args[0];
+      Trace("final-pf-hole") << "hole " << r << " : " << eq << std::endl;
+    }
+  }
+  if (options().proof.checkProofSteps)
+  {
+    Node conc = pn->getResult();
+    ProofChecker* pc = pnm->getChecker();
+    if (pc->getPedanticLevel(r) == 0)
+    {
+      // no need to check
+    }
+    else
+    {
+      std::vector<Node> premises;
+      const std::vector<std::shared_ptr<ProofNode>>& pnc = pn->getChildren();
+      for (const std::shared_ptr<ProofNode>& pncc : pnc)
+      {
+        premises.push_back(pncc->getResult());
+      }
+      NodeManager* nm = NodeManager::currentNM();
+      Node query = nm->mkNode(IMPLIES, nm->mkAnd(premises), conc);
+      // trust the rewriter here, since the subsolver will rewrite anyways
+      query = rewrite(query);
+      // We use the original form of the query, which is a logically
+      // stronger formula. This may make it possible or easier to prove.
+      query = SkolemManager::getOriginalForm(query);
+      // set up the subsolver
+      Options subOptions;
+      subOptions.copyValues(d_env.getOptions());
+      smt::SetDefaults::disableChecking(subOptions);
+      SubsolverSetupInfo ssi(d_env, subOptions);
+      Trace("check-proof-steps")
+          << "Check: " << r << " : " << query << std::endl;
+      Result res = checkWithSubsolver(query.notNode(), ssi, true, 5000);
+      Trace("check-proof-steps") << "...got " << res << std::endl;
+      if (res != Result::UNSAT)
+      {
+        Warning() << "A proof step may not hold: " << r << " proving " << query;
+        Warning() << ", result from check-sat was: " << res << std::endl;
+        Trace("check-proof-steps")
+            << "Original conclusion: " << conc << std::endl;
+      }
     }
   }
   return false;

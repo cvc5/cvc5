@@ -127,7 +127,8 @@ class TheoryEngine : protected EnvObj
   void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
+    d_theoryOut[theoryId] =
+        new theory::EngineOutputChannel(statisticsRegistry(), this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     getRewriter()->registerTheoryRewriter(
@@ -249,7 +250,7 @@ class TheoryEngine : protected EnvObj
   bool presolve();
 
   /**
-   * Calls postsolve() on all theories.
+   * Resets the internal state.
    */
   void postsolve();
 
@@ -333,12 +334,9 @@ class TheoryEngine : protected EnvObj
     return d_theoryTable[theoryId];
   }
 
-  bool isTheoryEnabled(theory::TheoryId theoryId) const
-  {
-    return d_logicInfo.isTheoryEnabled(theoryId);
-  }
-  /** get the logic info used by this theory engine */
-  const LogicInfo& getLogicInfo() const;
+  bool isTheoryEnabled(theory::TheoryId theoryId) const;
+  /** return the theory that should explain a propagation from TheoryId */
+  theory::TheoryId theoryExpPropagation(theory::TheoryId tid) const;
 
   /**
    * Returns the equality status of the two terms, from the theory
@@ -501,18 +499,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* d_theoryTable[theory::THEORY_LAST];
 
-  /**
-   * A collection of theories that are "active" for the current run.
-   * This set is provided by the user (as a logic string, say, in SMT-LIBv2
-   * format input), or else by default it's all-inclusive.  This is important
-   * because we can optimize for single-theory runs (no sharing), can reduce
-   * the cost of walking the DAG on registration, etc.
-   */
-  const LogicInfo& d_logicInfo;
-
-  //--------------------------------- new proofs
-  /** Proof node manager used by this theory engine, if proofs are enabled */
-  ProofNodeManager* d_pnm;
+  //--------------------------------- proofs
   /** The lazy proof object
    *
    * This stores instructions for how to construct proofs for all theory lemmas.
@@ -520,7 +507,7 @@ class TheoryEngine : protected EnvObj
   std::shared_ptr<LazyCDProof> d_lazyProof;
   /** The proof generator */
   std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
-  //--------------------------------- end new proofs
+  //--------------------------------- end proofs
   /** The combination manager we are using */
   std::unique_ptr<theory::CombinationEngine> d_tc;
   /** The shared solver of the above combination engine. */

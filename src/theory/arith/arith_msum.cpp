@@ -219,12 +219,13 @@ int ArithMSum::isolate(
   int ires = isolate(v, msum, veq_c, val, k);
   if (ires != 0)
   {
+    NodeManager* nm = NodeManager::currentNM();
     Node vc = v;
     if (!veq_c.isNull())
     {
       if (doCoeff)
       {
-        vc = NodeManager::currentNM()->mkNode(MULT, veq_c, vc);
+        vc = nm->mkNode(MULT, veq_c, vc);
       }
       else
       {
@@ -232,8 +233,23 @@ int ArithMSum::isolate(
       }
     }
     bool inOrder = ires == 1;
-    veq = NodeManager::currentNM()->mkNode(
-        k, inOrder ? vc : val, inOrder ? val : vc);
+    // ensure type is correct for equality
+    if (k == EQUAL)
+    {
+      bool vci = vc.getType().isInteger();
+      bool vi = val.getType().isInteger();
+      if (!vci && vi)
+      {
+        val = nm->mkNode(TO_REAL, val);
+      }
+      else if (vci && !vi)
+      {
+        val = nm->mkNode(TO_INTEGER, val);
+      }
+      Assert(val.getType() == vc.getType())
+          << val << " " << vc << " " << val.getType() << " " << vc.getType();
+    }
+    veq = nm->mkNode(k, inOrder ? vc : val, inOrder ? val : vc);
   }
   return ires;
 }

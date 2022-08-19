@@ -30,9 +30,6 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
-#include "theory/bags/bag_make_op.h"
-#include "theory/sets/singleton_op.h"
-#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -567,16 +564,14 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
@@ -762,22 +757,19 @@ TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
 
 TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype selector type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype selector type";
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
 TypeNode NodeManager::mkTesterType(TypeNode domain)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype tester");
+  Assert(domain.isDatatype()) << "cannot create non-datatype tester";
   return mkTypeNode(kind::TESTER_TYPE, domain);
 }
 
 TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype upater type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype upater type";
   // It is a function type domain x range -> domain, we store only the
   // arguments
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);
@@ -1148,39 +1140,6 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   }
 }
 
-Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node op = mkConst(SeqUnitOp(t));
-  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
-  return sunit;
-}
-
-Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkSingleton. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node op = mkConst(SetSingletonOp(t));
-  Node singleton = mkNode(kind::SET_SINGLETON, op, n);
-  return singleton;
-}
-
-Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkBag. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node op = mkConst(BagMakeOp(t));
-  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
-  return bag;
-}
-
 bool NodeManager::hasOperator(Kind k)
 {
   switch (kind::MetaKind mk = kind::metaKindOf(k))
@@ -1337,9 +1296,8 @@ Node NodeManager::mkConstReal(const Rational& r)
 
 Node NodeManager::mkConstInt(const Rational& r)
 {
-  // !!!! Note will update to CONST_INTEGER.
   Assert(r.isIntegral());
-  return mkConst(kind::CONST_RATIONAL, r);
+  return mkConst(kind::CONST_INTEGER, r);
 }
 
 Node NodeManager::mkConstRealOrInt(const Rational& r)

@@ -62,9 +62,11 @@ bool Preprocessor::process(Assertions& as)
 {
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
-  // should not be called if empty
-  Assert(ap.size() != 0)
-      << "Can only preprocess a non-empty list of assertions";
+  if (ap.size() == 0)
+  {
+    // nothing to do
+    return true;
+  }
 
   if (d_assertionsProcessed && options().base.incrementalSolving)
   {
@@ -129,6 +131,7 @@ Node Preprocessor::expandDefinitions(const Node& node,
   }
   // apply substitutions here (without rewriting), before expanding definitions
   n = d_env.getTopLevelSubstitutions().apply(n);
+  Trace("smt-debug") << "...after top-level subs: " << n << std::endl;
   // now call expand definitions
   n = d_exDefs.expandDefinitions(n, cache);
   return n;

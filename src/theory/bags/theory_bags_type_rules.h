@@ -181,13 +181,13 @@ struct TableProductTypeRule
 /**
  * Table project is indexed by a list of indices (n_1, ..., n_m). It ensures
  * that the argument is a bag of tuples whose arity k is greater than each n_i
- * for i = 1, ..., m. If the argument is of type (Bag (Tuple T_1 ... T_k)), then
- * the returned type is (Bag (Tuple T_{n_1} ... T_{n_m})).
+ * for i = 1, ..., m. If the argument is of type (Table T_1 ... T_k), then
+ * the returned type is (Table T_{n_1} ... T_{n_m}).
  */
 struct TableProjectTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-}; /* struct BagFoldTypeRule */
+}; /* struct TableProjectTypeRule */
 
 /**
  * Table aggregate operator is indexed by a list of indices (n_1, ..., n_k).
@@ -215,6 +215,17 @@ struct TableJoinTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct TableJoinTypeRule */
+
+/**
+ * Table group operator is indexed by a list of indices (n_1, ..., n_k). It
+ * ensures that the argument is a table whose arity is greater than each n_i for
+ * i = 1, ..., k. If the passed table is of type T, then the returned type is
+ * (Bag T), i.e., bag of tables.
+ */
+struct TableGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableGroupTypeRule */
 
 struct BagsProperties
 {

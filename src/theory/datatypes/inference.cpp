@@ -39,20 +39,13 @@ DatatypesInference::DatatypesInference(InferenceManager* im,
 bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 {
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
-  // Force lemmas if option is set
-  if (options::dtInferAsLemmas())
-  {
-    Trace("dt-lemma-debug")
-        << "Communicate " << n << " due to option" << std::endl;
-    return true;
-  }
   // Note that equalities due to instantiate are forced as lemmas if
   // necessary as they are created. This ensures that terms are shared with
   // external theories when necessary. We send the lemma here only if the
   // conclusion has kind LEQ (for datatypes size) or OR. Notice that
   // all equalities are kept internal, apart from those forced as lemmas
   // via instantiate.
-  else if (n.getKind() == LEQ || n.getKind() == OR)
+  if (n.getKind() == LEQ || n.getKind() == OR)
   {
     Trace("dt-lemma-debug")
         << "Communicate " << n << " due to kind" << std::endl;

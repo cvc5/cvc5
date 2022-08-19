@@ -21,7 +21,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "smt/smt_statistics_registry.h"
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
 #ifdef CVC5_USE_COCOA
@@ -34,17 +34,14 @@
 
 namespace cvc5::internal::theory::arith::nl::coverings {
 
-struct LazardEvaluationStats
-{
-  IntStat d_directAssignments =
-      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-direct");
-  IntStat d_ranAssignments =
-      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-rans");
-  IntStat d_evaluations =
-      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-evals");
-  IntStat d_reductions =
-      smtStatisticsRegistry().registerInt("theory::arith::coverings::lazard-reduce");
-};
+LazardEvaluationStats::LazardEvaluationStats(StatisticsRegistry& reg)
+    : d_directAssignments(
+        reg.registerInt("theory::arith::coverings::lazard-direct")),
+      d_ranAssignments(
+          reg.registerInt("theory::arith::coverings::lazard-rans")),
+      d_evaluations(reg.registerInt("theory::arith::coverings::lazard-evals")),
+      d_reductions(
+          reg.registerInt("theory::arith::coverings::lazard-reduce")){};
 
 struct LazardEvaluationState;
 std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state);
@@ -542,6 +539,8 @@ struct LazardEvaluationState
     }
     return res;
   }
+
+  LazardEvaluationState(StatisticsRegistry& reg) : d_stats(reg) {}
 };
 
 std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state)
@@ -564,8 +563,8 @@ std::ostream& operator<<(std::ostream& os, const LazardEvaluationState& state)
   return os;
 }
 
-LazardEvaluation::LazardEvaluation()
-    : d_state(std::make_unique<LazardEvaluationState>())
+LazardEvaluation::LazardEvaluation(StatisticsRegistry& reg)
+    : d_state(std::make_unique<LazardEvaluationState>(reg))
 {
 }
 
@@ -852,7 +851,7 @@ struct LazardEvaluationState
 {
   poly::Assignment d_assignment;
 };
-LazardEvaluation::LazardEvaluation()
+LazardEvaluation::LazardEvaluation(StatisticsRegistry&)
     : d_state(std::make_unique<LazardEvaluationState>())
 {
 }

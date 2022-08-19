@@ -51,7 +51,7 @@ void EnumStreamPermutation::reset(Node value)
   TypeNode tn = value.getType();
   Node var_list = tn.getDType().getSygusVarList();
   NodeManager* nm = NodeManager::currentNM();
-  // get subtypes in value's type
+  // get subfield types in value's type
   SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
   ti.getSubfieldTypes(sf_types);
@@ -59,7 +59,7 @@ void EnumStreamPermutation::reset(Node value)
   std::map<Node, Node> cons_var;
   for (const Node& v : var_list)
   {
-    // collect constructors for variable in all subtypes
+    // collect constructors for variable in all subfield types
     for (const TypeNode& stn : sf_types)
     {
       const DType& dt = stn.getDType();
@@ -337,7 +337,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
   d_tn = tn;
   // get variables in value's type
   Node var_list = tn.getDType().getSygusVarList();
-  // get subtypes in value's type
+  // get subfield types in value's type
   NodeManager* nm = NodeManager::currentNM();
   SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
@@ -345,7 +345,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
   // associate variables with constructors in all subfield types
   for (const Node& v : var_list)
   {
-    // collect constructors for variable in all subtypes
+    // collect constructors for variable in all subfield types
     for (const TypeNode& stn : sf_types)
     {
       const DType& dt = stn.getDType();

@@ -21,7 +21,6 @@
 #include "base/output.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/uf/eq_proof.h"
 
@@ -29,13 +28,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-EqualityEngine::Statistics::Statistics(const std::string& name)
-    : d_mergesCount(smtStatisticsRegistry().registerInt(name + "mergesCount")),
-      d_termsCount(smtStatisticsRegistry().registerInt(name + "termsCount")),
-      d_functionTermsCount(
-          smtStatisticsRegistry().registerInt(name + "functionTermsCount")),
-      d_constantTermsCount(
-          smtStatisticsRegistry().registerInt(name + "constantTermsCount"))
+EqualityEngine::Statistics::Statistics(StatisticsRegistry& sr,
+                                       const std::string& name)
+    : d_mergesCount(sr.registerInt(name + "mergesCount")),
+      d_termsCount(sr.registerInt(name + "termsCount")),
+      d_functionTermsCount(sr.registerInt(name + "functionTermsCount")),
+      d_constantTermsCount(sr.registerInt(name + "constantTermsCount"))
 {
 }
 
@@ -116,7 +114,7 @@ EqualityEngine::EqualityEngine(Env& env,
       d_assertedEqualitiesCount(c, 0),
       d_equalityTriggersCount(c, 0),
       d_subtermEvaluatesSize(c, 0),
-      d_stats(name + "::"),
+      d_stats(statisticsRegistry(), name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -148,7 +146,7 @@ EqualityEngine::EqualityEngine(Env& env,
       d_assertedEqualitiesCount(c, 0),
       d_equalityTriggersCount(c, 0),
       d_subtermEvaluatesSize(c, 0),
-      d_stats(name + "::"),
+      d_stats(statisticsRegistry(), name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
@@ -1103,13 +1101,16 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
 
+  // Get the ids
+  EqualityNodeId t1Id = getNodeId(t1);
+  EqualityNodeId t2Id = getNodeId(t2);
+
+  Trace("pf::ee") << "Ids: " << t1Id << ", " << t2Id << "\n";
+
   if (TraceIsOn("equality::internal"))
   {
     debugPrintGraph();
   }
-  // Get the ids
-  EqualityNodeId t1Id = getNodeId(t1);
-  EqualityNodeId t2Id = getNodeId(t2);
 
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   if (polarity) {
@@ -1230,7 +1231,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           if (!c1.isNull() && !c2.isNull())
           {
             simpTrans = false;
-            Assert(c1.getType().isComparableTo(c2.getType()));
+            Assert(c1.getType() == c2.getType());
             std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
@@ -1274,6 +1275,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
 
 void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
 {
+  Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
   bool polarity = lit.getKind() != kind::NOT;
   TNode atom = polarity ? lit : lit[0];
@@ -2057,22 +2059,27 @@ void EqualityEngine::propagate() {
   }
 }
 
-void EqualityEngine::debugPrintGraph() const {
-  Trace("equality::graph") << std::endl << "Dumping graph" << std::endl;
-  for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++ nodeId) {
-
-    Trace("equality::graph") << d_nodes[nodeId] << " " << nodeId << "(" << getEqualityNode(nodeId).getFind() << "):";
+void EqualityEngine::debugPrintGraph() const
+{
+  Trace("equality::internal") << std::endl << "Dumping graph" << std::endl;
+  for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++nodeId)
+  {
+    Trace("equality::internal") << d_nodes[nodeId] << " " << nodeId << "("
+                                << getEqualityNode(nodeId).getFind() << "):";
 
     EqualityEdgeId edgeId = d_equalityGraph[nodeId];
-    while (edgeId != null_edge) {
+    while (edgeId != null_edge)
+    {
       const EqualityEdge& edge = d_equalityEdges[edgeId];
-      Trace("equality::graph") << " [" << edge.getNodeId() << "] " << d_nodes[edge.getNodeId()] << ":" << edge.getReason();
+      Trace("equality::internal")
+          << " [" << edge.getNodeId() << "] " << d_nodes[edge.getNodeId()]
+          << ":" << edge.getReason();
       edgeId = edge.getNext();
     }
 
-    Trace("equality::graph") << std::endl;
+    Trace("equality::internal") << std::endl;
   }
-  Trace("equality::graph") << std::endl;
+  Trace("equality::internal") << std::endl;
 }
 
 std::string EqualityEngine::debugPrintEqc() const

@@ -228,9 +228,7 @@ class NodeValue
 
   std::string toString() const;
 
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                size_t dag = 1) const;
+  void toStream(std::ostream& out) const;
 
   void printAst(std::ostream& out, int indent = 0) const;
 

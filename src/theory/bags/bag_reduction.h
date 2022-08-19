@@ -98,18 +98,19 @@ class BagReduction
   static Node reduceCardOperator(Node node, std::vector<Node>& asserts);
   /**
    * @param node of the form ((_ table.aggr n1 ... nk) f initial A))
-   * @return reduction term that uses map, fold, and partition using
-   * tuple projection as the equivalence relation as follows:
+   * @return reduction term that uses map, fold, and group operators
+   * as follows:
    * (bag.map
    *   (lambda ((B Table)) (bag.fold f initial B))
-   *   (bag.partition
-   *     (lambda ((t1 Tuple) (t2 Tuple)) ; equivalence relation
-   *             (=
-   *               ((_ tuple.project n1 ... nk) t1)
-   *               ((_ tuple.project n1 ... nk) t2)))
-   *     A))
+   *   ((_ table.group n1 ... nk) A))
    */
   static Node reduceAggregateOperator(Node node);
+  /**
+   * @param n has the form ((table.project n1 ... nk) A) where A has type
+   *          (Bag T)
+   * @return (bag.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
+   */
+  static Node reduceProjectOperator(Node n);
 };
 
 }  // namespace bags

@@ -1,4 +1,4 @@
-; COMMAND-LINE: -m -q
+; COMMAND-LINE: -m
 ; EXPECT: sat
 ; EXPECT: ((IP true))
 (set-logic QF_NRA)
