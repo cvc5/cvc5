@@ -471,7 +471,6 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
   }
   // the initial regular expression membership and its constant type
   Node mi;
-  RegExpConstType rcti = RE_C_UNKNOWN;
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& m : mems)
   {
@@ -482,30 +481,16 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       continue;
     }
     RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
-    if (rct == RE_C_VARIABLE
-        || (options().strings.stringRegExpInterMode
-                == options::RegExpInterMode::CONSTANT
-            && rct != RE_C_CONRETE_CONSTANT))
+    if (rct != RE_C_CONRETE_CONSTANT)
     {
-      // cannot do intersection on RE with variables, or with re.allchar based
-      // on option.
+      // cannot do intersection on RE with variables, or with re.allchar,
+      // or re.complement
       continue;
-    }
-    if (options().strings.stringRegExpInterMode
-        == options::RegExpInterMode::ONE_CONSTANT)
-    {
-      if (!mi.isNull() && rcti >= RE_C_CONSTANT && rct >= RE_C_CONSTANT)
-      {
-        // if both have re.allchar, do not do intersection if the
-        // options::RegExpInterMode::ONE_CONSTANT option is set.
-        continue;
-      }
     }
     if (mi.isNull())
     {
       // first regular expression seen
       mi = m;
-      rcti = rct;
       continue;
     }
     Node resR = d_regexp_opr.intersect(mi[1], m[1]);

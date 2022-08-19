@@ -147,15 +147,9 @@ name   = "Strings Theory"
   default    = "CONSTANT"
   help       = "determines which regular expressions intersections to compute"
   help_mode  = "Regular expression intersection modes."
-[[option.mode.ALL]]
-  name = "all"
-  help = "Compute intersections for all regular expressions."
 [[option.mode.CONSTANT]]
   name = "constant"
   help = "Compute intersections only between regular expressions that do not contain re.allchar or re.range."
-[[option.mode.ONE_CONSTANT]]
-  name = "one-constant"
-  help = "Compute intersections only between regular expressions such that at least one side does not contain re.allchar or re.range."
 [[option.mode.NONE]]
   name = "none"
   help = "Do not compute intersections for regular expressions."
