@@ -37,10 +37,10 @@ TEST_F(TestUtilBlackCardinality, cardinalities)
   Cardinality two(2);
 
   Cardinality invalid(0);
-  ASSERT_THROW(invalid = Cardinality(-1), IllegalArgumentException);
-  ASSERT_THROW(invalid = Cardinality(-2), IllegalArgumentException);
-  ASSERT_THROW(invalid = Cardinality(Integer("-3983982192391747295721957")),
-               IllegalArgumentException);
+  ASSERT_DEATH(invalid = Cardinality(-1), "card >= 0");
+  ASSERT_DEATH(invalid = Cardinality(-2), "card >= 0");
+  ASSERT_DEATH(invalid = Cardinality(Integer("-3983982192391747295721957")),
+               "card >= 0");
   invalid = one;             // test assignment
   invalid = Cardinality(5);  // test assignment to temporary
 
@@ -125,16 +125,16 @@ TEST_F(TestUtilBlackCardinality, cardinalities)
   ASSERT_EQ(two.getFiniteCardinality(), 2);
   ASSERT_EQ(copy.getFiniteCardinality(), 1);
   ASSERT_EQ(invalid.getFiniteCardinality(), 5);
-  ASSERT_THROW(big.getFiniteCardinality(), IllegalArgumentException);
-  ASSERT_THROW(i.getFiniteCardinality(), IllegalArgumentException);
-  ASSERT_THROW(r.getFiniteCardinality(), IllegalArgumentException);
+  ASSERT_DEATH(big.getFiniteCardinality(), "!isLargeFinite\\(\\)");
+  ASSERT_DEATH(i.getFiniteCardinality(), "getFiniteCardinality\\(\\)");
+  ASSERT_DEATH(r.getFiniteCardinality(), "isFinite\\(\\)");
 
-  ASSERT_THROW(zero.getBethNumber(), IllegalArgumentException);
-  ASSERT_THROW(one.getBethNumber(), IllegalArgumentException);
-  ASSERT_THROW(two.getBethNumber(), IllegalArgumentException);
-  ASSERT_THROW(copy.getBethNumber(), IllegalArgumentException);
-  ASSERT_THROW(invalid.getBethNumber(), IllegalArgumentException);
-  ASSERT_THROW(big.getBethNumber(), IllegalArgumentException);
+  ASSERT_DEATH(zero.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
+  ASSERT_DEATH(one.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
+  ASSERT_DEATH(two.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
+  ASSERT_DEATH(copy.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
+  ASSERT_DEATH(invalid.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
+  ASSERT_DEATH(big.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
   ASSERT_TRUE(i.getBethNumber() == 0);
   ASSERT_TRUE(r.getBethNumber() == 1);
 
@@ -218,7 +218,7 @@ TEST_F(TestUtilBlackCardinality, cardinalities)
   ASSERT_EQ(x.compare(y), Cardinality::LESS);
   ASSERT_EQ(y.compare(z), Cardinality::LESS);
 
-  ASSERT_THROW(big.getBethNumber(), IllegalArgumentException);
+  ASSERT_DEATH(big.getBethNumber(), "!isFinite\\(\\) && !isUnknown\\(\\)");
   ASSERT_EQ(x.getBethNumber(), 0);
   ASSERT_EQ(y.getBethNumber(), 1);
   ASSERT_EQ(z.getBethNumber(), 2);
