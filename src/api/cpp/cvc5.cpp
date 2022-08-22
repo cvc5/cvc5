@@ -5445,7 +5445,11 @@ Sort Solver::mkDatatypeSort(const DatatypeDecl& dtypedecl) const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_DTDECL(dtypedecl);
   //////// all checks before this line
-  return Sort(d_nm, d_nm->mkDatatypeType(*dtypedecl.d_dtype));
+  Sort res = Sort(d_nm, d_nm->mkDatatypeType(*dtypedecl.d_dtype));
+  const Datatype& dt = res.getDatatype();
+  CVC5_API_CHECK(dt.isCodatatype() || dt.isWellFounded())
+      << "Datatype sort " << dt.getName() + " is not well-founded";
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5464,6 +5468,12 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   std::vector<internal::TypeNode> dtypes =
       d_nm->mkMutualDatatypeTypes(datatypes);
   std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(d_nm, dtypes);
+  for (size_t i = 0, ndts = datatypes.size(); i < ndts; ++i)
+  {
+    const Datatype& dt = retTypes[i].getDatatype();
+    CVC5_API_CHECK(dt.isCodatatype() || dt.isWellFounded())
+        << "Datatype sort " << dt.getName() + " is not well-founded";
+  }
   return retTypes;
   ////////
   CVC5_API_TRY_CATCH_END;
