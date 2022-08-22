@@ -16,6 +16,7 @@
 #include <cln/input.h>
 #include <cln/integer_io.h>
 #include <cln/modinteger.h>
+#include <cln/numtheory.h>
 
 #include <iostream>
 #include <sstream>
@@ -588,6 +589,8 @@ size_t Integer::length() const
     return cln::integer_length(d_value);
   }
 }
+
+bool Integer::isProbablePrime() const { return cln::isprobprime(d_value); }
 
 void Integer::extendedGcd(
     Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b)
