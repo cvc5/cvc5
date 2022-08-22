@@ -38,7 +38,7 @@ namespace smt {
 
 class Assertions;
 class PreprocessProofGenerator;
-class ProofPostproccess;
+class ProofPostprocess;
 
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
@@ -140,7 +140,7 @@ class PfManager : protected EnvObj
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
-  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
+  std::unique_ptr<smt::ProofPostprocess> d_pfpp;
 }; /* class SolverEngine */
 
 }  // namespace smt
