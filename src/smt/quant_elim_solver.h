@@ -47,11 +47,12 @@ class QuantElimSolver : protected EnvObj
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free
    * formula in a logic that supports quantifier elimination.
-   * Currently, the only logics supported by quantifier
-   * elimination is LRA and LIA.
+   * Currently, the only logics fully supported by quantifier
+   * elimination is LRA and LIA, although this method can be invoked in
+   * any logic.
    *
    * This function returns a formula ret such that, given
-   * the current set of formulas A asserted to this SolverEngine :
+   * the current set of formulas A asserted to the SolverEngine :
    *
    * If doFull = true, then
    *   - ( A ^ q ) and ( A ^ ret ) are equivalent
@@ -82,7 +83,6 @@ class QuantElimSolver : protected EnvObj
    * for incrementally computing the result of a
    * quantifier elimination.
    *
-   * @param as The assertions of the SolverEngine
    * @param q The quantified formula we are eliminating quantifiers from
    * @param doFull Whether we are doing full quantifier elimination on q
    * @param isInternalSubsolver Whether the SolverEngine we belong to is an
@@ -90,10 +90,7 @@ class QuantElimSolver : protected EnvObj
    * witness form.
    * @return The result of eliminating quantifiers from q.
    */
-  Node getQuantifierElimination(Assertions& as,
-                                Node q,
-                                bool doFull,
-                                bool isInternalSubsolver);
+  Node getQuantifierElimination(Node q, bool doFull, bool isInternalSubsolver);
 
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */
