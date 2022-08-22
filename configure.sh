@@ -163,11 +163,11 @@ do
 
     # Best configuration
     --best)
-      ipo=ON
       cln=ON
       cryptominisat=ON
-      glpk=ON
       editline=ON
+      glpk=ON
+      ipo=ON
       ;;
 
     --prefix) die "missing argument to $1 (try -h)" ;;
