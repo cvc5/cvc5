@@ -1,4 +1,4 @@
-; EXPECT: (error "Parse Error: non_well_founded_dts.smt2:5.490: Datatype sort _dt5 is not well-founded")
+; EXPECT: (error "Parse Error: non_well_founded_dts.smt2:6.490: Datatype sort _dt5 is not well-founded")
 ; EXIT: 1
 ; DISABLE-TESTER: dump
 (set-option :global-declarations true)
