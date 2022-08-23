@@ -296,6 +296,14 @@ class CVC5_EXPORT Integer
   size_t length() const;
 
   /**
+   * Returns whether `x` is probably a prime.
+   *
+   * A false result is always accurate, but a true result may be inaccurate
+   * with small (approximately 2^{-60}) probability.
+   */
+  bool isProbablePrime() const;
+
+  /**
    * Return the greatest common divisor of a and b, and in addition set s and t
    * to coefficients satisfying a*s + b*t = g.
    *

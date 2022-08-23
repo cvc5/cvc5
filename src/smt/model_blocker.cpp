@@ -135,18 +135,18 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         }
         else if (catom.getKind() == ITE)
         {
-          Node vcond = m->getValue(cur[0]);
+          Node vcond = m->getValue(catom[0]);
           Assert(vcond.isConst());
-          Node cond = cur[0];
+          Node cond = catom[0];
           Node branch;
           if (vcond.getConst<bool>())
           {
-            branch = cur[1];
+            branch = catom[1];
           }
           else
           {
             cond = cond.negate();
-            branch = cur[2];
+            branch = catom[2];
           }
           impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate());
         }

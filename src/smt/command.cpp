@@ -1217,8 +1217,7 @@ GetValueCommand::GetValueCommand(cvc5::Term term) : d_terms()
 GetValueCommand::GetValueCommand(const std::vector<cvc5::Term>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(
-      terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
+  Assert(terms.size() >= 1) << "cannot get-value of an empty set of terms";
 }
 
 const std::vector<cvc5::Term>& GetValueCommand::getTerms() const
@@ -1400,9 +1399,8 @@ BlockModelValuesCommand::BlockModelValuesCommand(
     const std::vector<cvc5::Term>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(terms.size() >= 1,
-                      terms,
-                      "cannot block-model-values of an empty set of terms");
+  Assert(terms.size() >= 1)
+      << "cannot block-model-values of an empty set of terms";
 }
 
 const std::vector<cvc5::Term>& BlockModelValuesCommand::getTerms() const
