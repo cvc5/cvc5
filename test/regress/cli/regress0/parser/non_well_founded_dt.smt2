@@ -4,6 +4,7 @@
 ; EXPECT: ^
 ; EXPECT: ")
 ; EXIT: 1
+; DISABLE-TESTER: dump
 (set-option :global-declarations true)
 (set-logic QF_ALL)
 (declare-datatype _dt5 ((_cons36 (_sel33 Bool) (_sel34 _dt5) (_sel35 _dt5))))
