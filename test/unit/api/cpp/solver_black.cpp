@@ -248,6 +248,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ctordecl1.addSelector("s1", u0.instantiate({p1}));
   dtdecl0.addConstructor(ctordecl0);
   dtdecl1.addConstructor(ctordecl1);
+  dtdecl1.addConstructor(d_solver.mkDatatypeConstructorDecl("nil"));
   std::vector<Sort> dt_sorts = d_solver.mkDatatypeSorts({dtdecl0, dtdecl1});
   Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
   Term t1 = d_solver.mkConst(isort1, "t");

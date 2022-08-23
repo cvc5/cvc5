@@ -216,6 +216,7 @@ class SolverTest
     ctordecl1.addSelector("s1", u0.instantiate(new Sort[] {p1}));
     dtdecl0.addConstructor(ctordecl0);
     dtdecl1.addConstructor(ctordecl1);
+    dtdecl1.addConstructor(d_solver.mkDatatypeConstructorDecl("nil"));
     Sort[] dt_sorts = d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1});
     Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
     Term t1 = d_solver.mkConst(isort1, "t");
