@@ -167,6 +167,9 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
   Assert(!ii.isTrivial());
   // set that this inference manager will be processing this inference
   ii.d_sim = this;
+  // ensure that the conclusion is rewritten to accurately determine whether
+  // this inference can be sent as a fact
+  ii.d_conc = rewrite(ii.d_conc);
   Trace("strings-infer-debug")
       << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
   // check if we should send a conflict, lemma or a fact

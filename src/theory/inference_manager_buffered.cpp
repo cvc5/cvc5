@@ -81,6 +81,7 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
                                               ProofGenerator* pg)
 {
   // make a simple theory internal fact
+  Assert(conc == rewrite(conc));
   Assert(conc.getKind() != AND && conc.getKind() != OR);
   d_pendingFact.emplace_back(new SimpleTheoryInternalFact(id, conc, exp, pg));
 }
