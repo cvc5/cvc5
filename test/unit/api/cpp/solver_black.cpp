@@ -248,6 +248,7 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   ctordecl1.addSelector("s1", u0.instantiate({p1}));
   dtdecl0.addConstructor(ctordecl0);
   dtdecl1.addConstructor(ctordecl1);
+  dtdecl1.addConstructor(d_solver.mkDatatypeConstructorDecl("nil"));
   std::vector<Sort> dt_sorts = d_solver.mkDatatypeSorts({dtdecl0, dtdecl1});
   Sort isort1 = dt_sorts[1].instantiate({d_solver.getBooleanSort()});
   Term t1 = d_solver.mkConst(isort1, "t");
@@ -3151,14 +3152,7 @@ TEST_F(TestApiBlackSolver, proj_issue383)
   ctordecl.addSelectorSelf("_x21");
   dtdecl = d_solver.mkDatatypeDecl("_x12");
   dtdecl.addConstructor(ctordecl);
-  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
-  ASSERT_FALSE(s4.getDatatype().isWellFounded());
-
-  Term t3 = d_solver.mkConst(s4, "_x25");
-  Term t13 = d_solver.mkConst(s1, "_x34");
-
-  d_solver.checkSatAssuming(t13.notTerm());
-  ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSort(dtdecl), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue386)

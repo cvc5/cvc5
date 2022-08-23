@@ -177,6 +177,7 @@ def test_mk_datatype_sorts(solver):
     ctordecl1.addSelector("s1", u0.instantiate([p1]))
     dtdecl0.addConstructor(ctordecl0)
     dtdecl1.addConstructor(ctordecl1)
+    dtdecl1.addConstructor(solver.mkDatatypeConstructorDecl("nil"))
     dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1])
     isort1 = dt_sorts[1].instantiate([solver.getBooleanSort()])
     t1 = solver.mkConst(isort1, "t")
