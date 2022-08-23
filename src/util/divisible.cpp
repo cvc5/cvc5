@@ -23,7 +23,7 @@ using namespace std;
 namespace cvc5::internal {
 
 Divisible::Divisible(const Integer& n) : k(n) {
-  PrettyCheckArgument(n > 0, n, "Divisible predicate must be constructed over positive N");
+  Assert(n > 0) << "Divisible predicate must be constructed over positive N";
 }
 
 }  // namespace cvc5::internal

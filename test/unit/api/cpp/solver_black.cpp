@@ -186,9 +186,9 @@ TEST_F(TestApiBlackSolver, mkDatatypeSort)
   dtypeSpec.addConstructor(nil);
   ASSERT_NO_THROW(d_solver.mkDatatypeSort(dtypeSpec));
 
-  // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-  // Solver slv;
-  // ASSERT_THROW(slv.mkDatatypeSort(dtypeSpec), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSort(dtypeSpec), CVC5ApiException);
+  Solver slv;
+  ASSERT_THROW(slv.mkDatatypeSort(dtypeSpec), CVC5ApiException);
 
   DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
   ASSERT_THROW(d_solver.mkDatatypeSort(throwsDtypeSpec), CVC5ApiException);
@@ -213,8 +213,8 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   std::vector<DatatypeDecl> decls = {dtypeSpec1, dtypeSpec2};
   ASSERT_NO_THROW(d_solver.mkDatatypeSorts(decls));
 
-  // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-  // ASSERT_THROW(slv.mkDatatypeSorts(decls), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSorts(decls), CVC5ApiException);
+  ASSERT_THROW(slv.mkDatatypeSorts(decls), CVC5ApiException);
 
   DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
   std::vector<DatatypeDecl> throwsDecls = {throwsDtypeSpec};
@@ -232,8 +232,8 @@ TEST_F(TestApiBlackSolver, mkDatatypeSorts)
   std::vector<DatatypeDecl> udecls = {ulist};
   ASSERT_NO_THROW(d_solver.mkDatatypeSorts(udecls));
 
-  // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-  // ASSERT_THROW(slv.mkDatatypeSorts(udecls), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSorts(udecls), CVC5ApiException);
+  ASSERT_THROW(slv.mkDatatypeSorts(udecls), CVC5ApiException);
 
   /* mutually recursive with unresolved parameterized sorts */
   Sort p0 = d_solver.mkParamSort("p0");

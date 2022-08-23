@@ -151,10 +151,10 @@ class SolverTest
     dtypeSpec.addConstructor(nil);
     assertDoesNotThrow(() -> d_solver.mkDatatypeSort(dtypeSpec));
 
-    // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    // Solver slv = new Solver();
-    // assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSort(dtypeSpec));
-    // slv.close();
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSort(dtypeSpec));
+    Solver slv = new Solver();
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSort(dtypeSpec));
+    slv.close();
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSort(throwsDtypeSpec));
@@ -180,8 +180,8 @@ class SolverTest
     DatatypeDecl[] decls = {dtypeSpec1, dtypeSpec2};
     assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(decls));
 
-    // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    // assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(decls));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(decls));
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(decls));
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
     DatatypeDecl[] throwsDecls = new DatatypeDecl[] {throwsDtypeSpec};
@@ -199,8 +199,8 @@ class SolverTest
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
     assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(udecls));
 
-    // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    // assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(udecls));
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
     slv.close();
 
     /* mutually recursive with unresolved parameterized sorts */

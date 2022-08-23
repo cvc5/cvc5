@@ -247,8 +247,7 @@ private:
    */
   size_t allocateProofVariable();
 
-
-  /** Empties the unproccessed input constraints into the queue. */
+  /** Empties the unprocessed input constraints into the queue. */
   void enqueueInputConstraints();
 
   /**
