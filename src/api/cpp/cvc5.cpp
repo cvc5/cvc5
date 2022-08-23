@@ -3564,7 +3564,27 @@ DatatypeDecl::~DatatypeDecl()
 
 bool DatatypeDecl::isResolved() const
 {
-  return d_dtype == nullptr || d_dtype->isResolved();
+  if (d_dtype == nullptr)
+  {
+    return true;
+  }
+  // We are resolved if a constructor is resolved. Note that since
+  // internal::DType objects are copied in Solver::mkDatatypeSorts, the
+  // constructors of d_dtype are passed to NodeManager but not d_type itself.
+  // Thus, we must check whether our constructors are resolved.
+  // This is a workaround; a clearer implementation would avoid the
+  // copying of DType in Solver::mkDatatypeSorts.
+  const std::vector<std::shared_ptr<internal::DTypeConstructor>>& cons =
+      d_dtype->getConstructors();
+  for (const std::shared_ptr<internal::DTypeConstructor>& c : cons)
+  {
+    if (c->isResolved())
+    {
+      return true;
+    }
+  }
+  Assert(!d_dtype->isResolved());
+  return false;
 }
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
@@ -5861,8 +5881,9 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   CVC5_API_ARG_CHECK_EXPECTED(sort.isArray(), sort) << "an array sort";
   CVC5_API_CHECK(val.getSort() == sort.getArrayElementSort())
       << "Value does not match element sort";
-  //////// all checks before this line
   internal::Node n = *val.d_node;
+  CVC5_API_ARG_CHECK_EXPECTED(n.isConst(), val) << "a value";
+  //////// all checks before this line
   Term res = mkValHelper(d_nm, internal::ArrayStoreAll(*sort.d_type, n));
   return res;
   ////////
