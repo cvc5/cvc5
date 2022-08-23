@@ -3151,14 +3151,7 @@ TEST_F(TestApiBlackSolver, proj_issue383)
   ctordecl.addSelectorSelf("_x21");
   dtdecl = d_solver.mkDatatypeDecl("_x12");
   dtdecl.addConstructor(ctordecl);
-  Sort s4 = d_solver.mkDatatypeSort(dtdecl);
-  ASSERT_FALSE(s4.getDatatype().isWellFounded());
-
-  Term t3 = d_solver.mkConst(s4, "_x25");
-  Term t13 = d_solver.mkConst(s1, "_x34");
-
-  d_solver.checkSatAssuming(t13.notTerm());
-  ASSERT_THROW(d_solver.getValue(t3), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSort(dtdecl), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue386)
