@@ -930,7 +930,9 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
-  regress0/parser/non-strict-real-vs-int.smt2 
+  regress0/parser/non-strict-real-vs-int.smt2
+  regress0/parser/non_well_founded_dt.smt2
+  regress0/parser/non_well_founded_dts.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/real-numerals.smt2
@@ -2031,6 +2033,7 @@ set(regress_1_tests
   regress1/issue7902-abd-subsolver-uc.smt2
   regress1/issue7937-difficulty-irr.smt2
   regress1/issue8852-interpol-no-var.smt2
+  regress1/issue9057-block-m-lit.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2

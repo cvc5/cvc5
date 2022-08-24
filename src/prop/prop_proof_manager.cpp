@@ -29,7 +29,7 @@ PropPfManager::PropPfManager(Env& env,
                              CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
     : EnvObj(env),
-      d_pfpp(new ProofPostproccess(env, cnfProof)),
+      d_pfpp(new ProofPostprocess(env, cnfProof)),
       d_satSolver(satSolver),
       d_assertions(userContext),
       d_proofCnfStream(cnfProof)

@@ -958,6 +958,13 @@ def test_get_const_array_base(solver):
     assert constarr.isConstArray()
     assert one == constarr.getConstArrayBase()
 
+    with pytest.raises(RuntimeError):
+        one.getConstArrayBase()
+
+    a = solver.mkConst(arrsort, "a")
+    with pytest.raises(RuntimeError):
+        a.getConstArrayBase()
+
 
 def test_get_uninterpreted_sort_value(solver):
     solver.setOption("produce-models", "true")
@@ -1264,7 +1271,14 @@ def test_const_array(solver):
     arrsort = solver.mkArraySort(intsort, intsort)
     a = solver.mkConst(arrsort, "a")
     one = solver.mkInteger(1)
+    two = solver.mkBitVector(2, 2)
+    iconst = solver.mkConst(intsort)
     constarr = solver.mkConstArray(arrsort, one)
+
+    with pytest.raises(RuntimeError):
+        solver.mkConstArray(arrsort, two)
+    with pytest.raises(RuntimeError):
+        solver.mkConstArray(arrsort, iconst)
 
     assert constarr.getKind() == Kind.CONST_ARRAY
     assert constarr.getConstArrayBase() == one

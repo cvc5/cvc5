@@ -1346,7 +1346,7 @@ Node EqProof::addToProof(CDProof* p,
     }
   }
   std::vector<Node> children(arity + 1);
-  // Proccess transitivity matrix to (possibly) generate transitivity steps for
+  // Process transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
   for (unsigned i = 0; i <= arity; ++i)
   {
