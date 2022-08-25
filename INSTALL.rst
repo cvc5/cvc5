@@ -54,6 +54,37 @@ The built binary ``cvc5.exe`` is located in ``<build_dir>/bin`` and the cvc5
 library can be found in ``<build_dir>/lib``.
 
 
+WebAssembly Compilation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling cvc5 to WebAssembly needs the emscripten SDK (version 3.1.18). Setting
+ up EMSDK can be done as follows:
+
+.. code:: bash
+
+  git clone https://github.com/emscripten-core/emsdk.git
+  cd emsdk
+  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+                              # <version> = 'latest' has high chance of working
+  ./emsdk activate <version>
+  source ./emsdk_env.sh   # Activate PATH and other environment variables in the
+                          # current terminal. Whenever emscripten is going to be
+                          # used this command needs to be called before because 
+                          # emsdk doesn't insert the binaries paths directly in 
+                          # the system PATH variable.
+
+Look at the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_
+. The user is expected to install it beforehand with his own system package manager.
+
+Then, in the cvc5:
+
+.. code:: bash
+
+  ./configure.sh --static --static-binary --auto-download --wasm=<value> <configure options...>
+
+  cd <build_dir>   # default is ./build
+  make             # use -jN for parallel build with N threads
+
 Build dependencies
 ------------------
 

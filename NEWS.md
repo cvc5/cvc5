@@ -7,6 +7,8 @@ cvc5 1.0.1
 
 - Support for cross-compiling an ARM binary of cvc5 on x86 macOS.
 
+- Support for Web Assembly compilation using Emscripten.
+
 **Changes**
 
 - Removed support for non-standard `declare-funs`, `declare-consts`, and
