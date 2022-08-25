@@ -72,7 +72,7 @@ PfManager::PfManager(Env& env)
   // be inferred from A, it was updated). This shape is problematic for
   // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
-  d_pfpp = std::make_unique<ProofPostproccess>(
+  d_pfpp = std::make_unique<ProofPostprocess>(
       env,
       d_pppg.get(),
       d_rewriteDb.get(),

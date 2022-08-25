@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of the Lfsc post proccessor
+ * Implementation of the Lfsc post processor
  */
 
 #include "proof/lfsc/lfsc_post_processor.h"

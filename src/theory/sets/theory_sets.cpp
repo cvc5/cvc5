@@ -178,7 +178,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node ret = SetReduction::reduceFoldOperator(n, asserts);
     NodeManager* nm = NodeManager::currentNM();
     Node andNode = nm->mkNode(AND, asserts);
-    d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+    d_im.lemma(andNode, InferenceId::SETS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   if (nk == RELATION_AGGREGATE)

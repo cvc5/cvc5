@@ -137,6 +137,11 @@ set(regress_0_tests
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/issue8103-1-weak-equiv-models.smt2
   regress0/arrays/issue8276-arith-getModelValue.smt2
+  regress0/arrays/issue9041.smt2
+  regress0/arrays/issue9043_1.smt2
+  regress0/arrays/issue9043_2.smt2
+  regress0/arrays/issue9043_3.smt2
+  regress0/arrays/issue9043_4.smt2
   regress0/arrays/proj-issue506-ms-var-elim.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
@@ -658,6 +663,7 @@ set(regress_0_tests
   regress0/fp/ext-rew-test.smt2
   regress0/fp/from_ubv.smt2
   regress0/fp/from_sbv.smt2
+  regress0/fp/fp-set-comprehension-basic.smt2
   regress0/fp/issue-5524.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
@@ -669,6 +675,8 @@ set(regress_0_tests
   regress0/fp/issue7002.smt2
   regress0/fp/issue7569.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
+  regress0/fp/proj-issue477-fp-set-comprehension.smt2
+  regress0/fp/proj-issue509-fp-set-comprehension.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
@@ -922,7 +930,9 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
-  regress0/parser/non-strict-real-vs-int.smt2 
+  regress0/parser/non-strict-real-vs-int.smt2
+  regress0/parser/non_well_founded_dt.smt2
+  regress0/parser/non_well_founded_dts.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/real-numerals.smt2
@@ -1743,6 +1753,7 @@ set(regress_1_tests
   regress1/abduction/issue5848.smt2
   regress1/abduction/issue6605-1.smt2
   regress1/abduction/issue9001-sample-fail.smt2
+  regress1/abduction/multiple-get-abduct-uc.smt2
   regress1/abduction/simple-incremental.smt2
   regress1/abduction/simple-incremental-push-pop.smt2
   regress1/abduction/sygus-abduct-ex1-grammar.smt2
@@ -2026,6 +2037,7 @@ set(regress_1_tests
   regress1/issue7902-abd-subsolver-uc.smt2
   regress1/issue7937-difficulty-irr.smt2
   regress1/issue8852-interpol-no-var.smt2
+  regress1/issue9057-block-m-lit.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2

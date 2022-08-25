@@ -31,8 +31,8 @@
 #include "options/options_public.h"
 #include "options/parser_options.h"
 #include "options/printer_options.h"
-#include "options/quantifiers_options.h"
 #include "options/proof_options.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
@@ -42,6 +42,7 @@
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/check_models.h"
+#include "smt/context_manager.h"
 #include "smt/env.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
@@ -85,7 +86,8 @@ namespace cvc5::internal {
 
 SolverEngine::SolverEngine(const Options* optr)
     : d_env(new Env(optr)),
-      d_state(new SolverEngineState(*d_env.get(), *this)),
+      d_state(new SolverEngineState(*d_env.get())),
+      d_ctxManager(nullptr),
       d_absValues(new AbstractValues),
       d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
@@ -105,7 +107,9 @@ SolverEngine::SolverEngine(const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_asserts, *d_stats));
+  // make the context manager
+  d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state, *d_smtSolver));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
@@ -116,7 +120,7 @@ bool SolverEngine::isFullyInited() const { return d_state->isFullyInited(); }
 bool SolverEngine::isQueryMade() const { return d_state->isQueryMade(); }
 size_t SolverEngine::getNumUserLevels() const
 {
-  return d_state->getNumUserLevels();
+  return d_ctxManager->getNumUserLevels();
 }
 SmtMode SolverEngine::getSmtMode() const { return d_state->getMode(); }
 bool SolverEngine::isSmtModeSat() const
@@ -208,7 +212,7 @@ void SolverEngine::finishInit()
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
-  d_state->setup();
+  d_ctxManager->setup();
 
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
@@ -227,13 +231,13 @@ void SolverEngine::finishInit()
   Assert(getLogicInfo().isLocked());
 
   // store that we are finished initializing
-  d_state->finishInit();
+  d_state->markFinishInit();
   Trace("smt-debug") << "SolverEngine::finishInit done" << std::endl;
 }
 
 void SolverEngine::shutdown()
 {
-  d_state->shutdown();
+  d_ctxManager->shutdown();
   d_env->shutdown();
 }
 
@@ -246,7 +250,7 @@ SolverEngine::~SolverEngine()
 
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
-    d_state->cleanup();
+    d_ctxManager->cleanup();
 
     // destroy all passes before destroying things that they refer to
     d_smtSolver->getPreprocessor()->cleanup();
@@ -434,7 +438,7 @@ std::string SolverEngine::getInfo(const std::string& key) const
   }
   if (key == "assertion-stack-levels")
   {
-    size_t ulevel = d_state->getNumUserLevels();
+    size_t ulevel = d_ctxManager->getNumUserLevels();
     AlwaysAssert(ulevel <= std::numeric_limits<unsigned long int>::max());
     return toSExpr(ulevel);
   }
@@ -515,7 +519,7 @@ void SolverEngine::defineFunction(Node func,
                                   bool global)
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   debugCheckFormals(formals, func);
 
@@ -544,7 +548,7 @@ void SolverEngine::defineFunctionsRec(
     bool global)
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
 
   if (funcs.size() != formals.size() && funcs.size() != formulas.size())
@@ -687,37 +691,6 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
   return qe;
 }
 
-void SolverEngine::notifyPushPre()
-{
-  d_smtSolver->processAssertions(*d_asserts);
-}
-
-void SolverEngine::notifyPushPost()
-{
-  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-  Assert(getPropEngine() != nullptr);
-  getPropEngine()->push();
-}
-
-void SolverEngine::notifyPopPre()
-{
-  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-  PropEngine* pe = getPropEngine();
-  Assert(pe != nullptr);
-  pe->pop();
-}
-
-void SolverEngine::notifyPostSolve()
-{
-  PropEngine* pe = getPropEngine();
-  Assert(pe != nullptr);
-  pe->resetTrail();
-
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->postsolve();
-}
-
 Result SolverEngine::checkSat()
 {
   Node nullNode;
@@ -726,7 +699,6 @@ Result SolverEngine::checkSat()
 
 Result SolverEngine::checkSat(const Node& assumption)
 {
-  ensureWellFormedTerm(assumption, "checkSat");
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
@@ -737,25 +709,23 @@ Result SolverEngine::checkSat(const Node& assumption)
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
-  ensureWellFormedTerms(assumptions, "checkSat");
   return checkSatInternal(assumptions);
 }
 
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
 {
+  ensureWellFormedTerms(assumptions, "checkSat");
   finishInit();
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ")" << endl;
   // update the state to indicate we are about to run a check-sat
   bool hasAssumptions = !assumptions.empty();
-  d_state->notifyCheckSat(hasAssumptions);
-
-  // state should be fully ready now
-  Assert(d_state->isFullyReady());
+  d_state->notifyCheckSat();
+  d_ctxManager->doPendingPops();
+  d_ctxManager->notifyCheckSat(hasAssumptions);
 
   // check the satisfiability with the solver object
-  Assertions& as = *d_asserts.get();
-  Result r = d_smtSolver->checkSatisfiability(as, assumptions);
+  Result r = d_smtSolver->checkSatisfiability(assumptions);
 
   // If the result is unknown, we may optionally do a "deep restart" where
   // the members of the SMT solver are reconstructed and given the
@@ -765,13 +735,14 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   while (r.getStatus() == Result::UNKNOWN && deepRestart())
   {
     Trace("smt") << "SolverEngine::checkSat after deep restart" << std::endl;
-    r = d_smtSolver->checkSatisfiability(as, {});
+    r = d_smtSolver->checkSatisfiability({});
   }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
                << endl;
   // notify our state of the check-sat result
-  d_state->notifyCheckSatResult(hasAssumptions, r);
+  d_state->notifyCheckSatResult(r);
+  d_ctxManager->notifyCheckSatResult(hasAssumptions);
 
   // Check that SAT results generate a model correctly.
   if (d_env->getOptions().smt.checkModels)
@@ -811,7 +782,10 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   {
     printStatisticsDiff();
   }
-  return r;
+
+  // set the filename on the result
+  const std::string& filename = d_env->getOptions().driver.filename;
+  return Result(r, filename);
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
@@ -846,7 +820,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 void SolverEngine::assertFormula(const Node& formula)
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   ensureWellFormedTerm(formula, "assertFormula");
   assertFormulaInternal(formula);
 }
@@ -880,7 +854,7 @@ void SolverEngine::declareSynthFun(Node func,
                                    const std::vector<Node>& vars)
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 }
 void SolverEngine::declareSynthFun(Node func,
@@ -940,7 +914,7 @@ void SolverEngine::declareOracleFun(
     Node var, std::function<std::vector<Node>(const std::vector<Node>&)> fn)
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareOracleFun");
   qe->declareOracleFun(var);
   NodeManager* nm = NodeManager::currentNM();
@@ -986,7 +960,7 @@ void SolverEngine::declareOracleFun(
 Node SolverEngine::simplify(const Node& ex)
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   // ensure we've processed assertions
   d_smtSolver->processAssertions(*d_asserts);
   return d_smtSolver->getPreprocessor()->simplify(ex);
@@ -996,7 +970,7 @@ Node SolverEngine::expandDefinitions(const Node& ex)
 {
   getResourceManager()->spendResource(Resource::PreprocessStep);
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   return d_smtSolver->getPreprocessor()->expandDefinitions(ex);
 }
 
@@ -1606,7 +1580,11 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     }
   }
   // print all proofs
-  ss << "(" << std::endl;
+  // we currently only print outermost parentheses if the format is NONE
+  if (mode == options::ProofFormatMode::NONE)
+  {
+    ss << "(" << std::endl;
+  }
   for (std::shared_ptr<ProofNode>& p : ps)
   {
     if (commentProves)
@@ -1620,7 +1598,10 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
       ss << ":proves " << p->getResult() << ")" << std::endl;
     }
   }
-  ss << ")" << std::endl;
+  if (mode == options::ProofFormatMode::NONE)
+  {
+    ss << ")" << std::endl;
+  }
   return ss.str();
 }
 
@@ -1740,7 +1721,7 @@ Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   finishInit();
   return d_quantElimSolver->getQuantifierElimination(
-      *d_asserts, q, doFull, d_isInternalSubsolver);
+      q, doFull, d_isInternalSubsolver);
 }
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
@@ -1827,7 +1808,7 @@ void SolverEngine::getInstantiationTermVectors(
 std::vector<Node> SolverEngine::getAssertions()
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   Trace("smt") << "SMT getAssertions()" << endl;
   // note we always enable assertions, so it is available here
   return getAssertionsInternal();
@@ -1854,17 +1835,17 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 void SolverEngine::push()
 {
   finishInit();
-  d_state->doPendingPops();
+  d_ctxManager->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   d_smtSolver->processAssertions(*d_asserts);
-  d_state->userPush();
+  d_ctxManager->userPush();
 }
 
 void SolverEngine::pop()
 {
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
-  d_state->userPop();
+  d_ctxManager->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
   d_asserts->clearCurrent();
@@ -1891,9 +1872,9 @@ void SolverEngine::resetAssertions()
   Trace("smt") << "SMT resetAssertions()" << endl;
 
   d_asserts->clearCurrent();
-  d_state->notifyResetAssertions();
+  d_ctxManager->notifyResetAssertions();
   // push the state to maintain global context around everything
-  d_state->setup();
+  d_ctxManager->setup();
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();
@@ -1922,12 +1903,12 @@ bool SolverEngine::deepRestart()
   }
 
   d_asserts->clearCurrent();
-  d_state->notifyResetAssertions();
+  d_ctxManager->notifyResetAssertions();
   // deep restart the SMT solver, which reconstructs the theory engine and
   // prop engine.
   d_smtSolver->deepRestart(*d_asserts.get(), zll);
   // push the state to maintain global context around everything
-  d_state->setup();
+  d_ctxManager->setup();
   return true;
 }
 

@@ -999,8 +999,11 @@ void TheoryArrays::computeCareGraph()
         temp->push_back(r1);
       }
       else {
-        // We don't know the model value for x.  Just do brute force examination of all pairs of reads
-        for (unsigned j = i + 1; j < size; ++j)
+        // We don't know the model value for x.  Just do brute force examination of all pairs of reads.
+        // Note that we have to loop over *all* reads here, not just subsequent reads, because there
+        // may be an earlier read that *does* have a model value.  So if we don't check here, the two
+        // reads won't get compared.
+        for (unsigned j = 0; j < size; ++j)
         {
           TNode r2 = d_reads[j];
           Assert(d_equalityEngine->hasTerm(r2));
