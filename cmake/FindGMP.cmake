@@ -102,14 +102,6 @@ if(NOT GMP_FOUND_SYSTEM)
     endif()
   endif()
 
-  # If it isn't a wasm compilation
-  if(WASM STREQUAL "OFF")
-    set(GMP_WASM_FLAGS "")
-  # Otherwise
-  else()
-    set(GMP_WASM_FLAGS --disable-assembly --disable-fft)
-  endif()
-
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
   # Without the `--build` flag, `configure` may fail for cross-compilation
@@ -127,7 +119,6 @@ if(NOT GMP_FOUND_SYSTEM)
           --with-pic
           --enable-cxx
 
-          ${GMP_WASM_FLAGS}
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
