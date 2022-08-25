@@ -176,6 +176,7 @@ class SmtSolver : protected EnvObj
    * processes the results based on the options.
    */
   Result checkSatInternal();
+
  private:
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
