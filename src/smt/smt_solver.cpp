@@ -37,9 +37,11 @@ namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
                      AbstractValues& abs,
+                     Assertions& asserts,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, abs, stats),
+      d_asserts(asserts),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -112,6 +114,10 @@ void SmtSolver::interrupt()
   {
     d_theoryEngine->interrupt();
   }
+}
+Result SmtSolver::checkSatisfiability(const std::vector<Node>& assumptions)
+{
+  return checkSatisfiability(d_asserts, assumptions);
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
@@ -362,6 +368,36 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 }
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
+
+void SmtSolver::notifyPushPre()
+{
+  // must preprocess the assertions and push them to the SAT solver, to make
+  // the state accurate prior to pushing
+  processAssertions(d_asserts);
+}
+
+void SmtSolver::notifyPushPost()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
+  Assert(d_propEngine != nullptr);
+  d_propEngine->push();
+}
+
+void SmtSolver::notifyPopPre()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
+  Assert(d_propEngine != nullptr);
+  d_propEngine->pop();
+}
+
+void SmtSolver::notifyPostSolve()
+{
+  Assert(d_propEngine != nullptr);
+  d_propEngine->resetTrail();
+
+  Assert(d_theoryEngine != nullptr);
+  d_theoryEngine->postsolve();
+}
 
 }  // namespace smt
 }  // namespace cvc5::internal

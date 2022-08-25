@@ -1301,7 +1301,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
 
-  Assert(!expr::hasFreeVar(lemma));
+  Assert(!expr::hasFreeVar(lemma))
+      << "Lemma " << lemma << " from " << from << " has a free variable";
 
   // when proofs are enabled, we ensure the trust node has a generator by
   // adding a trust step to the lazy proof maintained by this class

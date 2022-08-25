@@ -93,7 +93,7 @@ class PropPfManager : protected EnvObj
 
  private:
   /** The proof post-processor */
-  std::unique_ptr<prop::ProofPostproccess> d_pfpp;
+  std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
