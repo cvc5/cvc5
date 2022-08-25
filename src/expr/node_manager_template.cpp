@@ -772,7 +772,7 @@ TypeNode NodeManager::mkTesterType(TypeNode domain)
 
 TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 {
-  Assert(domain.isDatatype()) << "cannot create non-datatype upater type";
+  Assert(domain.isDatatype()) << "cannot create non-datatype updater type";
   // It is a function type domain x range -> domain, we store only the
   // arguments
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);
