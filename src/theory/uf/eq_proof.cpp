@@ -996,7 +996,7 @@ Node EqProof::addToProof(CDProof* p,
       Node conclusion =
           d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
       p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, {}, {d_node});
-      p->addStep(conclusion, PfRule::FALSE_INTRO, {}, {d_node});
+      p->addStep(conclusion, PfRule::FALSE_INTRO, {d_node}, {});
       visited[d_node] = conclusion;
       return conclusion;
     }
