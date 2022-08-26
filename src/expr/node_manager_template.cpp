@@ -31,7 +31,7 @@
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
 #include "util/bitvector.h"
-#include "util/finite_field.h"
+#include "util/ff_val.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"

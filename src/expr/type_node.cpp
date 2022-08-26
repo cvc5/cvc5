@@ -24,7 +24,7 @@
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
-#include "util/finite_field.h"
+#include "util/ff_val.h"
 
 using namespace std;
 
