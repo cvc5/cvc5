@@ -71,7 +71,7 @@ CMake Options (Advanced)
 
 Wasm Options
   --wasm=VALUE             set compilation extension for WebAssembly <OFF, WASM, JS or HTML>
-  --wasm-flags=STR         emscripten flags used in the WebAssembly binary compilation
+  --wasm-flags='STR'       emscripten flags used in the WebAssembly binary compilation
 
 EOF
   exit 0
