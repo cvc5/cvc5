@@ -28,9 +28,9 @@ package io.github.cvc5;
 public class SynthResult extends AbstractPointer
 {
   // region construction and destruction
-  SynthResult(Solver solver, long pointer)
+  SynthResult(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);

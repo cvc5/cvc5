@@ -24,9 +24,9 @@ import java.util.Map;
 public class Result extends AbstractPointer
 {
   // region construction and destruction
-  Result(Solver solver, long pointer)
+  Result(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);

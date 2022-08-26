@@ -30,9 +30,9 @@ package io.github.cvc5;
 public class DatatypeDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeDecl(Solver solver, long pointer)
+  DatatypeDecl(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);

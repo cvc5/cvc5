@@ -2203,7 +2203,7 @@ Java_io_github_cvc5_Solver_declarePool(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
-                                            jobject jSolver,
+                                            jobject,
                                             jlong pointer,
                                             jstring jSymbol,
                                             jlongArray sortPointers,
@@ -2211,8 +2211,6 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  jobject solverReference = env->NewGlobalRef(jSolver);
-  globalReferences[pointer].push_back(solverReference);
   jobject oracleReference = env->NewGlobalRef(oracle);
   globalReferences[pointer].push_back(oracleReference);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2221,8 +2219,8 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::function<Term(std::vector<Term>)> fn =
-      [env, solverReference, oracleReference](std::vector<Term> input) {
-        Term term = applyOracle(env, solverReference, oracleReference, input);
+      [env, oracleReference](std::vector<Term> input) {
+        Term term = applyOracle(env, oracleReference, input);
         return term;
       };
   Term* retPointer =
