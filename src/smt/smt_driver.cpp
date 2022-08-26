@@ -109,7 +109,7 @@ Result SmtDriverSingleCall::checkSatNext(bool& checkAgain)
   return result;
 }
 
-void SmtDriverSingleCall::getNextAssertions(Assertions& as) { Assert(false); }
+void SmtDriverSingleCall::getNextAssertions(Assertions& as) { Unreachable(); }
 
 }  // namespace smt
 }  // namespace cvc5::internal

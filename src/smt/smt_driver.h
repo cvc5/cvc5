@@ -51,15 +51,15 @@ class SmtDriver : protected EnvObj
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
    */
-  Result checkSatisfiability(const std::vector<Node>& assumptions);
+  Result checkSat(const std::vector<Node>& assumptions);
 
  protected:
   /**
    * Check satisfiability next, return the result. This method also sets
    * the flag checkAgain to determine if another check should be run.
    *
-   * If checkAgain is set to true in this call, then this driver will be called
-   * to getNextAssertions as described below.
+   * If checkAgain is set to true in this call, then this driver's
+   * getNextAssertions will be called as described below.
    *
    * If checkAgain is not set or set to false in this call, then the returned
    * result is the final one returned by the checkSatisfiability method above.
