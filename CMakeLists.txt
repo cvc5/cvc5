@@ -128,7 +128,7 @@ option(BUILD_DOCS "Build Api documentation")
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
 
-# Custom extension for WebAssembly compilation
+# Custom flags for WebAssembly compilation
 set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
 wasm_option(WASM "Use a specific extension for WebAssembly compilation")
 
