@@ -58,7 +58,7 @@ WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Compiling cvc5 to WebAssembly needs the emscripten SDK (version 3.1.18). Setting
- up EMSDK can be done as follows:
+ up emsdk can be done as follows:
 
 .. code:: bash
 
