@@ -32,7 +32,7 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 {
 }
 
-Result SmtDriver::checkSatisfiability(const std::vector<Node>& assumptions)
+Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
   Assertions& as = d_smt.getAssertions();
   Result result;
