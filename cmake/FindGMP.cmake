@@ -118,7 +118,6 @@ if(NOT GMP_FOUND_SYSTEM)
           --prefix=<INSTALL_DIR>
           --with-pic
           --enable-cxx
-
           ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
