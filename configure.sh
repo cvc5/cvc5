@@ -138,7 +138,7 @@ ipo=default
 
 glpk_dir=default
 
-wasm=OFF
+wasm=default
 wasm_flags=""
 
 #--------------------------------------------------------------------------#
