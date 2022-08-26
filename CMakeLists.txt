@@ -140,7 +140,6 @@ elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY))
   message(FATAL_ERROR "Use --static and --static-binary flags for WebAssembly compilation. GMP will not compile with shared libraries.")
 endif()
 
-# Not WebAssembly compilation
 if(WASM STREQUAL "OFF")
   set(WASM_FLAGS "")
   set(CONFIGURE_CMD_WRAPPER "")
