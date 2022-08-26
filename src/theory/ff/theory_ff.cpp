@@ -64,10 +64,6 @@ bool TheoryFiniteFields::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_eqNotify;
   esi.d_name = "theory::ff::ee";
-  // TODO: not needed, I think
-  // esi.d_notifyNewClass = true;
-  // esi.d_notifyMerge = true;
-  // esi.d_notifyDisequal = true;
   return true;
 }
 

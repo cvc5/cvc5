@@ -121,38 +121,38 @@ class FfVal
   Integer d_size;
   Integer d_value;
 
-}; /* class FiniteField */
+}; /* class FfVal */
 
-struct FiniteFieldSize
+struct FfSize
 {
-  FiniteFieldSize(Integer size) : d_size(size) {}
+  FfSize(Integer size) : d_size(size) {}
   operator Integer() const { return d_size; }
-  bool operator==(const FiniteFieldSize& y) const
+  bool operator==(const FfSize& y) const
   {
     return d_size == y.d_size;
   }
   
   Integer d_size;
-}; /* struct FiniteFieldSize */
+}; /* struct FfSize */
 
 /*
- * Hash function for the FiniteField constants.
+ * Hash function for the FfVal.
  */
-struct FiniteFieldHashFunction
+struct FfValHashFunction
 {
   size_t operator()(const FfVal& ff) const { return ff.hash(); }
-}; /* struct FiniteFieldHashFunction */
+}; /* struct FfValHashFunction */
 
 /*
- * Hash function for the FiniteFieldSize constants.
+ * Hash function for the FfSize constants.
  */
-struct FiniteFieldSizeHashFunction
+struct FfSizeHashFunction
 {
-  size_t operator()(const FiniteFieldSize& size) const
+  size_t operator()(const FfSize& size) const
   {
     return size.d_size.hash();
   }
-}; /* struct FiniteFieldHashFunction */
+}; /* struct FfValHashFunction */
 
 /* -----------------------------------------------------------------------
  ** Operators

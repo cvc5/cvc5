@@ -458,7 +458,7 @@ private:
   /** Is this an array type? */
   bool isArray() const;
 
-  /** Is this an array type? */
+  /** Is this a finite-field type? */
   bool isFiniteField() const;
 
   /** Is this a Set type? */
@@ -658,7 +658,7 @@ private:
   uint32_t getBitVectorSize() const;
 
   /** Get the field cardinality (order) of this finite-field type. */
-  Integer getFiniteFieldSize() const;
+  Integer getFfSize() const;
 
   /** Is this a sort kind? */
   bool isUninterpretedSort() const;

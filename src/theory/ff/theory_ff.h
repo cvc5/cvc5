@@ -35,8 +35,7 @@ namespace ff {
 class TheoryFiniteFields : public Theory
 {
  public:
-  /** Constructs a new instance of TheoryFiniteFields w.r.t. the provided
-   * contexts. */
+  /** Constructs a new instance of TheoryFiniteFields */
   TheoryFiniteFields(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryFiniteFields() override;
 
@@ -69,11 +68,6 @@ class TheoryFiniteFields : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_FF"; }
   void preRegisterTerm(TNode node) override;
-  /**
-   * If the ff-ext option is not set and we have an extended operator,
-   * we throw an exception. Additionally, we expand operators like choose
-   * and is_singleton.
-   */
   TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;

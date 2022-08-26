@@ -183,7 +183,7 @@ TypeNode NodeManager::mkBitVectorType(unsigned size)
 
 TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
 {
-  return mkTypeConst<FiniteFieldSize>(FiniteFieldSize(modulus));
+  return mkTypeConst<FfSize>(FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
@@ -1316,13 +1316,6 @@ Node NodeManager::mkConstRealOrInt(const Rational& r)
     return mkConstInt(r);
   }
   return mkConstReal(r);
-}
-
-Node NodeManager::mkConstFiniteFieldElem(const Integer& v, const TypeNode& type)
-{
-  Assert(type.isFiniteField());
-  return mkConst(kind::CONST_FINITE_FIELD,
-                 FiniteField(v, type.getFiniteFieldSize()));
 }
 
 Node NodeManager::mkConstRealOrInt(const TypeNode& tn, const Rational& r)

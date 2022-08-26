@@ -31,13 +31,13 @@ namespace ff {
 class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
 {
   Integer d_modulus;
-  Integer d_current_int;
+  Integer d_currentInt;
 
  public:
-  FiniteFieldEnumerator(TypeNode type, TypeEnumeratorProperties* tep = NULL)
+  FiniteFieldEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<FiniteFieldEnumerator>(type),
-        d_modulus(type.getFiniteFieldSize()),
-        d_current_int(0)
+        d_modulus(type.getFfSize()),
+        d_currentInt(0)
   {
     // our enumerator assumes this is a prime field
     Assert(d_modulus.isProbablePrime());
@@ -45,21 +45,21 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
 
   Node operator*() override
   {
-    if (d_current_int == d_modulus)
+    if (d_currentInt == d_modulus)
     {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst<FiniteField>(
-        FiniteField(d_current_int, d_modulus));
+    return NodeManager::currentNM()->mkConst<FfVal>(
+        FfVal(d_currentInt, d_modulus));
   }
 
   FiniteFieldEnumerator& operator++() override
   {
-    d_current_int += 1;
+    d_currentInt += 1;
     return *this;
   }
 
-  bool isFinished() override { return d_current_int == d_modulus; }
+  bool isFinished() override { return d_currentInt == d_modulus; }
 }; /* FiniteFieldEnumerator */
 
 }  // namespace ff

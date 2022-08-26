@@ -15,9 +15,6 @@
 
 #include "theory/ff/theory_ff_type_rules.h"
 
-#include <climits>
-#include <sstream>
-
 #include "util/cardinality.h"
 #include "util/ff_val.h"
 
@@ -29,7 +26,7 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
 {
   Assert(type.isFiniteField());
 
-  Integer size = type.getFiniteFieldSize();
+  Integer size = type.getFfSize();
   Cardinality cardinality = size;
   return cardinality;
 }
@@ -39,7 +36,7 @@ TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
                                                   bool _check)
 {
   return nodeManager->mkFiniteFieldType(
-      n.getConst<FiniteField>().getFieldSize());
+      n.getConst<FfVal>().getFieldSize());
 }
 
 TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,

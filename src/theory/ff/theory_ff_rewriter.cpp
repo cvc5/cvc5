@@ -15,23 +15,16 @@
 
 #include "theory/ff/theory_ff_rewriter.h"
 
-#include "expr/algorithm/flatten.h"
-#include "expr/attribute.h"
-#include "expr/node_manager.h"
-#include "util/ff_val.h"
-
 namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-// static
 RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
 {
   Trace("ff::rw::post") << "ff::postRewrite: " << t << std::endl;
   return RewriteResponse(REWRITE_DONE, t);
 }
 
-// static
 RewriteResponse TheoryFiniteFieldsRewriter::preRewrite(TNode t)
 {
   Trace("ff::rw::pre") << "ff::preRewrite: " << t << std::endl;
