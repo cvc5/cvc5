@@ -68,7 +68,7 @@ Compiling cvc5 to WebAssembly needs the emscripten SDK (version 3.1.18). Setting
                               # <version> = 'latest' has high chance of working
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
-                          # current terminal. Whenever emscripten is going to be
+                          # current terminal. Whenever Emscripten is going to be
                           # used this command needs to be called before because 
                           # emsdk doesn't insert the binaries paths directly in 
                           # the system PATH variable.
