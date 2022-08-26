@@ -73,8 +73,7 @@ Compiling cvc5 to WebAssembly needs the emscripten SDK (version 3.1.18). Setting
                           # emsdk doesn't insert the binaries paths directly in 
                           # the system PATH variable.
 
-Look at the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_
-. The user is expected to install it beforehand with his own system package manager.
+Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ to ensure that all required dependencies are installed on the system.
 
 Then, in the cvc5:
 
