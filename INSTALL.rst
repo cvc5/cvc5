@@ -57,8 +57,8 @@ library can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the emscripten SDK (version 3.1.18). Setting
- up emsdk can be done as follows:
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+latter). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
@@ -73,7 +73,8 @@ Compiling cvc5 to WebAssembly needs the emscripten SDK (version 3.1.18). Setting
                           # emsdk doesn't insert the binaries paths directly in 
                           # the system PATH variable.
 
-Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ to ensure that all required dependencies are installed on the system.
+Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
+to ensure that all required dependencies are installed on the system.
 
 Then, in the cvc5:
 

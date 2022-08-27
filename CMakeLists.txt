@@ -130,19 +130,19 @@ cvc5_option(STATIC_BINARY "Link against static system libraries \
 
 # Custom flags for WebAssembly compilation
 set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
-wasm_option(WASM "Use a specific extension for WebAssembly compilation")
+set(WASM "OFF" CACHE STRING "Use a specific extension for WebAssembly compilation")
 
 # Make sure no other avaible value will be assigned to this variable
-if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML"))
-  set(WASM "OFF")
-# If it's a wasm compilation, but isn't using static libraries
-elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY))
-  message(FATAL_ERROR "Use --static and --static-binary flags for WebAssembly compilation. GMP will not compile with shared libraries.")
+if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML" OR WASM STREQUAL "OFF"))
+  message(FATAL_ERROR "${WASM} is not a valid wasm extension.")
 endif()
 
 if(WASM STREQUAL "OFF")
   set(WASM_FLAGS "")
   set(CONFIGURE_CMD_WRAPPER "")
+# If it's a wasm compilation, but isn't using the right flags
+elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
+  message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
 else()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)

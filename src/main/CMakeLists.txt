@@ -68,7 +68,6 @@ elseif(WASM STREQUAL "HTML")
 else()
   set(BINARY_EXTENSION "")
 endif()
-string(REGEX REPLACE "-s +" "-s" WASM_FLAGS "${WASM_FLAGS}")
 
 add_executable(cvc5-bin driver_unified.cpp main.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(cvc5-bin PRIVATE -D__BUILDING_CVC5DRIVER -Dcvc5_obj_EXPORTS)
