@@ -146,6 +146,8 @@ elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
 else()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
+  string(TOLOWER ".${WASM}" WASM_EXTENSION)
+  set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
 endif()
 
 #-----------------------------------------------------------------------------#
