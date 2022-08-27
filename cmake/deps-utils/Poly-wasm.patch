@@ -1,0 +1,8 @@
+1269c1269
+<   int enabled_count = 0;
+---
+>   // int enabled_count = 0;
+1274c1274
+<       enabled_count ++;
+---
+>       // enabled_count ++;
