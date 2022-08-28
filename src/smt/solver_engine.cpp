@@ -200,16 +200,6 @@ void SolverEngine::finishInit()
   Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
   d_smtSolver->finishInit();
 
-  // now can construct the SMT-level model object
-  TheoryEngine* te = d_smtSolver->getTheoryEngine();
-  Assert(te != nullptr);
-  TheoryModel* tm = te->getModel();
-  if (tm != nullptr)
-  {
-    // make the check models utility
-    d_checkModels.reset(new CheckModels(*d_env.get()));
-  }
-
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
   d_ctxManager->setup();
@@ -222,6 +212,11 @@ void SolverEngine::finishInit()
   if (d_env->getOptions().smt.produceInterpolants)
   {
     d_interpolSolver.reset(new InterpolationSolver(*d_env));
+  }
+  // check models utility
+  if (d_env->getOptions().smt.checkModels)
+  {
+    d_checkModels.reset(new CheckModels(*d_env.get()));
   }
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
