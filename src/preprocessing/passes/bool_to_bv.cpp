@@ -182,13 +182,6 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
 
 void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
 {
-  std::cout << "panda n: " << n << std::endl;
-  // std::cout << "panda n[0]: " << n[0] << std::endl;
-  // std::cout << "panda n[1]: " << n[1] << std::endl;
-  // std::cout << "panda n[2]: " << n[2] << std::endl;
-  // std::cout << "panda fromCache(n[0]): " << fromCache(n[0]) << std::endl;
-  // std::cout << "panda fromCache(n[1]): " << fromCache(n[1]) << std::endl;
-  // std::cout << "panda fromCache(n[2]): " << fromCache(n[2]) << std::endl;
   Kind k = n.getKind();
 
   // easy case -- just replace boolean constant
@@ -231,7 +224,6 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   // it's safe to lower if all the children are bit-vectors
   bool safe_to_lower =
       (new_kind != k);  // don't need to lower at all if kind hasn't changed
-  std::cout << "panda safe_to_lower before loop: " << (safe_to_lower ? "true" : "false") << std::endl;
 
   // it's safe to rebuild if rebuilding doesn't change any of the types of the
   // children
@@ -239,9 +231,6 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
 
   for (const Node& nn : n)
   {
-  std::cout << "panda nn: "<<  nn << std::endl;
-  std::cout << "panda fromCache(nn): "<<  fromCache(nn) << std::endl;
-  std::cout << "panda safe_to_lower during loop: " << (safe_to_lower ? "true" : "false") << std::endl;
     safe_to_lower = safe_to_lower && fromCache(nn).getType().isBitVector();
     safe_to_rebuild = safe_to_rebuild && (fromCache(nn).getType() == nn.getType());
 
@@ -251,8 +240,6 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
       break;
     }
   }
-  std::cout << "panda safe_to_lower after loop: " << (safe_to_lower ? "true" : "false") << std::endl;
-  std::cout << "panda safe_to_rebuild: " << (safe_to_rebuild ? "true" : "false") << std::endl;
   Trace("bool-to-bv") << "safe_to_lower = " << safe_to_lower
                       << ", safe_to_rebuild = " << safe_to_rebuild << std::endl;
 
@@ -290,9 +277,6 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   else if (safe_to_rebuild && needToRebuild(n))
   {
     // rebuild to incorporate changes to children
-    std::cout << "panda k: " << k << std::endl;
-    std::cout << "panda new_kind: " << new_kind << std::endl;
-    Assert(k == new_kind);
     rebuildNode(n, k);
   }
   else if (allowIteIntroduction && fromCache(n).getType().isBoolean())
