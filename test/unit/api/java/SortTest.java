@@ -58,8 +58,7 @@ class SortTest
   Sort create_param_datatype_sort() throws CVC5ApiException
   {
     Sort sort = d_solver.mkParamSort("T");
-    DatatypeDecl paramDtypeSpec =
-        d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
+    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", new Sort[] {sort});
     DatatypeConstructorDecl paramCons = d_solver.mkDatatypeConstructorDecl("cons");
     DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
     paramCons.addSelector("head", sort);
@@ -189,6 +188,16 @@ class SortTest
     Sort cons_sort = dt.getConstructor(0).getTesterTerm().getSort();
     assertTrue(cons_sort.isDatatypeTester());
     assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeTester());
+  }
+
+  @Test
+  void isDatatypeUpdater() throws CVC5ApiException
+  {
+    Sort dt_sort = create_datatype_sort();
+    Datatype dt = dt_sort.getDatatype();
+    Sort updater_sort = dt.getConstructor(0).getSelector(0).getUpdaterTerm().getSort();
+    assertTrue(updater_sort.isDatatypeUpdater());
+    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeUpdater());
   }
 
   @Test

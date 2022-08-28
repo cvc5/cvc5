@@ -119,10 +119,16 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND:
     case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case ADD: nullTerm = nm->mkConstRealOrInt(tn, Rational(0)); break;
+    case ADD:
+      // Note that we ignore the type. This is safe since ADD is permissive
+      // for subtypes.
+      nullTerm = nm->mkConstInt(Rational(0));
+      break;
     case MULT:
     case NONLINEAR_MULT:
-      nullTerm = nm->mkConstRealOrInt(tn, Rational(1));
+      // Note that we ignore the type. This is safe since multiplication is
+      // permissive for subtypes.
+      nullTerm = nm->mkConstInt(Rational(1));
       break;
     case STRING_CONCAT:
       // handles strings and sequences

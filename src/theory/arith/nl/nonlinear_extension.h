@@ -190,9 +190,6 @@ class NonlinearExtension : EnvObj
                    const std::vector<Node>& xts);
 
   /** commonly used terms */
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;

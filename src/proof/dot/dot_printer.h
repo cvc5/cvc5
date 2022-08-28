@@ -23,6 +23,7 @@
 
 #include "printer/let_binding.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -68,10 +69,10 @@ enum class ProofNodeClusterType : uint8_t
   NOT_DEFINED
 };
 
-class DotPrinter
+class DotPrinter : protected EnvObj
 {
  public:
-  DotPrinter();
+  DotPrinter(Env& env);
   ~DotPrinter();
 
   /**
@@ -95,6 +96,8 @@ class DotPrinter
    * @param pfLetOpen the map, local to the current scope, of proof node hashs
    * to their printed ids
    * @param cfaMap the map from proof nodes to whether they contain assumptions
+   * @param ancestorHashs a vector containing the hashs of all the proof nodes
+   * ancestors traversed to get to pn
    * @param parentType the type of the parent node
    * @return the id of the proof node printed
    */
@@ -103,6 +106,7 @@ class DotPrinter
                          std::map<size_t, uint64_t>& pfLetClosed,
                          std::map<size_t, uint64_t>& pfLetOpen,
                          std::unordered_map<const ProofNode*, bool>& cfaMap,
+                         std::vector<size_t>& ancestorHashs,
                          ProofNodeClusterType parentType);
 
   /**
@@ -166,26 +170,34 @@ class DotPrinter
   /** Verify if the rule is in the SAT range (i.e. a PfRule that is
    * CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION or
    * MACRO_RESOLUTION_TRUST).
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the SAT range.
    */
   inline bool isSat(const PfRule& rule);
 
   /** Verify if the rule is in the CNF range (between NOT_NOT_ELIM and
    * CNF_ITE_NEG3) in the PfRule enumeration.
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the CNF range.
    */
   inline bool isCNF(const PfRule& rule);
 
   /** Verify if the rule is a SCOPE
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not a SCOPE.
    */
   inline bool isSCOPE(const PfRule& rule);
 
+  /** Verify if the rule is in the theory lemma range (open interval between
+   * CNF_ITE_NEG3 and LFSC_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
+   * @param rule The rule to be verified.
+   * @return The bool indicating whether the rule is for a theory lemma
+   * range.
+   */
+  inline bool isTheoryLemma(const PfRule& rule);
+
   /** Verify if the rule is an ASSUME
-   * @param pn The rule to be verified.
+   * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not an ASSUME.
    */
   inline bool isASSUME(const PfRule& rule);

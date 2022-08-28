@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental
+; COMMAND-LINE: --incremental --use-soi
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat

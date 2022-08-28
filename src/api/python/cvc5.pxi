@@ -653,6 +653,9 @@ cdef class Grammar:
         self.solver = solver
         self.cgrammar = c_Grammar()
 
+    def __str__(self):
+        return self.cgrammar.toString().decode()
+
     def addRule(self, Term ntSymbol, Term rule):
         """
             Add ``rule`` to the set of rules corresponding to ``ntSymbol``.
@@ -1122,11 +1125,11 @@ cdef class Solver:
             Supports the following arguments:
 
             - ``Term mkTerm(Kind kind)``
-            - ``Term mkTerm(Kind kind, List[Term] children)``
             - ``Term mkTerm(Op op)``
-            - ``Term mkTerm(Op op, List[Term] children)``
+            - ``Term mkTerm(Kind kind, *args)``
+            - ``Term mkTerm(Op op, *args)``
 
-            where ``List[Term]`` can also be comma-separated arguments
+            where ``*args`` is a comma-separated list of terms.
         """
         cdef Term term = Term(self)
         cdef vector[c_Term] v
@@ -2066,7 +2069,7 @@ cdef class Solver:
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
 
-        if t is not None:
+        if isinstance(sym_or_fun, str):
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
@@ -2080,7 +2083,7 @@ cdef class Solver:
 
         return term
 
-    def defineFunsRec(self, funs, bound_vars, terms):
+    def defineFunsRec(self, funs, bound_vars, terms, glb = False):
         """
             Define recursive functions.
 
@@ -2095,9 +2098,8 @@ cdef class Solver:
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
             :param terms: The list of function bodies of the functions.
-            :param global: Determines whether this definition is global (i.e.
-                           persists when popping the context).
-            :return: The function.
+            :param glb: Determines whether this definition is global (i.e.
+                        persists when popping the context).
         """
         cdef vector[c_Term] vf
         cdef vector[vector[c_Term]] vbv
@@ -2114,30 +2116,32 @@ cdef class Solver:
             temp.clear()
 
         for t in terms:
-            vf.push_back((<Term?> t).cterm)
+            vt.push_back((<Term?> t).cterm)
 
-    def getProof(self):
+        self.csolver.defineFunsRec(vf, vbv, vt, glb)
+
+    def getProof(self, c = ProofComponent.PROOF_COMPONENT_FULL):
         """
-            Get the refutation proof
+            Get a proof associated with the most recent call to checkSat.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-               (get-proof)
+               (get-proof :c)
 
             Requires to enable option
             :ref:`produce-proofs <lbl-option-produce-proofs>`.
 
             .. warning:: This method is experimental and may change in future
                          versions.
-
-            :return: A string representing the proof, according to the value of
-                     :ref:`proof-format-mode <lbl-option-proof-format-mode>`.
+            :param c: The component of the proof to return 
+            :return: A string representing the proof. This takes into account
+            proof-format-mode when c is PROOF_COMPONENT_FULL.
         """
-        return self.csolver.getProof()
+        return self.csolver.getProof(<c_ProofComponent> c.value)
 
-    def getLearnedLiterals(self):
+    def getLearnedLiterals(self, type = LearnedLitType.LEARNED_LIT_INPUT):
         """
             Get a list of literals that are entailed by the current set of assertions
 
@@ -2150,10 +2154,11 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
 
+            :param type: The type of learned literals to return
             :return: The list of literals.
         """
         lits = []
-        for a in self.csolver.getLearnedLiterals():
+        for a in self.csolver.getLearnedLiterals(<c_LearnedLitType> type.value):
             term = Term(self)
             term.cterm = a
             lits.append(term)
@@ -3241,8 +3246,8 @@ cdef class Sort:
         cdef vector[c_Sort] ces
         cdef vector[c_Sort] creplacements
 
-        # normalize the input parameters to be lists
         if isinstance(sort_or_list_1, list):
+            # call the API substitute method with lists
             assert isinstance(sort_or_list_2, list)
             es = sort_or_list_1
             replacements = sort_or_list_2
@@ -3255,14 +3260,11 @@ cdef class Sort:
             for e, r in zip(es, replacements):
                 ces.push_back((<Sort?> e).csort)
                 creplacements.push_back((<Sort?> r).csort)
-
+            sort.csort = self.csort.substitute(ces, creplacements)
         else:
-            # add the single elements to the vectors
-            ces.push_back((<Sort?> sort_or_list_1).csort)
-            creplacements.push_back((<Sort?> sort_or_list_2).csort)
+            # call the API substitute method with single sorts
+            sort.csort = self.csort.substitute((<Sort?> sort_or_list_1).csort, (<Sort?> sort_or_list_2).csort)
 
-        # call the API substitute method with lists
-        sort.csort = self.csort.substitute(ces, creplacements)
         return sort
 
 
@@ -3599,8 +3601,8 @@ cdef class Term:
         cdef vector[c_Term] ces
         cdef vector[c_Term] creplacements
 
-        # normalize the input parameters to be lists
         if isinstance(term_or_list_1, list):
+            # call the API substitute method with lists
             assert isinstance(term_or_list_2, list)
             es = term_or_list_1
             replacements = term_or_list_2
@@ -3612,14 +3614,11 @@ cdef class Term:
             for e, r in zip(es, replacements):
                 ces.push_back((<Term?> e).cterm)
                 creplacements.push_back((<Term?> r).cterm)
-
+            term.cterm = self.cterm.substitute(ces, creplacements)
         else:
-            # add the single elements to the vectors
-            ces.push_back((<Term?> term_or_list_1).cterm)
-            creplacements.push_back((<Term?> term_or_list_2).cterm)
+            # call the API substitute method with single terms
+            term.cterm = self.cterm.substitute((<Term?> term_or_list_1).cterm, (<Term?> term_or_list_2).cterm)
 
-        # call the API substitute method with lists
-        term.cterm = self.cterm.substitute(ces, creplacements)
         return term
 
     def hasOp(self):

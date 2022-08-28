@@ -55,7 +55,7 @@ public class DatatypeDecl extends AbstractPointer
   private native void addConstructor(long pointer, long declPointer);
 
   /** Get the number of constructors (so far) for this Datatype declaration. */
-  int getNumConstructors()
+  public int getNumConstructors()
   {
     return getNumConstructors(pointer);
   }

@@ -45,6 +45,7 @@ class SkolemManager;
 class BoundVarManager;
 
 class DType;
+class Oracle;
 class Rational;
 
 namespace expr {
@@ -627,34 +628,6 @@ class NodeManager
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
-   * Create a sequence unit from the given element n.
-   * @param t the element type of the returned sequence.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the sequence.
-   * @return a sequence unit constructed from the element n.
-   */
-  Node mkSeqUnit(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a singleton set from the given element n.
-   * @param t the element type of the returned set.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the singleton.
-   * @return a singleton set constructed from the element n.
-   */
-  Node mkSingleton(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a bag from the given element n along with its multiplicity m.
-   * @param t the element type of the returned bag.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the element that is used to to construct the bag
-   * @param m the multiplicity of the element n
-   * @return a bag that contains m occurrences of n.
-   */
-  Node mkBag(const TypeNode& t, const TNode n, const TNode m);
-
-  /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.
    */
@@ -740,6 +713,18 @@ class NodeManager
 
   /** Make an unresolved datatype sort */
   TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
+
+  /**
+   * Make an oracle node. This returns a constant of kind ORACLE that stores
+   * the given method in an Oracle object. This Oracle can later be obtained by
+   * getOracleFor below.
+   */
+  Node mkOracle(Oracle& o);
+
+  /**
+   * Get the oracle for an oracle node n, which should have kind ORACLE.
+   */
+  const Oracle& getOracleFor(const Node& n) const;
 
  private:
   /**
@@ -1034,24 +1019,26 @@ class NodeManager
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType>> d_dtypes;
 
+  /** A list of oracles owned by this node manager */
+  std::vector<std::unique_ptr<Oracle>> d_oracles;
+
   TupleTypeCache d_tt_cache;
   RecTypeCache d_rt_cache;
 }; /* class NodeManager */
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
-                                         TypeNode constituentType) {
-  CheckArgument(!indexType.isNull(), indexType,
-                "unexpected NULL index type");
-  CheckArgument(!constituentType.isNull(), constituentType,
-                "unexpected NULL constituent type");
+                                         TypeNode constituentType)
+{
+  Assert(!indexType.isNull()) << "unexpected NULL index type";
+  Assert(!constituentType.isNull()) << "unexpected NULL constituent type";
   Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
 
-inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
-  CheckArgument(!elementType.isNull(), elementType,
-                "unexpected NULL element type");
+inline TypeNode NodeManager::mkSetType(TypeNode elementType)
+{
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }

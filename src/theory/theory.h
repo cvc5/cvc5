@@ -215,7 +215,7 @@ class Theory : protected EnvObj
    *
    * The following criteria imply that x -> val is *not* a legal elimination:
    * (1) If x is contained in val,
-   * (2) If the type of val is not a subtype of the type of x,
+   * (2) If the type of val is not the same as the type of x,
    * (3) If val contains an operator that cannot be evaluated, and
    * produceModels is true. For example, x -> sqrt(2) is not a legal
    * elimination if we are producing models. This is because we care about the
@@ -664,18 +664,6 @@ class Theory : protected EnvObj
   virtual void presolve() {}
 
   /**
-   * A Theory is called with postsolve exactly one time per user
-   * check-sat.  postsolve() is called after the query has completed
-   * (regardless of whether sat, unsat, or unknown), and after any
-   * model-querying related to the query has been performed.
-   * After this call, the theory will not get another check() or
-   * propagate() call until presolve() is called again.  A Theory
-   * cannot raise conflicts, add lemmas, or propagate literals during
-   * postsolve().
-   */
-  virtual void postsolve() {}
-
-  /**
    * Notification sent to the theory wheneven the search restarts.
    * Serves as a good time to do some clean-up work, and you can
    * assume you're at DL 0 for the purposes of Contexts.  This function
@@ -787,11 +775,10 @@ class Theory : protected EnvObj
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /** Return true if this theory uses central equality engine */
-  bool usesCentralEqualityEngine() const;
-  /** uses central equality engine (static) */
-  static bool usesCentralEqualityEngine(TheoryId id);
-  /** Explains/propagates via central equality engine only */
+  /**
+   * Return true if this theory explains and propagates via central equality
+   * engine only when the theory uses the central equality engine.
+   */
   static bool expUsingCentralEqualityEngine(TheoryId id);
 
  private:

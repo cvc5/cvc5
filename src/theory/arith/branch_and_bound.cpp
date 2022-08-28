@@ -31,14 +31,12 @@ namespace arith {
 BranchAndBound::BranchAndBound(Env& env,
                                ArithState& s,
                                InferenceManager& im,
-                               PreprocessRewriteEq& ppre,
-                               ProofNodeManager* pnm)
+                               PreprocessRewriteEq& ppre)
     : EnvObj(env),
       d_astate(s),
       d_im(im),
       d_ppre(ppre),
-      d_pfGen(new EagerProofGenerator(pnm, userContext())),
-      d_pnm(pnm)
+      d_pfGen(new EagerProofGenerator(env, userContext()))
 {
 }
 
@@ -78,6 +76,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
       Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
       Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
@@ -86,30 +85,29 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
       Trace("integers::pf") << "literal: " << literal << std::endl;
       Trace("integers::pf") << "eq: " << eq << std::endl;
       Trace("integers::pf") << "rawEq: " << rawEq << std::endl;
-      Pf pfNotLit = d_pnm->mkAssume(literal.negate());
+      Pf pfNotLit = pnm->mkAssume(literal.negate());
       // rewrite notLiteral to notRawEq, using teq.
       Pf pfNotRawEq =
           literal == rawEq
               ? pfNotLit
-              : d_pnm->mkNode(
-                    PfRule::MACRO_SR_PRED_TRANSFORM,
-                    {pfNotLit,
-                     teq.getGenerator()->getProofFor(teq.getProven())},
-                    {rawEq.negate()});
-      Pf pfBot = d_pnm->mkNode(
-          PfRule::CONTRA,
-          {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                         {d_pnm->mkAssume(less.negate()), pfNotRawEq},
-                         {greater}),
-           d_pnm->mkAssume(greater.negate())},
-          {});
+              : pnm->mkNode(
+                  PfRule::MACRO_SR_PRED_TRANSFORM,
+                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
+                  {rawEq.negate()});
+      Pf pfBot =
+          pnm->mkNode(PfRule::CONTRA,
+                      {pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+                                   {pnm->mkAssume(less.negate()), pfNotRawEq},
+                                   {greater}),
+                       pnm->mkAssume(greater.negate())},
+                      {});
       std::vector<Node> assumptions = {
           literal.negate(), less.negate(), greater.negate()};
       // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
-      Pf pfNotAnd = d_pnm->mkScope(pfBot, assumptions);
-      Pf pfL = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                             {d_pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
-                             {l});
+      Pf pfNotAnd = pnm->mkScope(pfBot, assumptions);
+      Pf pfL = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                           {pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
+                           {l});
       lem = d_pfGen->mkTrustNode(l, pfL);
     }
     else
@@ -136,7 +134,10 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   return lem;
 }
 
-bool BranchAndBound::proofsEnabled() const { return d_pnm != nullptr; }
+bool BranchAndBound::proofsEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace arith
 }  // namespace theory

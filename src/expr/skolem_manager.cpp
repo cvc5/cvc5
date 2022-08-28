@@ -43,6 +43,11 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+struct UnpurifiedFormAttributeId
+{
+};
+typedef expr::Attribute<UnpurifiedFormAttributeId, Node> UnpurifiedFormAttribute;
+
 struct AbstractValueId
 {
 };
@@ -89,9 +94,20 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::BAGS_MAP_PREIMAGE_SIZE: return "BAGS_MAP_PREIMAGE_SIZE";
     case SkolemFunId::BAGS_MAP_PREIMAGE_INDEX: return "BAGS_MAP_PREIMAGE_INDEX";
     case SkolemFunId::BAGS_MAP_SUM: return "BAGS_MAP_SUM";
-    case SkolemFunId::BAG_DEQ_DIFF: return "BAG_DEQ_DIFF";
+    case SkolemFunId::BAGS_DEQ_DIFF: return "BAGS_DEQ_DIFF";
+    case SkolemFunId::TABLES_GROUP_PART: return "TABLES_GROUP_PART";
+    case SkolemFunId::TABLES_GROUP_PART_ELEMENT:
+      return "TABLES_GROUP_PART_ELEMENT";
+    case SkolemFunId::RELATIONS_GROUP_PART: return "RELATIONS_GROUP_PART";
+    case SkolemFunId::RELATIONS_GROUP_PART_ELEMENT:
+      return "RELATIONS_GROUP_PART_ELEMENT";
     case SkolemFunId::SETS_CHOOSE: return "SETS_CHOOSE";
     case SkolemFunId::SETS_DEQ_DIFF: return "SETS_DEQ_DIFF";
+    case SkolemFunId::SETS_FOLD_CARD: return "SETS_FOLD_CARD";
+    case SkolemFunId::SETS_FOLD_COMBINE: return "SETS_FOLD_COMBINE";
+    case SkolemFunId::SETS_FOLD_ELEMENTS: return "SETS_FOLD_ELEMENTS";
+    case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
+    case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
     default: return "?";
   }
@@ -220,16 +236,16 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& comment,
                                    int flags)
 {
-  Node to = getOriginalForm(t);
-  // We do not currently insist that to does not contain witness terms
-
-  Node k = mkSkolemInternal(to, prefix, comment, flags);
-  // set original form attribute for k
-  OriginalFormAttribute ofa;
-  k.setAttribute(ofa, to);
+  // We do not recursively compute the original form of t here
+  Node k = mkSkolemInternal(t, prefix, comment, flags);
+  // set unpurified form attribute for k
+  UnpurifiedFormAttribute ufa;
+  k.setAttribute(ufa, t);
+  // the original form of k can be computed by calling getOriginalForm, but
+  // it is not computed here
 
   Trace("sk-manager-skolem")
-      << "skolem: " << k << " purify " << to << std::endl;
+      << "skolem: " << k << " purify " << t << std::endl;
   return k;
 }
 
@@ -325,6 +341,7 @@ Node SkolemManager::getOriginalForm(Node n)
   Trace("sk-manager-debug")
       << "SkolemManager::getOriginalForm " << n << std::endl;
   OriginalFormAttribute ofa;
+  UnpurifiedFormAttribute ufa;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -342,6 +359,25 @@ Node SkolemManager::getOriginalForm(Node n)
       if (cur.hasAttribute(ofa))
       {
         visited[cur] = cur.getAttribute(ofa);
+      }
+      else if (cur.hasAttribute(ufa))
+      {
+        // if it has an unpurified form, compute the original form of it
+        Node ucur = cur.getAttribute(ufa);
+        if (ucur.hasAttribute(ofa))
+        {
+          // Already computed, set. This always happens after cur is visited
+          // again after computing the original form of its unpurified form.
+          Node ucuro = ucur.getAttribute(ofa);
+          cur.setAttribute(ofa, ucuro);
+          visited[cur] = ucuro;
+        }
+        else
+        {
+          // visit ucur then visit cur again
+          visit.push_back(cur);
+          visit.push_back(ucur);
+        }
       }
       else
       {
@@ -390,6 +426,16 @@ Node SkolemManager::getOriginalForm(Node n)
   Assert(!visited.find(n)->second.isNull());
   Trace("sk-manager-debug") << "..return " << visited[n] << std::endl;
   return visited[n];
+}
+
+Node SkolemManager::getUnpurifiedForm(Node k)
+{
+  UnpurifiedFormAttribute ufa;
+  if (k.hasAttribute(ufa))
+  {
+    return k.getAttribute(ufa);
+  }
+  return k;
 }
 
 Node SkolemManager::mkSkolemInternal(Node w,

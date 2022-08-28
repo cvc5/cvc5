@@ -247,10 +247,11 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case kind::ABS: return rewriteAbs(t);
+      case kind::BITVECTOR_TO_NAT:
+      case kind::INT_TO_BITVECTOR:
       case kind::IS_INTEGER:
       case kind::TO_INTEGER:
       case kind::TO_REAL:
-      case kind::CAST_TO_REAL:
       case kind::POW:
       case kind::PI: return RewriteResponse(REWRITE_DONE, t);
       default: Unhandled() << k;
@@ -297,8 +298,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
       case kind::INTS_DIVISION_TOTAL:
       case kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, false);
       case kind::ABS: return rewriteAbs(t);
-      case kind::TO_REAL:
-      case kind::CAST_TO_REAL: return rewriteToReal(t);
+      case kind::TO_REAL: return rewriteToReal(t);
       case kind::TO_INTEGER: return rewriteExtIntegerOp(t);
       case kind::POW:
       {
@@ -346,10 +346,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         ss << "  " << t;
         throw LogicException(ss.str());
       }
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default:
-      Unreachable();
+      case kind::BITVECTOR_TO_NAT: return rewriteBVToNat(t);
+      case kind::INT_TO_BITVECTOR: return rewriteIntToBV(t);
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unreachable();
     }
   }
 }
@@ -531,7 +531,8 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
       }
       else
       {
-        return RewriteResponse(REWRITE_DONE, t);
+        Node ret = nm->mkNode(t.getKind(), left, right);
+        return RewriteResponse(REWRITE_DONE, ret);
       }
     }
     Assert(den != Rational(0));
@@ -591,7 +592,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
 
 RewriteResponse ArithRewriter::rewriteToReal(TNode t)
 {
-  Assert(t.getKind() == kind::CAST_TO_REAL || t.getKind() == kind::TO_REAL);
+  Assert(t.getKind() == kind::TO_REAL);
   if (!t[0].getType().isInteger())
   {
     // if it is already real type, then just return the argument
@@ -601,16 +602,9 @@ RewriteResponse ArithRewriter::rewriteToReal(TNode t)
   if (t[0].isConst())
   {
     // If the argument is constant, return a real constant.
-    // !!!! Note that this does not preserve the type of t, since rat is
-    // an integral rational. This will be corrected when the type rule for
-    // CONST_RATIONAL is changed to always return Real.
     const Rational& rat = t[0].getConst<Rational>();
     return RewriteResponse(REWRITE_DONE, nm->mkConstReal(rat));
   }
-  // CAST_TO_REAL is our way of marking integral constants coming from the
-  // user as Real. It should only be applied to constants, which is handled
-  // above.
-  Assert(t.getKind() != kind::CAST_TO_REAL);
   return RewriteResponse(REWRITE_DONE, t);
 }
 
@@ -801,7 +795,7 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
   }
   if (t[0].getKind() == kind::PI)
   {
-    Node ret = isPred ? nm->mkConst(false) : nm->mkConstReal(Rational(3));
+    Node ret = isPred ? nm->mkConst(false) : nm->mkConstInt(Rational(3));
     return returnRewrite(t, ret, Rewrite::INT_EXT_PI);
   }
   else if (t[0].getKind() == kind::TO_REAL)
@@ -1115,6 +1109,26 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t)
     default: break;
   }
   return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteBVToNat(TNode node)
+{
+  if (node[0].isConst())
+  {
+    Node resultNode = eliminateBv2Nat(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+
+RewriteResponse ArithRewriter::rewriteIntToBV(TNode node)
+{
+  if (node[0].isConst())
+  {
+    Node resultNode = eliminateInt2Bv(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 TrustNode ArithRewriter::expandDefinition(Node node)

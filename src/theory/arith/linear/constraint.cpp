@@ -26,7 +26,6 @@
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/normal_form.h"
@@ -658,8 +657,11 @@ bool Constraint::sanityChecking(Node n) const {
   Kind k = cmp.comparisonKind();
   Polynomial pleft = cmp.normalizedVariablePart();
   Assert(k == EQUAL || k == DISTINCT || pleft.leadingCoefficientIsPositive());
-  Assert(k != EQUAL || Monomial::isMember(n[0]));
-  Assert(k != DISTINCT || Monomial::isMember(n[0][0]));
+  Assert(k != EQUAL
+         || Monomial::isMember(n[0].getKind() == TO_REAL ? n[0][0] : n[0]));
+  Assert(k != DISTINCT
+         || Monomial::isMember(n[0][0].getKind() == TO_REAL ? n[0][0][0]
+                                                            : n[0][0]));
 
   TNode left = pleft.getNode();
   DeltaRational right = cmp.normalizedDeltaRational();
@@ -918,7 +920,8 @@ ConstraintDatabase::ConstraintDatabase(Env& env,
                                            : nullptr),
       d_raiseConflict(raiseConflict),
       d_one(1),
-      d_negOne(-1)
+      d_negOne(-1),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -1034,11 +1037,11 @@ ConstraintDatabase::~ConstraintDatabase(){
   Assert(d_nodetoConstraintMap.empty());
 }
 
-ConstraintDatabase::Statistics::Statistics()
-    : d_unatePropagateCalls(smtStatisticsRegistry().registerInt(
-        "theory::arith::cd::unatePropagateCalls")),
-      d_unatePropagateImplications(smtStatisticsRegistry().registerInt(
-          "theory::arith::cd::unatePropagateImplications"))
+ConstraintDatabase::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_unatePropagateCalls(
+        sr.registerInt("theory::arith::cd::unatePropagateCalls")),
+      d_unatePropagateImplications(
+          sr.registerInt("theory::arith::cd::unatePropagateImplications"))
 {
 }
 
@@ -1721,39 +1724,16 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
   }
   else if (hasEqualityEngineProof())
   {
-    Trace("pf::arith::explain") << "  going to ee:" << std::endl;
-    TrustNode exp = d_database->eeExplain(this);
+    // just assume, it will be explained again
+    Node lit = getLiteral();
     if (d_database->isProofEnabled())
     {
-      Assert(exp.getProven().getKind() == Kind::IMPLIES);
-      std::vector<std::shared_ptr<ProofNode>> hypotheses;
-      hypotheses.push_back(exp.getGenerator()->getProofFor(exp.getProven()));
-      if (exp.getNode().getKind() == Kind::AND)
-      {
-        for (const auto& h : exp.getNode())
-        {
-          hypotheses.push_back(
-              pnm->mkNode(PfRule::TRUE_INTRO, {pnm->mkAssume(h)}, {}));
-        }
-      }
-      else
-      {
-        hypotheses.push_back(pnm->mkNode(
-            PfRule::TRUE_INTRO, {pnm->mkAssume(exp.getNode())}, {}));
-      }
+      std::shared_ptr<ProofNode> a = pnm->mkAssume(getLiteral());
       pf = pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {hypotheses}, {getProofLiteral()});
+          PfRule::MACRO_SR_PRED_TRANSFORM, {a}, {getProofLiteral()});
     }
-    Trace("pf::arith::explain")
-        << "    explanation: " << exp.getNode() << std::endl;
-    if (exp.getNode().getKind() == Kind::AND)
-    {
-      nb.append(exp.getNode().begin(), exp.getNode().end());
-    }
-    else
-    {
-      nb << exp.getNode();
-    }
+    Assert(lit.getKind() != kind::AND);
+    nb << lit;
   }
   else
   {
@@ -2003,18 +1983,6 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
       return NullConstraint;
     }
   }
-}
-TrustNode ConstraintDatabase::eeExplain(const Constraint* const c) const
-{
-  Assert(c->hasLiteral());
-  return d_congruenceManager.explain(c->getLiteral());
-}
-
-void ConstraintDatabase::eeExplain(ConstraintCP c, NodeBuilder& nb) const
-{
-  Assert(c->hasLiteral());
-  // NOTE: this is not a recommended method since it ignores proofs
-  d_congruenceManager.explain(c->getLiteral(), nb);
 }
 
 bool ConstraintDatabase::variableDatabaseIsSetup(ArithVar v) const {

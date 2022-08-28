@@ -24,19 +24,15 @@ namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
     : d_rewriter(env.getRewriter()),
-      d_tcpg(env.getProofNodeManager(),
+      d_tcpg(env,
              nullptr,
              TConvPolicy::FIXPOINT,
              TConvCachePolicy::NEVER,
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(env.getProofNodeManager(),
-                 nullptr,
-                 nullptr,
-                 "WfGenerator::LazyCDProof"),
-      d_pskPf(
-          env.getProofNodeManager(), nullptr, "WfGenerator::PurifySkolemProof")
+      d_wintroPf(env, nullptr, nullptr, "WfGenerator::LazyCDProof"),
+      d_pskPf(env, nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 
@@ -86,24 +82,27 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     {
       d_visited.insert(cur);
       curw = SkolemManager::getOriginalForm(cur);
-      // if its witness form is different
+      // if its original form is different
       if (cur != curw)
       {
         if (cur.isVar())
         {
+          curw = SkolemManager::getUnpurifiedForm(cur);
           Node eq = cur.eqNode(curw);
-          // equality between a variable and its original form
+          // equality between a variable and its unpurified form
           d_eqs.insert(eq);
           // ------- SKOLEM_INTRO
           // k = t
           d_wintroPf.addStep(eq, PfRule::SKOLEM_INTRO, {}, {cur});
           d_tcpg.addRewriteStep(
               cur, curw, &d_wintroPf, true, PfRule::ASSUME, true);
+          // recursively transform
+          visit.push_back(curw);
         }
         else
         {
-          // A term whose witness form is different from itself, recurse.
-          // It should be the case that cur has children, since the witness
+          // A term whose original form is different from itself, recurse.
+          // It should be the case that cur has children, since the original
           // form of constants are themselves.
           Assert(cur.getNumChildren() > 0);
           if (cur.hasOperator())

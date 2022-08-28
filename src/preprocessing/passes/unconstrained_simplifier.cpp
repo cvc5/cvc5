@@ -24,11 +24,11 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -255,7 +255,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0].getType() != parent[1].getType())
           {
             TNode other = (parent[0] == current) ? parent[1] : parent[0];
-            if (current.getType().isSubtypeOf(other.getType()))
+            if (current.getType() == other.getType())
             {
               break;
             }
@@ -530,7 +530,8 @@ void UnconstrainedSimplifier::processUnconstrained()
             else
             {
               // TODO(#2377): could build ITE here
-              Node test = other.eqNode(nm->mkConstReal(Rational(0)));
+              Node test = other.eqNode(
+                  nm->mkConstRealOrInt(other.getType(), Rational(0)));
               if (rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;

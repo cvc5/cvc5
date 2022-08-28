@@ -22,7 +22,6 @@
 #include "context/context.h"
 #include "printer/printer.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_stats.h"

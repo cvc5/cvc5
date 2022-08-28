@@ -43,24 +43,22 @@
 #include "proof/proof_node_manager.h"
 #include "proof/proof_rule.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt_util/boolean_simplification.h"
-#include "theory/arith/linear/approx_simplex.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/approx_simplex.h"
+#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/cut_log.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear/linear_equality.h"
 #include "theory/arith/linear/matrix.h"
-#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -96,7 +94,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
       d_checker(),
-      d_pfGen(new EagerProofGenerator(d_pnm, userContext())),
+      d_pfGen(new EagerProofGenerator(env, userContext())),
       d_constraintDatabase(d_env,
                            d_partialModel,
                            d_congruenceManager,
@@ -105,7 +103,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_qflraStatus(Result::UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
-      d_learner(userContext()),
+      d_learner(statisticsRegistry(), userContext()),
       d_assertionsThatDoNotMatchTheirLiterals(context()),
       d_nextIntegerCheckVar(0),
       d_constantIntegerVariables(context()),
@@ -114,10 +112,13 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_learnedBounds(context()),
       d_preregisteredNodes(context()),
       d_partialModel(context(), DeltaComputeCallback(*this)),
-      d_errorSet(
-          d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
+      d_errorSet(statisticsRegistry(),
+                 d_partialModel,
+                 TableauSizes(&d_tableau),
+                 BoundCountingLookup(*this)),
       d_tableau(),
-      d_linEq(d_partialModel,
+      d_linEq(statisticsRegistry(),
+              d_partialModel,
               d_tableau,
               d_rowTracking,
               BasicVarModelUpdateCallBack(*this)),
@@ -974,7 +975,10 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
       // x = (p - ax - c) * -1/a
       // Add the substitution if not recursive
       Assert(elim == rewrite(elim));
-
+      if (elim.getType().isInteger() && !minVar.getType().isInteger())
+      {
+        elim = NodeManager::currentNM()->mkNode(kind::TO_REAL, elim);
+      }
       if (right.size() > options().arith.ppAssertMaxSubSize)
       {
         Trace("simplify")
@@ -989,7 +993,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
         // substitution is integral
         Trace("simplify") << "TheoryArithPrivate::solve(): substitution "
                           << minVar << " |-> " << elim << endl;
-
+        Assert(elim.getType() == minVar.getType());
         outSubstitutions.addSubstitutionSolved(minVar, elim, tin);
         return Theory::PP_ASSERT_STATUS_SOLVED;
       }
@@ -1796,7 +1800,14 @@ void TheoryArithPrivate::outputPropagate(TNode lit) {
 
 void TheoryArithPrivate::outputRestart() {
   Trace("arith::channel") << "Arith restart!" << std::endl;
-  (d_containing.d_out)->demandRestart();
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node restartVar = sm->mkDummySkolem(
+      "restartVar",
+      nm->booleanType(),
+      "A boolean variable asserted to be true to force a restart");
+  d_containing.d_im.lemma(
+      restartVar, InferenceId::ARITH_DEMAND_RESTART, LemmaProperty::REMOVABLE);
 }
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
@@ -2534,7 +2545,7 @@ TreeLog& TheoryArithPrivate::getTreeLog(){
 
 ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
   if(d_approxStats == NULL){
-    d_approxStats = new ApproximateStatistics();
+    d_approxStats = new ApproximateStatistics(statisticsRegistry());
   }
   return *d_approxStats;
 }
@@ -3586,24 +3597,23 @@ TrustNode TheoryArithPrivate::explain(TNode n)
 
   ConstraintP c = d_constraintDatabase.lookup(n);
   TrustNode exp;
-  if(c != NullConstraint){
+  // explanations that involve the congruence manager are handled in the
+  // main theory class.
+  Assert(!d_congruenceManager.canExplain(n));
+  if (c != NullConstraint)
+  {
     Assert(!c->isAssumption());
     exp = c->externalExplainForPropagation(n);
     Trace("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-  }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
+  }
+  else if (d_assertionsThatDoNotMatchTheirLiterals.find(n)
+           != d_assertionsThatDoNotMatchTheirLiterals.end())
+  {
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
       exp = c->externalExplainForPropagation(n);
       Trace("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-    }else{
-      Trace("arith::explain") << "this is a strange mismatch" << n << endl;
-      Assert(d_congruenceManager.canExplain(n));
-      exp = d_congruenceManager.explain(n);
     }
-  }else{
-    Assert(d_congruenceManager.canExplain(n));
-    Trace("arith::explain") << "dm explanation" << n << endl;
-    exp = d_congruenceManager.explain(n);
   }
   return exp;
 }
@@ -3858,8 +3868,10 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
   return belowMin;
 }
 
-void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
-                                            std::map<Node, Node>& arithModel)
+void TheoryArithPrivate::collectModelValues(
+    const std::set<Node>& termSet,
+    std::map<Node, Node>& arithModel,
+    std::map<Node, Node>& arithModelIllTyped)
 {
   AlwaysAssert(d_qflraStatus == Result::SAT);
 
@@ -3896,13 +3908,22 @@ void TheoryArithPrivate::collectModelValues(const std::set<Node>& termSet,
           // integer variables in rare cases. We construct real in this case;
           // this will be corrected in TheoryArith::sanityCheckIntegerModel.
           qNode = nm->mkConstReal(qmodel);
+          if (term.getType().isInteger())
+          {
+            Trace("arith::collectModelInfo")
+                << "add to arithModelIllTyped " << term << " -> " << qNode
+                << std::endl;
+            // in this case, we add to the ill-typed map instead of the main map
+            arithModelIllTyped[term] = qNode;
+            continue;
+          }
         }
         else
         {
           qNode = nm->mkConstRealOrInt(term.getType(), qmodel);
         }
-        Trace("arith::collectModelInfo") << "m->assertEquality(" << term << ", "
-                                         << qNode << ", true)" << endl;
+        Trace("arith::collectModelInfo")
+            << "add to arithModel " << term << " -> " << qNode << std::endl;
         // Add to the map
         arithModel[term] = qNode;
       }else{

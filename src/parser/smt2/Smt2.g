@@ -202,6 +202,7 @@ command [std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Sort> sorts;
   std::vector<std::pair<std::string, cvc5::Sort> > sortedVarNames;
   std::vector<cvc5::Term> flattenVars;
+  bool readKeyword = false;
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
@@ -361,10 +362,12 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     { cmd->reset(new AssertCommand(expr));
       if (PARSER_STATE->lastNamedTerm().first == expr)
       {
+        Trace("parser") << "Process top-level name: " << expr << std::endl;
         // set the expression name, if there was a named term
         std::pair<cvc5::Term, std::string> namedTerm =
             PARSER_STATE->lastNamedTerm();
         SYM_MAN->setExpressionName(namedTerm.first, namedTerm.second, true);
+        Trace("parser") << "finished process top-level name" << std::endl;
       }
     }
   | /* check-sat */
@@ -391,8 +394,16 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_ASSERTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetAssertionsCommand()); }
   | /* get-proof */
-    GET_PROOF_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetProofCommand()); }
+    GET_PROOF_TOK ( KEYWORD { readKeyword = true; }  )? {
+      PARSER_STATE->checkThatLogicIsSet();
+      modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
+      if (readKeyword)
+      {
+        pc = PARSER_STATE->getProofComponent(
+               AntlrInput::tokenText($KEYWORD).c_str() + 1);
+      }
+      cmd->reset(new GetProofCommand(pc));
+    }
   | /* get-unsat-assumptions */
     GET_UNSAT_ASSUMPTIONS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetUnsatAssumptionsCommand); }
@@ -403,8 +414,15 @@ command [std::unique_ptr<cvc5::Command>* cmd]
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
   | /* get-learned-literals */
-    GET_LEARNED_LITERALS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new GetLearnedLiteralsCommand); }
+    GET_LEARNED_LITERALS_TOK ( KEYWORD { readKeyword = true; } )? { 
+      PARSER_STATE->checkThatLogicIsSet();
+      modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
+      if (readKeyword)
+      {
+        llt = PARSER_STATE->getLearnedLitType(
+                AntlrInput::tokenText($KEYWORD).c_str() + 1);
+      }
+      cmd->reset(new GetLearnedLiteralsCommand(llt)); }
   | /* push */
     PUSH_TOK
     ( k=INTEGER_LITERAL
@@ -725,7 +743,6 @@ smt25Command[std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Term> funcs;
   std::vector<cvc5::Term> func_defs;
   cvc5::Term aexpr;
-  std::unique_ptr<cvc5::CommandSequence> seq;
   std::vector<cvc5::Sort> sorts;
   std::vector<cvc5::Term> flattenVars;
 }
@@ -863,7 +880,6 @@ extendedCommand[std::unique_ptr<cvc5::Command>* cmd]
   std::vector<cvc5::Term> terms;
   std::vector<cvc5::Sort> sorts;
   std::vector<std::pair<std::string, cvc5::Sort> > sortedVarNames;
-  std::unique_ptr<cvc5::CommandSequence> seq;
   cvc5::Grammar* g = nullptr;
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
@@ -1413,6 +1429,42 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_PROJECT, indices);
     expr = SOLVER->mkTerm(op, {expr});
   }
+  | LPAREN_TOK TABLE_AGGREGATE_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_AGGREGATE, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
+  | LPAREN_TOK TABLE_JOIN_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_JOIN, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
+  | LPAREN_TOK TABLE_GROUP_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_GROUP, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
+  | LPAREN_TOK RELATION_GROUP_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_GROUP, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
+  | LPAREN_TOK RELATION_AGGREGATE_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_AGGREGATE, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
+  | LPAREN_TOK RELATION_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, {expr});
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1561,6 +1613,48 @@ identifier[cvc5::ParseOp& p]
         p.d_kind = cvc5::TABLE_PROJECT;
         p.d_op = SOLVER->mkOp(cvc5::TABLE_PROJECT, numerals);
        }
+    | TABLE_AGGREGATE_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.aggr i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::TABLE_AGGREGATE;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_AGGREGATE, numerals);
+      }
+    | TABLE_JOIN_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.join i_1 j_1 ... i_n j_n) where
+        // i_1, ..., i_n, j_1, ..., j_n are numerals
+        p.d_kind = cvc5::TABLE_JOIN;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_JOIN, numerals);
+      }
+     | TABLE_GROUP_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ table.group i_1 ... i_n) where
+        // i_1, ..., j_n are numerals
+        p.d_kind = cvc5::TABLE_GROUP;
+        p.d_op = SOLVER->mkOp(cvc5::TABLE_GROUP, numerals);
+      }
+     | RELATION_GROUP_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ rel.group i_1 ... i_n) where
+        // i_1, ..., j_n are numerals
+        p.d_kind = cvc5::RELATION_GROUP;
+        p.d_op = SOLVER->mkOp(cvc5::RELATION_GROUP, numerals);
+      }
+     | RELATION_AGGREGATE_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ rel.aggr i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = cvc5::RELATION_AGGREGATE;
+        p.d_op = SOLVER->mkOp(cvc5::RELATION_AGGREGATE, numerals);
+      }
+     | RELATION_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+       // we adopt a special syntax (_ rel.project i_1 ... i_n) where
+       // i_1, ..., i_n are numerals
+       p.d_kind = cvc5::RELATION_PROJECT;
+       p.d_op = SOLVER->mkOp(cvc5::RELATION_PROJECT, numerals);
+      }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
@@ -1723,6 +1817,7 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
+      Trace("parser") << "Named: " << s << " for " << expr << std::endl;
       // notify that expression was given a name
       DefineFunctionCommand* defFunCmd =
           new DefineFunctionCommand(s, expr.getSort(), expr);
@@ -2170,6 +2265,12 @@ CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
 TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
+TABLE_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.aggr';
+TABLE_JOIN_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.join';
+TABLE_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.group';
+RELATION_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.group';
+RELATION_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.aggr';
+RELATION_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';

@@ -45,7 +45,5 @@
                       (! r (^ (sc_substitute body v s) bodyi)
                         (holds (exists v u body))))))))))
 
-(declare skolem_intro (! u term
-                      (! t term
-                      (! r (^ (sc_mk_skolem t) u)
-                        (holds (= u t))))))
+(declare skolem_intro (! t term
+                        (holds (= (skolem t) t))))

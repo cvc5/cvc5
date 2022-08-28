@@ -32,7 +32,7 @@ int main()
 
   Sort real = slv.getRealSort();
   Term x = slv.mkConst(real, "x");
-  Term four = slv.mkInteger(4);
+  Term four = slv.mkReal(4);
   Term xEqFour = slv.mkTerm(Kind::EQUAL, {x, four});
   slv.assertFormula(xEqFour);
   std::cout << slv.checkSat() << std::endl;
@@ -43,7 +43,8 @@ int main()
   Sort indexType = slv.getIntegerSort();
   Sort arrayType = slv.mkArraySort(indexType, elementType);
   Term array = slv.mkConst(arrayType, "array");
-  Term arrayAtFour = slv.mkTerm(Kind::SELECT, {array, four});
+  Term fourInt = slv.mkInteger(4);
+  Term arrayAtFour = slv.mkTerm(Kind::SELECT, {array, fourInt});
   Term ten = slv.mkInteger(10);
   Term arrayAtFour_eq_ten = slv.mkTerm(Kind::EQUAL, {arrayAtFour, ten});
   slv.assertFormula(arrayAtFour_eq_ten);

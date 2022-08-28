@@ -16,6 +16,8 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
 import java.util.*;
 
@@ -47,6 +49,9 @@ public class Solver implements IPointer, AutoCloseable
   // store pointers for terms, sorts, etc
   List<AbstractPointer> abstractPointers = new ArrayList<>();
 
+  // store IOracle objects
+  List<IOracle> oracles = new ArrayList<>();
+
   @Override
   public void close()
   {
@@ -57,6 +62,8 @@ public class Solver implements IPointer, AutoCloseable
     }
     // delete the heap memory for this solver
     deletePointer();
+    // clear oracles
+    oracles.clear();
   }
 
   void addAbstractPointer(AbstractPointer abstractPointer)
@@ -1746,7 +1753,8 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Get a list of literals that are entailed by the current set of assertions.
+   * Get a list of input literals that are entailed by the current set of
+   * assertions.
    *
    * SMT-LIB:
    * {@code
@@ -1764,6 +1772,27 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long[] getLearnedLiterals(long pointer);
+
+  /**
+   * Get a list of literals that are entailed by the current set of assertions.
+   *
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals :type )
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param type The type of learned literals to return
+   * @return The list of learned literals.
+   */
+  public Term[] getLearnedLiterals(LearnedLitType type)
+  {
+    long[] retPointers = getLearnedLiterals(pointer, type.getValue());
+    return Utils.getTerms(this, retPointers);
+  }
+
+  private native long[] getLearnedLiterals(long pointer, int type);
 
   /**
    * Get the list of asserted formulas.
@@ -1911,7 +1940,7 @@ public class Solver implements IPointer, AutoCloseable
   private native Map<Long, Long> getDifficulty(long pointer);
 
   /**
-   * Get the refutation proof
+   * Get refutation proof for the most recent call to checkSat.
    *
    * SMT-LIB:
    * {@code
@@ -1922,7 +1951,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof, according to the value of.
+   * @return A string representing the proof. This is impacted by the value of
    * proof-format-mode.
    */
   public String getProof()
@@ -1931,6 +1960,29 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native String getProof(long pointer);
+
+  /**
+   * Get a proof associated with the most recent call to checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * ( get-proof :c)
+   * }
+   *
+   * Requires to enable option {@code produce-proofs}.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param c The component of the proof to return
+   * @return A string representing the proof. This is equivalent to getProof
+   * when c is PROOF_COMPONENT_FULL.
+   */
+  public String getProof(ProofComponent c)
+  {
+    return getProof(pointer, c.getValue());
+  }
+
+  private native String getProof(long pointer, int c);
 
   /**
    * Get the value of the given term in the current model.
@@ -2179,6 +2231,42 @@ public class Solver implements IPointer, AutoCloseable
 
   private native long declarePool(
       long pointer, String symbol, long sortPointer, long[] termPointers);
+
+  /**
+   * Declare an oracle function with reference to an implementation.
+   *
+   * Oracle functions have a different semantics with respect to ordinary
+   * declared functions. In particular, for an input to be satisfiable,
+   * its oracle functions are implicitly universally quantified.
+   *
+   * This method is used in part for implementing this command:
+   *
+   * {@code
+   * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
+   * }
+   *
+   *
+   * In particular, the above command is implemented by constructing a
+   * function over terms that wraps a call to binary sym via a text interface.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param symbol The name of the oracle
+   * @param sorts The sorts of the parameters to this function
+   * @param sort The sort of the return value of this function
+   * @param oracle An object that implements the oracle interface.
+   * @return The oracle function
+   */
+  public Term declareOracleFun(String symbol, Sort[] sorts, Sort sort, IOracle oracle)
+  {
+    oracles.add(oracle);
+    long[] sortPointers = Utils.getPointers(sorts);
+    long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), oracle);
+    return new Term(this, termPointer);
+  }
+
+  private native long declareOracleFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
 
   /**
    * Pop a level from the assertion stack.
@@ -2569,16 +2657,15 @@ public class Solver implements IPointer, AutoCloseable
    * @param ntSymbols The pre-declaration of the non-terminal symbols.
    * @return The grammar.
    */
-  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols) {
+  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols)
+  {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long grammarPointer =
-        mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
+    long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
     return new Grammar(this, grammarPointer);
   }
 
-  private native long mkGrammar(
-      long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
+  private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 
   /**
    * Synthesize n-ary function.

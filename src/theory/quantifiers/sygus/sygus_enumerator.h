@@ -70,13 +70,16 @@ class SygusEnumerator : public EnumValGenerator
    * number of free variables
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
    * free variables are the arguments to any-constant constructors.
+   * @param numConstants The number of interpreted constants to consider for
+   * each size
    */
   SygusEnumerator(Env& env,
                   TermDbSygus* tds = nullptr,
                   SygusEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
-                  bool enumAnyConstHoles = false);
+                  bool enumAnyConstHoles = false,
+                  size_t numConstants = 5);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -103,6 +106,8 @@ class SygusEnumerator : public EnumValGenerator
   /** Whether we are enumerating free variables as arguments to any-constant
    * constructors */
   bool d_enumAnyConstHoles;
+  /** The number of interpreted constants to consider for each size */
+  size_t d_enumNumConsts;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -456,7 +461,7 @@ class SygusEnumerator : public EnumValGenerator
   class TermEnumMasterInterp : public TermEnum
   {
    public:
-    TermEnumMasterInterp(TypeNode tn);
+    TermEnumMasterInterp(TypeNode tn, size_t numConstants);
     /** initialize this enumerator */
     bool initialize(SygusEnumerator* se, TypeNode tn);
     /** get the current term of the enumerator */
@@ -471,6 +476,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currNumConsts;
     /** the next end threshold */
     unsigned d_nextIndexEnd;
+    /** The number of interpreted constants to consider for each size */
+    size_t d_enumNumConsts;
   };
   /** a free variable enumerator
    *

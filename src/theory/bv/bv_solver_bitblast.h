@@ -45,8 +45,7 @@ class BVSolverBitblast : public BVSolver
  public:
   BVSolverBitblast(Env& env,
                    TheoryState* state,
-                   TheoryInferenceManager& inferMgr,
-                   ProofNodeManager* pnm);
+                   TheoryInferenceManager& inferMgr);
   ~BVSolverBitblast() = default;
 
   bool needsEqualityEngine(EeSetupInfo& esi) override { return true; }

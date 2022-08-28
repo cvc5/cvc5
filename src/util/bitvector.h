@@ -21,7 +21,6 @@
 #include <iosfwd>
 #include <iostream>
 
-#include "base/exception.h"
 #include "util/integer.h"
 
 namespace cvc5::internal {
@@ -79,20 +78,7 @@ class BitVector
    *            This cannot be a negative value.
    * @param base The base of the string representation.
    */
-  BitVector(const std::string& num, unsigned base = 2)
-  {
-    CheckArgument(base == 2 || base == 10 || base == 16, base);
-    CheckArgument(num[0] != '-', num);
-    d_value = Integer(num, base);
-    CheckArgument(d_value == d_value.abs(), num);
-    // Compute the length, *without* any negative sign.
-    switch (base)
-    {
-      case 10: d_size = d_value.length(); break;
-      case 16: d_size = num.size() * 4; break;
-      default: d_size = num.size();
-    }
-  }
+  BitVector(const std::string& num, uint32_t base = 2);
 
   ~BitVector() {}
 
@@ -147,27 +133,7 @@ class BitVector
   /* Return the bit range from index 'high' to index 'low'. */
   BitVector extract(unsigned high, unsigned low) const;
 
-  /* (Dis)Equality --------------------------------------------------------- */
-
-  /* Return true if this is equal to 'y'. */
-  bool operator==(const BitVector& y) const;
-
-  /* Return true if this is not equal to 'y'. */
-  bool operator!=(const BitVector& y) const;
-
   /* Unsigned Inequality --------------------------------------------------- */
-
-  /* Return true if this is unsigned less than bit-vector 'y'. */
-  bool operator<(const BitVector& y) const;
-
-  /* Return true if this is unsigned less than or equal to bit-vector 'y'. */
-  bool operator<=(const BitVector& y) const;
-
-  /* Return true if this is unsigned greater than bit-vector 'y'. */
-  bool operator>(const BitVector& y) const;
-
-  /* Return true if this is unsigned greater than or equal to bit-vector 'y'. */
-  bool operator>=(const BitVector& y) const;
 
   /* Return true if this is unsigned less than bit-vector 'y'.
    * This function is a synonym for operator < but performs additional
@@ -187,33 +153,7 @@ class BitVector
   /* Return true if this is signed less than or equal to bit-vector 'y'. */
   bool signedLessThanEq(const BitVector& y) const;
 
-  /* Bit-wise operations --------------------------------------------------- */
-
-  /* Return a bit-vector representing the bit-wise xor (this ^ y). */
-  BitVector operator^(const BitVector& y) const;
-
-  /* Return a bit-vector representing the bit-wise or (this | y). */
-  BitVector operator|(const BitVector& y) const;
-
-  /* Return a bit-vector representing the bit-wise and (this & y). */
-  BitVector operator&(const BitVector& y) const;
-
-  /* Return a bit-vector representing the bit-wise not of this. */
-  BitVector operator~() const;
-
   /* Arithmetic operations ------------------------------------------------- */
-
-  /* Return a bit-vector representing the addition (this + y). */
-  BitVector operator+(const BitVector& y) const;
-
-  /* Return a bit-vector representing the subtraction (this - y). */
-  BitVector operator-(const BitVector& y) const;
-
-  /* Return a bit-vector representing the negation of this. */
-  BitVector operator-() const;
-
-  /* Return a bit-vector representing the multiplication (this * y). */
-  BitVector operator*(const BitVector& y) const;
 
   /* Total division function.
    * Returns a bit-vector representing 2^d_size-1 (signed: -1) when the
@@ -277,6 +217,90 @@ class BitVector
   Integer d_value;
 
 }; /* class BitVector */
+
+/* (Dis)Equality --------------------------------------------------------- */
+
+/**
+ * @return True if bit-vector `a` is equal to bit-vector `b`.
+ */
+bool operator==(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is not equal to bit-vector `b`.
+ */
+bool operator!=(const BitVector& a, const BitVector& b);
+
+/* Unsigned Inequality --------------------------------------------------- */
+
+/**
+ * @return True if bit-vector `a` is unsigned less than bit-vector `b`.
+ */
+bool operator<(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is unsigned less than or equal to
+ *         bit-vector 'b'.
+ */
+bool operator<=(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is unsigned greater than bit-vector 'b'.
+ */
+bool operator>(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is unsigned greater than or equal to
+ *         bit-vector 'b'.
+ */
+bool operator>=(const BitVector& a, const BitVector& b);
+
+/* Bit-wise operations --------------------------------------------------- */
+
+/**
+ * @return A bit-vector representing the bit-wise xor of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator^(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the bit-wise or of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator|(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the bit-wise and of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator&(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the bit-wise not of bit-vector `a`.
+ */
+BitVector operator~(const BitVector& a);
+
+/* Arithmetic operations ------------------------------------------------- */
+
+/**
+ * @return A bit-vector representing the addition of bit-vectors `a` and `b`.
+ */
+BitVector operator+(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the subtraction of bit-vectors `a` and `b`.
+ */
+BitVector operator-(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the negation of bit-vector `a`.
+ */
+BitVector operator-(const BitVector& a);
+
+/**
+ * @return A bit-vector representing the multiplication of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator*(const BitVector& a, const BitVector& b);
 
 /* -----------------------------------------------------------------------
  * BitVector structs

@@ -259,7 +259,7 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
   {
     std::vector<Node> query;
     query.push_back(d_conj);
-    r = d_smtSolver.checkSatisfiability(as, query);
+    r = d_smtSolver.checkSatisfiability(query);
   }
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
@@ -312,7 +312,8 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
   if (usingSygusSubsolver())
   {
     // use the call to get the synth solutions from the subsolver
-    return d_subsolver->getSubsolverSynthSolutions(solMap);
+    return d_subsolver ? d_subsolver->getSubsolverSynthSolutions(solMap)
+                       : false;
   }
   return getSubsolverSynthSolutions(solMap);
 }
@@ -376,8 +377,8 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     // Start new SMT engine to check solutions
     std::unique_ptr<SolverEngine> solChecker;
     initializeSygusSubsolver(solChecker, as);
-    solChecker->getOptions().smt.checkSynthSol = false;
-    solChecker->getOptions().quantifiers.sygusRecFun = false;
+    solChecker->getOptions().writeSmt().checkSynthSol = false;
+    solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
     Assert(conj.getKind() == FORALL);
     Node conjBody = conj[1];
     // we must expand definitions here, since define-fun may contain the

@@ -30,8 +30,8 @@ SatProofManager::SatProofManager(Env& env,
     : EnvObj(env),
       d_solver(solver),
       d_cnfStream(cnfStream),
-      d_resChains(d_env.getProofNodeManager(), true, userContext()),
-      d_resChainPg(userContext(), d_env.getProofNodeManager()),
+      d_resChains(d_env, true, userContext()),
+      d_resChainPg(d_env, userContext()),
       d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),
@@ -703,7 +703,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  if (options::proofCheck() == options::ProofCheckMode::EAGER)
+  if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     std::vector<Node> assumptionsVec;
     for (const Node& a : d_assumptions)

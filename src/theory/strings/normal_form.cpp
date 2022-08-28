@@ -116,7 +116,7 @@ void NormalForm::addToExplanation(Node exp,
 
 void NormalForm::getExplanation(int index, std::vector<Node>& curr_exp)
 {
-  if (index == -1 || !options::stringMinPrefixExplain())
+  if (index == -1)
   {
     curr_exp.insert(curr_exp.end(), d_exp.begin(), d_exp.end());
     return;

@@ -811,16 +811,11 @@ public:
    * given stream
    *
    * @param out the stream to serialize this node to
-   * @param toDepth the depth to which to print this expression, or -1 to
-   * print it fully
-   * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       int toDepth = -1,
-                       size_t dagThreshold = 1) const
+  inline void toStream(std::ostream& out) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, dagThreshold);
+    d_nv->toStream(out);
   }
 
   void constToStream(std::ostream& out) const
@@ -862,9 +857,7 @@ public:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
-  n.toStream(out,
-             options::ioutils::getNodeDepth(out),
-             options::ioutils::getDagThresh(out));
+  n.toStream(out);
   return out;
 }
 

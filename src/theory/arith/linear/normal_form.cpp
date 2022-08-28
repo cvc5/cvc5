@@ -32,39 +32,7 @@ namespace arith::linear {
 Constant Constant::mkConstant(const Rational& rat)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return Constant(nm->mkConstReal(rat));
-}
-
-size_t Variable::getComplexity() const{
-  return 1u;
-}
-
-size_t VarList::getComplexity() const{
-  if(empty()){
-    return 1;
-  }else if(singleton()){
-    return 1;
-  }else{
-    return size() + 1;
-  }
-}
-
-size_t Monomial::getComplexity() const{
-  return getConstant().getComplexity() + getVarList().getComplexity();
-}
-
-size_t Polynomial::getComplexity() const{
-  size_t cmp = 0;
-  iterator i = begin(), e = end();
-  for(; i != e; ++i){
-    Monomial m = *i;
-    cmp += m.getComplexity();
-  }
-  return cmp;
-}
-
-size_t Constant::getComplexity() const{
-  return getValue().complexity();
+  return Constant(nm->mkConstRealOrInt(rat));
 }
 
 bool Variable::isLeafMember(Node n){
@@ -73,17 +41,6 @@ bool Variable::isLeafMember(Node n){
 }
 
 VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
-
-bool Variable::isIAndMember(Node n)
-{
-  return n.getKind() == kind::IAND && Polynomial::isMember(n[0])
-         && Polynomial::isMember(n[1]);
-}
-
-bool Variable::isPow2Member(Node n)
-{
-  return n.getKind() == kind::POW2 && Polynomial::isMember(n[0]);
-}
 
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
@@ -99,29 +56,17 @@ bool Variable::isDivMember(Node n){
   }
 }
 
-bool Variable::isTranscendentalMember(Node n) {
-  switch(n.getKind()){
-  case kind::EXPONENTIAL:
-  case kind::SINE:
-  case kind::COSINE:
-  case kind::TANGENT:
-  case kind::COSECANT:
-  case kind::SECANT:
-  case kind::COTANGENT:
-  case kind::ARCSINE:
-  case kind::ARCCOSINE:
-  case kind::ARCTANGENT:
-  case kind::ARCCOSECANT:
-  case kind::ARCSECANT:
-  case kind::ARCCOTANGENT:
-  case kind::SQRT: return Polynomial::isMember(n[0]);
-  case kind::PI:
-    return true;
-  default:
-    return false;
+bool Variable::areChildrenPolynomialMembers(Node n)
+{
+  for (const Node& nc : n)
+  {
+    if (!Polynomial::isMember(nc))
+    {
+      return false;
+    }
   }
+  return true;
 }
-
 
 bool VarList::isSorted(iterator start, iterator end) {
   return std::is_sorted(start, end);
@@ -941,33 +886,27 @@ bool Comparison::rightIsConstant() const {
   return k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER;
 }
 
-size_t Comparison::getComplexity() const{
-  switch(comparisonKind()){
-  case kind::CONST_BOOLEAN: return 1;
-  case kind::LT:
-  case kind::LEQ:
-  case kind::DISTINCT:
-  case kind::EQUAL:
-  case kind::GT:
-  case kind::GEQ:
-    return getLeft().getComplexity() +  getRight().getComplexity();
-  default: Unhandled() << comparisonKind(); return -1;
-  }
-}
-
 Polynomial Comparison::getLeft() const {
   TNode left;
   Kind k = comparisonKind();
   switch(k){
   case kind::LT:
   case kind::LEQ:
+    left = getNode()[0][0];
+    Assert(left.getKind() != kind::TO_REAL);
+    break;
   case kind::DISTINCT:
     left = getNode()[0][0];
+    left = left.getKind() == kind::TO_REAL ? left[0] : left;
     break;
   case kind::EQUAL:
+    left = getNode()[0];
+    left = left.getKind() == kind::TO_REAL ? left[0] : left;
+    break;
   case kind::GT:
   case kind::GEQ:
     left = getNode()[0];
+    Assert(left.getKind() != kind::TO_REAL);
     break;
   default: Unhandled() << k;
   }
@@ -980,13 +919,21 @@ Polynomial Comparison::getRight() const {
   switch(k){
   case kind::LT:
   case kind::LEQ:
+    right = getNode()[0][1];
+    Assert(right.getKind() != kind::TO_REAL);
+    break;
   case kind::DISTINCT:
     right = getNode()[0][1];
+    right = right.getKind() == kind::TO_REAL ? right[0] : right;
     break;
   case kind::EQUAL:
+    right = getNode()[1];
+    right = right.getKind() == kind::TO_REAL ? right[0] : right;
+    break;
   case kind::GT:
   case kind::GEQ:
     right = getNode()[1];
+    Assert(right.getKind() != kind::TO_REAL);
     break;
   default: Unhandled() << k;
   }

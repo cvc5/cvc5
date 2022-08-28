@@ -215,7 +215,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (fo_body.getKind() == FORALL)
   {
     // must be a CBQI quantifier
-    CegHandledStatus hstatus = CegInstantiator::isCbqiQuant(fo_body);
+    CegHandledStatus hstatus =
+        CegInstantiator::isCbqiQuant(fo_body, options().quantifiers.cegqiAll);
     if (hstatus < CEG_HANDLED)
     {
       // abort if less than fully handled
@@ -229,10 +230,10 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
   std::unique_ptr<SolverEngine> repcChecker;
+  SubsolverSetupInfo ssi(d_env);
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
-                      d_env.getOptions(),
-                      d_env.getLogicInfo(),
+                      ssi,
                       options().quantifiers.sygusRepairConstTimeoutWasSetByUser,
                       options().quantifiers.sygusRepairConstTimeout);
   // renable options disabled by sygus

@@ -18,8 +18,6 @@
 #include "options/proof_options.h"
 #include "proof/annotation_proof_generator.h"
 #include "proof/eager_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/inference_id_proof_annotator.h"
 #include "theory/output_channel.h"
@@ -68,7 +66,7 @@ TheoryInferenceManager::TheoryInferenceManager(Env& env,
     context::UserContext* u = userContext();
     ProofNodeManager* pnm = env.getProofNodeManager();
     d_defaultPg.reset(
-        new EagerProofGenerator(pnm, u, statsName + "EagerProofGenerator"));
+        new EagerProofGenerator(env, u, statsName + "EagerProofGenerator"));
     if (options().proof.proofAnnotate)
     {
       d_iipa.reset(new InferenceIdProofAnnotator(pnm, u));

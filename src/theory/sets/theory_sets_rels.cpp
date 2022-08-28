@@ -275,7 +275,7 @@ void TheorySetsRels::check(Theory::Effort level)
             Node element = TupleUtils::nthElementOfTuple(eqc_node, i);
             if (!element.isConst())
             {
-              makeSharedTerm(element, tupleTypes[i]);
+              makeSharedTerm(element);
             }
           }
         }
@@ -929,7 +929,7 @@ void TheorySetsRels::check(Theory::Effort level)
     fact =
         NodeManager::currentNM()->mkNode(kind::SET_MEMBER, mem2, join_rel[1]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
-    makeSharedTerm(shared_x, shared_type);
+    makeSharedTerm(shared_x);
   }
 
   /*
@@ -1122,8 +1122,8 @@ void TheorySetsRels::check(Theory::Effort level)
           // Since we require notification r1_rmost and r2_lmost are equal,
           // they must be shared terms of theory of sets. Hence, we make the
           // following calls to makeSharedTerm to ensure this is the case.
-          makeSharedTerm(r1_rmost, r1_rmost.getType());
-          makeSharedTerm(r2_lmost, r2_lmost.getType());
+          makeSharedTerm(r1_rmost);
+          makeSharedTerm(r2_lmost);
 
           Trace("rels-debug") << "[Theory::Rels] r1_rmost: " << r1_rmost
                               << " of type " << r1_rmost.getType() << std::endl;
@@ -1238,9 +1238,8 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     else if (!atn.isBoolean())
     {
-      // TODO(project##230): Find a safe type for the singleton operator
-      makeSharedTerm(a, atn);
-      makeSharedTerm(b, b.getType());
+      makeSharedTerm(a);
+      makeSharedTerm(b);
     }
     return false;
   }
@@ -1269,7 +1268,7 @@ void TheorySetsRels::check(Theory::Effort level)
     return false;
   }
 
-  void TheorySetsRels::makeSharedTerm(Node n, TypeNode t)
+  void TheorySetsRels::makeSharedTerm(Node n)
   {
     if (d_shared_terms.find(n) != d_shared_terms.end())
     {
@@ -1277,7 +1276,7 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
-    Node ss = NodeManager::currentNM()->mkSingleton(t, n);
+    Node ss = NodeManager::currentNM()->mkNode(SET_SINGLETON, n);
     d_treg.getProxy(ss);
     d_shared_terms.insert(n);
   }
@@ -1308,7 +1307,7 @@ void TheorySetsRels::check(Theory::Effort level)
       for (unsigned int i = 0; i < n[0].getType().getTupleLength(); i++)
       {
         Node element = TupleUtils::nthElementOfTuple(n[0], i);
-        makeSharedTerm(element, tupleTypes[i]);
+        makeSharedTerm(element);
         tuple_elements.push_back(element);
       }
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);

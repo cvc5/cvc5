@@ -27,7 +27,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-SolverState::SolverState(Env& env, Valuation val) : TheoryState(env, val)
+SolverState::SolverState(Env& env, Valuation val)
+    : TheoryState(env, val), d_partElementSkolems(env.getUserContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -43,7 +44,7 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
 {
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
-  Assert(element.getType().isSubtypeOf(bag.getType().getBagElementType())
+  Assert(element.getType() == bag.getType().getBagElementType()
          && element == getRepresentative(element));
   Assert(skolem.isVar() && skolem.getType().isInteger());
   std::pair<Node, Node> pair = std::make_pair(element, skolem);
@@ -52,6 +53,13 @@ void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
   {
     d_bagElements[bag].push_back(pair);
   }
+}
+
+void SolverState::registerGroupTerm(Node n)
+{
+  std::shared_ptr<context::CDHashSet<Node>> set =
+      std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+  d_partElementSkolems[n] = set;
 }
 
 void SolverState::registerCardinalityTerm(Node n, Node skolem)
@@ -119,7 +127,7 @@ void SolverState::collectDisequalBagTerms()
         TypeNode elementType = A.getType().getBagElementType();
         SkolemManager* sm = d_nm->getSkolemManager();
         Node skolem = sm->mkSkolemFunction(
-            SkolemFunId::BAG_DEQ_DIFF, elementType, {A, B});
+            SkolemFunId::BAGS_DEQ_DIFF, elementType, {A, B});
         d_deq[equal] = skolem;
       }
     }
@@ -128,6 +136,20 @@ void SolverState::collectDisequalBagTerms()
 }
 
 const std::map<Node, Node>& SolverState::getDisequalBagTerms() { return d_deq; }
+
+void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
+{
+  Assert(group.getKind() == TABLE_GROUP);
+  Assert(skolemElement.getType() == group[0].getType().getBagElementType());
+  d_partElementSkolems[group].get()->insert(skolemElement);
+}
+
+std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
+    Node n)
+{
+  Assert(n.getKind() == TABLE_GROUP);
+  return d_partElementSkolems[n];
+}
 
 void SolverState::reset()
 {

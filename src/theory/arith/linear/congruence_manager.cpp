@@ -23,7 +23,6 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -59,11 +58,12 @@ ArithCongruenceManager::ArithCongruenceManager(
       // Construct d_pfGenEe with the SAT context, since its proof include
       // unclosed assumptions of theory literals.
       d_pfGenEe(new EagerProofGenerator(
-          d_pnm, context(), "ArithCongruenceManager::pfGenEe")),
+          d_env, context(), "ArithCongruenceManager::pfGenEe")),
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
-          d_pnm, userContext(), "ArithCongruenceManager::pfGenExplain")),
-      d_pfee(nullptr)
+          d_env, userContext(), "ArithCongruenceManager::pfGenExplain")),
+      d_pfee(nullptr),
+      d_statistics(statisticsRegistry())
 {
 }
 
@@ -81,21 +81,19 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   Assert(isProofEnabled() == (d_pfee != nullptr));
 }
 
-ArithCongruenceManager::Statistics::Statistics()
-    : d_watchedVariables(smtStatisticsRegistry().registerInt(
-        "theory::arith::congruence::watchedVariables")),
-      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::watchedVariableIsZero")),
-      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+ArithCongruenceManager::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_watchedVariables(
+        sr.registerInt("theory::arith::congruence::watchedVariables")),
+      d_watchedVariableIsZero(
+          sr.registerInt("theory::arith::congruence::watchedVariableIsZero")),
+      d_watchedVariableIsNotZero(sr.registerInt(
           "theory::arith::congruence::watchedVariableIsNotZero")),
-      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::equalsConstantCalls")),
-      d_propagations(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::propagations")),
-      d_propagateConstraints(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::propagateConstraints")),
-      d_conflicts(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::conflicts"))
+      d_equalsConstantCalls(
+          sr.registerInt("theory::arith::congruence::equalsConstantCalls")),
+      d_propagations(sr.registerInt("theory::arith::congruence::propagations")),
+      d_propagateConstraints(
+          sr.registerInt("theory::arith::congruence::propagateConstraints")),
+      d_conflicts(sr.registerInt("theory::arith::congruence::conflicts"))
 {
 }
 
@@ -394,24 +392,6 @@ bool ArithCongruenceManager::propagate(TNode x){
   return true;
 }
 
-void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumptions) {
-  if (literal.getKind() != kind::NOT) {
-    d_ee->explainEquality(literal[0], literal[1], true, assumptions);
-  } else {
-    d_ee->explainEquality(literal[0][0], literal[0][1], false, assumptions);
-  }
-}
-
-void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
-                                           NodeBuilder& nb)
-{
-  std::set<TNode>::const_iterator it = s.begin();
-  std::set<TNode>::const_iterator it_end = s.end();
-  for(; it != it_end; ++it) {
-    nb << *it;
-  }
-}
-
 TrustNode ArithCongruenceManager::explainInternal(TNode internal)
 {
   if (isProofEnabled())
@@ -452,18 +432,6 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   return trn;
 }
 
-void ArithCongruenceManager::explain(TNode external, NodeBuilder& out)
-{
-  Node internal = externalToInternal(external);
-
-  std::vector<TNode> assumptions;
-  explain(internal, assumptions);
-  std::set<TNode> assumptionSet;
-  assumptionSet.insert(assumptions.begin(), assumptions.end());
-
-  enqueueIntoNB(assumptionSet, out);
-}
-
 void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   Assert(!isWatchedVariable(s));
 
@@ -474,8 +442,9 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   ++(d_statistics.d_watchedVariables);
 
   d_watchedVariables.add(s);
-
-  Node eq = x.eqNode(y);
+  // must ensure types are correct, thus, add TO_REAL if necessary here
+  std::pair<Node, Node> p = mkSameType(x, y);
+  Node eq = p.first.eqNode(p.second);
   d_watchedEqualities.set(s, eq);
 }
 

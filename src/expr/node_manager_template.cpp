@@ -26,12 +26,10 @@
 #include "expr/metakind.h"
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/oracle.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
-#include "theory/bags/bag_make_op.h"
-#include "theory/sets/singleton_op.h"
-#include "theory/strings/seq_unit_op.h"
 #include "util/bitvector.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -248,8 +246,9 @@ NodeManager::~NodeManager()
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  // clear the datatypes
+  // clear the datatypes and oracles
   d_dtypes.clear();
+  d_oracles.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -565,16 +564,14 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
@@ -616,6 +613,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   DatatypeIndexAttr dia;
   for (const DType& dt : datatypes)
   {
+    Assert(!dt.isResolved()) << "datatype is already resolved";
     uint32_t index = d_dtypes.size();
     d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
     DType* dtp = d_dtypes.back().get();
@@ -719,9 +717,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isDatatypeTester()
-             && testerType[0] == ut)
+      Assert(c.isResolved()) << "constructor not resolved";
+      Assert(testerType.isDatatypeTester())
           << "malformed tester in datatype post-resolution";
+      Assert(testerType[0] == ut)
+          << "mismatched tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
@@ -760,22 +760,19 @@ TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
 
 TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype selector type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype selector type";
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
 TypeNode NodeManager::mkTesterType(TypeNode domain)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype tester");
+  Assert(domain.isDatatype()) << "cannot create non-datatype tester";
   return mkTypeNode(kind::TESTER_TYPE, domain);
 }
 
 TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype upater type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype updater type";
   // It is a function type domain x range -> domain, we store only the
   // arguments
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);
@@ -948,6 +945,25 @@ TypeNode NodeManager::mkUnresolvedDatatypeSort(const std::string& name,
   // mark that it is an unresolved sort
   setAttribute(usort, expr::UnresolvedDatatypeAttr(), true);
   return usort;
+}
+
+Node NodeManager::mkOracle(Oracle& o)
+{
+  Node n = NodeBuilder(this, kind::ORACLE);
+  n.setAttribute(TypeAttr(), builtinOperatorType());
+  n.setAttribute(TypeCheckedAttr(), true);
+  n.setAttribute(OracleIndexAttr(), d_oracles.size());
+  // we allocate a new oracle, to take ownership
+  d_oracles.push_back(std::unique_ptr<Oracle>(new Oracle(o.getFunction())));
+  return n;
+}
+
+const Oracle& NodeManager::getOracleFor(const Node& n) const
+{
+  Assert(n.getKind() == kind::ORACLE);
+  size_t index = n.getAttribute(OracleIndexAttr());
+  Assert(index < d_oracles.size());
+  return *d_oracles[index];
 }
 
 Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
@@ -1127,39 +1143,6 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k)
   }
 }
 
-Node NodeManager::mkSeqUnit(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkSeqUnit. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node op = mkConst(SeqUnitOp(t));
-  Node sunit = mkNode(kind::SEQ_UNIT, op, n);
-  return sunit;
-}
-
-Node NodeManager::mkSingleton(const TypeNode& t, const TNode n)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkSingleton. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node op = mkConst(SetSingletonOp(t));
-  Node singleton = mkNode(kind::SET_SINGLETON, op, n);
-  return singleton;
-}
-
-Node NodeManager::mkBag(const TypeNode& t, const TNode n, const TNode m)
-{
-  Assert(n.getType().isSubtypeOf(t))
-      << "Invalid operands for mkBag. The type '" << n.getType()
-      << "' of node '" << n << "' is not a subtype of '" << t << "'."
-      << std::endl;
-  Node op = mkConst(BagMakeOp(t));
-  Node bag = mkNode(kind::BAG_MAKE, op, n, m);
-  return bag;
-}
-
 bool NodeManager::hasOperator(Kind k)
 {
   switch (kind::MetaKind mk = kind::metaKindOf(k))
@@ -1316,9 +1299,8 @@ Node NodeManager::mkConstReal(const Rational& r)
 
 Node NodeManager::mkConstInt(const Rational& r)
 {
-  // !!!! Note will update to CONST_INTEGER.
   Assert(r.isIntegral());
-  return mkConst(kind::CONST_RATIONAL, r);
+  return mkConst(kind::CONST_INTEGER, r);
 }
 
 Node NodeManager::mkConstRealOrInt(const Rational& r)

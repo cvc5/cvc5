@@ -19,6 +19,7 @@
 #include "expr/node_manager_attributes.h"
 #include "options/base_options.h"
 #include "options/language.h"
+#include "options/printer_options.h"
 #include "printer/ast/ast_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
@@ -72,13 +73,6 @@ void Printer::toStream(std::ostream& out, const smt::Model& m) const
   }
 }
 
-void Printer::toStreamUsing(Language lang,
-                            std::ostream& out,
-                            const smt::Model& m) const
-{
-  getPrinter(lang)->toStream(out, m);
-}
-
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
@@ -129,30 +123,12 @@ void Printer::toStream(std::ostream& out, const SkolemList& sks) const
   out << ")" << std::endl;
 }
 
-Printer* Printer::getPrinter(Language lang)
+Printer* Printer::getPrinter(std::ostream& out)
 {
+  Language lang = options::ioutils::getOutputLanguage(out);
   if (lang == Language::LANG_AUTO)
   {
-    // Infer the language to use for output.
-    //
-    // Options can be null in certain circumstances (e.g., when printing
-    // the singleton "null" expr.  So we guard against segfault
-    if (not Options::isCurrentNull())
-    {
-      if (Options::current().base.outputLanguageWasSetByUser)
-      {
-        lang = options::outputLanguage();
-      }
-      if (lang == Language::LANG_AUTO
-          && Options::current().base.inputLanguageWasSetByUser)
-      {
-        lang = options::inputLanguage();
-      }
-    }
-    if (lang == Language::LANG_AUTO)
-    {
-      lang = Language::LANG_SMTLIB_V2_6;  // default
-    }
+    lang = Language::LANG_SMTLIB_V2_6;  // default
   }
   if (d_printers[static_cast<size_t>(lang)] == nullptr)
   {
@@ -215,7 +191,8 @@ void Printer::toStreamCmdDeclarePool(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclareOracleFun(std::ostream& out,
-                                          Node fun,
+                                          const std::string& id,
+                                          TypeNode type,
                                           const std::string& binName) const
 {
   printUnknownCommand(out, "declare-oracle-fun");
@@ -395,7 +372,8 @@ void Printer::toStreamCmdBlockModelValues(std::ostream& out,
   printUnknownCommand(out, "block-model-values");
 }
 
-void Printer::toStreamCmdGetProof(std::ostream& out) const
+void Printer::toStreamCmdGetProof(std::ostream& out,
+                                  modes::ProofComponent c) const
 {
   printUnknownCommand(out, "get-proof");
 }
@@ -453,7 +431,8 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   printUnknownCommand(out, "get-difficulty");
 }
 
-void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                            modes::LearnedLitType t) const
 {
   printUnknownCommand(out, "get-learned-literals");
 }
@@ -529,18 +508,6 @@ void Printer::toStreamCmdDeclareHeap(std::ostream& out,
                                      TypeNode dataType) const
 {
   printUnknownCommand(out, "declare-heap");
-}
-
-void Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  printUnknownCommand(out, "sequence");
-}
-
-void Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<cvc5::Command*>& sequence) const
-{
-  printUnknownCommand(out, "sequence");
 }
 
 }  // namespace cvc5::internal

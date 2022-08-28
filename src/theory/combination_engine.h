@@ -109,8 +109,6 @@ class CombinationEngine : protected EnvObj
   TheoryEngine& d_te;
   /** Valuation for the engine */
   Valuation d_valuation;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
   /** List of parametric theories of theory engine */

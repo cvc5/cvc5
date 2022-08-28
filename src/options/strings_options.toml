@@ -106,14 +106,6 @@ name   = "Strings Theory"
   help       = "regression explanations for string lemmas"
 
 [[option]]
-  name       = "stringMinPrefixExplain"
-  category   = "expert"
-  long       = "strings-min-prefix-explain"
-  type       = "bool"
-  default    = "true"
-  help       = "minimize explanations for prefix of normal forms in strings"
-
-[[option]]
   name       = "stringModelBasedReduction"
   category   = "regular"
   long       = "strings-mbr"
@@ -167,14 +159,6 @@ name   = "Strings Theory"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not compute intersections for regular expressions."
-
-[[option]]
-  name       = "stringUnifiedVSpt"
-  category   = "expert"
-  long       = "strings-unified-vspt"
-  type       = "bool"
-  default    = "true"
-  help       = "use a single skolem for the variable splitting rule"
 
 [[option]]
   name       = "stringEagerEval"
@@ -250,3 +234,11 @@ name   = "Strings Theory"
   type       = "uint64_t"
   default    = "65536"
   help       = "The maximum size of string values in models"
+
+[[option]]
+  name       = "stringsCodeElim"
+  category   = "expert"
+  long       = "strings-code-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "eliminate code points during preprocessing"

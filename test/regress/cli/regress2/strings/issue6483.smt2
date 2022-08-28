@@ -1,4 +1,3 @@
-; COMMAND-LINE: -q
 ; EXPECT: unsat
 (set-logic QF_SLIA)
 (declare-fun a () String)

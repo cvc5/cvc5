@@ -1082,7 +1082,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // the current members of this finite type.
 
           Node slack = sm->mkDummySkolem("slack", elementType);
-          Node singleton = nm->mkSingleton(elementType, slack);
+          Node singleton = nm->mkNode(SET_SINGLETON, slack);
           els.push_back(singleton);
           d_finite_type_slack_elements[elementType].push_back(slack);
           Trace("sets-model") << "Added slack element " << slack << " to set "
@@ -1090,8 +1090,8 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(nm->mkSingleton(
-              elementType, sm->mkDummySkolem("msde", elementType)));
+          els.push_back(nm->mkNode(SET_SINGLETON,
+                                   sm->mkDummySkolem("msde", elementType)));
         }
       }
     }
