@@ -436,7 +436,29 @@ enum class PfRule : uint32_t
    * SAT solver. \endverbatim
    */
   SAT_REFUTATION,
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Boolean -- DRAT Refutation**
+   *
+   * .. math::
+   *   \inferrule{F_1 \dots F_n \mid S_1 \dots S_m}{\bot}
+   *
+   * where assuming a clause set :math:`C` composed of the union of all
+   * :math:`F_i` when viewed as clauses, each :math:`S_i` is a step in the DRAT
+   * proof of :math:`\bot` with one of the following forms:
+   *
+   * - :math:`[l_1, \dots, l_k]` representing the addition to :math:`C` of the
+   *   clause :math:`[l_1, \dots, l_k]`.
+   * - :math:`\mathrm{d}\ [l_1, \dots, l_k]` representing the deletion from
+   *   :math:`C` of the clause :math:`[l_1, \dots, l_k]`.
+   *
+   * Addition proof steps are correct if the clause added to the :math:`C` is
+   * entailed by :math:`C`. Note that :math:`C` is updated after each addition
+   * and deletion.
+   *
+   * The step :math:`S_m` must be of the form :math:`[]`.
+   * \endverbatim
+   */
   DRAT_REFUTATION,
 
   /**

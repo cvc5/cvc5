@@ -27,22 +27,19 @@
 namespace cvc5::internal {
 namespace proof {
 
-class InvalidDratProofException : public cvc5::internal::Exception
-{
- public:
-  InvalidDratProofException() : Exception("Invalid DRAT Proof") {}
-
-  InvalidDratProofException(const std::string& msg) : Exception(msg) {}
-
-  InvalidDratProofException(const char* msg) : Exception(msg) {}
-}; /* class InvalidDratProofException */
-
+/**
+ * A DRAT proof has two kinds of instruction, to add and to delete clauses.
+ */
 enum DratInstructionKind
 {
   ADDITION,
   DELETION
 };
 
+/**
+ * Structure to handle a line from the DRAT proof, which is an instruction.
+ * The instruction must have a kind and a clause.
+ */
 struct DratInstruction
 {
   DratInstruction(DratInstructionKind kind, prop::SatClause clause);
@@ -51,6 +48,11 @@ struct DratInstruction
   prop::SatClause d_clause;
 };
 
+/**
+ * Class to handle a DRAT proof.
+ * A plain (non-binary) proof can be interpreted to build it's instructions
+ * structures.
+ */
 class DratProof
 {
  public:
@@ -60,10 +62,16 @@ class DratProof
 
   ~DratProof() = default;
 
+  /**
+   * Converts a plain format DRAT proof to a DratProof instance.
+   *
+   * @param s string containing the plain DRAT proof.
+   * @return DratProof instance containing the instructions.
+   */
   static DratProof fromPlain(const std::string& s);
 
   /**
-   * @return The instructions in this proof
+   * @return The instructions in this proof.
    */
   const std::vector<DratInstruction>& getInstructions() const;
 

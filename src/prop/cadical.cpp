@@ -207,6 +207,7 @@ bool CadicalSolver::ok() const { return d_inSatMode; }
 void CadicalSolver::setDrat()
 {
   d_dratFile = fopen(tempDratFilePath, "wb");
+  // Currently only non-binary proofs are supported
   d_solver->set_long_option("--no-binary");
   d_solver->trace_proof(d_dratFile, tempDratFilePath);
 }

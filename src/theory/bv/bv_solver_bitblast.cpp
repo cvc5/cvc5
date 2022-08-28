@@ -20,6 +20,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -348,6 +349,10 @@ void BVSolverBitblast::initSatSolver()
     d_satSolver.get(),
     d_bbRegistrar.get(),
     d_nullContext.get(),
+    /** If we are producing proofs for the SAT solver, we need to that all
+     *  literals created in the CNF stream are tracked, which is not the case
+     *  with the FormulaLitPolicy::INTERNAL
+     */
     isTheoryProofProducing ? prop::FormulaLitPolicy::TRACK : prop::FormulaLitPolicy::INTERNAL,
     "theory::bv::BVSolverBitblast"));
 }
@@ -417,34 +422,23 @@ std::vector<Node> BVSolverBitblast::getProofNodes(proof::DratProof dratProof)
   Node cl = nm->mkBoundVar("cl", nm->booleanType());
   Node del = nm->mkBoundVar("del", nm->booleanType());
   Node lastFalseResolution = nm->mkConst<bool>(false);
+  prop::SatLiteral zeroLiteral = prop::SatLiteral(0);
 
   std::vector<Node> args;
   for (const proof::DratInstruction instruction : dratProof.getInstructions())
   {
-    if (instruction.d_clause.size() == 0 && instruction.d_clause[0].toInt() == 0)
+    if (instruction.d_clause.size() == 0 || instruction.d_clause[0] == zeroLiteral)
     {
       args.push_back(nm->mkNode(kind::SEXPR, {cl, lastFalseResolution}));
       break;
     }
     std::vector<Node> clauseNodes;
-    if (instruction.d_kind == proof::DratInstructionKind::DELETION)
-    {
-      clauseNodes.emplace_back(del);
-    }
-    else
-    {
-      clauseNodes.emplace_back(cl);
-    }
+    clauseNodes.emplace_back(
+        instruction.d_kind == proof::DratInstructionKind::DELETION ? del : cl);
     for (const prop::SatLiteral literal : instruction.d_clause)
     {
       Node fact = d_cnfStream->getNode(literal);
-      if (fact.isNull()) {
-        std::ostringstream errmsg;
-        errmsg << "Not found node corresponding to literal from drat proof: \""
-                << literal
-                << "\"";
-        throw Exception(errmsg.str());
-      }
+      Assert(!fact.isNull());
       clauseNodes.emplace_back(fact);
     }
     args.push_back(nm->mkNode(kind::SEXPR, clauseNodes));
