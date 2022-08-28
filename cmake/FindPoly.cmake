@@ -143,12 +143,12 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
+  set(POLY_CC_FLAGS )
   if(NOT(WASM STREQUAL "OFF"))
-    set(POLY_PATCH_CMD ${POLY_PATCH_CMD}
-      COMMAND
-        patch -i ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-wasm.patch 
-                 ${DEPS_BASE}/src/Poly-EP/src/upolynomial/factorization.c
-    )
+    set(POLY_CC_FLAGS 
+          -DCMAKE_CXX_FLAGS=-Wno-error=unused-but-set-variable
+          -DCMAKE_C_FLAGS=-Wno-error=unused-but-set-variable
+        )
   endif()
 
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
@@ -174,6 +174,7 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
+               ${POLY_CC_FLAGS}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
