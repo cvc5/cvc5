@@ -1020,6 +1020,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue462-sat-proof-option.smt2
   regress0/proofs/proj-issue468-mkScope.smt2
   regress0/proofs/proj-issue492-skolem-lemma-pf.smt2
+  regress0/proofs/proj-issue528-ufpfchecker.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
