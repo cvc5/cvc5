@@ -345,16 +345,17 @@ void BVSolverBitblast::initSatSolver()
           isTheoryProofProducing));
   }
   d_cnfStream.reset(new prop::CnfStream(
-    d_env,
-    d_satSolver.get(),
-    d_bbRegistrar.get(),
-    d_nullContext.get(),
-    /** If we are producing proofs for the SAT solver, we need to that all
-     *  literals created in the CNF stream are tracked, which is not the case
-     *  with the FormulaLitPolicy::INTERNAL
-     */
-    isTheoryProofProducing ? prop::FormulaLitPolicy::TRACK : prop::FormulaLitPolicy::INTERNAL,
-    "theory::bv::BVSolverBitblast"));
+      d_env,
+      d_satSolver.get(),
+      d_bbRegistrar.get(),
+      d_nullContext.get(),
+      /** If we are producing proofs for the SAT solver, we need to that all
+       *  literals created in the CNF stream are tracked, which is not the case
+       *  with the FormulaLitPolicy::INTERNAL
+       */
+      isTheoryProofProducing ? prop::FormulaLitPolicy::TRACK
+                             : prop::FormulaLitPolicy::INTERNAL,
+      "theory::bv::BVSolverBitblast"));
 }
 
 Node BVSolverBitblast::getValue(TNode node, bool initialize)
@@ -427,7 +428,8 @@ std::vector<Node> BVSolverBitblast::getProofNodes(proof::DratProof dratProof)
   std::vector<Node> args;
   for (const proof::DratInstruction instruction : dratProof.getInstructions())
   {
-    if (instruction.d_clause.size() == 0 || instruction.d_clause[0] == zeroLiteral)
+    if (instruction.d_clause.size() == 0
+        || instruction.d_clause[0] == zeroLiteral)
     {
       args.push_back(nm->mkNode(kind::SEXPR, {cl, lastFalseResolution}));
       break;

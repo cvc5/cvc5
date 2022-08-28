@@ -25,9 +25,9 @@
 namespace cvc5::internal {
 namespace proof {
 
-
 // DratInstruction implementation
-DratInstruction::DratInstruction(DratInstructionKind kind, prop::SatClause clause)
+DratInstruction::DratInstruction(DratInstructionKind kind,
+                                 prop::SatClause clause)
     : d_kind(kind), d_clause(clause)
 {
   // All intialized
@@ -37,27 +37,31 @@ DratInstruction::DratInstruction(DratInstructionKind kind, prop::SatClause claus
 
 DratProof::DratProof() : d_instructions() {}
 
-std::vector<std::string> splitString(std::string s, std::string splitter) {
-    std::vector<std::string> lines;
-    size_t pos = 0;
-    std::string token;
-    while ((pos = s.find(splitter)) != std::string::npos)
-    {
-        token = s.substr(0, pos);
-        s.erase(0, pos + splitter.length());
-        if (token.length() > 0)
-        {
-            lines.push_back(token);
-        }
-    }
+std::vector<std::string> splitString(std::string s, std::string splitter)
+{
+  std::vector<std::string> lines;
+  size_t pos = 0;
+  std::string token;
+  while ((pos = s.find(splitter)) != std::string::npos)
+  {
     token = s.substr(0, pos);
-    if (token.length() > 0) {
-        lines.push_back(token);
+    s.erase(0, pos + splitter.length());
+    if (token.length() > 0)
+    {
+      lines.push_back(token);
     }
-    return lines;
+  }
+  token = s.substr(0, pos);
+  if (token.length() > 0)
+  {
+    lines.push_back(token);
+  }
+  return lines;
 }
 
-void insertSatLiteralIntoClause(prop::SatClause* clause, std::string dratLiteral) {
+void insertSatLiteralIntoClause(prop::SatClause* clause,
+                                std::string dratLiteral)
+{
   int literal = stoi(dratLiteral);
   bool negated = literal < 0;
   if (literal < 0)
@@ -80,9 +84,11 @@ DratProof DratProof::fromPlain(const std::string& s)
     std::string dratColumnSplitter = " ";
     std::vector<std::string> columns = splitString(line, dratColumnSplitter);
     // last line, false derivation
-    if (line == lines[lines.size()-1] && columns.size() == 1 && columns[0] == "0")
+    if (line == lines[lines.size() - 1] && columns.size() == 1
+        && columns[0] == "0")
     {
-      dratProof.d_instructions.emplace_back(ADDITION, prop::SatClause({prop::SatLiteral(0)}));
+      dratProof.d_instructions.emplace_back(
+          ADDITION, prop::SatClause({prop::SatLiteral(0)}));
       break;
     }
     DratInstructionKind kind = ADDITION;
@@ -104,9 +110,8 @@ DratProof DratProof::fromPlain(const std::string& s)
       dratProof.d_instructions.emplace_back(kind, currentClause);
       continue;
     }
-    Unreachable() << "Invalid line in Drat proof: \""
-                  << line
-                  << "\"" << std::endl;
+    Unreachable() << "Invalid line in Drat proof: \"" << line << "\""
+                  << std::endl;
   }
   return dratProof;
 };
