@@ -45,6 +45,14 @@ if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
 
+if(POLICY CMP0135)
+  # For `ExternalProject_Add()`, set the timestamp of the files extracted from
+  # the downloaded archive to the time of the extraction. This behavior was
+  # introduced in CMake 3.23 and is the recommended to make sure that
+  # dependencies get rebuilt when the URL changes.
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 #-----------------------------------------------------------------------------#
 # Tell CMake where to find our dependencies
 
