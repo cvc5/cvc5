@@ -24,6 +24,7 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/inference_id.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {

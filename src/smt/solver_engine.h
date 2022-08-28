@@ -66,6 +66,7 @@ class PropEngine;
 
 namespace smt {
 /** Utilities */
+class ContextManager;
 class SolverEngineState;
 class AbstractValues;
 class Assertions;
@@ -97,7 +98,6 @@ class QuantifiersEngine;
 class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
-  friend class smt::SolverEngineState;
 
   /* .......................................................................  */
  public:
@@ -257,10 +257,8 @@ class CVC5_EXPORT SolverEngine
   /**
    * Get the list of top-level learned literals that are entailed by the current
    * set of assertions.
-   *
-   * TODO (wishue #104): implement for different modes
    */
-  std::vector<Node> getLearnedLiterals();
+  std::vector<Node> getLearnedLiterals(modes::LearnedLitType t);
 
   /**
    * Get an aspect of the current SMT execution environment.
@@ -696,7 +694,7 @@ class CVC5_EXPORT SolverEngine
    * Get a refutation proof (only if immediately preceded by an UNSAT or
    * ENTAILED query). Only permitted if cvc5 was built with proof support and
    * the proof option is on. */
-  std::string getProof();
+  std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -954,30 +952,6 @@ class CVC5_EXPORT SolverEngine
    */
   bool deepRestart();
 
-  // --------------------------------------- callbacks from the state
-  /**
-   * Notify push pre, which is called just before the user context of the state
-   * pushes. This processes all pending assertions.
-   */
-  void notifyPushPre();
-  /**
-   * Notify push post, which is called just after the user context of the state
-   * pushes. This performs a push on the underlying prop engine.
-   */
-  void notifyPushPost();
-  /**
-   * Notify pop pre, which is called just before the user context of the state
-   * pops. This performs a pop on the underlying prop engine.
-   */
-  void notifyPopPre();
-  /**
-   * Notify post solve, which is called once per check-sat query. It is
-   * triggered when the first d_state.doPendingPops() is issued after the
-   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
-   */
-  void notifyPostSolve();
-  // --------------------------------------- end callbacks from the state
-
   /**
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
@@ -1047,9 +1021,14 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<Env> d_env;
   /**
    * The state of this SolverEngine, which is responsible for maintaining which
-   * SMT mode we are in, the contexts, the last result, etc.
+   * SMT mode we are in, the last result, etc.
    */
   std::unique_ptr<smt::SolverEngineState> d_state;
+  /**
+   * The context manager of this SolverEngine, which is responsible for
+   * maintaining which the contexts.
+   */
+  std::unique_ptr<smt::ContextManager> d_ctxManager;
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;

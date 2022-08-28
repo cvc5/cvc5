@@ -110,35 +110,40 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator|(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator|(op);
+  return static_cast<const BitVector&>(*this)
+         | static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator&(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator&(op);
+  return static_cast<const BitVector&>(*this)
+         & static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator+(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator+(op);
+  return static_cast<const BitVector&>(*this)
+         + static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator-(op);
+  return static_cast<const BitVector&>(*this)
+         - static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator*(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator*(op);
+  return static_cast<const BitVector&>(*this)
+         * static_cast<const BitVector&>(op);
 }
 
 template <>
@@ -158,13 +163,13 @@ wrappedBitVector<false> wrappedBitVector<false>::operator%(
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(void) const
 {
-  return BitVector::operator-();
+  return -(static_cast<const BitVector&>(*this));
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator~(void) const
 {
-  return BitVector::operator~();
+  return ~(static_cast<const BitVector&>(*this));
 }
 
 template <bool isSigned>
@@ -233,7 +238,8 @@ template <bool isSigned>
 Cvc5Prop wrappedBitVector<isSigned>::operator==(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator==(op);
+  return static_cast<const BitVector&>(*this)
+         == static_cast<const BitVector&>(op);
 }
 
 template <>

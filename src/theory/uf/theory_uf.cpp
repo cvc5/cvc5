@@ -195,7 +195,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                       << std::endl;
   Kind k = node.getKind();
   bool isHol = logicInfo().isHigherOrder();
-  if (k == kind::HO_APPLY || (node.isVar() && node.getType().isFunction()))
+  if (k == kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)
     {
@@ -206,7 +206,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       }
       else
       {
-        ss << "Function variables";
+        ss << "Function terms";
       }
       ss << " are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";

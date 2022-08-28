@@ -16,6 +16,8 @@
 package io.github.cvc5;
 
 import io.github.cvc5.modes.BlockModelsMode;
+import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.ProofComponent;
 import java.io.IOException;
 import java.util.*;
 
@@ -1751,7 +1753,8 @@ public class Solver implements IPointer, AutoCloseable
       boolean global);
 
   /**
-   * Get a list of literals that are entailed by the current set of assertions.
+   * Get a list of input literals that are entailed by the current set of
+   * assertions.
    *
    * SMT-LIB:
    * {@code
@@ -1769,6 +1772,27 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long[] getLearnedLiterals(long pointer);
+
+  /**
+   * Get a list of literals that are entailed by the current set of assertions.
+   *
+   * SMT-LIB:
+   * {@code
+   * ( get-learned-literals :type )
+   * }
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param type The type of learned literals to return
+   * @return The list of learned literals.
+   */
+  public Term[] getLearnedLiterals(LearnedLitType type)
+  {
+    long[] retPointers = getLearnedLiterals(pointer, type.getValue());
+    return Utils.getTerms(this, retPointers);
+  }
+
+  private native long[] getLearnedLiterals(long pointer, int type);
 
   /**
    * Get the list of asserted formulas.
@@ -1916,7 +1940,7 @@ public class Solver implements IPointer, AutoCloseable
   private native Map<Long, Long> getDifficulty(long pointer);
 
   /**
-   * Get the refutation proof
+   * Get refutation proof for the most recent call to checkSat.
    *
    * SMT-LIB:
    * {@code
@@ -1927,7 +1951,7 @@ public class Solver implements IPointer, AutoCloseable
    *
    * @api.note This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof, according to the value of.
+   * @return A string representing the proof. This is impacted by the value of
    * proof-format-mode.
    */
   public String getProof()
@@ -1936,6 +1960,29 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native String getProof(long pointer);
+
+  /**
+   * Get a proof associated with the most recent call to checkSat.
+   *
+   * SMT-LIB:
+   * {@code
+   * ( get-proof :c)
+   * }
+   *
+   * Requires to enable option {@code produce-proofs}.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param c The component of the proof to return
+   * @return A string representing the proof. This is equivalent to getProof
+   * when c is PROOF_COMPONENT_FULL.
+   */
+  public String getProof(ProofComponent c)
+  {
+    return getProof(pointer, c.getValue());
+  }
+
+  private native String getProof(long pointer, int c);
 
   /**
    * Get the value of the given term in the current model.
