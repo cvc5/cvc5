@@ -75,7 +75,7 @@ DratProof DratProof::fromPlain(const std::string& s)
   std::string dratLineSplitter = "\n";
   std::vector<std::string> lines = splitString(s, dratLineSplitter);
 
-  for (const std::string line : lines)
+  for (const std::string& line : lines)
   {
     std::string dratColumnSplitter = " ";
     std::vector<std::string> columns = splitString(line, dratColumnSplitter);
@@ -104,11 +104,9 @@ DratProof DratProof::fromPlain(const std::string& s)
       dratProof.d_instructions.emplace_back(kind, currentClause);
       continue;
     }
-    std::ostringstream errmsg;
-    errmsg << "Invalid line in Drat proof: \""
-            << line
-            << "\"";
-    throw InvalidDratProofException(errmsg.str());
+    Unreachable() << "Invalid line in Drat proof: \""
+                  << line
+                  << "\"" << std::endl;
   }
   return dratProof;
 };

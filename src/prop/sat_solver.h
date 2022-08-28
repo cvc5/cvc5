@@ -114,11 +114,24 @@ public:
     Unimplemented() << "getUnsatAssumptions not implemented";
   }
 
+  /**
+   * Enable saving the DRAT proof.
+   *
+   * The DRAT proof will be saved accordingly to the solver's methods.
+   * Currently it's only possible to save with Cadical solver, which
+   * saves the proof in a file.
+   */
   virtual void setDrat()
   {
     Unimplemented() << "setDrat not implemented";
   }
 
+  /**
+   * Return the previously saved DRAT proof in a string.
+   *
+   * The DRAT proof saving must be enabled, and this method must be
+   * called after the resolution to get the proof.
+   */
   virtual std::string getDrat()
   {
     Unimplemented() << "getDrat not implemented";

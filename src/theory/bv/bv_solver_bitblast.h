@@ -90,7 +90,9 @@ class BVSolverBitblast : public BVSolver
    */
   void handleEagerAtom(TNode fact, bool assertFact);
 
-  /** Convert drat proof to proof nodes **/
+  /** Convert drat proof literals to the node literals given to the SAT
+   *  solver
+   */
   std::vector<Node> getProofNodes(proof::DratProof dratProof);
 
   /** Bit-blaster used to bit-blast atoms/terms. */
