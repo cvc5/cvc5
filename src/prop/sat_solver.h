@@ -121,10 +121,7 @@ public:
    * Currently it's only possible to save with Cadical solver, which
    * saves the proof in a file.
    */
-  virtual void setDrat()
-  {
-    Unimplemented() << "setDrat not implemented";
-  }
+  virtual void setDrat() { Unimplemented() << "setDrat not implemented"; }
 
   /**
    * Return the previously saved DRAT proof in a string.
