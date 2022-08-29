@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Inst evaluator class.
+ * Term evaluator class.
  */
 
 #include "theory/quantifiers/ieval/term_evaluator.h"
