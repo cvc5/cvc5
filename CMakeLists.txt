@@ -134,7 +134,7 @@ set(WASM "OFF" CACHE STRING "Use a specific extension for WebAssembly compilatio
 
 # Make sure no other avaible value will be assigned to this variable
 if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML" OR WASM STREQUAL "OFF"))
-  message(FATAL_ERROR "${WASM} is not a valid wasm extension.")
+  message(FATAL_ERROR "${WASM} is not a valid wasm flag value.")
 endif()
 
 if(WASM STREQUAL "OFF")
