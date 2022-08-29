@@ -80,7 +80,7 @@ Then, in the cvc5:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=<value> <configure options...>
+  ./configure.sh --static --static-binary --auto-download --wasm=<value> --wasm-flags='<value>' <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
