@@ -1264,7 +1264,7 @@ thfUnitaryFormula[cvc5::ParseOp& p]
       expr = p1.d_expr;
       PARSER_STATE->popScope();
       // handle lambda case, in which case return type must be flattened and the
-      // auxiliary variables introduced in the proccess must be added no the
+      // auxiliary variables introduced in the process must be added no the
       // variable list
       //
       // see documentation of mkFlatFunctionType for how it's done

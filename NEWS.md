@@ -2,6 +2,9 @@ This file contains a summary of important user-visible changes.
 
 **Changes**
 
+- The sort for (non-standard) bit-vector operators BITVECTOR_REDAND and
+  BITVECTOR_REDOR is now (_ BitVec 1) (was Boolean), following the definition
+  of reduction operators in Verilog (their origin).
 - API: Previously, it was not possible to share Sort, Term, Op, Grammar and
        datatype objects between Solver instances. This is now allowed.
 
