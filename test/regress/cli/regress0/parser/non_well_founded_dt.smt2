@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; EXPECT: (error "Parse Error: non_well_founded_dt.smt2:10.77: Datatype sort _dt5 is not well-founded
 ; EXPECT: 
 ; EXPECT: ... (_sel33 Bool) (_sel34 _dt5) (_sel35 _dt5))))
