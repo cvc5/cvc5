@@ -36,6 +36,9 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
     case UnknownExplanation::INTERRUPTED: out << "INTERRUPTED"; break;
     case UnknownExplanation::UNSUPPORTED: out << "UNSUPPORTED"; break;
     case UnknownExplanation::OTHER: out << "OTHER"; break;
+    case UnknownExplanation::REQUIRES_CHECK_AGAIN:
+      out << "REQUIRES_CHECK_AGAIN";
+      break;
     case UnknownExplanation::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
     default: Unhandled() << e;
   }

@@ -58,13 +58,13 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
       rm->beginCall();
 
       bool checkAgain = true;
-      while (checkAgain)
+      do
       {
-        checkAgain = false;
         // check sat based on the driver strategy
-        result = checkSatNext(checkAgain);
+        result = checkSatNext();
         // if we were asked to check again
-        if (checkAgain)
+        if (result.getStatus() == Result::UNKNOWN
+            && result.getUnknownExplanation() == REQUIRES_CHECK_AGAIN)
         {
           Assert(d_ctx != nullptr);
           as.clearCurrent();
@@ -76,7 +76,11 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
           // setup
           d_ctx->setup();
         }
-      }
+        else
+        {
+          checkAgain = false;
+        }
+      } while (checkAgain);
 
       rm->endCall();
       Trace("limit") << "SmtSolver::check(): cumulative millis "
@@ -100,13 +104,12 @@ SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
 {
 }
 
-Result SmtDriverSingleCall::checkSatNext(bool& checkAgain)
+Result SmtDriverSingleCall::checkSatNext()
 {
   Assertions& as = d_smt.getAssertions();
   d_smt.preprocess(as);
   d_smt.assertToInternal(as);
-  Result result = d_smt.checkSatInternal();
-  return result;
+  return d_smt.checkSatInternal();
 }
 
 void SmtDriverSingleCall::getNextAssertions(Assertions& as) { Unreachable(); }

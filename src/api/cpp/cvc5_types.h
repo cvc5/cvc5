@@ -47,6 +47,8 @@ enum UnknownExplanation
   UNSUPPORTED,
   /** Other reason. */
   OTHER,
+  /** Requires another satisfiability check */
+  REQUIRES_CHECK_AGAIN,
   /** No specific reason given. */
   UNKNOWN_REASON
 };
