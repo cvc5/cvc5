@@ -994,7 +994,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
   {
     svals = d_solutionValues.back();
   }
-  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];
     Trace("cegqi-debug") << "  get solution for " << prog << std::endl;
@@ -1064,7 +1064,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     {
       Node psol = getPrintableSygusToBuiltin(sol);
       d_env.output(OutputTag::SYGUS_SOL_GTERM)
-          << "(sygus-solution-gterm " << psol << ")" << std::endl;
+          << "(sygus-solution-gterm (" << d_quant[0][i] << " " << psol << "))" << std::endl;
     }
   }
   sols.insert(sols.end(), d_sol.begin(), d_sol.end());

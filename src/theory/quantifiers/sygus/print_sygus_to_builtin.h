@@ -32,6 +32,16 @@ namespace quantifiers {
  *
  * Note that this method generates a node that is of kind RAW_SYMBOL. It should
  * only be printed, and not inspected.
+ *
+ * For example, for this grammar:
+ * (synth-fun f () Int
+ *   ((a Int) (b Int))
+ *   ((a Int (1 (+ a b) ))
+ *    (b Int (1 3)))
+ *
+ * Given input the sygus datatype term (a_PLUS a_1 b_1), this method returns
+ * a node that prints as:
+ *   (! (+ (! 1 :gterm a) (! 1 :gterm b)) :gterm a)
  */
 Node getPrintableSygusToBuiltin(Node n);
 
