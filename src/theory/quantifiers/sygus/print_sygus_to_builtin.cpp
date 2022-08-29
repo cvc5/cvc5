@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 
 #include <sstream>
+
 #include "expr/dtype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 
@@ -25,25 +26,27 @@ namespace quantifiers {
 
 Node getPrintableSygusToBuiltin(Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
       // only recurse on constructors
-      if (cur.getKind()==kind::APPLY_CONSTRUCTOR)
+      if (cur.getKind() == kind::APPLY_CONSTRUCTOR)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
-        for (const Node& cn : cur) {
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
