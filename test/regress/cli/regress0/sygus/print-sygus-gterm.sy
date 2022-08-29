@@ -2,7 +2,7 @@
 ; COMMAND-LINE: -o sygus-sol-gterm
 ; EXPECT: (sygus-solution-gterm (f (! (+ (! 1 :gterm a) (! 1 :gterm b)) :gterm a)))
 ; EXPECT: (
-; EXPECT: (define-fun f ((x Int) (y Int)) Int (+ 1 1))
+; EXPECT: (define-fun f () Int (+ 1 1))
 ; EXPECT: )
 
 (set-logic LIA)
