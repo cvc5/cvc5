@@ -248,12 +248,19 @@ void InstStrategyAutoGenTriggers::generateTriggers(Node q)
         << "...failed to generate pattern terms" << std::endl;
     return;
   }
-  bool alreadyMadeTriggers = d_madeTriggers.find(q) != d_madeTriggers.end();
-  d_madeTriggers.insert(q);
+  // note that making triggers again may generate new ones, e.g. for
+  // multi-triggers where the selection is nondeterministic.
+  bool alreadyMadeTriggers = true;
+  if (d_madeTriggers.find(q) == d_madeTriggers.end())
+  {
+    alreadyMadeTriggers = false;
+    d_madeTriggers.insert(q);
+  }
   // first, generate single triggers
   std::vector<Node>& patTermsSingle = d_patTerms[0][q];
-  // generating single triggers is deterministic only do this the first time
-  // (when alreadyMadeTriggers is false)
+  // Generating single triggers is deterministic. Only do this the first time
+  // (when alreadyMadeTriggers is false), since this code will generate no
+  // new triggers on subsequent calls.
   if (!alreadyMadeTriggers && !patTermsSingle.empty())
   {
     size_t numSingleTriggersToUse = patTermsSingle.size();
