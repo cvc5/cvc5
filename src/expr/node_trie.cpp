@@ -57,7 +57,7 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(
   }
   if (tnt->d_data.empty())
   {
-    // Store n in d_data. This should be interpretted as the "data" and not as a
+    // Store n in d_data. This should be interpreted as the "data" and not as a
     // reference to a child.
     tnt->d_data[n].clear();
     return n;

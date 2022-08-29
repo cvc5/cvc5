@@ -372,7 +372,8 @@ void Printer::toStreamCmdBlockModelValues(std::ostream& out,
   printUnknownCommand(out, "block-model-values");
 }
 
-void Printer::toStreamCmdGetProof(std::ostream& out) const
+void Printer::toStreamCmdGetProof(std::ostream& out,
+                                  modes::ProofComponent c) const
 {
   printUnknownCommand(out, "get-proof");
 }
@@ -430,7 +431,8 @@ void Printer::toStreamCmdGetDifficulty(std::ostream& out) const
   printUnknownCommand(out, "get-difficulty");
 }
 
-void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out) const
+void Printer::toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                            modes::LearnedLitType t) const
 {
   printUnknownCommand(out, "get-learned-literals");
 }

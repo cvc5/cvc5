@@ -172,7 +172,8 @@ class Smt2Printer : public cvc5::internal::Printer
       std::ostream& out, const std::vector<Node>& nodes) const override;
 
   /** Print get-proof command */
-  void toStreamCmdGetProof(std::ostream& out) const override;
+  void toStreamCmdGetProof(std::ostream& out,
+                           modes::ProofComponent c) const override;
 
   /** Print get-interpolant command */
   void toStreamCmdGetInterpol(std::ostream& out,
@@ -207,7 +208,8 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdGetDifficulty(std::ostream& out) const override;
 
   /** Print get-learned-literals command */
-  void toStreamCmdGetLearnedLiterals(std::ostream& out) const override;
+  void toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                     modes::LearnedLitType t) const override;
 
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;
