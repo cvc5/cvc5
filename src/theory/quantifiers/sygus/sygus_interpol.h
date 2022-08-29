@@ -47,7 +47,8 @@ namespace quantifiers {
  * we just need to synthesis A( x ).
  *
  * This class uses a fresh copy of the SMT engine which is used for solving the
- * interpolation problem. In particular, consider the input: (assert A)
+ * interpolation problem. In particular, consider the input:
+ *   (assert A)
  *   (get-interpolant s B)
  * In the copy of the SMT engine where these commands are issued, we maintain
  * A in the assertion stack. In solving the interpolation problem, we will
@@ -85,16 +86,11 @@ class SygusInterpol : protected EnvObj
                           Node& interpol);
 
   /**
-   * Returns the sygus conjecture in interpol corresponding to the interpolation
-   * problem for input problem (F above) given by axioms (Fa above), and conj
-   * (Fc above). And solve the interpolation by sygus. Note that axioms is
-   * expected to be a subset of assertions in SMT-LIB.
+   * Internal call for getting next interpolant. This can only be called after a
+   * successful call to solveInterpolation. It solves the interpolation problem
+   * constructed already and returns true if an interpolant was found, and sets
+   * interpol to the interpolant.
    *
-   * @param name the name for the interpol-to-synthesize.
-   * @param axioms the assertions (Fa above)
-   * @param conj the conjecture (Fc above)
-   * @param itpGType (if non-null) a sygus datatype type that encodes the
-   * grammar that should be used for solutions of the interpolation conjecture.
    * @interpol the solution to the sygus conjecture.
    */
   bool solveInterpolationNext(Node& interpol);

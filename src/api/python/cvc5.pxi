@@ -2120,28 +2120,28 @@ cdef class Solver:
 
         self.csolver.defineFunsRec(vf, vbv, vt, glb)
 
-    def getProof(self):
+    def getProof(self, c = ProofComponent.PROOF_COMPONENT_FULL):
         """
-            Get the refutation proof
+            Get a proof associated with the most recent call to checkSat.
 
             SMT-LIB:
 
             .. code-block:: smtlib
 
-               (get-proof)
+               (get-proof :c)
 
             Requires to enable option
             :ref:`produce-proofs <lbl-option-produce-proofs>`.
 
             .. warning:: This method is experimental and may change in future
                          versions.
-
-            :return: A string representing the proof, according to the value of
-                     :ref:`proof-format-mode <lbl-option-proof-format-mode>`.
+            :param c: The component of the proof to return 
+            :return: A string representing the proof. This takes into account
+            proof-format-mode when c is PROOF_COMPONENT_FULL.
         """
-        return self.csolver.getProof()
+        return self.csolver.getProof(<c_ProofComponent> c.value)
 
-    def getLearnedLiterals(self):
+    def getLearnedLiterals(self, type = LearnedLitType.LEARNED_LIT_INPUT):
         """
             Get a list of literals that are entailed by the current set of assertions
 
@@ -2154,10 +2154,11 @@ cdef class Solver:
             .. warning:: This method is experimental and may change in future
                          versions.
 
+            :param type: The type of learned literals to return
             :return: The list of literals.
         """
         lits = []
-        for a in self.csolver.getLearnedLiterals():
+        for a in self.csolver.getLearnedLiterals(<c_LearnedLitType> type.value):
             term = Term(self)
             term.cterm = a
             lits.append(term)

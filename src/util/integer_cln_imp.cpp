@@ -16,6 +16,7 @@
 #include <cln/input.h>
 #include <cln/integer_io.h>
 #include <cln/modinteger.h>
+#include <cln/numtheory.h>
 
 #include <iostream>
 #include <sstream>
@@ -163,7 +164,7 @@ void Integer::setBit(uint32_t i, bool value)
 
 Integer Integer::oneExtend(uint32_t size, uint32_t amount) const
 {
-  DebugCheckArgument((*this) < Integer(1).multiplyByPow2(size), size);
+  Assert((*this) < Integer(1).multiplyByPow2(size));
   cln::cl_byte range(amount, size);
   cln::cl_I allones = (cln::cl_I(1) << (size + amount)) - 1;  // 2^size - 1
   Integer temp(allones);
@@ -259,7 +260,7 @@ Integer Integer::euclidianDivideRemainder(const Integer& y) const
 
 Integer Integer::exactQuotient(const Integer& y) const
 {
-  DebugCheckArgument(y.divides(*this), y);
+  Assert(y.divides(*this));
   return Integer(cln::exquo(d_value, y.d_value));
 }
 
@@ -317,7 +318,7 @@ Integer Integer::modMultiply(const Integer& y, const Integer& m) const
 
 Integer Integer::modInverse(const Integer& m) const
 {
-  PrettyCheckArgument(m > 0, m, "m must be greater than zero");
+  Assert(m > 0) << "m must be greater than zero";
   cln::cl_modint_ring ry = cln::find_modint_ring(m.d_value);
   cln::cl_MI xm = ry->canonhom(d_value);
   /* normalize to modulo m for coprime check */
@@ -469,41 +470,34 @@ bool Integer::fitsUnsignedInt() const
 signed int Integer::getSignedInt() const
 {
   // ensure there isn't overflow
-  CheckArgument(
-      fitsSignedInt(), this, "Overflow detected in Integer::getSignedInt()");
+  Assert(fitsSignedInt()) << "Overflow detected in Integer::getSignedInt()";
   return cln::cl_I_to_int(d_value);
 }
 
 unsigned int Integer::getUnsignedInt() const
 {
   // ensure there isn't overflow
-  CheckArgument(fitsUnsignedInt(),
-                this,
-                "Overflow detected in Integer::getUnsignedInt()");
+  Assert(fitsUnsignedInt()) << "Overflow detected in Integer::getUnsignedInt()";
   return cln::cl_I_to_uint(d_value);
 }
 
 long Integer::getLong() const
 {
   // ensure there isn't overflow
-  CheckArgument(d_value <= std::numeric_limits<long>::max(),
-                this,
-                "Overflow detected in Integer::getLong()");
-  CheckArgument(d_value >= std::numeric_limits<long>::min(),
-                this,
-                "Overflow detected in Integer::getLong()");
+  Assert(d_value <= std::numeric_limits<long>::max())
+      << "Overflow detected in Integer::getLong()";
+  Assert(d_value >= std::numeric_limits<long>::min())
+      << "Overflow detected in Integer::getLong()";
   return cln::cl_I_to_long(d_value);
 }
 
 unsigned long Integer::getUnsignedLong() const
 {
   // ensure there isn't overflow
-  CheckArgument(d_value <= std::numeric_limits<unsigned long>::max(),
-                this,
-                "Overflow detected in Integer::getUnsignedLong()");
-  CheckArgument(d_value >= std::numeric_limits<unsigned long>::min(),
-                this,
-                "Overflow detected in Integer::getUnsignedLong()");
+  Assert(d_value <= std::numeric_limits<unsigned long>::max())
+      << "Overflow detected in Integer::getUnsignedLong()";
+  Assert(d_value >= std::numeric_limits<unsigned long>::min())
+      << "Overflow detected in Integer::getUnsignedLong()";
   return cln::cl_I_to_ulong(d_value);
 }
 
@@ -521,12 +515,10 @@ int64_t Integer::getSigned64() const
       return getLong();
     }
     // ensure there isn't overflow
-    CheckArgument(d_value <= std::numeric_limits<int64_t>::max(),
-                  this,
-                  "Overflow detected in Integer::getSigned64()");
-    CheckArgument(d_value >= std::numeric_limits<int64_t>::min(),
-                  this,
-                  "Overflow detected in Integer::getSigned64()");
+    Assert(d_value <= std::numeric_limits<int64_t>::max())
+        << "Overflow detected in Integer::getSigned64()";
+    Assert(d_value >= std::numeric_limits<int64_t>::min())
+        << "Overflow detected in Integer::getSigned64()";
     return std::stoll(toString());
   }
 }
@@ -544,12 +536,10 @@ uint64_t Integer::getUnsigned64() const
       return getUnsignedLong();
     }
     // ensure there isn't overflow
-    CheckArgument(d_value <= std::numeric_limits<uint64_t>::max(),
-                  this,
-                  "Overflow detected in Integer::getSigned64()");
-    CheckArgument(d_value >= std::numeric_limits<uint64_t>::min(),
-                  this,
-                  "Overflow detected in Integer::getSigned64()");
+    Assert(d_value <= std::numeric_limits<uint64_t>::max())
+        << "Overflow detected in Integer::getSigned64()";
+    Assert(d_value >= std::numeric_limits<uint64_t>::min())
+        << "Overflow detected in Integer::getSigned64()";
     return std::stoull(toString());
   }
 }
@@ -588,6 +578,8 @@ size_t Integer::length() const
     return cln::integer_length(d_value);
   }
 }
+
+bool Integer::isProbablePrime() const { return cln::isprobprime(d_value); }
 
 void Integer::extendedGcd(
     Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b)

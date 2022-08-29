@@ -38,8 +38,7 @@ QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
 
 QuantElimSolver::~QuantElimSolver() {}
 
-Node QuantElimSolver::getQuantifierElimination(Assertions& as,
-                                               Node q,
+Node QuantElimSolver::getQuantifierElimination(Node q,
                                                bool doFull,
                                                bool isInternalSubsolver)
 {
@@ -72,8 +71,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
-  Result r =
-      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne.notNode()});
+  Result r = d_smtSolver.checkSatisfiability(std::vector<Node>{ne.notNode()});
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.getStatus() != Result::UNSAT)
   {
