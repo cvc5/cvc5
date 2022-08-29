@@ -141,14 +141,6 @@ name   = "Base"
   help       = "trace something (e.g. -t pushpop), can repeat and may contain wildcards like (e.g. -t theory::*)"
 
 [[option]]
-  category   = "regular"
-  short      = "d"
-  long       = "debug=TAG"
-  type       = "std::string"
-  predicates = ["enableDebugTag"]
-  help       = "debug something (e.g. -d arith), can repeat"
-
-[[option]]
   short      = "o"
   category   = "common"
   long       = "output=TAG"
