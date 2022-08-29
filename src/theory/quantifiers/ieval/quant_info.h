@@ -94,7 +94,7 @@ class QuantInfo
   /** Canonical form of body */
   Node d_body;
   /**
-   * The match terms maped to their requirements. A requirement for p is a
+   * The match terms mapped to their requirements. A requirement for p is a
    * Boolean, indicating what value the term must be for the body of the
    * quantified formula to be a conflict. Having the opposite value of
    * the requirement implies the instance is entailed.
