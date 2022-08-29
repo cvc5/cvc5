@@ -2194,7 +2194,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          d_termReg.registerTermAtomic(newSkolems[1], LENGTH_GEQ_ONE);
           std::vector<Node> antecLen;
           antecLen.push_back(nm->mkNode(GT, uxLen, uyLen));
           d_im.sendInference(antecLen,

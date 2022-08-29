@@ -31,16 +31,13 @@ CodatatypeBoundVariable::CodatatypeBoundVariable(const TypeNode& type,
                                                  Integer index)
     : d_type(new TypeNode(type)), d_index(index)
 {
-  PrettyCheckArgument(type.isCodatatype(),
-                      type,
-                      "codatatype bound variables can only be created for "
-                      "codatatype sorts, not `%s'",
-                      type.toString().c_str());
-  PrettyCheckArgument(
-      index >= 0,
-      index,
-      "index >= 0 required for codatatype bound variable index, not `%s'",
-      index.toString().c_str());
+  Assert(type.isCodatatype())
+      << "codatatype bound variables can only be created for "
+         "codatatype sorts, not `"
+      << type.toString().c_str() << "'";
+  Assert(index >= 0)
+      << "index >= 0 required for codatatype bound variable index, not `"
+      << index.toString().c_str() << "'";
 }
 
 CodatatypeBoundVariable::~CodatatypeBoundVariable() {}

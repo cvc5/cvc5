@@ -67,6 +67,7 @@ class SmtSolver : protected EnvObj
  public:
   SmtSolver(Env& env,
             AbstractValues& abs,
+            Assertions& asserts,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -82,26 +83,28 @@ class SmtSolver : protected EnvObj
    */
   void interrupt();
   /**
-   * Check satisfiability (used to check satisfiability and entailment)
-   * in SolverEngine. This is done via adding assumptions (when necessary) to
-   * assertions as, preprocessing and pushing assertions into the prop engine
-   * of this class, and checking for satisfiability via the prop engine.
+   * Check satisfiability for the given assumptions and the current assertions.
    *
-   * @param as The object managing the assertions in SolverEngine. This class
-   * maintains a current set of (unprocessed) assertions which are pushed
-   * into the internal members of this class (TheoryEngine and PropEngine)
-   * during this call.
    * @param assumptions The assumptions for this check-sat call, which are
    * temporary assertions.
    */
-  Result checkSatisfiability(Assertions& as,
-                             const std::vector<Node>& assumptions);
+  Result checkSatisfiability(const std::vector<Node>& assumptions);
   /**
    * Process the assertions that have been asserted in as. This moves the set of
    * assertions that have been buffered into as, preprocesses them, pushes them
    * into the SMT solver, and clears the buffer.
    */
   void processAssertions(Assertions& as);
+  /**
+   * Get the list of preprocessed assertions. Only valid if
+   * trackPreprocessedAssertions is true.
+   */
+  const std::vector<Node>& getPreprocessedAssertions() const;
+  /**
+   * Get the skolem map corresponding to the preprocessed assertions. Only valid
+   * if trackPreprocessedAssertions is true.
+   */
+  const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
   /**
    * Perform a deep restart.
    *
@@ -115,6 +118,29 @@ class SmtSolver : protected EnvObj
    * checkSatisfiability.
    */
   void deepRestart(Assertions& as, const std::vector<Node>& zll);
+  // --------------------------------------- callbacks from the context manager
+  /**
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
+   */
+  void notifyPushPre();
+  /**
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
+   */
+  void notifyPopPre();
+  /**
+   * Notify post solve, which is called once per check-sat query. It is
+   * triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
+   */
+  void notifyPostSolve();
+  // ----------------------------------- end callbacks from the context manager
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -127,10 +153,34 @@ class SmtSolver : protected EnvObj
   //------------------------------------------ end access methods
 
  private:
+  /**
+   * Check satisfiability for the given assertions object and assumptions.
+   */
+  Result checkSatisfiability(Assertions& as,
+                             const std::vector<Node>& assumptions);
+  /**
+   * Preprocess the assertions. This calls the preprocessor on the assertions
+   * and sets d_ppAssertions / d_ppSkolemMap if necessary.
+   */
+  void preprocess(Assertions& as);
+  /**
+   * Push the assertions to the prop engine. Assumes that as has been
+   * preprocessed. This pushes the assertions in as into the prop engine of
+   * this solver and subsequently clears as.
+   */
+  void assertToInternal(Assertions& as);
+  /**
+   * Check satisfiability based on the current state of the prop engine.
+   * This assumes we have pushed the necessary assertions to it. It post
+   * processes the results based on the options.
+   */
+  Result checkSatInternal();
   /** Whether we track information necessary for deep restarts */
-  bool canDeepRestart() const;
+  bool trackPreprocessedAssertions() const;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
+  /** The assertions of the parent solver engine */
+  Assertions& d_asserts;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */
