@@ -1069,7 +1069,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     {
       Node psol = getPrintableSygusToBuiltin(sol);
       d_env.output(OutputTag::SYGUS_SOL_GTERM)
-          << "(sygus-solution-gterm (" << d_quant[0][i] << " " << psol << "))"
+          << "(sygus-sol-gterm (" << d_quant[0][i] << " " << psol << "))"
           << std::endl;
     }
   }

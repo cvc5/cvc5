@@ -1,6 +1,6 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: -o sygus-sol-gterm
-; EXPECT: (sygus-solution-gterm (f (! (+ (! 1 :gterm a) (! 1 :gterm b)) :gterm a)))
+; EXPECT: (sygus-sol-gterm (f (! (+ (! 1 :gterm a) (! 1 :gterm b)) :gterm a)))
 ; EXPECT: (
 ; EXPECT: (define-fun f () Int (+ 1 1))
 ; EXPECT: )
