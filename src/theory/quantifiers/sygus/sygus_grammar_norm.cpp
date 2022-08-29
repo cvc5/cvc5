@@ -70,7 +70,8 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
     return false;
   }
   /* Go to next node */
-  return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1, useIndexedName);
+  return d_children[op_pos[ind]].getOrMakeType(
+      tn, unres_tn, op_pos, ind + 1, useIndexedName);
 }
 
 SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
@@ -397,7 +398,8 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   // only need to include indices if we are normalizing the grammar, otherwise
   // we will not get name clashes since the constructed datatypes are 1-1 with
   // the original.
-  if (d_tries[tn].getOrMakeType(tn, unres_tn, op_pos, 0, options().quantifiers.sygusGrammarNorm))
+  if (d_tries[tn].getOrMakeType(
+          tn, unres_tn, op_pos, 0, options().quantifiers.sygusGrammarNorm))
   {
     if (TraceIsOn("sygus-grammar-normalize-trie"))
     {
