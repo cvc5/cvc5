@@ -35,6 +35,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 
 using namespace cvc5::internal::kind;
 using namespace std;
@@ -1059,6 +1060,11 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     }
     d_sol.push_back(sol);
     d_solStatus.push_back(status);
+    if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status==1)
+    {
+      Node psol = getPrintableSygusToBuiltin(sol);
+      d_env.output(OutputTag::SYGUS_SOL_GTERM) << "(sygus-solution-gterm " << psol << ")" << std::endl;
+    }
   }
   sols.insert(sols.end(), d_sol.begin(), d_sol.end());
   statuses.insert(statuses.end(), d_solStatus.begin(), d_solStatus.end());

@@ -26,6 +26,13 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+/**
+  * Similar to sygusToBuiltin in sygus_datatypes_utils, but additionally
+  * annotates terms with the grammar that orginate from.
+  * 
+  * Note that this method generates a node that is of kind RAW_SYMBOL. It should
+  * only be printed, and not inspected.
+  */
 Node getPrintableSygusToBuiltin(Node n);
 
 }  // namespace quantifiers

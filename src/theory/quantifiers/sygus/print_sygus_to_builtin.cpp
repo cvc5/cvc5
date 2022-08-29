@@ -15,6 +15,10 @@
 
 #include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 
+#include <sstream>
+#include "expr/dtype.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
@@ -34,7 +38,8 @@ Node getPrintableSygusToBuiltin(Node n)
 
     if (it == visited.end()) 
     {
-      if (cur.getKind()==APPLY_CONSTRUCTOR)
+      // only recurse on constructors
+      if (cur.getKind()==kind::APPLY_CONSTRUCTOR)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
@@ -50,8 +55,9 @@ Node getPrintableSygusToBuiltin(Node n)
     else if (it->second.isNull())
     {
       Node ret = cur;
-      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      Assert(cur.getKind() == kind::APPLY_CONSTRUCTOR);
       const DType& dt = cur.getType().getDType();
+      // only applies to sygus datatypes
       if (dt.isSygus())
       {
         std::vector<Node> children;
@@ -62,11 +68,12 @@ Node getPrintableSygusToBuiltin(Node n)
           Assert(!it->second.isNull());
           children.push_back(it->second);
         }
-        index = indexOf(cur.getOperator());
-        ret = mkSygusTerm(dt, index, children, true, true);
+        size_t index = datatypes::utils::indexOf(cur.getOperator());
+        // mkSygusTerm, beta-reduced and external version
+        ret = datatypes::utils::mkSygusTerm(dt, index, children, true, true);
         // then, annotate with the name of the datatype
         std::stringstream ss;
-        ss << "(! " << ret << " :from " << dt.getName() << ")";
+        ss << "(! " << ret << " :gterm " << dt.getName() << ")";
         ret = nm->mkRawSymbol(ss.str(), ret.getType());
       }
       visited[cur] = ret;
