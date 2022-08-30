@@ -1,5 +1,10 @@
 This file contains a summary of important user-visible changes.
 
+**New Features**
+
+- API: New API function getVersion(), returns a string representation of
+       the solver version.
+
 **Changes**
 
 - The sort for (non-standard) bit-vector operators BITVECTOR_REDAND and
