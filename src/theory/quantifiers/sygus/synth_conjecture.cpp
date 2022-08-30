@@ -1062,9 +1062,13 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     d_solStatus.push_back(status);
     // Note that this assumes that the name of the resulting datatype matches
     // the original name from the user. This is usually the case, although
-    // if grammar normalization is used, it is not. Also note that we do not
-    // print annotations if the solution was not reconstructed to the grammar,
-    // which is the case if the grammar is ignored by single invocation above.
+    // if grammar normalization is used, it is not. If it is not, the names
+    // in the annotation will not match, but no failures will occur.
+    // Also note that we do not print annotations if the solution was not
+    // reconstructed to the grammar (status != 1), which is the case if the
+    // grammar is ignored by single invocation above. On the other hand,
+    // annotations will be printed correctly if the solution was successfully
+    // reconstructed by single invocation (status == 1).
     if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status == 1)
     {
       Node psol = getPrintableSygusToBuiltin(sol);
