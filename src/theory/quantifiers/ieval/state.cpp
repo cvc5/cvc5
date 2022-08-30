@@ -45,6 +45,30 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
   d_some = sm->mkSkolemFunction(SkolemFunId::IEVAL_SOME, btype);
 }
 
+bool State::hasInitialized() const { return d_initialized.get(); }
+
+bool State::initialize()
+{
+  Assert(!d_initialized.get());
+  Trace("ieval") << "INITIALIZE" << std::endl;
+  // should have set a valid evaluator mode
+  Assert(d_tec != nullptr);
+  d_initialized = true;
+  for (const Node& b : d_registeredBaseTerms)
+  {
+    Node bev = d_tec->evaluateBase(*this, b);
+    Assert(!bev.isNull());
+    Trace("ieval") << "  " << b << " := " << bev << " (initialize)"
+                   << std::endl;
+    notifyPatternEqGround(b, bev);
+    if (isFinished())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 void State::setEvaluatorMode(TermEvaluatorMode tev)
 {
   d_tevMode = tev;
@@ -146,30 +170,6 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
   } while (!visit.empty());
   // increment the count of quantified formulas
   d_numActiveQuant = d_numActiveQuant + 1;
-}
-
-bool State::hasInitialized() const { return d_initialized.get(); }
-
-bool State::initialize()
-{
-  Assert(!d_initialized.get());
-  Trace("ieval") << "INITIALIZE" << std::endl;
-  // should have set a valid evaluator mode
-  Assert(d_tec != nullptr);
-  d_initialized = true;
-  for (const Node& b : d_registeredBaseTerms)
-  {
-    Node bev = d_tec->evaluateBase(*this, b);
-    Assert(!bev.isNull());
-    Trace("ieval") << "  " << b << " := " << bev << " (initialize)"
-                   << std::endl;
-    notifyPatternEqGround(b, bev);
-    if (isFinished())
-    {
-      return false;
-    }
-  }
-  return true;
 }
 
 bool State::assignVar(TNode v,

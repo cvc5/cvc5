@@ -140,7 +140,8 @@ TNode TermEvaluatorEntailed::partialEvaluateChild(
       }
     }
   }
-  // NOTE: could do other short circuiting like zero for mult
+  // NOTE: could do other short circuiting like zero for mult, this is omitted
+  // for the sake of simplicity.
   return Node::null();
 }
 
@@ -314,7 +315,8 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
     ret = evaluateBase(s, npr);
     Trace("ieval-state-debug") << "...evaluate + find " << ret << std::endl;
   }
-  // TODO: entailment check?
+  // NOTE: could do theory entailment checks here, although this is omitted
+  // for the sake of performance.
   return ret;
 }
 

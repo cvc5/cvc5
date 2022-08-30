@@ -82,6 +82,12 @@ class TermEvaluator : protected EnvObj
   TermEvaluatorMode d_tevMode;
 };
 
+/**
+ * A term evaluator based on entailment utilities in the term database.
+ * According to this evaluator, a term t may evaluate to a term s
+ * such that t = s is entailed by the current set of equalities known to the
+ * term database, where s is a term occurring in the current set of assertions.
+ */
 class TermEvaluatorEntailed : public TermEvaluator
 {
  public:
