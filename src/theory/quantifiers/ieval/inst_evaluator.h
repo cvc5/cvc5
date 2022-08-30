@@ -41,7 +41,7 @@ namespace ieval {
 /**
  * Inst evaluator
  *
- * Incrementally maintains the state of the rewritten form of the quantified
+ * Incrementally maintains the state of the evaluated form of the quantified
  * formula under a substitution.
  *
  * To use this class, after construction, you must:
@@ -112,7 +112,7 @@ class InstEvaluator : protected EnvObj
    * If isSoft is false, this saves the watched quantifier information only.
    */
   void resetAll(bool isSoft = true);
-  /** Get instantiation for quantified formula q. */
+  /** Get current instantiation for quantified formula q. */
   std::vector<Node> getInstantiationFor(Node q) const;
   /**
    * Is feasible, return true if at least one watched quantified formula is
