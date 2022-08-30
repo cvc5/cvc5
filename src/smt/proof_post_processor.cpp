@@ -1590,7 +1590,7 @@ void ProofPostprocess::setEliminateRule(PfRule rule)
   d_cb.setEliminateRule(rule);
 }
 
-void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
+void ProofPostprocess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
   if (options().proof.proofUpdateDebug)
