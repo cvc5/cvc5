@@ -47,6 +47,16 @@ class State : protected EnvObj
   TNode evaluate(TNode n) const;
   /** Get value for pattern or ground term p. */
   TNode getValue(TNode p) const;
+  /** Get none node */
+  Node getNone() const;
+  /** Is none */
+  bool isNone(TNode n) const;
+  /** Get some node */
+  Node getSome() const;
+  /** Is some */
+  bool isSome(TNode n) const;
+  /** Invoke the rewriter for term n */
+  Node doRewrite(Node n) const;
 
  private:
   //---------------quantifiers info
@@ -79,6 +89,10 @@ class State : protected EnvObj
   std::map<Node, FreeVarInfo> d_fvInfo;
   /** Pattern term info */
   std::map<Node, PatTermInfo> d_pInfo;
+  /** The none node */
+  Node d_none;
+  /** The some node */
+  Node d_some;
 };
 
 }  // namespace ieval

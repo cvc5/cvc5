@@ -34,6 +34,11 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
       d_tdb(tdb),
       d_tevMode(ieval::TermEvaluatorMode::NONE)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  TypeNode btype = nm->booleanType();
+  d_none = sm->mkSkolemFunction(SkolemFunId::IEVAL_NONE, btype);
+  d_some = sm->mkSkolemFunction(SkolemFunId::IEVAL_SOME, btype);
 }
 
 
@@ -94,6 +99,16 @@ const PatTermInfo& State::getPatTermInfo(TNode p) const
   Assert(it != d_pInfo.end());
   return it->second;
 }
+
+Node State::getNone() const { return d_none; }
+
+bool State::isNone(TNode n) const { return n == d_none; }
+
+Node State::getSome() const { return d_some; }
+
+bool State::isSome(TNode n) const { return n == d_some; }
+
+Node State::doRewrite(Node n) const { return rewrite(n); }
 
 TNode State::evaluate(TNode n) const
 {
