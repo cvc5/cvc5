@@ -51,7 +51,7 @@ class State : protected EnvObj
 
   /** Set evaluator mode */
   void setEvaluatorMode(TermEvaluatorMode tev);
-  
+
   /** Watch quantified formula with the given variables and body */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
@@ -66,7 +66,7 @@ class State : protected EnvObj
    * q failing to processed.
    */
   void getFailureExp(Node q, std::unordered_set<Node>& processed) const;
-  
+
   /** Is finished */
   bool isFinished() const;
   /** Evaluate ground term n */
