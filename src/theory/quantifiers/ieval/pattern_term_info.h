@@ -48,11 +48,13 @@ class PatTermInfo
   /** Reset round */
   void resetRound();
   /**
-   * Is active, false if it has set to a ground term (possibly) the none term.
+   * Is active, return false if d_eq has been set to a ground term, possibly
+   * the "none" term (indicating that this pattern is not entailed to be equal
+   * to any known ground term).
    */
   bool isActive() const;
   /**
-   * Notify that child was assigned value val, set eq if possible.
+   * Notify that child was assigned value val, set d_eq if possible.
    * Return true if we set eq during this call.
    *
    * This call is not responsible for notifying parents.
@@ -79,6 +81,10 @@ class PatTermInfo
    * The child that caused us to evaluate, which is used for tracking
    * explanations. If this is null and d_eq is non-null, then we assume that
    * all children were required for evaluation.
+   *
+   * Note that a more advanced implementation could track a subset of children
+   * used for evaluation, which we don't consider here. Instead, for simplicity,
+   * we only consider cases where a single child forced the evaluation.
    */
   context::CDO<TNode> d_evalExpChild;
 };

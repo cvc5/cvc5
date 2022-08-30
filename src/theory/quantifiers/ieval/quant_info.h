@@ -39,13 +39,17 @@ class QuantInfo
   QuantInfo(context::Context* c);
   /**
    * Initialize, called once.
+   * @param q The quantified formula
+   * @param body The form of the body of q we are considering. This formula may
+   * be different from the body of q (i.e. q[1]) if we are canonizing formula
+   * bodies.
    */
   void initialize(TNode q, Node body);
   //-------------------------- static information
   /**
-   * Get the constraints, which maps pattern terms to node corresponding to
-   * their constraints for making the quantified formula have a propagating
-   * instance. For details on the range of constraints, see d_req.
+   * Get the constraints, which maps (Boolean) pattern terms to a flag
+   * corresponding to the required value for making the quantified formula have
+   * a propagating instance. For details on the range of constraints, see d_req.
    */
   const std::map<TNode, bool>& getConstraints() const;
   /** Get the number of unassigned variables */
@@ -91,10 +95,10 @@ class QuantInfo
   //------------------- static
   /** The quantified formula */
   Node d_quant;
-  /** Canonical form of body */
+  /** The body of the quantified formula, which is provided in initialize. */
   Node d_body;
   /**
-   * The match terms maped to their requirements. A requirement for p is a
+   * The match terms mapped to their requirements. A requirement for p is a
    * Boolean, indicating what value the term must be for the body of the
    * quantified formula to be a conflict. Having the opposite value of
    * the requirement implies the instance is entailed.

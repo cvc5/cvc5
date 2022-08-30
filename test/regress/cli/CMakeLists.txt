@@ -477,6 +477,8 @@ set(regress_0_tests
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
   regress0/bv/proj-issue438-prerewrite-fixed-point.smt2
+  regress0/bv/redand.smt2
+  regress0/bv/redor.smt2
   regress0/bv/reset-assertions-assert-input.smt2
   regress0/bv/sizecheck.cvc.smt2
   regress0/bv/smtcompbug.smtv1.smt2
@@ -2710,6 +2712,7 @@ set(regress_1_tests
   regress1/strings/norn-13.smt2
   regress1/strings/norn-360.smt2
   regress1/strings/norn-ab.smt2
+  regress1/strings/norn-re-inter-none.smt2
   regress1/strings/norn-nel-bug-052116.smt2
   regress1/strings/norn-simp-rew-sat.smt2
   regress1/strings/nt6-dd.smt2
@@ -2730,6 +2733,7 @@ set(regress_1_tests
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
+  regress1/strings/re-inter-stack-ovf.smt2
   regress1/strings/re-mod-eq.smt2
   regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-neg-unfold-rev-a.smt2
