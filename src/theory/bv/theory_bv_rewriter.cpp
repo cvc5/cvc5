@@ -618,20 +618,20 @@ RewriteResponse TheoryBVRewriter::RewriteRotateLeft(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node, bool prerewrite){
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule<RedorEliminate>
-    >::apply(node);
-  
-  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<RedorEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite){
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule<RedandEliminate>
-    >::apply(node);
-  
-  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<RedandEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
