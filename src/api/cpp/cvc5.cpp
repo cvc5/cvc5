@@ -7713,6 +7713,13 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   }
 }
 
+std::string Solver::getVersion() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  return internal::Configuration::getVersionString();
+  CVC5_API_TRY_CATCH_END;
+}
+
 }  // namespace cvc5
 
 namespace std {
