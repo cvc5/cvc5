@@ -107,14 +107,17 @@ void TheoryUF::finishInit() {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
+  // conversion kinds
+  d_equalityEngine->addFunctionKind(kind::INT_TO_BITVECTOR, true);
+  d_equalityEngine->addFunctionKind(kind::BITVECTOR_TO_NAT, true);
 }
 
 //--------------------------------- standard check
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding
-  return d_thss != nullptr;
+  // last call effort needed if using finite model finding or arithmetic/bitvector conversions
+  return d_thss != nullptr || d_csolver != nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -290,6 +293,12 @@ void TheoryUF::preRegisterTerm(TNode node)
     {
       d_equalityEngine->addTerm(node);
       d_functionsTerms.push_back(node);
+      // initialize the conversions solver if not already done so
+      if (d_csolver==nullptr)
+      {
+        d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
+      }
+      d_csolver->preRegisterTerm(node);
     }
     break;
     case kind::CARDINALITY_CONSTRAINT:

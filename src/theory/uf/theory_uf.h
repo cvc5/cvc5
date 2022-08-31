@@ -79,6 +79,8 @@ private:
   std::unique_ptr<LambdaLift> d_lambdaLift;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
+  /** the conversions solver */
+  std::unique_ptr<ConversionsSolver> d_csolver;
 
   /** node for true */
   Node d_true;
