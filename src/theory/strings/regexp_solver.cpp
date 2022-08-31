@@ -509,7 +509,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       continue;
     }
     Node resR = d_regexp_opr.intersect(mi[1], m[1]);
-    if(resR.isNull())
+    if (resR.isNull())
     {
       // failed to compute intersection, e.g. if there was a complement
       continue;
