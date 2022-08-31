@@ -125,7 +125,6 @@ class FunctionProperties
   static Node mkGroundTerm(TypeNode type);
 }; /* class FuctionProperties */
 
-
 class IntToBitVectorOpTypeRule
 {
  public:

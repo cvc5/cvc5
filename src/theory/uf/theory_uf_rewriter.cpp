@@ -17,10 +17,10 @@
 
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
-#include "theory/arith/arith_utilities.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -49,8 +49,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     }
     if (node[0] > node[1])
     {
-      Node newNode =
-          NodeManager::currentNM()->mkNode(k, node[1], node[0]);
+      Node newNode = NodeManager::currentNM()->mkNode(k, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
   }
@@ -149,11 +148,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     Node ret = rewriteLambda(node);
     return RewriteResponse(REWRITE_DONE, ret);
   }
-  else if (k==kind::BITVECTOR_TO_NAT)
+  else if (k == kind::BITVECTOR_TO_NAT)
   {
     return rewriteBVToNat(node);
   }
-  else if (k==kind::INT_TO_BITVECTOR)
+  else if (k == kind::INT_TO_BITVECTOR)
   {
     return rewriteIntToBV(node);
   }

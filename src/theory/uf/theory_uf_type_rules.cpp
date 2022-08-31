@@ -21,9 +21,9 @@
 #include "expr/cardinality_constraint.h"
 #include "expr/function_array_const.h"
 #include "theory/uf/function_const.h"
+#include "util/bitvector.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
-#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -224,7 +224,6 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
   Node ret = nm->mkGroundTerm(type.getRangeType());
   return nm->mkNode(kind::LAMBDA, bvl, ret);
 }
-
 
 TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,

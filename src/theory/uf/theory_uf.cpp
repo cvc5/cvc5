@@ -28,13 +28,13 @@
 #include "options/uf_options.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/arith/arith_utilities.h"
 
 using namespace std;
 
@@ -228,9 +228,11 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if ((k==kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR) && options().uf.eagerArithBvConv)
+  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+           && options().uf.eagerArithBvConv)
   {
-    Node ret = k==kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node) : arith::eliminateInt2Bv(node);
+    Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
+                                           : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
   }
   if (isHol)
@@ -283,36 +285,36 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_functionsTerms.push_back(node);
     }
     break;
-  case kind::INT_TO_BITVECTOR:
-  case kind::BITVECTOR_TO_NAT:
-  {
-    d_equalityEngine->addTerm(node);
-    d_functionsTerms.push_back(node);
-  }
+    case kind::INT_TO_BITVECTOR:
+    case kind::BITVECTOR_TO_NAT:
+    {
+      d_equalityEngine->addTerm(node);
+      d_functionsTerms.push_back(node);
+    }
     break;
-  case kind::CARDINALITY_CONSTRAINT:
-  case kind::COMBINED_CARDINALITY_CONSTRAINT:
-    //do nothing
+    case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
+      // do nothing
+      break;
+    case kind::UNINTERPRETED_SORT_VALUE:
+    {
+      // Uninterpreted sort values should only appear in models, and should
+      // never appear in constraints. They are unallowed to ever appear in
+      // constraints since the cardinality of an uninterpreted sort may have an
+      // upper bound, e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2
+      // is a ill-formed term, as its existence cannot be assumed.  The parser
+      // prevents the user from ever constructing uninterpreted sort values.
+      // However, they may be exported via models to API users. It is thus
+      // possible that these uninterpreted sort values are asserted back in
+      // constraints, hence this check is necessary.
+      throw LogicException(
+          "An uninterpreted constant was preregistered to the UF theory.");
+    }
     break;
-  case kind::UNINTERPRETED_SORT_VALUE:
-  {
-    // Uninterpreted sort values should only appear in models, and should never
-    // appear in constraints. They are unallowed to ever appear in constraints
-    // since the cardinality of an uninterpreted sort may have an upper bound,
-    // e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2 is a
-    // ill-formed term, as its existence cannot be assumed.  The parser
-    // prevents the user from ever constructing uninterpreted sort values.
-    // However, they may be exported via models to API users. It is thus
-    // possible that these uninterpreted sort values are asserted back in
-    // constraints, hence this check is necessary.
-    throw LogicException(
-        "An uninterpreted constant was preregistered to the UF theory.");
-  }
-  break;
-  default:
-    // Variables etc
-    d_equalityEngine->addTerm(node);
-    break;
+    default:
+      // Variables etc
+      d_equalityEngine->addTerm(node);
+      break;
   }
 
   if (logicInfo().isHigherOrder())
