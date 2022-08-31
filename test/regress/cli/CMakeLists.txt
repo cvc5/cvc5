@@ -1876,7 +1876,6 @@ set(regress_1_tests
   regress1/bags/table_group1.smt2
   regress1/bags/table_group2.smt2
   regress1/bags/table_group3.smt2
-  #regress1/bags/table_group4.smt2
   regress1/bags/table_group5.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
@@ -3237,6 +3236,7 @@ set(regression_disabled_tests
   regress0/tptp/SYN075+1.p
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   ###
+  regress1/bags/table_group4.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
