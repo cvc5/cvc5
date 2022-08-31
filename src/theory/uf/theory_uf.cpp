@@ -290,7 +290,8 @@ void TheoryUF::preRegisterTerm(TNode node)
     case kind::BITVECTOR_TO_NAT:
     {
       // temporary, will add conversions solver support here
-      Unhandled() << "TheoryUF::preRegisterTerm: registered a conversion term " << node << std::endl;
+      Unhandled() << "TheoryUF::preRegisterTerm: registered a conversion term "
+                  << node << std::endl;
     }
     break;
     case kind::CARDINALITY_CONSTRAINT:
