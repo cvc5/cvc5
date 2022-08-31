@@ -925,9 +925,6 @@ enum class InferenceId
   UF_HO_LAMBDA_APP_REDUCE,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
-  //-------------------- UF arith/bv conversions solver
-  // reductions of an arithmetic/bitvector conversion term
-  UF_ARITH_BV_CONV_REDUCTION,
   //-------------------------------------- end uf theory
 
   //-------------------------------------- unknown

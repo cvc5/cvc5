@@ -10,6 +10,8 @@ This file contains a summary of important user-visible changes.
 - The sort for (non-standard) bit-vector operators BITVECTOR_REDAND and
   BITVECTOR_REDOR is now (_ BitVec 1) (was Boolean), following the definition
   of reduction operators in Verilog (their origin).
+- The (non-standard) operators BITVECTOR_TO_NAT and INT_TO_BITVECTOR now
+  belong to the UF theory. A logic including UF is required to use them.
 - API: Previously, it was not possible to share Sort, Term, Op, Grammar and
        datatype objects between Solver instances. This is now allowed.
 

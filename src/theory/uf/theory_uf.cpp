@@ -229,9 +229,9 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
-           && options().uf.eagerArithBvConv)
+  else if (k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
   {
+    // temporary, always eliminate eagerly
     Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
                                            : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
