@@ -66,6 +66,10 @@ class TheoryUfRewriter : public TheoryRewriter
  private:
   /** Entry point for rewriting lambdas */
   static Node rewriteLambda(Node node);
+  /** rewrite bv2nat */
+  static RewriteResponse rewriteBVToNat(TNode node);
+  /** rewrite int2bv */
+  static RewriteResponse rewriteIntToBV(TNode node);
   /** Is the logic higher-order? */
   bool d_isHigherOrder;
 }; /* class TheoryUfRewriter */
