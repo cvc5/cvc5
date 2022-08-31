@@ -33,7 +33,11 @@ class TheoryInferenceManager;
 namespace uf {
 
 /**
- * Arith-bitvector conversions solver
+ * Arith-bitvector conversions solver.
+ *
+ * This implements a lazy reduction schema for bv2nat and int2bv terms,
+ * where lemmas of the form e.g. `(bv2nat x) = t` are added on demand
+ * where `t` is the reduced form of `(bv2nat x)`.
  */
 class ConversionsSolver : protected EnvObj
 {
@@ -43,11 +47,16 @@ class ConversionsSolver : protected EnvObj
  public:
   ConversionsSolver(Env& env, TheoryState& state, TheoryInferenceManager& im);
   ~ConversionsSolver();
-  /** Preregister term */
+  /**
+   * Preregister term, called when a conversions application term is
+   * preregistered to the UF theory.
+   */
   void preRegisterTerm(TNode term);
-  /** check */
+  /** 
+   * Check. Run at last call effort. Adds lemms to theory inference manager
+   * corresponding to reduction equalities for conversion terms.
+   */
   void check();
-
  private:
   /** Reference to the state object */
   TheoryState& d_state;
@@ -59,7 +68,7 @@ class ConversionsSolver : protected EnvObj
   NodeSet d_reduced;
   /** Check whether the BV conversion term n should be reduced */
   void checkReduction(Node n);
-}; /* class ConversionsSolver */
+};
 
 }  // namespace uf
 }  // namespace theory
