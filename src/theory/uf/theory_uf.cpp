@@ -239,6 +239,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
   else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
            && options().uf.eagerArithBvConv)
   {
+    // eliminate if option specifies to eliminate eagerly
     Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
                                            : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
@@ -304,6 +305,7 @@ void TheoryUF::preRegisterTerm(TNode node)
       {
         d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
       }
+      // call preregister
       d_csolver->preRegisterTerm(node);
     }
     break;
