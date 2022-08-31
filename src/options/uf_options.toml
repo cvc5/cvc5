@@ -66,3 +66,11 @@ name   = "Uninterpreted Functions Theory"
   type       = "bool"
   default    = "false"
   help       = "do lambda lifting lazily"
+
+[[option]]
+  name       = "eagerArithBvConv"
+  category   = "expert"
+  long       = "eager-arith-bv-conv"
+  type       = "bool"
+  default    = "true"
+  help       = "eagerly expand bitvector to arithmetic conversions"

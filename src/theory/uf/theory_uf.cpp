@@ -34,6 +34,7 @@
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/arith/arith_utilities.h"
 
 using namespace std;
 
@@ -227,6 +228,11 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  else if ((k==kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR) && options().uf.eagerArithBvConv)
+  {
+    Node ret = k==kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node) : arith::eliminateInt2Bv(node);
+    return TrustNode::mkTrustRewrite(node, ret);
+  }
   if (isHol)
   {
     TrustNode ret = d_ho->ppRewrite(node, lems);
@@ -276,6 +282,13 @@ void TheoryUF::preRegisterTerm(TNode node)
       // Remember the function and predicate terms
       d_functionsTerms.push_back(node);
     }
+    break;
+  case kind::INT_TO_BITVECTOR:
+  case kind::BITVECTOR_TO_NAT:
+  {
+    d_equalityEngine->addTerm(node);
+    d_functionsTerms.push_back(node);
+  }
     break;
   case kind::CARDINALITY_CONSTRAINT:
   case kind::COMBINED_CARDINALITY_CONSTRAINT:
@@ -614,11 +627,17 @@ void TheoryUF::computeCareGraph() {
           }
         }
       }
-      else
+      else if (app.getKind() == kind::HO_APPLY)
       {
-        Assert(app.getKind() == kind::HO_APPLY);
         // add it to the hoIndex for the function type
         hoIndex[app[0].getType()].addTerm(app, reps);
+      }
+      else
+      {
+        // case for other operators, e.g. int2bv, bv2nat
+        Node op = app.getOperator();
+        index[op].addTerm(app, reps);
+        arity[op] = reps.size();
       }
     }
   }

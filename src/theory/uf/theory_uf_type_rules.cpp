@@ -23,6 +23,7 @@
 #include "theory/uf/function_const.h"
 #include "util/cardinality.h"
 #include "util/rational.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {

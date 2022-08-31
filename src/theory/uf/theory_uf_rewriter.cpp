@@ -20,6 +20,7 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
+#include "theory/arith/arith_utilities.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -150,11 +151,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   }
   else if (k==kind::BITVECTOR_TO_NAT)
   {
-    return rewriteBVToNat(t);
+    return rewriteBVToNat(node);
   }
   else if (k==kind::INT_TO_BITVECTOR)
   {
-    return rewriteIntToBV(t);
+    return rewriteIntToBV(node);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -261,7 +262,7 @@ RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
   if (node[0].isConst())
   {
-    Node resultNode = eliminateBv2Nat(node);
+    Node resultNode = arith::eliminateBv2Nat(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   return RewriteResponse(REWRITE_DONE, node);
@@ -271,7 +272,7 @@ RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 {
   if (node[0].isConst())
   {
-    Node resultNode = eliminateInt2Bv(node);
+    Node resultNode = arith::eliminateInt2Bv(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   return RewriteResponse(REWRITE_DONE, node);
