@@ -52,11 +52,12 @@ class ConversionsSolver : protected EnvObj
    * preregistered to the UF theory.
    */
   void preRegisterTerm(TNode term);
-  /** 
+  /**
    * Check. Run at last call effort. Adds lemms to theory inference manager
    * corresponding to reduction equalities for conversion terms.
    */
   void check();
+
  private:
   /** Reference to the state object */
   TheoryState& d_state;
