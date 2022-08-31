@@ -85,6 +85,25 @@ Then, in the cvc5:
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
 
+`--wasm` can take three values: WASM (will generate the wasm file for cvc5), JS
+(not only the wasm, but the .js glue code for web integration) and HTML (both
+the last two files and also an .html file which supports the run of the glue
+code).
+
+`--wasm-flags` take a string wrapped by a single quote containing the
+`emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
+which modifies how the wasm and glue code are built and how they behave. An `-s`
+should precede each flag.
+
+For an example if one wants to have an modularized glue code, you can try:
+
+.. code:: bash
+
+  ./configure.sh --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
+
+  cd prod
+  make            # use -jN for parallel build with N threads
+
 Build dependencies
 ------------------
 
