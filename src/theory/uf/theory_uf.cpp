@@ -10,9 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * This is the interface to TheoryUF implementations
- *
- * All implementations of TheoryUF should inherit from this class.
+ * The theory of uninterpreted functions (UF)
  */
 
 #include "theory/uf/theory_uf.h"
@@ -35,6 +33,7 @@
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/uf/conversions_solver.h"
 
 using namespace std;
 

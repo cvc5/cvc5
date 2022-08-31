@@ -20,22 +20,25 @@
 #include <vector>
 
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
-namespace uf {
-
+  
 class TheoryState;
 class TheoryInferenceManager;
+
+namespace uf {
 
 /**
  * Arith-bitvector conversions solver
  */
 class ConversionsSolver : protected EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
+  using NodeList = context::CDList<Node>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   ConversionsSolver(Env& env,
@@ -51,14 +54,15 @@ class ConversionsSolver : protected EnvObj
   TheoryState& d_state;
   /** Reference to the inference manager */
   TheoryInferenceManager& d_im;
+  /** Conversion terms that have been registered */
+  NodeList d_preRegistered;
   /** Conversion terms that have been given reduction lemmas */
   NodeSet d_reduced;
   /** Check whether the BV conversion term n should be reduced */
   void checkReduction(Node n);
 }; /* class ConversionsSolver */
 
-}  // namespace nl
-}  // namespace arith
+}  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal
 

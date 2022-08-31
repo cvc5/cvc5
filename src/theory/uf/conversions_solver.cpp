@@ -15,6 +15,9 @@
 
 #include "theory/uf/conversions_solver.h"
 
+#include "theory/arith/arith_utilities.h"
+#include "theory/theory_model.h"
+#include "theory/theory_inference_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -26,22 +29,27 @@ ConversionsSolver::ConversionsSolver(Env& env,
                       TheoryState& state,
                       TheoryInferenceManager& im)
     : EnvObj(env),
-    d_state(state),
+      d_state(state),
       d_im(im),
+      d_preRegistered(userContext()),
       d_reduced(userContext())
 {
 }
 
 ConversionsSolver::~ConversionsSolver() {}
 
+void ConversionsSolver::preRegisterTerm(TNode term)
+{
+  d_preRegistered.push_back(term);
+}
+
 void ConversionsSolver::check()
 {
-  std::vector<Node> bvcTerms;
   Trace("bv-convs") << "Bitvector conversion terms : " << std::endl;
   Trace("bv-convs") << "ConversionsSolver: Check reductions for "
-                    << bvcTerms.size() << " terms" << std::endl;
+                    << d_preRegistered.size() << " terms" << std::endl;
   // check reductions for all bv conversion terms
-  for (const Node& a : bvcTerms)
+  for (const Node& a : d_preRegistered)
   {
     checkReduction(a);
   }
@@ -67,7 +75,7 @@ void ConversionsSolver::checkReduction(Node n)
     lem = arith::eliminateInt2Bv(n);
   }
   lem = n.eqNode(lem);
-  d_im.addPendingLemma(lem, InferenceId::UF_ARITH_BV_CONV_REDUCTION);
+  d_im.lemma(lem, InferenceId::UF_ARITH_BV_CONV_REDUCTION);
   d_reduced.insert(n);
 }
 
