@@ -1,0 +1,17 @@
+; REQUIRES: no-competition
+; COMMAND-LINE: -o sygus-sol-gterm
+; EXPECT: (sygus-sol-gterm (f (! (+ (! 1 :gterm a) (! 1 :gterm b)) :gterm a)))
+; EXPECT: (
+; EXPECT: (define-fun f () Int (+ 1 1))
+; EXPECT: )
+
+(set-logic LIA)
+
+(synth-fun f () Int
+    ((a Int) (b Int))
+    ((a Int (1 (+ a b) ))
+     (b Int (1 3)))
+)
+
+(constraint (= 2 f))
+(check-synth)
