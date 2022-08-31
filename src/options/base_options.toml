@@ -211,10 +211,10 @@ name   = "Base"
   help = "print reason why cvc5 answers unknown for any given check-sat query"
   description = "With ``-o incomplete``, cvc5 prints reason for why it answers unknown for any given check-sat query."
   example-file = "regress0/printer/incomplete.smt2"
-[[option.mode.SAT_LEMMAS]]
-  name = "sat-lemmas"
+[[option.mode.LEMMAS]]
+  name = "lemmas"
   help = "print lemmas as they are added to the SAT solver"
-  description = "With ``-o sat-lemmas``, cvc5 prints lemmas as they are added to the SAT solver."
+  description = "With ``-o lemmas``, cvc5 prints lemmas as they are added to the SAT solver."
   example-file = "regress0/printer/print_sat_lemmas.smt2"
 
 # Stores then enabled output tags.

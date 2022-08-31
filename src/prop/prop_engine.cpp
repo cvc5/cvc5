@@ -234,12 +234,12 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
-  if (isOutputOn(OutputTag::PROP_LEMMA))
+  if (isOutputOn(OutputTag::LEMMAS))
   {
-    output(OutputTag::PROP_LEMMA) << "(prop-lemma ";
+    output(OutputTag::LEMMAS) << "(lemma ";
     // use original form of the lemma here
-    output(OutputTag::PROP_LEMMA) << SkolemManager::getOriginalForm(node);
-    output(OutputTag::PROP_LEMMA) << ")" << std::endl;
+    output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(node);
+    output(OutputTag::LEMMAS) << ")" << std::endl;
   }
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
