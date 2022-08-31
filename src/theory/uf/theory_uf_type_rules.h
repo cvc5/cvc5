@@ -133,7 +133,7 @@ class IntToBitVectorOpTypeRule
 };
 
 /**
- * If n's kind is BITVECTOR_TO_NAT, expects bitvector argument, returns
+ * If n's kind is BITVECTOR_TO_NAT, expects bit-vector argument, returns
  * integer type.
  * If n's kind is INT_TO_BITVECTOR, expects integer argument, returns
  * bit-vector of specified width.
