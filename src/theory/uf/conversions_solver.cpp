@@ -18,6 +18,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
 using namespace cvc5::internal::kind;
 
@@ -57,13 +58,25 @@ void ConversionsSolver::check()
 
 void ConversionsSolver::checkReduction(Node n)
 {
+  Trace("bv-convs") << "Check reduction " << n << std::endl;
   if (d_reduced.find(n) != d_reduced.end())
   {
     Trace("bv-convs") << "...already reduced" << std::endl;
     return;
   }
   // check whether it already has the correct value in the model?
-
+  Node val = d_state.getModel()->getValue(n);
+  Node uval = d_state.getRepresentative(n);
+  Trace("bv-convs-debug") << "  model value = " << val << std::endl;
+  Trace("bv-convs-debug") << "          rep = " << uval << std::endl;
+  if (val==uval)
+  {
+    // "model-based reduction" strategy, do not reduce things that already have
+    // correct model values
+    Trace("bv-convs") << "...already correct in model" << std::endl;
+    return;
+  }
+  
   Node lem;
   Kind k = n.getKind();
   if (k == BITVECTOR_TO_NAT)
@@ -77,6 +90,7 @@ void ConversionsSolver::checkReduction(Node n)
   lem = n.eqNode(lem);
   d_im.lemma(lem, InferenceId::UF_ARITH_BV_CONV_REDUCTION);
   d_reduced.insert(n);
+  Trace("bv-convs") << "...do reduction" << std::endl;
 }
 
 }  // namespace uf
