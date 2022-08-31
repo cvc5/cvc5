@@ -62,8 +62,9 @@ class UnsatCoreManager
    * matrix with each row corresponding to the terms with which the respective
    * quantified formula is instiated.
    */
-  void getRelevantInstantiations(std::shared_ptr<ProofNode> pfn,
+  void getRelevantQuantTermVectors(std::shared_ptr<ProofNode> pfn,
                                  std::map<Node, InstantiationList>& insts,
+                                 std::map<Node, std::vector<Node>>& sks,
                                  bool getDebugInfo = false);
 
 }; /* class UnsatCoreManager */
