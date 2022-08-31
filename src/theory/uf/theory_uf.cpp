@@ -131,10 +131,15 @@ void TheoryUF::postCheck(Effort level)
   {
     d_thss->check(level);
   }
-  // check with the higher-order extension at full effort
-  if (!d_state.isInConflict() && fullEffort(level))
+  if (!d_state.isInConflict())
   {
-    if (logicInfo().isHigherOrder())
+    // check with conversions solver at last call effort
+    if (d_csolver!=nullptr && level == Effort::EFFORT_LAST_CALL)
+    {
+      d_csolver->check();
+    }
+    // check with the higher-order extension at full effort
+    if (fullEffort(level) && logicInfo().isHigherOrder())
     {
       d_ho->check();
     }
@@ -291,6 +296,7 @@ void TheoryUF::preRegisterTerm(TNode node)
     case kind::INT_TO_BITVECTOR:
     case kind::BITVECTOR_TO_NAT:
     {
+      Assert (!options().uf.eagerArithBvConv);
       d_equalityEngine->addTerm(node);
       d_functionsTerms.push_back(node);
       // initialize the conversions solver if not already done so
