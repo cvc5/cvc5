@@ -16,8 +16,8 @@
 #include "theory/uf/conversions_solver.h"
 
 #include "theory/arith/arith_utilities.h"
-#include "theory/theory_model.h"
 #include "theory/theory_inference_manager.h"
+#include "theory/theory_model.h"
 
 using namespace cvc5::internal::kind;
 
@@ -26,8 +26,8 @@ namespace theory {
 namespace uf {
 
 ConversionsSolver::ConversionsSolver(Env& env,
-                      TheoryState& state,
-                      TheoryInferenceManager& im)
+                                     TheoryState& state,
+                                     TheoryInferenceManager& im)
     : EnvObj(env),
       d_state(state),
       d_im(im),
@@ -79,6 +79,6 @@ void ConversionsSolver::checkReduction(Node n)
   d_reduced.insert(n);
 }
 
-}  // namespace arith
+}  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal

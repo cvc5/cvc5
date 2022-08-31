@@ -26,7 +26,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-  
+
 class TheoryState;
 class TheoryInferenceManager;
 
@@ -41,14 +41,13 @@ class ConversionsSolver : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  ConversionsSolver(Env& env,
-                      TheoryState& state,
-                      TheoryInferenceManager& im);
+  ConversionsSolver(Env& env, TheoryState& state, TheoryInferenceManager& im);
   ~ConversionsSolver();
   /** Preregister term */
   void preRegisterTerm(TNode term);
   /** check */
   void check();
+
  private:
   /** Reference to the state object */
   TheoryState& d_state;

@@ -30,10 +30,10 @@
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
+#include "theory/uf/conversions_solver.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/conversions_solver.h"
 
 using namespace std;
 
@@ -115,7 +115,8 @@ void TheoryUF::finishInit() {
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding or arithmetic/bitvector conversions
+  // last call effort needed if using finite model finding or
+  // arithmetic/bitvector conversions
   return d_thss != nullptr || d_csolver != nullptr;
 }
 
@@ -293,7 +294,7 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_equalityEngine->addTerm(node);
       d_functionsTerms.push_back(node);
       // initialize the conversions solver if not already done so
-      if (d_csolver==nullptr)
+      if (d_csolver == nullptr)
       {
         d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
       }
