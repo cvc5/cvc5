@@ -69,14 +69,14 @@ void ConversionsSolver::checkReduction(Node n)
   Node uval = d_state.getRepresentative(n);
   Trace("bv-convs-debug") << "  model value = " << val << std::endl;
   Trace("bv-convs-debug") << "          rep = " << uval << std::endl;
-  if (val==uval)
+  if (val == uval)
   {
     // "model-based reduction" strategy, do not reduce things that already have
     // correct model values
     Trace("bv-convs") << "...already correct in model" << std::endl;
     return;
   }
-  
+
   Node lem;
   Kind k = n.getKind();
   if (k == BITVECTOR_TO_NAT)

@@ -192,7 +192,7 @@ Node TermDb::getMatchOperator(TNode n)
       || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
       || k == SET_SINGLETON || k == APPLY_SELECTOR || k == APPLY_TESTER
       || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH
-      || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR )
+      || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();

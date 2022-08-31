@@ -134,7 +134,7 @@ void TheoryUF::postCheck(Effort level)
   if (!d_state.isInConflict())
   {
     // check with conversions solver at last call effort
-    if (d_csolver!=nullptr && level == Effort::EFFORT_LAST_CALL)
+    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
     {
       d_csolver->check();
     }
@@ -296,7 +296,7 @@ void TheoryUF::preRegisterTerm(TNode node)
     case kind::INT_TO_BITVECTOR:
     case kind::BITVECTOR_TO_NAT:
     {
-      Assert (!options().uf.eagerArithBvConv);
+      Assert(!options().uf.eagerArithBvConv);
       d_equalityEngine->addTerm(node);
       d_functionsTerms.push_back(node);
       // initialize the conversions solver if not already done so
