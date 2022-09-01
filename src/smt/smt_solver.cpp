@@ -244,7 +244,7 @@ const std::unordered_map<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
 bool SmtSolver::trackPreprocessedAssertions() const
 {
   return options().smt.deepRestartMode != options::DeepRestartMode::NONE
-         || options().smt.produceProofs || options().smt.smtMinAssert;
+         || options().smt.produceProofs;
 }
 
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
