@@ -52,9 +52,11 @@ class Model;
  * Term::toString in that it does not depend on the output language.
  *
  * @param sexpr the symbolic expression to convert
+ * @param noQuotes if this is true, the string does not contain double quotes
+ * around strings
  * @return the symbolic expression as string
  */
-std::string sexprToString(cvc5::Term sexpr) CVC5_EXPORT;
+std::string sexprToString(cvc5::Term sexpr, bool noQuotes = false) CVC5_EXPORT;
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC5_EXPORT;
 std::ostream& operator<<(std::ostream&, const Command*) CVC5_EXPORT;

@@ -716,23 +716,13 @@ setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
 }
   : keyword[name] symbolicExpr[sexpr]
     {
-      std::string value;
-      if (sexpr.isStringValue())
-      {
-        // For string values, we take the value itself and not the regular
-        // string conversion. The regular string conversion adds double quotes,
-        // which leads to issues with options that expect a string. For
-        // example, `(set-option :diagnostic-output-channel "stdout")` creates
-        // a file "stdout" (including the double quotes), instead of using
-        // standard out for diagnostic messages.
-        std::wstring wvalue = sexpr.getStringValue();
-        value = std::string(wvalue.begin(), wvalue.end());
-      }
-      else
-      {
-        value = sexprToString(sexpr);
-      }
-      cmd->reset(new SetOptionCommand(name.c_str() + 1, value));
+      // For string values, we take the value itself and not the regular
+      // string conversion. The regular string conversion adds double quotes,
+      // which leads to issues with options that expect a string. For
+      // example, `(set-option :diagnostic-output-channel "stdout")` creates
+      // a file "stdout" (including the double quotes), instead of using
+      // standard out for diagnostic messages.
+      cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr, true)));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SolverEngine eventually (if ever) executes it.
@@ -1128,18 +1118,15 @@ datatypesDef[bool isCo,
 
 simpleSymbolicExprNoKeyword[cvc5::Term& sexpr]
   : specConstant[sexpr]
-  // Symbols and tokens are turned into constants with type Bool to ensure that
-  // they are printed correctly (e.g., turning them into strings would add
-  // unwanted double quotes)
   | SIMPLE_SYMBOL
     {
-      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
-                              AntlrInput::tokenText($SIMPLE_SYMBOL));
+      sexpr =
+        PARSER_STATE->mkSExprSymbol(AntlrInput::tokenText($SIMPLE_SYMBOL));
     }
   | QUOTED_SYMBOL
     {
-      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
-                              AntlrInput::tokenText($QUOTED_SYMBOL));
+      sexpr =
+        PARSER_STATE->mkSExprSymbol(AntlrInput::tokenText($QUOTED_SYMBOL));
     }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
@@ -1151,8 +1138,7 @@ simpleSymbolicExprNoKeyword[cvc5::Term& sexpr]
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
     {
-      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
-                              AntlrInput::tokenText($tok));
+      sexpr = PARSER_STATE->mkSExprSymbol(AntlrInput::tokenText($tok));
     }
   ;
 
@@ -1163,13 +1149,9 @@ keyword[std::string& s]
 
 simpleSymbolicExpr[cvc5::Term& sexpr]
   : simpleSymbolicExprNoKeyword[sexpr]
-  // Keywords are turned into constants with type Bool to ensure that they are
-  // printed correctly (e.g., turning them into strings would add unwanted
-  // double quotes)
   | KEYWORD
     { 
-      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
-                              AntlrInput::tokenText($KEYWORD));
+      sexpr = PARSER_STATE->mkSExprSymbol(AntlrInput::tokenText($KEYWORD));
     }
   ;
 
@@ -1851,9 +1833,9 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       cvc5::Term keyword = SOLVER->mkString("qid");
-      // must create a variable whose name is the name of the quantified
-      // formula, not a string.
-      cvc5::Term name = SOLVER->mkConst(SOLVER->getBooleanSort(), s);
+      // must create a symbol matching the name of the quantified formula, not
+      // a string.
+      cvc5::Term name = PARSER_STATE->mkSExprSymbol(s);
       retExpr = MK_TERM(cvc5::INST_ATTRIBUTE, keyword, name);
     }
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]

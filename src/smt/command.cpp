@@ -46,7 +46,7 @@ namespace cvc5 {
 
 using namespace internal;
 
-std::string sexprToString(cvc5::Term sexpr)
+std::string sexprToString(cvc5::Term sexpr, bool noQuotes)
 {
   if (sexpr.isReal64Value())
   {
@@ -78,6 +78,11 @@ std::string sexprToString(cvc5::Term sexpr)
     }
     return ss.str();
   }
+  else if (noQuotes && sexpr.isStringValue())
+  {
+    std::wstring wvalue = sexpr.getStringValue();
+    return std::string(wvalue.begin(), wvalue.end());
+  }
   else if (sexpr.getKind() != cvc5::SEXPR)
   {
     return sexpr.toString();
@@ -88,11 +93,11 @@ std::string sexprToString(cvc5::Term sexpr)
   auto it = sexpr.begin();
 
   // recursively print the sub-sexprs
-  ss << '(' << sexprToString(*it);
+  ss << '(' << sexprToString(*it, noQuotes);
   ++it;
   while (it != sexpr.end())
   {
-    ss << ' ' << sexprToString(*it);
+    ss << ' ' << sexprToString(*it, noQuotes);
     ++it;
   }
   ss << ')';
@@ -2183,7 +2188,9 @@ void GetInfoCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     std::vector<cvc5::Term> v;
     v.push_back(solver->mkString(":" + d_flag));
     v.push_back(solver->mkString(solver->getInfo(d_flag)));
-    d_result = sexprToString(solver->mkTerm(cvc5::SEXPR, {v}));
+    // The children of the S-expression are strings, but should be printed
+    // without double quotes
+    d_result = sexprToString(solver->mkTerm(cvc5::SEXPR, {v}), true);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiUnsupportedException&)

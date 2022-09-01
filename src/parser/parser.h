@@ -496,12 +496,20 @@ public:
   cvc5::Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
+   * Creates a new symbol to be used in an S-expression.
+   *
+   * @param name the name of the symbol.
+   * @return an S-expression symbol.
+   */
+  cvc5::Term mkSExprSymbol(const std::string& name);
+
+  /**
    * Creates and binds sorts of a list of mutually-recursive datatype
    * declarations.
    *
    * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. Else, if
-   * doOverload is false, the existing expression is shadowed by the new
+   * exists, then if doOverload is true, we create overloaded operators. Else,
+   * if doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
   std::vector<cvc5::Sort> bindMutualDatatypeTypes(
