@@ -1217,8 +1217,7 @@ GetValueCommand::GetValueCommand(cvc5::Term term) : d_terms()
 GetValueCommand::GetValueCommand(const std::vector<cvc5::Term>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(
-      terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
+  Assert(terms.size() >= 1) << "cannot get-value of an empty set of terms";
 }
 
 const std::vector<cvc5::Term>& GetValueCommand::getTerms() const
@@ -1400,9 +1399,8 @@ BlockModelValuesCommand::BlockModelValuesCommand(
     const std::vector<cvc5::Term>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(terms.size() >= 1,
-                      terms,
-                      "cannot block-model-values of an empty set of terms");
+  Assert(terms.size() >= 1)
+      << "cannot block-model-values of an empty set of terms";
 }
 
 const std::vector<cvc5::Term>& BlockModelValuesCommand::getTerms() const
@@ -1441,12 +1439,12 @@ void BlockModelValuesCommand::toStream(std::ostream& out) const
 /* class GetProofCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetProofCommand::GetProofCommand() {}
+GetProofCommand::GetProofCommand(modes::ProofComponent c) : d_component(c) {}
 void GetProofCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getProof();
+    d_result = solver->getProof(d_component);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1468,7 +1466,7 @@ std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
 void GetProofCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdGetProof(out, modes::PROOF_COMPONENT_FULL);
+  Printer::getPrinter(out)->toStreamCmdGetProof(out, d_component);
 }
 
 /* -------------------------------------------------------------------------- */

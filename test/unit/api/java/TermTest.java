@@ -824,6 +824,10 @@ class TermTest
 
     assertTrue(constarr.isConstArray());
     assertEquals(one, constarr.getConstArrayBase());
+
+    Term a = d_solver.mkConst(arrsort, "a");
+    assertThrows(CVC5ApiException.class, () -> a.getConstArrayBase());
+    assertThrows(CVC5ApiException.class, () -> one.getConstArrayBase());
   }
 
   @Test
@@ -1109,14 +1113,19 @@ class TermTest
     Sort arrsort = d_solver.mkArraySort(intsort, intsort);
     Term a = d_solver.mkConst(arrsort, "a");
     Term one = d_solver.mkInteger(1);
+    Term two = d_solver.mkBitVector(2, 2);
+    Term iconst = d_solver.mkConst(intsort);
     Term constarr = d_solver.mkConstArray(arrsort, one);
+
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(arrsort, two));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkConstArray(arrsort, iconst));
 
     assertEquals(constarr.getKind(), CONST_ARRAY);
     assertEquals(constarr.getConstArrayBase(), one);
     assertThrows(CVC5ApiException.class, () -> a.getConstArrayBase());
 
-    arrsort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
-    Term zero_array = d_solver.mkConstArray(arrsort, d_solver.mkReal(0));
+    Sort arrsort2 = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getRealSort());
+    Term zero_array = d_solver.mkConstArray(arrsort2, d_solver.mkReal(0));
     Term stores = d_solver.mkTerm(STORE, zero_array, d_solver.mkReal(1), d_solver.mkReal(2));
     stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(2), d_solver.mkReal(3));
     stores = d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));

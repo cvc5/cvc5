@@ -157,7 +157,6 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     // global negation of the formula
     applyPass("global-negate", as);
-    as.flipGlobalNegated();
   }
 
   if (options().arith.nlExtPurify)

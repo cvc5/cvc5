@@ -629,7 +629,7 @@ namespace cvc5 {
            "manager of this solver";                                      \
     CVC5_API_CHECK(!decl.isResolved())                                    \
         << "Given datatype declaration is already resolved (has already " \
-        << "been used to create a datatype sort";                         \
+        << "been used to create a datatype sort)";                        \
     CVC5_API_ARG_CHECK_EXPECTED(                                          \
         dtypedecl.getDatatype().getNumConstructors() > 0, dtypedecl)      \
         << "a datatype declaration with at least one constructor";        \
@@ -652,6 +652,9 @@ namespace cvc5 {
           d_nm == d.d_nm, "datatype declaration", decls, i)                \
           << "a datatype declaration associated with the node manager of " \
              "this solver";                                                \
+      CVC5_API_CHECK(!d.isResolved())                                      \
+          << "Given datatype declaration is already resolved (has "        \
+          << "already been used to create a datatype sort)";               \
       CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                                \
           d.getDatatype().getNumConstructors() > 0,                        \
           "datatype declaration",                                          \

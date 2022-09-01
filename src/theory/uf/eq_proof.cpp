@@ -996,7 +996,7 @@ Node EqProof::addToProof(CDProof* p,
       Node conclusion =
           d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
       p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, {}, {d_node});
-      p->addStep(conclusion, PfRule::FALSE_INTRO, {}, {d_node});
+      p->addStep(conclusion, PfRule::FALSE_INTRO, {d_node}, {});
       visited[d_node] = conclusion;
       return conclusion;
     }
@@ -1346,7 +1346,7 @@ Node EqProof::addToProof(CDProof* p,
     }
   }
   std::vector<Node> children(arity + 1);
-  // Proccess transitivity matrix to (possibly) generate transitivity steps for
+  // Process transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
   for (unsigned i = 0; i <= arity; ++i)
   {

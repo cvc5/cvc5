@@ -165,8 +165,9 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
   Result r;
   Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
   // make the satisfiability query
+  SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
-  initializeChecker(queryChecker, qy);
+  initializeChecker(queryChecker, qy, ssi);
   r = queryChecker->checkSat();
   Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)

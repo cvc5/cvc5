@@ -636,11 +636,11 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   {
     clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
-  d_currPropagationProccessed = normalizeAndRegister(clauseExp);
+  d_currPropagationProcessed = normalizeAndRegister(clauseExp);
   // consume steps if clausification being recorded. If we are not logging it,
   // we need to add the clause as a closed step to the proof so that the SAT
   // proof does not have non-input formulas as assumptions. That clause is the
-  // result of normalizeAndRegister, stored in d_currPropagationProccessed
+  // result of normalizeAndRegister, stored in d_currPropagationProcessed
   if (proofLogging)
   {
     const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
@@ -652,20 +652,20 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
   else
   {
-    d_proof.addStep(d_currPropagationProccessed,
+    d_proof.addStep(d_currPropagationProcessed,
                     PfRule::THEORY_LEMMA,
                     {},
-                    {d_currPropagationProccessed});
+                    {d_currPropagationProcessed});
   }
 }
 
 void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
 {
   Assert(explLevel < (userContext()->getLevel() - 1));
-  Assert(!d_currPropagationProccessed.isNull());
-  Trace("cnf") << "Need to save curr propagation "
-               << d_currPropagationProccessed << "'s proof in level "
-               << explLevel + 1 << " despite being currently in level "
+  Assert(!d_currPropagationProcessed.isNull());
+  Trace("cnf") << "Need to save curr propagation " << d_currPropagationProcessed
+               << "'s proof in level " << explLevel + 1
+               << " despite being currently in level "
                << userContext()->getLevel() << "\n";
   // Save into map the proof of the processed propagation. Note that
   // propagations must be explained eagerly, since their justification depends
@@ -676,7 +676,7 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   // updates to the saved proof. Not doing this may also lead to open proofs.
   std::shared_ptr<ProofNode> currPropagationProcPf =
       d_env.getProofNodeManager()->clone(
-          d_proof.getProofFor(d_currPropagationProccessed));
+          d_proof.getProofFor(d_currPropagationProcessed));
   Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
@@ -686,10 +686,10 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   if (d_satPM)
   {
     d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
-                                             d_currPropagationProccessed);
+                                             d_currPropagationProcessed);
   }
   // Reset
-  d_currPropagationProccessed = Node::null();
+  d_currPropagationProcessed = Node::null();
 }
 
 void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
