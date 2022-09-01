@@ -18,9 +18,6 @@
 #ifndef CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
 #define CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
 
-#include <iostream>
-#include <map>
-
 #include "expr/node.h"
 #include "expr/node_converter.h"
 

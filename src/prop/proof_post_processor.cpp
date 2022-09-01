@@ -94,14 +94,14 @@ bool ProofPostprocessCallback::update(Node res,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(Env& env, ProofCnfStream* proofCnfStream)
+ProofPostprocess::ProofPostprocess(Env& env, ProofCnfStream* proofCnfStream)
     : EnvObj(env), d_cb(env, proofCnfStream)
 {
 }
 
-ProofPostproccess::~ProofPostproccess() {}
+ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.

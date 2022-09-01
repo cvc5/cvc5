@@ -123,6 +123,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_BAG_MAKE_SPLIT: return "BAGS_BAG_MAKE_SPLIT";
     case InferenceId::BAGS_SKOLEM: return "BAGS_SKOLEM";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
+    case InferenceId::BAGS_CG_SPLIT: return "BAGS_CG_SPLIT";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
     case InferenceId::BAGS_UNION_DISJOINT: return "BAGS_UNION_DISJOINT";
@@ -520,6 +521,8 @@ const char* toString(InferenceId i)
       return "UF_HO_MODEL_EXTENSIONALITY";
     case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
+    case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
+      return "UF_ARITH_BV_CONV_REDUCTION";
 
     default: return "?";
   }

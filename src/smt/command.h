@@ -826,7 +826,7 @@ class CVC5_EXPORT BlockModelValuesCommand : public Command
 class CVC5_EXPORT GetProofCommand : public Command
 {
  public:
-  GetProofCommand();
+  GetProofCommand(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
 
@@ -838,6 +838,8 @@ class CVC5_EXPORT GetProofCommand : public Command
  private:
   /** the result of the getProof call */
   std::string d_result;
+  /** the requested proof component */
+  modes::ProofComponent d_component;
 }; /* class GetProofCommand */
 
 class CVC5_EXPORT GetInstantiationsCommand : public Command
@@ -1064,7 +1066,7 @@ class CVC5_EXPORT GetDifficultyCommand : public Command
 class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
 {
  public:
-  GetLearnedLiteralsCommand();
+  GetLearnedLiteralsCommand(modes::LearnedLitType t);
   const std::vector<cvc5::Term>& getLearnedLiterals() const;
 
   void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
@@ -1076,6 +1078,8 @@ class CVC5_EXPORT GetLearnedLiteralsCommand : public Command
  protected:
   /** the result of the get learned literals call */
   std::vector<cvc5::Term> d_result;
+  /** The type of learned literals to get */
+  modes::LearnedLitType d_type;
 };
 
 class CVC5_EXPORT GetAssertionsCommand : public Command

@@ -67,4 +67,21 @@ constant FUNCTION_ARRAY_CONST \
   "the function constant; payload is an instance of the cvc5::internal::FunctionArrayConst class"
 typerule FUNCTION_ARRAY_CONST ::cvc5::internal::theory::uf::FunctionArrayConstTypeRule
 
+
+## conversion kinds
+operator BITVECTOR_TO_NAT 1 "bit-vector conversion to (nonnegative) integer; parameter is a bit-vector"
+
+constant INT_TO_BITVECTOR_OP \
+  struct \
+  IntToBitVector \
+  "::cvc5::internal::UnsignedHashFunction< ::cvc5::internal::IntToBitVector >" \
+  "util/bitvector.h" \
+  "operator for the integer conversion to bit-vector; payload is an instance of the cvc5::internal::IntToBitVector class"
+parameterized INT_TO_BITVECTOR INT_TO_BITVECTOR_OP 1 "integer conversion to bit-vector; first parameter is an INT_TO_BITVECTOR_OP, second is an integer term"
+
+## conversion kinds
+typerule BITVECTOR_TO_NAT ::cvc5::internal::theory::uf::BitVectorConversionTypeRule
+typerule INT_TO_BITVECTOR_OP ::cvc5::internal::theory::uf::IntToBitVectorOpTypeRule
+typerule INT_TO_BITVECTOR ::cvc5::internal::theory::uf::BitVectorConversionTypeRule
+
 endtheory

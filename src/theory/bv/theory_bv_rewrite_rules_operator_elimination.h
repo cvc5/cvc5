@@ -649,11 +649,14 @@ inline bool RewriteRule<RedorEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RedorEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
-  unsigned size = utils::getSize(node[0]); 
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkConst( size, 0 ) );
-  return result.negate();
+  unsigned size = utils::getSize(node[0]);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      kind::BITVECTOR_NOT,
+      nm->mkNode(kind::BITVECTOR_COMP, a, utils::mkConst(size, 0)));
 }
 
 template <>
@@ -665,13 +668,14 @@ inline bool RewriteRule<RedandEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
-  unsigned size = utils::getSize(node[0]); 
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkOnes( size ) );
+  unsigned size = utils::getSize(node[0]);
+  Node result = NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_COMP, a, utils::mkOnes(size));
   return result;
 }
-
 }
 }
 }  // namespace cvc5::internal

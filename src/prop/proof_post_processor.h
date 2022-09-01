@@ -88,11 +88,11 @@ class ProofPostprocessCallback : protected EnvObj,
  * produced by the SAT solver. Its main task is to connect the refutation's
  * assumptions to the CNF transformation proof in ProofCnfStream.
  */
-class ProofPostproccess : protected EnvObj
+class ProofPostprocess : protected EnvObj
 {
  public:
-  ProofPostproccess(Env& env, ProofCnfStream* proofCnfStream);
-  ~ProofPostproccess();
+  ProofPostprocess(Env& env, ProofCnfStream* proofCnfStream);
+  ~ProofPostprocess();
   /** post-process
    *
    * The post-processing is done via a proof node updater run on pf with this

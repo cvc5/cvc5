@@ -780,10 +780,13 @@ RewriteResponse TheorySetsRewriter::postRewriteAggregate(TNode n)
 RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
 {
   Assert(n.getKind() == RELATION_PROJECT);
-  Node ret = SetReduction::reduceProjectOperator(n);
-  if (ret != n)
+  if (n[0].isConst())
   {
-    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    Node ret = SetReduction::reduceProjectOperator(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
   return RewriteResponse(REWRITE_DONE, n);
 }
