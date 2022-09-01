@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of bitvector conversions solver.
+ * Implementation of bit-vector conversions solver.
  */
 
 #include "theory/uf/conversions_solver.h"
