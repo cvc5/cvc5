@@ -30,10 +30,10 @@
 
 namespace cvc5::internal {
 
-class FiniteField
+class FfVal
 {
  public:
-  FiniteField(const Integer& val, const Integer& size)
+  FfVal(const Integer& val, const Integer& size)
       : d_size(size),
         // normalize value into [0, size)
         d_value(val.floorDivideRemainder(size))
@@ -45,15 +45,15 @@ class FiniteField
   /**
    * Construct the zero in this field
    */
-  FiniteField(const Integer& size) : d_size(size), d_value(0)
+  FfVal(const Integer& size) : d_size(size), d_value(0)
   {
     // we only support prime fields right now
     Assert(size.isProbablePrime());
   }
 
-  ~FiniteField() {}
+  ~FfVal() {}
 
-  FiniteField& operator=(const FiniteField& x)
+  FfVal& operator=(const FfVal& x)
   {
     if (this == &x)
     {
@@ -86,30 +86,30 @@ class FiniteField
   /* Return hash value. */
   size_t hash() const;
 
-  friend bool operator==(const FiniteField&, const FiniteField&);
-  friend bool operator!=(const FiniteField&, const FiniteField&);
-  friend bool operator<(const FiniteField&, const FiniteField&);
-  friend bool operator>(const FiniteField&, const FiniteField&);
-  friend bool operator>=(const FiniteField&, const FiniteField&);
-  friend bool operator<=(const FiniteField&, const FiniteField&);
-  friend FiniteField operator+(const FiniteField&, const FiniteField&);
-  friend FiniteField operator-(const FiniteField&, const FiniteField&);
-  friend FiniteField operator-(const FiniteField&);
-  friend FiniteField operator*(const FiniteField&, const FiniteField&);
-  friend FiniteField operator/(const FiniteField&, const FiniteField&);
+  friend bool operator==(const FfVal&, const FfVal&);
+  friend bool operator!=(const FfVal&, const FfVal&);
+  friend bool operator<(const FfVal&, const FfVal&);
+  friend bool operator>(const FfVal&, const FfVal&);
+  friend bool operator>=(const FfVal&, const FfVal&);
+  friend bool operator<=(const FfVal&, const FfVal&);
+  friend FfVal operator+(const FfVal&, const FfVal&);
+  friend FfVal operator-(const FfVal&, const FfVal&);
+  friend FfVal operator-(const FfVal&);
+  friend FfVal operator*(const FfVal&, const FfVal&);
+  friend FfVal operator/(const FfVal&, const FfVal&);
 
   /* Reciprocal. Crashes on 0. */
-  FiniteField recip() const;
+  FfVal recip() const;
 
   /* -----------------------------------------------------------------------
    ** Static helpers.
    * ----------------------------------------------------------------------- */
 
   /* Create zero bit-vector of given size. */
-  static FiniteField mkZero(const Integer& modulus);
+  static FfVal mkZero(const Integer& modulus);
 
   /* Create bit-vector representing value 1 of given size. */
-  static FiniteField mkOne(const Integer& modulus);
+  static FfVal mkOne(const Integer& modulus);
 
  private:
   /**
@@ -121,38 +121,38 @@ class FiniteField
   Integer d_size;
   Integer d_value;
 
-}; /* class FiniteField */
+}; /* class FfVal */
 
-struct FiniteFieldSize
+struct FfSize
 {
-  FiniteFieldSize(Integer size) : d_size(size) {}
+  FfSize(Integer size) : d_size(size) {}
   operator Integer() const { return d_size; }
-  bool operator==(const FiniteFieldSize& y) const
+  bool operator==(const FfSize& y) const
   {
     return d_size == y.d_size;
   }
   
   Integer d_size;
-}; /* struct FiniteFieldSize */
+}; /* struct FfSize */
 
 /*
- * Hash function for the FiniteField constants.
+ * Hash function for the FfVal.
  */
-struct FiniteFieldHashFunction
+struct FfValHashFunction
 {
-  size_t operator()(const FiniteField& ff) const { return ff.hash(); }
-}; /* struct FiniteFieldHashFunction */
+  size_t operator()(const FfVal& ff) const { return ff.hash(); }
+}; /* struct FfValHashFunction */
 
 /*
- * Hash function for the FiniteFieldSize constants.
+ * Hash function for the FfSize constants.
  */
-struct FiniteFieldSizeHashFunction
+struct FfSizeHashFunction
 {
-  size_t operator()(const FiniteFieldSize& size) const
+  size_t operator()(const FfSize& size) const
   {
     return size.d_size.hash();
   }
-}; /* struct FiniteFieldHashFunction */
+}; /* struct FfValHashFunction */
 
 /* -----------------------------------------------------------------------
  ** Operators
@@ -161,50 +161,47 @@ struct FiniteFieldSizeHashFunction
 /* (Dis)Equality --------------------------------------------------------- */
 
 /* Return true if x is equal to 'y'. */
-bool operator==(const FiniteField& x, const FiniteField& y);
+bool operator==(const FfVal& x, const FfVal& y);
 
 /* Return true if x is not equal to 'y'. */
-bool operator!=(const FiniteField& x, const FiniteField& y);
+bool operator!=(const FfVal& x, const FfVal& y);
 
 /* Unsigned Inequality --------------------------------------------------- */
 
 /* Return true if x is unsigned less than finite field 'y'. */
-bool operator<(const FiniteField& x, const FiniteField& y);
+bool operator<(const FfVal& x, const FfVal& y);
 
 /* Return true if x is unsigned less than or equal to finite field 'y'. */
-bool operator<=(const FiniteField& x, const FiniteField& y);
+bool operator<=(const FfVal& x, const FfVal& y);
 
 /* Return true if x is unsigned greater than finite field 'y'. */
-bool operator>(const FiniteField& x, const FiniteField& y);
+bool operator>(const FfVal& x, const FfVal& y);
 
 /* Return true if x is unsigned greater than or equal to finite field 'y'. */
-bool operator>=(const FiniteField& x, const FiniteField& y);
+bool operator>=(const FfVal& x, const FfVal& y);
 
 /* Arithmetic operations ------------------------------------------------- */
 
 /* Return a finite field representing the addition (x + y). */
-FiniteField operator+(const FiniteField& x, const FiniteField& y);
+FfVal operator+(const FfVal& x, const FfVal& y);
 
 /* Return a finite field representing the subtraction (x - y). */
-FiniteField operator-(const FiniteField& x, const FiniteField& y);
+FfVal operator-(const FfVal& x, const FfVal& y);
 
 /* Return a finite field representing the negation of x. */
-FiniteField operator-(const FiniteField& x);
+FfVal operator-(const FfVal& x);
 
 /* Return a finite field representing the multiplication (x * y). */
-FiniteField operator*(const FiniteField& x, const FiniteField& y);
+FfVal operator*(const FfVal& x, const FfVal& y);
 
 /* Return a finite field representing the division (x / y). */
-FiniteField operator/(const FiniteField& x, const FiniteField& y);
+FfVal operator/(const FfVal& x, const FfVal& y);
 
 /* -----------------------------------------------------------------------
  * Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os, const FiniteField& ff)
-{
-  return os << ff.toString();
-}
+std::ostream& operator<<(std::ostream& os, const FfVal& ff);
 
 }  // namespace cvc5::internal
 

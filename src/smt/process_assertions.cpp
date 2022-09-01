@@ -30,7 +30,6 @@
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "smt/assertions.h"
-#include "smt/expand_definitions.h"
 #include "smt/print_benchmark.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"

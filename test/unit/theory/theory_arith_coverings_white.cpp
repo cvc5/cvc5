@@ -235,7 +235,9 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
   poly::AlgebraicNumber ay = get_ran({-2, 0, 0, 0, 1}, 1, 2);
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
-  coverings::LazardEvaluation lazard;
+  Options opts;
+  Env env(&opts);
+  coverings::LazardEvaluation lazard(env.getStatisticsRegistry());
   lazard.add(x, ax);
   lazard.add(y, ay);
   lazard.add(z, az);

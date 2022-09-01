@@ -141,10 +141,10 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringRegExpInterMode"
-  category   = "regular"
+  category   = "expert"
   long       = "re-inter-mode=MODE"
   type       = "RegExpInterMode"
-  default    = "CONSTANT"
+  default    = "NONE"
   help       = "determines which regular expressions intersections to compute"
   help_mode  = "Regular expression intersection modes."
 [[option.mode.ALL]]

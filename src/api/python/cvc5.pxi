@@ -2886,13 +2886,19 @@ cdef class Solver:
 
     def getStatistics(self):
         """
-            Returns a snapshot of the current state of the statistic values of
+            Return a snapshot of the current state of the statistic values of
             this solver. The returned object is completely decoupled from the
             solver and will not change when the solver is used again.
         """
         res = Statistics()
         res.cstats = self.csolver.getStatistics()
         return res
+
+    def getVersion(self):
+        """
+            Return a string representation of the version of this solver.
+        """
+        return self.csolver.getVersion()
 
 
 cdef class Sort:

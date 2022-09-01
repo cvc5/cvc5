@@ -28,6 +28,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
+#include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -993,7 +994,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
   {
     svals = d_solutionValues.back();
   }
-  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];
     Trace("cegqi-debug") << "  get solution for " << prog << std::endl;
@@ -1059,6 +1060,22 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     }
     d_sol.push_back(sol);
     d_solStatus.push_back(status);
+    // Note that this assumes that the name of the resulting datatype matches
+    // the original name from the user. This is usually the case, although
+    // if grammar normalization is used, it is not. If it is not, the names
+    // in the annotation will not match, but no failures will occur.
+    // Also note that we do not print annotations if the solution was not
+    // reconstructed to the grammar (status != 1), which is the case if the
+    // grammar is ignored by single invocation above. On the other hand,
+    // annotations will be printed correctly if the solution was successfully
+    // reconstructed by single invocation (status == 1).
+    if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status == 1)
+    {
+      Node psol = getPrintableSygusToBuiltin(sol);
+      d_env.output(OutputTag::SYGUS_SOL_GTERM)
+          << "(sygus-sol-gterm (" << d_quant[0][i] << " " << psol << "))"
+          << std::endl;
+    }
   }
   sols.insert(sols.end(), d_sol.begin(), d_sol.end());
   statuses.insert(statuses.end(), d_solStatus.begin(), d_solStatus.end());

@@ -125,6 +125,25 @@ class FunctionProperties
   static Node mkGroundTerm(TypeNode type);
 }; /* class FuctionProperties */
 
+/** Returns builtin type */
+class IntToBitVectorOpTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
+ * If n's kind is BITVECTOR_TO_NAT, expects bit-vector argument, returns
+ * integer type.
+ * If n's kind is INT_TO_BITVECTOR, expects integer argument, returns
+ * bit-vector of specified width.
+ */
+class BitVectorConversionTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal
