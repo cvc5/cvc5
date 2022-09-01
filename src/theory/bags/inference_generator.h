@@ -39,10 +39,10 @@ class InferenceGenerator
 
   /**
    * @param n a node of the form (bag.count e A)
-   * @return a skolem that equals (bag.count repE repA) where
+   * this function generates a skolem that equals (bag.count repE repA) where
    * repE, repA are representatives of e, A respectively
    */
-  Node registerCountTerm(Node n);
+  void registerCountTerm(Node n);
 
   /**
    * @param n a node of the form (bag.card A)

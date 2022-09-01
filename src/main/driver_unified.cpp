@@ -79,7 +79,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   }
   for (const auto& name : {"show-config",
                            "copyright",
-                           "show-debug-tags",
                            "show-trace-tags",
                            "version"})
   {

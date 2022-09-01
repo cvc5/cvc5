@@ -3093,4 +3093,10 @@ class SolverTest
     Term yval = d_solver.getValue(y);
     assertFalse(xval.equals(yval));
   }
+
+  @Test
+  void getVersion() throws CVC5ApiException
+  {
+    System.out.println(d_solver.getVersion());
+  }
 }
