@@ -20,7 +20,6 @@
 
 #include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
-#include "proof/conv_proof_generator.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
 #include "theory/rewriter.h"
@@ -34,20 +33,12 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-ExpandDefs::ExpandDefs(Env& env) : EnvObj(env), d_tpg(nullptr) {}
+ExpandDefs::ExpandDefs(Env& env) : EnvObj(env) {}
 
 ExpandDefs::~ExpandDefs() {}
 
 Node ExpandDefs::expandDefinitions(TNode n,
-                                   std::unordered_map<Node, Node>& cache)
-{
-  TrustNode trn = expandDefinitions(n, cache, nullptr);
-  return trn.isNull() ? Node(n) : trn.getNode();
-}
-
-TrustNode ExpandDefs::expandDefinitions(TNode n,
-                                        std::unordered_map<Node, Node>& cache,
-                                        TConvProofGenerator* tpg)
+                                        std::unordered_map<Node, Node>& cache)
 {
   const TNode orig = n;
   std::stack<std::tuple<Node, Node, bool>> worklist;
@@ -97,11 +88,6 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
       if (!trn.isNull())
       {
         node = trn.getNode();
-        if (tpg != nullptr)
-        {
-          tpg->addRewriteStep(
-              n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
-        }
       }
       else
       {
@@ -155,28 +141,7 @@ TrustNode ExpandDefs::expandDefinitions(TNode n,
 
   AlwaysAssert(result.size() == 1);
 
-  Node res = result.top();
-
-  if (res == orig)
-  {
-    return TrustNode::null();
-  }
-  return TrustNode::mkTrustRewrite(orig, res, tpg);
-}
-
-void ExpandDefs::enableProofs()
-{
-  // initialize if not done already
-  if (d_tpg == nullptr)
-  {
-    d_tpg.reset(new TConvProofGenerator(d_env,
-                                        d_env.getUserContext(),
-                                        TConvPolicy::FIXPOINT,
-                                        TConvCachePolicy::NEVER,
-                                        "ExpandDefs::TConvProofGenerator",
-                                        nullptr,
-                                        true));
-  }
+  return result.top();
 }
 
 }  // namespace smt

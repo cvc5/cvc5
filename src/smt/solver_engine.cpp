@@ -44,6 +44,7 @@
 #include "smt/check_models.h"
 #include "smt/context_manager.h"
 #include "smt/env.h"
+#include "smt/expand_definitions.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -953,15 +954,24 @@ Node SolverEngine::simplify(const Node& ex)
   return d_smtSolver->getPreprocessor()->simplify(ex);
 }
 
-// TODO(#1108): Simplify the error reporting of this method.
-Node SolverEngine::getValue(const Node& ex) const
+Node SolverEngine::getValue(const Node& t) const
 {
-  ensureWellFormedTerm(ex, "get value");
-  Trace("smt") << "SMT getValue(" << ex << ")" << endl;
-  TypeNode expectedType = ex.getType();
+  ensureWellFormedTerm(t, "get value");
+  Trace("smt") << "SMT getValue(" << t << ")" << endl;
+  TypeNode expectedType = t.getType();
 
-  // Substitute out any abstract values in ex and expand
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(ex);
+  // We must expand definitions here, which replaces certain subterms of t
+  // by the form that is used internally. This is necessary for some corner
+  // cases of get-value to be accurate, e.g. when getting the value of
+  // a division-by-zero term, we require getting the appropriate skolem
+  // function corresponding to division-by-zero which may have been used during
+  // the previous satisfiability check.
+  std::unordered_map<Node, Node> cache;
+  ExpandDefs expDef(*d_env.get());
+  // must apply substitutions first to ensure we expand definitions in the
+  // solved form of t as well.
+  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+  n = expDef.expandDefinitions(n, cache);
 
   Trace("smt") << "--- getting value of " << n << endl;
   // There are two ways model values for terms are computed (for historical
