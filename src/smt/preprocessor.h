@@ -89,7 +89,7 @@ class Preprocessor : protected EnvObj
   Node simplify(const Node& n);
   /**
    * Apply top-level substitutions and eliminate abstract values in a term or
-   * formula n,  No other simplification or normalization is done.
+   * formula n.  No other simplification or normalization is done.
    *
    * @param n The node to expand
    * @return The expanded term.
