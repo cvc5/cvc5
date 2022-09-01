@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE:
 ; EXPECT: sat
 ; EXPECT: (((/ x 0) 6.0))
 (set-logic ALL)

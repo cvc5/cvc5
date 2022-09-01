@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_NRA)
 (set-info :smt-lib-version 2.6)

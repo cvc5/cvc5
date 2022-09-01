@@ -1,4 +1,4 @@
-; COMMAND-LINE: -q
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic QF_UFNRA)
 (set-info :status sat)
