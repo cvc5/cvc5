@@ -306,6 +306,8 @@ libcvc5_add_sources(
   smt/env.h
   smt/env_obj.cpp
   smt/env_obj.h
+  smt/expand_definitions.cpp
+  smt/expand_definitions.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
