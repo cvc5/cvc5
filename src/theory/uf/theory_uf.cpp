@@ -30,6 +30,7 @@
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
+#include "theory/uf/conversions_solver.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -114,8 +115,9 @@ void TheoryUF::finishInit() {
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding
-  return d_thss != nullptr;
+  // last call effort needed if using finite model finding or
+  // arithmetic/bit-vector conversions
+  return d_thss != nullptr || d_csolver != nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -131,6 +133,11 @@ void TheoryUF::postCheck(Effort level)
   }
   if (!d_state.isInConflict())
   {
+    // check with conversions solver at last call effort
+    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
+    {
+      d_csolver->check();
+    }
     // check with the higher-order extension at full effort
     if (fullEffort(level) && logicInfo().isHigherOrder())
     {
@@ -229,9 +236,10 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if (k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+           && options().uf.eagerArithBvConv)
   {
-    // temporary, always eliminate eagerly
+    // eliminate if option specifies to eliminate eagerly
     Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
                                            : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
@@ -289,9 +297,16 @@ void TheoryUF::preRegisterTerm(TNode node)
     case kind::INT_TO_BITVECTOR:
     case kind::BITVECTOR_TO_NAT:
     {
-      // temporary, will add conversions solver support here
-      Unhandled() << "TheoryUF::preRegisterTerm: registered a conversion term "
-                  << node << std::endl;
+      Assert(!options().uf.eagerArithBvConv);
+      d_equalityEngine->addTerm(node);
+      d_functionsTerms.push_back(node);
+      // initialize the conversions solver if not already done so
+      if (d_csolver == nullptr)
+      {
+        d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
+      }
+      // call preregister
+      d_csolver->preRegisterTerm(node);
     }
     break;
     case kind::CARDINALITY_CONSTRAINT:
