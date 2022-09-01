@@ -38,7 +38,7 @@ ExpandDefs::ExpandDefs(Env& env) : EnvObj(env) {}
 ExpandDefs::~ExpandDefs() {}
 
 Node ExpandDefs::expandDefinitions(TNode n,
-                                        std::unordered_map<Node, Node>& cache)
+                                   std::unordered_map<Node, Node>& cache)
 {
   const TNode orig = n;
   std::stack<std::tuple<Node, Node, bool>> worklist;
