@@ -75,7 +75,8 @@ class ArithCongruenceManager : protected EnvObj
 
   void addWatchedPair(ArithVar s, TNode x, TNode y);
 
-  inline bool isWatchedVariable(ArithVar s) const {
+  inline bool isWatchedVariable(ArithVar s) const
+  {
     return d_watchedVariables.isMember(s);
   }
 
@@ -90,7 +91,6 @@ class ArithCongruenceManager : protected EnvObj
 
   /** Assert that the value cannot be zero. */
   void watchedVariableCannotBeZero(ConstraintCP c, ConstraintCP d);
-
 
   /** Assert that the value is congruent to a constant. */
   void equalsConstant(ConstraintCP eq);
