@@ -61,7 +61,7 @@ class UnsatCoreManager
    * premises of INSTANTIATE proof nodes to its instantiations, which are a
    * matrix with each row corresponding to the terms with which the respective
    * quantified formula is instiated.
-   * 
+   *
    * Similiarly, for SKOLEMIZE, it populates the mapping sks will all
    * skolemization steps in the proof.
    */
