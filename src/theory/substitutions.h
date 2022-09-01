@@ -61,6 +61,9 @@ class SubstitutionMap
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
 
+  /** The rewriter, which is immediately applied to all substituted terms */
+  Rewriter* d_rewriter;
+
   /** The variables, in order of addition */
   NodeMap d_substitutions;
 
@@ -100,7 +103,8 @@ class SubstitutionMap
   CacheInvalidator d_cacheInvalidator;
 
  public:
-  SubstitutionMap(context::Context* context = nullptr);
+  SubstitutionMap(context::Context* context = nullptr,
+             Rewriter* r = nullptr);
 
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions();
@@ -144,16 +148,15 @@ class SubstitutionMap
    * Rewriter pointer is passed.
    */
   Node apply(TNode t,
-             Rewriter* r = nullptr,
              std::set<TNode>* tracker = nullptr,
              const ShouldTraverseCallback* stc = nullptr);
 
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t, Rewriter* r = nullptr) const
+  Node apply(TNode t) const
   {
-    return const_cast<SubstitutionMap*>(this)->apply(t, r);
+    return const_cast<SubstitutionMap*>(this)->apply(t);
   }
 
   iterator begin() { return d_substitutions.begin(); }
@@ -174,6 +177,8 @@ class SubstitutionMap
   void invalidateCache() {
     d_cacheInvalidated = true;
   }
+  /** rewrite via rewriter, if provided */
+  Node rewrite(TNode node) const;
 
 }; /* class SubstitutionMap */
 

@@ -28,7 +28,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
                                            MethodId ids)
     : EnvObj(env),
       d_ctx(c),
-      d_subs(c),
+      d_subs(c, env.getRewriter()),
       d_tsubs(c),
       d_tspb(nullptr),
       d_subsPg(nullptr),
