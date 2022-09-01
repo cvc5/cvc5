@@ -388,7 +388,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   for (SubstitutionMap::iterator pos = cps.begin(); pos != cps.end(); ++pos)
   {
     Node cProp = (*pos).first.eqNode((*pos).second);
-    Assert(top_level_substs.apply(cProp) == cProp);
+    Assert(top_level_substs.apply(cProp) == rewrite(cProp));
     // process learned literal (substitutions only)
     cProp = processLearnedLit(cProp, newSubstitutions.get(), nullptr);
     if (s.find(cProp) != s.end())
