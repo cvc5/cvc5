@@ -968,7 +968,7 @@ Node SolverEngine::getValue(const Node& t) const
   // the previous satisfiability check.
   std::unordered_map<Node, Node> cache;
   ExpandDefs expDef(*d_env.get());
-  // must apply substitutions first to ensure we expand definitions in the
+  // Must apply substitutions first to ensure we expand definitions in the
   // solved form of t as well.
   Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
   n = expDef.expandDefinitions(n, cache);
