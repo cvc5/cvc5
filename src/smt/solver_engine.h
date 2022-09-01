@@ -669,8 +669,12 @@ class CVC5_EXPORT SolverEngine
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
   /**
-   * As above but only the skolemizations and instantiations that were relevant
+   * Adds the skolemizations and instantiations that were relevant
    * for the refutation.
+   * @param insts The relevant instantiations
+   * @param sks The relevant skolemizations
+   * @param getDebugInfo If true, we add identifiers on instantiations that
+   * indicate their source (the strategy that invoked them)
    */
   void getRelevantQuantTermVectors(std::map<Node, InstantiationList>& insts,
                                    std::map<Node, std::vector<Node>>& sks,

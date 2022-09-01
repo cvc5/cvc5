@@ -52,7 +52,7 @@ class UnsatCoreManager
                     Assertions& as,
                     std::vector<Node>& core);
 
-  /** Gets the relevant instaniations for the refutation.
+  /** Gets the relevant instaniations and skolemizations for the refutation.
    *
    * The relevant instantiations are all the conclusions of proof nodes of type
    * INSTANTIATE that occur in pfn.
@@ -61,6 +61,9 @@ class UnsatCoreManager
    * premises of INSTANTIATE proof nodes to its instantiations, which are a
    * matrix with each row corresponding to the terms with which the respective
    * quantified formula is instiated.
+   * 
+   * Similiarly, for SKOLEMIZE, it populates the mapping sks will all
+   * skolemization steps in the proof.
    */
   void getRelevantQuantTermVectors(std::shared_ptr<ProofNode> pfn,
                                    std::map<Node, InstantiationList>& insts,
