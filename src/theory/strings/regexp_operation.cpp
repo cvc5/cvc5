@@ -1435,7 +1435,9 @@ Node RegExpOpr::removeIntersection(Node r) {
 
 Node RegExpOpr::intersect(Node r1, Node r2)
 {
-  if (!checkConstRegExp(r1) || !checkConstRegExp(r2))
+  if (!checkConstRegExp(r1) || !checkConstRegExp(r2)
+      || expr::hasSubtermKind(REGEXP_COMPLEMENT, r1)
+      || expr::hasSubtermKind(REGEXP_COMPLEMENT, r2))
   {
     return Node::null();
   }

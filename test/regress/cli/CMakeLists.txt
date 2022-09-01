@@ -470,6 +470,7 @@ set(regress_0_tests
   regress0/bv/issue8159-1-rewrite-bvneg.smt2
   regress0/bv/issue8240-rewrite-bvnot.smt2
   regress0/bv/issue8654-bitblast-quant-exc.smt2
+  regress0/bv/issue9101-unsat-cores.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -1002,6 +1003,7 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/post-asserts-output.smt2
   regress0/printer/pre-asserts-output.smt2
+  regress0/printer/print_sat_lemmas.smt2
   regress0/printer/print_subs.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
@@ -1842,6 +1844,8 @@ set(regress_1_tests
   regress1/bags/filter5.smt2
   regress1/bags/fol_0000119.smt2
   regress1/bags/fold1.smt2
+  regress1/bags/fold2.smt2
+  regress1/bags/fold3.smt2
   regress1/bags/fuzzy1.smt2
   regress1/bags/fuzzy2.smt2
   regress1/bags/fuzzy3.smt2
@@ -1873,7 +1877,6 @@ set(regress_1_tests
   regress1/bags/table_group1.smt2
   regress1/bags/table_group2.smt2
   regress1/bags/table_group3.smt2
-  regress1/bags/table_group4.smt2
   regress1/bags/table_group5.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
@@ -2037,6 +2040,7 @@ set(regress_1_tests
   regress1/issue7902-abd-subsolver-uc.smt2
   regress1/issue7937-difficulty-irr.smt2
   regress1/issue8852-interpol-no-var.smt2
+  regress1/issue8958-bv2nat-lazy.smt2
   regress1/issue9057-block-m-lit.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
@@ -2694,6 +2698,7 @@ set(regress_1_tests
   regress1/strings/issue8981-strings-deq-ext-nth.smt2
   regress1/strings/issue8981-2-strings-deq-ext-nth.smt2
   regress1/strings/issue9003-deq-split.smt2
+  regress1/strings/issue9040-re-inter-comp.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -3234,8 +3239,7 @@ set(regression_disabled_tests
   regress0/tptp/SYN075+1.p
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   ###
-  # takes around 30 sec
-  regress1/bags/fold2.smt2
+  regress1/bags/table_group4.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
