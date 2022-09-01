@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 ; REQUIRES: poly
 (set-logic NRA)
