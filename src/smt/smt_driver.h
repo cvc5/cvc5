@@ -95,7 +95,7 @@ class SmtDriverSingleCall : public SmtDriver
   SmtDriverSingleCall(Env& env, SmtSolver& smt);
 
  protected:
-  /** Check sat next, takes result of underlying smt solver only */
+  /** Check sat next, takes result of underlying SMT solver only */
   Result checkSatNext() override;
   /** Never called */
   void getNextAssertions(Assertions& as) override;
