@@ -19,8 +19,8 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/preprocessor.h"
 #include "smt/expand_definitions.h"
+#include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -37,7 +37,6 @@ void CheckModels::checkModel(TheoryModel* m,
                              const context::CDList<Node>& al,
                              bool hardFailure)
 {
-  
   // Throughout, we use verbose(1) to give diagnostic output.
   //
   // If this function is running, the user gave --check-model (or equivalent),
@@ -58,7 +57,7 @@ void CheckModels::checkModel(TheoryModel* m,
   // expand definitions module and substitutions
   std::unordered_map<Node, Node> ecache;
   ExpandDefs expDef(d_env);
-  
+
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
   std::unordered_map<Node, Node> cache;
@@ -78,7 +77,7 @@ void CheckModels::checkModel(TheoryModel* m,
     Node n = sm.apply(assertion);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
                << std::endl;
-               
+
     // Expand definitions, which is required for being accurate for operators
     // that expand involving skolems during preprocessing. Not doing this will
     // increase the spurious warnings raised by this class.
