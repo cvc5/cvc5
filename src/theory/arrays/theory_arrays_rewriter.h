@@ -63,7 +63,7 @@ class TheoryArraysRewriter : public TheoryRewriter
 
   RewriteResponse preRewrite(TNode node) override;
 
-  TrustNode expandDefinition(Node node);
+  TrustNode expandDefinition(Node node) override;
 
   static inline void init() {}
 

@@ -84,7 +84,7 @@ class DatatypesRewriter : public TheoryRewriter
    */
   static Node expandMatch(Node n);
   /** expand defintions */
-  TrustNode expandDefinition(Node n);
+  TrustNode expandDefinition(Node n) override;
 
  private:
   /** rewrite constructor term in */

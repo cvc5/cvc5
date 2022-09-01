@@ -39,8 +39,7 @@ class ArithRewriter : public TheoryRewriter
    * Expand definition, which eliminates extended operators like div/mod in
    * the given node.
    */
-  TrustNode expandDefinition(Node node);
-
+  TrustNode expandDefinition(Node node) override;
  private:
   /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
