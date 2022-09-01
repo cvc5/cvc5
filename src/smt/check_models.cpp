@@ -37,6 +37,7 @@ void CheckModels::checkModel(TheoryModel* m,
                              const context::CDList<Node>& al,
                              bool hardFailure)
 {
+  
   // Throughout, we use verbose(1) to give diagnostic output.
   //
   // If this function is running, the user gave --check-model (or equivalent),
@@ -54,7 +55,10 @@ void CheckModels::checkModel(TheoryModel* m,
                  "is enabled."
               << std::endl;
   }
-
+  // expand definitions module and substitutions
+  std::unordered_map<Node, Node> ecache;
+  ExpandDefs expDef(*d_env.get());
+  
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
   std::unordered_map<Node, Node> cache;
@@ -73,6 +77,11 @@ void CheckModels::checkModel(TheoryModel* m,
     // not be properly constrained.
     Node n = sm.apply(assertion);
     verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
+               << std::endl;
+               
+    // expand definitions
+    n = expDef.expandDefinitions(n, cache);
+    verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
                << std::endl;
 
     n = rewrite(n);
