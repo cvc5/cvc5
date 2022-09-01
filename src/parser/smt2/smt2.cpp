@@ -904,8 +904,11 @@ bool Smt2::isAbstractValue(const std::string& name)
 
 cvc5::Term Smt2::mkRealOrIntFromNumeral(const std::string& str)
 {
-  // if arithmetic is enabled, and integers are disabled
-  if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
+  // If arithmetic is enabled, and integers are disabled. It can happen that we
+  // call this method before the logic is set (e.g., a `set-option` command
+  // with an integer value), so we cannot assume that the logic is locked.
+  if (d_logic.isLocked()
+      && d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
       && !d_logic.areIntegersUsed())
   {
     return d_solver->mkReal(str);

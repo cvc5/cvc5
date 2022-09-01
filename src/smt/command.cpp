@@ -63,18 +63,18 @@ std::string sexprToString(cvc5::Term sexpr, bool noQuotes)
       ss << "-";
       num = -num;
     }
-    ss << num / denum << ".";
+    ss << num / denum;
     num = (num % denum) * 10;
-    bool addZero = true;
+    bool firstDigit = true;
     while (num != 0)
     {
+      if (firstDigit)
+      {
+        ss << ".";
+        firstDigit = false;
+      }
       ss << num / denum;
       num = (num % denum) * 10;
-      addZero = false;
-    }
-    if (addZero)
-    {
-      ss << "0";
     }
     return ss.str();
   }
