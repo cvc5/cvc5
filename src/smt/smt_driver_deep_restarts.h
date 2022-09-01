@@ -27,6 +27,17 @@ namespace smt {
 class SmtSolver;
 class ContextManager;
 
+/**
+ * An SMT driver that is based on deep restarts.
+ *
+ * The idea of this SMT driver is to call the SMT solver with all assertions
+ * with learned literal tracking enabled, and where it terminates with
+ * "unknown" if:
+ * - at least one literal has been learned, and
+ * - no literal has been learned after some threshold.
+ * In this case, we preprocess and checkSat again where the SMT solver has
+ * its PropEngine and TheoryEngine reset.
+ */
 class SmtDriverDeepRestarts : public SmtDriver
 {
  public:
