@@ -98,12 +98,13 @@ Node ExpandDefs::expandDefinitions(TNode n,
       worklist.push(std::make_tuple(
           Node(n), node, true));  // Original and rewritten result
 
-      for (size_t i = 0; i < node.getNumChildren(); ++i)
+      for (const Node& nc : node)
       {
+        // Rewrite the children of the result only
         worklist.push(
-            std::make_tuple(node[i],
-                            node[i],
-                            false));  // Rewrite the children of the result only
+            std::make_tuple(nc,
+                            nc,
+                            false));
       }
     }
     else
