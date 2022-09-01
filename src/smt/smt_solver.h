@@ -150,9 +150,10 @@ class SmtSolver : protected EnvObj
   theory::QuantifiersEngine* getQuantifiersEngine();
   /** Get a pointer to the preprocessor */
   Preprocessor* getPreprocessor();
+  /** Get the assertions maintained by this SMT solver */
+  Assertions& getAssertions();
   //------------------------------------------ end access methods
 
- private:
   /**
    * Check satisfiability for the given assertions object and assumptions.
    */
@@ -175,6 +176,8 @@ class SmtSolver : protected EnvObj
    * processes the results based on the options.
    */
   Result checkSatInternal();
+
+ private:
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
   /** The preprocessor of this SMT solver */
