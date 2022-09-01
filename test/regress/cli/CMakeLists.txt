@@ -686,6 +686,7 @@ set(regress_0_tests
   regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smtv1.smt2
   regress0/fuzz_3.smtv1.smt2
+  regress0/get-value-div-0.smt2
   regress0/get-value-incremental.smt2
   regress0/get-value-ints.smt2
   regress0/get-value-no-evaluate.smt2
