@@ -152,8 +152,11 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
   if (n.getKind() == SET_MINUS && n[1].getKind() == SET_MINUS
       && n[1][0] == n[0])
   {
-    // note this cannot be a rewrite rule, since it impacts the cardinality
-    // graph.
+    // Note this cannot be a rewrite rule, since it impacts the cardinality
+    // graph. In particular, if we internally inspect
+    // (setminus A (setminus A B)), for instance if we are splitting the Venn
+    // regions of A and (setminus A B), then we should not transform this
+    // to an intersection term.
     // (setminus A (setminus A B)) = (intersection A B)
     NodeManager* nm = NodeManager::currentNM();
     Node intersection = nm->mkNode(SET_INTER, n[0], n[1][1]);
