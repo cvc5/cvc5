@@ -4,7 +4,7 @@
 ; EXPECT: not declared
 ; SCRUBBER: grep -o "sat\|not declared"
 ; EXIT: 1
-(set-logic QF_BVLIA)
+(set-logic QF_UFBVLIA)
 (declare-const x (_ BitVec 4))
 (assert (= (bv2nat x) 0))
 (check-sat)

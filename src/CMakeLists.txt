@@ -821,6 +821,16 @@ libcvc5_add_sources(
   theory/quantifiers/fun_def_evaluator.h
   theory/quantifiers/ho_term_database.cpp
   theory/quantifiers/ho_term_database.h
+  theory/quantifiers/ieval/free_var_info.cpp
+  theory/quantifiers/ieval/free_var_info.h
+  theory/quantifiers/ieval/pattern_term_info.cpp
+  theory/quantifiers/ieval/pattern_term_info.h
+  theory/quantifiers/ieval/quant_info.cpp
+  theory/quantifiers/ieval/quant_info.h
+  theory/quantifiers/ieval/state.cpp
+  theory/quantifiers/ieval/state.h
+  theory/quantifiers/ieval/term_evaluator.cpp
+  theory/quantifiers/ieval/term_evaluator.h
   theory/quantifiers/index_trie.cpp
   theory/quantifiers/index_trie.h
   theory/quantifiers/inst_match.cpp
@@ -920,6 +930,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/print_sygus_to_builtin.cpp
+  theory/quantifiers/sygus/print_sygus_to_builtin.h
   theory/quantifiers/sygus/rcons_obligation.cpp
   theory/quantifiers/sygus/rcons_obligation.h
   theory/quantifiers/sygus/rcons_type_info.cpp
@@ -1166,6 +1178,8 @@ libcvc5_add_sources(
   theory/type_set.h
   theory/uf/cardinality_extension.cpp
   theory/uf/cardinality_extension.h
+  theory/uf/conversions_solver.cpp
+  theory/uf/conversions_solver.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_iterator.cpp

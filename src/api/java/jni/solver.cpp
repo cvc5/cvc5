@@ -2836,3 +2836,18 @@ Java_io_github_cvc5_Solver_getNullDatatypeDecl(JNIEnv* env, jobject, jlong)
   return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    getVersion
+ * Signature: (JLjava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Solver_getVersion(JNIEnv* env,
+                                                                jobject,
+                                                                jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  return env->NewStringUTF(solver->getVersion().c_str());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}

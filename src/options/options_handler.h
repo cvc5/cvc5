@@ -91,8 +91,6 @@ class OptionsHandler
   void setStatsDetail(const std::string& flag, bool value);
   /** Enable a particular trace tag */
   void enableTraceTag(const std::string& flag, const std::string& optarg);
-  /** Enable a particular debug tag */
-  void enableDebugTag(const std::string& flag, const std::string& optarg);
   /** Enable a particular output tag */
   void enableOutputTag(const std::string& flag, OutputTag optarg);
   /** Pass the resource weight specification to the resource manager */
@@ -110,8 +108,6 @@ class OptionsHandler
   void showCopyright(const std::string& flag, bool value);
   /** Show version information and exit */
   void showVersion(const std::string& flag, bool value);
-  /** Show all debug tags and exit */
-  void showDebugTags(const std::string& flag, bool value);
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& flag, bool value);
 
