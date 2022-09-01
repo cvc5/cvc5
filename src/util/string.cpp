@@ -106,8 +106,9 @@ bool String::rstrncmp(const String& y, std::size_t n) const
 
 void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
 {
-  // if not a printable character
-  if (ch > 127 || ch < 32)
+  // if not a printable or whitespace character see SMT-LIB Standard Version
+  // 2.6, page 22
+  if ((ch > 127 || ch < 32) && ch != '\t' && ch != '\n' && ch != '\r')
   {
     std::stringstream serr;
     serr << "Illegal string character: \"" << ch

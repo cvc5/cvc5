@@ -715,7 +715,24 @@ setOptionInternal[std::unique_ptr<cvc5::Command>* cmd]
   cvc5::Term sexpr;
 }
   : keyword[name] symbolicExpr[sexpr]
-    { cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr)));
+    {
+      std::string value;
+      if (sexpr.isStringValue())
+      {
+        // For string values, we take the value itself and not the regular
+        // string conversion. The regular string conversion adds double quotes,
+        // which leads to issues with options that expect a string. For
+        // example, `(set-option :diagnostic-output-channel "stdout")` creates
+        // a file "stdout" (including the double quotes), instead of using
+        // standard out for diagnostic messages.
+        std::wstring wvalue = sexpr.getStringValue();
+        value = std::string(wvalue.begin(), wvalue.end());
+      }
+      else
+      {
+        value = sexprToString(sexpr);
+      }
+      cmd->reset(new SetOptionCommand(name.c_str() + 1, value));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SolverEngine eventually (if ever) executes it.
@@ -1109,21 +1126,21 @@ datatypesDef[bool isCo,
   }
   ;
 
-simpleSymbolicExprNoKeyword[std::string& s]
-  : INTEGER_LITERAL
-    { s = AntlrInput::tokenText($INTEGER_LITERAL); }
-  | DECIMAL_LITERAL
-    { s = AntlrInput::tokenText($DECIMAL_LITERAL); }
-  | HEX_LITERAL
-    { s = AntlrInput::tokenText($HEX_LITERAL); }
-  | BINARY_LITERAL
-    { s = AntlrInput::tokenText($BINARY_LITERAL); }
+simpleSymbolicExprNoKeyword[cvc5::Term& sexpr]
+  : specConstant[sexpr]
+  // Symbols and tokens are turned into constants with type Bool to ensure that
+  // they are printed correctly (e.g., turning them into strings would add
+  // unwanted double quotes)
   | SIMPLE_SYMBOL
-    { s = AntlrInput::tokenText($SIMPLE_SYMBOL); }
+    {
+      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
+                              AntlrInput::tokenText($SIMPLE_SYMBOL));
+    }
   | QUOTED_SYMBOL
-    { s = AntlrInput::tokenText($QUOTED_SYMBOL); }
-  | STRING_LITERAL
-    { s = AntlrInput::tokenText($STRING_LITERAL); }
+    {
+      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
+                              AntlrInput::tokenText($QUOTED_SYMBOL));
+    }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
@@ -1133,7 +1150,10 @@ simpleSymbolicExprNoKeyword[std::string& s]
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
-    { s = AntlrInput::tokenText($tok); }
+    {
+      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
+                              AntlrInput::tokenText($tok));
+    }
   ;
 
 keyword[std::string& s]
@@ -1141,18 +1161,23 @@ keyword[std::string& s]
     { s = AntlrInput::tokenText($KEYWORD); }
   ;
 
-simpleSymbolicExpr[std::string& s]
-  : simpleSymbolicExprNoKeyword[s]
-  | KEYWORD { s = AntlrInput::tokenText($KEYWORD); }
+simpleSymbolicExpr[cvc5::Term& sexpr]
+  : simpleSymbolicExprNoKeyword[sexpr]
+  // Keywords are turned into constants with type Bool to ensure that they are
+  // printed correctly (e.g., turning them into strings would add unwanted
+  // double quotes)
+  | KEYWORD
+    { 
+      sexpr = SOLVER->mkConst(SOLVER->getBooleanSort(),
+                              AntlrInput::tokenText($KEYWORD));
+    }
   ;
 
 symbolicExpr[cvc5::Term& sexpr]
 @declarations {
-  std::string s;
   std::vector<cvc5::Term> children;
 }
-  : simpleSymbolicExpr[s]
-    { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
+  : simpleSymbolicExpr[sexpr]
   | LPAREN_TOK
     ( symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN_TOK
     { sexpr = SOLVER->mkTerm(cvc5::SEXPR, children); }
@@ -1705,17 +1730,7 @@ termAtomic[cvc5::Term& atomTerm]
   std::string s;
   std::vector<uint32_t> numerals;
 }
-    /* constants */
-  : INTEGER_LITERAL
-    {
-      std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
-      atomTerm = PARSER_STATE->mkRealOrIntFromNumeral(intStr);
-    }
-  | DECIMAL_LITERAL
-    {
-      std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
-      atomTerm = SOLVER->mkReal(realStr);
-    }
+  : specConstant[atomTerm]
 
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
@@ -1739,23 +1754,6 @@ termAtomic[cvc5::Term& atomTerm]
     )
     RPAREN_TOK
 
-  // Bit-vector constants
-  | HEX_LITERAL
-    {
-      Assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
-      std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      atomTerm = SOLVER->mkBitVector(hexStr.size() * 4, hexStr, 16);
-    }
-  | BINARY_LITERAL
-    {
-      Assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
-      std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      atomTerm = SOLVER->mkBitVector(binStr.size(), binStr, 2);
-    }
-
-  // String constant
-  | str[s] { atomTerm = PARSER_STATE->mkStringConstant(s); }
-
   // NOTE: Theory constants go here
 
   // Empty tuple constant
@@ -1764,6 +1762,49 @@ termAtomic[cvc5::Term& atomTerm]
       atomTerm = SOLVER->mkTuple(std::vector<cvc5::Sort>(),
                                  std::vector<cvc5::Term>());
     }
+  ;
+
+/**
+ * Matches a special constant (corresponds to <spec_constant> in the SMT-LIB
+ * standard).
+ *
+ * @return the term representing the constant.
+ */
+specConstant[cvc5::Term& c]
+@init {
+  cvc5::Sort t;
+  std::string s;
+}
+  // Integer constants
+  : INTEGER_LITERAL
+    {
+      std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
+      c = PARSER_STATE->mkRealOrIntFromNumeral(intStr);
+    }
+
+  // Decimal constants
+  | DECIMAL_LITERAL
+    {
+      std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
+      c = SOLVER->mkReal(realStr);
+    }
+
+  // Bit-vector constants
+  | HEX_LITERAL
+    {
+      Assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
+      std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
+      c = SOLVER->mkBitVector(hexStr.size() * 4, hexStr, 16);
+    }
+  | BINARY_LITERAL
+    {
+      Assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
+      std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
+      c = SOLVER->mkBitVector(binStr.size(), binStr, 2);
+    }
+
+  // String constants
+  | str[s] { c = PARSER_STATE->mkStringConstant(s); }
   ;
 
 /**
@@ -1779,7 +1820,7 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   bool hasValue = false;
   cvc5::Kind k;
 }
-  : KEYWORD ( simpleSymbolicExprNoKeyword[s] { hasValue = true; } )?
+  : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
   {
     PARSER_STATE->attributeNotSupported(AntlrInput::tokenText($KEYWORD));
   }
