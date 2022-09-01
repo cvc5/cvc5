@@ -15,9 +15,9 @@
 
 #include "unsat_core_manager.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
-#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -56,10 +56,10 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 void UnsatCoreManager::getRelevantQuantTermVectors(
     std::shared_ptr<ProofNode> pfn,
     std::map<Node, InstantiationList>& insts,
-                                 std::map<Node, std::vector<Node>>& sks,
+    std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
@@ -111,20 +111,20 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
     {
       Node q = cur->getChildren()[0]->getResult();
       Node exists;
-      if (q.getKind() == kind::NOT && q.getKind()==kind::FORALL )
+      if (q.getKind() == kind::NOT && q.getKind() == kind::FORALL)
       {
         std::vector<Node> echildren(q[0].begin(), q[0].end());
         echildren[1] = echildren[1].notNode();
         exists = nm->mkNode(kind::EXISTS, echildren);
       }
-      else if (q.getKind()==kind::EXISTS)
+      else if (q.getKind() == kind::EXISTS)
       {
         exists = q;
       }
       if (!exists.isNull())
       {
         std::vector<Node> skolems;
-        SkolemManager * sm = nm->getSkolemManager();
+        SkolemManager* sm = nm->getSkolemManager();
         Node res = sm->mkSkolemize(q, skolems, "k");
         sks[q] = skolems;
       }

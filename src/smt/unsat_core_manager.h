@@ -63,9 +63,9 @@ class UnsatCoreManager
    * quantified formula is instiated.
    */
   void getRelevantQuantTermVectors(std::shared_ptr<ProofNode> pfn,
-                                 std::map<Node, InstantiationList>& insts,
-                                 std::map<Node, std::vector<Node>>& sks,
-                                 bool getDebugInfo = false);
+                                   std::map<Node, InstantiationList>& insts,
+                                   std::map<Node, std::vector<Node>>& sks,
+                                   bool getDebugInfo = false);
 
 }; /* class UnsatCoreManager */
 

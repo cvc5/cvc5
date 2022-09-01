@@ -1467,7 +1467,8 @@ UnsatCore SolverEngine::getUnsatCore()
 
 void SolverEngine::getRelevantQuantTermVectors(
     std::map<Node, InstantiationList>& insts,
-                                 std::map<Node, std::vector<Node>>& sks, bool getDebugInfo)
+    std::map<Node, std::vector<Node>>& sks,
+    bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
@@ -1627,7 +1628,8 @@ void SolverEngine::printInstantiations(std::ostream& out)
     }
   }
   // only print when in list mode
-  if (d_env->getOptions().quantifiers.printInstMode == options::PrintInstMode::LIST)
+  if (d_env->getOptions().quantifiers.printInstMode
+      == options::PrintInstMode::LIST)
   {
     for (const std::pair<const Node, std::vector<Node>>& s : sks)
     {
