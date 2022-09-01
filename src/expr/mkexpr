@@ -229,7 +229,7 @@ template <> $2 const & Expr::getConst< $2 >() const;
 "
   getConst_implementations="${getConst_implementations}
 template <> $2 const & Expr::getConst() const {
-  PrettyCheckArgument(getKind() == ::cvc5::internal::kind::$1, *this, \"Improper kind for getConst<$2>()\");
+Assert(getKind() == ::cvc5::internal::kind::$1) << \"Improper kind for getConst<$2>()\";
   return d_node->getConst< $2 >();
 }
 "

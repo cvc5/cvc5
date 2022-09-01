@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rep_set_iterator.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::context;
@@ -295,7 +296,7 @@ void ModelEngine::exhaustiveInstantiate(Node q, int effort)
     }
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    QRepBoundExt qrbe(qbi, fm);
+    QRepBoundExt qrbe(d_env, qbi, d_qstate, d_treg, q);
     RepSetIterator riter(fm->getRepSet(), &qrbe);
     if (riter.setQuantifier(q))
     {
