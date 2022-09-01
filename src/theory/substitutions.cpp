@@ -113,6 +113,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       }
       // Mark the substitution and continue
       Node result = builder;
+      result = rewrite(result);
       if (result != current) {
         find = cache.find(result);
         if (find != cache.end()) {
@@ -135,7 +136,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
         }
       }
       Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
-      cache[current] = rewrite(result);
+      cache[current] = result;
       toVisit.pop_back();
     }
     else
