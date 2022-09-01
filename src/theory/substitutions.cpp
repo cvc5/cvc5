@@ -58,7 +58,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
   Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << ")" << endl;
 
   if (d_substitutions.empty()) {
-    return t;
+    return rewrite(t);
   }
 
   // Do a topological sort of the subexpressions and substitute them
@@ -112,7 +112,6 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       }
       // Mark the substitution and continue
       Node result = builder;
-      result = rewrite(result);
       if (result != current) {
         find = cache.find(result);
         if (find != cache.end()) {
@@ -135,7 +134,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
         }
       }
       Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << result << endl;
-      cache[current] = result;
+      cache[current] = rewrite(result);
       toVisit.pop_back();
     }
     else
@@ -168,7 +167,7 @@ Node SubstitutionMap::internalSubstitute(TNode t,
       {
         // No children, so we're done
         Trace("substitution::internal") << "SubstitutionMap::internalSubstitute(" << t << "): setting " << current << " -> " << current << endl;
-        cache[current] = current;
+        cache[current] = rewrite(current);
         toVisit.pop_back();
       }
     }
