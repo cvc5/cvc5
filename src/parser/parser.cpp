@@ -331,9 +331,9 @@ cvc5::Sort Parser::mkUnresolvedType(const std::string& name)
 
 cvc5::Term Parser::mkSExprSymbol(const std::string& name)
 {
-  // Symbols in S-expressions have no sort, so we turn them into constants with
-  // sort Bool to ensure that they are printed correctly (e.g., turning them
-  // into strings would add unwanted double quotes)
+  // Symbols in S-expressions have no sort, but we turn them into constants
+  // with sort Bool to ensure that they are printed correctly (e.g., turning
+  // them into strings would add unwanted double quotes)
   return d_solver->mkConst(d_solver->getBooleanSort(), name);
 }
 
