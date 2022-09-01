@@ -101,10 +101,7 @@ Node ExpandDefs::expandDefinitions(TNode n,
       for (const Node& nc : node)
       {
         // Rewrite the children of the result only
-        worklist.push(
-            std::make_tuple(nc,
-                            nc,
-                            false));
+        worklist.push(std::make_tuple(nc, nc, false));
       }
     }
     else
