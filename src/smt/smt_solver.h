@@ -67,7 +67,6 @@ class SmtSolver : protected EnvObj
  public:
   SmtSolver(Env& env,
             AbstractValues& abs,
-            Assertions& asserts,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -87,7 +86,7 @@ class SmtSolver : protected EnvObj
    * assertions that have been buffered into as, preprocesses them, pushes them
    * into the SMT solver, and clears the buffer.
    */
-  void processAssertions(Assertions& as);
+  void processAssertions();
   /**
    * Get the list of preprocessed assertions. Only valid if
    * trackPreprocessedAssertions is true.
@@ -137,13 +136,13 @@ class SmtSolver : protected EnvObj
    * Preprocess the assertions. This calls the preprocessor on the assertions
    * and sets d_ppAssertions / d_ppSkolemMap if necessary.
    */
-  void preprocess(Assertions& as);
+  void preprocess();
   /**
    * Push the assertions to the prop engine. Assumes that as has been
    * preprocessed. This pushes the assertions in as into the prop engine of
    * this solver and subsequently clears as.
    */
-  void assertToInternal(Assertions& as);
+  void assertToInternal();
   /**
    * Check satisfiability based on the current state of the prop engine.
    * This assumes we have pushed the necessary assertions to it. It post
@@ -156,8 +155,8 @@ class SmtSolver : protected EnvObj
   bool trackPreprocessedAssertions() const;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
-  /** The assertions of the parent solver engine */
-  Assertions& d_asserts;
+  /** Assertions manager */
+  smt::Assertions d_asserts;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */
