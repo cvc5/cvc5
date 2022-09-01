@@ -103,8 +103,7 @@ class SubstitutionMap
   CacheInvalidator d_cacheInvalidator;
 
  public:
-  SubstitutionMap(context::Context* context = nullptr,
-             Rewriter* r = nullptr);
+  SubstitutionMap(context::Context* context = nullptr, Rewriter* r = nullptr);
 
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions();

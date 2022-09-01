@@ -77,8 +77,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
       if (orig.getKind() != Kind::EQUAL) continue;
       tracker.clear();
       d_substitutions->invalidateCache();
-      Node o =
-          d_substitutions->apply(orig, &tracker, &stc);
+      Node o = d_substitutions->apply(orig, &tracker, &stc);
       if (o.getKind() != Kind::EQUAL) continue;
       Assert(o.getNumChildren() == 2);
       for (size_t i = 0; i < 2; ++i)
@@ -97,7 +96,8 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
         if (expr::hasSubterm(r, l)) continue;
         // the same, but after substitution
         d_substitutions->invalidateCache();
-        if (expr::hasSubterm(d_substitutions->apply(r, nullptr, &stc), l)) continue;
+        if (expr::hasSubterm(d_substitutions->apply(r, nullptr, &stc), l))
+          continue;
         Trace("nl-eqs") << "Found substitution " << l << " -> " << r
                         << std::endl
                         << " from " << o << " / " << orig << std::endl;
@@ -117,8 +117,7 @@ std::vector<Node> EqualitySubstitution::eliminateEqualities(
     {
       tracker.clear();
       d_substitutions->invalidateCache();
-      Node simp =
-          d_substitutions->apply(a, &tracker, &stc);
+      Node simp = d_substitutions->apply(a, &tracker, &stc);
       if (simp.isConst())
       {
         if (simp.getConst<bool>())

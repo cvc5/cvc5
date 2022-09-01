@@ -168,10 +168,7 @@ TrustNode TrustSubstitutionMap::applyTrusted(Node n)
   return TrustNode::mkTrustRewrite(n, ns, this);
 }
 
-Node TrustSubstitutionMap::apply(Node n)
-{
-  return d_subs.apply(n);
-}
+Node TrustSubstitutionMap::apply(Node n) { return d_subs.apply(n); }
 
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
 {

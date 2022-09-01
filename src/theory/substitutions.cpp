@@ -22,10 +22,9 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-SubstitutionMap::SubstitutionMap(context::Context* context,
-             Rewriter* r)
+SubstitutionMap::SubstitutionMap(context::Context* context, Rewriter* r)
     : d_context(),
-    d_rewriter(r),
+      d_rewriter(r),
       d_substitutions(context ? context : &d_context),
       d_substitutionCache(),
       d_cacheInvalidated(false),
@@ -235,8 +234,8 @@ Node SubstitutionMap::apply(TNode t,
   Node result = internalSubstitute(t, d_substitutionCache, tracker, stc);
   Trace("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
-  Assert(rewrite(result) == result) << "Non-idempotent rewrite: " << result
-                                        << " --> " << rewrite(result);
+  Assert(rewrite(result) == result)
+      << "Non-idempotent rewrite: " << result << " --> " << rewrite(result);
 
   return result;
 }
