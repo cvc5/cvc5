@@ -10,10 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Congruence manager, the interface to the equality engine from the
+ * linear arithmetic solver
  */
 
 #include "cvc5_private.h"
@@ -35,18 +33,12 @@
 #include "util/dense_map.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5::context {
-class Context;
-class UserContext;
-}  // namespace cvc5::context
-
 namespace cvc5::internal {
 
 class ProofNodeManager;
 class EagerProofGenerator;
 
 namespace theory {
-struct EeSetupInfo;
 
 namespace eq {
 class ProofEqEngine;
@@ -140,7 +132,7 @@ class ArithCongruenceManager : protected EnvObj
    * This is node is potentially both the propagation or
    * rewrite(propagation).
    */
-  typedef context::CDHashMap<Node, size_t> ExplainMap;
+  using ExplainMap = context::CDHashMap<Node, size_t>;
   ExplainMap d_explanationMap;
 
   ConstraintDatabase& d_constraintDatabase;
@@ -258,8 +250,6 @@ class ArithCongruenceManager : protected EnvObj
   } d_statistics;
 
 }; /* class ArithCongruenceManager */
-
-std::vector<Node> andComponents(TNode an);
 
 }  // namespace arith
 }  // namespace theory
