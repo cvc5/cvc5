@@ -962,7 +962,7 @@ Node SolverEngine::getValue(const Node& t) const
 
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
-  // cases of get-value to be accurate, e.g. when getting the value of
+  // cases of get-value to be accurate, e.g., when getting the value of
   // a division-by-zero term, we require getting the appropriate skolem
   // function corresponding to division-by-zero which may have been used during
   // the previous satisfiability check.

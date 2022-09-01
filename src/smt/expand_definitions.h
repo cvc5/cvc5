@@ -32,7 +32,7 @@ namespace smt {
  * This method is similar in nature to PropEngine::preprocess in that it
  * converts a (possibly user-provided) term into the form that we pass
  * internally. However, this method can be seen as a lightweight version
- * of that method which only does enough conversions to make e.g. get-value
+ * of that method which only does enough conversions to make, e.g., get-value
  * accurate on the resulting term. Moreover, this method does not impact
  * the state of lemmas known to the PropEngine.
  *
