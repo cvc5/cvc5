@@ -179,6 +179,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
           pfn, unifiedAssertions, true, options().proof.proofPruneInput);
+      Assert(pf->getRule() == PfRule::SCOPE);
       // 2. Extract minimum unified assertions from the scope node.
       std::unordered_set<Node> minUnifiedAssertions;
       minUnifiedAssertions.insert(pf->getArguments().cbegin(),
@@ -344,7 +345,8 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
                                             std::vector<Node>& definitions,
                                             std::vector<Node>& assertions)
 {
-  for (const Node& d : as.getAssertionListDefinitions())
+  const context::CDList<Node>& defs = as.getAssertionListDefinitions();
+  for (const Node& d : defs)
   {
     // Keep treating (mutually) recursive functions as declarations +
     // assertions.
@@ -353,7 +355,8 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
       definitions.push_back(d);
     }
   }
-  for (const Node& a : as.getAssertionList())
+  const context::CDList<Node>& asserts = as.getAssertionList();
+  for (const Node& a : asserts)
   {
     if (std::find(definitions.cbegin(), definitions.cend(), a)
         == definitions.cend())
