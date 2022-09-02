@@ -345,6 +345,8 @@ libcvc5_add_sources(
   smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
   smt/solver_engine_stats.h
+  smt/smt_driver.cpp
+  smt/smt_driver.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
@@ -695,6 +697,12 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/theory_ff.cpp
+  theory/ff/theory_ff.h
+  theory/ff/theory_ff_rewriter.cpp
+  theory/ff/theory_ff_rewriter.h
+  theory/ff/theory_ff_type_rules.cpp
+  theory/ff/theory_ff_type_rules.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
@@ -1312,6 +1320,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds

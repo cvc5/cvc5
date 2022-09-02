@@ -686,6 +686,7 @@ set(regress_0_tests
   regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smtv1.smt2
   regress0/fuzz_3.smtv1.smt2
+  regress0/get-value-div-0.smt2
   regress0/get-value-incremental.smt2
   regress0/get-value-ints.smt2
   regress0/get-value-no-evaluate.smt2
@@ -1120,6 +1121,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8466-syqi-bool.smt2
   regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
+  regress0/quantifiers/issue8923-qe-push-pop.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
