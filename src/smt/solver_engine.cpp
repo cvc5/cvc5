@@ -945,13 +945,17 @@ void SolverEngine::declareOracleFun(
   assertFormula(q);
 }
 
-Node SolverEngine::simplify(const Node& ex)
+Node SolverEngine::simplify(const Node& t)
 {
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
   d_smtSolver->processAssertions(*d_asserts);
-  return d_smtSolver->getPreprocessor()->simplify(ex);
+  // Substitute out any abstract values in node.
+  Node tt = d_absValues.substituteAbstractValues(t);
+  tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  // now rewrite
+  return rewrite(tt);
 }
 
 Node SolverEngine::getValue(const Node& t) const
@@ -960,6 +964,9 @@ Node SolverEngine::getValue(const Node& t) const
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
 
+  // Substitute out any abstract values in node.
+  Node tt = d_absValues.substituteAbstractValues(t);
+  
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
   // cases of get-value to be accurate, e.g., when getting the value of
@@ -970,7 +977,7 @@ Node SolverEngine::getValue(const Node& t) const
   ExpandDefs expDef(*d_env.get());
   // Must apply substitutions first to ensure we expand definitions in the
   // solved form of t as well.
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   n = expDef.expandDefinitions(n, cache);
 
   Trace("smt") << "--- getting value of " << n << endl;
