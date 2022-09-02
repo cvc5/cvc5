@@ -199,6 +199,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
           {d_pnm->mkNode(PfRule::SCOPE, pf->getChildren(), minAssertions)},
           minDefinitions);
     }
+    default: Unreachable();
   }
 }
 
