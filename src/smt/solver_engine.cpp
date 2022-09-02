@@ -967,7 +967,7 @@ Node SolverEngine::getValue(const Node& t) const
 
   // Substitute out any abstract values in node.
   Node tt = d_absValues->substituteAbstractValues(t);
-  
+
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
   // cases of get-value to be accurate, e.g., when getting the value of
