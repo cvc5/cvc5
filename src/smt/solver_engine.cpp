@@ -1704,8 +1704,12 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   finishInit();
-  return d_quantElimSolver->getQuantifierElimination(
+  d_ctxManager->doPendingPops();
+  d_ctxManager->notifyCheckSat(true);
+  Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
+  d_ctxManager->notifyCheckSatResult(true);
+  return result;
 }
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
