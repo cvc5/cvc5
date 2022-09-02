@@ -108,7 +108,7 @@ SolverEngine::SolverEngine(const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_asserts, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_asserts, *d_stats));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state, *d_smtSolver));
   // make the SyGuS solver
@@ -952,10 +952,11 @@ Node SolverEngine::simplify(const Node& t)
   // ensure we've processed assertions
   d_smtSolver->processAssertions(*d_asserts);
   // Substitute out any abstract values in node.
-  Node tt = d_absValues.substituteAbstractValues(t);
+  Node tt = d_absValues->substituteAbstractValues(t);
+  // apply substitutions
   tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   // now rewrite
-  return rewrite(tt);
+  return d_env->getRewriter()->rewrite(tt);
 }
 
 Node SolverEngine::getValue(const Node& t) const
@@ -965,7 +966,7 @@ Node SolverEngine::getValue(const Node& t) const
   TypeNode expectedType = t.getType();
 
   // Substitute out any abstract values in node.
-  Node tt = d_absValues.substituteAbstractValues(t);
+  Node tt = d_absValues->substituteAbstractValues(t);
   
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner

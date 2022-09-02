@@ -66,7 +66,6 @@ class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
-            AbstractValues& abs,
             Assertions& asserts,
             SolverEngineStatistics& stats);
   ~SmtSolver();
