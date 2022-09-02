@@ -1425,7 +1425,6 @@ if(USE_POLY)
 endif()
 if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
-  target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CoCoA)
 endif()
 
