@@ -48,11 +48,9 @@ class LfscPrinter
   ~LfscPrinter() {}
 
   /**
-   * Print the full proof of assertions => false by pn on output stream out.
+   * Print the full proof of false by pn on output stream out.
    */
-  void print(std::ostream& out,
-             const std::vector<Node>& assertions,
-             const ProofNode* pn);
+  void print(std::ostream& out, const ProofNode* pn);
 
   /**
    * Print node to stream in the expected format of LFSC.
