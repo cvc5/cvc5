@@ -13,8 +13,6 @@
  * The cvc5 Java API.
  */
 
-#include <iostream>
-
 #include "api/cpp/cvc5.h"
 #include "api_utilities.h"
 #include "io_github_cvc5_Solver.h"
