@@ -5,6 +5,8 @@ This file contains a summary of important user-visible changes.
 - API: New API function getVersion(), returns a string representation of
        the solver version.
 
+- Support for Web Assembly compilation using Emscripten.
+
 **Changes**
 
 - The (non-standard) operators BITVECTOR_TO_NAT and INT_TO_BITVECTOR now
