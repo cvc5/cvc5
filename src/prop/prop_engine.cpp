@@ -234,6 +234,13 @@ void PropEngine::assertTrustedLemmaInternal(TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   Trace("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
+  if (isOutputOn(OutputTag::LEMMAS))
+  {
+    output(OutputTag::LEMMAS) << "(lemma ";
+    // use original form of the lemma here
+    output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(node);
+    output(OutputTag::LEMMAS) << ")" << std::endl;
+  }
   bool negated = trn.getKind() == TrustNodeKind::CONFLICT;
   // should have a proof generator if the theory engine is proof producing
   Assert(!d_env.isTheoryProofProducing() || trn.getGenerator() != nullptr);
@@ -714,7 +721,7 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
 
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
-std::shared_ptr<ProofNode> PropEngine::getProof()
+std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)
 {
   if (!d_env.isSatProofProducing())
   {
@@ -723,7 +730,12 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   Trace("sat-proof") << "PropEngine::getProof: getting proof with cnfStream's "
                         "lazycdproof cxt lvl "
                      << userContext()->getLevel() << "\n";
-  return d_ppm->getProof();
+  return d_ppm->getProof(connectCnf);
+}
+
+std::vector<std::shared_ptr<ProofNode>> PropEngine::getProofLeaves(modes::ProofComponent pc)
+{
+  return d_ppm->getProofLeaves(pc);
 }
 
 bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }

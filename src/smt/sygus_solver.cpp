@@ -259,7 +259,7 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
   {
     std::vector<Node> query;
     query.push_back(d_conj);
-    r = d_smtSolver.checkSatisfiability(as, query);
+    r = d_smtSolver.checkSatisfiability(query);
   }
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
@@ -312,7 +312,8 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& solMap)
   if (usingSygusSubsolver())
   {
     // use the call to get the synth solutions from the subsolver
-    return d_subsolver->getSubsolverSynthSolutions(solMap);
+    return d_subsolver ? d_subsolver->getSubsolverSynthSolutions(solMap)
+                       : false;
   }
   return getSubsolverSynthSolutions(solMap);
 }
@@ -380,9 +381,9 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
     Assert(conj.getKind() == FORALL);
     Node conjBody = conj[1];
-    // we must expand definitions here, since define-fun may contain the
+    // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
-    conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
+    conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
     // Apply solution map to conjecture body
     conjBody = conjBody.substitute(
         fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
@@ -483,7 +484,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       // expandDefinitions.
       Node eop = op.isConst()
                      ? op
-                     : d_smtSolver.getPreprocessor()->expandDefinitions(op);
+                     : d_smtSolver.getPreprocessor()->applySubstitutions(op);
       eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments

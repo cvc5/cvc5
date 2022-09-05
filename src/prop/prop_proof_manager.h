@@ -18,6 +18,8 @@
 #ifndef CVC5__PROP_PROOF_MANAGER_H
 #define CVC5__PROP_PROOF_MANAGER_H
 
+#include "api/cpp/cvc5_types.h"
+
 #include "context/cdlist.h"
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
@@ -60,8 +62,21 @@ class PropPfManager : protected EnvObj
    * The connection is done by running the proof post processor d_pfpp over the
    * proof of false provided by d_satPM. See ProofPostProcessor for more
    * details.
+   *
+   * @param connectCnf If this flag is false, then all clausified preprocessed
+   * assertion and theory lemmas are free assumptions in the returned proof
+   * instead of being connected to their proofs.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof(bool connectCnf);
+
+  /** Return the vector of proofs for the respective proof component requested.
+   *
+   * The components may be of theory lemma proofs (closed proofs of valid theory
+   * clauses) or of preprocessed assertion proofs (them the preprocessed
+   * assertion assumptions to the added clauses to the SAT solver).
+   */
+  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
+      modes::ProofComponent pc);
 
   /**
    * Checks that the prop engine proof is closed w.r.t. the given assertions and
@@ -78,7 +93,7 @@ class PropPfManager : protected EnvObj
 
  private:
   /** The proof post-processor */
-  std::unique_ptr<prop::ProofPostproccess> d_pfpp;
+  std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
@@ -89,6 +104,8 @@ class PropPfManager : protected EnvObj
    * is also kept in a context-dependent manner.
    */
   context::CDList<Node> d_assertions;
+  /** The cnf stream proof generator */
+  ProofCnfStream* d_proofCnfStream;
 }; /* class PropPfManager */
 
 }  // namespace prop

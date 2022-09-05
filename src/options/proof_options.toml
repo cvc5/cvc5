@@ -131,3 +131,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Whether the proof node clusters (e.g. SAT, CNF, INPUT) will be printed when using the dot format or not."
+
+[[option]]
+  name       = "checkProofSteps"
+  category   = "expert"
+  long       = "check-proof-steps"
+  type       = "bool"
+  default    = "false"
+  help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"

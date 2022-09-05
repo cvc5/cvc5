@@ -235,153 +235,92 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
   return InstStrategyStatus::STATUS_UNKNOWN;
 }
 
-void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
-  Trace("auto-gen-trigger-debug") << "Generate triggers for " << f << ", #var=" << f[0].getNumChildren() << "..." << std::endl;
+void InstStrategyAutoGenTriggers::generateTriggers(Node q)
+{
+  Trace("auto-gen-trigger-debug")
+      << "Generate triggers for " << q << ", #var=" << q[0].getNumChildren()
+      << "..." << std::endl;
 
   // first, generate the set of pattern terms
-  if (!generatePatternTerms(f))
+  if (!generatePatternTerms(q))
   {
     Trace("auto-gen-trigger-debug")
         << "...failed to generate pattern terms" << std::endl;
     return;
   }
-
-  // then, group them to make triggers
-  unsigned rmin = d_patTerms[0][f].empty() ? 1 : 0;
-  unsigned rmax = options().quantifiers.multiTriggerWhenSingle ? 1 : rmin;
-  for (unsigned r = rmin; r <= rmax; r++)
+  // note that making triggers again may generate new ones, e.g. for
+  // multi-triggers where the selection is nondeterministic.
+  bool alreadyMadeTriggers = true;
+  if (d_madeTriggers.find(q) == d_madeTriggers.end())
   {
-    std::vector<Node> patTerms;
-    std::vector<Node>& ptc = d_patTerms[r][f];
-    for (const Node& p : ptc)
-    {
-      if (r == 1 || d_single_trigger_gen.find(p) == d_single_trigger_gen.end())
-      {
-        patTerms.push_back(p);
-      }
-    }
-    if (patTerms.empty())
-    {
-      continue;
-    }
-    Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
-    // sort terms based on relevance
+    alreadyMadeTriggers = false;
+    d_madeTriggers.insert(q);
+  }
+  // first, generate single triggers
+  std::vector<Node>& patTermsSingle = d_patTerms[0][q];
+  // Generating single triggers is deterministic. Only do this the first time
+  // (when alreadyMadeTriggers is false), since this code will generate no
+  // new triggers on subsequent calls.
+  if (!alreadyMadeTriggers && !patTermsSingle.empty())
+  {
+    size_t numSingleTriggersToUse = patTermsSingle.size();
     if (options().quantifiers.relevantTriggers)
     {
-      Assert(d_quant_rel);
-      sortQuantifiersForSymbol sqfs;
-      sqfs.d_quant_rel = d_quant_rel;
-      for (const Node& p : patTerms)
+      sortPatTermsByRelevance(patTermsSingle);
+      // consider only those that have the same score as the best
+      numSingleTriggersToUse = 1;
+      unsigned nqfs_curr = d_quant_rel->getNumQuantifiersForSymbol(
+          patTermsSingle[0].getOperator());
+      while (numSingleTriggersToUse < patTermsSingle.size()
+             && d_quant_rel->getNumQuantifiersForSymbol(
+                    patTermsSingle[numSingleTriggersToUse].getOperator())
+                    <= nqfs_curr)
       {
-        Assert(d_pat_to_mpat.find(p) != d_pat_to_mpat.end());
-        Assert(d_pat_to_mpat[p].hasOperator());
-        sqfs.d_op_map[p] = d_pat_to_mpat[p].getOperator();
-      }
-      // sort based on # occurrences (this will cause Trigger to select rarer
-      // symbols)
-      std::sort(patTerms.begin(), patTerms.end(), sqfs);
-      if (TraceIsOn("relevant-trigger"))
-      {
-        Trace("relevant-trigger") << "Terms based on relevance: " << std::endl;
-        for (const Node& p : patTerms)
-        {
-          Trace("relevant-trigger")
-              << "   " << p << " from " << d_pat_to_mpat[p] << " (";
-          Trace("relevant-trigger") << d_quant_rel->getNumQuantifiersForSymbol(
-                                           d_pat_to_mpat[p].getOperator())
-                                    << ")" << std::endl;
-        }
+        numSingleTriggersToUse++;
       }
     }
-    // now, generate the trigger...
-    Trigger* tr = NULL;
-    if (d_is_single_trigger[patTerms[0]])
+    // add all considered single triggers
+    for (size_t i = 0; i < numSingleTriggersToUse; i++)
     {
-      tr = d_td.mkTrigger(f,
-                          patTerms[0],
-                          false,
-                          TriggerDatabase::TR_RETURN_NULL,
-                          d_num_trigger_vars[f]);
-      d_single_trigger_gen[patTerms[0]] = true;
+      Trigger* tr = d_td.mkTrigger(q,
+                                   patTermsSingle[i],
+                                   false,
+                                   TriggerDatabase::TR_RETURN_NULL,
+                                   d_num_trigger_vars[q]);
+      addTrigger(tr, q);
     }
-    else
+    if (!options().quantifiers.multiTriggerWhenSingle)
     {
-      // only generate multi trigger if option set, or if no single triggers
-      // exist
-      if (!d_patTerms[0][f].empty())
-      {
-        if (options().quantifiers.multiTriggerWhenSingle)
-        {
-          Trace("multi-trigger-debug")
-              << "Resort to choosing multi-triggers..." << std::endl;
-        }
-        else
-        {
-          return;
-        }
-      }
-      // if we are re-generating triggers, shuffle based on some method
-      if (d_made_multi_trigger[f])
-      {
-        std::shuffle(patTerms.begin(),
-                     patTerms.end(),
-                     Random::getRandom());  // shuffle randomly
-      }
-      else
-      {
-        d_made_multi_trigger[f] = true;
-      }
-      // will possibly want to get an old trigger
-      tr = d_td.mkTrigger(f,
-                          patTerms,
-                          false,
-                          TriggerDatabase::TR_GET_OLD,
-                          d_num_trigger_vars[f]);
+      return;
     }
-    // if we generated a trigger above, add it
-    if (tr != nullptr)
-    {
-      addTrigger(tr, f);
-      if (tr->isMultiTrigger())
-      {
-        // only add a single multi-trigger
-        continue;
-      }
-    }
-    // if we are generating additional triggers...
-    if (patTerms.size() > 1)
-    {
-      // check if similar patterns exist, and if so, add them additionally
-      unsigned nqfs_curr = 0;
-      if (options().quantifiers.relevantTriggers)
-      {
-        nqfs_curr =
-            d_quant_rel->getNumQuantifiersForSymbol(patTerms[0].getOperator());
-      }
-      size_t index = 1;
-      bool success = true;
-      while (success && index < patTerms.size()
-             && d_is_single_trigger[patTerms[index]])
-      {
-        success = false;
-        if (!options().quantifiers.relevantTriggers
-            || d_quant_rel->getNumQuantifiersForSymbol(
-                   patTerms[index].getOperator())
-                   <= nqfs_curr)
-        {
-          d_single_trigger_gen[patTerms[index]] = true;
-          Trigger* tr2 = d_td.mkTrigger(f,
-                                        patTerms[index],
-                                        false,
-                                        TriggerDatabase::TR_RETURN_NULL,
-                                        d_num_trigger_vars[f]);
-          addTrigger(tr2, f);
-          success = true;
-        }
-        index++;
-      }
-    }
+    Trace("multi-trigger-debug")
+        << "Resort to choosing multi-triggers..." << std::endl;
   }
+  // now consider multi-triggers
+  std::vector<Node>& patTermsMulti = d_patTerms[1][q];
+  if (patTermsMulti.empty())
+  {
+    return;
+  }
+  if (alreadyMadeTriggers)
+  {
+    // shuffle randomly if we've already made a multi trigger
+    std::shuffle(
+        patTermsMulti.begin(), patTermsMulti.end(), Random::getRandom());
+  }
+  else
+  {
+    // otherwise, the default ordering may incorporate relevance
+    sortPatTermsByRelevance(patTermsMulti);
+  }
+  // will possibly want to get an old trigger
+  Trigger* tr = d_td.mkTrigger(q,
+                               patTermsMulti,
+                               false,
+                               TriggerDatabase::TR_GET_OLD,
+                               d_num_trigger_vars[q]);
+  addTrigger(tr, q);
+  // we only add a single multi-trigger
 }
 
 bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
@@ -587,7 +526,6 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     addPatternToPool(f, pat, num_fv, mpat);
   }
   // tinfo not used below this point
-  d_made_multi_trigger[f] = false;
   if (TraceIsOn("auto-gen-trigger"))
   {
     Trace("auto-gen-trigger")
@@ -619,10 +557,8 @@ void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned n
   if (num_fv == num_vars)
   {
     d_patTerms[0][q].push_back( pat );
-    d_is_single_trigger[ pat ] = true;
   }else{
     d_patTerms[1][q].push_back( pat );
-    d_is_single_trigger[ pat ] = false;
   }
 }
 
@@ -706,6 +642,39 @@ void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
   {
     Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q << std::endl;
     ung.push_back(pat[0]);
+  }
+}
+
+void InstStrategyAutoGenTriggers::sortPatTermsByRelevance(
+    std::vector<Node>& patTerms)
+{
+  if (!options().quantifiers.relevantTriggers)
+  {
+    return;
+  }
+  Assert(d_quant_rel);
+  sortQuantifiersForSymbol sqfs;
+  sqfs.d_quant_rel = d_quant_rel;
+  for (const Node& p : patTerms)
+  {
+    Assert(d_pat_to_mpat.find(p) != d_pat_to_mpat.end());
+    Assert(d_pat_to_mpat[p].hasOperator());
+    sqfs.d_op_map[p] = d_pat_to_mpat[p].getOperator();
+  }
+  // sort based on # occurrences (this will cause Trigger to select rarer
+  // symbols)
+  std::sort(patTerms.begin(), patTerms.end(), sqfs);
+  if (TraceIsOn("relevant-trigger"))
+  {
+    Trace("relevant-trigger") << "Terms based on relevance: " << std::endl;
+    for (const Node& p : patTerms)
+    {
+      Trace("relevant-trigger")
+          << "   " << p << " from " << d_pat_to_mpat[p] << " (";
+      Trace("relevant-trigger") << d_quant_rel->getNumQuantifiersForSymbol(
+          d_pat_to_mpat[p].getOperator())
+                                << ")" << std::endl;
+    }
   }
 }
 

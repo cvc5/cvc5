@@ -98,19 +98,19 @@ TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode BitVectorUnaryPredicateTypeRule::computeType(NodeManager* nodeManager,
-                                                      TNode n,
-                                                      bool check)
+TypeNode BitVectorRedTypeRule::computeType(NodeManager* nodeManager,
+                                           TNode n,
+                                           bool check)
 {
   if (check)
   {
     TypeNode type = n[0].getType(check);
     if (!type.isBitVector())
     {
-      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector terms");
+      throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
     }
   }
-  return nodeManager->booleanType();
+  return nodeManager->mkBitVectorType(1);
 }
 
 TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,

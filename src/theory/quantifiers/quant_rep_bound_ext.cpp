@@ -17,6 +17,7 @@
 
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_bound_inference.h"
+#include "theory/quantifiers/term_registry.h"
 
 using namespace cvc5::internal::kind;
 
@@ -24,8 +25,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m)
-    : d_qbi(qbi), d_model(m)
+QRepBoundExt::QRepBoundExt(Env& env,
+                           QuantifiersBoundInference& qbi,
+                           QuantifiersState& qs,
+                           TermRegistry& tr,
+                           TNode q)
+    : d_qbi(qbi), d_model(tr.getModel()), d_instMatch(env, qs, tr, q)
 {
 }
 

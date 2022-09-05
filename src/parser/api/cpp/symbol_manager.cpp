@@ -247,8 +247,8 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
 {
   Trace("sym-manager") << "SymbolManager: pushScope, isUserContext = "
                        << isUserContext << std::endl;
-  PrettyCheckArgument(!d_hasPushedScope.get() || !isUserContext,
-                      "cannot push a user context within a scope context");
+  Assert(!d_hasPushedScope.get() || !isUserContext)
+      << "cannot push a user context within a scope context";
   d_context.push();
   if (!isUserContext)
   {

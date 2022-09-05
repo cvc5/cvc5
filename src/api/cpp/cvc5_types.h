@@ -47,6 +47,8 @@ enum UnknownExplanation
   UNSUPPORTED,
   /** Other reason. */
   OTHER,
+  /** Requires another satisfiability check */
+  REQUIRES_CHECK_AGAIN,
   /** No specific reason given. */
   UNKNOWN_REASON
 };
@@ -149,19 +151,19 @@ enum LearnedLitType
    * In particular, literals in this category are of the form (= x t) where
    * x does not occur in t.
    */
-  PREPROCESS_SOLVED,
+  LEARNED_LIT_PREPROCESS_SOLVED,
   /**
    * A top-level literal (unit clause) from the preprocessed set of input
    * formulas.
    */
-  PREPROCESS,
+  LEARNED_LIT_PREPROCESS,
   /**
    * A literal from the preprocessed set of input formulas that does not
    * occur at top-level after preprocessing.
    *
    * Typically, this is the most interesting category of literals to learn.
    */
-  INPUT,
+  LEARNED_LIT_INPUT,
   /**
    * An internal literal that is solvable for an input variable.
    *
@@ -172,7 +174,7 @@ enum LearnedLitType
    * Note that solvable literals can be turned into substitutions during
    * preprocessing.
    */
-  SOLVABLE,
+  LEARNED_LIT_SOLVABLE,
   /**
    * An internal literal that can be made into a constant propagation for an
    * input term.
@@ -181,11 +183,11 @@ enum LearnedLitType
    * c is a constant, the preprocessed set of input formulas contains the
    * term t, but not the literal (= t c).
    */
-  CONSTANT_PROP,
+  LEARNED_LIT_CONSTANT_PROP,
   /** Any internal literal that does not fall into the above categories. */
-  INTERNAL,
+  LEARNED_LIT_INTERNAL,
   /** Special case for when produce-learned-literals is not set.  */
-  UNKNOWN
+  LEARNED_LIT_UNKNOWN
 };
 /** Writes a learned literal type to a stream. */
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype);
