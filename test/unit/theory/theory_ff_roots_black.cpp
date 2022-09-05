@@ -13,6 +13,7 @@
  * Black box testing of ff root finding.
  */
 
+#ifdef CVC5_USE_COCOA
 #include <CoCoA/BigInt.H>
 #include <CoCoA/QuotientRing.H>
 #include <CoCoA/RingZZ.H>
@@ -20,6 +21,7 @@
 #include <CoCoA/SparsePolyRing.H>
 #include <CoCoA/ring.H>
 #include <CoCoA/symbol.H>
+#endif  // CVC5_USE_COCOA
 
 #include <memory>
 #include <utility>
