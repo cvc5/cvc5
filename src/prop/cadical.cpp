@@ -206,17 +206,19 @@ bool CadicalSolver::ok() const { return d_inSatMode; }
 
 void CadicalSolver::setDrat()
 {
-  d_dratFile = fopen(tempDratFilePath, "wb");
+  sprintf(d_tempDratFilePath, "dratProof_%d.drat", getpid());
+  d_dratFile = fopen(d_tempDratFilePath, "wb");
   // Currently only non-binary proofs are supported
   d_solver->set_long_option("--no-binary");
-  d_solver->trace_proof(d_dratFile, tempDratFilePath);
+  d_solver->trace_proof(d_dratFile, d_tempDratFilePath);
 }
 
 std::string CadicalSolver::getDrat()
 {
   fclose(d_dratFile);
   d_solver->close_proof_trace();
-  std::ifstream dratFile(tempDratFilePath, std::ios::binary);
+  std::ifstream dratFile(d_tempDratFilePath, std::ios::binary);
+  d_tempDratFilePath[0] = 0;
   std::ostringstream dratFileStringStream;
   dratFileStringStream << dratFile.rdbuf();
   return dratFileStringStream.str();

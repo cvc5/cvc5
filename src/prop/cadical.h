@@ -97,7 +97,7 @@ class CadicalSolver : public SatSolver
   SatVariable d_true;
   SatVariable d_false;
   FILE* d_dratFile;
-  const char* tempDratFilePath = "temp-drat-file.drat";
+  char* d_tempDratFilePath;
 
   struct Statistics
   {

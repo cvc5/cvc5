@@ -349,9 +349,9 @@ void BVSolverBitblast::initSatSolver()
       d_satSolver.get(),
       d_bbRegistrar.get(),
       d_nullContext.get(),
-      /** If we are producing proofs for the SAT solver, we need to that all
-       *  literals created in the CNF stream are tracked, which is not the case
-       *  with the FormulaLitPolicy::INTERNAL
+      /** If we are producing proofs for the SAT solver, we need that all
+       * literals created in the CNF stream are tracked, which is not the case
+       * with FormulaLitPolicy::INTERNAL
        */
       isTheoryProofProducing ? prop::FormulaLitPolicy::TRACK
                              : prop::FormulaLitPolicy::INTERNAL,
@@ -426,10 +426,10 @@ std::vector<Node> BVSolverBitblast::getProofNodes(proof::DratProof dratProof)
   prop::SatLiteral zeroLiteral = prop::SatLiteral(0);
 
   std::vector<Node> args;
-  for (const proof::DratInstruction instruction : dratProof.getInstructions())
+  for (const proof::DratInstruction& instruction : dratProof.getInstructions())
   {
-    if (instruction.d_clause.size() == 0
-        || instruction.d_clause[0] == zeroLiteral)
+    Assert(!instruction.d_clause.empty());
+    if (instruction.d_clause[0] == zeroLiteral)
     {
       args.push_back(nm->mkNode(kind::SEXPR, {cl, lastFalseResolution}));
       break;
@@ -437,11 +437,10 @@ std::vector<Node> BVSolverBitblast::getProofNodes(proof::DratProof dratProof)
     std::vector<Node> clauseNodes;
     clauseNodes.emplace_back(
         instruction.d_kind == proof::DratInstructionKind::DELETION ? del : cl);
-    for (const prop::SatLiteral literal : instruction.d_clause)
+    for (const prop::SatLiteral& literal : instruction.d_clause)
     {
-      Node fact = d_cnfStream->getNode(literal);
-      Assert(!fact.isNull());
-      clauseNodes.emplace_back(fact);
+      Assert(d_cnfStream->hasLiteral(literal));
+      clauseNodes.emplace_back(d_cnfStream->getNode(literal));
     }
     args.push_back(nm->mkNode(kind::SEXPR, clauseNodes));
   }
