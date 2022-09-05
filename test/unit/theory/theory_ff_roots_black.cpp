@@ -36,6 +36,8 @@ using namespace theory;
 
 namespace test {
 
+#ifdef CVC5_USE_COCOA
+
 class TestTheoryFfRootsBlack : public TestSmt
 {
   void SetUp() override
@@ -258,6 +260,8 @@ TEST_F(TestTheoryFfRootsBlack, RootsFull)
     }
   }
 }
+
+#endif  // CVC5_USE_COCOA
 
 }  // namespace test
 }  // namespace cvc5::internal
