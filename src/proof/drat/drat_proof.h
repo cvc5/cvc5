@@ -50,8 +50,9 @@ struct DratInstruction
 
 /**
  * Class to handle a DRAT proof.
- * A plain (non-binary) proof can be interpreted to build it's instructions
- * structures.
+ *
+ * A DratProof instance is a sequence of DratInstructions build from a plain
+ * (non-binary) DRAT proof.
  */
 class DratProof
 {

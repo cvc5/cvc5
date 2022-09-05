@@ -90,8 +90,12 @@ class BVSolverBitblast : public BVSolver
    */
   void handleEagerAtom(TNode fact, bool assertFact);
 
-  /** Convert drat proof literals to the node literals given to the SAT
-   *  solver
+  /** Converts DRAT proof in terms of SAT literals to the corresponding Node
+   * literals.
+   *
+   * The result is a Node vector where each Node is an s-expression with a
+   * marker of whether it's a clause being added or deleted followed by the
+   * Node-level literals.
    */
   std::vector<Node> getProofNodes(proof::DratProof dratProof);
 
