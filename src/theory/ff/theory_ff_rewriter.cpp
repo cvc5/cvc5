@@ -27,54 +27,31 @@ namespace ff {
 RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
 {
   Trace("ff::rw::post") << "ff::postRewrite: " << t << std::endl;
-  if (t.isConst())
+  switch (t.getKind())
   {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
-  else if (t.isVar())
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
-  else
-  {
-    switch (Kind k = t.getKind())
-    {
-      case kind::FINITE_FIELD_NEG: return RewriteResponse(REWRITE_DONE, t);
-      case kind::FINITE_FIELD_ADD:
-        return RewriteResponse(REWRITE_DONE, postRewriteFfAdd(t));
-      case kind::FINITE_FIELD_MULT:
-        return RewriteResponse(REWRITE_DONE, postRewriteFfMult(t));
-      case kind::EQUAL:
-        return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));
-      default: Unhandled() << k;
-    }
+    case kind::FINITE_FIELD_NEG: return RewriteResponse(REWRITE_DONE, t);
+    case kind::FINITE_FIELD_ADD:
+      return RewriteResponse(REWRITE_DONE, postRewriteFfAdd(t));
+    case kind::FINITE_FIELD_MULT:
+      return RewriteResponse(REWRITE_DONE, postRewriteFfMult(t));
+    case kind::EQUAL: return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));
+    default: return RewriteResponse(REWRITE_DONE, t);
   }
 }
 
 RewriteResponse TheoryFiniteFieldsRewriter::preRewrite(TNode t)
 {
   Trace("ff::rw::pre") << "ff::preRewrite: " << t << std::endl;
-  if (t.isConst())
+  switch (t.getKind())
   {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
-  else if (t.isVar())
-  {
-    return RewriteResponse(REWRITE_DONE, t);
-  }
-  else
-  {
-    switch (Kind k = t.getKind())
-    {
-      case kind::FINITE_FIELD_NEG:
-        return RewriteResponse(REWRITE_DONE, preRewriteFfNeg(t));
-      case kind::FINITE_FIELD_ADD:
-        return RewriteResponse(REWRITE_DONE, preRewriteFfAdd(t));
-      case kind::FINITE_FIELD_MULT:
-        return RewriteResponse(REWRITE_DONE, preRewriteFfMult(t));
-      case kind::EQUAL: return RewriteResponse(REWRITE_DONE, t);
-      default: Unhandled() << k;
-    }
+    case kind::FINITE_FIELD_NEG:
+      return RewriteResponse(REWRITE_DONE, preRewriteFfNeg(t));
+    case kind::FINITE_FIELD_ADD:
+      return RewriteResponse(REWRITE_DONE, preRewriteFfAdd(t));
+    case kind::FINITE_FIELD_MULT:
+      return RewriteResponse(REWRITE_DONE, preRewriteFfMult(t));
+    case kind::EQUAL: return RewriteResponse(REWRITE_DONE, t);
+    default: return RewriteResponse(REWRITE_DONE, t);
   }
 }
 
@@ -117,8 +94,7 @@ Node postRewriteFfAdd(TNode t)
     else
     {
       std::optional<std::pair<Node, FfVal>> parsed = parseScalar(child);
-      std::pair<Node, FfVal> pair =
-          parsed.value_or(std::make_pair(child, one));
+      std::pair<Node, FfVal> pair = parsed.value_or(std::make_pair(child, one));
       const auto entry = scalarTerms.find(pair.first);
       if (entry == scalarTerms.end())
       {
