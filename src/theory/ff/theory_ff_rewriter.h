@@ -83,9 +83,6 @@ Node postRewriteFfMult(TNode t);
 /** postRewrite equality */
 Node postRewriteFfEq(TNode t);
 
-/** postRewrite disequality */
-Node postRewriteFfNotEq(TNode t);
-
 /** Parse as a product with a constant scalar */
 std::optional<std::pair<Node, FfVal>> parseScalar(TNode t);
 

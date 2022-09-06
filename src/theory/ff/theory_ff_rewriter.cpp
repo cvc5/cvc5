@@ -47,8 +47,6 @@ RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
         return RewriteResponse(REWRITE_DONE, postRewriteFfMult(t));
       case kind::EQUAL:
         return RewriteResponse(REWRITE_DONE, postRewriteFfEq(t));
-      case kind::NOT:
-        return RewriteResponse(REWRITE_DONE, postRewriteFfNotEq(t));
       default: Unhandled() << k;
     }
   }
@@ -77,7 +75,6 @@ RewriteResponse TheoryFiniteFieldsRewriter::preRewrite(TNode t)
       case kind::FINITE_FIELD_MULT:
         return RewriteResponse(REWRITE_DONE, preRewriteFfMult(t));
       case kind::EQUAL: return RewriteResponse(REWRITE_DONE, t);
-      case kind::NOT: return RewriteResponse(REWRITE_DONE, t);
       default: Unhandled() << k;
     }
   }
@@ -222,27 +219,6 @@ Node postRewriteFfEq(TNode t)
   else if (t[0] == t[1])
   {
     return NodeManager::currentNM()->mkConst<bool>(true);
-  }
-  else
-  {
-    return t;
-  }
-}
-
-/** postRewrite disequality */
-Node postRewriteFfNotEq(TNode t)
-{
-  Assert(t.getKind() == Kind::NOT);
-  Assert(t[0].getKind() == Kind::EQUAL);
-  if (t[0][0].isConst() && t[0][1].isConst())
-  {
-    FfVal l = t[0][0].getConst<FfVal>();
-    FfVal r = t[0][1].getConst<FfVal>();
-    return NodeManager::currentNM()->mkConst<bool>(l != r);
-  }
-  else if (t[0] == t[1])
-  {
-    return NodeManager::currentNM()->mkConst<bool>(false);
   }
   else
   {
