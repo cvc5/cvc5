@@ -1556,11 +1556,15 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
+    ProofScopeMode scopeMode =
+        connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
+                                  ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
+                                  : ProofScopeMode::UNIFIED
+                            : ProofScopeMode::NONE;
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
-      p = d_pfManager->connectProofToAssertions(
-          p, *d_asserts, connectMkOuterScope);
+      p = d_pfManager->connectProofToAssertions(p, *d_asserts, scopeMode);
     }
   }
   // print all proofs
