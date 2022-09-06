@@ -24,7 +24,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-// static
 RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
 {
   Trace("ff::rw::post") << "ff::postRewrite: " << t << std::endl;
@@ -52,7 +51,6 @@ RewriteResponse TheoryFiniteFieldsRewriter::postRewrite(TNode t)
   }
 }
 
-// static
 RewriteResponse TheoryFiniteFieldsRewriter::preRewrite(TNode t)
 {
   Trace("ff::rw::pre") << "ff::preRewrite: " << t << std::endl;
