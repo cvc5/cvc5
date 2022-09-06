@@ -50,25 +50,17 @@ file(GLOB_RECURSE source_files
      ${PROJECT_SOURCE_DIR}/src/*.g)
 
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
-  COMMAND ${PYTHON_EXECUTABLE} ${collect_tags_script} ${CMAKE_CURRENT_BINARY_DIR}/ Debug ${PROJECT_SOURCE_DIR}/src
-  DEPENDS ${collect_tags_script} ${source_files}
-)
-
-add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
-  COMMAND ${PYTHON_EXECUTABLE} ${collect_tags_script} ${CMAKE_CURRENT_BINARY_DIR}/ Trace ${PROJECT_SOURCE_DIR}/src
+  COMMAND ${PYTHON_EXECUTABLE} ${collect_tags_script} ${CMAKE_CURRENT_BINARY_DIR}/ ${PROJECT_SOURCE_DIR}/src
   DEPENDS ${collect_tags_script} ${source_files}
 )
 
 add_custom_target(gen-tags
   DEPENDS
-    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
     ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
 )
 
 set_source_files_properties(
-  ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
   ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
   PROPERTIES GENERATED TRUE
 )

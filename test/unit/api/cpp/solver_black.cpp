@@ -3517,5 +3517,10 @@ TEST_F(TestApiBlackSolver, verticalBars)
   ASSERT_EQ("|a |", a.toString());
 }
 
+TEST_F(TestApiBlackSolver, getVersion)
+{
+  std::cout << d_solver.getVersion() << std::endl;
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

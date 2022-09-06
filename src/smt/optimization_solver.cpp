@@ -156,7 +156,7 @@ std::unique_ptr<SolverEngine> OptimizationSolver::createOptCheckerWithTimeout(
   optChecker->setOption("incremental", "true");
   optChecker->setOption("produce-models", "true");
   // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
+  std::vector<Node> p_assertions = parentSMTSolver->getSubstitutedAssertions();
   for (const Node& e : p_assertions)
   {
     optChecker->assertFormula(e);

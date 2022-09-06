@@ -52,16 +52,6 @@ name   = "Driver"
   help       = "seed for random number generator"
 
 [[option]]
-  name       = "showDebugTags"
-  category   = "expert"
-  long       = "show-debug-tags"
-  type       = "bool"
-  default    = "false"
-  predicates = ["showDebugTags"]
-  alternate  = false
-  help       = "show all available tags for debugging"
-
-[[option]]
   name       = "showTraceTags"
   category   = "expert"
   long       = "show-trace-tags"

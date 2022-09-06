@@ -46,7 +46,7 @@ InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
   d_one = d_nm->mkConstInt(Rational(1));
 }
 
-Node InferenceGenerator::registerCountTerm(Node n)
+void InferenceGenerator::registerCountTerm(Node n)
 {
   Assert(n.getKind() == BAG_COUNT);
   Node element = d_state->getRepresentative(n[0]);
@@ -54,7 +54,6 @@ Node InferenceGenerator::registerCountTerm(Node n)
   Node count = d_nm->mkNode(BAG_COUNT, element, bag);
   Node skolem = registerAndAssertSkolemLemma(count, "bag.count");
   d_state->registerCountTerm(bag, element, skolem);
-  return skolem;
 }
 
 void InferenceGenerator::registerCardinalityTerm(Node n)
@@ -166,11 +165,9 @@ InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
   InferInfo inferInfo(d_im, InferenceId::BAGS_DISEQUALITY);
 
   Node countA = getMultiplicityTerm(witness, A);
-  Node skolemA = registerCountTerm(countA);
   Node countB = getMultiplicityTerm(witness, B);
-  Node skolemB = registerCountTerm(countB);
 
-  Node disequal = skolemA.eqNode(skolemB).notNode();
+  Node disequal = countA.eqNode(countB).notNode();
 
   inferInfo.d_premises.push_back(equality.notNode());
   inferInfo.d_conclusion = disequal;

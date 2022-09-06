@@ -369,6 +369,8 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
+Assertions& SmtSolver::getAssertions() { return d_asserts; }
+
 void SmtSolver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make

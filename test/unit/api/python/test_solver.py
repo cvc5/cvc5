@@ -2811,3 +2811,6 @@ def test_get_quantifier_elimination_disjunct(solver):
     with pytest.raises(RuntimeError):
         solver.getQuantifierEliminationDisjunct(cvc5.Solver().mkBoolean(False))
     solver.getQuantifierEliminationDisjunct(forall)
+
+def test_get_version(solver):
+    print(solver.getVersion())
