@@ -105,6 +105,20 @@ PfManager::PfManager(Env& env)
 
 PfManager::~PfManager() {}
 
+// Remove in favor of `std::erase_if` with C++ 20+.
+#if __cplusplus <= 202002L
+template <class T, class Alloc, class Pred>
+constexpr typename std::vector<T, Alloc>::size_type erase_if(
+    std::vector<T, Alloc>& c, Pred pred)
+{
+  typename std::vector<T, Alloc>::iterator it =
+      std::remove_if(c.begin(), c.end(), pred);
+  typename std::vector<T, Alloc>::size_type r = std::distance(it, c.end());
+  c.erase(it, c.end());
+  return r;
+}
+#endif
+
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
 {
@@ -189,10 +203,10 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
       std::vector<Node> minAssertions;
       getDefinitionsAndAssertions(as, minDefinitions, minAssertions);
       std::function<bool(Node)> predicate = [&minUnifiedAssertions](Node n) {
-        return minUnifiedAssertions.find(n) != minUnifiedAssertions.cend();
+        return minUnifiedAssertions.find(n) == minUnifiedAssertions.cend();
       };
-      std::remove_if(minDefinitions.begin(), minDefinitions.end(), predicate);
-      std::remove_if(minAssertions.begin(), minAssertions.end(), predicate);
+      erase_if(minDefinitions, predicate);
+      erase_if(minAssertions, predicate);
       // 4. Extract proof from unified scope and encapsulate it with split
       // scopes introducing minimized definitions and assertions.
       return d_pnm->mkNode(
