@@ -25,7 +25,6 @@ int main(void)
   slv.setOption("bool-to-bv", "all");
   slv.setOption("dag-thresh", "0");
   slv.setOption("fp-exp", "true");
-  slv.setOption("trace", "bool-to-bv");
   Sort s1 = slv.getRoundingModeSort();
   Term t1 = slv.mkConst(s1, "_x0");
   Term t15 = slv.mkConst(s1, "_x12");

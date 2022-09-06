@@ -277,6 +277,9 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   else if (safe_to_rebuild && needToRebuild(n))
   {
     // rebuild to incorporate changes to children
+    std::cout << "panda n: " << n << std::endl;
+    std::cout << "panda k: " << k << std::endl;
+    std::cout << "panda new_kind: " << new_kind << std::endl;
     rebuildNode(n, k);
   }
   else if (allowIteIntroduction && fromCache(n).getType().isBoolean())
@@ -380,7 +383,12 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
   {
     builder << n.getOperator();
   }
-
+  std::cout << "panda rebuild n: " << n << std::endl;
+  for (const Node& nn : n)
+    {
+    std::cout << "panda nn: " << nn << std::endl;
+      std::cout << "panda fromCache(nn): " << fromCache(nn) << std::endl;
+    }
   // special case IMPLIES because needs to be rewritten
   if ((k == kind::IMPLIES) && (new_kind != k))
   {
