@@ -1556,11 +1556,15 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
+    ProofScopeMode scopeMode =
+        connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
+                                  ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
+                                  : ProofScopeMode::UNIFIED
+                            : ProofScopeMode::NONE;
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
-      p = d_pfManager->connectProofToAssertions(
-          p, *d_asserts, connectMkOuterScope);
+      p = d_pfManager->connectProofToAssertions(p, *d_asserts, scopeMode);
     }
   }
   // print all proofs
@@ -1704,8 +1708,12 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   finishInit();
-  return d_quantElimSolver->getQuantifierElimination(
+  d_ctxManager->doPendingPops();
+  d_ctxManager->notifyCheckSat(true);
+  Node result = d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
+  d_ctxManager->notifyCheckSatResult(true);
+  return result;
 }
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)

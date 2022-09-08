@@ -64,10 +64,12 @@ class LfscProofPostprocessCallback : protected EnvObj,
   /** The term processor */
   LfscNodeConverter& d_tproc;
   /**
-   * Are we in the first call to update? This is to distinguish the top-most
-   * SCOPE.
+   * Are we in the first 2 calls to update? This is to distinguish the top-most
+   * SCOPEs.
    */
-  bool d_firstTime;
+  uint8_t d_numIgnoredScopes;
+  /** Assumptions corresponding to user-defined functions */
+  std::unordered_set<Node> d_defs;
   /** Add LFSC rule to cdp with children, args, conc */
   void addLfscRule(CDProof* cdp,
                    Node conc,
