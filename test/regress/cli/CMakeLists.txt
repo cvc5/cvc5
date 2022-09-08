@@ -1121,6 +1121,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8466-syqi-bool.smt2
   regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
+  regress0/quantifiers/issue8923-qe-push-pop.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2547,6 +2548,7 @@ set(regress_1_tests
   regress1/sets/issue5342.smt2
   regress1/sets/issue5342_difference_version.smt2
   regress1/sets/issue5942-witness.smt2
+  regress1/sets/issue8995-minus-rr.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
