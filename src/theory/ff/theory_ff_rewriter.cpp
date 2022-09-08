@@ -97,10 +97,10 @@ Node postRewriteFfAdd(TNode t)
     else
     {
       std::pair<Node, FfVal> pair = parseScalar(child);
-      const auto entry = scalarTerms.find(pair.first);
+      auto entry = scalarTerms.find(pair.first);
       if (entry == scalarTerms.end())
       {
-        scalarTerms.insert(pair);
+        entry = scalarTerms.insert(entry, pair);
       }
       else
       {
@@ -119,6 +119,11 @@ Node postRewriteFfAdd(TNode t)
     if (summand.second.getValue().isZero())
     {
       // drop this term
+      //
+      // While (* x 0) will never be found as an original summand,
+      // x might get mapped to zero through cancellation.
+      //
+      // consider: (+ (+ x y) (+ (* -1 x) z)).
     }
     else if (summand.second.getValue().isOne())
     {
@@ -133,6 +138,7 @@ Node postRewriteFfAdd(TNode t)
   }
   if (summands.size() == 0)
   {
+    // again, this is possible through cancellation.
     return nm->mkConst(FfVal::mkZero(field.getFfSize()));
   }
   return mkNary(Kind::FINITE_FIELD_ADD, std::move(summands));
