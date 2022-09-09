@@ -136,7 +136,7 @@ cvc5_option(STATIC_BINARY "Link against static system libraries \
 set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
 set(WASM "OFF" CACHE STRING "Use a specific extension for WebAssembly compilation")
 
-# Make sure no other avaible value will be assigned to this variable
+# Make sure no other available value will be assigned to this variable
 if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML" OR WASM STREQUAL "OFF"))
   message(FATAL_ERROR "${WASM} is not a valid wasm flag value.")
 endif()
