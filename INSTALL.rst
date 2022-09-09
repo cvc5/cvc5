@@ -76,7 +76,7 @@ latter). Setting up emsdk can be done as follows:
 Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
 to ensure that all required dependencies are installed on the system.
 
-Then, in the cvc5:
+Then, in the cvc5 directory:
 
 .. code:: bash
 
