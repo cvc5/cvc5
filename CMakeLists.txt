@@ -152,6 +152,7 @@ else()
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
   string(TOLOWER ".${WASM}" WASM_EXTENSION)
   set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
 endif()
 
 #-----------------------------------------------------------------------------#

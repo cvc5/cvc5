@@ -145,6 +145,12 @@ if(NOT Poly_FOUND_SYSTEM)
 
   set(POLY_CC_FLAGS )
   if(NOT(WASM STREQUAL "OFF"))
+    # The flag -Wall is set as default in cvc5, then these flags bellow make
+    # sure the wasm compilation doesn't abort when compiling LibPoly. At
+    # https://github.com/SRI-CSL/libpoly/blob/master/src/upolynomial/factorization.c#L1269-L1274
+    # LibPoly have a variable called enabled_count that is instantiated but its
+    # value is only written, never read. em++ and emcc identify it and throw a
+    # warning that aborts the compilation when only -Wall is activated.
     set(POLY_CC_FLAGS 
           -DCMAKE_CXX_FLAGS=-Wno-error=unused-but-set-variable
           -DCMAKE_C_FLAGS=-Wno-error=unused-but-set-variable
