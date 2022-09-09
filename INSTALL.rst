@@ -95,7 +95,7 @@ code).
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
 
-For an example if one wants to have an modularized glue code, you can try:
+For example, to generate modularized glue code, use:
 
 .. code:: bash
 
