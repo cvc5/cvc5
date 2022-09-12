@@ -186,7 +186,6 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
 
 SynthResult SygusSolver::checkSynth(bool isNext)
 {
-  Assertions& as = d_smtSolver.getAssertions();
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
   if (!isNext)
@@ -239,6 +238,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     if (usingSygusSubsolver())
     {
       // we generate a new solver engine to do the SyGuS query
+      Assertions& as = d_smtSolver.getAssertions();
       initializeSygusSubsolver(d_subsolver, as);
 
       // store the pointer (context-dependent)
@@ -299,6 +299,7 @@ SynthResult SygusSolver::checkSynth(bool isNext)
     // Check that synthesis solutions satisfy the conjecture
     if (options().smt.checkSynthSol)
     {
+      Assertions& as = d_smtSolver.getAssertions();
       checkSynthSolution(as, sol_map);
     }
   }
@@ -445,7 +446,8 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
       processed.insert(def);
     }
   }
-  // Also assert auxiliary assertions
+  // Also assert auxiliary assertions, which typically correspond to
+  // quantified formulas for define-fun-rec only.
   const context::CDList<Node>& alist = as.getAssertionList();
   for (size_t i = 0, asize = alist.size(); i < asize; ++i)
   {

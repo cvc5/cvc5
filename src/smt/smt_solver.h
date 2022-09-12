@@ -134,13 +134,13 @@ class SmtSolver : protected EnvObj
   //------------------------------------------ end access methods
   /**
    * Preprocess the assertions. This calls the preprocessor on the assertions
-   * and sets d_ppAssertions / d_ppSkolemMap if necessary.
+   * d_asserts and records d_ppAssertions / d_ppSkolemMap if necessary.
    */
   void preprocess();
   /**
-   * Push the assertions to the prop engine. Assumes that as has been
-   * preprocessed. This pushes the assertions in as into the prop engine of
-   * this solver and subsequently clears as.
+   * Push the assertions to the prop engine. Assumes that the assertions
+   * (d_asserts) have been preprocessed. This pushes the assertions
+   * into the prop engine of this solver and subsequently clears d_asserts.
    */
   void assertToInternal();
   /**
