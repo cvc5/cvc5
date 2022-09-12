@@ -41,15 +41,20 @@ LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, rewriter::RewriteDb* rdb)
   d_ff = d_tproc.mkInternalSymbol("ff", d_boolType);
 }
 
-void LfscPrinter::print(std::ostream& out,
-                        const std::vector<Node>& assertions,
-                        const ProofNode* pn)
+void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
   Assert (!pn->getChildren().empty());
   // closing parentheses
   std::stringstream cparen;
-  const ProofNode* pnBody = pn->getChildren()[0].get();
+  const std::vector<Node>& definitions = pn->getArguments();
+  std::unordered_set<Node> definedSymbols;
+  for (const Node& n : definitions)
+  {
+    definedSymbols.insert(n[0]);
+  }
+  const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
+  const ProofNode* pnBody = pn->getChildren()[0]->getChildren()[0].get();
 
   // clear the rules we have warned about
   d_trustWarned.clear();
@@ -115,9 +120,12 @@ void LfscPrinter::print(std::ostream& out,
   {
     TypeNode st = s.getType();
     if (st.isDatatypeConstructor() || st.isDatatypeSelector()
-        || st.isDatatypeTester() || st.isDatatypeUpdater())
+        || st.isDatatypeTester() || st.isDatatypeUpdater()
+        || definedSymbols.find(s) != definedSymbols.cend())
     {
-      // constructors, selector, testers, updaters are defined by the datatype
+      // Constructors, selector, testers, updaters are defined by the datatype.
+      // Some definitions depend on declarations and other definitions. So, we
+      // print them in order after declarations.
       continue;
     }
     Node si = d_tproc.convert(s);
@@ -125,6 +133,13 @@ void LfscPrinter::print(std::ostream& out,
                     << d_tproc.getOrAssignIndexForVar(s) << " ";
     printType(preambleSymDecl, st);
     preambleSymDecl << "))" << std::endl;
+  }
+  for (const Node& def : definitions)
+  {
+    Node si = d_tproc.convert(def[0]);
+    preambleSymDecl << "(define " << si << ' ';
+    print(preambleSymDecl, def[1]);
+    preambleSymDecl << ')' << std::endl;
   }
   // [4b] user declared sorts
   Trace("lfsc-print-debug") << "; print user sorts" << std::endl;
@@ -739,6 +754,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // begins at index 2
       switch (lr)
       {
+        case LfscRule::DEFINITION: pf << as[1][0]; break;
         case LfscRule::SCOPE: pf << h << as[2] << cs[0]; break;
         case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;

@@ -40,6 +40,17 @@ class Assertions;
 class PreprocessProofGenerator;
 class ProofPostprocess;
 
+/** Modes for global Proof scopes introducing definitions and assertions. */
+enum class ProofScopeMode
+{
+  /** No global scopes. Open proof. */
+  NONE,
+  /** Proof closed by a unified scope introducing definitions and assertions. */
+  UNIFIED,
+  /** Proof closed by 2 nested scopes introducing definitions and assertions. */
+  DEFINITIONS_AND_ASSERTIONS,
+};
+
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
  * well as setting up the global proof checker and proof node manager.
@@ -114,7 +125,9 @@ class PfManager : protected EnvObj
    * These are considered assertions in the final proof.
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
-      std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope = true);
+      std::shared_ptr<ProofNode> pfn,
+      Assertions& as,
+      ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -129,8 +142,13 @@ class PfManager : protected EnvObj
   /**
    * Get assertions from the assertions
    */
-  void getAssertions(Assertions& as,
-                     std::vector<Node>& assertions);
+  void getAssertions(Assertions& as, std::vector<Node>& assertions);
+  /**
+   * Get definitions and assertions from the assertions
+   */
+  void getDefinitionsAndAssertions(Assertions& as,
+                                   std::vector<Node>& definitions,
+                                   std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
   /** The rewrite proof database. */
