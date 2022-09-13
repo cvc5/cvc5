@@ -226,5 +226,16 @@ TEST_F(TestApiBlackUncovered, Statistics)
     testing::internal::GetCapturedStdout();
 }
 
+TEST_F(TestApiBlackUncovered, DeclareOracleFun)
+{
+  // oracle functions currently not supported in Python API due to restrictions on passing functionals
+  d_solver.setOption("oracles", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkInteger(0);
+      });
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
