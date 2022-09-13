@@ -345,6 +345,10 @@ libcvc5_add_sources(
   smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
   smt/solver_engine_stats.h
+  smt/smt_driver.cpp
+  smt/smt_driver.h
+  smt/smt_driver_deep_restarts.cpp
+  smt/smt_driver_deep_restarts.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
@@ -695,6 +699,12 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/theory_ff.cpp
+  theory/ff/theory_ff.h
+  theory/ff/theory_ff_rewriter.cpp
+  theory/ff/theory_ff_rewriter.h
+  theory/ff/theory_ff_type_rules.cpp
+  theory/ff/theory_ff_type_rules.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
@@ -1316,6 +1326,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
@@ -1383,35 +1394,35 @@ endif()
 target_link_libraries(cvc5 PRIVATE ${RT_LIBRARIES})
 
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
-target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
+target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
 target_link_libraries(cvc5 PRIVATE CaDiCaL)
 
 if(USE_CLN)
   add_dependencies(cvc5-obj CLN)
-  target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${CLN_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
-  target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
 endif()
 if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
-  target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${Kissat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE Kissat)
 endif()
 if(USE_GLPK)
-  target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
 endif()
 if(USE_POLY)
   add_dependencies(cvc5-obj Polyxx)
-  target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
     target_link_libraries(cvc5 PRIVATE Polyxx)
   else()
@@ -1420,12 +1431,12 @@ if(USE_POLY)
 endif()
 if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
-  target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE CoCoA)
 endif()
 
 add_dependencies(cvc5-obj SymFPU)
-target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
+target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 target_link_libraries(cvc5 PRIVATE SymFPU)
 
 #-----------------------------------------------------------------------------#

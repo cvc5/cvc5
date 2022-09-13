@@ -82,7 +82,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         Node tmp = rewrite(cur[0]);
         d_constCache[cur] =
-            tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
+            tmp.isConst() ? RE_C_CONCRETE_CONSTANT : RE_C_VARIABLE;
       }
       else if (ck == REGEXP_ALLCHAR || ck == REGEXP_RANGE)
       {
@@ -103,7 +103,8 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
     }
     else if (it->second == RE_C_UNKNOWN)
     {
-      RegExpConstType ret = ck == REGEXP_COMPLEMENT ? RE_C_CONSTANT : RE_C_CONRETE_CONSTANT;
+      RegExpConstType ret =
+          ck == REGEXP_COMPLEMENT ? RE_C_CONSTANT : RE_C_CONCRETE_CONSTANT;
       for (const Node& cn : cur)
       {
         it = d_constCache.find(cn);
