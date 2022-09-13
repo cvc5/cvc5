@@ -83,13 +83,6 @@ class SmtSolver : protected EnvObj
    */
   void interrupt();
   /**
-   * Check satisfiability for the given assumptions and the current assertions.
-   *
-   * @param assumptions The assumptions for this check-sat call, which are
-   * temporary assertions.
-   */
-  Result checkSatisfiability(const std::vector<Node>& assumptions);
-  /**
    * Process the assertions that have been asserted in as. This moves the set of
    * assertions that have been buffered into as, preprocesses them, pushes them
    * into the SMT solver, and clears the buffer.
@@ -105,19 +98,6 @@ class SmtSolver : protected EnvObj
    * if trackPreprocessedAssertions is true.
    */
   const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
-  /**
-   * Perform a deep restart.
-   *
-   * This constructs a fresh copy of the theory engine and prop engine, and
-   * populates the given assertions for the next call to checkSatisfiability.
-   * In particular, we add the preprocessed assertions from the previous
-   * call to checkSatisfiability, as well as those in zll.
-   *
-   * @param as The assertions to populate
-   * @param zll The zero-level literals we learned on the previous call to
-   * checkSatisfiability.
-   */
-  void deepRestart(Assertions& as, const std::vector<Node>& zll);
   // --------------------------------------- callbacks from the context manager
   /**
    * Notify push pre, which is called just before the user context of the state
@@ -153,12 +133,6 @@ class SmtSolver : protected EnvObj
   /** Get the assertions maintained by this SMT solver */
   Assertions& getAssertions();
   //------------------------------------------ end access methods
-
-  /**
-   * Check satisfiability for the given assertions object and assumptions.
-   */
-  Result checkSatisfiability(Assertions& as,
-                             const std::vector<Node>& assumptions);
   /**
    * Preprocess the assertions. This calls the preprocessor on the assertions
    * and sets d_ppAssertions / d_ppSkolemMap if necessary.
