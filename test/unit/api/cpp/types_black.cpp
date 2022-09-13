@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of the Kind enum of the  C++ API.
+ * Black box testing of the cvc5_types file of the C++ API.
  */
 
 #include <algorithm>
