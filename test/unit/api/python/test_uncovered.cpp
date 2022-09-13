@@ -228,7 +228,8 @@ TEST_F(TestApiBlackUncovered, Statistics)
 
 TEST_F(TestApiBlackUncovered, DeclareOracleFun)
 {
-  // oracle functions currently not supported in Python API due to restrictions on passing functionals
+  // oracle functions currently not supported in Python API due to restrictions
+  // on passing functionals
   d_solver.setOption("oracles", "true");
   Sort iSort = d_solver.getIntegerSort();
   Term f = d_solver.declareOracleFun(
