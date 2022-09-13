@@ -15,6 +15,8 @@
  * Uses CoCoA for word-sized fields.
  *
  * Implements Rabin root-finding for larger ones.
+ *
+ * Reference: https://en.wikipedia.org/wiki/Berlekamp%E2%80%93Rabin_algorithm
  */
 
 #ifdef CVC5_USE_COCOA
@@ -89,7 +91,8 @@ std::string sstring(const T& t)
   return o.str();
 }
 
-// sorting based on strings because CoCoA doesn't cmp
+// sorting based on strings because CoCoA can't compare field elements:
+// it doesn't regard a integer quotient ring as an ordered domain.
 std::vector<CoCoA::RingElem> sortHack(
     const std::vector<CoCoA::RingElem>& values)
 {
