@@ -49,6 +49,17 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
 
 namespace cvc5::modes {
 
+std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode)
+{
+  switch (bmode)
+  {
+    case BlockModelsMode::LITERALS: out << "literals"; break;
+    case BlockModelsMode::VALUES: out << "values"; break;
+    default: out << "?";
+  }
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, LearnedLitType ltype)
 {
   switch (ltype)
