@@ -74,6 +74,7 @@ class ResourceOutListener;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
+class SmtDriver;
 class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
@@ -936,14 +937,6 @@ class CVC5_EXPORT SolverEngine
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
   /**
-   * Deep restart, assumes that we just ran a satisfiability check.
-   * Returns true if we wish to reconstruct the SMT solver and try again. If
-   * so, the SMT solver is deep restarted, and we are prepared to make another
-   * satisfiability check.
-   */
-  bool deepRestart();
-
-  /**
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
    */
@@ -1030,6 +1023,8 @@ class CVC5_EXPORT SolverEngine
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
+  /** The SMT solver driver */
+  std::unique_ptr<smt::SmtDriver> d_smtDriver;
 
   /**
    * The utility used for checking models
