@@ -929,6 +929,7 @@ set(regress_0_tests
   regress0/parser/issue7860-parse-only-reset.smt2
   regress0/parser/issue7894-parse-error-assoc.smt2
   regress0/parser/issue8377-resolve-indexed.smt2
+  regress0/parser/issue8767-exception.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -1035,6 +1036,8 @@ set(regress_0_tests
   regress0/proofs/scope.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
   regress0/proofs/trust-subs-eq-open.smt2
+  regress0/proofs/unused-def1.smt2
+  regress0/proofs/unused-def2.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -1121,6 +1124,7 @@ set(regress_0_tests
   regress0/quantifiers/issue8466-syqi-bool.smt2
   regress0/quantifiers/issue8609-subtype-assert.smt2
   regress0/quantifiers/issue8821-enum-interleave-types.smt2
+  regress0/quantifiers/issue8923-qe-push-pop.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macro-back-subs-sat.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -2547,6 +2551,7 @@ set(regress_1_tests
   regress1/sets/issue5342.smt2
   regress1/sets/issue5342_difference_version.smt2
   regress1/sets/issue5942-witness.smt2
+  regress1/sets/issue8995-minus-rr.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/proj-issue164.smt2
   regress1/sets/proj-issue178.smt2
