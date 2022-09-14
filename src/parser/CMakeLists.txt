@@ -130,8 +130,6 @@ add_dependencies(cvc5parser-objs ANTLR3)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 
-target_include_directories(cvc5parser-objs PRIVATE ${GMP_INCLUDE_DIR})
-
 add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parser-objs>
   $<TARGET_OBJECTS:cvc5parserapi-objs>
