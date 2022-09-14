@@ -36,11 +36,10 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     AbstractValues& abs,
                      Assertions& asserts,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_pp(env, abs, stats),
+      d_pp(env, stats),
       d_asserts(asserts),
       d_stats(stats),
       d_theoryEngine(nullptr),

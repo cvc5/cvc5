@@ -111,7 +111,7 @@ SolverEngine::SolverEngine(const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_asserts, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_asserts, *d_stats));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state, *d_smtSolver));
   // make the SyGuS solver
@@ -952,13 +952,18 @@ void SolverEngine::declareOracleFun(
   assertFormula(q);
 }
 
-Node SolverEngine::simplify(const Node& ex)
+Node SolverEngine::simplify(const Node& t)
 {
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
   d_smtSolver->processAssertions(*d_asserts);
-  return d_smtSolver->getPreprocessor()->simplify(ex);
+  // Substitute out any abstract values in node.
+  Node tt = d_absValues->substituteAbstractValues(t);
+  // apply substitutions
+  tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  // now rewrite
+  return d_env->getRewriter()->rewrite(tt);
 }
 
 Node SolverEngine::getValue(const Node& t) const
@@ -966,6 +971,9 @@ Node SolverEngine::getValue(const Node& t) const
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
+
+  // Substitute out any abstract values in node.
+  Node tt = d_absValues->substituteAbstractValues(t);
 
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
@@ -977,7 +985,7 @@ Node SolverEngine::getValue(const Node& t) const
   ExpandDefs expDef(*d_env.get());
   // Must apply substitutions first to ensure we expand definitions in the
   // solved form of t as well.
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   n = expDef.expandDefinitions(n, cache);
 
   Trace("smt") << "--- getting value of " << n << endl;
