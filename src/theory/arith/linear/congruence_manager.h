@@ -75,7 +75,7 @@ class ArithCongruenceManager : protected EnvObj
 
   void addWatchedPair(ArithVar s, TNode x, TNode y);
 
-  inline bool isWatchedVariable(ArithVar s) const
+  bool isWatchedVariable(ArithVar s) const
   {
     return d_watchedVariables.isMember(s);
   }
