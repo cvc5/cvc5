@@ -40,6 +40,7 @@ std::ostream& operator<<(std::ostream& out, TheoryId theoryId)
     case THEORY_UF: out << "THEORY_UF"; break;
     case THEORY_ARITH: out << "THEORY_ARITH"; break;
     case THEORY_BV: out << "THEORY_BV"; break;
+    case THEORY_FF: out << "THEORY_FF"; break;
     case THEORY_FP: out << "THEORY_FP"; break;
     case THEORY_ARRAYS: out << "THEORY_ARRAYS"; break;
     case THEORY_DATATYPES: out << "THEORY_DATATYPES"; break;
@@ -64,6 +65,7 @@ std::string getStatsPrefix(TheoryId theoryId)
     case THEORY_UF: return "theory::uf::"; break;
     case THEORY_ARITH: return "theory::arith::"; break;
     case THEORY_BV: return "theory::bv::"; break;
+    case THEORY_FF: return "theory::ff::"; break;
     case THEORY_FP: return "theory::fp::"; break;
     case THEORY_ARRAYS: return "theory::arrays::"; break;
     case THEORY_DATATYPES: return "theory::datatypes::"; break;

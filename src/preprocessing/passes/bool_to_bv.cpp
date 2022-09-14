@@ -240,7 +240,6 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
       break;
     }
   }
-
   Trace("bool-to-bv") << "safe_to_lower = " << safe_to_lower
                       << ", safe_to_rebuild = " << safe_to_rebuild << std::endl;
 
@@ -278,7 +277,6 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   else if (safe_to_rebuild && needToRebuild(n))
   {
     // rebuild to incorporate changes to children
-    Assert(k == new_kind);
     rebuildNode(n, k);
   }
   else if (allowIteIntroduction && fromCache(n).getType().isBoolean())
@@ -382,7 +380,6 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
   {
     builder << n.getOperator();
   }
-
   // special case IMPLIES because needs to be rewritten
   if ((k == kind::IMPLIES) && (new_kind != k))
   {
