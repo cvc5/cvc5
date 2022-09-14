@@ -75,7 +75,7 @@ QF_NRA)
   finishwith --decision=internal --nl-ext=none
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBV|AUFBVDTLIA|AUFBVFP|AUFNIA|UFFPDTLIRA|UFFPDTNIRA)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDTLIRA|AUFDTLIA|AUFDTLIRA|AUFBV|AUFBVDTLIA|AUFBVFP|AUFNIA|UFFPDTLIRA|UFFPDTNIRA)
   # initial runs 1 min
   trywith 30 --simplification=none --enum-inst
   trywith 30 --no-e-matching --enum-inst
@@ -136,7 +136,7 @@ LIA|LRA)
   ;;
 QF_AUFBV)
   trywith 600
-  finishwith --decision=justification-stoponly
+  finishwith --decision=stoponly
   ;;
 QF_ABV)
   trywith 50 --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
@@ -157,7 +157,7 @@ QF_AUFNIA)
   ;;
 QF_ALIA)
   trywith 140 --decision=justification --arrays-weak-equiv
-  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  finishwith --decision=stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
   trywith 300 --strings-exp --strings-fmf --no-jh-rlv-order

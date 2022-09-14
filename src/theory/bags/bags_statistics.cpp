@@ -15,15 +15,12 @@
 
 #include "theory/bags/bags_statistics.h"
 
-#include "smt/smt_statistics_registry.h"
-
 namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-BagsStatistics::BagsStatistics()
-    : d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>(
-        "theory::bags::rewrites"))
+BagsStatistics::BagsStatistics(StatisticsRegistry& sr)
+    : d_rewrites(sr.registerHistogram<Rewrite>("theory::bags::rewrites"))
 {
 }
 

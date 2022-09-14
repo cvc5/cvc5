@@ -429,14 +429,6 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         }
       }
     }
-
-    // throw exception if any datatype is not well-founded
-    for (unsigned i = 0; i < datatypes.size(); ++i) {
-      const cvc5::Datatype& dt = types[i].getDatatype();
-      if (!dt.isCodatatype() && !dt.isWellFounded()) {
-        throw ParserException(dt.getName() + " is not well-founded");
-      }
-    }
     return types;
   }
   catch (internal::IllegalArgumentException& ie)

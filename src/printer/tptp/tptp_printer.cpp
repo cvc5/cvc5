@@ -39,6 +39,13 @@ void TptpPrinter::toStream(std::ostream& out, TNode n) const
   n.toStream(out);
 }/* TptpPrinter::toStream() */
 
+void TptpPrinter::toStream(std::ostream& out, Kind k) const
+{
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  out << k;
+}
+
 void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   std::string statusName(m.isKnownSat() ? "FiniteModel"

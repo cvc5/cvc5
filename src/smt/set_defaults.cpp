@@ -97,6 +97,19 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
+  if (opts.proof.checkProofSteps)
+  {
+    notifyModifyOption("checkProofs", "true", "check-proof-steps");
+    opts.writeSmt().checkProofs = true;
+    if (!opts.proof.proofGranularityModeWasSetByUser)
+    {
+      // maximize the granularity
+      notifyModifyOption(
+          "proofGranularityMode", "dsl-rewrite", "check-proof-steps");
+      opts.writeProof().proofGranularityMode =
+          options::ProofGranularityMode::DSL_REWRITE;
+    }
+  }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
@@ -874,7 +887,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   }
   if (!d_isInternalSubsolver)
   {
-    if (opts.smt.produceAbducts || opts.smt.interpolants
+    if (opts.smt.produceAbducts || opts.smt.produceInterpolants
         || opts.quantifiers.sygusInference
         || opts.quantifiers.sygusRewSynthInput)
     {
@@ -935,9 +948,13 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     // we don't support proofs with SyGuS. One issue is that SyGuS evaluation
     // functions are incompatible with our equality proofs. Moreover, enabling
     // proofs for sygus (sub)solvers is irrelevant, since they are not given
-    // check-sat queries.
-    reason << "sygus";
-    return true;
+    // check-sat queries. Note however that we allow proofs in non-full modes
+    // (e.g. unsat cores).
+    if (opts.smt.proofMode == options::ProofMode::FULL)
+    {
+      reason << "sygus";
+      return true;
+    }
   }
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
@@ -949,7 +966,8 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
-  if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
+  if (opts.smt.proofMode == options::ProofMode::FULL
+      && opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
       && !opts.bv.bvSolverWasSetByUser)
   {
     verbose(1) << "Forcing internal bit-vector solver due to proof production."
@@ -1240,6 +1258,13 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
                  << std::endl;
       log.enableIntegers();
     }
+    logic = log;
+    logic.lock();
+  }
+  if (opts.quantifiers.globalNegate)
+  {
+    LogicInfo log(logic.getUnlockedCopy());
+    log.enableQuantifiers();
     logic = log;
     logic.lock();
   }
@@ -1783,6 +1808,16 @@ void SetDefaults::notifyModifyOption(const std::string& x,
     verbose(1) << " due to " << reason;
   }
   verbose(1) << std::endl;
+}
+
+void SetDefaults::disableChecking(Options& opts)
+{
+  opts.writeSmt().checkUnsatCores = false;
+  opts.writeSmt().produceProofs = false;
+  opts.writeSmt().checkProofs = false;
+  opts.writeSmt().debugCheckModels = false;
+  opts.writeSmt().checkModels = false;
+  opts.writeProof().checkProofSteps = false;
 }
 
 }  // namespace smt

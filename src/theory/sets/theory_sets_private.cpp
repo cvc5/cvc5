@@ -22,7 +22,8 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/sets_options.h"
-#include "smt/smt_statistics_registry.h"
+#include "theory/datatypes/project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
@@ -31,6 +32,7 @@
 
 using namespace std;
 using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory::datatypes;
 
 namespace cvc5::internal {
 namespace theory {
@@ -41,7 +43,6 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
                                      SolverState& state,
                                      InferenceManager& im,
                                      SkolemCache& skc,
-                                     ProofNodeManager* pnm,
                                      CarePairArgumentCallback& cpacb)
     : EnvObj(env),
       d_deq(context()),
@@ -52,7 +53,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_state(state),
       d_im(im),
       d_skCache(skc),
-      d_treg(d_env, state, im, skc, pnm),
+      d_treg(d_env, state, im, skc),
       d_rels(new TheorySetsRels(d_env, state, im, skc, d_treg)),
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_rels_enabled(false),
@@ -221,7 +222,11 @@ void TheorySetsPrivate::fullEffortCheck()
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
 
-    Trace("sets-eqc") << "Equality Engine:" << std::endl;
+    if (TraceIsOn("sets-eqc"))
+    {
+      Trace("sets-eqc") << "Equality Engine:" << std::endl;
+      Trace("sets-eqc") << d_equalityEngine->debugPrintEqc() << std::endl;
+    }
     std::map<TypeNode, unsigned> eqcTypeCount;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
     while (!eqcs_i.isFinished())
@@ -230,22 +235,10 @@ void TheorySetsPrivate::fullEffortCheck()
       TypeNode tn = eqc.getType();
       d_state.registerEqc(tn, eqc);
       eqcTypeCount[tn]++;
-      Trace("sets-eqc") << "[" << eqc << "] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
       while (!eqc_i.isFinished())
       {
         Node n = (*eqc_i);
-        if (n != eqc)
-        {
-          if (TraceIsOn("sets-eqc"))
-          {
-            Trace("sets-eqc") << n;
-            if (n.isConst())
-            {
-              Trace("sets-eqc") << " (const) ";
-            }
-          }
-        }
         TypeNode tnn = n.getType();
         // register it with the state
         d_state.registerTerm(eqc, tnn, n);
@@ -294,11 +287,8 @@ void TheorySetsPrivate::fullEffortCheck()
         }
         ++eqc_i;
       }
-      Trace("sets-eqc") << std::endl;
       ++eqcs_i;
     }
-
-    Trace("sets-eqc") << "...finished equality engine." << std::endl;
 
     if (TraceIsOn("sets-state"))
     {
@@ -387,6 +377,13 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check map down rules
     checkMapDown();
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      continue;
+    }
+    // check group up
+    checkGroups();
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -865,6 +862,378 @@ void TheorySetsPrivate::checkMapDown()
   }
 }
 
+void TheorySetsPrivate::checkGroups()
+{
+  const context::CDHashSet<Node>& groupTerms = d_state.getGroupTerms();
+  for (const Node& n : groupTerms)
+  {
+    checkGroup(n);
+  }
+}
+
+void TheorySetsPrivate::checkGroup(Node n)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  groupNotEmpty(n);
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  Node part = defineSkolemPartFunction(n);
+  Node A = d_state.getRepresentative(n[0]);
+
+  const std::map<Node, Node>& membersA = d_state.getMembers(A);
+  const std::map<Node, Node>& negativeMembersA = d_state.getNegativeMembers(A);
+  std::shared_ptr<context::CDHashSet<Node>> skolems =
+      d_state.getPartElementSkolems(n);
+  for (const auto& aPair : membersA)
+  {
+    if (skolems->contains(aPair.first))
+    {
+      // skip skolem elements that were introduced by groupPartCount below.
+      continue;
+    }
+    Node aRep = d_state.getRepresentative(aPair.first);
+    groupUp1(n, aRep, part);
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      return;
+    }
+  }
+  for (const auto& aPair : negativeMembersA)
+  {
+    Node aRep = d_state.getRepresentative(aPair.first);
+    groupUp2(n, aRep, part);
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
+    {
+      return;
+    }
+  }
+  Node nRep = d_state.getRepresentative(n);
+  const std::map<Node, Node>& parts = d_state.getMembers(nRep);
+  for (std::map<Node, Node>::const_iterator partIt1 = parts.begin();
+       partIt1 != parts.end();
+       ++partIt1)
+  {
+    Node part1 = d_state.getRepresentative(partIt1->first);
+    std::vector<Node> partEqc;
+    d_state.getEquivalenceClass(part1, partEqc);
+    bool newPart = true;
+    for (Node p : partEqc)
+    {
+      if (p.getKind() == APPLY_UF && p.getOperator() == part)
+      {
+        newPart = false;
+      }
+    }
+    if (newPart)
+    {
+      // only apply the groupPartCount rule for a part that does not have
+      // nodes of the form (part x) introduced by the group up rule above.
+      groupPartMember(n, part1, part);
+      d_im.doPendingLemmas();
+      if (d_im.hasSent())
+      {
+        return;
+      }
+    }
+    Node part1Rep = d_state.getRepresentative(part1);
+    const std::map<Node, Node>& partElements = d_state.getMembers(part1Rep);
+    for (std::map<Node, Node>::const_iterator i = partElements.begin();
+         i != partElements.end();
+         ++i)
+    {
+      Node x = d_state.getRepresentative(i->first);
+      if (!skolems->contains(x))
+      {
+        // only apply down rules for elements not generated by groupPartCount
+        // rule above
+        groupDown(n, part1, x, part);
+        d_im.doPendingLemmas();
+        if (d_im.hasSent())
+        {
+          return;
+        }
+      }
+
+      std::map<Node, Node>::const_iterator j = i;
+      ++j;
+      while (j != partElements.end())
+      {
+        Node y = d_state.getRepresentative(j->first);
+        // x, y should have the same projection
+        groupSameProjection(n, part1, x, y, part);
+        d_im.doPendingLemmas();
+        if (d_im.hasSent())
+        {
+          return;
+        }
+        ++j;
+      }
+
+      for (const auto& aPair : membersA)
+      {
+        Node y = d_state.getRepresentative(aPair.first);
+        if (x != y)
+        {
+          // x, y should have the same projection
+          groupSamePart(n, part1, x, y, part);
+          d_im.doPendingLemmas();
+          if (d_im.hasSent())
+          {
+            return;
+          }
+        }
+      }
+    }
+  }
+}
+
+void TheorySetsPrivate::groupNotEmpty(Node n)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode bagType = n.getType();
+  Node A = n[0];
+  Node emptyPart = nm->mkConst(EmptySet(A.getType()));
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+
+  Node A_isEmpty = A.eqNode(emptyPart);
+  std::vector<Node> exp;
+  exp.push_back(A_isEmpty);
+  Node singleton = nm->mkNode(SET_SINGLETON, emptyPart);
+  Node groupIsSingleton = skolem.eqNode(singleton);
+
+  Node conclusion = groupIsSingleton;
+  d_im.assertInference(
+      conclusion, InferenceId::SETS_RELS_GROUP_NOT_EMPTY, exp, 1);
+}
+
+void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Assert(x.getType() == n[0].getType().getSetElementType());
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node A = n[0];
+  TypeNode setType = A.getType();
+
+  Node member_x_A = nm->mkNode(SET_MEMBER, x, A);
+
+  std::vector<Node> exp;
+  exp.push_back(member_x_A);
+
+  Node part_x = nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+
+  Node member_x_part_x = nm->mkNode(SET_MEMBER, x, part_x);
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node member_part_x_n = nm->mkNode(SET_MEMBER, part_x, skolem);
+
+  Node emptyPart = nm->mkConst(EmptySet(setType));
+  Node member_emptyPart = nm->mkNode(SET_MEMBER, emptyPart, skolem);
+  Node emptyPart_not_member = member_emptyPart.notNode();
+
+  Node conclusion =
+      nm->mkNode(AND, {member_part_x_n, member_x_part_x, emptyPart_not_member});
+  d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_UP1, exp, 1);
+}
+
+void TheorySetsPrivate::groupUp2(Node n, Node x, Node part)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Assert(x.getType() == n[0].getType().getSetElementType());
+  NodeManager* nm = NodeManager::currentNM();
+  Node A = n[0];
+  TypeNode setType = A.getType();
+
+  Node member_x_A = nm->mkNode(SET_MEMBER, x, A);
+
+  std::vector<Node> exp;
+  exp.push_back(member_x_A.notNode());
+
+  Node part_x = nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  Node part_x_is_empty = part_x.eqNode(nm->mkConst(EmptySet(setType)));
+  Node conclusion = part_x_is_empty;
+  d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_UP2, exp, 1);
+}
+
+void TheorySetsPrivate::groupDown(Node n, Node B, Node x, Node part)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Assert(B.getType() == n.getType().getSetElementType());
+  Assert(x.getType() == n[0].getType().getSetElementType());
+  NodeManager* nm = NodeManager::currentNM();
+  Node A = n[0];
+  TypeNode setType = A.getType();
+
+  Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
+  std::vector<Node> exp;
+  exp.push_back(member_B_n);
+  exp.push_back(member_x_B);
+  Node member_x_A = nm->mkNode(SET_MEMBER, x, A);
+  Node part_x = nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  Node part_x_is_B = part_x.eqNode(B);
+  Node conclusion = nm->mkNode(AND, member_x_A, part_x_is_B);
+  d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_DOWN, exp, 1);
+}
+
+void TheorySetsPrivate::groupPartMember(Node n, Node B, Node part)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Assert(B.getType() == n.getType().getSetElementType());
+
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+
+  Node A = n[0];
+  TypeNode setType = A.getType();
+  Node empty = nm->mkConst(EmptySet(setType));
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
+  std::vector<Node> exp;
+  exp.push_back(member_B_n);
+  Node A_notEmpty = A.eqNode(empty).notNode();
+  exp.push_back(A_notEmpty);
+
+  Node x = sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART_ELEMENT,
+                                setType.getSetElementType(),
+                                {n, B});
+  d_state.registerPartElementSkolem(n, x);
+  Node part_x = nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  Node B_is_part_x = B.eqNode(part_x);
+  Node member_x_A = nm->mkNode(SET_MEMBER, x, A);
+  Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
+
+  Node conclusion = nm->mkNode(AND, {B_is_part_x, member_x_B, member_x_A});
+  d_im.assertInference(
+      conclusion, InferenceId::SETS_RELS_GROUP_PART_MEMBER, exp, 1);
+}
+
+void TheorySetsPrivate::groupSameProjection(
+    Node n, Node B, Node x, Node y, Node part)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Assert(B.getType() == n.getType().getSetElementType());
+  Assert(x.getType() == n[0].getType().getSetElementType());
+  Assert(y.getType() == n[0].getType().getSetElementType());
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node A = n[0];
+  TypeNode setType = A.getType();
+
+  Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
+  Node member_y_B = nm->mkNode(SET_MEMBER, y, B);
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
+
+  // premises
+  std::vector<Node> exp;
+  exp.push_back(member_B_n);
+  exp.push_back(member_x_B);
+  exp.push_back(member_y_B);
+  exp.push_back(x.eqNode(y).notNode());
+
+  const std::vector<uint32_t>& indices =
+      n.getOperator().getConst<ProjectOp>().getIndices();
+
+  Node xProjection = TupleUtils::getTupleProjection(indices, x);
+  Node yProjection = TupleUtils::getTupleProjection(indices, y);
+  Node sameProjection = xProjection.eqNode(yProjection);
+  Node part_x = nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  Node part_y = nm->mkNode(APPLY_UF, part, y);
+  part_y = registerAndAssertSkolemLemma(part_y, "part_y");
+  Node samePart = part_x.eqNode(part_y);
+  Node part_x_is_B = part_x.eqNode(B);
+  Node conclusion = nm->mkNode(AND, sameProjection, samePart, part_x_is_B);
+  d_im.assertInference(
+      conclusion, InferenceId::SETS_RELS_GROUP_SAME_PROJECTION, exp, 1);
+}
+
+void TheorySetsPrivate::groupSamePart(Node n, Node B, Node x, Node y, Node part)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Assert(B.getType() == n.getType().getSetElementType());
+  Assert(x.getType() == n[0].getType().getSetElementType());
+  Assert(y.getType() == n[0].getType().getSetElementType());
+  NodeManager* nm = NodeManager::currentNM();
+  Node A = n[0];
+  TypeNode setType = A.getType();
+
+  std::vector<Node> exp;
+  Node member_x_B = nm->mkNode(SET_MEMBER, x, B);
+  Node member_y_A = nm->mkNode(SET_MEMBER, y, A);
+  Node member_y_B = nm->mkNode(SET_MEMBER, y, B);
+
+  Node skolem = registerAndAssertSkolemLemma(n, "skolem_group");
+  Node member_B_n = nm->mkNode(SET_MEMBER, B, skolem);
+  const std::vector<uint32_t>& indices =
+      n.getOperator().getConst<ProjectOp>().getIndices();
+
+  Node xProjection = TupleUtils::getTupleProjection(indices, x);
+  Node yProjection = TupleUtils::getTupleProjection(indices, y);
+
+  // premises
+  exp.push_back(member_B_n);
+  exp.push_back(member_x_B);
+  exp.push_back(member_y_A);
+  exp.push_back(x.eqNode(y).notNode());
+  exp.push_back(xProjection.eqNode(yProjection));
+
+  Node part_x = nm->mkNode(APPLY_UF, part, x);
+  part_x = registerAndAssertSkolemLemma(part_x, "part_x");
+  Node part_y = nm->mkNode(APPLY_UF, part, y);
+  part_y = registerAndAssertSkolemLemma(part_y, "part_y");
+  Node samePart = part_x.eqNode(part_y);
+  Node part_x_is_B = part_x.eqNode(B);
+  Node conclusion = nm->mkNode(AND, member_y_B, samePart, part_x_is_B);
+
+  d_im.assertInference(
+      conclusion, InferenceId::SETS_RELS_GROUP_SAME_PART, exp, 1);
+}
+
+Node TheorySetsPrivate::defineSkolemPartFunction(Node n)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  Node A = n[0];
+  TypeNode relationType = A.getType();
+  TypeNode elementType = relationType.getSetElementType();
+
+  // declare an uninterpreted function part: T -> (Relation T)
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  TypeNode partType = nm->mkFunctionType(elementType, relationType);
+  Node part =
+      sm->mkSkolemFunction(SkolemFunId::RELATIONS_GROUP_PART, partType, {n});
+  return part;
+}
+
+Node TheorySetsPrivate::registerAndAssertSkolemLemma(Node& n,
+                                                     const std::string& prefix)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node skolem = sm->mkPurifySkolem(n, prefix);
+  Node lemma = n.eqNode(skolem);
+  d_im.addPendingLemma(lemma, InferenceId::SETS_SKOLEM);
+  Trace("sets-skolems") << "sets-skolems:  " << skolem << " = " << n
+                        << std::endl;
+  return skolem;
+}
+
 void TheorySetsPrivate::checkDisequalities()
 {
   // disequalities
@@ -1033,7 +1402,6 @@ void TheorySetsPrivate::computeCareGraph()
     Kind k = it.first;
     if (k == kind::SET_SINGLETON || k == kind::SET_MEMBER)
     {
-      unsigned n_pairs = 0;
       Trace("sets-cg-summary") << "Compute graph for sets, op=" << k << "..."
                                << it.second.size() << std::endl;
       Trace("sets-cg") << "Build index for " << k << "..." << std::endl;
@@ -1089,7 +1457,7 @@ void TheorySetsPrivate::computeCareGraph()
           nodeTriePathPairProcess(&tt.second, arity, d_cpacb);
         }
       }
-      Trace("sets-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
+      Trace("sets-cg-summary") << "...done" << std::endl;
     }
   }
 }
@@ -1104,6 +1472,7 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
             || n.getKind() == kind::SET_SINGLETON)
            && a == 0 && n[0].getType().isSet())
   {
+    // when the elements themselves are sets
     return true;
   }
   return false;
@@ -1341,8 +1710,6 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
         NodeManager* nm = NodeManager::currentNM();
         SkolemManager* sm = nm->getSkolemManager();
         Node sk = sm->mkPurifySkolem(node[0], "univ");
-        Trace("ajr-temp") << "PURIFY " << node[0] << " returns " << sk
-                          << std::endl;
         Node eq = sk.eqNode(node[0]);
         lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(eq), sk));
         Node ret = nm->mkNode(kind::SET_MINUS, sk, node[1]);

@@ -1,28 +1,28 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Tim King, Aina Niemetz
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Accessor for the SolverEngine's StatisticsRegistry.
+ * Info per free variable in instantiation evaluator.
  */
 
-#include "smt/smt_statistics_registry.h"
-
-#include "smt/solver_engine_scope.h"
-#include "util/statistics_stats.h"
+#include "theory/quantifiers/ieval/free_var_info.h"
 
 namespace cvc5::internal {
+namespace theory {
+namespace quantifiers {
+namespace ieval {
 
-StatisticsRegistry& smtStatisticsRegistry()
-{
-  return smt::SolverEngineScope::currentStatisticsRegistry();
-}
+FreeVarInfo::FreeVarInfo(context::Context* c) : d_quantList(c) {}
 
+}  // namespace ieval
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal

@@ -22,6 +22,7 @@
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
+#include "theory/sets/set_reduction.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -156,12 +157,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Trace("sets-postrewrite")
           << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_AGAIN, node[0]);
-    }
-    else if (node[1].getKind() == kind::SET_MINUS && node[1][0] == node[0])
-    {
-      // (setminus A (setminus A B)) = (intersection A B)
-      Node intersection = nm->mkNode(SET_INTER, node[0], node[1][1]);
-      return RewriteResponse(REWRITE_AGAIN, intersection);
     }
     else if (node[1].getKind() == kind::SET_UNIVERSE)
     {
@@ -589,8 +584,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
 
-  default:
-    break;
+  case RELATION_GROUP: return postRewriteGroup(node);
+  case RELATION_AGGREGATE: return postRewriteAggregate(node);
+  case RELATION_PROJECT: return postRewriteProject(node);
+  default: break;
   }
 
   return RewriteResponse(REWRITE_DONE, node);
@@ -739,6 +736,59 @@ RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
 
     default: return RewriteResponse(REWRITE_DONE, n);
   }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_GROUP);
+  Node A = n[0];
+  Kind k = A.getKind();
+  if (k == SET_EMPTY || k == SET_SINGLETON)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
+    //    (rel.singleton (as set.empty (Relation T) ))
+    // - ((_ rel.group n1 ... nk) (set.singleton x)) =
+    //      (set.singleton (set.singleton x))
+    Node singleton = nm->mkNode(SET_SINGLETON, A);
+    return RewriteResponse(REWRITE_AGAIN_FULL, singleton);
+  }
+  if (A.isConst())
+  {
+    Node evaluation = RelsUtils::evaluateGroup(n);
+    return RewriteResponse(REWRITE_AGAIN_FULL, evaluation);
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteAggregate(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = RelsUtils::evaluateRelationAggregate(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
+{
+  Assert(n.getKind() == RELATION_PROJECT);
+  if (n[0].isConst())
+  {
+    Node ret = SetReduction::reduceProjectOperator(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 }  // namespace sets

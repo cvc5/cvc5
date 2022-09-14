@@ -180,6 +180,17 @@ enum class SkolemFunId
    * that is a member of B if B is not empty.
    */
   TABLES_GROUP_PART_ELEMENT,
+  /** Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * this uninterpreted function maps elements of A to their parts in the
+   * resulting partition. It has type (-> T (Relation T))
+   */
+  RELATIONS_GROUP_PART,
+  /**
+   * Given a group term ((_ rel.group n1 ... nk) A) of type (Set (Relation T))
+   * and a part B of type (Relation T), this function returns a skolem element
+   * that is a member of B if B is not empty.
+   */
+  RELATIONS_GROUP_PART_ELEMENT,
   /** An interpreted function for bag.choose operator:
    * (choose A) is expanded as
    * (witness ((x elementType))

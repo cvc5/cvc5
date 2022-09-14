@@ -227,7 +227,7 @@ class QuantConflictFind : public QuantifiersModule
   public:
     IntStat d_inst_rounds;
     IntStat d_entailment_checks;
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
   Statistics d_statistics;
   /** Identify this module */

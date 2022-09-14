@@ -16,14 +16,15 @@
  * \todo document this file
  */
 
+#include "theory/arith/linear/arith_static_learner.h"
+
 #include <vector>
 
 #include "base/output.h"
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
-#include "smt/smt_statistics_registry.h"
-#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -32,19 +33,20 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-ArithStaticLearner::ArithStaticLearner(context::Context* userContext)
-    : d_minMap(userContext), d_maxMap(userContext), d_statistics()
+ArithStaticLearner::ArithStaticLearner(StatisticsRegistry& sr,
+                                       context::Context* userContext)
+    : d_minMap(userContext), d_maxMap(userContext), d_statistics(sr)
 {
 }
 
 ArithStaticLearner::~ArithStaticLearner(){
 }
 
-ArithStaticLearner::Statistics::Statistics()
-    : d_iteMinMaxApplications(smtStatisticsRegistry().registerInt(
-        "theory::arith::iteMinMaxApplications")),
-      d_iteConstantApplications(smtStatisticsRegistry().registerInt(
-          "theory::arith::iteConstantApplications"))
+ArithStaticLearner::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_iteMinMaxApplications(
+        sr.registerInt("theory::arith::iteMinMaxApplications")),
+      d_iteConstantApplications(
+          sr.registerInt("theory::arith::iteConstantApplications"))
 {
 }
 

@@ -15,31 +15,22 @@
 
 #include "smt/solver_engine_stats.h"
 
-#include "smt/smt_statistics_registry.h"
-
 namespace cvc5::internal {
 namespace smt {
 
-SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
-    : d_definitionExpansionTime(smtStatisticsRegistry().registerTimer(
-        name + "definitionExpansionTime")),
-      d_numConstantProps(
-          smtStatisticsRegistry().registerInt(name + "numConstantProps")),
-      d_numAssertionsPre(smtStatisticsRegistry().registerInt(
-          name + "numAssertionsPreITERemoval")),
-      d_numAssertionsPost(smtStatisticsRegistry().registerInt(
-          name + "numAssertionsPostITERemoval")),
-      d_checkModelTime(
-          smtStatisticsRegistry().registerTimer(name + "checkModelTime")),
-      d_checkUnsatCoreTime(
-          smtStatisticsRegistry().registerTimer(name + "checkUnsatCoreTime")),
-      d_solveTime(smtStatisticsRegistry().registerTimer(name + "solveTime")),
-      d_pushPopTime(
-          smtStatisticsRegistry().registerTimer(name + "pushPopTime")),
-      d_processAssertionsTime(smtStatisticsRegistry().registerTimer(
-          name + "processAssertionsTime")),
-      d_simplifiedToFalse(
-          smtStatisticsRegistry().registerInt(name + "simplifiedToFalse"))
+SolverEngineStatistics::SolverEngineStatistics(StatisticsRegistry& sr,
+                                               const std::string& name)
+    : d_definitionExpansionTime(
+        sr.registerTimer(name + "definitionExpansionTime")),
+      d_numConstantProps(sr.registerInt(name + "numConstantProps")),
+      d_numAssertionsPre(sr.registerInt(name + "numAssertionsPreITERemoval")),
+      d_numAssertionsPost(sr.registerInt(name + "numAssertionsPostITERemoval")),
+      d_checkModelTime(sr.registerTimer(name + "checkModelTime")),
+      d_checkUnsatCoreTime(sr.registerTimer(name + "checkUnsatCoreTime")),
+      d_solveTime(sr.registerTimer(name + "solveTime")),
+      d_pushPopTime(sr.registerTimer(name + "pushPopTime")),
+      d_processAssertionsTime(sr.registerTimer(name + "processAssertionsTime")),
+      d_simplifiedToFalse(sr.registerInt(name + "simplifiedToFalse"))
 {
 }
 

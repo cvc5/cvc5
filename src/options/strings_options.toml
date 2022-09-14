@@ -141,10 +141,10 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringRegExpInterMode"
-  category   = "regular"
+  category   = "expert"
   long       = "re-inter-mode=MODE"
   type       = "RegExpInterMode"
-  default    = "CONSTANT"
+  default    = "NONE"
   help       = "determines which regular expressions intersections to compute"
   help_mode  = "Regular expression intersection modes."
 [[option.mode.ALL]]
@@ -159,14 +159,6 @@ name   = "Strings Theory"
 [[option.mode.NONE]]
   name = "none"
   help = "Do not compute intersections for regular expressions."
-
-[[option]]
-  name       = "stringUnifiedVSpt"
-  category   = "expert"
-  long       = "strings-unified-vspt"
-  type       = "bool"
-  default    = "true"
-  help       = "use a single skolem for the variable splitting rule"
 
 [[option]]
   name       = "stringEagerEval"
@@ -248,5 +240,5 @@ name   = "Strings Theory"
   category   = "expert"
   long       = "strings-code-elim"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "eliminate code points during preprocessing"

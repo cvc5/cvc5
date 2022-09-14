@@ -79,8 +79,6 @@ class NonClausalSimp : public PreprocessingPass
   Node processRewrittenLearnedLit(TrustNode trn);
   /** Is proof enabled? */
   bool isProofEnabled() const;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** the learned literal preprocess proof generator */
   std::unique_ptr<smt::PreprocessProofGenerator> d_llpg;
   /**

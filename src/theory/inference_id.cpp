@@ -123,6 +123,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_BAG_MAKE_SPLIT: return "BAGS_BAG_MAKE_SPLIT";
     case InferenceId::BAGS_SKOLEM: return "BAGS_SKOLEM";
     case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
+    case InferenceId::BAGS_CG_SPLIT: return "BAGS_CG_SPLIT";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
     case InferenceId::BAGS_UNION_DISJOINT: return "BAGS_UNION_DISJOINT";
@@ -324,7 +325,6 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_LABEL_INTRO: return "SEP_LABEL_INTRO";
     case InferenceId::SEP_LABEL_DEF: return "SEP_LABEL_DEF";
     case InferenceId::SEP_EMP: return "SEP_EMP";
-    case InferenceId::SEP_POS_PTO_SINGLETON: return "SEP_POS_PTO_SINGLETON";
     case InferenceId::SEP_POS_REDUCTION: return "SEP_POS_REDUCTION";
     case InferenceId::SEP_NEG_REDUCTION: return "SEP_NEG_REDUCTION";
     case InferenceId::SEP_REFINEMENT: return "SEP_REFINEMENT";
@@ -334,6 +334,7 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
     case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
+    case InferenceId::SETS_SKOLEM: return "SETS_SKOLEM";
     case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
@@ -390,6 +391,15 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
+    case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
+    case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
+    case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";
+    case InferenceId::SETS_RELS_GROUP_PART_MEMBER:
+      return "SETS_RELS_GROUP_PART_MEMBER";
+    case InferenceId::SETS_RELS_GROUP_SAME_PROJECTION:
+      return "SETS_RELS_GROUP_SAME_PROJECTION";
+    case InferenceId::SETS_RELS_GROUP_SAME_PART:
+      return "SETS_RELS_GROUP_SAME_PART";
 
     case InferenceId::STRINGS_I_NORM_S: return "STRINGS_I_NORM_S";
     case InferenceId::STRINGS_I_CONST_MERGE: return "STRINGS_I_CONST_MERGE";
@@ -511,6 +521,8 @@ const char* toString(InferenceId i)
       return "UF_HO_MODEL_EXTENSIONALITY";
     case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
+    case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
+      return "UF_ARITH_BV_CONV_REDUCTION";
 
     default: return "?";
   }

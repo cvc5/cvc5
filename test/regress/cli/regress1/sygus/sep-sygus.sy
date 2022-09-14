@@ -1,0 +1,10 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(declare-heap (Int Int))
+(declare-var x Int)
+(declare-var a Int)
+(synth-fun f ((x Int) (a Int)) Int)
+(constraint (=> (pto x a) (not (pto x (f x a)))))
+(check-synth)
+

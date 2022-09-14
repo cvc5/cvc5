@@ -20,7 +20,6 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/equality_solver.h"
@@ -44,7 +43,7 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_astate(env, valuation),
       d_im(env, *this, d_astate),
       d_ppre(d_env),
-      d_bab(env, d_astate, d_im, d_ppre, d_pnm),
+      d_bab(env, d_astate, d_im, d_ppre),
       d_eqSolver(nullptr),
       d_internal(new linear::TheoryArithPrivate(*this, env, d_bab)),
       d_nonlinearExtension(nullptr),
@@ -121,7 +120,7 @@ void TheoryArith::preRegisterTerm(TNode n)
     if (d_nonlinearExtension == nullptr)
     {
       std::stringstream ss;
-      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+      ss << "Term of kind " << k
          << " requires the logic to include non-linear arithmetic";
       throw LogicException(ss.str());
     }
@@ -132,7 +131,7 @@ void TheoryArith::preRegisterTerm(TNode n)
       if (options().arith.nlExt != options::NlExtMode::FULL)
       {
         std::stringstream ss;
-        ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+        ss << "Term of kind " << k
            << " requires nl-ext mode to be set to value 'full'";
         throw LogicException(ss.str());
       }
@@ -140,7 +139,7 @@ void TheoryArith::preRegisterTerm(TNode n)
     if (options().arith.nlCov && !options().arith.nlCovForce)
     {
       std::stringstream ss;
-      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindString(k)
+      ss << "Term of kind " << k
          << " is not compatible with using the coverings-based solver. If "
             "you know what you are doing, "
             "you can try --nl-cov-force, but expect crashes or incorrect "
@@ -241,6 +240,8 @@ void TheoryArith::postCheck(Effort level)
   {
     d_arithModelCache.clear();
     d_arithModelCacheIllTyped.clear();
+    d_arithModelCacheVars.clear();
+    d_arithModelCacheSubs.clear();
     d_arithModelCacheSet = false;
     std::set<Node> termSet;
     if (d_nonlinearExtension != nullptr)
@@ -262,6 +263,9 @@ void TheoryArith::postCheck(Effort level)
       updateModelCache(termSet);
     }
     sanityCheckIntegerModel();
+    // Now, finalize the model cache, which constructs a substitution to be
+    // used for getEqualityStatus.
+    finalizeModelCache();
   }
 }
 
@@ -327,7 +331,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     }
   }
 
-  updateModelCache(termSet);
+  updateModelCacheInternal(termSet);
 
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : d_arithModelCache)
@@ -337,7 +341,8 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
       continue;
     }
     // maps to constant of same type
-    Assert(p.first.getType() == p.second.getType());
+    Assert(p.first.getType() == p.second.getType())
+        << "Bad type : " << p.first << " -> " << p.second;
     if (m->assertEquality(p.first, p.second, true))
     {
       continue;
@@ -381,8 +386,9 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     return d_internal->getEqualityStatus(a,b);
   }
-  Node diff = d_env.getNodeManager()->mkNode(Kind::SUB, a, b);
-  std::optional<bool> isZero = isExpressionZero(d_env, diff, d_arithModelCache);
+  Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
+  std::optional<bool> isZero = isExpressionZero(
+      d_env, diff, d_arithModelCacheVars, d_arithModelCacheSubs);
   if (isZero)
   {
     return *isZero ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
@@ -414,13 +420,11 @@ void TheoryArith::updateModelCache(std::set<Node>& termSet)
 {
   if (!d_arithModelCacheSet)
   {
-    d_arithModelCacheSet = true;
     collectAssertedTerms(termSet);
-    d_internal->collectModelValues(
-        termSet, d_arithModelCache, d_arithModelCacheIllTyped);
+    updateModelCacheInternal(termSet);
   }
 }
-void TheoryArith::updateModelCache(const std::set<Node>& termSet)
+void TheoryArith::updateModelCacheInternal(const std::set<Node>& termSet)
 {
   if (!d_arithModelCacheSet)
   {
@@ -429,6 +433,21 @@ void TheoryArith::updateModelCache(const std::set<Node>& termSet)
         termSet, d_arithModelCache, d_arithModelCacheIllTyped);
   }
 }
+
+void TheoryArith::finalizeModelCache()
+{
+  // make into substitution
+  for (const auto& [node, repl] : d_arithModelCache)
+  {
+    Assert(repl.getType().isRealOrInt());
+    if (Theory::isLeafOf(repl, TheoryId::THEORY_ARITH))
+    {
+      d_arithModelCacheVars.emplace_back(node);
+      d_arithModelCacheSubs.emplace_back(repl);
+    }
+  }
+}
+
 bool TheoryArith::sanityCheckIntegerModel()
 {
   // Double check that the model from the linear solver respects integer types,
@@ -438,7 +457,8 @@ bool TheoryArith::sanityCheckIntegerModel()
   {
     for (CVC5_UNUSED const auto& p : d_arithModelCache)
     {
-      Assert(p.first.getType() == p.second.getType());
+      Assert(p.first.getType() == p.second.getType())
+          << "Bad type: " << p.first << " -> " << p.second;
     }
   }
   bool addedLemma = false;

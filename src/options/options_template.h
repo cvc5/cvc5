@@ -50,32 +50,6 @@ class CVC5_EXPORT Options
    */
   Options& operator=(const Options& options) = delete;
 
-  class OptionsScope
-  {
-   private:
-     Options* d_oldOptions;
-   public:
-     OptionsScope(Options* newOptions) :
-         d_oldOptions(Options::s_current)
-     {
-       Options::s_current = newOptions;
-     }
-     ~OptionsScope(){
-       Options::s_current = d_oldOptions;
-     }
-  };
-  friend class OptionsScope;
-
-  /** Return true if current Options are null */
-  static inline bool isCurrentNull() {
-    return s_current == nullptr;
-  }
-
-  /** Get the current Options in effect */
-  static inline Options& current() {
-    return *s_current;
-  }
-
   Options();
   ~Options();
 
@@ -102,11 +76,6 @@ ${holder_ref_decls}$
  private:
   /** The handler for the options of the theory. */
   std::unique_ptr<options::OptionsHandler> d_handler;
-
-  /** The current Options in effect */
-  static thread_local Options* s_current;
-
-
 }; /* class Options */
 
 }  // namespace cvc5::internal

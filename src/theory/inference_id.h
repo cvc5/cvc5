@@ -192,6 +192,7 @@ enum class InferenceId
   BAGS_SKOLEM,
   BAGS_EQUALITY,
   BAGS_DISEQUALITY,
+  BAGS_CG_SPLIT,
   BAGS_EMPTY,
   BAGS_UNION_DISJOINT,
   BAGS_UNION_MAX,
@@ -462,8 +463,6 @@ enum class InferenceId
   SEP_LABEL_DEF,
   // lemma for sep.emp
   SEP_EMP,
-  // lemma for positive labelled PTO
-  SEP_POS_PTO_SINGLETON,
   // positive reduction for sep constraint
   SEP_POS_REDUCTION,
   // negative reduction for sep constraint
@@ -485,6 +484,7 @@ enum class InferenceId
   // ---------------------------------- sets theory
   //-------------------- sets core solver
   // split when computing care graph
+  SETS_SKOLEM,
   SETS_CG_SPLIT,
   SETS_COMPREHENSION,
   SETS_DEQ,
@@ -545,6 +545,13 @@ enum class InferenceId
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
+  SETS_RELS_GROUP_NOT_EMPTY,
+  SETS_RELS_GROUP_UP1,
+  SETS_RELS_GROUP_UP2,
+  SETS_RELS_GROUP_DOWN,
+  SETS_RELS_GROUP_PART_MEMBER,
+  SETS_RELS_GROUP_SAME_PROJECTION,
+  SETS_RELS_GROUP_SAME_PART,
   //-------------------------------------- end sets theory
 
   //-------------------------------------- strings theory
@@ -918,6 +925,9 @@ enum class InferenceId
   UF_HO_LAMBDA_APP_REDUCE,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
+  //-------------------- UF arith/bv conversions solver
+  // reductions of an arithmetic/bit-vector conversion term
+  UF_ARITH_BV_CONV_REDUCTION,
   //-------------------------------------- end uf theory
 
   //-------------------------------------- unknown

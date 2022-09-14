@@ -344,10 +344,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         ss << "  " << t;
         throw LogicException(ss.str());
       }
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default:
-      Unreachable();
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unreachable();
     }
   }
 }

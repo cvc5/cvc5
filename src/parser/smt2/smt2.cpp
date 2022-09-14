@@ -258,7 +258,9 @@ void Smt2::addSepOperators() {
 void Smt2::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
-  defineType("Table", d_solver->mkBagSort(d_solver->mkTupleSort({})), true);
+  Sort tupleSort = d_solver->mkTupleSort({});
+  defineType("Relation", d_solver->mkSetSort(tupleSort), true);
+  defineType("Table", d_solver->mkBagSort(tupleSort), true);
   defineVar("true", d_solver->mkTrue(), true);
   defineVar("false", d_solver->mkFalse(), true);
   addOperator(cvc5::AND, "and");
@@ -312,6 +314,62 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
   }
   parseError(std::string("Unknown block models mode `") + mode + "'");
   return modes::BlockModelsMode::LITERALS;
+}
+
+modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
+{
+  if (mode == "preprocess_solved")
+  {
+    return modes::LEARNED_LIT_PREPROCESS_SOLVED;
+  }
+  else if (mode == "preprocess")
+  {
+    return modes::LEARNED_LIT_PREPROCESS;
+  }
+  else if (mode == "input")
+  {
+    return modes::LEARNED_LIT_INPUT;
+  }
+  else if (mode == "solvable")
+  {
+    return modes::LEARNED_LIT_SOLVABLE;
+  }
+  else if (mode == "constant_prop")
+  {
+    return modes::LEARNED_LIT_CONSTANT_PROP;
+  }
+  else if (mode == "internal")
+  {
+    return modes::LEARNED_LIT_INTERNAL;
+  }
+  parseError(std::string("Unknown learned literal type `") + mode + "'");
+  return modes::LEARNED_LIT_UNKNOWN;
+}
+
+modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
+{
+  if (pc == "raw_preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
+  }
+  else if (pc == "preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
+  }
+  else if (pc == "sat")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_SAT;
+  }
+  else if (pc == "theory_lemmas")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS;
+  }
+  else if (pc == "full")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_FULL;
+  }
+  parseError(std::string("Unknown proof component `") + pc + "'");
+  return modes::ProofComponent::PROOF_COMPONENT_FULL;
 }
 
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
@@ -1130,7 +1188,9 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   }
   else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
            || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
-           || p.d_kind == cvc5::TABLE_GROUP)
+           || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
+           || p.d_kind == cvc5::RELATION_AGGREGATE
+           || p.d_kind == cvc5::RELATION_PROJECT)
   {
     cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
@@ -1333,14 +1393,15 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  if (getSymbolManager()->setExpressionName(expr, name, false)
-      == NamingResult::ERROR_IN_BINDER)
+  NamingResult nr = getSymbolManager()->setExpressionName(expr, name, false);
+  if (nr == NamingResult::ERROR_IN_BINDER)
   {
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // define the variable
-  defineVar(name, expr);
+  // Note that we do not bind the symbol here; this is done separately
+  // in a define-fun command in Smt.g to ensure -o raw-benchmark results in a
+  // parsable result.
   // set the last named term, which ensures that we catch when assertions are
   // named
   setLastNamedTerm(expr, name);

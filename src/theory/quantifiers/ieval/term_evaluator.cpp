@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Gereon Kremer
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,23 +10,24 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Accessor for the SolverEngine's StatisticsRegistry.
+ * Term evaluator class.
  */
 
-#include "cvc5_private.h"
+#include "theory/quantifiers/ieval/term_evaluator.h"
 
-#pragma once
-
-#include "util/statistics_registry.h"
-#include "util/statistics_stats.h"
+using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
+namespace theory {
+namespace quantifiers {
+namespace ieval {
 
-/**
- * This returns the StatisticsRegistry attached to the currently in scope
- * SolverEngine. This is a synonym for
- * smt::SolverEngineScope::currentStatisticsRegistry().
- */
-StatisticsRegistry& smtStatisticsRegistry();
+TermEvaluator::TermEvaluator(Env& env, TermEvaluatorMode tev)
+    : EnvObj(env), d_tevMode(tev)
+{
+}
 
+}  // namespace ieval
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal

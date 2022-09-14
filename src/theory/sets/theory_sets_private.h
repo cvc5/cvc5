@@ -127,6 +127,151 @@ class TheorySetsPrivate : protected EnvObj
    *   )
    */
   void checkMapDown();
+  void checkGroups();
+  void checkGroup(Node n);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type T
+   * @return an inference that represents:
+   * (=>
+   *  (= A (as set.empty T))
+   *  (= skolem (set.singleton (as set.empty T)))
+   * )
+   */
+  void groupNotEmpty(Node n);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param e an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (set.member x A)
+   *   (and
+   *     (set.member (part x) skolem)
+   *     (set.member x (part x))
+   *     (not (set.member (as set.empty (Relation T)) skolem))
+   *   )
+   * )
+   *
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A)
+   */
+  void groupUp1(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param e an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (not (set.member x A))
+   *   (= (part x) (as set.empty (Relation T)))
+   * )
+   *
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A)
+   */
+  void groupUp2(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T)
+   * @param x an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (set.member x B)
+   *   )
+   *   (and
+   *     (set.member x A)
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  void groupDown(Node n, Node B, Node x, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T) and B is not of the form (part x)
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (not (= A (as set.empty (Relation T)))
+   *   )
+   *   (and
+   *     (= B (part k_{n, B}))
+   *     (set.member k_{n,B} B)
+   *     (set.member k_{n,B} A)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A), and
+   * k_{n, B} is a fresh skolem of type T.
+   */
+  void groupPartMember(Node n, Node B, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (set.member x B)
+   *     (set.member y B)
+   *     (distinct x y)
+   *   )
+   *   (and
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *     (= (part x) (part y))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A).
+   */
+  void groupSameProjection(Node n, Node B, Node x, Node y, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (set.member x B)
+   *     (set.member y A)
+   *     (distinct x y)
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *   )
+   *   (and
+   *     (set.member y B)
+   *     (= (part x) (part y))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A).
+   */
+  void groupSamePart(Node n, Node B, Node x, Node y, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @return a function of type T -> (Relation T) that maps elements T to a
+   * part in the partition
+   */
+  Node defineSkolemPartFunction(Node n);
+  /**
+   * generate skolem variable for node n and add pending lemma for the equality
+   */
+  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
   /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
@@ -183,7 +328,6 @@ class TheorySetsPrivate : protected EnvObj
                     SolverState& state,
                     InferenceManager& im,
                     SkolemCache& skc,
-                    ProofNodeManager* pnm,
                     CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();

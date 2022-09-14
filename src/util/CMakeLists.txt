@@ -21,6 +21,8 @@ libcvc5_add_sources(
   bin_heap.h
   bitvector.cpp
   bitvector.h
+  ff_val.cpp
+  ff_val.h
   bool.h
   cardinality.cpp
   cardinality.h

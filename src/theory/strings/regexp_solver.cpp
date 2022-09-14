@@ -485,7 +485,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     if (rct == RE_C_VARIABLE
         || (options().strings.stringRegExpInterMode
                 == options::RegExpInterMode::CONSTANT
-            && rct != RE_C_CONRETE_CONSTANT))
+            && rct != RE_C_CONCRETE_CONSTANT))
     {
       // cannot do intersection on RE with variables, or with re.allchar based
       // on option.
@@ -509,8 +509,11 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       continue;
     }
     Node resR = d_regexp_opr.intersect(mi[1], m[1]);
-    // intersection should be computable
-    Assert(!resR.isNull());
+    if (resR.isNull())
+    {
+      // failed to compute intersection, e.g. if there was a complement
+      continue;
+    }
     if (resR == d_emptyRegexp)
     {
       // conflict, explain
@@ -647,7 +650,8 @@ bool RegExpSolver::deriveRegExp(Node x,
                          << ", r= " << r << std::endl;
   cvc5::internal::String s = getHeadConst(x);
   // only allow RE_DERIVE for concrete constant regular expressions
-  if (!s.empty() && d_regexp_opr.getRegExpConstType(r) == RE_C_CONRETE_CONSTANT)
+  if (!s.empty()
+      && d_regexp_opr.getRegExpConstType(r) == RE_C_CONCRETE_CONSTANT)
   {
     Node conc = Node::null();
     Node dc = r;
