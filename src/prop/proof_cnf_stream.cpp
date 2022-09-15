@@ -31,7 +31,7 @@ ProofCnfStream::ProofCnfStream(Env& env,
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
       d_satPM(satPM),
-      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof"),
+      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_blocked(userContext()),
       d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
