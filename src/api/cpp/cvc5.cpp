@@ -5638,7 +5638,7 @@ Sort Solver::mkAbstractSort(Kind k) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Kind ik = extToIntKind(k);
-  return Sort(this, getNodeManager()->mkAbstractType(ik));
+  return Sort(d_nm, d_nm->mkAbstractType(ik));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
