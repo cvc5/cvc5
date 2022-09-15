@@ -45,7 +45,6 @@ class QuantifiersEngine;
 
 namespace smt {
 
-class SolverEngineState;
 struct SolverEngineStatistics;
 
 /**
@@ -67,7 +66,6 @@ class SmtSolver : protected EnvObj
  public:
   SmtSolver(Env& env,
             Assertions& asserts,
-SolverEngineState& state,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -158,8 +156,6 @@ SolverEngineState& state,
   Preprocessor d_pp;
   /** The assertions of the parent solver engine */
   Assertions& d_asserts;
-  /** Reference to the state of SolverEngine */
-  SolverEngineState& d_state;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */
