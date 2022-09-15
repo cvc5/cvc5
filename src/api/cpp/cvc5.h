@@ -1726,11 +1726,6 @@ class CVC5_EXPORT Term
    * @return The kind of this term.
    */
   Kind getKindHelper() const;
-  /**
-   * Write the underlying Node to the given stream. This is different from
-   * toString in that it inherits the output properties of a given stream out.
-   */
-  void toStream(std::ostream& out) const;
 
   /**
    * The internal node wrapped by this term.
