@@ -641,6 +641,7 @@ void TheoryUF::computeCareGraph() {
           for (const Node& c : app)
           {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
+            Assert (curr.getType().isFunction());
             typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
             keep.push_back(happ);
@@ -650,7 +651,8 @@ void TheoryUF::computeCareGraph() {
       else if (k == kind::HO_APPLY || k == kind::BITVECTOR_TO_NAT)
       {
         // add it to the typeIndex for the function type if HO_APPLY, or the
-        // bitvector type if bv2nat
+        // bitvector type if bv2nat. The latter ensures that we compute
+        // care pairs based on bv2nat only for bitvectors of the same width.
         typeIndex[app[0].getType()].addTerm(app, reps);
       }
       else
