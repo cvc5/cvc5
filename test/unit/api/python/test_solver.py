@@ -106,10 +106,11 @@ def test_mk_datatype_sort(solver):
     dtypeSpec.addConstructor(nil)
     solver.mkDatatypeSort(dtypeSpec)
 
-    # FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    #slv = cvc5.Solver()
-    #with pytest.raises(RuntimeError):
-    #    slv.mkDatatypeSort(dtypeSpec)
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSort(dtypeSpec)
+    slv = cvc5.Solver()
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSort(dtypeSpec)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     with pytest.raises(RuntimeError):
@@ -136,9 +137,10 @@ def test_mk_datatype_sorts(solver):
     decls = [dtypeSpec1, dtypeSpec2]
     solver.mkDatatypeSorts(decls)
 
-    # FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    #with pytest.raises(RuntimeError):
-    #    slv.mkDatatypeSorts(decls)
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSorts(decls)
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSorts(decls)
 
     throwsDtypeSpec = solver.mkDatatypeDecl("list")
     throwsDecls = [throwsDtypeSpec]
@@ -157,9 +159,10 @@ def test_mk_datatype_sorts(solver):
     udecls = [ulist]
 
     solver.mkDatatypeSorts(udecls)
-    # FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    #with pytest.raises(RuntimeError):
-    #    slv.mkDatatypeSorts(udecls)
+    with pytest.raises(RuntimeError):
+        solver.mkDatatypeSorts(udecls)
+    with pytest.raises(RuntimeError):
+        slv.mkDatatypeSorts(udecls)
 
     # mutually recursive with unresolved parameterized sorts
     p0 = solver.mkParamSort("p0")
@@ -174,6 +177,7 @@ def test_mk_datatype_sorts(solver):
     ctordecl1.addSelector("s1", u0.instantiate([p1]))
     dtdecl0.addConstructor(ctordecl0)
     dtdecl1.addConstructor(ctordecl1)
+    dtdecl1.addConstructor(solver.mkDatatypeConstructorDecl("nil"))
     dt_sorts = solver.mkDatatypeSorts([dtdecl0, dtdecl1])
     isort1 = dt_sorts[1].instantiate([solver.getBooleanSort()])
     t1 = solver.mkConst(isort1, "t")
@@ -2807,3 +2811,6 @@ def test_get_quantifier_elimination_disjunct(solver):
     with pytest.raises(RuntimeError):
         solver.getQuantifierEliminationDisjunct(cvc5.Solver().mkBoolean(False))
     solver.getQuantifierEliminationDisjunct(forall)
+
+def test_get_version(solver):
+    print(solver.getVersion())

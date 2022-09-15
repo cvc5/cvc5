@@ -81,11 +81,15 @@ class OpPosTrie
    * unres_t becomes the indexed type and true is returned. Otherwise a new type
    * is created, indexed by the given positions, and assigned to unres_t, with
    * false being returned.
+   *
+   * @param useIndexedName If true, we include the indices in op_pos in the
+   * name of unres_tn.
    */
   bool getOrMakeType(TypeNode tn,
                      TypeNode& unres_tn,
                      const std::vector<unsigned>& op_pos,
-                     unsigned ind = 0);
+                     unsigned ind = 0,
+                     bool useIndexedName = false);
   /** clear all data from this trie */
   void clear() { d_children.clear(); }
 

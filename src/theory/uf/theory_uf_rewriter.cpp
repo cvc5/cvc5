@@ -17,6 +17,7 @@
 
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
@@ -32,7 +33,8 @@ TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder)
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
-  if (node.getKind() == kind::EQUAL)
+  Kind k = node.getKind();
+  if (k == kind::EQUAL)
   {
     if (node[0] == node[1])
     {
@@ -47,12 +49,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     }
     if (node[0] > node[1])
     {
-      Node newNode =
-          NodeManager::currentNM()->mkNode(node.getKind(), node[1], node[0]);
+      Node newNode = NodeManager::currentNM()->mkNode(k, node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
   }
-  if (node.getKind() == kind::APPLY_UF)
+  if (k == kind::APPLY_UF)
   {
     Node lambda = FunctionConst::toLambda(node.getOperator());
     if (!lambda.isNull())
@@ -101,7 +102,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, getHoApplyForApplyUf(node));
     }
   }
-  else if (node.getKind() == kind::HO_APPLY)
+  else if (k == kind::HO_APPLY)
   {
     Node lambda = FunctionConst::toLambda(node[0]);
     if (!lambda.isNull())
@@ -142,10 +143,18 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
   }
-  else if (node.getKind() == kind::LAMBDA)
+  else if (k == kind::LAMBDA)
   {
     Node ret = rewriteLambda(node);
     return RewriteResponse(REWRITE_DONE, ret);
+  }
+  else if (k == kind::BITVECTOR_TO_NAT)
+  {
+    return rewriteBVToNat(node);
+  }
+  else if (k == kind::INT_TO_BITVECTOR)
+  {
+    return rewriteIntToBV(node);
   }
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -248,6 +257,25 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   return node;
 }
 
+RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
+{
+  if (node[0].isConst())
+  {
+    Node resultNode = arith::eliminateBv2Nat(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+
+RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
+{
+  if (node[0].isConst())
+  {
+    Node resultNode = arith::eliminateInt2Bv(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
 }  // namespace uf
 }  // namespace theory
 }  // namespace cvc5::internal

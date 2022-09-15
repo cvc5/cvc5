@@ -10,9 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * This is the interface to TheoryUF implementations
- *
- * All implementations of TheoryUF should inherit from this class.
+ * The theory of uninterpreted functions (UF)
  */
 
 #include "theory/uf/theory_uf.h"
@@ -28,9 +26,11 @@
 #include "options/uf_options.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
+#include "theory/uf/conversions_solver.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -106,14 +106,18 @@ void TheoryUF::finishInit() {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
+  // conversion kinds
+  d_equalityEngine->addFunctionKind(kind::INT_TO_BITVECTOR, true);
+  d_equalityEngine->addFunctionKind(kind::BITVECTOR_TO_NAT, true);
 }
 
 //--------------------------------- standard check
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding
-  return d_thss != nullptr;
+  // last call effort needed if using finite model finding or
+  // arithmetic/bit-vector conversions
+  return d_thss != nullptr || d_csolver != nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -127,10 +131,15 @@ void TheoryUF::postCheck(Effort level)
   {
     d_thss->check(level);
   }
-  // check with the higher-order extension at full effort
-  if (!d_state.isInConflict() && fullEffort(level))
+  if (!d_state.isInConflict())
   {
-    if (logicInfo().isHigherOrder())
+    // check with conversions solver at last call effort
+    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
+    {
+      d_csolver->check();
+    }
+    // check with the higher-order extension at full effort
+    if (fullEffort(level) && logicInfo().isHigherOrder())
     {
       d_ho->check();
     }
@@ -227,6 +236,14 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+           && options().uf.eagerArithBvConv)
+  {
+    // eliminate if option specifies to eliminate eagerly
+    Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
+                                           : arith::eliminateInt2Bv(node);
+    return TrustNode::mkTrustRewrite(node, ret);
+  }
   if (isHol)
   {
     TrustNode ret = d_ho->ppRewrite(node, lems);
@@ -277,29 +294,44 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_functionsTerms.push_back(node);
     }
     break;
-  case kind::CARDINALITY_CONSTRAINT:
-  case kind::COMBINED_CARDINALITY_CONSTRAINT:
-    //do nothing
+    case kind::INT_TO_BITVECTOR:
+    case kind::BITVECTOR_TO_NAT:
+    {
+      Assert(!options().uf.eagerArithBvConv);
+      d_equalityEngine->addTerm(node);
+      d_functionsTerms.push_back(node);
+      // initialize the conversions solver if not already done so
+      if (d_csolver == nullptr)
+      {
+        d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
+      }
+      // call preregister
+      d_csolver->preRegisterTerm(node);
+    }
     break;
-  case kind::UNINTERPRETED_SORT_VALUE:
-  {
-    // Uninterpreted sort values should only appear in models, and should never
-    // appear in constraints. They are unallowed to ever appear in constraints
-    // since the cardinality of an uninterpreted sort may have an upper bound,
-    // e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2 is a
-    // ill-formed term, as its existence cannot be assumed.  The parser
-    // prevents the user from ever constructing uninterpreted sort values.
-    // However, they may be exported via models to API users. It is thus
-    // possible that these uninterpreted sort values are asserted back in
-    // constraints, hence this check is necessary.
-    throw LogicException(
-        "An uninterpreted constant was preregistered to the UF theory.");
-  }
-  break;
-  default:
-    // Variables etc
-    d_equalityEngine->addTerm(node);
+    case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
+      // do nothing
+      break;
+    case kind::UNINTERPRETED_SORT_VALUE:
+    {
+      // Uninterpreted sort values should only appear in models, and should
+      // never appear in constraints. They are unallowed to ever appear in
+      // constraints since the cardinality of an uninterpreted sort may have an
+      // upper bound, e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2
+      // is a ill-formed term, as its existence cannot be assumed.  The parser
+      // prevents the user from ever constructing uninterpreted sort values.
+      // However, they may be exported via models to API users. It is thus
+      // possible that these uninterpreted sort values are asserted back in
+      // constraints, hence this check is necessary.
+      throw LogicException(
+          "An uninterpreted constant was preregistered to the UF theory.");
+    }
     break;
+    default:
+      // Variables etc
+      d_equalityEngine->addTerm(node);
+      break;
   }
 
   if (logicInfo().isHigherOrder())
@@ -614,11 +646,17 @@ void TheoryUF::computeCareGraph() {
           }
         }
       }
-      else
+      else if (app.getKind() == kind::HO_APPLY)
       {
-        Assert(app.getKind() == kind::HO_APPLY);
         // add it to the hoIndex for the function type
         hoIndex[app[0].getType()].addTerm(app, reps);
+      }
+      else
+      {
+        // case for other operators, e.g. int2bv, bv2nat
+        Node op = app.getOperator();
+        index[op].addTerm(app, reps);
+        arity[op] = reps.size();
       }
     }
   }

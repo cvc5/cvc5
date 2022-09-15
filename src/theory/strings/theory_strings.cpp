@@ -794,16 +794,15 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   std::vector<Node> skChildren;
   if (tn.isSequence())
   {
-    std::vector<Node> cacheVals;
-    cacheVals.push_back(r);
+    std::vector<Node> cacheVals(2);
+    cacheVals[0] = r;
     TypeNode etn = tn.getSequenceElementType();
     for (size_t i = currIndex; i < nextIndex; i++)
     {
-      cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
+      cacheVals[1] = nm->mkConstInt(Rational(i));
       Node kv = sm->mkSkolemFunction(
           SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
       skChildren.push_back(utils::mkUnit(tn, kv));
-      cacheVals.pop_back();
     }
   }
   else

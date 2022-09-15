@@ -66,7 +66,7 @@ class SmtSolver : protected EnvObj
 {
  public:
   SmtSolver(Env& env,
-            AbstractValues& abs,
+            Assertions& asserts,
             SolverEngineStatistics& stats);
   ~SmtSolver();
   /**
@@ -81,21 +81,6 @@ class SmtSolver : protected EnvObj
    * isn't currently in a query.
    */
   void interrupt();
-  /**
-   * Check satisfiability (used to check satisfiability and entailment)
-   * in SolverEngine. This is done via adding assumptions (when necessary) to
-   * assertions as, preprocessing and pushing assertions into the prop engine
-   * of this class, and checking for satisfiability via the prop engine.
-   *
-   * @param as The object managing the assertions in SolverEngine. This class
-   * maintains a current set of (unprocessed) assertions which are pushed
-   * into the internal members of this class (TheoryEngine and PropEngine)
-   * during this call.
-   * @param assumptions The assumptions for this check-sat call, which are
-   * temporary assertions.
-   */
-  Result checkSatisfiability(Assertions& as,
-                             const std::vector<Node>& assumptions);
   /**
    * Process the assertions that have been asserted in as. This moves the set of
    * assertions that have been buffered into as, preprocesses them, pushes them
@@ -112,19 +97,29 @@ class SmtSolver : protected EnvObj
    * if trackPreprocessedAssertions is true.
    */
   const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
+  // --------------------------------------- callbacks from the context manager
   /**
-   * Perform a deep restart.
-   *
-   * This constructs a fresh copy of the theory engine and prop engine, and
-   * populates the given assertions for the next call to checkSatisfiability.
-   * In particular, we add the preprocessed assertions from the previous
-   * call to checkSatisfiability, as well as those in zll.
-   *
-   * @param as The assertions to populate
-   * @param zll The zero-level literals we learned on the previous call to
-   * checkSatisfiability.
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
    */
-  void deepRestart(Assertions& as, const std::vector<Node>& zll);
+  void notifyPushPre();
+  /**
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
+   */
+  void notifyPopPre();
+  /**
+   * Notify post solve, which is called once per check-sat query. It is
+   * triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
+   */
+  void notifyPostSolve();
+  // ----------------------------------- end callbacks from the context manager
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -134,9 +129,9 @@ class SmtSolver : protected EnvObj
   theory::QuantifiersEngine* getQuantifiersEngine();
   /** Get a pointer to the preprocessor */
   Preprocessor* getPreprocessor();
+  /** Get the assertions maintained by this SMT solver */
+  Assertions& getAssertions();
   //------------------------------------------ end access methods
-
- private:
   /**
    * Preprocess the assertions. This calls the preprocessor on the assertions
    * and sets d_ppAssertions / d_ppSkolemMap if necessary.
@@ -154,10 +149,14 @@ class SmtSolver : protected EnvObj
    * processes the results based on the options.
    */
   Result checkSatInternal();
+
+ private:
   /** Whether we track information necessary for deep restarts */
   bool trackPreprocessedAssertions() const;
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
+  /** The assertions of the parent solver engine */
+  Assertions& d_asserts;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */

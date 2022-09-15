@@ -26,6 +26,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/preprocessor.h"
+#include "smt/smt_driver.h"
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -259,7 +260,9 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
   {
     std::vector<Node> query;
     query.push_back(d_conj);
-    r = d_smtSolver.checkSatisfiability(as, query);
+    // use a single call driver
+    SmtDriverSingleCall sdsc(d_env, d_smtSolver);
+    r = sdsc.checkSat(query);
   }
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
@@ -381,9 +384,9 @@ void SygusSolver::checkSynthSolution(Assertions& as,
     solChecker->getOptions().writeQuantifiers().sygusRecFun = false;
     Assert(conj.getKind() == FORALL);
     Node conjBody = conj[1];
-    // we must expand definitions here, since define-fun may contain the
+    // we must apply substitutions here, since define-fun may contain the
     // function-to-synthesize, which needs to be substituted.
-    conjBody = d_smtSolver.getPreprocessor()->expandDefinitions(conjBody);
+    conjBody = d_smtSolver.getPreprocessor()->applySubstitutions(conjBody);
     // Apply solution map to conjecture body
     conjBody = conjBody.substitute(
         fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
@@ -484,7 +487,7 @@ void SygusSolver::expandDefinitionsSygusDt(TypeNode tn) const
       // expandDefinitions.
       Node eop = op.isConst()
                      ? op
-                     : d_smtSolver.getPreprocessor()->expandDefinitions(op);
+                     : d_smtSolver.getPreprocessor()->applySubstitutions(op);
       eop = rewrite(eop);
       datatypes::utils::setExpandedDefinitionForm(op, eop);
       // also must consider the arguments
