@@ -24,7 +24,6 @@
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
