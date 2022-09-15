@@ -35,7 +35,6 @@ SatProofManager::SatProofManager(Env& env,
       d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),
-      d_optResProofs(userContext()),
       d_optResManager(userContext(), &d_resChains, d_optResProofs)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -818,9 +817,7 @@ void SatProofManager::notifyPop()
     std::shared_ptr<ProofNode> clauseResPf =
         d_env.getProofNodeManager()->clone(d_resChains.getProofFor(it->first));
     Assert(clauseResPf && clauseResPf->getRule() != PfRule::ASSUME);
-    std::vector<std::shared_ptr<ProofNode>> value(d_optResProofs[it->second].get());
-    value.push_back(clauseResPf);
-    d_optResProofs[it->second] = value;
+    d_optResProofs[it->second].push_back(clauseResPf);
   }
 }
 

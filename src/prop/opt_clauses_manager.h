@@ -50,8 +50,7 @@ class OptimizedClausesManager : context::ContextNotifyObj
   OptimizedClausesManager(
       context::Context* context,
       CDProof* parentProof,
-      context::CDHashMap<int, std::vector<std::shared_ptr<ProofNode>>>&
-          optProofs);
+      std::map<int, std::vector<std::shared_ptr<ProofNode>>>& optProofs);
 
   /** Adds a hash set of nodes to be tracked and updated when popping
    *
@@ -80,7 +79,7 @@ class OptimizedClausesManager : context::ContextNotifyObj
   /** The context being tracked. */
   context::Context* d_context;
   /** Map from levels to proof nodes. */
-  context::CDHashMap<int, std::vector<std::shared_ptr<ProofNode>>>& d_optProofs;
+  std::map<int, std::vector<std::shared_ptr<ProofNode>>>& d_optProofs;
   /** Proof to be updated when context pops. */
   CDProof* d_parentProof;
   /** Node hash set to be updated when context pops, if such a set is tracked */
