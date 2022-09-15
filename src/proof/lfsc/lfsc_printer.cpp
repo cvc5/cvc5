@@ -51,10 +51,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (const Node& n : definitions)
   {
     definedSymbols.insert(n[0]);
-    // Some declarations only appear inside definitions and don't show up in
-    // assertions. We need to keep track of those declarations and print them
-    // with other declarations.
-    d_tproc.convert(n);
   }
   const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pn->getChildren()[0]->getChildren()[0].get();

@@ -84,7 +84,14 @@ bool LfscProofPostprocessCallback::update(Node res,
         // The arguments of the outer scope are definitions.
         if (d_numIgnoredScopes == 0)
         {
-          d_defs.insert(args.cbegin(), args.cend());
+          for (const Node& arg : args)
+          {
+            d_defs.insert(arg);
+            // Some declarations only appear inside definitions and don't show
+            // up in assertions. We need to keep track of those declarations and
+            // print them with other declarations.
+            d_tproc.convert(arg);
+          }
         }
         d_numIgnoredScopes++;
         // Note that we do not want to modify the top-most SCOPEs.
