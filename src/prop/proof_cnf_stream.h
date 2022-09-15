@@ -228,7 +228,8 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * This map is used to update the internal proof of this class when the
    * context pops.
    */
-  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
+  context::CDHashMap<int, std::vector<std::shared_ptr<ProofNode>>>
+      d_optClausesPfs;
   /** Manager for optimized propagations and added clauses inserted at assertion
    * levels below the current user level. */
   OptimizedClausesManager d_optClausesManager;

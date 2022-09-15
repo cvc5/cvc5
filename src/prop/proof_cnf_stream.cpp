@@ -33,6 +33,7 @@ ProofCnfStream::ProofCnfStream(Env& env,
       d_satPM(satPM),
       d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof"),
       d_blocked(userContext()),
+      d_optClausesPfs(userContext()),
       d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
 }
@@ -680,7 +681,10 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
-  d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
+  std::vector<std::shared_ptr<ProofNode>> value(
+      d_optClausesPfs[explLevel + 1].get());
+  value.push_back(currPropagationProcPf);
+  d_optClausesPfs[explLevel + 1] = value;
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
   if (d_satPM)
@@ -705,7 +709,10 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
   std::shared_ptr<ProofNode> clauseCnfPf =
       d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
   Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
-  d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+  std::vector<std::shared_ptr<ProofNode>> value(
+      d_optClausesPfs[clLevel + 1].get());
+  value.push_back(clauseCnfPf);
+  d_optClausesPfs[clLevel + 1] = value;
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
   if (d_satPM)

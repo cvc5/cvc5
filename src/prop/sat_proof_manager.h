@@ -602,7 +602,7 @@ class SatProofManager : protected EnvObj
    * This map is used by d_optResManager to update the internal proof of this
    * manager when the context pops.
    */
-  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optResProofs;
+  context::CDHashMap<int, std::vector<std::shared_ptr<ProofNode>>> d_optResProofs;
   /** Maps assertion level to assumptions
    *
    * As above, used by d_optResManager to update the assumption set as the

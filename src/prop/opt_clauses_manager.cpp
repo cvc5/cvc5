@@ -23,7 +23,7 @@ namespace prop {
 OptimizedClausesManager::OptimizedClausesManager(
     context::Context* context,
     CDProof* parentProof,
-    std::map<int, std::vector<std::shared_ptr<ProofNode>>>& optProofs)
+    context::CDHashMap<int, std::vector<std::shared_ptr<ProofNode>>>& optProofs)
     : context::ContextNotifyObj(context),
       d_context(context),
       d_optProofs(optProofs),
@@ -39,7 +39,7 @@ void OptimizedClausesManager::contextNotifyPop()
   Trace("sat-proof") << "contextNotifyPop: called with lvl " << newLvl << "\n"
                      << push;
   // the increment is handled inside the loop, so that we can erase as we go
-  for (auto it = d_optProofs.cbegin(); it != d_optProofs.cend();)
+  for (auto it = d_optProofs.begin(); it != d_optProofs.end();)
   {
     if (it->first <= newLvl)
     {

@@ -404,6 +404,13 @@ class CDHashMap : public ContextObj
     }
   }
 
+  iterator erase(iterator i)
+  {
+    typename table_type::const_iterator ik = d_map.find((*i).first);
+    typename table_type::const_iterator inext = d_map.erase(ik);
+    return iterator((*inext).second);
+  }
+
 }; /* class CDHashMap<> */
 
 }  // namespace cvc5::context
