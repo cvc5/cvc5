@@ -24,7 +24,6 @@
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -37,7 +36,6 @@ namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
                      Assertions& asserts,
-SolverEngineState& state,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
@@ -55,7 +53,7 @@ void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine.reset(new TheoryEngine(d_env, d_state));
+  d_theoryEngine.reset(new TheoryEngine(d_env));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
