@@ -41,7 +41,7 @@ class EqcInfo
   /** add prefix constant
    *
    * This informs this equivalence class info that a term t in its
-   * equivalence class has a constant prefix (if isSuf=true) or suffix
+   * equivalence class has a constant suffix (if isSuf=true) or prefix
    * (if isSuf=false). The constant c (if non-null) is the value of that
    * constant, if it has been computed already.
    *

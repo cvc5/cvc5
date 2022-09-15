@@ -569,6 +569,10 @@ libcvc5_add_sources(
   theory/bags/bags_utils.h
   theory/bags/card_solver.cpp
   theory/bags/card_solver.h
+  theory/bags/eager_solver.cpp
+  theory/bags/eager_solver.h
+  theory/bags/eqc_info.cpp
+  theory/bags/eqc_info.h
   theory/bags/infer_info.cpp
   theory/bags/infer_info.h
   theory/bags/inference_generator.cpp
@@ -1234,6 +1238,7 @@ check_python_module("toml")
 set(options_toml_files
   options/arith_options.toml
   options/arrays_options.toml
+  options/bags_options.toml
   options/base_options.toml
   options/booleans_options.toml
   options/builtin_options.toml

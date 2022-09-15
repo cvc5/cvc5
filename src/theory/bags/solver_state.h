@@ -22,6 +22,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "theory/bags/eqc_info.h"
 #include "theory/theory_state.h"
 
 namespace cvc5::internal {
@@ -101,6 +102,12 @@ class SolverState : public TheoryState
    * return a list of bag elements and their skolem counts
    */
   const std::vector<std::pair<Node, Node>>& getElementCountPairs(Node n);
+  /**
+   * Get the above information for equivalence class eqc. If doMake is true,
+   * we construct a new information class if one does not exist. The term eqc
+   * should currently be a representative of the equality engine of this class.
+   */
+  EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
 
   /** clear all bags data structures */
   void reset();
@@ -142,6 +149,9 @@ class SolverState : public TheoryState
    */
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_partElementSkolems;
+
+  /** Map from representatives to their equivalence class information */
+  std::map<Node, EqcInfo*> d_eqcInfo;
 }; /* class SolverState */
 
 }  // namespace bags

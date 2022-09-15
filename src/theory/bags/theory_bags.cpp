@@ -17,6 +17,7 @@
 
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
+#include "options/bags_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
 #include "theory/bags/bags_utils.h"
@@ -40,6 +41,9 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_statistics(statisticsRegistry()),
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
+      d_eagerSolver(options().bags.bagEagerSolver
+                        ? new EagerSolver(env, d_state, d_termReg)
+                        : nullptr),
       d_solver(env, d_state, d_im, d_termReg),
       d_cardSolver(env, d_state, d_im),
       d_cpacb(*this)
@@ -343,6 +347,8 @@ void TheoryBags::notifyFact(TNode atom,
                             TNode fact,
                             bool isInternal)
 {
+  Trace("bag-notify") << "TheoryBags::notifyFact(" << atom << ", " << polarity
+                      << ", " << fact << ", " << isInternal << ")";
 }
 
 bool TheoryBags::collectModelValues(TheoryModel* m,
@@ -496,9 +502,33 @@ void TheoryBags::presolve()
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode n) {}
+void TheoryBags::eqNotifyNewClass(TNode t)
+{
+  Trace("bags-notify") << "TheoryBags::eqNotifyNewClass(" << t << ")"
+                       << std::endl;
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->eqNotifyNewClass(t);
+  }
+}
 
-void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
+void TheoryBags::eqNotifyMerge(TNode t1, TNode t2)
+{
+  Trace("bags-notify") << "TheoryBags::eqNotifyMerge(" << t1 << ", " << t2
+                       << ")" << std::endl;
+  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
+  if (e2 == nullptr)
+  {
+    return;
+  }
+  // always create it if e2 was non-null
+  EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
+
+  if (d_eagerSolver)
+  {
+    d_eagerSolver->eqNotifyMerge(e1, t1, e2, t2);
+  }
+}
 
 void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason) {}
 

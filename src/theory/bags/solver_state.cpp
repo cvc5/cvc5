@@ -151,6 +151,22 @@ std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
   return d_partElementSkolems[n];
 }
 
+EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
+{
+  std::map<Node, EqcInfo*>::iterator eqc_i = d_eqcInfo.find(eqc);
+  if (eqc_i != d_eqcInfo.end())
+  {
+    return eqc_i->second;
+  }
+  if (doMake)
+  {
+    EqcInfo* ei = new EqcInfo(d_env.getContext(), eqc);
+    d_eqcInfo[eqc] = ei;
+    return ei;
+  }
+  return nullptr;
+}
+
 void SolverState::reset()
 {
   d_bagElements.clear();
