@@ -214,8 +214,6 @@ void BaseSolver::checkInit()
             // this node is congruent to another one, we can ignore it
             Trace("strings-base-debug") << "  congruent term : " << n
                                         << " (via " << nc << ")" << std::endl;
-            std::cout << "  congruent term : " << n << " (via " << nc << ")"
-                      << std::endl;
             d_congruent.insert(n);
           }
           else if (k == STRING_CONCAT && c.size() == 1)
