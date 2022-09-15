@@ -35,8 +35,8 @@ Result::Result()
 Result::Result(Status s, std::string inputName)
     : d_status(s), d_unknownExplanation(UNKNOWN_REASON), d_inputName(inputName)
 {
-  PrettyCheckArgument(s != UNKNOWN,
-                      "Must provide a reason for satisfiability being unknown");
+  Assert(s != UNKNOWN)
+      << "Must provide a reason for satisfiability being unknown";
 }
 
 Result::Result(Status s,
@@ -46,8 +46,7 @@ Result::Result(Status s,
       d_unknownExplanation(unknownExplanation),
       d_inputName(inputName)
 {
-  PrettyCheckArgument(s == UNKNOWN,
-                      "improper use of unknown-result constructor");
+  Assert(s == UNKNOWN) << "improper use of unknown-result constructor";
 }
 
 Result::Result(const std::string& instr, std::string inputName)
@@ -105,9 +104,8 @@ Result::Result(const std::string& instr, std::string inputName)
 
 UnknownExplanation Result::getUnknownExplanation() const
 {
-  PrettyCheckArgument(isUnknown(), this,
-                      "This result is not unknown, so the reason for "
-                      "being unknown cannot be inquired of it");
+  Assert(isUnknown()) << "This result is not unknown, so the reason for "
+                         "being unknown cannot be inquired of it";
   return d_unknownExplanation;
 }
 

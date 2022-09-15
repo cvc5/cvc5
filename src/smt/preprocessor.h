@@ -21,7 +21,6 @@
 #include <memory>
 
 #include "smt/env_obj.h"
-#include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
@@ -53,7 +52,7 @@ class PreprocessProofGenerator;
 class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(Env& env, AbstractValues& abs, SolverEngineStatistics& stats);
+  Preprocessor(Env& env, SolverEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
@@ -79,27 +78,15 @@ class Preprocessor : protected EnvObj
    */
   void cleanup();
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Apply top-level substitutions and eliminate abstract values in a term or
+   * formula n.  No other simplification or normalization is done.
    *
-   * @param n The node to simplify
-   * @return The simplified term.
+   * @param n The node to subsitute
+   * @return The term after substitution.
    */
-  Node simplify(const Node& n);
-  /**
-   * Expand the definitions in a term or formula n.  No other
-   * simplification or normalization is done.
-   *
-   * @param n The node to expand
-   * @return The expanded term.
-   */
-  Node expandDefinitions(const Node& n);
-  /** Same as above, with a cache of previous results. */
-  Node expandDefinitions(const Node& n, std::unordered_map<Node, Node>& cache);
+  Node applySubstitutions(const Node& n);
   /** Same as above, for a list of assertions, updating in place */
-  void expandDefinitions(std::vector<Node>& ns);
+  void applySubstitutions(std::vector<Node>& ns);
   /**
    * Enable proofs for this preprocessor. This must be called
    * explicitly since we construct the preprocessor before we know
@@ -110,8 +97,6 @@ class Preprocessor : protected EnvObj
   void enableProofs(PreprocessProofGenerator* pppg);
 
  private:
-  /** Reference to the abstract values utility */
-  AbstractValues& d_absValues;
   /**
    * A circuit propagator for non-clausal propositional deduction.
    */
@@ -122,8 +107,6 @@ class Preprocessor : protected EnvObj
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
   std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
-  /** Expand definitions module, responsible for expanding definitions */
-  ExpandDefs d_exDefs;
   /**
    * Process assertions module, responsible for implementing the preprocessing
    * passes.

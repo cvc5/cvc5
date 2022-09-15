@@ -4192,14 +4192,14 @@ class CVC5_EXPORT Solver
   std::map<Term, Term> getDifficulty() const;
 
   /**
-   * Get the refutation proof
+   * Get a proof associated with the most recent call to checkSat.
    *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-proof)
+   *     (get-proof :c)
    *
    * Requires to enable option
    * :ref:`produce-proofs <lbl-option-produce-proofs>`.
@@ -4209,9 +4209,13 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof.
+   * @param c The component of the proof to return
+   * @return A string representing the proof. This takes into account
+   * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
+   * `PROOF_COMPONENT_FULL`.
    */
-  std::string getProof() const;
+  std::string getProof(
+      modes::ProofComponent c = modes::PROOF_COMPONENT_FULL) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -5004,6 +5008,12 @@ class CVC5_EXPORT Solver
    * @return The output stream.
    */
   std::ostream& getOutput(const std::string& tag) const;
+
+  /**
+   * Get a string representation of the version of this solver.
+   * @return The version string.
+   */
+  std::string getVersion() const;
 
  private:
   /**

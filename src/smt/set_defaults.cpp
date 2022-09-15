@@ -97,6 +97,19 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
     opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
+  if (opts.proof.checkProofSteps)
+  {
+    notifyModifyOption("checkProofs", "true", "check-proof-steps");
+    opts.writeSmt().checkProofs = true;
+    if (!opts.proof.proofGranularityModeWasSetByUser)
+    {
+      // maximize the granularity
+      notifyModifyOption(
+          "proofGranularityMode", "dsl-rewrite", "check-proof-steps");
+      opts.writeProof().proofGranularityMode =
+          options::ProofGranularityMode::DSL_REWRITE;
+    }
+  }
   // if check-proofs, dump-proofs, or proof-mode=full, then proofs being fully
   // enabled is implied
   if (opts.smt.checkProofs || opts.driver.dumpProofs
@@ -953,7 +966,8 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   }
   // If proofs are required and the user did not specify a specific BV solver,
   // we make sure to use the proof producing BITBLAST_INTERNAL solver.
-  if (opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
+  if (opts.smt.proofMode == options::ProofMode::FULL
+      && opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
       && !opts.bv.bvSolverWasSetByUser)
   {
     verbose(1) << "Forcing internal bit-vector solver due to proof production."
@@ -1803,6 +1817,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.writeSmt().checkProofs = false;
   opts.writeSmt().debugCheckModels = false;
   opts.writeSmt().checkModels = false;
+  opts.writeProof().checkProofSteps = false;
 }
 
 }  // namespace smt

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.LearnedLitType;
+import io.github.cvc5.modes.ProofComponent;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -150,10 +151,10 @@ class SolverTest
     dtypeSpec.addConstructor(nil);
     assertDoesNotThrow(() -> d_solver.mkDatatypeSort(dtypeSpec));
 
-    // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    // Solver slv = new Solver();
-    // assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSort(dtypeSpec));
-    // slv.close();
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSort(dtypeSpec));
+    Solver slv = new Solver();
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSort(dtypeSpec));
+    slv.close();
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
     assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSort(throwsDtypeSpec));
@@ -179,8 +180,8 @@ class SolverTest
     DatatypeDecl[] decls = {dtypeSpec1, dtypeSpec2};
     assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(decls));
 
-    // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    // assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(decls));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(decls));
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(decls));
 
     DatatypeDecl throwsDtypeSpec = d_solver.mkDatatypeDecl("list");
     DatatypeDecl[] throwsDecls = new DatatypeDecl[] {throwsDtypeSpec};
@@ -198,8 +199,8 @@ class SolverTest
     DatatypeDecl[] udecls = new DatatypeDecl[] {ulist};
     assertDoesNotThrow(() -> d_solver.mkDatatypeSorts(udecls));
 
-    // FIXME: https://github.com/cvc5/cvc5-projects/issues/522
-    // assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkDatatypeSorts(udecls));
+    assertThrows(CVC5ApiException.class, () -> slv.mkDatatypeSorts(udecls));
     slv.close();
 
     /* mutually recursive with unresolved parameterized sorts */
@@ -215,6 +216,7 @@ class SolverTest
     ctordecl1.addSelector("s1", u0.instantiate(new Sort[] {p1}));
     dtdecl0.addConstructor(ctordecl0);
     dtdecl1.addConstructor(ctordecl1);
+    dtdecl1.addConstructor(d_solver.mkDatatypeConstructorDecl("nil"));
     Sort[] dt_sorts = d_solver.mkDatatypeSorts(new DatatypeDecl[] {dtdecl0, dtdecl1});
     Sort isort1 = dt_sorts[1].instantiate(new Sort[] {d_solver.getBooleanSort()});
     Term t1 = d_solver.mkConst(isort1, "t");
@@ -1840,6 +1842,7 @@ class SolverTest
     Term[] unsat_core = d_solver.getUnsatCore();
 
     assertDoesNotThrow(() -> d_solver.getProof());
+    assertDoesNotThrow(() -> d_solver.getProof(ProofComponent.PROOF_COMPONENT_SAT));
 
     d_solver.resetAssertions();
     for (Term t : unsat_core)
@@ -1896,10 +1899,10 @@ class SolverTest
   {
     d_solver.setOption("produce-learned-literals", "true");
     // cannot ask before a check sat
-    assertThrows(CVC5ApiException.class,
-        () -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+    assertThrows(CVC5ApiException.class, () -> d_solver.getLearnedLiterals());
     d_solver.checkSat();
-    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_INPUT));
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals());
+    assertDoesNotThrow(() -> d_solver.getLearnedLiterals(LearnedLitType.LEARNED_LIT_PREPROCESS));
   }
 
   @Test
@@ -3083,5 +3086,11 @@ class SolverTest
     Term xval = d_solver.getValue(x);
     Term yval = d_solver.getValue(y);
     assertFalse(xval.equals(yval));
+  }
+
+  @Test
+  void getVersion() throws CVC5ApiException
+  {
+    System.out.println(d_solver.getVersion());
   }
 }
