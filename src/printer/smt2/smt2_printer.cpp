@@ -126,6 +126,7 @@ void Smt2Printer::toStream(std::ostream& out, TNode n) const
 {
   size_t dag = options::ioutils::getDagThresh(out);
   int toDepth = options::ioutils::getNodeDepth(out);
+  std::cout << "Print term, dag is " << dag << std::endl;
   toStream(out, n, toDepth, dag);
 }
 

@@ -1268,8 +1268,6 @@ void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
     {
       out << " ";
     }
-    options::ioutils::Scope scope(out);
-    options::ioutils::applyDagThresh(out, 0);
     out << rc;
   }
   out << ")" << std::endl;
@@ -1581,8 +1579,6 @@ void GetInterpolantCommand::invoke(Solver* solver, SymbolManager* sm)
 void GetInterpolantCommand::printResult(cvc5::Solver* solver,
                                         std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1631,8 +1627,6 @@ void GetInterpolantNextCommand::invoke(Solver* solver, SymbolManager* sm)
 void GetInterpolantNextCommand::printResult(cvc5::Solver* solver,
                                             std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1705,8 +1699,6 @@ void GetAbductCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetAbductCommand::printResult(cvc5::Solver* solver,
                                    std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1752,8 +1744,6 @@ void GetAbductNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetAbductNextCommand::printResult(cvc5::Solver* solver,
                                        std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"

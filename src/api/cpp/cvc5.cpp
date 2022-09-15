@@ -3345,7 +3345,7 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
 
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
-  out << t.toString();
+  t.toStream(out);
   return out;
 }
 
@@ -3427,6 +3427,15 @@ Kind Term::getKindHelper() const
   return intToExtKind(d_node->getKind());
 }
 
+void Term::toStream(std::ostream& out) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_node->toStream(out);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+  
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
 /* -------------------------------------------------------------------------- */
