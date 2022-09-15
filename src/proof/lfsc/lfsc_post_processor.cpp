@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of the Lfsc post proccessor
+ * Implementation of the Lfsc post processor
  */
 
 #include "proof/lfsc/lfsc_post_processor.h"
@@ -22,6 +22,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
 #include "proof/proof_node_updater.h"
+#include "smt/env.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace cvc5::internal::kind;
@@ -30,12 +31,15 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
-    LfscNodeConverter& ltp, ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker()), d_tproc(ltp), d_firstTime(false)
+    Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env),
+      d_pc(env.getProofNodeManager()->getChecker()),
+      d_tproc(ltp),
+      d_numIgnoredScopes(0)
 {
 }
 
-void LfscProofPostprocessCallback::initializeUpdate() { d_firstTime = true; }
+void LfscProofPostprocessCallback::initializeUpdate() { d_numIgnoredScopes = 0; }
 
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 const std::vector<Node>& fa,
@@ -56,20 +60,34 @@ bool LfscProofPostprocessCallback::update(Node res,
   Trace("lfsc-pp-debug") << "...proves " << res << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
-  bool isFirstTime = d_firstTime;
-  // On the first call to update, the proof node is the outermost scope of the
-  // proof. This scope should not be printed in the LFSC proof. Instead, the
-  // LFSC proof printer will print the proper scope around the proof, which
-  // e.g. involves an LFSC "check" command.
-  d_firstTime = false;
 
   switch (id)
   {
+    case PfRule::ASSUME:
+    {
+      if (d_defs.find(res) != d_defs.cend())
+      {
+        addLfscRule(cdp, res, children, LfscRule::DEFINITION, args);
+        return true;
+      }
+      return false;
+    }
+    break;
     case PfRule::SCOPE:
     {
-      if (isFirstTime)
+      // On the first two calls to update, the proof node is the outermost
+      // scopes of the proof. These scopes should not be printed in the LFSC
+      // proof. Instead, the LFSC proof printer will print the proper scopes
+      // around the proof, which e.g. involves an LFSC "check" command.
+      if (d_numIgnoredScopes < 2)
       {
-        // Note that we do not want to modify the top-most SCOPE
+        // The arguments of the outer scope are definitions.
+        if (d_numIgnoredScopes == 0)
+        {
+          d_defs.insert(args.cbegin(), args.cend());
+        }
+        d_numIgnoredScopes++;
+        // Note that we do not want to modify the top-most SCOPEs.
         return false;
       }
       Assert(children.size() == 1);
@@ -427,9 +445,8 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   return nm->mkBoundVar(nm->booleanType());
 }
 
-LfscProofPostprocess::LfscProofPostprocess(LfscNodeConverter& ltp,
-                                           ProofNodeManager* pnm)
-    : d_cb(new proof::LfscProofPostprocessCallback(ltp, pnm)), d_pnm(pnm)
+LfscProofPostprocess::LfscProofPostprocess(Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env), d_cb(new proof::LfscProofPostprocessCallback(env, ltp))
 {
 }
 
@@ -438,7 +455,7 @@ void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   d_cb->initializeUpdate();
   // do not automatically add symmetry steps, since this leads to
   // non-termination for example on policy_variable.smt2
-  ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
+  ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
   updater.process(pf);
 }
 

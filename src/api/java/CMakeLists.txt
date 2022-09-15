@@ -41,6 +41,7 @@ add_custom_target(generate-java-kinds DEPENDS ${JAVA_KIND_FILE})
 
 set(JAVA_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/BlockModelsMode.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/modes/LearnedLitType.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/RoundingMode.java"
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/UnknownExplanation.java"
 )
@@ -163,7 +164,6 @@ target_include_directories(cvc5jni PUBLIC ${JNI_INCLUDE_DIRS})
 target_include_directories(cvc5jni PUBLIC ${PROJECT_SOURCE_DIR}/src)
 target_include_directories(cvc5jni PUBLIC ${CMAKE_BINARY_DIR}/src/)
 target_include_directories(cvc5jni PUBLIC ${JNI_DIR})
-target_link_libraries(cvc5jni PRIVATE ${JNI_LIBRARIES})
 target_link_libraries(cvc5jni PRIVATE cvc5)
 
 set(CVC5_JAR "cvc5-${CVC5_VERSION}.jar")

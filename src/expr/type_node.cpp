@@ -25,6 +25,7 @@
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
+#include "util/ff_val.h"
 
 using namespace std;
 
@@ -100,8 +101,8 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint()
-           || isRoundingMode())
+  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
+           || isFiniteField())
   {
     ret = CardinalityClass::FINITE;
   }
@@ -604,6 +605,12 @@ uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();
+}
+
+Integer TypeNode::getFfSize() const
+{
+  Assert(getKind() == kind::FINITE_FIELD_TYPE);
+  return getConst<FfSize>();
 }
 
 TypeNode TypeNode::getRangeType() const

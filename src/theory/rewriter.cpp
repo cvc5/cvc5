@@ -17,9 +17,7 @@
 
 #include "options/theory_options.h"
 #include "proof/conv_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
@@ -118,15 +116,15 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
-void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
+void Rewriter::finishInit(Env& env)
 {
   // if not already initialized with proof support
   if (d_tpg == nullptr)
   {
-    Trace("rewriter") << "Rewriter::setProofNodeManager" << std::endl;
+    Trace("rewriter") << "Rewriter::finishInit" << std::endl;
     // the rewriter is staticly determinstic, thus use static cache policy
     // for the term conversion proof generator
-    d_tpg.reset(new TConvProofGenerator(pnm,
+    d_tpg.reset(new TConvProofGenerator(env,
                                         nullptr,
                                         TConvPolicy::FIXPOINT,
                                         TConvCachePolicy::STATIC,

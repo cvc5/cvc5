@@ -41,6 +41,7 @@ class Smt2Printer : public cvc5::internal::Printer
   using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, TNode n, int toDepth, size_t dag) const;
+  void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
@@ -171,7 +172,8 @@ class Smt2Printer : public cvc5::internal::Printer
       std::ostream& out, const std::vector<Node>& nodes) const override;
 
   /** Print get-proof command */
-  void toStreamCmdGetProof(std::ostream& out) const override;
+  void toStreamCmdGetProof(std::ostream& out,
+                           modes::ProofComponent c) const override;
 
   /** Print get-interpolant command */
   void toStreamCmdGetInterpol(std::ostream& out,
@@ -206,7 +208,8 @@ class Smt2Printer : public cvc5::internal::Printer
   void toStreamCmdGetDifficulty(std::ostream& out) const override;
 
   /** Print get-learned-literals command */
-  void toStreamCmdGetLearnedLiterals(std::ostream& out) const override;
+  void toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                     modes::LearnedLitType t) const override;
 
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;
@@ -251,26 +254,16 @@ class Smt2Printer : public cvc5::internal::Printer
                               TypeNode locType,
                               TypeNode dataType) const override;
 
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
-  /** Print declaration sequence command */
-  void toStreamCmdDeclarationSequence(
-      std::ostream& out,
-      const std::vector<cvc5::Command*>& sequence) const override;
-
   /**
    * Get the string for a kind k, which returns how the kind k is printed in
-   * the SMT-LIB format (with variant v).
+   * the SMT-LIB format.
    */
-  static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
+  static std::string smtKindString(Kind k);
   /**
    * Same as above, but also takes into account the type of the node, which
    * makes a difference for printing sequences.
    */
-  static std::string smtKindStringOf(const Node& n, Variant v = smt2_6_variant);
+  static std::string smtKindStringOf(const Node& n);
   /**
    * Get the string corresponding to the sygus datatype t printed as a grammar.
    */

@@ -706,39 +706,17 @@ Node CoreSolver::getConclusion(Node x,
   Node conc;
   if (rule == PfRule::CONCAT_SPLIT || rule == PfRule::CONCAT_LPROP)
   {
-    Node sk1;
-    Node sk2;
-    if (options::stringUnifiedVSpt())
-    {
-      // must compare so that we are agnostic to order of x/y
-      Node ux = x < y ? x : y;
-      Node uy = x < y ? y : x;
-      Node sk = skc->mkSkolemCached(ux,
-                                    uy,
-                                    isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
-                                          : SkolemCache::SK_ID_V_UNIFIED_SPT,
-                                    "v_spt");
-      newSkolems.push_back(sk);
-      sk1 = sk;
-      sk2 = sk;
-    }
-    else
-    {
-      sk1 = skc->mkSkolemCached(
-          x,
-          y,
-          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-          "v_spt1");
-      sk2 = skc->mkSkolemCached(
-          y,
-          x,
-          isRev ? SkolemCache::SK_ID_V_SPT_REV : SkolemCache::SK_ID_V_SPT,
-          "v_spt2");
-      newSkolems.push_back(sk1);
-      newSkolems.push_back(sk2);
-    }
-    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
-                              : nm->mkNode(STRING_CONCAT, y, sk1));
+    // must compare so that we are agnostic to order of x/y
+    Node ux = x < y ? x : y;
+    Node uy = x < y ? y : x;
+    Node sk = skc->mkSkolemCached(ux,
+                                  uy,
+                                  isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                        : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                  "v_spt");
+    newSkolems.push_back(sk);
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, y)
+                              : nm->mkNode(STRING_CONCAT, y, sk));
 
     if (rule == PfRule::CONCAT_LPROP)
     {
@@ -746,22 +724,19 @@ Node CoreSolver::getConclusion(Node x,
     }
     else
     {
-      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
-                                : nm->mkNode(STRING_CONCAT, x, sk2));
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, x)
+                                : nm->mkNode(STRING_CONCAT, x, sk));
       // make agnostic to x/y
       conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
-    if (options::stringUnifiedVSpt())
-    {
-      // we can assume its length is greater than zero
-      Node emp = Word::mkEmptyWord(sk1.getType());
-      conc = nm->mkNode(
-          AND,
-          conc,
-          sk1.eqNode(emp).negate(),
-          nm->mkNode(
-              GT, nm->mkNode(STRING_LENGTH, sk1), nm->mkConstInt(Rational(0))));
-    }
+    // we can assume its length is greater than zero
+    Node emp = Word::mkEmptyWord(sk.getType());
+    conc = nm->mkNode(
+        AND,
+        conc,
+        sk.eqNode(emp).negate(),
+        nm->mkNode(
+            GT, nm->mkNode(STRING_LENGTH, sk), nm->mkConstInt(Rational(0))));
   }
   else if (rule == PfRule::CONCAT_CSPLIT)
   {
@@ -1276,7 +1251,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     Trace("strings-solve-debug")
         << "Process " << x << " ... " << y << std::endl;
 
-    if (x == y)
+    // require checking equal here, usually x == y, but this also holds the
+    // case of (str.unit a) and (str.unit b) for distinct a, b, where we do
+    // not want to unify these terms here.
+    if (d_state.areEqual(x, y))
     {
       // The normal forms have the same term at the current position. We just
       // continue with the next index. By construction of the normal forms, we
@@ -1290,7 +1268,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       index++;
       continue;
     }
-    Assert(!d_state.areEqual(x, y));
 
     std::vector<Node> lenExp;
     Node xLenTerm = d_state.getLength(x, lenExp);
@@ -2217,7 +2194,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          d_termReg.registerTermAtomic(newSkolems[1], LENGTH_GEQ_ONE);
           std::vector<Node> antecLen;
           antecLen.push_back(nm->mkNode(GT, uxLen, uyLen));
           d_im.sendInference(antecLen,
@@ -2432,12 +2408,14 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
 
 void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 {
+  Trace("strings-deq-ext") << "Processing " << n1 << " != " << n2 << std::endl;
   // hash based on equality
   Node eq = n1 < n2 ? n1.eqNode(n2) : n2.eqNode(n1);
   NodeSet::const_iterator it = d_extDeq.find(eq);
   if (it != d_extDeq.end())
   {
     // already processed
+    Trace("strings-deq-ext") << "- already processed" << std::endl;
     return;
   }
   d_extDeq.insert(eq);
@@ -2447,9 +2425,20 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   TypeNode intType = nm->integerType();
   Node k = sc->mkSkolemFun(SkolemFunId::STRINGS_DEQ_DIFF, intType, n1, n2);
   Node deq = eq.negate();
-  // use seq.nth instead of substr
-  Node ss1 = nm->mkNode(SEQ_NTH, n1, k);
-  Node ss2 = nm->mkNode(SEQ_NTH, n2, k);
+  // we could use seq.nth instead of substr
+  Node ss1, ss2;
+  if (n1.getType().isString())
+  {
+    // substring of length 1
+    ss1 = nm->mkNode(STRING_SUBSTR, n1, k, d_one);
+    ss2 = nm->mkNode(STRING_SUBSTR, n2, k, d_one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(SEQ_NTH, n1, k);
+    ss2 = nm->mkNode(SEQ_NTH, n2, k);
+  }
 
   // disequality between nth/substr
   Node conc1 = ss1.eqNode(ss2).negate();

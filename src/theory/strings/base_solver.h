@@ -213,6 +213,12 @@ class BaseSolver : protected EnvObj
   void checkCardinalityType(TypeNode tn,
                             std::vector<std::vector<Node> >& cols,
                             std::vector<Node>& lts);
+  /**
+   * Called when a and b are constant-like terms in the same equivalence class.
+   *
+   * @return true if a conflict was discovered
+   */
+  bool processConstantLike(Node a, Node b);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -233,6 +239,11 @@ class BaseSolver : protected EnvObj
    * various inference schemas implemented by this class.
    */
   NodeSet d_congruent;
+  /**
+   * Set of equalities that we have applied STRINGS_UNIT_INJ_OOB to
+   * in the current user context
+   */
+  NodeSet d_strUnitOobEq;
   /**
    * Maps equivalence classes to their info, see description of `BaseEqcInfo`
    * for more information.

@@ -131,8 +131,6 @@ class AlphaEquivalence : protected EnvObj
   expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */
   AlphaEquivalenceDb d_aedb;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** An eager proof generator storing alpha equivalence proofs.*/
   std::unique_ptr<EagerProofGenerator> d_pfAlpha;
   /** Are proofs enabled for this object? */

@@ -16,7 +16,7 @@
 
 #include "theory/arrays/array_info.h"
 
-#include "smt/smt_statistics_registry.h"
+#include "util/statistics_registry.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -43,24 +43,22 @@ Info::~Info() {
   in_stores->deleteSelf();
 }
 
-ArrayInfo::ArrayInfo(context::Context* c, std::string statisticsPrefix)
+ArrayInfo::ArrayInfo(StatisticsRegistry& sr,
+                     context::Context* c,
+                     std::string statisticsPrefix)
     : ct(c),
       info_map(),
-      d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(
-          statisticsPrefix + "mergeInfoTimer")),
-      d_avgIndexListLength(smtStatisticsRegistry().registerAverage(
-          statisticsPrefix + "avgIndexListLength")),
-      d_avgStoresListLength(smtStatisticsRegistry().registerAverage(
-          statisticsPrefix + "avgStoresListLength")),
-      d_avgInStoresListLength(smtStatisticsRegistry().registerAverage(
-          statisticsPrefix + "avgInStoresListLength")),
-      d_listsCount(
-          smtStatisticsRegistry().registerInt(statisticsPrefix + "listsCount")),
-      d_callsMergeInfo(smtStatisticsRegistry().registerInt(statisticsPrefix
-                                                           + "callsMergeInfo")),
-      d_maxList(
-          smtStatisticsRegistry().registerInt(statisticsPrefix + "maxList")),
-      d_tableSize(smtStatisticsRegistry().registerSize<CNodeInfoMap>(
+      d_mergeInfoTimer(sr.registerTimer(statisticsPrefix + "mergeInfoTimer")),
+      d_avgIndexListLength(
+          sr.registerAverage(statisticsPrefix + "avgIndexListLength")),
+      d_avgStoresListLength(
+          sr.registerAverage(statisticsPrefix + "avgStoresListLength")),
+      d_avgInStoresListLength(
+          sr.registerAverage(statisticsPrefix + "avgInStoresListLength")),
+      d_listsCount(sr.registerInt(statisticsPrefix + "listsCount")),
+      d_callsMergeInfo(sr.registerInt(statisticsPrefix + "callsMergeInfo")),
+      d_maxList(sr.registerInt(statisticsPrefix + "maxList")),
+      d_tableSize(sr.registerSize<CNodeInfoMap>(
           statisticsPrefix + "infoTableSize", info_map))
 {
   emptyList = new(true) CTNodeList(ct);

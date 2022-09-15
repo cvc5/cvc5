@@ -18,8 +18,8 @@
 #include "expr/dtype_cons.h"
 #include "expr/emptybag.h"
 #include "smt/logic_exception.h"
-#include "table_project_op.h"
 #include "theory/bags/bag_reduction.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
@@ -146,7 +146,7 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
     case BAG_FOLD: return evaluateBagFold(n);
     case TABLE_PRODUCT: return evaluateProduct(n);
     case TABLE_JOIN: return evaluateJoin(rewriter, n);
-    case TABLE_GROUP: return evaluateGroup(rewriter, n);
+    case TABLE_GROUP: return evaluateGroup(n);
     case TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
@@ -975,7 +975,7 @@ Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
+Node BagsUtils::evaluateGroup(TNode n)
 {
   Assert(n.getKind() == TABLE_GROUP);
 
@@ -985,14 +985,8 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
   TypeNode bagType = A.getType();
   TypeNode partitionType = n.getType();
 
-  if (A.getKind() == BAG_EMPTY)
-  {
-    // return a nonempty partition
-    return nm->mkNode(BAG_MAKE, A, nm->mkConstInt(Rational(1)));
-  }
-
   std::vector<uint32_t> indices =
-      n.getOperator().getConst<TableGroupOp>().getIndices();
+      n.getOperator().getConst<ProjectOp>().getIndices();
 
   std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
   Trace("bags-group") << "elements: " << elements << std::endl;
@@ -1048,38 +1042,22 @@ Node BagsUtils::evaluateGroup(Rewriter* rewriter, TNode n)
     // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
   }
+  if (parts.empty())
+  {
+    // add an empty part
+    Node emptyPart = nm->mkConst(EmptyBag(bagType));
+    parts[emptyPart] = Rational(1);
+  }
   Node ret = constructConstantBagFromElements(partitionType, parts);
-  Trace("bags-partition") << "ret: " << ret << std::endl;
+  Trace("bags-group") << "ret: " << ret << std::endl;
   return ret;
 }
 
 Node BagsUtils::evaluateTableProject(TNode n)
 {
   Assert(n.getKind() == TABLE_PROJECT);
-  // Examples
-  // --------
-  // - ((_ table.project 1) (bag (tuple true "a") 4)) = (bag (tuple "a") 4)
-  // - (table.project (bag.union_disjoint
-  //                    (bag (tuple "a") 4)
-  //                    (bag (tuple "b") 3))) = (bag tuple 7)
-
-  Node A = n[0];
-
-  std::map<Node, Rational> elementsA = BagsUtils::getBagElements(A);
-
-  std::map<Node, Rational> elements;
-  std::vector<uint32_t> indices =
-      n.getOperator().getConst<TableProjectOp>().getIndices();
-
-  for (const auto& [a, countA] : elementsA)
-  {
-    Node element = TupleUtils::getTupleProjection(indices, a);
-    // multiple elements could be projected to the same tuple.
-    // Zero is the default value for Rational values.
-    elements[element] += countA;
-  }
-
-  Node ret = BagsUtils::constructConstantBagFromElements(n.getType(), elements);
+  Node bagMap = BagReduction::reduceProjectOperator(n);
+  Node ret = evaluateBagMap(bagMap);
   return ret;
 }
 
@@ -1088,7 +1066,7 @@ BagsUtils::splitTableJoinIndices(Node n)
 {
   Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
          && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
-  TableJoinOp op = n.getOperator().getConst<TableJoinOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   size_t joinSize = indices.size() / 2;
   std::vector<uint32_t> indices1(joinSize), indices2(joinSize);

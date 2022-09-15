@@ -103,6 +103,9 @@ TEST_F(TestApiBlackOp, getNumIndices)
   Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
   ASSERT_EQ(indices.size(), tupleProject.getNumIndices());
 
+  Op relationProject = d_solver.mkOp(RELATION_PROJECT, indices);
+  ASSERT_EQ(indices.size(), relationProject.getNumIndices());
+
   Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
   ASSERT_EQ(indices.size(), tableProject.getNumIndices());
 }

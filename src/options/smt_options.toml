@@ -176,6 +176,14 @@ name   = "SMT Layer"
   help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
 
 [[option]]
+  name       = "printUnsatCoresFull"
+  category   = "regular"
+  long       = "print-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing unsat cores, include unlabeled assertions"
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
@@ -416,7 +424,7 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "interpolants"
+  name       = "produceInterpolants"
   category   = "regular"
   long       = "produce-interpolants"
   type       = "bool"

@@ -120,6 +120,9 @@ class OpTest
     Op tupleProject = d_solver.mkOp(TUPLE_PROJECT, indices);
     assertEquals(6, tupleProject.getNumIndices());
 
+    Op relationProject = d_solver.mkOp(RELATION_PROJECT, indices);
+    assertEquals(6, relationProject.getNumIndices());
+
     Op tableProject = d_solver.mkOp(TABLE_PROJECT, indices);
     assertEquals(6, tableProject.getNumIndices());
   }

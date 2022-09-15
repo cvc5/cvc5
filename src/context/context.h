@@ -13,7 +13,7 @@
  * Context class and context manager.
  */
 
-#include "cvc5_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__CONTEXT__CONTEXT_H
 #define CVC5__CONTEXT__CONTEXT_H
@@ -62,8 +62,8 @@ std::ostream& operator<<(std::ostream&, const Scope&);
  * ContextMemoryManager.  A copy is stored in each Scope object for quick
  * access.
  */
-class Context {
-
+class CVC5_EXPORT Context
+{
   /**
    * Pointer to the ContextMemoryManager for this Context.
    */
@@ -192,8 +192,7 @@ public:
    */
   void addNotifyObjPost(ContextNotifyObj* pCNO);
 
-};/* class Context */
-
+}; /* class Context */
 
 /**
  * A UserContext is different from a Context only because it's used for
@@ -421,7 +420,8 @@ class Scope {
  *    argument as the special constructor in this class (and pass it
  *    on to all ContextObj instances).
  */
-class ContextObj {
+class CVC5_EXPORT ContextObj
+{
   /**
    * Pointer to Scope in which this object was last modified.
    */
@@ -647,7 +647,7 @@ class ContextObj {
    */
   void enqueueToGarbageCollect();
 
-};/* class ContextObj */
+}; /* class ContextObj */
 
 /**
  * For more flexible context-dependent behavior than that provided by

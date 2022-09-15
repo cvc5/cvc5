@@ -28,6 +28,7 @@
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
+#include "theory/incomplete_id.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
@@ -86,8 +87,13 @@ class TheoryProxy : protected EnvObj, public Registrar
   void notifyInputFormulas(const std::vector<Node>& assertions,
                            std::unordered_map<size_t, Node>& skolemMap);
   /**
+   * Notify that lem is a skolem definition for the given skolem. This is called
+   * before pushing the lemma to the SAT solver.
+   */
+  void notifySkolemDefinition(Node lem, TNode skolem);
+  /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
-   * definition.
+   * definition. This is called after pushing the lemma to the SAT solver.
    */
   void notifyAssertion(Node lem,
                        TNode skolem = TNode::null(),
@@ -127,6 +133,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Is incomplete */
   bool isIncomplete() const;
+
+  /** Get incomplete id, valid immediately after an `unknown` response. */
+  theory::IncompleteId getIncompleteId() const;
 
   /**
    * Notifies of a new variable at a decision level.

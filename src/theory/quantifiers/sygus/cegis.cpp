@@ -662,9 +662,9 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
       Node ev = d_cegis_sampler.evaluate(sbody, i);
       Trace("cegis-sample-debug") << "...evaluate point #" << i << " to " << ev
                                   << std::endl;
-      Assert(ev.isConst());
       Assert(ev.getType().isBoolean());
-      if (!ev.getConst<bool>())
+      // if it evaluates to false
+      if (ev.isConst() && !ev.getConst<bool>())
       {
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)

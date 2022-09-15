@@ -23,6 +23,7 @@
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
+#include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -103,7 +104,7 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.interpolants);
+  Assert(options().smt.produceInterpolants);
   // ASSUMPTIONS
   if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
@@ -192,6 +193,7 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     getIncludeCons(axioms, conj, include_cons);
     std::unordered_set<Node> terms_irrelevant;
     itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
+        options(),
         NodeManager::currentNM()->booleanType(),
         d_ibvlShared,
         "interpolation_grammar",
@@ -337,12 +339,12 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   d_itp = mkPredicate(name);
   mkSygusConjecture(d_itp, axioms, conj);
 
-  initializeSubsolver(d_subSolver, d_env);
-  // get the logic
-  LogicInfo l = d_subSolver->getLogicInfo().getUnlockedCopy();
-  // enable everything needed for sygus
-  l.enableSygus();
-  d_subSolver->setLogic(l);
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeQuantifiers().sygus = true;
+  smt::SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
+  initializeSubsolver(d_subSolver, ssi);
 
   for (const Node& var : d_vars)
   {

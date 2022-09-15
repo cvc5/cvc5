@@ -28,22 +28,19 @@ namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val)
 {
-  return out << "@a" << val.getIndex();
+  return out << "@" << val.getType() << "_" << val.getIndex();
 }
 
 UninterpretedSortValue::UninterpretedSortValue(const TypeNode& type,
                                                const Integer& index)
     : d_type(new TypeNode(type)), d_index(index)
 {
-  PrettyCheckArgument(type.isUninterpretedSort(),
-                      type,
-                      "uninterpreted constants can only be created for "
-                      "uninterpreted sorts, not `%s'",
-                      type.toString().c_str());
-  PrettyCheckArgument(index >= 0,
-                      index,
-                      "index >= 0 required for abstract value, not `%s'",
-                      index.toString().c_str());
+  Assert(type.isUninterpretedSort())
+      << "uninterpreted constants can only be created for "
+         "uninterpreted sorts, not `"
+      << type.toString().c_str() << "'";
+  Assert(index >= 0) << "index >= 0 required for abstract value, not `"
+                     << index.toString().c_str() << "'";
 }
 
 UninterpretedSortValue::UninterpretedSortValue(

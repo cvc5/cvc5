@@ -24,6 +24,7 @@
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/inference_id.h"
 #include "theory/theory.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -249,9 +250,19 @@ void CoveringsSolver::addToModel(TNode var, TNode value) const
   // reductions inference of the sine solver) may have introduced substitutions
   // internally during check.
   Node svalue = d_model.getSubstitutedForm(value);
-  if (var.getType().isInteger() && svalue.getKind() == Kind::TO_REAL)
+  // ensure the value has integer type if var has integer type
+  if (var.getType().isInteger())
   {
-    svalue = svalue[0];
+    if (svalue.getKind() == Kind::TO_REAL)
+    {
+      svalue = svalue[0];
+    }
+    else if (svalue.getKind() == Kind::CONST_RATIONAL)
+    {
+      Assert(svalue.getConst<Rational>().isIntegral());
+      svalue =
+          NodeManager::currentNM()->mkConstInt(svalue.getConst<Rational>());
+    }
   }
   Trace("nl-cov") << "-> " << var << " = " << svalue << std::endl;
   d_model.addSubstitution(var, svalue);

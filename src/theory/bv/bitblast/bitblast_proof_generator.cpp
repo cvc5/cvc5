@@ -22,9 +22,8 @@ namespace theory {
 namespace bv {
 
 BitblastProofGenerator::BitblastProofGenerator(Env& env,
-                                               ProofNodeManager* pnm,
                                                TConvProofGenerator* tcpg)
-    : EnvObj(env), d_pnm(pnm), d_tcpg(tcpg)
+    : EnvObj(env), d_tcpg(tcpg)
 {
 }
 
@@ -32,7 +31,7 @@ std::shared_ptr<ProofNode> BitblastProofGenerator::getProofFor(Node eq)
 {
   const auto& [t, bbt] = d_cache.at(eq);
 
-  CDProof cdp(d_pnm);
+  CDProof cdp(d_env);
   /* Coarse-grained bit-blast step. */
   if (t.isNull())
   {

@@ -235,7 +235,9 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
   poly::AlgebraicNumber ay = get_ran({-2, 0, 0, 0, 1}, 1, 2);
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
-  coverings::LazardEvaluation lazard;
+  Options opts;
+  Env env(&opts);
+  coverings::LazardEvaluation lazard(env.getStatisticsRegistry());
   lazard.add(x, ax);
   lazard.add(y, ay);
   lazard.add(z, az);
@@ -250,7 +252,7 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -272,7 +274,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -305,7 +307,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -328,7 +330,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -353,7 +355,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 void test_delta(const std::vector<Node>& a)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   cac.reset();
   for (const Node& n : a)
@@ -385,8 +387,9 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
   // enable proofs
   opts.writeSmt().proofMode = options::ProofMode::FULL;
   opts.writeSmt().produceProofs = true;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   smt::PfManager pfm(env);
+  env.finishInit(pfm.getProofNodeManager());
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
   builtin::BuiltinProofRuleChecker btchecker(env);

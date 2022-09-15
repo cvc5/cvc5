@@ -38,8 +38,7 @@ namespace strings {
 TermRegistry::TermRegistry(Env& env,
                            Theory& t,
                            SolverState& s,
-                           SequencesStatistics& statistics,
-                           ProofNodeManager* pnm)
+                           SequencesStatistics& statistics)
     : EnvObj(env),
       d_theory(t),
       d_state(s),
@@ -57,11 +56,10 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      userContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_epg(
+          env.isTheoryProofProducing() ? new EagerProofGenerator(
+              env, userContext(), "strings::TermRegistry::EagerProofGenerator")
+                                       : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
@@ -77,14 +75,6 @@ uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
-Node mkCodeRange(Node t, uint32_t alphaCard)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(AND,
-                    nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
-                    nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
-}
-
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -96,7 +86,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node len = nm->mkNode(STRING_LENGTH, t[0]);
     Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
-    Node code_range = mkCodeRange(t, alphaCard);
+    Node code_range = utils::mkCodeRange(t, alphaCard);
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
   else if (tk == SEQ_NTH)
@@ -111,7 +101,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
       Node c2 = nm->mkNode(GT, nm->mkNode(STRING_LENGTH, s), n);
       // check whether this application of seq.nth is defined.
       Node cond = nm->mkNode(AND, c1, c2);
-      Node code_range = mkCodeRange(t, alphaCard);
+      Node code_range = utils::mkCodeRange(t, alphaCard);
       // the lemma for `seq.nth`
       lemma = nm->mkNode(ITE, cond, code_range, t.eqNode(nm->mkConstInt(Rational(-1))));
       // IF: n >=0 AND n < len( s )

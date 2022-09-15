@@ -91,11 +91,15 @@ if(NOT GMP_FOUND_SYSTEM)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
       --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
-  endif()
-  if (CMAKE_CROSSCOMPILING_MACOS)
+
     set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
-      env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
-      env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+      env "CC_FOR_BUILD=cc")
+    if (CMAKE_CROSSCOMPILING_MACOS)
+      set(CONFIGURE_ENV
+        ${CONFIGURE_ENV}
+        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+        env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
   endif()
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
@@ -132,7 +136,7 @@ else()
 endif()
 set_target_properties(GMP PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
-  INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
 )
 
 mark_as_advanced(GMP_FOUND)

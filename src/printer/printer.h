@@ -51,6 +51,9 @@ class Printer
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
 
+  /** Write a Kind out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, Kind k) const = 0;
+
   /** Write a CommandStatus out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
 
@@ -195,7 +198,8 @@ class Printer
       std::ostream& out, const std::vector<Node>& nodes) const;
 
   /** Print get-proof command */
-  virtual void toStreamCmdGetProof(std::ostream& out) const;
+  virtual void toStreamCmdGetProof(std::ostream& out,
+                                   modes::ProofComponent c) const;
 
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
@@ -233,7 +237,8 @@ class Printer
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
 
   /** Print get-learned-literals command */
-  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out) const;
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                             modes::LearnedLitType t) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
@@ -282,14 +287,6 @@ class Printer
   virtual void toStreamCmdDeclareHeap(std::ostream& out,
                                       TypeNode locType,
                                       TypeNode dataType) const;
-
-  /** Print command sequence command */
-  virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
-
-  /** Print declaration sequence command */
-  virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<cvc5::Command*>& sequence) const;
 
  protected:
   /** Derived classes can construct, but no one else. */

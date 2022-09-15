@@ -344,10 +344,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         ss << "  " << t;
         throw LogicException(ss.str());
       }
-    case kind::PI:
-      return RewriteResponse(REWRITE_DONE, t);
-    default:
-      Unreachable();
+      case kind::PI: return RewriteResponse(REWRITE_DONE, t);
+      default: Unreachable();
     }
   }
 }
@@ -793,7 +791,7 @@ RewriteResponse ArithRewriter::rewriteExtIntegerOp(TNode t)
   }
   if (t[0].getKind() == kind::PI)
   {
-    Node ret = isPred ? nm->mkConst(false) : nm->mkConstReal(Rational(3));
+    Node ret = isPred ? nm->mkConst(false) : nm->mkConstInt(Rational(3));
     return returnRewrite(t, ret, Rewrite::INT_EXT_PI);
   }
   else if (t[0].getKind() == kind::TO_REAL)

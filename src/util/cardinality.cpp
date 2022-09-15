@@ -36,36 +36,32 @@ const Cardinality Cardinality::REALS(CardinalityBeth(1));
 const Cardinality Cardinality::UNKNOWN_CARD((CardinalityUnknown()));
 
 CardinalityBeth::CardinalityBeth(const Integer& beth) : d_index(beth) {
-  PrettyCheckArgument(beth >= 0, beth,
-                      "Beth index must be a nonnegative integer, not %s.",
-                      beth.toString().c_str());
+  Assert(beth >= 0) << "Beth index must be a nonnegative integer, not "
+                    << beth.toString().c_str();
 }
 
 Cardinality::Cardinality(long card) : d_card(card) {
-  PrettyCheckArgument(card >= 0, card,
-                      "Cardinality must be a nonnegative integer, not %ld.",
-                      card);
+  Assert(card >= 0) << "Cardinality must be a nonnegative integer, not "
+                    << card;
   d_card += 1;
 }
 
 Cardinality::Cardinality(const Integer& card) : d_card(card) {
-  PrettyCheckArgument(card >= 0, card,
-                      "Cardinality must be a nonnegative integer, not %s.",
-                      card.toString().c_str());
+  Assert(card >= 0) << "Cardinality must be a nonnegative integer, not "
+                    << card.toString().c_str();
   d_card += 1;
 }
 
 Integer Cardinality::getFiniteCardinality() const {
-  PrettyCheckArgument(isFinite(), *this, "This cardinality is not finite.");
-  PrettyCheckArgument(
-      !isLargeFinite(), *this,
-      "This cardinality is finite, but too large to represent.");
+  Assert(isFinite()) << "This cardinality is not finite.";
+  Assert(!isLargeFinite())
+      << "This cardinality is finite, but too large to represent.";
   return d_card - 1;
 }
 
 Integer Cardinality::getBethNumber() const {
-  PrettyCheckArgument(!isFinite() && !isUnknown(), *this,
-                      "This cardinality is not infinite (or is unknown).");
+  Assert(!isFinite() && !isUnknown())
+      << "This cardinality is not infinite (or is unknown).";
   return -d_card - 1;
 }
 

@@ -76,8 +76,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  private:
   /** Common constants */
   Node d_true;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The witness form proof generator */
@@ -245,7 +243,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
-class ProofPostproccess : protected EnvObj
+class ProofPostprocess : protected EnvObj
 {
  public:
   /**
@@ -255,11 +253,11 @@ class ProofPostproccess : protected EnvObj
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
    */
-  ProofPostproccess(Env& env,
-                    ProofGenerator* pppg,
-                    rewriter::RewriteDb* rdb,
-                    bool updateScopedAssumptions = true);
-  ~ProofPostproccess();
+  ProofPostprocess(Env& env,
+                   ProofGenerator* pppg,
+                   rewriter::RewriteDb* rdb,
+                   bool updateScopedAssumptions = true);
+  ~ProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */

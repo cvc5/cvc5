@@ -32,6 +32,7 @@
 #include "expr/type_properties.h"
 #include "theory/builtin/abstract_type.h"
 #include "util/bitvector.h"
+#include "util/ff_val.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
@@ -179,6 +180,11 @@ TypeNode NodeManager::builtinOperatorType()
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+}
+
+TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
+{
+  return mkTypeConst<FfSize>(FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
@@ -565,16 +571,14 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 TypeNode NodeManager::mkBagType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("bags") << "making bags type " << elementType << std::endl;
   return mkTypeNode(kind::BAG_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkSequenceType(TypeNode elementType)
 {
-  CheckArgument(
-      !elementType.isNull(), elementType, "unexpected NULL element type");
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
@@ -658,6 +662,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   DatatypeIndexAttr dia;
   for (const DType& dt : datatypes)
   {
+    Assert(!dt.isResolved()) << "datatype is already resolved";
     uint32_t index = d_dtypes.size();
     d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
     DType* dtp = d_dtypes.back().get();
@@ -761,9 +766,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC5_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isDatatypeTester()
-             && testerType[0] == ut)
+      Assert(c.isResolved()) << "constructor not resolved";
+      Assert(testerType.isDatatypeTester())
           << "malformed tester in datatype post-resolution";
+      Assert(testerType[0] == ut)
+          << "mismatched tester in datatype post-resolution";
       TypeNode ctorType CVC5_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isDatatypeConstructor()
              && ctorType.getNumChildren() == c.getNumArgs() + 1
@@ -802,22 +809,19 @@ TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
 
 TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype selector type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype selector type";
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
 TypeNode NodeManager::mkTesterType(TypeNode domain)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype tester");
+  Assert(domain.isDatatype()) << "cannot create non-datatype tester";
   return mkTypeNode(kind::TESTER_TYPE, domain);
 }
 
 TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 {
-  CheckArgument(
-      domain.isDatatype(), domain, "cannot create non-datatype upater type");
+  Assert(domain.isDatatype()) << "cannot create non-datatype updater type";
   // It is a function type domain x range -> domain, we store only the
   // arguments
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);

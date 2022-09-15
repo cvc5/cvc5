@@ -48,15 +48,15 @@ if(NOT Kissat_FOUND_SYSTEM)
 
   fail_if_include_missing("sys/resource.h" "Kissat")
 
-  # TODO(mpreiner): use the version from github?
-  set(Kissat_VERSION "sc2020-039805f2")
+  set(Kissat_VERSION "sc2021")
+  set(Kissat_CHECKSUM "2541a45e023f51b39686865c40350ce091b5bd50")
 
   ExternalProject_Add(
     Kissat-EP
     ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
-    URL http://fmv.jku.at/kissat/kissat-${Kissat_VERSION}.tar.xz
-    URL_HASH SHA1=5125efa17d383c7e7c1e6d803e3422b17cebcedb
+    URL https://github.com/arminbiere/kissat/archive/${Kissat_VERSION}.tar.gz
+    URL_HASH SHA1=${Kissat_CHECKSUM}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure -fPIC --quiet
                       CC=${CMAKE_C_COMPILER}
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libkissat.a
@@ -75,7 +75,7 @@ set(Kissat_FOUND TRUE)
 add_library(Kissat STATIC IMPORTED GLOBAL)
 set_target_properties(Kissat PROPERTIES IMPORTED_LOCATION "${Kissat_LIBRARIES}")
 set_target_properties(
-  Kissat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Kissat_INCLUDE_DIR}"
+  Kissat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Kissat_INCLUDE_DIR}"
 )
 
 mark_as_advanced(Kissat_FOUND)

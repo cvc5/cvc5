@@ -30,8 +30,10 @@ SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
     : TheoryState(env, val),
       d_skCache(skc),
       d_mapTerms(env.getUserContext()),
+      d_groupTerms(env.getUserContext()),
       d_mapSkolemElements(env.getUserContext()),
-      d_members(env.getContext())
+      d_members(env.getContext()),
+      d_partElementSkolems(env.getUserContext())
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -54,6 +56,7 @@ void SolverState::reset()
   d_bop_index.clear();
   d_op_list.clear();
   d_allCompSets.clear();
+  d_filterTerms.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -139,6 +142,10 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
+  else if (nk == SET_FILTER)
+  {
+    d_filterTerms.push_back(n);
+  }
   else if (nk == SET_MAP)
   {
     d_mapTerms.insert(n);
@@ -148,6 +155,13 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
           std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
       d_mapSkolemElements[n] = set;
     }
+  }
+  else if (nk == RELATION_GROUP)
+  {
+    d_groupTerms.insert(n);
+    std::shared_ptr<context::CDHashSet<Node>> set =
+        std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
+    d_partElementSkolems[n] = set;
   }
   else if (nk == SET_COMPREHENSION)
   {
@@ -472,7 +486,14 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
   return d_op_list;
 }
 
+const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
+
 const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
+
+const context::CDHashSet<Node>& SolverState::getGroupTerms() const
+{
+  return d_groupTerms;
+}
 
 std::shared_ptr<context::CDHashSet<Node>> SolverState::getMapSkolemElements(
     Node n)
@@ -623,6 +644,20 @@ void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
   Assert(element.getKind() == SKOLEM
          && element.getType() == n[1].getType().getSetElementType());
   d_mapSkolemElements[n].get()->insert(element);
+}
+
+void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
+{
+  Assert(group.getKind() == RELATION_GROUP);
+  Assert(skolemElement.getType() == group[0].getType().getSetElementType());
+  d_partElementSkolems[group].get()->insert(skolemElement);
+}
+
+std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
+    Node n)
+{
+  Assert(n.getKind() == RELATION_GROUP);
+  return d_partElementSkolems[n];
 }
 
 }  // namespace sets
