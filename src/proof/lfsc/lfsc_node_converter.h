@@ -93,6 +93,11 @@ class LfscNodeConverter : public NodeConverter
    * Get the variable index for variable v, or assign a fresh index if it is
    * not yet assigned.
    */
+  size_t getOrAssignIndexForBVar(Node v);
+  /**
+   * Get the variable index for variable v, or assign a fresh index if it is
+   * not yet assigned.
+   */
   size_t getOrAssignIndexForVar(Node v);
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
@@ -186,6 +191,8 @@ class LfscNodeConverter : public NodeConverter
   TypeNode d_sortType;
   /** Used for getting unique index for variable */
   std::map<Node, size_t> d_varIndex;
+  /** Used for getting unique index for bound variable */
+  std::map<Node, size_t> d_bvarIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
   /** Used for interpreted builtin parametric sorts */

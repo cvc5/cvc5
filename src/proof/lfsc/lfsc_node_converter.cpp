@@ -109,7 +109,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
-    Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
+    Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(n)));
     Node tc = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
@@ -1262,7 +1262,7 @@ Node LfscNodeConverter::getOperatorOfClosure(Node q,
 Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(v)));
+  Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(v)));
   Node tc = typeAsNode(convertType(v.getType()));
   return nm->mkNode(APPLY_UF, cop, x, tc);
 }
@@ -1277,6 +1277,19 @@ size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
   }
   size_t id = d_varIndex.size();
   d_varIndex[v] = id;
+  return id;
+}
+
+size_t LfscNodeConverter::getOrAssignIndexForBVar(Node v)
+{
+  Assert(v.isVar());
+  std::map<Node, size_t>::iterator it = d_bvarIndex.find(v);
+  if (it != d_bvarIndex.end())
+  {
+    return it->second;
+  }
+  size_t id = d_bvarIndex.size();
+  d_bvarIndex[v] = id;
   return id;
 }
 

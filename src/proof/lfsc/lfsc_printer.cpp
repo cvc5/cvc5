@@ -212,7 +212,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
-    out << "(% ";
+    out << "(# ";
     LfscPrintChannelOut::printAssumeId(out, i);
     out << " (holds ";
     printInternal(out, ia, lbind);
