@@ -40,7 +40,6 @@ SmtSolver::SmtSolver(Env& env,
     : EnvObj(env),
       d_pp(env, stats),
       d_asserts(asserts),
-      d_state(state),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
