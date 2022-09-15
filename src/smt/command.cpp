@@ -1252,8 +1252,8 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 cvc5::Term GetValueCommand::getResult() const { return d_result; }
 void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
-  Assert (!d_result.isNull());
-  Assert (d_result.getKind()==cvc5::SEXPR);
+  Assert(!d_result.isNull());
+  Assert(d_result.getKind() == cvc5::SEXPR);
   // we must print each of the key/value pairs separately since we do not want
   // to letify across key/value pairs in this list.
   out << "(";
