@@ -16,7 +16,7 @@ This file contains a summary of important user-visible changes.
        datatype objects between Solver instances. This is now allowed.
 - Reenable functionality that allows `(get-model)` commands after answering
   `unknown` when `:produce-models` is set to `true`. Note that there is no
-  guarantee that building a model succeeds.
+  guarantee that building a model succeeds in this case.
 
 cvc5 1.0.1
 ==========
