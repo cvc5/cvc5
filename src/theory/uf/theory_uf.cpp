@@ -641,7 +641,7 @@ void TheoryUF::computeCareGraph() {
           for (const Node& c : app)
           {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
-            Assert (curr.getType().isFunction());
+            Assert(curr.getType().isFunction());
             typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
             keep.push_back(happ);
