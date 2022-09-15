@@ -139,22 +139,6 @@ void ArraySolver::checkTerms(const std::vector<Node>& terms)
       continue;
     }
 
-    /*
-    // Ignore congruent terms
-    std::vector<Node> rchildren;
-    for (const Node& child : t)
-    {
-      rchildren.push_back(d_state.getRepresentative(child));
-    }
-    Node rt = NodeManager::currentNM()->mkNode(k, rchildren);
-    if (processed.find(rt) != processed.end())
-    {
-      Trace("seq-array-debug") << "...congruent" << std::endl;
-      continue;
-    }
-    processed.insert(rt);
-    */
-
     // check the normal inference
     checkTerm(t, false);
     if (checkInv)
