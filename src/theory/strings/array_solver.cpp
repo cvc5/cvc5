@@ -135,7 +135,8 @@ void ArraySolver::checkTerms(const std::vector<Node>& terms)
       continue;
     }
 
-    if (d_bsolver.isCongruent(t)) {
+    if (d_bsolver.isCongruent(t))
+    {
       continue;
     }
 
