@@ -37,10 +37,12 @@ namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
                      Assertions& asserts,
+SolverEngineState& state,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
       d_asserts(asserts),
+      d_state(state),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -53,7 +55,7 @@ void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine.reset(new TheoryEngine(d_env));
+  d_theoryEngine.reset(new TheoryEngine(d_env, d_state));
 
   // Add the theories
   for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;

@@ -93,6 +93,10 @@ namespace prop {
 class PropEngine;
 }
 
+namespace smt {
+class SolverEngineState;
+}
+
 /**
  * This is essentially an abstraction for a collection of theories.  A
  * TheoryEngine provides services to a PropEngine, making various
@@ -109,7 +113,7 @@ class TheoryEngine : protected EnvObj
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env);
+  TheoryEngine(Env& env, smt::SolverEngineState& state);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -292,11 +296,11 @@ class TheoryEngine : protected EnvObj
   theory::TheoryModel* getModel();
   /**
    * Get the current model for the current set of assertions. This method
-   * should only be called immediately after a satisfiable or unknown
-   * response to a check-sat call, and only if produceModels is true.
+   * should only be called immediately after a satisfiable response to a
+   * check-sat call, and only if produceModels is true.
    *
-   * If the model is not already built, this will cause this theory engine
-   * to build the model.
+   * If the model is not already built, this will cause this theory engine to
+   * build the model.
    *
    * If the model cannot be built, then this returns the null pointer.
    */
@@ -488,6 +492,9 @@ class TheoryEngine : protected EnvObj
   /** Ensure that the given atoms are sent to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms,
                         theory::TheoryId atomsTo);
+
+  /** Associated solver engine state */
+  smt::SolverEngineState& d_state;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;

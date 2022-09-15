@@ -27,6 +27,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
+#include "smt/solver_engine_state.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
@@ -213,8 +214,9 @@ void TheoryEngine::finishInit()
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
 
-TheoryEngine::TheoryEngine(Env& env)
+TheoryEngine::TheoryEngine(Env& env, smt::SolverEngineState& state)
     : EnvObj(env),
+    d_state(state),
       d_propEngine(nullptr),
       d_lazyProof(env.isTheoryProofProducing() ? new LazyCDProof(
                       env, nullptr, userContext(), "TheoryEngine::LazyCDProof")
@@ -600,10 +602,9 @@ TheoryModel* TheoryEngine::getModel()
 TheoryModel* TheoryEngine::getBuiltModel()
 {
   Assert(d_tc != nullptr);
-  // If this method was called, we should be in SAT mode, and produceModels
-  // should be true.
+  // If this method was called, produceModels should be true.
   AlwaysAssert(options().smt.produceModels);
-  // must build model at this point
+  // we must build model at this point
   if (!d_tc->buildModel())
   {
     return nullptr;
