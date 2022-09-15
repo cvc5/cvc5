@@ -321,7 +321,7 @@ variable RAW_SYMBOL "a variable that is not quoted in the smt2 printer (internal
 
 
 constant ABSTRACT_TYPE \
-  struct \
+  class \
   AbstractType \
   ::cvc5::internal::AbstractTypeHashFunction \
   "theory/builtin/abstract_type.h" \
