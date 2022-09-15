@@ -674,10 +674,13 @@ void TheoryUF::computeCareGraph() {
   }
   for (std::pair<const TypeNode, TNodeTrie>& tt : typeIndex)
   {
+    // functions for HO_APPLY which has arity 2, bitvectors for bv2nat which
+    // has arity one
+    size_t a = tt.first.isFunction() ? 2 : 1;
     Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
+    nodeTriePathPairProcess(&tt.second, a, d_cpacb);
   }
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;
