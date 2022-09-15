@@ -41,6 +41,45 @@ namespace prop {
 class CnfStream;
 
 /**
+ * Works exactly as the regular buffered proof generator but when adding a step,
+ * we may reuse the same ASSUMPTION step for repeated premises. This can be done
+ * because in the SAT proof there are no SCOPE steps, so there is no danger of
+ * mixing the scopes of assumptions.
+*/
+class SatBufferedProofGenerator : protected EnvObj, public ProofGenerator
+{
+  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
+
+ public:
+  SatBufferedProofGenerator(Env& env, context::Context* c)
+      : EnvObj(env), ProofGenerator(), d_facts(c), d_assumptionsToPfNodes(c)
+  {
+  }
+  ~SatBufferedProofGenerator() {}
+
+  /** add step
+   *
+   * The step yields a proof node, which is saved in d_facts mappaed from
+   * fact. The children of the proof step will be in assumptions in the proof
+   * node, and the same ASSUMPTION proof nodes are used for every added step.
+   */
+  void addStep(Node fact, ProofStep ps);
+  /** Get proof for.. */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Whether a step has been registered for f. */
+  bool hasProofFor(Node f) override;
+  /** identify */
+  std::string identify() const override { return "SatBufferedProofGenerator"; }
+
+ private:
+  /** maps expected to ProofNode */
+  NodeProofNodeMap d_facts;
+  /** Cache of ASSUMPTION proof nodes for nodes used as assumptions in proof
+   * steps */
+  NodeProofNodeMap d_assumptionsToPfNodes;
+};
+
+/**
  * This class is responsible for managing the proof production of the SAT
  * solver. It tracks resolutions produced during solving and stores them,
  * independently, with the connection of the resolutions only made when the
@@ -567,7 +606,8 @@ class SatProofManager : protected EnvObj
   LazyCDProofChain d_resChains;
 
   /** The proof generator for resolution chains */
-  BufferedProofGenerator d_resChainPg;
+  // BufferedProofGenerator d_resChainPg;
+  SatBufferedProofGenerator d_resChainPg;
 
   /** The true/false nodes */
   Node d_true;
