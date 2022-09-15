@@ -214,9 +214,8 @@ void TheoryEngine::finishInit()
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
 
-TheoryEngine::TheoryEngine(Env& env, smt::SolverEngineState& state)
+TheoryEngine::TheoryEngine(Env& env)
     : EnvObj(env),
-    d_state(state),
       d_propEngine(nullptr),
       d_lazyProof(env.isTheoryProofProducing() ? new LazyCDProof(
                       env, nullptr, userContext(), "TheoryEngine::LazyCDProof")

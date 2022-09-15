@@ -93,10 +93,6 @@ namespace prop {
 class PropEngine;
 }
 
-namespace smt {
-class SolverEngineState;
-}
-
 /**
  * This is essentially an abstraction for a collection of theories.  A
  * TheoryEngine provides services to a PropEngine, making various
@@ -113,7 +109,7 @@ class TheoryEngine : protected EnvObj
 
  public:
   /** Constructs a theory engine */
-  TheoryEngine(Env& env, smt::SolverEngineState& state);
+  TheoryEngine(Env& env);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -492,9 +488,6 @@ class TheoryEngine : protected EnvObj
   /** Ensure that the given atoms are sent to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms,
                         theory::TheoryId atomsTo);
-
-  /** Associated solver engine state */
-  smt::SolverEngineState& d_state;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
