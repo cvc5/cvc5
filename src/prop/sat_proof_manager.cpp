@@ -28,8 +28,7 @@ void SatBufferedProofGenerator::addStep(Node fact,
                                      ProofStep ps)
 {
   // no need for symmetry handling
-  // CDProof cdp(d_env, nullptr, "CDProof", false);
-  CDProof cdp(d_env);
+  CDProof cdp(d_env, nullptr, "CDProof", false);
   // Add or create children proof nodes. If child has already been seen,
   // retrieve its saved assumption proof node, otherwise create via cdp.
   for (const Node& n: ps.d_children)
