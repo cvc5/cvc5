@@ -64,8 +64,9 @@ Node ExpandDefs::expandDefinitions(TNode n,
     // Working downwards
     if (!childrenPushed)
     {
-      // we can short circuit (variable) leaves
-      if (n.isVar())
+      // we can short circuit (variable) leaves and closures, whose bodies
+      // are not preprocessed
+      if (n.isVar() || n.isClosure())
       {
         // don't bother putting in the cache
         result.push(n);

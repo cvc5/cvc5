@@ -71,6 +71,7 @@ set(regress_0_tests
   regress0/arith/issue8905-pi-to-int.smt2
   regress0/arith/issue8872-msum-types.smt2
   regress0/arith/issue8872-2-msum-types.smt2
+  regress0/arith/issue9131-inverse-of-int.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -1000,6 +1001,7 @@ set(regress_0_tests
   regress0/printer/deep-restart-output.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/get-value-no-letify.smt2
   regress0/printer/incomplete.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
@@ -1403,6 +1405,7 @@ set(regress_0_tests
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/set-info-status.smt2
+  regress0/solver/issue8854-get-model-after-unknown.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
@@ -2047,6 +2050,7 @@ set(regress_1_tests
   regress1/issue8852-interpol-no-var.smt2
   regress1/issue8958-bv2nat-lazy.smt2
   regress1/issue9057-block-m-lit.smt2
+  regress1/issue9112-bv2nat-cg.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2

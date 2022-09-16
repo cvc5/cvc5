@@ -131,7 +131,7 @@ class SygusSolver : protected EnvObj
    * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
    * universal variables and F is the set of declared constraints.
    */
-  SynthResult checkSynth(Assertions& as, bool isNext);
+  SynthResult checkSynth(bool isNext);
   /**
    * Get synth solution.
    *

@@ -4666,7 +4666,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Block the current model values of (at least) the values in terms. Can be
-   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * called only if immediately preceded by a SAT query.
    *
    * SMT-LIB:
    *
