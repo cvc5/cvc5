@@ -59,7 +59,7 @@ class BitVectorPredicateTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
-class BitVectorUnaryPredicateTypeRule
+class BitVectorRedTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);

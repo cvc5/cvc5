@@ -31,6 +31,7 @@
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
 #include "util/bitvector.h"
+#include "util/ff_val.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
@@ -178,6 +179,11 @@ TypeNode NodeManager::builtinOperatorType()
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+}
+
+TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
+{
+  return mkTypeConst<FfSize>(FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()
@@ -772,7 +778,7 @@ TypeNode NodeManager::mkTesterType(TypeNode domain)
 
 TypeNode NodeManager::mkDatatypeUpdateType(TypeNode domain, TypeNode range)
 {
-  Assert(domain.isDatatype()) << "cannot create non-datatype upater type";
+  Assert(domain.isDatatype()) << "cannot create non-datatype updater type";
   // It is a function type domain x range -> domain, we store only the
   // arguments
   return mkTypeNode(kind::UPDATER_TYPE, domain, range);

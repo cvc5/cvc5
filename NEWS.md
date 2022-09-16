@@ -1,9 +1,22 @@
 This file contains a summary of important user-visible changes.
 
+**New Features**
+
+- API: New API function getVersion(), returns a string representation of
+       the solver version.
+
 **Changes**
 
+- The (non-standard) operators BITVECTOR_TO_NAT and INT_TO_BITVECTOR now
+  belong to the UF theory. A logic that includes UF is required to use them.
+- The sort for (non-standard) bit-vector operators BITVECTOR_REDAND and
+  BITVECTOR_REDOR is now (_ BitVec 1) (was Boolean), following the definition
+  of reduction operators in Verilog (their origin).
 - API: Previously, it was not possible to share Sort, Term, Op, Grammar and
        datatype objects between Solver instances. This is now allowed.
+- Reenable functionality that allows `(get-model)` commands after answering
+  `unknown` when `:produce-models` is set to `true`. Note that there is no
+  guarantee that building a model succeeds in this case.
 
 cvc5 1.0.1
 ==========
@@ -11,6 +24,9 @@ cvc5 1.0.1
 **New Features**
 
 - Support for cross-compiling an ARM binary of cvc5 on x86 macOS.
+- Support for declaring oracle functions in the API via the method
+  `declareOracleFun`. This allows users to declare functions whose semantics
+  are associated with a provided executable implementation.
 
 **Changes**
 
@@ -24,12 +40,6 @@ cvc5 1.0.1
   do not assume integer/real subtyping.
 - The API method `mkTuple` no longer supports casting integers to reals when
   constructing tuples.
-
-**New Features**
-
-- Support for declaring oracle functions in the API via the method
-  `declareOracleFun`. This allows users to declare functions whose semantics
-  are associated with a provided executable implementation.
 
 cvc5 1.0
 =========

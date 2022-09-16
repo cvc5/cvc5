@@ -24,7 +24,6 @@
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -36,11 +35,10 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
-                     AbstractValues& abs,
                      Assertions& asserts,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_pp(env, abs, stats),
+      d_pp(env, stats),
       d_asserts(asserts),
       d_stats(stats),
       d_theoryEngine(nullptr),
@@ -114,67 +112,6 @@ void SmtSolver::interrupt()
   {
     d_theoryEngine->interrupt();
   }
-}
-Result SmtSolver::checkSatisfiability(const std::vector<Node>& assumptions)
-{
-  return checkSatisfiability(d_asserts, assumptions);
-}
-
-Result SmtSolver::checkSatisfiability(Assertions& as,
-                                      const std::vector<Node>& assumptions)
-{
-  Result result;
-  try
-  {
-    // then, initialize the assertions
-    as.setAssumptions(assumptions);
-
-    // make the check, where notice smt engine should be fully inited by now
-
-    Trace("smt") << "SmtSolver::check()" << endl;
-
-    ResourceManager* rm = d_env.getResourceManager();
-    if (rm->out())
-    {
-      UnknownExplanation why = rm->outOfResources()
-                                   ? UnknownExplanation::RESOURCEOUT
-                                   : UnknownExplanation::TIMEOUT;
-      result = Result(Result::UNKNOWN, why);
-    }
-    else
-    {
-      rm->beginCall();
-
-      // Preprocess the assertions
-      Trace("smt") << "SmtSolver::check(): preprocess" << endl;
-      preprocess(as);
-      Trace("smt") << "SmtSolver::check(): done preprocess" << endl;
-
-      // Make sure the prop layer has all of the assertions
-      Trace("smt") << "SmtSolver::check(): assert to internal" << endl;
-      assertToInternal(as);
-      Trace("smt") << "SmtSolver::check(): done assert to internal" << endl;
-
-      d_env.verbose(2) << "solving..." << std::endl;
-      Trace("smt") << "SmtSolver::check(): running check" << endl;
-      result = checkSatInternal();
-      Trace("smt") << "SmtSolver::check(): result " << result << std::endl;
-
-      rm->endCall();
-      Trace("limit") << "SmtSolver::check(): cumulative millis "
-                     << rm->getTimeUsage() << ", resources "
-                     << rm->getResourceUsage() << endl;
-    }
-  }
-  catch (const LogicException& e)
-  {
-    // The exception may have been throw during solving, backtrack to reset the
-    // decision level to the level expected after this method finishes
-    getPropEngine()->resetTrail();
-    throw;
-  }
-
-  return result;
 }
 
 Result SmtSolver::checkSatInternal()
@@ -302,55 +239,6 @@ const std::unordered_map<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
   return d_ppSkolemMap;
 }
 
-void SmtSolver::deepRestart(Assertions& asr, const std::vector<Node>& zll)
-{
-  Assert(trackPreprocessedAssertions());
-  Assert(!zll.empty());
-  Trace("deep-restart") << "Have " << zll.size()
-                        << " zero level learned literals" << std::endl;
-
-  preprocessing::AssertionPipeline& apr = asr.getAssertionPipeline();
-  // Copy the preprocessed assertions and skolem map information directly
-  for (const Node& a : d_ppAssertions)
-  {
-    apr.push_back(a);
-  }
-  preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
-  for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
-  {
-    // carry the entire skolem map, which should align with the order of
-    // assertions passed into the new assertions pipeline
-    ismr[k.first] = k.second;
-  }
-
-  if (isOutputOn(OutputTag::DEEP_RESTART))
-  {
-    output(OutputTag::DEEP_RESTART) << "(deep-restart (";
-    bool firstTime = true;
-    for (TNode lit : zll)
-    {
-      output(OutputTag::DEEP_RESTART) << (firstTime ? "" : " ") << lit;
-      firstTime = false;
-    }
-    output(OutputTag::DEEP_RESTART) << "))" << std::endl;
-  }
-  for (TNode lit : zll)
-  {
-    Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
-    apr.push_back(lit);
-    if (Configuration::isAssertionBuild())
-    {
-      Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())
-          << "Relearned: " << lit << std::endl;
-      d_allLearnedLits.insert(lit);
-    }
-  }
-  Trace("deep-restart") << "Finished compute deep restart" << std::endl;
-
-  // we now finish init to reconstruct prop engine and theory engine
-  finishInit();
-}
-
 bool SmtSolver::trackPreprocessedAssertions() const
 {
   return options().smt.deepRestartMode != options::DeepRestartMode::NONE
@@ -368,6 +256,8 @@ theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 }
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
+
+Assertions& SmtSolver::getAssertions() { return d_asserts; }
 
 void SmtSolver::notifyPushPre()
 {

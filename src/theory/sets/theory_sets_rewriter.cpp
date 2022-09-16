@@ -158,12 +158,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_AGAIN, node[0]);
     }
-    else if (node[1].getKind() == kind::SET_MINUS && node[1][0] == node[0])
-    {
-      // (setminus A (setminus A B)) = (intersection A B)
-      Node intersection = nm->mkNode(SET_INTER, node[0], node[1][1]);
-      return RewriteResponse(REWRITE_AGAIN, intersection);
-    }
     else if (node[1].getKind() == kind::SET_UNIVERSE)
     {
       return RewriteResponse(

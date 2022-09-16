@@ -3345,6 +3345,7 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
 
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
+  // Note that this ignores the options::ioutils properties of `out`.
   out << t.toString();
   return out;
 }
@@ -7711,6 +7712,13 @@ std::ostream& Solver::getOutput(const std::string& tag) const
   {
     throw CVC5ApiException("Invalid output tag " + tag);
   }
+}
+
+std::string Solver::getVersion() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  return internal::Configuration::getVersionString();
+  CVC5_API_TRY_CATCH_END;
 }
 
 }  // namespace cvc5
