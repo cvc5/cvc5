@@ -25,7 +25,7 @@
 #include "options/smt_options.h"
 #include "smt/abstract_values.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
+#include "util/result.h"
 #include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::theory;
