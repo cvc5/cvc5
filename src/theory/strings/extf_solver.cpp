@@ -242,7 +242,7 @@ void ExtfSolver::checkExtfReductions(int effort)
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
   // stratifying effort levels are done in doReduction below.
-  std::vector<Node> extf = d_extt.getActive();
+  std::vector<Node> extf = getRelevantActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
   for (const Node& n : extf)

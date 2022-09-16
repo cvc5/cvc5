@@ -378,14 +378,14 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void Theory::collectAssertedTerms(std::set<Node>& termSet,
-                                  bool includeShared) const
+                                  bool includeShared, const std::set<Kind>& irrKinds) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
   {
-    collectTerms(*assert_it, termSet);
+    collectTerms(*assert_it, termSet, irrKinds);
   }
 
   if (includeShared)
@@ -395,15 +395,21 @@ void Theory::collectAssertedTerms(std::set<Node>& termSet,
                                            shared_it_end = shared_terms_end();
     for (; shared_it != shared_it_end; ++shared_it)
     {
-      collectTerms(*shared_it, termSet);
+      collectTerms(*shared_it, termSet, irrKinds);
     }
   }
 }
-
-void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+void Theory::collectAssertedTermsForModel(std::set<Node>& termSet,
+                                  bool includeShared) const
 {
+  // use the irrelevant model kinds from the theory state
   const std::set<Kind>& irrKinds =
       d_theoryState->getModel()->getIrrelevantKinds();
+  collectAssertedTerms( termSet, includeShared, irrKinds);
+}
+
+void Theory::collectTerms(TNode n, std::set<Node>& termSet, const std::set<Kind>& irrKinds) const
+{
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);

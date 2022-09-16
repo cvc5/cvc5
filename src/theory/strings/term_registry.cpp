@@ -693,7 +693,8 @@ void TermRegistry::computeRelevantTermSet()
 {
   d_relevantTerms.clear();
   // get the asserted terms
-  d_theory.collectAssertedTerms(d_relevantTerms);
+  std::set<Kind> irrKinds;
+  d_theory.collectAssertedTerms(d_relevantTerms, true, irrKinds);
   // also, get the additionally relevant terms
   d_theory.computeRelevantTerms(d_relevantTerms);
 }
