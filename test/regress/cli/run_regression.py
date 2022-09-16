@@ -76,7 +76,7 @@ class Tester:
         print()
         print_info(self.name)
         print("  Flags: {}".format(benchmark_info.command_line_args))
-        self.run_internal(benchmark_info)
+        return self.run_internal(benchmark_info)
 
     def run_internal(self, benchmark_info):
         """Runs cvc5 on a given benchmark and checks the output."""
@@ -102,7 +102,7 @@ class Tester:
             exit_code = EXIT_FAILURE
         if exit_code == EXIT_OK:
             print_ok("OK")
-        return EXIT_OK
+        return exit_code
 
 
 ################################################################################
@@ -230,7 +230,7 @@ class LfscTester(Tester):
                 return EXIT_FAILURE
         if exit_code == EXIT_OK:
             print_ok("OK")
-        return EXIT_OK
+        return exit_code
 
 
 class ModelTester(Tester):
