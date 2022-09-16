@@ -1228,15 +1228,8 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    std::vector<cvc5::Term> result = solver->getValue(d_terms);
-    Assert(result.size() == d_terms.size());
-    for (int i = 0, size = d_terms.size(); i < size; i++)
-    {
-      cvc5::Term request = d_terms[i];
-      cvc5::Term value = result[i];
-      result[i] = solver->mkTerm(cvc5::SEXPR, {request, value});
-    }
-    d_result = solver->mkTerm(cvc5::SEXPR, {result});
+    d_result = solver->getValue(d_terms);
+    Assert(d_result.size() == d_terms.size());
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1249,16 +1242,15 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-cvc5::Term GetValueCommand::getResult() const { return d_result; }
+const std::vector<cvc5::Term>& GetValueCommand::getResult() const { return d_result; }
 void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
-  Assert(!d_result.isNull());
-  Assert(d_result.getKind() == cvc5::SEXPR);
-  // we must print each of the key/value pairs separately since we do not want
+  Assert(d_result.size() == d_terms.size());
+  // we print each of the values separately since we do not want
   // to letify across key/value pairs in this list.
   out << "(";
   bool firstTime = true;
-  for (const cvc5::Term& rc : d_result)
+  for (size_t i=0, rsize = d_result.size(); i<rsize; i++)
   {
     if (firstTime)
     {
@@ -1268,7 +1260,7 @@ void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
     {
       out << " ";
     }
-    out << rc;
+    out << "(" << d_terms[i] << " " << d_result[i] << ")";
   }
   out << ")" << std::endl;
 }
