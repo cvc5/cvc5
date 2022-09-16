@@ -1016,8 +1016,6 @@ class CVC5_EXPORT SolverEngine
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
-  /** Assertions manager */
-  std::unique_ptr<smt::Assertions> d_asserts;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
 
