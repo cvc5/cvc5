@@ -57,7 +57,6 @@ namespace smt {
 class ContextManager;
 class SolverEngineState;
 class AbstractValues;
-class Assertions;
 class ResourceOutListener;
 class CheckModels;
 /** Subsolvers */
