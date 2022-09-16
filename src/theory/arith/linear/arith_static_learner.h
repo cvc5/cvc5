@@ -45,7 +45,7 @@ private:
  CDNodeToMinMaxMap d_maxMap;
 
 public:
- ArithStaticLearner(context::Context* userContext);
+ ArithStaticLearner(StatisticsRegistry& sr, context::Context* userContext);
  ~ArithStaticLearner();
  void staticLearning(TNode n, NodeBuilder& learned);
 
@@ -66,7 +66,7 @@ private:
    IntStat d_iteMinMaxApplications;
    IntStat d_iteConstantApplications;
 
-   Statistics();
+   Statistics(StatisticsRegistry& sr);
  };
 
   Statistics d_statistics;

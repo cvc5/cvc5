@@ -45,9 +45,10 @@ TEST_F(TestApiWhiteSolver, getOp)
                                    {consTerm, d_solver.mkInteger(1), listnil});
   Term listhead = d_solver.mkTerm(APPLY_SELECTOR, {headTerm, listcons1});
 
-  ASSERT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-  ASSERT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-  ASSERT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  ASSERT_EQ(listnil.getOp(), Op(d_solver.getNodeManager(), APPLY_CONSTRUCTOR));
+  ASSERT_EQ(listcons1.getOp(),
+            Op(d_solver.getNodeManager(), APPLY_CONSTRUCTOR));
+  ASSERT_EQ(listhead.getOp(), Op(d_solver.getNodeManager(), APPLY_SELECTOR));
 }
 
 }  // namespace test

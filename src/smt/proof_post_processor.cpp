@@ -994,7 +994,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
             << eq << std::endl
             << eqq << std::endl
             << "from " << children << " applied to " << t << std::endl;
-        cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, children, {eqq});
       }
     }
     else
@@ -1087,8 +1087,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // try to replay theory rewrite
     // first, check that maybe its just an evaluation step
     ProofChecker* pc = pnm->getChecker();
-    Node ceval =
-        pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "smt-proof-pp-debug");
+    Node ceval = pc->checkDebug(
+        PfRule::EVALUATE, {}, {eq[0]}, Node::null(), "smt-proof-pp-debug");
     if (!ceval.isNull() && ceval == eq)
     {
       cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
@@ -1263,10 +1263,10 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(Env& env,
-                                     ProofGenerator* pppg,
-                                     rewriter::RewriteDb* rdb,
-                                     bool updateScopedAssumptions)
+ProofPostprocess::ProofPostprocess(Env& env,
+                                   ProofGenerator* pppg,
+                                   rewriter::RewriteDb* rdb,
+                                   bool updateScopedAssumptions)
     : EnvObj(env),
       d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
@@ -1276,9 +1276,9 @@ ProofPostproccess::ProofPostproccess(Env& env,
 {
 }
 
-ProofPostproccess::~ProofPostproccess() {}
+ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.
@@ -1294,12 +1294,12 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   if (wasPedanticFailure)
   {
     AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
         << serr.str();
   }
 }
 
-void ProofPostproccess::setEliminateRule(PfRule rule)
+void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
 }

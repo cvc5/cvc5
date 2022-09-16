@@ -28,6 +28,8 @@ ProofCnfStream::ProofCnfStream(Env& env,
                                SatProofManager* satPM)
     : EnvObj(env),
       d_cnfStream(cnfStream),
+      d_inputClauses(userContext()),
+      d_lemmaClauses(userContext()),
       d_satPM(satPM),
       d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof"),
       d_blocked(userContext()),
@@ -43,6 +45,26 @@ void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn)
 bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn)
 {
   return d_blocked.contains(pfn);
+}
+
+std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getInputClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_inputClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
+}
+
+std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getLemmaClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_lemmaClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
 }
 
 std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
@@ -67,13 +89,25 @@ Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
                  << normClauseNode << "\n"
                  << pop;
   }
-  d_satPM->registerSatAssumptions({normClauseNode});
+  if (d_input)
+  {
+    d_inputClauses.insert(normClauseNode);
+  }
+  else
+  {
+    d_lemmaClauses.insert(normClauseNode);
+  }
+  if (d_satPM)
+  {
+    d_satPM->registerSatAssumptions({normClauseNode});
+  }
   return normClauseNode;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node,
                                       bool negated,
                                       bool removable,
+                                      bool input,
                                       ProofGenerator* pg)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
@@ -81,6 +115,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << "), level " << userContext()->getLevel() << "\n";
   d_cnfStream.d_removable = removable;
+  d_input = input;
   if (pg)
   {
     Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
@@ -100,6 +135,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
     d_proof.addStep(step.first, step.second);
   }
   d_psb.clear();
+  d_input = false;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
@@ -152,12 +188,20 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
             << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
             << nnode << "\n";
       }
-      if (added)
+      if (added && d_satPM)
       {
         // note that we do not need to do the normalization here since this is
         // not a clause and double negation is tracked in a dedicated manner
         // above
         d_satPM->registerSatAssumptions({nnode});
+        if (d_input)
+        {
+          d_inputClauses.insert(nnode);
+        }
+        else
+        {
+          d_lemmaClauses.insert(nnode);
+        }
       }
     }
   }
@@ -592,11 +636,11 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   {
     clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
-  d_currPropagationProccessed = normalizeAndRegister(clauseExp);
+  d_currPropagationProcessed = normalizeAndRegister(clauseExp);
   // consume steps if clausification being recorded. If we are not logging it,
   // we need to add the clause as a closed step to the proof so that the SAT
   // proof does not have non-input formulas as assumptions. That clause is the
-  // result of normalizeAndRegister, stored in d_currPropagationProccessed
+  // result of normalizeAndRegister, stored in d_currPropagationProcessed
   if (proofLogging)
   {
     const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
@@ -608,20 +652,20 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
   else
   {
-    d_proof.addStep(d_currPropagationProccessed,
+    d_proof.addStep(d_currPropagationProcessed,
                     PfRule::THEORY_LEMMA,
                     {},
-                    {d_currPropagationProccessed});
+                    {d_currPropagationProcessed});
   }
 }
 
 void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
 {
   Assert(explLevel < (userContext()->getLevel() - 1));
-  Assert(!d_currPropagationProccessed.isNull());
-  Trace("cnf") << "Need to save curr propagation "
-               << d_currPropagationProccessed << "'s proof in level "
-               << explLevel + 1 << " despite being currently in level "
+  Assert(!d_currPropagationProcessed.isNull());
+  Trace("cnf") << "Need to save curr propagation " << d_currPropagationProcessed
+               << "'s proof in level " << explLevel + 1
+               << " despite being currently in level "
                << userContext()->getLevel() << "\n";
   // Save into map the proof of the processed propagation. Note that
   // propagations must be explained eagerly, since their justification depends
@@ -632,17 +676,20 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
   // updates to the saved proof. Not doing this may also lead to open proofs.
   std::shared_ptr<ProofNode> currPropagationProcPf =
       d_env.getProofNodeManager()->clone(
-          d_proof.getProofFor(d_currPropagationProccessed));
+          d_proof.getProofFor(d_currPropagationProcessed));
   Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
   Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
                      << *currPropagationProcPf.get() << "\n";
   d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
-  d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
-                                           d_currPropagationProccessed);
+  if (d_satPM)
+  {
+    d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
+                                             d_currPropagationProcessed);
+  }
   // Reset
-  d_currPropagationProccessed = Node::null();
+  d_currPropagationProcessed = Node::null();
 }
 
 void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
@@ -661,7 +708,10 @@ void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
   d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
   // Notify SAT proof manager that the propagation (which is a SAT assumption)
   // had its level optimized
-  d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+  if (d_satPM)
+  {
+    d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+  }
 }
 
 Node ProofCnfStream::getClauseNode(const SatClause& clause)
@@ -702,6 +752,22 @@ void ProofCnfStream::ensureLiteral(TNode n)
   {
     d_cnfStream.convertAtom(n);
   }
+}
+
+bool ProofCnfStream::hasLiteral(TNode n) const
+{
+  return d_cnfStream.hasLiteral(n);
+}
+
+SatLiteral ProofCnfStream::getLiteral(TNode node)
+{
+  return d_cnfStream.getLiteral(node);
+}
+
+void ProofCnfStream::getBooleanVariables(
+    std::vector<TNode>& outputVariables) const
+{
+  d_cnfStream.getBooleanVariables(outputVariables);
 }
 
 SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)

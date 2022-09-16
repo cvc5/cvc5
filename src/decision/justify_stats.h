@@ -26,7 +26,7 @@ namespace decision {
 class JustifyStatistics
 {
  public:
-  JustifyStatistics();
+  JustifyStatistics(StatisticsRegistry& sr);
   ~JustifyStatistics();
   /** Number of times we considered an assertion not leading to a decision */
   IntStat d_numStatusNoDecision;

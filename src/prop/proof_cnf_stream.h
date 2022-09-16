@@ -70,11 +70,13 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * @param node formula to convert and assert
    * @param negated whether we are asserting the node negated
    * @param removable whether the SAT solver can choose to remove the clauses
+   * @param input whether the node is from the input
    * @param pg a proof generator for node
    */
   void convertAndAssert(TNode node,
                         bool negated,
                         bool removable,
+                        bool input,
                         ProofGenerator* pg);
 
   /**
@@ -92,6 +94,23 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   void ensureLiteral(TNode n);
 
   /**
+   * Returns true iff the node has an assigned literal (it might not be
+   * translated).
+   */
+  bool hasLiteral(TNode node) const;
+
+  /**
+   * Returns the literal that represents the given node in the SAT CNF
+   * representation.
+   */
+  SatLiteral getLiteral(TNode node);
+
+  /**
+   * Returns the Boolean variables from the input problem.
+   */
+  void getBooleanVariables(std::vector<TNode>& outputVariables) const;
+
+  /**
    * Blocks a proof, so that it is not further updated by a post processor of
    * this class's proof. */
   void addBlocked(std::shared_ptr<ProofNode> pfn);
@@ -104,7 +123,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
 
   /** Notify that current propagation inserted at lower level than current.
    *
-   * The proof of the current propagation (d_currPropagationProccessed) will be
+   * The proof of the current propagation (d_currPropagationProcessed) will be
    * saved in d_optClausesPfs, so that it is not potentially lost when the user
    * context is popped.
    */
@@ -114,6 +133,11 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * As above, the proof of this clause is saved in  d_optClausesPfs.
    */
   void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
+
+  /** Retrieve the proofs for clauses derived from the input */
+  std::vector<std::shared_ptr<ProofNode>> getInputClausesProofs();
+  /** Retrieve the proofs for clauses derived from lemmas */
+  std::vector<std::shared_ptr<ProofNode>> getLemmaClausesProofs();
 
  private:
   /**
@@ -176,6 +200,14 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
 
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
+
+  /** Whether we are we asserting clauses derived from the input. */
+  bool d_input;
+  /** Asserted clauses derived from the input */
+  context::CDHashSet<Node> d_inputClauses;
+  /** Asserted clauses derived from lemmas */
+  context::CDHashSet<Node> d_lemmaClauses;
+
   /** The proof manager of underlying SAT solver associated with this stream. */
   SatProofManager* d_satPM;
   /** The user-context-dependent proof object. */
@@ -190,7 +222,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
       d_blocked;
 
   /** The current propagation being processed via this class. */
-  Node d_currPropagationProccessed;
+  Node d_currPropagationProcessed;
   /** User-context-dependent map assertion level to proof nodes.
    *
    * This map is used to update the internal proof of this class when the

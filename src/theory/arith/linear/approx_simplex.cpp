@@ -26,11 +26,11 @@
 #include "base/cvc5config.h"
 #include "base/output.h"
 #include "proof/eager_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/cut_log.h"
 #include "theory/arith/linear/matrix.h"
 #include "theory/arith/linear/normal_form.h"
+#include "util/statistics_registry.h"
 
 #ifdef CVC5_USE_GLPK
 #include "theory/arith/linear/partial_model.h"
@@ -3165,17 +3165,14 @@ bool ApproximateSimplex::enabled()
 #endif
 }
 
-ApproximateStatistics::ApproximateStatistics()
-    : d_branchMaxDepth(
-        smtStatisticsRegistry().registerInt("z::approx::branchMaxDepth")),
-      d_branchesMaxOnAVar(
-          smtStatisticsRegistry().registerInt("z::approx::branchesMaxOnAVar")),
-      d_gaussianElimConstructTime(smtStatisticsRegistry().registerTimer(
-          "z::approx::gaussianElimConstruct::time")),
-      d_gaussianElimConstruct(smtStatisticsRegistry().registerInt(
-          "z::approx::gaussianElimConstruct::calls")),
-      d_averageGuesses(
-          smtStatisticsRegistry().registerAverage("z::approx::averageGuesses"))
+ApproximateStatistics::ApproximateStatistics(StatisticsRegistry& sr)
+    : d_branchMaxDepth(sr.registerInt("z::approx::branchMaxDepth")),
+      d_branchesMaxOnAVar(sr.registerInt("z::approx::branchesMaxOnAVar")),
+      d_gaussianElimConstructTime(
+          sr.registerTimer("z::approx::gaussianElimConstruct::time")),
+      d_gaussianElimConstruct(
+          sr.registerInt("z::approx::gaussianElimConstruct::calls")),
+      d_averageGuesses(sr.registerAverage("z::approx::averageGuesses"))
 {
 }
 

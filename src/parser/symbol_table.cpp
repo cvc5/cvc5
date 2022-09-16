@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "api/cpp/cvc5.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
@@ -233,6 +234,7 @@ bool OverloadedTypeTrie::bind(const string& name,
                               cvc5::Term prev_bound_obj,
                               cvc5::Term obj)
 {
+  Assert(prev_bound_obj != obj);
   bool retprev = true;
   if (!isOverloadedFunction(prev_bound_obj))
   {
@@ -247,7 +249,8 @@ bool OverloadedTypeTrie::bind(const string& name,
 bool OverloadedTypeTrie::markOverloaded(const string& name, cvc5::Term obj)
 {
   Trace("parser-overloading") << "Overloaded function : " << name;
-  Trace("parser-overloading") << " with type " << obj.getSort() << std::endl;
+  Trace("parser-overloading")
+      << " with type " << obj.getSort() << ", obj is " << obj << std::endl;
   // get the argument types
   cvc5::Sort t = obj.getSort();
   cvc5::Sort rangeType = t;
@@ -412,8 +415,8 @@ bool SymbolTable::Implementation::bind(const string& name,
                                        cvc5::Term obj,
                                        bool doOverload)
 {
-  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null cvc5::Term");
-  Trace("sym-table") << "SymbolTable: bind " << name
+  Assert(!obj.isNull()) << "cannot bind to a null cvc5::Term";
+  Trace("sym-table") << "SymbolTable: bind " << name << " to " << obj
                      << ", doOverload=" << doOverload << std::endl;
   if (doOverload)
   {
@@ -480,12 +483,9 @@ cvc5::Sort SymbolTable::Implementation::lookupType(const string& name) const
 {
   std::pair<std::vector<cvc5::Sort>, cvc5::Sort> p =
       (*d_typeMap.find(name)).second;
-  PrettyCheckArgument(p.first.size() == 0,
-                      name,
-                      "type constructor arity is wrong: "
-                      "`%s' requires %u parameters but was provided 0",
-                      name.c_str(),
-                      p.first.size());
+  Assert(p.first.size() == 0)
+      << "type constructor arity is wrong: `" << name << "' requires "
+      << p.first.size() << " parameters but was provided 0";
   return p.second;
 }
 
@@ -494,23 +494,18 @@ cvc5::Sort SymbolTable::Implementation::lookupType(
 {
   std::pair<std::vector<cvc5::Sort>, cvc5::Sort> p =
       (*d_typeMap.find(name)).second;
-  PrettyCheckArgument(p.first.size() == params.size(),
-                      params,
-                      "type constructor arity is wrong: "
-                      "`%s' requires %u parameters but was provided %u",
-                      name.c_str(),
-                      p.first.size(),
-                      params.size());
+  Assert(p.first.size() == params.size())
+      << "type constructor arity is wrong: `" << name.c_str() << "' requires "
+      << p.first.size() << " parameters but was provided " << params.size();
   if (p.first.size() == 0)
   {
-    PrettyCheckArgument(p.second.isUninterpretedSort(), name.c_str());
+    Assert(p.second.isUninterpretedSort());
     return p.second;
   }
   if (p.second.isDatatype())
   {
-    PrettyCheckArgument(p.second.getDatatype().isParametric(),
-                        name,
-                        "expected parametric datatype");
+    Assert(p.second.getDatatype().isParametric())
+        << "expected parametric datatype";
     return p.second.instantiate(params);
   }
   bool isUninterpretedSortConstructor =

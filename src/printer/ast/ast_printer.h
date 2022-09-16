@@ -34,6 +34,7 @@ class AstPrinter : public cvc5::internal::Printer
  public:
   using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out, TNode n) const override;
+  void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const cvc5::CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
 
@@ -100,7 +101,8 @@ class AstPrinter : public cvc5::internal::Printer
   void toStreamCmdGetModel(std::ostream& out) const override;
 
   /** Print get-proof command */
-  void toStreamCmdGetProof(std::ostream& out) const override;
+  void toStreamCmdGetProof(std::ostream& out,
+                           modes::ProofComponent c) const override;
 
   /** Print get-unsat-core command */
   void toStreamCmdGetUnsatCore(std::ostream& out) const override;

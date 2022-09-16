@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& out, MipResult res);
 
 class ApproximateStatistics {
  public:
-  ApproximateStatistics();
+  ApproximateStatistics(StatisticsRegistry& sr);
 
   IntStat d_branchMaxDepth;
   IntStat d_branchesMaxOnAVar;

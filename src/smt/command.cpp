@@ -1217,8 +1217,7 @@ GetValueCommand::GetValueCommand(cvc5::Term term) : d_terms()
 GetValueCommand::GetValueCommand(const std::vector<cvc5::Term>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(
-      terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
+  Assert(terms.size() >= 1) << "cannot get-value of an empty set of terms";
 }
 
 const std::vector<cvc5::Term>& GetValueCommand::getTerms() const
@@ -1253,9 +1252,25 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 cvc5::Term GetValueCommand::getResult() const { return d_result; }
 void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
-  out << d_result << endl;
+  Assert(!d_result.isNull());
+  Assert(d_result.getKind() == cvc5::SEXPR);
+  // we must print each of the key/value pairs separately since we do not want
+  // to letify across key/value pairs in this list.
+  out << "(";
+  bool firstTime = true;
+  for (const cvc5::Term& rc : d_result)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << rc;
+  }
+  out << ")" << std::endl;
 }
 
 std::string GetValueCommand::getCommandName() const { return "get-value"; }
@@ -1400,9 +1415,8 @@ BlockModelValuesCommand::BlockModelValuesCommand(
     const std::vector<cvc5::Term>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(terms.size() >= 1,
-                      terms,
-                      "cannot block-model-values of an empty set of terms");
+  Assert(terms.size() >= 1)
+      << "cannot block-model-values of an empty set of terms";
 }
 
 const std::vector<cvc5::Term>& BlockModelValuesCommand::getTerms() const
@@ -1441,12 +1455,12 @@ void BlockModelValuesCommand::toStream(std::ostream& out) const
 /* class GetProofCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetProofCommand::GetProofCommand() {}
+GetProofCommand::GetProofCommand(modes::ProofComponent c) : d_component(c) {}
 void GetProofCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getProof();
+    d_result = solver->getProof(d_component);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1468,7 +1482,7 @@ std::string GetProofCommand::getCommandName() const { return "get-proof"; }
 
 void GetProofCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdGetProof(out);
+  Printer::getPrinter(out)->toStreamCmdGetProof(out, d_component);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1565,8 +1579,6 @@ void GetInterpolantCommand::invoke(Solver* solver, SymbolManager* sm)
 void GetInterpolantCommand::printResult(cvc5::Solver* solver,
                                         std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1615,8 +1627,6 @@ void GetInterpolantNextCommand::invoke(Solver* solver, SymbolManager* sm)
 void GetInterpolantNextCommand::printResult(cvc5::Solver* solver,
                                             std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1689,8 +1699,6 @@ void GetAbductCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetAbductCommand::printResult(cvc5::Solver* solver,
                                    std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1736,8 +1744,6 @@ void GetAbductNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetAbductNextCommand::printResult(cvc5::Solver* solver,
                                        std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1987,12 +1993,15 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
 /* class GetLearnedLiteralsCommand */
 /* -------------------------------------------------------------------------- */
 
-GetLearnedLiteralsCommand::GetLearnedLiteralsCommand() {}
+GetLearnedLiteralsCommand::GetLearnedLiteralsCommand(modes::LearnedLitType t)
+    : d_type(t)
+{
+}
 void GetLearnedLiteralsCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    d_result = solver->getLearnedLiterals();
+    d_result = solver->getLearnedLiterals(d_type);
 
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2030,7 +2039,7 @@ std::string GetLearnedLiteralsCommand::getCommandName() const
 
 void GetLearnedLiteralsCommand::toStream(std::ostream& out) const
 {
-  Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out);
+  Printer::getPrinter(out)->toStreamCmdGetLearnedLiterals(out, d_type);
 }
 
 /* -------------------------------------------------------------------------- */

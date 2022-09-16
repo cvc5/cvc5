@@ -53,7 +53,7 @@ using SeqModelVarAttribute = expr::Attribute<SeqModelVarAttributeId, Node>;
 TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_STRINGS, env, out, valuation),
       d_notify(*this),
-      d_statistics(),
+      d_statistics(statisticsRegistry()),
       d_state(env, d_valuation),
       d_termReg(env, *this, d_state, d_statistics),
       d_rewriter(env.getRewriter(),
@@ -794,16 +794,15 @@ Node TheoryStrings::mkSkeletonFromBase(Node r,
   std::vector<Node> skChildren;
   if (tn.isSequence())
   {
-    std::vector<Node> cacheVals;
-    cacheVals.push_back(r);
+    std::vector<Node> cacheVals(2);
+    cacheVals[0] = r;
     TypeNode etn = tn.getSequenceElementType();
     for (size_t i = currIndex; i < nextIndex; i++)
     {
-      cacheVals.push_back(nm->mkConstInt(Rational(currIndex)));
+      cacheVals[1] = nm->mkConstInt(Rational(i));
       Node kv = sm->mkSkolemFunction(
           SkolemFunId::SEQ_MODEL_BASE_ELEMENT, etn, cacheVals);
       skChildren.push_back(utils::mkUnit(tn, kv));
-      cacheVals.pop_back();
     }
   }
   else

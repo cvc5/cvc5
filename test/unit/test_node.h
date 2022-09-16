@@ -19,7 +19,6 @@
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 
 namespace cvc5::internal {

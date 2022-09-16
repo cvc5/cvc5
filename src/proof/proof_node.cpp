@@ -56,11 +56,11 @@ void ProofNode::setValue(
   d_args = args;
 }
 
-void ProofNode::printDebug(std::ostream& os) const
+void ProofNode::printDebug(std::ostream& os, bool printConclusion) const
 {
   // convert to sexpr and print
   ProofNodeToSExpr pnts;
-  Node ps = pnts.convertToSExpr(this);
+  Node ps = pnts.convertToSExpr(this, printConclusion);
   os << ps;
 }
 

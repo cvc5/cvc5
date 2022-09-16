@@ -16,10 +16,9 @@
 #include "proof/proof_checker.h"
 
 #include "expr/skolem_manager.h"
-#include "options/proof_options.h"
 #include "proof/proof_node.h"
-#include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;
 
@@ -78,18 +77,19 @@ Node ProofRuleChecker::mkKindNode(Kind k)
       Rational(static_cast<uint32_t>(k)));
 }
 
-ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
-          "ProofCheckerStatistics::ruleChecks")),
-      d_totalRuleChecks(smtStatisticsRegistry().registerInt(
-          "ProofCheckerStatistics::totalRuleChecks"))
+ProofCheckerStatistics::ProofCheckerStatistics(StatisticsRegistry& sr)
+    : d_ruleChecks(
+        sr.registerHistogram<PfRule>("ProofCheckerStatistics::ruleChecks")),
+      d_totalRuleChecks(
+          sr.registerInt("ProofCheckerStatistics::totalRuleChecks"))
 {
 }
 
-ProofChecker::ProofChecker(bool eagerCheck,
+ProofChecker::ProofChecker(StatisticsRegistry& sr,
+                           options::ProofCheckMode pcMode,
                            uint32_t pclevel,
                            rewriter::RewriteDb* rdb)
-    : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
+    : d_stats(sr), d_pcMode(pcMode), d_pclevel(pclevel), d_rdb(rdb)
 {
 }
 
@@ -227,6 +227,11 @@ Node ProofChecker::checkInternal(PfRule id,
       return Node::null();
     }
   }
+  // if we aren't doing checking, trust the expected if it exists
+  if (d_pcMode == options::ProofCheckMode::NONE && !expected.isNull())
+  {
+    return expected;
+  }
   // check it with the corresponding checker
   Node res = it->second->check(id, cchildren, args);
   if (!expected.isNull())
@@ -254,7 +259,7 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (d_eagerCheck)
+  if (d_pcMode == options::ProofCheckMode::EAGER)
   {
     std::stringstream serr;
     if (isPedanticFailure(id, serr, enableOutput))

@@ -23,12 +23,12 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_value_manager.h"
+#include "theory/quantifiers/sygus/print_sygus_to_builtin.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -601,27 +601,27 @@ bool SynthConjecture::doCheck()
   return true;
 }
 
-bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
+bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals)
 {
-  if (!d_embedSideCondition.isNull())
+  if (d_embedSideCondition.isNull())
   {
-    Node sc = d_embedSideCondition;
-    if (!cvals.empty())
-    {
-      sc = sc.substitute(
-        d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
-    }
-    Trace("sygus-engine") << "Check side condition..." << std::endl;
-    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    sc = rewrite(sc);
-    Result r = checkWithSubsolver(sc, options(), logicInfo());
-    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if (r == Result::UNSAT)
-    {
-      return false;
-    }
-    Trace("sygus-engine") << "...passed side condition" << std::endl;
+    return true;
   }
+  Node sc = d_embedSideCondition;
+  if (!cvals.empty())
+  {
+    sc = sc.substitute(
+        d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
+  }
+  Trace("sygus-engine") << "Check side condition..." << std::endl;
+  Result r = d_verify.verify(sc);
+  Trace("sygus-engine") << "...result of check side condition : " << r
+                        << std::endl;
+  if (r == Result::UNSAT)
+  {
+    return false;
+  }
+  Trace("sygus-engine") << "...passed side condition" << std::endl;
   return true;
 }
 
@@ -994,7 +994,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
   {
     svals = d_solutionValues.back();
   }
-  for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
+  for (size_t i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];
     Trace("cegqi-debug") << "  get solution for " << prog << std::endl;
@@ -1060,6 +1060,22 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     }
     d_sol.push_back(sol);
     d_solStatus.push_back(status);
+    // Note that this assumes that the name of the resulting datatype matches
+    // the original name from the user. This is usually the case, although
+    // if grammar normalization is used, it is not. If it is not, the names
+    // in the annotation will not match, but no failures will occur.
+    // Also note that we do not print annotations if the solution was not
+    // reconstructed to the grammar (status != 1), which is the case if the
+    // grammar is ignored by single invocation above. On the other hand,
+    // annotations will be printed correctly if the solution was successfully
+    // reconstructed by single invocation (status == 1).
+    if (isOutputOn(OutputTag::SYGUS_SOL_GTERM) && status == 1)
+    {
+      Node psol = getPrintableSygusToBuiltin(sol);
+      d_env.output(OutputTag::SYGUS_SOL_GTERM)
+          << "(sygus-sol-gterm (" << d_quant[0][i] << " " << psol << "))"
+          << std::endl;
+    }
   }
   sols.insert(sols.end(), d_sol.begin(), d_sol.end());
   statuses.insert(statuses.end(), d_solStatus.begin(), d_solStatus.end());

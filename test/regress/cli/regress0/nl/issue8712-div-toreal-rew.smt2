@@ -1,4 +1,4 @@
-; COMMAND-LINE: --learned-rewrite -q
+; COMMAND-LINE: --learned-rewrite
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

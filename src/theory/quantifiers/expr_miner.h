@@ -85,12 +85,9 @@ class ExprMiner : protected EnvObj
    * of the argument "query", which is a formula whose free variables (of
    * kind BOUND_VARIABLE) are a subset of d_vars.
    */
-  void initializeChecker(std::unique_ptr<SolverEngine>& checker, Node query);
-  /** Also with configurable options and logic */
   void initializeChecker(std::unique_ptr<SolverEngine>& checker,
                          Node query,
-                         const Options& opts,
-                         const LogicInfo& logicInfo);
+                         const SubsolverSetupInfo& info);
   /**
    * Run the satisfiability check on query and return the result
    * (sat/unsat/unknown).
@@ -98,7 +95,7 @@ class ExprMiner : protected EnvObj
    * In contrast to the above method, this call should be used for cases where
    * the model for the query is not important.
    */
-  Result doCheck(Node query);
+  Result doCheck(Node query, const SubsolverSetupInfo& info);
 };
 
 }  // namespace quantifiers
