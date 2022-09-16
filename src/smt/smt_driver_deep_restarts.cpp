@@ -33,10 +33,9 @@ SmtDriverDeepRestarts::SmtDriverDeepRestarts(Env& env,
 
 Result SmtDriverDeepRestarts::checkSatNext()
 {
-  Assertions& as = d_smt.getAssertions();
   d_zll.clear();
-  d_smt.preprocess(as);
-  d_smt.assertToInternal(as);
+  d_smt.preprocess();
+  d_smt.assertToInternal();
   Result result = d_smt.checkSatInternal();
   // check again if we didn't solve and there are learned literals
   if (result.getStatus() == Result::UNKNOWN)
