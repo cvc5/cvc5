@@ -750,6 +750,23 @@ bool ExtfSolver::isActiveInModel(Node n) const
   return it->second.d_modelActive;
 }
 
+std::vector<Node> ExtfSolver::getRelevantActive() const
+{
+  std::set<Node> relevantTerms;
+  d_termReg.getRelevantTermSet(relevantTerms);
+
+  std::vector<Node> res;
+  for (const Node& n : relevantTerms)
+  {
+    if (d_extt.hasFunctionKind(n.getKind()) && !d_extt.isActive(n))
+    {
+      continue;
+    }
+    res.push_back(n);
+  }
+  return res;
+}
+
 bool StringsExtfCallback::getCurrentSubstitution(
     int effort,
     const std::vector<Node>& vars,
