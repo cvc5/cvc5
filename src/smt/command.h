@@ -749,14 +749,14 @@ class CVC5_EXPORT GetValueCommand : public Command
 {
  protected:
   std::vector<cvc5::Term> d_terms;
-  cvc5::Term d_result;
+  std::vector<cvc5::Term> d_result;
 
  public:
   GetValueCommand(cvc5::Term term);
   GetValueCommand(const std::vector<cvc5::Term>& terms);
 
   const std::vector<cvc5::Term>& getTerms() const;
-  cvc5::Term getResult() const;
+  const std::vector<cvc5::Term>& getResult() const;
   void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
