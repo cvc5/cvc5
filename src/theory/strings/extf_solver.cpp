@@ -753,13 +753,15 @@ bool ExtfSolver::isActiveInModel(Node n) const
 std::vector<Node> ExtfSolver::getRelevantActive() const
 {
   // get the relevant term set
+  std::vector<Node> extf = d_extt.getActive();
   const std::set<Node>& relevantTerms = d_termReg.getRelevantTermSet();
 
   std::vector<Node> res;
-  for (const Node& n : relevantTerms)
+  for (const Node& n : extf)
   {
-    if (d_extt.hasFunctionKind(n.getKind()) && !d_extt.isActive(n))
+    if (relevantTerms.find(n)==relevantTerms.end())
     {
+      // not relevant
       continue;
     }
     res.push_back(n);
