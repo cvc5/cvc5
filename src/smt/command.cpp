@@ -1242,7 +1242,10 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-const std::vector<cvc5::Term>& GetValueCommand::getResult() const { return d_result; }
+const std::vector<cvc5::Term>& GetValueCommand::getResult() const
+{
+  return d_result;
+}
 void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
   Assert(d_result.size() == d_terms.size());
@@ -1250,7 +1253,7 @@ void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
   // to letify across key/value pairs in this list.
   out << "(";
   bool firstTime = true;
-  for (size_t i=0, rsize = d_result.size(); i<rsize; i++)
+  for (size_t i = 0, rsize = d_result.size(); i < rsize; i++)
   {
     if (firstTime)
     {
