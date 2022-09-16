@@ -757,7 +757,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
     ss << "The logic was specified as " << logicInfo().getLogicString()
        << ", which doesn't include " << tid
        << ", but got a preprocessing-time term for that theory." << std::endl
-       << "The term:" << endl
+       << "The term:" << std::endl
        << term;
     throw LogicException(ss.str());
   }
