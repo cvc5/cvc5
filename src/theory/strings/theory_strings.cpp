@@ -78,8 +78,14 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_asolver(
-          env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_extTheory),
+      d_asolver(env,
+                d_state,
+                d_im,
+                d_termReg,
+                d_bsolver,
+                d_csolver,
+                d_esolver,
+                d_extTheory),
       d_rsolver(
           env, d_state, d_im, d_termReg, d_csolver, d_esolver, d_statistics),
       d_regexp_elim(

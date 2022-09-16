@@ -24,7 +24,6 @@
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -39,7 +38,7 @@ SmtSolver::SmtSolver(Env& env,
                      AbstractValues& abs,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_pp(env, abs, stats),
+      d_pp(env, stats),
       d_asserts(env, abs),
       d_stats(stats),
       d_theoryEngine(nullptr),

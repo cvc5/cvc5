@@ -71,6 +71,7 @@ set(regress_0_tests
   regress0/arith/issue8905-pi-to-int.smt2
   regress0/arith/issue8872-msum-types.smt2
   regress0/arith/issue8872-2-msum-types.smt2
+  regress0/arith/issue9131-inverse-of-int.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -1000,6 +1001,7 @@ set(regress_0_tests
   regress0/printer/deep-restart-output.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/get-value-no-letify.smt2
   regress0/printer/incomplete.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
@@ -1036,6 +1038,8 @@ set(regress_0_tests
   regress0/proofs/scope.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
   regress0/proofs/trust-subs-eq-open.smt2
+  regress0/proofs/unused-def1.smt2
+  regress0/proofs/unused-def2.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -1401,6 +1405,7 @@ set(regress_0_tests
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/set-info-status.smt2
+  regress0/solver/issue8854-get-model-after-unknown.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2

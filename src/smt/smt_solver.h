@@ -45,7 +45,6 @@ class QuantifiersEngine;
 
 namespace smt {
 
-class SolverEngineState;
 struct SolverEngineStatistics;
 
 /**

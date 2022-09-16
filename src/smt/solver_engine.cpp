@@ -646,8 +646,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   {
     std::stringstream ss;
     ss << "Cannot " << c
-       << " unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN "
-          "response.";
+       << " unless immediately preceded by SAT or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
 
@@ -660,7 +659,18 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
 
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
   Assert(te != nullptr);
-  TheoryModel* m = te->getBuiltModel();
+  // If the solver is in UNKNOWN mode, we use the latest available model (e.g.,
+  // one that was generated for a last call check). Note that the model is SAT
+  // context-independent internally, so this works even if the SAT solver has
+  // backtracked since the model was generated. We disable the resource manager
+  // while building or getting the model. In general, we should not be spending
+  // resources while building a model, but this ensures that we return a model
+  // if a problem was solved within the allocated resources.
+  getResourceManager()->setEnabled(false);
+  TheoryModel* m = d_state->getMode() == SmtMode::SAT_UNKNOWN
+                       ? te->getModel()
+                       : te->getBuiltModel();
+  getResourceManager()->setEnabled(true);
 
   if (m == nullptr)
   {
@@ -794,7 +804,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
-        "UNSAT/ENTAILED.");
+        "UNSAT.");
   }
   finishInit();
   UnsatCore core = getUnsatCoreInternal();
@@ -950,13 +960,18 @@ void SolverEngine::declareOracleFun(
   assertFormula(q);
 }
 
-Node SolverEngine::simplify(const Node& ex)
+Node SolverEngine::simplify(const Node& t)
 {
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
   d_smtSolver->processAssertions();
-  return d_smtSolver->getPreprocessor()->simplify(ex);
+  // Substitute out any abstract values in node.
+  Node tt = d_absValues->substituteAbstractValues(t);
+  // apply substitutions
+  tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
+  // now rewrite
+  return d_env->getRewriter()->rewrite(tt);
 }
 
 Node SolverEngine::getValue(const Node& t) const
@@ -964,6 +979,9 @@ Node SolverEngine::getValue(const Node& t) const
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
   TypeNode expectedType = t.getType();
+
+  // Substitute out any abstract values in node.
+  Node tt = d_absValues->substituteAbstractValues(t);
 
   // We must expand definitions here, which replaces certain subterms of t
   // by the form that is used internally. This is necessary for some corner
@@ -975,7 +993,7 @@ Node SolverEngine::getValue(const Node& t) const
   ExpandDefs expDef(*d_env.get());
   // Must apply substitutions first to ensure we expand definitions in the
   // solved form of t as well.
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
+  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   n = expDef.expandDefinitions(n, cache);
 
   Trace("smt") << "--- getting value of " << n << endl;
@@ -1298,7 +1316,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+        "UNSAT response.");
   }
   // generate with new proofs
   PropEngine* pe = getPropEngine();
@@ -1504,7 +1522,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+        "UNSAT response.");
   }
   // determine if we should get the full proof from the SAT solver
   PropEngine* pe = getPropEngine();
