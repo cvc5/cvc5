@@ -731,10 +731,9 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
-  theory::TheoryId tid = d_env.theoryOf(atom);
   // This should be implied by the check during ppRewrite, in particular
   // literal should have been passed to ppRewrite.
-  Assert(isTheoryEnabled(tid) || tid == THEORY_SAT_SOLVER);
+  Assert(isTheoryEnabled(d_env.theoryOf(atom)) || d_env.theoryOf(atom) == THEORY_SAT_SOLVER);
 
   Theory::PPAssertStatus solveStatus =
       theoryOf(atom)->ppAssert(tliteral, substitutionOut);
