@@ -733,7 +733,8 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 
   // This should be implied by the check during ppRewrite, in particular
   // literal should have been passed to ppRewrite.
-  Assert(isTheoryEnabled(d_env.theoryOf(atom)) || d_env.theoryOf(atom) == THEORY_SAT_SOLVER);
+  Assert(isTheoryEnabled(d_env.theoryOf(atom))
+         || d_env.theoryOf(atom) == THEORY_SAT_SOLVER);
 
   Theory::PPAssertStatus solveStatus =
       theoryOf(atom)->ppAssert(tliteral, substitutionOut);
