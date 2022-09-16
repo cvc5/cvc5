@@ -232,14 +232,14 @@ class TermRegistry : protected EnvObj
    */
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;
 
-  /** 
+  /**
    * Compute relevant terms of the theory of strings. This is called once
    * per full effort check by the base solver at the beginning of checkInit.
    */
   void computeRelevantTermSet();
   /**
    * Get the relevant term set, returns the set computed by the above function.
-   * 
+   *
    * The relevant term set is all terms that belong to theory of strings that
    * appear in the current set of assertions, or are marked as shared terms
    * for the theory of strings.
