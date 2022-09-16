@@ -759,7 +759,7 @@ std::vector<Node> ExtfSolver::getRelevantActive() const
   std::vector<Node> res;
   for (const Node& n : extf)
   {
-    if (relevantTerms.find(n)==relevantTerms.end())
+    if (relevantTerms.find(n) == relevantTerms.end())
     {
       // not relevant
       continue;
