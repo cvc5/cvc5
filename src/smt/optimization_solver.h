@@ -217,7 +217,7 @@ class OptimizationSolver : protected EnvObj
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(Env& env, SolverEngine* parent);
+  OptimizationSolver(SolverEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
