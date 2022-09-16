@@ -24,6 +24,8 @@ find_package(Java COMPONENTS Runtime REQUIRED)
 set(libcvc5parserapi_src_files
   api/cpp/command.cpp
   api/cpp/command.h
+  api/cpp/symbol_manager.cpp
+  api/cpp/symbol_manager.h
 )
 
 set(libcvc5parser_src_files
@@ -32,8 +34,6 @@ set(libcvc5parser_src_files
   antlr_input_imports.cpp
   antlr_line_buffered_input.cpp
   antlr_line_buffered_input.h
-  api/cpp/symbol_manager.cpp
-  api/cpp/symbol_manager.h
   bounded_token_buffer.cpp
   bounded_token_buffer.h
   bounded_token_factory.cpp

@@ -31,7 +31,7 @@ class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
 
-class Printer
+class CVC5_EXPORT Printer
 {
  public:
   /**

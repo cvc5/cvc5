@@ -36,7 +36,6 @@
 #include "expr/skolem_manager.h"
 #include "options/io_utils.h"
 #include "options/language.h"
-#include "parser/api/cpp/command.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "theory/arrays/theory_arrays_rewriter.h"

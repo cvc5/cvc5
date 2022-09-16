@@ -22,7 +22,6 @@
 #include "expr/node_manager.h"    // for VarNameAttr
 #include "options/language.h"     // for LANG_AST
 #include "options/smt_options.h"  // for unsat cores
-#include "parser/api/cpp/command.h"
 #include "proof/unsat_core.h"
 #include "smt/solver_engine.h"
 

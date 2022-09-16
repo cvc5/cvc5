@@ -15,6 +15,7 @@
 #include "printer/ast/ast_printer.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <typeinfo>
 #include <vector>
@@ -23,7 +24,6 @@
 #include "expr/node_visitor.h"
 #include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
-#include "parser/api/cpp/command.h"
 #include "printer/let_binding.h"
 
 using namespace std;
