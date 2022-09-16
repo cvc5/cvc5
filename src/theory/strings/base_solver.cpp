@@ -155,7 +155,7 @@ void BaseSolver::checkInit()
           }
 
           std::vector<Node> c;
-          Node nc = tti[k].add(n, 0, d_state, emps, c);
+          Node nc = tti[k].add(n, 0, d_state, emps, false, c);
           if (nc != n)
           {
             Trace("strings-base-debug")
