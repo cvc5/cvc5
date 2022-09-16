@@ -1628,8 +1628,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
   bool printed = false;
   bool reqNames = !d_env->getOptions().quantifiers.printInstFull;
   // only print when in list mode
-  if (d_env->getOptions().quantifiers.printInstMode
-      == options::PrintInstMode::LIST)
+  if (d_env->getOptions().quantifiers.printInstMode == options::PrintInstMode::LIST)
   {
     std::map<Node, std::vector<Node>> sks;
     qe->getSkolemTermVectors(sks);
