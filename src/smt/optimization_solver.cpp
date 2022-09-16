@@ -93,10 +93,11 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
-OptimizationSolver::OptimizationSolver(SolverEngine* parent)
-    : d_parent(parent),
+OptimizationSolver::OptimizationSolver(Env& env, SolverEngine* parent)
+    : EnvObj(env),
+      d_parent(parent),
       d_optChecker(),
-      d_objectives(parent->getUserContext()),
+      d_objectives(userContext()),
       d_results()
 {
 }

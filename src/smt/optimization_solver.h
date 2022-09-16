@@ -22,6 +22,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
@@ -184,7 +185,7 @@ std::ostream& operator<<(std::ostream& out,
  * implements a linear optimization loop. Supports activateObjective,
  * checkOpt, and objectiveGetValue in that order.
  */
-class OptimizationSolver
+class OptimizationSolver : protected EnvObj
 {
  public:
   /**
@@ -216,7 +217,7 @@ class OptimizationSolver
    * Constructor
    * @param parent the smt_solver that the user added their assertions to
    **/
-  OptimizationSolver(SolverEngine* parent);
+  OptimizationSolver(Env& env, SolverEngine* parent);
   ~OptimizationSolver() = default;
 
   /**
