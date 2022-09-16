@@ -63,8 +63,9 @@ class Tester:
             print_error("Timeout")
             return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
         elif exit_status != expected_exit_status:
-            print_error('Expected exit status "{}" but got "{}"'.format(
-                expected_exit_status, exit_status))
+            print_error(
+                'Unexpected exit status: expected "{}" but got "{}"'.format(
+                    expected_exit_status, exit_status))
             return EXIT_FAILURE
         return EXIT_OK
 
