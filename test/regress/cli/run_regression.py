@@ -73,7 +73,6 @@ class Tester:
         calls the internal run method to execute the test."""
 
         print()
-        print()
         print_info(self.name)
         print("  Flags: {}".format(benchmark_info.command_line_args))
         return self.run_internal(benchmark_info)
