@@ -108,12 +108,12 @@ class Tester:
 ################################################################################
 # The testers
 #
-# Testers use `Tester` as a base class and implement `applies()` and `run()`
-# methods. The `applies()` method returns `True` if a tester applies to a given
-# benchmark and `run()` runs the actual test. Most testers can invoke the
-# `run()` method in the base class, which calls the cvc5 binary with a set of
-# arguments and checks the expected output (both stdout and stderr) as well as
-# the exit status.
+# Testers use `Tester` as a base class and implement `applies()` and
+# `run_internal()` methods. The `applies()` method returns `True` if a tester
+# applies to a given benchmark and `run_internal()` runs the actual test. Most
+# testers can invoke the `run_internal()` method in the base class, which calls
+# the cvc5 binary with a set of arguments and checks the expected output (both
+# stdout and stderr) as well as the exit status.
 #
 # To add a new tester, add a class and add it to the `g_tester` dictionary.
 ################################################################################
@@ -273,7 +273,7 @@ class SynthTester(Tester):
         )
 
     def run_internal(self, benchmark_info):
-        return super().run(
+        return super().run_internal(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args
                 + ["--check-synth-sol"]
