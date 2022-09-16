@@ -648,8 +648,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   {
     std::stringstream ss;
     ss << "Cannot " << c
-       << " unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN "
-          "response.";
+       << " unless immediately preceded by SAT or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
 
@@ -662,7 +661,18 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
 
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
   Assert(te != nullptr);
-  TheoryModel* m = te->getBuiltModel();
+  // If the solver is in UNKNOWN mode, we use the latest available model (e.g.,
+  // one that was generated for a last call check). Note that the model is SAT
+  // context-independent internally, so this works even if the SAT solver has
+  // backtracked since the model was generated. We disable the resource manager
+  // while building or getting the model. In general, we should not be spending
+  // resources while building a model, but this ensures that we return a model
+  // if a problem was solved within the allocated resources.
+  getResourceManager()->setEnabled(false);
+  TheoryModel* m = d_state->getMode() == SmtMode::SAT_UNKNOWN
+                       ? te->getModel()
+                       : te->getBuiltModel();
+  getResourceManager()->setEnabled(true);
 
   if (m == nullptr)
   {
@@ -796,7 +806,7 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
-        "UNSAT/ENTAILED.");
+        "UNSAT.");
   }
   finishInit();
   UnsatCore core = getUnsatCoreInternal();
@@ -1307,7 +1317,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+        "UNSAT response.");
   }
   // generate with new proofs
   PropEngine* pe = getPropEngine();
@@ -1512,7 +1522,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+        "UNSAT response.");
   }
   // determine if we should get the full proof from the SAT solver
   PropEngine* pe = getPropEngine();
