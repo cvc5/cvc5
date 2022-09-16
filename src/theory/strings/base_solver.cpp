@@ -53,9 +53,12 @@ BaseSolver::~BaseSolver() {}
 void BaseSolver::checkInit()
 {
   // build term index
+  d_relevantTerms.clear();
   d_eqcInfo.clear();
   d_termIndex.clear();
   d_stringLikeEqc.clear();
+
+  d_termReg.getRelevantTermSet(d_relevantTerms);
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
@@ -212,9 +215,21 @@ void BaseSolver::checkInit()
               // assuming that the reduction of f(a) depends on itself.
             }
             // this node is congruent to another one, we can ignore it
-            Trace("strings-base-debug") << "  congruent term : " << n
-                                        << " (via " << nc << ")" << std::endl;
+            if (d_relevantTerms.find(n) != d_relevantTerms.end()
+                && d_relevantTerms.find(nc) == d_relevantTerms.end())
+            {
+              // If `n` is a relevant term and `nc` is not, then we change
+              // the term at its index to `n` and mark `nc` as congruent.
+              // This ensures that if we have mutliple congruent terms, we
+              // reason about one of the relevant ones (if available).
+              tti[k].add(n, 0, d_state, emps, true, c);
+              std::swap(nc, n);
+            }
+            Trace("strings-base-debug")
+                << "  congruent term : " << n << " (via " << nc << ")"
+                << std::endl;
             d_congruent.insert(n);
+            congruentCount[k].first++;
           }
           else if (k == STRING_CONCAT && c.size() == 1)
           {
@@ -840,11 +855,12 @@ Node BaseSolver::TermIndex::add(TNode n,
                                 unsigned index,
                                 const SolverState& s,
                                 Node er,
+                                bool overwrite,
                                 std::vector<Node>& c)
 {
   if (index == n.getNumChildren())
   {
-    if (d_data.isNull())
+    if (overwrite || d_data.isNull())
     {
       d_data = n;
     }
@@ -855,10 +871,10 @@ Node BaseSolver::TermIndex::add(TNode n,
   // if it is empty, and doing CONCAT, ignore
   if (nir == er && n.getKind() == STRING_CONCAT)
   {
-    return add(n, index + 1, s, er, c);
+    return add(n, index + 1, s, er, overwrite, c);
   }
   c.push_back(nir);
-  return d_children[nir].add(n, index + 1, s, er, c);
+  return d_children[nir].add(n, index + 1, s, er, overwrite, c);
 }
 
 }  // namespace strings
