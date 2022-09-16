@@ -53,12 +53,12 @@ BaseSolver::~BaseSolver() {}
 void BaseSolver::checkInit()
 {
   // build term index
-  d_relevantTerms.clear();
   d_eqcInfo.clear();
   d_termIndex.clear();
   d_stringLikeEqc.clear();
 
-  d_termReg.getRelevantTermSet(d_relevantTerms);
+  d_termReg.computeRelevantTermSet();
+  const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
@@ -203,8 +203,8 @@ void BaseSolver::checkInit()
                   // assuming that the reduction of f(a) depends on itself.
                 }
                 // this node is congruent to another one, we can ignore it
-                if (d_relevantTerms.find(n) != d_relevantTerms.end()
-                    && d_relevantTerms.find(nc) == d_relevantTerms.end())
+                if (rlvSet.find(n) != rlvSet.end()
+                    && rlvSet.find(nc) == rlvSet.end())
                 {
                   // If `n` is a relevant term and `nc` is not, then we change
                   // the term at its index to `n` and mark `nc` as congruent.

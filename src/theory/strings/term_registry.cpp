@@ -689,11 +689,17 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
-void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
+void TermRegistry::computeRelevantTermSet()
 {
-  d_theory.collectAssertedTerms(termSet);
+  d_relevantTerms.clear();
+  // get the asserted terms
+  d_theory.collectAssertedTerms(d_relevantTerms);
   // also, get the additionally relevant terms
-  d_theory.computeRelevantTerms(termSet);
+  d_theory.computeRelevantTerms(d_relevantTerms);
+}
+const std::set<Node>& TermRegistry::getRelevantTermSet() const
+{
+  return d_relevantTerms;
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const
