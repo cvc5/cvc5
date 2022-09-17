@@ -80,8 +80,6 @@ const char* toString(CardinalityClass c);
  */
 std::ostream& operator<<(std::ostream& out, CardinalityClass c);
 
-/** Take the min class of c1 and c2 */
-CardinalityClass minCardinalityClass(CardinalityClass c1, CardinalityClass c2);
 /** Take the max class of c1 and c2 */
 CardinalityClass maxCardinalityClass(CardinalityClass c1, CardinalityClass c2);
 /**
