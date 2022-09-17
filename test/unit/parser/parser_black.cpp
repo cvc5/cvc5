@@ -84,7 +84,7 @@ class TestParserBlackParser : public TestInternal
             .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
     ASSERT_FALSE(parser->done());
-    parser::Command* cmd;
+    Command* cmd;
     while ((cmd = parser->nextCommand()) != NULL)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
@@ -105,7 +105,7 @@ class TestParserBlackParser : public TestInternal
     parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
     ASSERT_THROW(
         {
-          parser::Command* cmd;
+          Command* cmd;
           while ((cmd = parser->nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
@@ -127,7 +127,7 @@ class TestParserBlackParser : public TestInternal
     if (d_lang == "LANG_SMTLIB_V2_6")
     {
       /* Use QF_LIA to make multiplication ("*") available */
-      std::unique_ptr<parser::Command> cmd(
+      std::unique_ptr<Command> cmd(
           static_cast<Smt2*>(parser.get())->setLogic("QF_LIA"));
     }
 
