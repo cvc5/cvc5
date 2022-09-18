@@ -216,7 +216,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     if (abstractValue != concreteValue)
     {
       // Need refinement lemmas
-      // only in the normal, subnormal
+      // only in the normal and subnormal case
       Assert(floatValue.getConst<FloatingPoint>().isNormal()
              || floatValue.getConst<FloatingPoint>().isSubnormal());
 
