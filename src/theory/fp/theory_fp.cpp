@@ -216,7 +216,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     if (abstractValue != concreteValue)
     {
       // Need refinement lemmas
-      // only in the normal and subnormal case
+      // only in the normal, subnormal
       Assert(floatValue.getConst<FloatingPoint>().isNormal()
              || floatValue.getConst<FloatingPoint>().isSubnormal());
 
@@ -555,25 +555,33 @@ void TheoryFp::registerTerm(TNode node)
   }
   else if (k == kind::FLOATINGPOINT_TO_REAL_TOTAL)
   {
-    // Purify (fp.to_real x)
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node, "to_real", "fp purify skolem");
+    // Purify (fp.to_real_total x undef)
+    Node sk = purifyConversions(node);
+    Assert(sk.getKind() == SKOLEM);
+    // Purify the children of this node and use it for the lemmas/refining the
+    // abstraction. This is required to properly process nested conversions.
+    // Otherwise, when getting the values for those terms from the model, we
+    // may get unexpected results if the nested conversions need to be refined
+    // still.
+    Node pn = nm->mkNode(FLOATINGPOINT_TO_REAL_TOTAL,
+                         purifyConversions(node[0]),
+                         purifyConversions(node[1]));
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
-    d_abstractionMap.insert(sk, node);
+    d_abstractionMap.insert(sk, pn);
 
     Node pd =
         nm->mkNode(kind::IMPLIES,
                    nm->mkNode(kind::OR,
-                              nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node[0]),
-                              nm->mkNode(kind::FLOATINGPOINT_IS_INF, node[0])),
-                   nm->mkNode(kind::EQUAL, node, node[1]));
+                              nm->mkNode(kind::FLOATINGPOINT_IS_NAN, pn[0]),
+                              nm->mkNode(kind::FLOATINGPOINT_IS_INF, pn[0])),
+                   nm->mkNode(kind::EQUAL, pn, pn[1]));
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
-    Node z = nm->mkNode(
-        kind::IMPLIES,
-        nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, node[0]),
-        nm->mkNode(kind::EQUAL, node, nm->mkConstReal(Rational(0U))));
+    Node z =
+        nm->mkNode(kind::IMPLIES,
+                   nm->mkNode(kind::FLOATINGPOINT_IS_ZERO, pn[0]),
+                   nm->mkNode(kind::EQUAL, pn, nm->mkConstReal(Rational(0U))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -581,24 +589,33 @@ void TheoryFp::registerTerm(TNode node)
   }
   else if (k == kind::FLOATINGPOINT_TO_FP_FROM_REAL)
   {
-    // Purify ((_ to_fp eb sb) rm x)
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    Node sk = sm->mkPurifySkolem(node, "to_real_fp", "fp purify skolem");
+    // Purify ((_ to_fp eb sb) rm x)
+    Node sk = purifyConversions(node);
+    Assert(sk.getKind() == SKOLEM);
+    // Purify the children of this node and use it for the lemmas/refining the
+    // abstraction. This is required to properly process nested conversions.
+    // Otherwise, when getting the values for those terms from the model, we
+    // may get unexpected results if the nested conversions need to be refined
+    // still.
+    Node pn = nm->mkNode(FLOATINGPOINT_TO_FP_FROM_REAL,
+                         node.getOperator(),
+                         purifyConversions(node[0]),
+                         purifyConversions(node[1]));
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
-    d_abstractionMap.insert(sk, node);
+    d_abstractionMap.insert(sk, pn);
 
     Node nnan =
-        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_IS_NAN, node));
+        nm->mkNode(kind::NOT, nm->mkNode(kind::FLOATINGPOINT_IS_NAN, pn));
     handleLemma(nnan, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         kind::IMPLIES,
-        nm->mkNode(kind::EQUAL, node[1], nm->mkConstReal(Rational(0U))),
+        nm->mkNode(kind::EQUAL, pn[1], nm->mkConstReal(Rational(0U))),
         nm->mkNode(kind::EQUAL,
-                   node,
+                   pn,
                    nm->mkConst(FloatingPoint::makeZero(
-                       node.getType().getConst<FloatingPointSize>(), false))));
+                       pn.getType().getConst<FloatingPointSize>(), false))));
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -914,6 +931,64 @@ void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
   Trace("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
                  << " = " << t2 << std::endl;
   d_theorySolver.conflictEqConstantMerge(t1, t2);
+}
+
+Node TheoryFp::purifyConversions(TNode n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+
+  std::vector<TNode> toVisit = {n};
+  std::unordered_map<TNode, Node> result;
+  while (!toVisit.empty())
+  {
+    TNode curr = toVisit.back();
+    toVisit.pop_back();
+
+    Kind k = curr.getKind();
+    const auto& it = result.find(curr);
+    if (it != result.end())
+    {
+      if (it->second.isNull())
+      {
+        NodeBuilder nb(k);
+        if (curr.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          nb << result[curr.getOperator()];
+        }
+        for (TNode nc : curr)
+        {
+          nb << result[nc];
+        }
+        result[curr] = nb;
+      }
+    }
+    else if (curr.getNumChildren() == 0)
+    {
+      result[curr] = curr;
+    }
+    else if (k == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+    {
+      Node sk = sm->mkPurifySkolem(curr, "fp_to_real", "fp purify skolem");
+      result[curr] = sk;
+    }
+    else if (k == kind::FLOATINGPOINT_TO_FP_FROM_REAL)
+    {
+      Node sk = sm->mkPurifySkolem(curr, "real_to_fp", "fp purify skolem");
+      result[curr] = sk;
+    }
+    else
+    {
+      result[curr] = Node::null();
+      toVisit.push_back(curr);
+      if (curr.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        toVisit.push_back(curr.getOperator());
+      }
+      toVisit.insert(toVisit.end(), curr.begin(), curr.end());
+    }
+  }
+  return result[n];
 }
 
 }  // namespace fp

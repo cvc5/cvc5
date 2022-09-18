@@ -142,6 +142,11 @@ class TheoryFp : public Theory
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
  private:
+  /**
+   * Purifies operators that convert between real and floating-point.
+   */
+  Node purifyConversions(TNode n);
+
   AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */

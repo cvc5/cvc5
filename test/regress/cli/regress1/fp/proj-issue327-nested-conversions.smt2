@@ -1,0 +1,6 @@
+(set-logic ALL)
+(declare-const x Real)
+(declare-const x6 RoundingMode)
+(assert (or (= x (/ 1 1000000000000000000000000000000000000000000000000000000)) (= x 1.0)))
+(set-info :status unsat)
+(check-sat-assuming ((and (> x 0.0) (> 0.0 (fp.to_real ((_ to_fp 8 24) x6 x))))))
