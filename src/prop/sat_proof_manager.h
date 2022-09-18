@@ -606,7 +606,6 @@ class SatProofManager : protected EnvObj
   LazyCDProofChain d_resChains;
 
   /** The proof generator for resolution chains */
-  // BufferedProofGenerator d_resChainPg;
   SatBufferedProofGenerator d_resChainPg;
 
   /** The true/false nodes */
