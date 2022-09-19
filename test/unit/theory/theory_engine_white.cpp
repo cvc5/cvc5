@@ -50,8 +50,6 @@ class TestTheoryWhiteEngine : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_context = d_slvEngine->getContext();
-    d_user_context = d_slvEngine->getUserContext();
 
     d_theoryEngine = d_slvEngine->d_smtSolver->getTheoryEngine();
     for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
@@ -69,8 +67,6 @@ class TestTheoryWhiteEngine : public TestSmt
     d_theoryEngine->addTheory<DummyTheory<THEORY_BV> >(THEORY_BV);
   }
 
-  Context* d_context;
-  UserContext* d_user_context;
   TheoryEngine* d_theoryEngine;
 };
 
