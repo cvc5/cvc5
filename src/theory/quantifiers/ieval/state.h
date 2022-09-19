@@ -48,11 +48,11 @@ class State : protected EnvObj
   /** Get value for pattern or ground term p. */
   TNode getValue(TNode p) const;
   /** Get none node */
-  Node getNone() const;
+  TNode getNone() const;
   /** Is none */
   bool isNone(TNode n) const;
   /** Get some node */
-  Node getSome() const;
+  TNode getSome() const;
   /** Is some */
   bool isSome(TNode n) const;
   /** Invoke the rewriter for term n */

@@ -186,7 +186,7 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
       }
     }
     // if any child is some, we are some as well
-    ret = hasSome ? s.getSome() : nm->mkConst(k == AND);
+    ret = hasSome ? Node(s.getSome()) : nm->mkConst(k == AND);
     Trace("ieval-state-debug") << "...exhausted AND/OR" << std::endl;
   }
   else if (k == EQUAL)
