@@ -607,7 +607,6 @@ class SatProofManager : protected EnvObj
 
   /** The proof generator for resolution chains */
   SatBufferedProofGenerator d_resChainPg;
-  // BufferedProofGenerator d_resChainPg;
 
   /** The true/false nodes */
   Node d_true;
