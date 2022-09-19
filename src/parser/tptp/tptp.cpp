@@ -21,8 +21,8 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
 
 // ANTLR defines these, which is really bad!

@@ -31,7 +31,6 @@
 #include "expr/node_builder.h"
 #include "expr/node_value.h"
 #include "util/floatingpoint_size.h"
-#include "util/integer.h"
 
 namespace cvc5 {
 
@@ -47,6 +46,7 @@ class BoundVarManager;
 
 class DType;
 class Oracle;
+class Integer;
 class Rational;
 
 namespace expr {
