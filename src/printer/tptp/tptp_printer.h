@@ -32,7 +32,6 @@ class TptpPrinter : public cvc5::internal::Printer
   using cvc5::internal::Printer::toStream;
   void toStream(std::ostream& out, TNode n) const override;
   void toStream(std::ostream& out, Kind k) const override;
-  void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Print unsat core to stream.
@@ -40,6 +39,14 @@ class TptpPrinter : public cvc5::internal::Printer
    * (UnsatCore::getCoreNames).
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
+
+  void toStreamCmdSuccess(std::ostream& out) const override;
+  void toStreamCmdInterrupted(std::ostream& out) const override;
+  void toStreamCmdUnsupported(std::ostream& out) const override;
+  void toStreamCmdFailure(std::ostream& out,
+                          const std::string& message) const override;
+  void toStreamCmdRecoverableFailure(std::ostream& out,
+                                     const std::string& message) const override;
 
  private:
   /**

@@ -22,8 +22,8 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "main/command_executor.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
-#include "smt/command.h"
 
 namespace cvc5::main {
 
@@ -56,10 +56,10 @@ struct ExecutionContext
    * Execute the given commands.
    * Returns true if the commands have been executed without being interrupted.
    */
-  bool solveCommands(std::vector<std::unique_ptr<cvc5::Command>>& cmds);
+  bool solveCommands(std::vector<std::unique_ptr<cvc5::parser::Command>>& cmds);
 
   /** Parse the remaining input from d_parser into a vector of commands */
-  std::vector<std::unique_ptr<cvc5::Command>> parseCommands(
+  std::vector<std::unique_ptr<cvc5::parser::Command>> parseCommands(
       parser::Parser* parser);
 };
 
