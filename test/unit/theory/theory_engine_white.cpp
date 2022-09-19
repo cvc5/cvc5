@@ -32,6 +32,7 @@
 #include "theory/theory_engine.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 

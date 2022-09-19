@@ -22,6 +22,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
+#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 
