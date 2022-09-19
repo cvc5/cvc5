@@ -30,6 +30,7 @@
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
+#include "theory/uf/conversions_solver.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -114,8 +115,9 @@ void TheoryUF::finishInit() {
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding
-  return d_thss != nullptr;
+  // last call effort needed if using finite model finding or
+  // arithmetic/bit-vector conversions
+  return d_thss != nullptr || d_csolver != nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -131,6 +133,11 @@ void TheoryUF::postCheck(Effort level)
   }
   if (!d_state.isInConflict())
   {
+    // check with conversions solver at last call effort
+    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
+    {
+      d_csolver->check();
+    }
     // check with the higher-order extension at full effort
     if (fullEffort(level) && logicInfo().isHigherOrder())
     {
@@ -229,9 +236,10 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
-  else if (k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+           && options().uf.eagerArithBvConv)
   {
-    // temporary, always eliminate eagerly
+    // eliminate if option specifies to eliminate eagerly
     Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
                                            : arith::eliminateInt2Bv(node);
     return TrustNode::mkTrustRewrite(node, ret);
@@ -289,9 +297,16 @@ void TheoryUF::preRegisterTerm(TNode node)
     case kind::INT_TO_BITVECTOR:
     case kind::BITVECTOR_TO_NAT:
     {
-      // temporary, will add conversions solver support here
-      Unhandled() << "TheoryUF::preRegisterTerm: registered a conversion term "
-                  << node << std::endl;
+      Assert(!options().uf.eagerArithBvConv);
+      d_equalityEngine->addTerm(node);
+      d_functionsTerms.push_back(node);
+      // initialize the conversions solver if not already done so
+      if (d_csolver == nullptr)
+      {
+        d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
+      }
+      // call preregister
+      d_csolver->preRegisterTerm(node);
     }
     break;
     case kind::CARDINALITY_CONSTRAINT:
@@ -590,7 +605,7 @@ void TheoryUF::computeCareGraph() {
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
-  std::map<TypeNode, TNodeTrie> hoIndex;
+  std::map<TypeNode, TNodeTrie> typeIndex;
   std::map<Node, size_t> arity;
   for (TNode app : d_functionsTerms)
   {
@@ -606,7 +621,8 @@ void TheoryUF::computeCareGraph() {
     }
     if (has_trigger_arg)
     {
-      if (app.getKind() == kind::APPLY_UF)
+      Kind k = app.getKind();
+      if (k == kind::APPLY_UF)
       {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
@@ -625,20 +641,23 @@ void TheoryUF::computeCareGraph() {
           for (const Node& c : app)
           {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
-            hoIndex[curr.getType()].addTerm(happ, {curr, c});
+            Assert(curr.getType().isFunction());
+            typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
             keep.push_back(happ);
           }
         }
       }
-      else if (app.getKind() == kind::HO_APPLY)
+      else if (k == kind::HO_APPLY || k == kind::BITVECTOR_TO_NAT)
       {
-        // add it to the hoIndex for the function type
-        hoIndex[app[0].getType()].addTerm(app, reps);
+        // add it to the typeIndex for the function type if HO_APPLY, or the
+        // bitvector type if bv2nat. The latter ensures that we compute
+        // care pairs based on bv2nat only for bitvectors of the same width.
+        typeIndex[app[0].getType()].addTerm(app, reps);
       }
       else
       {
-        // case for other operators, e.g. int2bv, bv2nat
+        // case for other operators, e.g. int2bv
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
@@ -653,12 +672,15 @@ void TheoryUF::computeCareGraph() {
     Assert(arity.find(tt.first) != arity.end());
     nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
-  for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
+  for (std::pair<const TypeNode, TNodeTrie>& tt : typeIndex)
   {
+    // functions for HO_APPLY which has arity 2, bitvectors for bv2nat which
+    // has arity one
+    size_t a = tt.first.isFunction() ? 2 : 1;
     Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
+    nodeTriePathPairProcess(&tt.second, a, d_cpacb);
   }
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;

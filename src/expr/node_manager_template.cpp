@@ -31,6 +31,8 @@
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
 #include "util/bitvector.h"
+#include "util/ff_val.h"
+#include "util/integer.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
@@ -178,6 +180,11 @@ TypeNode NodeManager::builtinOperatorType()
 TypeNode NodeManager::mkBitVectorType(unsigned size)
 {
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
+}
+
+TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
+{
+  return mkTypeConst<FfSize>(FfSize(modulus));
 }
 
 TypeNode NodeManager::sExprType()

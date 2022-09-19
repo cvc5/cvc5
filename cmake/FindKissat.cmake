@@ -75,7 +75,7 @@ set(Kissat_FOUND TRUE)
 add_library(Kissat STATIC IMPORTED GLOBAL)
 set_target_properties(Kissat PROPERTIES IMPORTED_LOCATION "${Kissat_LIBRARIES}")
 set_target_properties(
-  Kissat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Kissat_INCLUDE_DIR}"
+  Kissat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Kissat_INCLUDE_DIR}"
 )
 
 mark_as_advanced(Kissat_FOUND)
