@@ -19,7 +19,7 @@
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__PROOF_CHECKER_H
 
 #include "expr/node.h"
-#include "proof/proof_checker.h"
+#include "proof/proof_rule_checker.h"
 #include "proof/proof_node.h"
 
 namespace cvc5::internal {
