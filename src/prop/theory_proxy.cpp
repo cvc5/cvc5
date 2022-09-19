@@ -32,6 +32,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
+#include "prop/proof_cnf_stream.h"
 
 namespace cvc5::internal {
 namespace prop {

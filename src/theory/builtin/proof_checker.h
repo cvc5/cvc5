@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 #include "proof/method_id.h"
-#include "proof/proof_rule_checker.h"
+#include "proof/proof_checker.h"
 #include "proof/proof_node.h"
 
 namespace cvc5::internal {
