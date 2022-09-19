@@ -25,6 +25,7 @@
 #include "options/parallel_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
 #include "prop/zero_level_learner.h"
@@ -32,7 +33,6 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
-#include "prop/proof_cnf_stream.h"
 
 namespace cvc5::internal {
 namespace prop {
