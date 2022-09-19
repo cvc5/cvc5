@@ -47,6 +47,8 @@ enum UnknownExplanation
   UNSUPPORTED,
   /** Other reason. */
   OTHER,
+  /** Requires another satisfiability check */
+  REQUIRES_CHECK_AGAIN,
   /** No specific reason given. */
   UNKNOWN_REASON
 };
@@ -131,6 +133,8 @@ enum BlockModelsMode
   /** Block models based on the concrete model values for the free variables. */
   VALUES
 };
+/** Writes a block models mode to a stream. */
+std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode);
 
 /**
  * Types of learned literals.

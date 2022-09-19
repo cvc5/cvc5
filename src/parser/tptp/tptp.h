@@ -29,10 +29,11 @@
 
 namespace cvc5 {
 
-class Command;
 class Solver;
 
 namespace parser {
+
+class Command;
 
 class Tptp : public Parser {
  private:

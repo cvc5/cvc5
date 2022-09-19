@@ -33,6 +33,7 @@ ArraySolver::ArraySolver(Env& env,
                          SolverState& s,
                          InferenceManager& im,
                          TermRegistry& tr,
+                         BaseSolver& bs,
                          CoreSolver& cs,
                          ExtfSolver& es,
                          ExtTheory& extt)
@@ -40,6 +41,7 @@ ArraySolver::ArraySolver(Env& env,
       d_state(s),
       d_im(im),
       d_termReg(tr),
+      d_bsolver(bs),
       d_csolver(cs),
       d_esolver(es),
       d_coreSolver(env, s, im, tr, cs, es, extt),
@@ -63,9 +65,8 @@ void ArraySolver::checkArrayConcat()
   Trace("seq-array") << "ArraySolver::checkArrayConcat..." << std::endl;
   // Get the set of relevant terms. The core array solver requires knowing this
   // set to ensure its write model is only over relevant terms.
-  std::set<Node> termSet;
-  d_termReg.getRelevantTermSet(termSet);
-  checkTerms(termSet);
+  std::vector<Node> terms = d_esolver.getRelevantActive();
+  checkTerms(terms);
 }
 
 void ArraySolver::checkArray()
@@ -90,11 +91,10 @@ void ArraySolver::checkArrayEager()
   }
   Trace("seq-array") << "ArraySolver::checkArray..." << std::endl;
   // get the set of relevant terms, for reasons described above
-  std::set<Node> termSet;
-  d_termReg.getRelevantTermSet(termSet);
+  std::vector<Node> terms = d_esolver.getRelevantActive();
   std::vector<Node> nthTerms;
   std::vector<Node> updateTerms;
-  for (const Node& n : termSet)
+  for (const Node& n : terms)
   {
     Kind k = n.getKind();
     if (k == STRING_UPDATE)
@@ -109,12 +109,14 @@ void ArraySolver::checkArrayEager()
   d_coreSolver.check(nthTerms, updateTerms);
 }
 
-void ArraySolver::checkTerms(const std::set<Node>& termSet)
+void ArraySolver::checkTerms(const std::vector<Node>& terms)
 {
   // get all the active update terms that have not been reduced in the
   // current context by context-dependent simplification
-  for (const Node& t : termSet)
+  std::unordered_set<Node> processed;
+  for (const Node& t : terms)
   {
+    bool checkInv = false;
     Kind k = t.getKind();
     Trace("seq-array-debug") << "check term " << t << "..." << std::endl;
     if (k == STRING_UPDATE)
@@ -126,14 +128,24 @@ void ArraySolver::checkTerms(const std::set<Node>& termSet)
         continue;
       }
       // for update terms, also check the inverse inference
-      checkTerm(t, true);
+      checkInv = true;
     }
     else if (k != SEQ_NTH)
     {
       continue;
     }
+
+    if (d_bsolver.isCongruent(t))
+    {
+      continue;
+    }
+
     // check the normal inference
     checkTerm(t, false);
+    if (checkInv)
+    {
+      checkTerm(t, true);
+    }
   }
 }
 
