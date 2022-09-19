@@ -52,7 +52,7 @@ class TestTheoryWhiteEngine : public TestSmt
     d_context = d_slvEngine->getContext();
     d_user_context = d_slvEngine->getUserContext();
 
-    d_theoryEngine = d_slvEngine->getTheoryEngine();
+    d_theoryEngine = d_slvEngine->d_smtSolver->getTheoryEngine();
     for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
     {
       delete d_theoryEngine->d_theoryOut[id];
