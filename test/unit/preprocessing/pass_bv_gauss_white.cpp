@@ -1870,7 +1870,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2022,7 +2022,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2242,7 +2242,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -3007,7 +3007,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5a)
 
 TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   /* (bvadd
    *   (bvadd
    *     (bvadd

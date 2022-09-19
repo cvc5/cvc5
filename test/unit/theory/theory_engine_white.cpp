@@ -75,7 +75,7 @@ class TestTheoryWhiteEngine : public TestSmt
 
 TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
@@ -99,7 +99,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 
 TEST_F(TestTheoryWhiteEngine, rewriter_complex)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->realType());
   TypeNode u = d_nodeManager->mkSort("U");

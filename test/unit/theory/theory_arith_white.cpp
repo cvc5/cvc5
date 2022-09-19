@@ -53,7 +53,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
 
   void fakeTheoryEnginePreprocess(TNode input)
   {
-    Rewriter* rr = d_slvEngine->getRewriter();
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     Assert(input == rr->rewrite(input));
     d_slvEngine->getTheoryEngine()->preRegister(input);
   }
@@ -68,7 +68,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteArith, assert)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkConstReal(d_zero);
 
@@ -83,7 +83,7 @@ TEST_F(TestTheoryWhiteArith, assert)
 
 TEST_F(TestTheoryWhiteArith, int_normal_form)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar(*d_intType);
   Node xr = d_nodeManager->mkVar(*d_realType);
   Node c0 = d_nodeManager->mkConstInt(d_zero);
