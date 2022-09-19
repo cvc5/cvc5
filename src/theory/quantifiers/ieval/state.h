@@ -143,7 +143,6 @@ class State : protected EnvObj
   Node d_none;
   /** The some node */
   Node d_some;
-<<<<<<< HEAD
   /** The terms we have set up notifications for */
   NodeSet d_registeredTerms;
   /**
@@ -155,8 +154,6 @@ class State : protected EnvObj
   context::CDO<bool> d_initialized;
   /** total number of alive quantified formulas */
   context::CDO<size_t> d_numActiveQuant;
-=======
->>>>>>> 5c32979f2b0b41cc93fb22fe078fff573e511d68
 };
 
 }  // namespace ieval
