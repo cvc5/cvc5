@@ -44,12 +44,8 @@ TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
 
 TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 {
-  if (d_qs.hasTerm(n))
-  {
-    return d_qs.getRepresentative(n);
-  }
-  // otherwise, it is none
-  return s.getNone();
+  // if unknown, it is none
+  return d_qs.hasTerm(n) ? d_qs.getRepresentative(n) : s.getNone();
 }
 
 TNode TermEvaluatorEntailed::partialEvaluateChild(
