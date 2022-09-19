@@ -1614,7 +1614,7 @@ void SolverEngine::printInstantiations(std::ostream& out)
     qe->getSkolemTermVectors(sks);
     // get all instantiations
     std::map<Node, std::vector<std::vector<Node>>> insts;
-    getInstantiationTermVectors(insts);
+    qe->getInstantiationTermVectors(insts);
     for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
     {
       // convert to instantiation list
