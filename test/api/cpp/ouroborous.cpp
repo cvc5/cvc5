@@ -30,9 +30,9 @@
 #include <string>
 
 #include "api/cpp/cvc5.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 
 using namespace cvc5;
 using namespace cvc5::internal;

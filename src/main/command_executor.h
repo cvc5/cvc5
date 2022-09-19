@@ -24,7 +24,9 @@
 
 namespace cvc5 {
 
+namespace parser {
 class Command;
+}
 
 namespace main {
 
@@ -60,9 +62,9 @@ class CommandExecutor
    * sequence.  Eventually uses doCommandSingleton (which can be
    * overridden by a derived class).
    */
-  bool doCommand(cvc5::Command* cmd);
+  bool doCommand(cvc5::parser::Command* cmd);
 
-  bool doCommand(std::unique_ptr<cvc5::Command>& cmd)
+  bool doCommand(std::unique_ptr<cvc5::parser::Command>& cmd)
   {
     return doCommand(cmd.get());
   }
@@ -98,7 +100,7 @@ class CommandExecutor
 
 protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(cvc5::Command* cmd);
+ virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
 
 private:
   CommandExecutor();
@@ -107,7 +109,7 @@ private:
 
 bool solverInvoke(cvc5::Solver* solver,
                   parser::SymbolManager* sm,
-                  Command* cmd,
+                  parser::Command* cmd,
                   std::ostream& out);
 
 }  // namespace main

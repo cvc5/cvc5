@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Abdalrhman Mohamed, Aina Niemetz
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -10,30 +10,31 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Quotes a string if necessary for smt2.
+ * Black box testing of the cvc5_types file of the C++ API.
  */
 
-#include "cvc5_private.h"
+#include <algorithm>
 
-#ifndef CVC5__UTIL__SMT2_QUOTE_STRING_H
-#define CVC5__UTIL__SMT2_QUOTE_STRING_H
-
-#include <string>
-
-#include "cvc5_export.h"
+#include "api/cpp/cvc5.h"
+#include "base/output.h"
+#include "gtest/gtest.h"
 
 namespace cvc5::internal {
 
-/**
- * SMT-LIB 2 quoting for symbols
- */
-std::string quoteSymbol(const std::string& s);
+namespace test {
 
-/**
- * SMT-LIB 2 quoting for strings
- */
-std::string quoteString(const std::string& s) CVC5_EXPORT;
+class TestApiTypes : public ::testing::Test
+{
+};
 
+TEST_F(TestApiTypes, printEnum)
+{
+  std::stringstream ss;
+  ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
+  ss << cvc5::modes::BlockModelsMode::LITERALS;
+  ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
+  ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
+}
+
+}  // namespace test
 }  // namespace cvc5::internal
-
-#endif /* CVC5__UTIL__SMT2_QUOTE_STRING_H */

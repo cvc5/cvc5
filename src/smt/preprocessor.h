@@ -52,7 +52,7 @@ class PreprocessProofGenerator;
 class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(Env& env, AbstractValues& abs, SolverEngineStatistics& stats);
+  Preprocessor(Env& env, SolverEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
@@ -78,25 +78,13 @@ class Preprocessor : protected EnvObj
    */
   void cleanup();
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
-   *
-   * @param n The node to simplify
-   * @return The simplified term.
-   */
-  Node simplify(const Node& n);
-  /**
    * Apply top-level substitutions and eliminate abstract values in a term or
    * formula n.  No other simplification or normalization is done.
    *
-   * @param n The node to expand
-   * @return The expanded term.
+   * @param n The node to subsitute
+   * @return The term after substitution.
    */
   Node applySubstitutions(const Node& n);
-  /** Same as above, with a cache of previous results. */
-  Node applySubstitutions(const Node& n, std::unordered_map<Node, Node>& cache);
   /** Same as above, for a list of assertions, updating in place */
   void applySubstitutions(std::vector<Node>& ns);
   /**
@@ -109,8 +97,6 @@ class Preprocessor : protected EnvObj
   void enableProofs(PreprocessProofGenerator* pppg);
 
  private:
-  /** Reference to the abstract values utility */
-  AbstractValues& d_absValues;
   /**
    * A circuit propagator for non-clausal propositional deduction.
    */

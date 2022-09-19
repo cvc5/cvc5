@@ -10,10 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Congruence manager, the interface to the equality engine from the
+ * linear arithmetic solver
  */
 
 #include "theory/arith/linear/congruence_manager.h"
@@ -36,6 +34,23 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
+
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != AND)
+  {
+    return {an};
+  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
+}
 
 ArithCongruenceManager::ArithCongruenceManager(
     Env& env,
@@ -593,23 +608,6 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
 }
 
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
-
-std::vector<Node> andComponents(TNode an)
-{
-  auto nm = NodeManager::currentNM();
-  if (an == nm->mkConst(true))
-  {
-    return {};
-  }
-  else if (an.getKind() != Kind::AND)
-  {
-    return {an};
-  }
-  std::vector<Node> a{};
-  a.reserve(an.getNumChildren());
-  a.insert(a.end(), an.begin(), an.end());
-  return a;
-}
 
 }  // namespace arith
 }  // namespace theory
