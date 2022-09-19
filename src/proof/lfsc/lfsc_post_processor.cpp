@@ -92,9 +92,9 @@ bool LfscProofPostprocessCallback::update(Node res,
             // up in assertions. To ensure that those declarations are printed,
             // we need to process the definitions.
             // - We process the definitions here before the rest of the proof to
-            // keep the indicies of bound variables consistant between different
+            // keep the indices of bound variables consistant between different
             // queries that share the same definitions (e.g., incremental mode).
-            // Otherwise, bound variables will be assigned indicies according to
+            // Otherwise, bound variables will be assigned indices according to
             // the order in which they appear in the proof.
             d_tproc.convert(arg);
           }
