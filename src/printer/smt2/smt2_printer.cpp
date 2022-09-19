@@ -38,7 +38,6 @@
 #include "options/language.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
-#include "smt/command.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -1416,33 +1415,6 @@ void Smt2Printer::toStreamType(std::ostream& out, TypeNode tn) const
   tn.toStream(out);
 }
 
-template <class T>
-static bool tryToStream(std::ostream& out, const cvc5::Command* c);
-template <class T>
-static bool tryToStream(std::ostream& out, const cvc5::Command* c, Variant v);
-
-template <class T>
-static bool tryToStream(std::ostream& out,
-                        const cvc5::CommandStatus* s,
-                        Variant v);
-
-void Smt2Printer::toStream(std::ostream& out,
-                           const cvc5::CommandStatus* s) const
-{
-  if (tryToStream<cvc5::CommandSuccess>(out, s, d_variant)
-      || tryToStream<cvc5::CommandFailure>(out, s, d_variant)
-      || tryToStream<cvc5::CommandRecoverableFailure>(out, s, d_variant)
-      || tryToStream<cvc5::CommandUnsupported>(out, s, d_variant)
-      || tryToStream<cvc5::CommandInterrupted>(out, s, d_variant))
-  {
-    return;
-  }
-
-  out << "ERROR: don't know how to print a cvc5::CommandStatus of class: "
-      << typeid(*s).name() << endl;
-
-} /* Smt2Printer::toStream(cvc5::CommandStatus*) */
-
 void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "(" << std::endl;
@@ -1552,6 +1524,45 @@ void Smt2Printer::toStreamModelTerm(std::ostream& out,
     toStream(out, value, -1);
     out << ")" << endl;
   }
+}
+
+void Smt2Printer::toStreamCmdSuccess(std::ostream& out) const
+{
+  out << "success" << endl;
+}
+
+void Smt2Printer::toStreamCmdInterrupted(std::ostream& out) const
+{
+  out << "interrupted" << endl;
+}
+
+void Smt2Printer::toStreamCmdUnsupported(std::ostream& out) const
+{
+#ifdef CVC5_COMPETITION_MODE
+  // if in competition mode, lie and say we're ok
+  // (we have nothing to lose by saying success, and everything to lose
+  // if we say "unsupported")
+  out << "success" << endl;
+#else  /* CVC5_COMPETITION_MODE */
+  out << "unsupported" << endl;
+#endif /* CVC5_COMPETITION_MODE */
+}
+
+static void errorToStream(std::ostream& out, std::string message)
+{
+  out << "(error " << cvc5::internal::quoteString(message) << ')' << endl;
+}
+
+void Smt2Printer::toStreamCmdFailure(std::ostream& out,
+                                     const std::string& message) const
+{
+  errorToStream(out, message);
+}
+
+void Smt2Printer::toStreamCmdRecoverableFailure(
+    std::ostream& out, const std::string& message) const
+{
+  errorToStream(out, message);
 }
 
 void Smt2Printer::toStreamCmdAssert(std::ostream& out, Node n) const
@@ -2152,85 +2163,6 @@ void Smt2Printer::toStreamCmdGetQuantifierElimination(std::ostream& out,
     End of Handling SyGuS commands
    --------------------------------------------------------------------------
 */
-
-template <class T>
-static bool tryToStream(std::ostream& out, const cvc5::Command* c)
-{
-  if(typeid(*c) == typeid(T)) {
-    toStream(out, dynamic_cast<const T*>(c));
-    return true;
-  }
-  return false;
-}
-
-template <class T>
-static bool tryToStream(std::ostream& out, const cvc5::Command* c, Variant v)
-{
-  if(typeid(*c) == typeid(T)) {
-    toStream(out, dynamic_cast<const T*>(c), v);
-    return true;
-  }
-  return false;
-}
-
-static void toStream(std::ostream& out,
-                     const cvc5::CommandSuccess* s,
-                     Variant v)
-{
-  out << "success" << endl;
-}
-
-static void toStream(std::ostream& out,
-                     const cvc5::CommandInterrupted* s,
-                     Variant v)
-{
-  out << "interrupted" << endl;
-}
-
-static void toStream(std::ostream& out,
-                     const cvc5::CommandUnsupported* s,
-                     Variant v)
-{
-#ifdef CVC5_COMPETITION_MODE
-  // if in competition mode, lie and say we're ok
-  // (we have nothing to lose by saying success, and everything to lose
-  // if we say "unsupported")
-  out << "success" << endl;
-#else  /* CVC5_COMPETITION_MODE */
-  out << "unsupported" << endl;
-#endif /* CVC5_COMPETITION_MODE */
-}
-
-static void errorToStream(std::ostream& out, std::string message, Variant v)
-{
-  out << "(error " << cvc5::internal::quoteString(message) << ')' << endl;
-}
-
-static void toStream(std::ostream& out,
-                     const cvc5::CommandFailure* s,
-                     Variant v)
-{
-  errorToStream(out, s->getMessage(), v);
-}
-
-static void toStream(std::ostream& out,
-                     const cvc5::CommandRecoverableFailure* s,
-                     Variant v)
-{
-  errorToStream(out, s->getMessage(), v);
-}
-
-template <class T>
-static bool tryToStream(std::ostream& out,
-                        const cvc5::CommandStatus* s,
-                        Variant v)
-{
-  if(typeid(*s) == typeid(T)) {
-    toStream(out, dynamic_cast<const T*>(s), v);
-    return true;
-  }
-  return false;
-}
 
 }  // namespace smt2
 }  // namespace printer

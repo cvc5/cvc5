@@ -844,7 +844,7 @@ def generate_iodecls(modules):
     return concat_format(
         '''
 void setDefault{name_capitalized}({type} value);
-void apply{name_capitalized}(std::ios_base& ios, {type} value);
+void apply{name_capitalized}(std::ios_base& ios, {type} value) CVC5_EXPORT;
 {type} get{name_capitalized}(std::ios_base& ios);''',
         __get_printer_options(modules))
 

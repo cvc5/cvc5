@@ -92,7 +92,6 @@ SolverEngine::SolverEngine(const Options* optr)
       d_state(new SolverEngineState(*d_env.get())),
       d_ctxManager(nullptr),
       d_absValues(new AbstractValues),
-      d_asserts(new Assertions(*d_env.get(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
@@ -111,7 +110,7 @@ SolverEngine::SolverEngine(const Options* optr)
   // make statistics
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*d_env, *d_asserts, *d_stats));
+  d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state, *d_smtSolver));
   // make the SyGuS solver
@@ -193,7 +192,7 @@ void SolverEngine::finishInit()
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
     // enable it in the assertions pipeline
-    d_asserts->enableProofs(pppg);
+    d_smtSolver->getAssertions().enableProofs(pppg);
     // enabled proofs in the preprocessor
     d_smtSolver->getPreprocessor()->enableProofs(pppg);
     pnm = d_pfManager->getProofNodeManager();
@@ -271,7 +270,6 @@ SolverEngine::~SolverEngine()
     d_ucManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
-    d_asserts.reset(nullptr);
 
     d_abductSolver.reset(nullptr);
     d_interpolSolver.reset(nullptr);
@@ -550,7 +548,7 @@ void SolverEngine::defineFunction(Node func,
   // to the assertions object. It will be added as a top-level substitution
   // within this class, possibly multiple times if global is true.
   Node feq = func.eqNode(def);
-  d_asserts->addDefineFunDefinition(feq, global);
+  d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
 }
 
 void SolverEngine::defineFunctionsRec(
@@ -616,7 +614,7 @@ void SolverEngine::defineFunctionsRec(
     // directly, since we should call a private member method since we have
     // already ensuring this SolverEngine is initialized above.
     // add define recursive definition to the assertions
-    d_asserts->addDefineFunDefinition(lem, global);
+    d_smtSolver->getAssertions().addDefineFunDefinition(lem, global);
   }
 }
 
@@ -648,8 +646,7 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
   {
     std::stringstream ss;
     ss << "Cannot " << c
-       << " unless immediately preceded by SAT/NOT_ENTAILED or UNKNOWN "
-          "response.";
+       << " unless immediately preceded by SAT or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
 
@@ -807,12 +804,12 @@ std::vector<Node> SolverEngine::getUnsatAssumptions(void)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
-        "UNSAT/ENTAILED.");
+        "UNSAT.");
   }
   finishInit();
   UnsatCore core = getUnsatCoreInternal();
   std::vector<Node> res;
-  std::vector<Node>& assumps = d_asserts->getAssumptions();
+  std::vector<Node>& assumps = d_smtSolver->getAssertions().getAssumptions();
   for (const Node& e : assumps)
   {
     if (std::find(core.begin(), core.end(), e) != core.end())
@@ -840,7 +837,7 @@ void SolverEngine::assertFormulaInternal(const Node& formula)
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(formula);
 
-  d_asserts->assertFormula(n);
+  d_smtSolver->getAssertions().assertFormula(n);
 }
 
 /*
@@ -896,7 +893,7 @@ SynthResult SolverEngine::checkSynth(bool isNext)
         "Cannot check-synth-next unless immediately preceded by a successful "
         "call to check-synth(-next).");
   }
-  SynthResult r = d_sygusSolver->checkSynth(*d_asserts, isNext);
+  SynthResult r = d_sygusSolver->checkSynth(isNext);
   d_state->notifyCheckSynthResult(r);
   return r;
 }
@@ -968,7 +965,7 @@ Node SolverEngine::simplify(const Node& t)
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
-  d_smtSolver->processAssertions(*d_asserts);
+  d_smtSolver->processAssertions();
   // Substitute out any abstract values in node.
   Node tt = d_absValues->substituteAbstractValues(t);
   // apply substitutions
@@ -1180,8 +1177,8 @@ std::vector<Node> SolverEngine::getAssertionsInternal() const
 {
   Assert(d_state->isFullyInited());
   // ensure that global declarations are processed
-  d_asserts->refresh();
-  const CDList<Node>& al = d_asserts->getAssertionList();
+  d_smtSolver->getAssertions().refresh();
+  const CDList<Node>& al = d_smtSolver->getAssertions().getAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
   {
@@ -1290,14 +1287,15 @@ void SolverEngine::checkProof()
   Assert(pe != nullptr);
   if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
-    pe->checkProof(d_asserts->getAssertionList());
+    pe->checkProof(d_smtSolver->getAssertions().getAssertionList());
   }
   Assert(pe->getProof() != nullptr);
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
-    d_pfManager->connectProofToAssertions(pePfn, *d_asserts);
+    Assertions& as = d_smtSolver->getAssertions();
+    d_pfManager->connectProofToAssertions(pePfn, as);
   }
 }
 
@@ -1318,7 +1316,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+        "UNSAT response.");
   }
   // generate with new proofs
   PropEngine* pe = getPropEngine();
@@ -1334,10 +1332,11 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
 
   Assert(pepf != nullptr);
+  Assertions& as = d_smtSolver->getAssertions();
   std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, *d_asserts);
+      d_pfManager->connectProofToAssertions(pepf, as);
   std::vector<Node> core;
-  d_ucManager->getUnsatCore(pfn, *d_asserts, core);
+  d_ucManager->getUnsatCore(pfn, as, core);
   if (options().smt.minimalUnsatCores)
   {
     core = reduceUnsatCore(core);
@@ -1464,7 +1463,7 @@ void SolverEngine::checkUnsatCore()
 
 void SolverEngine::checkModel(bool hardFailure)
 {
-  const CDList<Node>& al = d_asserts->getAssertionList();
+  const CDList<Node>& al = d_smtSolver->getAssertions().getAssertionList();
   // we always enable the assertion list, so it is able to be checked
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
@@ -1523,7 +1522,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by "
-        "UNSAT/ENTAILED response.");
+        "UNSAT response.");
   }
   // determine if we should get the full proof from the SAT solver
   PropEngine* pe = getPropEngine();
@@ -1582,6 +1581,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
+    Assertions& as = d_smtSolver->getAssertions();
     ProofScopeMode scopeMode =
         connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
@@ -1590,7 +1590,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
-      p = d_pfManager->connectProofToAssertions(p, *d_asserts, scopeMode);
+      p = d_pfManager->connectProofToAssertions(p, as, scopeMode);
     }
   }
   // print all proofs
@@ -1847,7 +1847,8 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   TheoryEngine* te = getTheoryEngine();
   te->getDifficultyMap(dmap);
   // then ask proof manager to translate dmap in terms of the input
-  d_pfManager->translateDifficultyMap(dmap, *d_asserts);
+  Assertions& as = d_smtSolver->getAssertions();
+  d_pfManager->translateDifficultyMap(dmap, as);
 }
 
 void SolverEngine::push()
@@ -1855,7 +1856,7 @@ void SolverEngine::push()
   finishInit();
   d_ctxManager->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
-  d_smtSolver->processAssertions(*d_asserts);
+  d_smtSolver->processAssertions();
   d_ctxManager->userPush();
 }
 
@@ -1866,7 +1867,7 @@ void SolverEngine::pop()
   d_ctxManager->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
-  d_asserts->clearCurrent();
+  d_smtSolver->getAssertions().clearCurrent();
   // clear the learned literals from the preprocessor
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
@@ -1889,7 +1890,7 @@ void SolverEngine::resetAssertions()
 
   Trace("smt") << "SMT resetAssertions()" << endl;
 
-  d_asserts->clearCurrent();
+  d_smtSolver->getAssertions().clearCurrent();
   d_ctxManager->notifyResetAssertions();
   // push the state to maintain global context around everything
   d_ctxManager->setup();

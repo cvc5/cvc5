@@ -71,6 +71,7 @@ set(regress_0_tests
   regress0/arith/issue8905-pi-to-int.smt2
   regress0/arith/issue8872-msum-types.smt2
   regress0/arith/issue8872-2-msum-types.smt2
+  regress0/arith/issue9131-inverse-of-int.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -2050,6 +2051,7 @@ set(regress_1_tests
   regress1/issue8852-interpol-no-var.smt2
   regress1/issue8958-bv2nat-lazy.smt2
   regress1/issue9057-block-m-lit.smt2
+  regress1/issue9112-bv2nat-cg.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
