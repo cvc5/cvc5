@@ -148,7 +148,7 @@ InferInfo InferenceGenerator::mergeTwoBagMakeNodes(Node n1, Node n2)
 
   Assert(c.getConst<Rational>() > Rational(0)
          && d.getConst<Rational>() > Rational(0));
-  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE_EQ);
   inferInfo.d_premises.push_back(n1.eqNode(n2));
   inferInfo.d_conclusion = x.eqNode(c).andNode(y.eqNode(d));
   return inferInfo;

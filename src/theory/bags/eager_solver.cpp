@@ -85,7 +85,7 @@ void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
         Node equal = n1.eqNode(n2);
         Trace("bags-notify")
             << "EagerSolver::eqNotifyMerge:conflict " << equal << std::endl;
-        d_im->conflict(equal, InferenceId::SETS_EQ_CONFLICT);
+        d_im->conflict(equal, InferenceId::BAGS_EQ_CONFLICT);
       }
     }
   }
