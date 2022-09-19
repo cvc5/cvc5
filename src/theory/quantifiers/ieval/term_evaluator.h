@@ -114,22 +114,6 @@ class TermEvaluatorEntailed : public TermEvaluator
   bool d_checkRelDom;
 };
 
-#if 0
-class TermEvaluatorModel : public TermEvaluator
-{
-public:
-  TermEvaluatorModel(Env& env, TermDb* tdb);
-  /** Evaluate base */
-  Node evaluateBase(const State& s, Node n) override;
-  /** Partial evaluate child */
-  Node partialEvaluateChild(const State& s, Node n, TNode child, TNode val) override;
-  /** Evaluate term */
-  Node evaluate(const State& s, Node n, const std::vector<TNode>& childValues) override;
-private:
-  TermDb* d_tdb;
-};
-#endif
-
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory

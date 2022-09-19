@@ -471,11 +471,11 @@ void State::setQuantInactive(QuantInfo& qi)
   }
 }
 
-Node State::getNone() const { return d_none; }
+TNode State::getNone() const { return d_none; }
 
 bool State::isNone(TNode n) const { return n == d_none; }
 
-Node State::getSome() const { return d_some; }
+TNode State::getSome() const { return d_some; }
 
 bool State::isSome(TNode n) const { return n == d_some; }
 

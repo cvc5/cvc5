@@ -44,12 +44,8 @@ TermEvaluatorEntailed::TermEvaluatorEntailed(Env& env,
 
 TNode TermEvaluatorEntailed::evaluateBase(const State& s, TNode n)
 {
-  if (d_qs.hasTerm(n))
-  {
-    return d_qs.getRepresentative(n);
-  }
-  // otherwise, it is none
-  return s.getNone();
+  // if unknown, it is none
+  return d_qs.hasTerm(n) ? d_qs.getRepresentative(n) : s.getNone();
 }
 
 TNode TermEvaluatorEntailed::partialEvaluateChild(
@@ -190,7 +186,7 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
       }
     }
     // if any child is some, we are some as well
-    ret = hasSome ? s.getSome() : nm->mkConst(k == AND);
+    ret = hasSome ? Node(s.getSome()) : nm->mkConst(k == AND);
     Trace("ieval-state-debug") << "...exhausted AND/OR" << std::endl;
   }
   else if (k == EQUAL)
