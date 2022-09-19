@@ -45,14 +45,14 @@ class CnfStream;
  * proof of a step, we reuse the same ASSUMPTION step for repeated
  * premises. This can be done because in the SAT proof there are no SCOPE steps,
  * so there is no danger of mixing the scopes of assumptions.
-*/
+ */
 class SatBufferedProofGenerator : public BufferedProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   SatBufferedProofGenerator(Env& env, context::Context* c)
-    : BufferedProofGenerator(env, c), d_assumptionsToPfNodes(c)
+      : BufferedProofGenerator(env, c), d_assumptionsToPfNodes(c)
   {
   }
   ~SatBufferedProofGenerator() {}
@@ -68,7 +68,7 @@ class SatBufferedProofGenerator : public BufferedProofGenerator
    * The resulting proof node has the invariant that its children will be
    * assumptions and the same ASSUMPTION proof nodes are used for the same
    * nodes.
- */
+   */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** identify */
   std::string identify() const override { return "SatBufferedProofGenerator"; }
