@@ -57,7 +57,7 @@ namespace expr {
 /**
  * This is a NodeValue.
  */
-class NodeValue
+class CVC5_EXPORT NodeValue
 {
   template <bool>
   friend class cvc5::internal::NodeTemplate;
