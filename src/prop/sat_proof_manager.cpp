@@ -24,45 +24,45 @@
 namespace cvc5::internal {
 namespace prop {
 
-void SatBufferedProofGenerator::addStep(Node fact,
-                                     ProofStep ps)
+void SatBufferedProofGenerator::addStep(Node fact, ProofStep ps)
 {
-  // no need for symmetry handling
-  CDProof cdp(d_env, nullptr, "CDProof", false);
-  // Add or create children proof nodes. If child has already been seen,
-  // retrieve its saved assumption proof node, otherwise create via cdp.
-  for (const Node& n: ps.d_children)
-  {
-    auto it = d_assumptionsToPfNodes.find(n);
-    if (it != d_assumptionsToPfNodes.end())
-    {
-      cdp.addProof(it->second);
-      continue;
-    }
-      // this call both creates assumption proof node and saves it in cdp. We
-      // use the resulting proof node to store in our cache.
-      std::shared_ptr<ProofNode> pf = cdp.getProofFor(n);
-      d_assumptionsToPfNodes.insert(n, pf);
-  }
-  // add step requiring that we have proof steps already for the premises
-  cdp.addStep(fact, ps, true);
-  d_facts.insert(fact, cdp.getProofFor(fact));
+  Trace("test") << "??\n";
+  Assert(d_facts.find(fact) == d_facts.end());
+  d_facts.insert(fact, std::make_shared<ProofStep>(ps));
 }
 
 std::shared_ptr<ProofNode> SatBufferedProofGenerator::getProofFor(Node fact)
 {
-  NodeProofNodeMap::iterator it = d_facts.find(fact);
+  NodeProofStepMap::iterator it = d_facts.find(fact);
+  Assert(it != d_facts.end());
   if (it == d_facts.end())
   {
-    Assert(false);
     return nullptr;
   }
-  return it->second;
-}
-
-bool SatBufferedProofGenerator::hasProofFor(Node f)
-{
-  return d_facts.find(f) != d_facts.end();
+  // no need for symmetry handling
+  CDProof cdp(d_env, nullptr, "CDProof", false);
+  // Add or create assumption proof nodes for children. If child has already
+  // been seen, retrieve its saved assumption proof node, otherwise create via
+  // cdp.
+  for (const Node& n : it->second->d_children)
+  {
+    NodeProofNodeMap::iterator itChild = d_assumptionsToPfNodes.find(n);
+    if (itChild != d_assumptionsToPfNodes.end())
+    {
+      cdp.addProof(itChild->second);
+      continue;
+    }
+    // this call both creates an assumption proof node and saves it in cdp. We
+    // use the resulting proof node to store in our cache.
+    std::shared_ptr<ProofNode> pf = cdp.getProofFor(n);
+    d_assumptionsToPfNodes.insert(n, pf);
+  }
+  // add step to the proof while requiring that we already have proof steps for
+  // the premises. This must be guaranteed by the above loop and is what
+  // prevents the duplication of assumption proof nodes (which will be
+  // automatically created by the command below when they don't yet exist).
+  cdp.addStep(fact, *(*it).second, true);
+  return cdp.getProofFor(fact);
 }
 
 SatProofManager::SatProofManager(Env& env,

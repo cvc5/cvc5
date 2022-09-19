@@ -41,39 +41,39 @@ namespace prop {
 class CnfStream;
 
 /**
- * Works exactly as the regular buffered proof generator but when adding a step,
- * we may reuse the same ASSUMPTION step for repeated premises. This can be done
- * because in the SAT proof there are no SCOPE steps, so there is no danger of
- * mixing the scopes of assumptions.
+ * Works exactly as the regular buffered proof generator but when retrieving the
+ * proof of a step, we reuse the same ASSUMPTION step for repeated
+ * premises. This can be done because in the SAT proof there are no SCOPE steps,
+ * so there is no danger of mixing the scopes of assumptions.
 */
-class SatBufferedProofGenerator : protected EnvObj, public ProofGenerator
+class SatBufferedProofGenerator : public BufferedProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
   SatBufferedProofGenerator(Env& env, context::Context* c)
-      : EnvObj(env), ProofGenerator(), d_facts(c), d_assumptionsToPfNodes(c)
+    : BufferedProofGenerator(env, c), d_assumptionsToPfNodes(c)
   {
   }
   ~SatBufferedProofGenerator() {}
 
   /** add step
    *
-   * The step yields a proof node, which is saved in d_facts mappaed from
-   * fact. The children of the proof step will be in assumptions in the proof
-   * node, and the same ASSUMPTION proof nodes are used for every added step.
+   * Here we assume that facts are never added repeatedly, so we do not handle
+   * overwriting policies.
    */
   void addStep(Node fact, ProofStep ps);
-  /** Get proof for.. */
+  /** Get proof for fact f.
+   *
+   * The resulting proof node has the invariant that its children will be
+   * assumptions and the same ASSUMPTION proof nodes are used for the same
+   * nodes.
+ */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Whether a step has been registered for f. */
-  bool hasProofFor(Node f) override;
   /** identify */
   std::string identify() const override { return "SatBufferedProofGenerator"; }
 
  private:
-  /** maps expected to ProofNode */
-  NodeProofNodeMap d_facts;
   /** Cache of ASSUMPTION proof nodes for nodes used as assumptions in proof
    * steps */
   NodeProofNodeMap d_assumptionsToPfNodes;
@@ -607,6 +607,7 @@ class SatProofManager : protected EnvObj
 
   /** The proof generator for resolution chains */
   SatBufferedProofGenerator d_resChainPg;
+  // BufferedProofGenerator d_resChainPg;
 
   /** The true/false nodes */
   Node d_true;
