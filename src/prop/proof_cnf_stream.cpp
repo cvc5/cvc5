@@ -31,7 +31,12 @@ ProofCnfStream::ProofCnfStream(Env& env,
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
       d_satPM(satPM),
-      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
+      // Since the ProofCnfStream performs no equality reasoning, there is no
+      // need to automatically add symmetry steps. Note that it is *safer* to
+      // forbid this, since adding symmetry steps when proof nodes are being
+      // updated may inadvertently generate cyclic proofs.
+      d_proof(
+          env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_blocked(userContext()),
       d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {

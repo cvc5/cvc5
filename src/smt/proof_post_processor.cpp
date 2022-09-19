@@ -671,18 +671,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
     Node chainConclusion = pnm->getChecker()->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
-    if (TraceIsOn("smt-proof-pp-debug"))
-    {
-      if (d_resCounter.find(args[0]) == d_resCounter.end())
-      {
-        d_resCounter[args[0]] = 0;
-      }
-      Trace("smt-proof-pp-debug")
-          << "Original conclusion: " << args[0] << " [occur "
-          << ++d_resCounter[args[0]] << "]\n";
-      Trace("smt-proof-pp-debug")
-          << "chainRes conclusion: " << chainConclusion << "\n";
-    }
+    Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
+    Trace("smt-proof-pp-debug")
+        << "chainRes conclusion: " << chainConclusion << "\n";
     // There are n cases:
     // - if the conclusion is the same, just replace
     // - if they have the same literals but in different quantity, add a

@@ -158,8 +158,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
                           std::vector<Node>& tchildren,
                           bool isSymm = false);
 
-  std::map<Node, unsigned> d_resCounter;
-
   /**
    * When given children and args lead to different sets of literals in a
    * conclusion depending on whether macro resolution or chain resolution is
