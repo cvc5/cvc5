@@ -731,17 +731,10 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
-  theory::TheoryId tid = d_env.theoryOf(atom);
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
-  {
-    stringstream ss;
-    ss << "The logic was specified as " << logicInfo().getLogicString()
-       << ", which doesn't include " << tid
-       << ", but got a preprocessing-time fact for that theory." << endl
-       << "The fact:" << endl
-       << literal;
-    throw LogicException(ss.str());
-  }
+  // This should be implied by the check during ppRewrite, in particular
+  // literal should have been passed to ppRewrite.
+  Assert(isTheoryEnabled(d_env.theoryOf(atom))
+         || d_env.theoryOf(atom) == THEORY_SAT_SOLVER);
 
   Theory::PPAssertStatus solveStatus =
       theoryOf(atom)->ppAssert(tliteral, substitutionOut);
@@ -754,6 +747,20 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
 {
   Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(term);
+  // We check whether the theory is enabled here (instead of during solve),
+  // since there are corner cases where facts may involve terms that belong
+  // to other theories, e.g. equalities between variables belong to UF when
+  // theoryof-mode is `term`.
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
+    stringstream ss;
+    ss << "The logic was specified as " << logicInfo().getLogicString()
+       << ", which doesn't include " << tid
+       << ", but got a preprocessing-time term for that theory." << std::endl
+       << "The term:" << std::endl
+       << term;
+    throw LogicException(ss.str());
+  }
   TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems);
   // should never introduce a skolem to eliminate an equality
   Assert(lems.empty() || term.getKind() != kind::EQUAL);

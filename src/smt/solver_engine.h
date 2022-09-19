@@ -661,11 +661,16 @@ class CVC5_EXPORT SolverEngine
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
   /**
-   * As above but only the instantiations that were relevant for the
-   * refutation.
+   * Adds the skolemizations and instantiations that were relevant
+   * for the refutation.
+   * @param insts The relevant instantiations
+   * @param sks The relevant skolemizations
+   * @param getDebugInfo If true, we add identifiers on instantiations that
+   * indicate their source (the strategy that invoked them)
    */
-  void getRelevantInstantiationTermVectors(
-      std::map<Node, InstantiationList>& insts, bool getDebugInfo = false);
+  void getRelevantQuantTermVectors(std::map<Node, InstantiationList>& insts,
+                                   std::map<Node, std::vector<Node>>& sks,
+                                   bool getDebugInfo = false);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
@@ -1016,8 +1021,6 @@ class CVC5_EXPORT SolverEngine
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
-  /** Assertions manager */
-  std::unique_ptr<smt::Assertions> d_asserts;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
 
