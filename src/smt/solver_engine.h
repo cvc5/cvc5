@@ -74,6 +74,7 @@ class ResourceOutListener;
 class CheckModels;
 /** Subsolvers */
 class SmtSolver;
+class SmtDriver;
 class SygusSolver;
 class AbductionSolver;
 class InterpolationSolver;
@@ -220,10 +221,10 @@ class CVC5_EXPORT SolverEngine
   void blockModel(modes::BlockModelsMode mode);
 
   /**
-   * Block the current model values of (at least) the values in exprs.
-   * Can be called only if immediately preceded by a SAT or NOT_ENTAILED query.
-   * Only permitted if produce-models is on, and the block-models option is set
-   * to a mode other than "none".
+   * Block the current model values of (at least) the values in exprs. Can be
+   * called only if immediately preceded by a SAT query. Only permitted if
+   * produce-models is on, and the block-models option is set to a mode other
+   * than "none".
    *
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
@@ -474,8 +475,8 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
-   * or NOT_ENTAILED query).  Only permitted if the SolverEngine is set to
-   * operate interactively and produce-models is on.
+   * query). Only permitted if the SolverEngine is set to operate interactively
+   * and produce-models is on.
    *
    * @throw ModalException, TypeCheckingException, LogicException
    */
@@ -669,22 +670,23 @@ class CVC5_EXPORT SolverEngine
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This
    * list is minimized if proofs are enabled, and this call is immediately
-   * preceded by an UNSAT or ENTAILED query
+   * preceded by an UNSAT query.
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
-   * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
-   * ENTAILED query).  Only permitted if cvc5 was built with unsat-core support
-   * and produce-unsat-cores is on.
+   * Get an unsatisfiable core (only if immediately preceded by an UNSAT
+   * query). Only permitted if cvc5 was built with unsat-core support and
+   * produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
 
   /**
-   * Get a refutation proof (only if immediately preceded by an UNSAT or
-   * ENTAILED query). Only permitted if cvc5 was built with proof support and
-   * the proof option is on. */
+   * Get a refutation proof (only if immediately preceded by an UNSAT query).
+   * Only permitted if cvc5 was built with proof support and the proof option
+   * is on.
+   */
   std::string getProof(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   /**
@@ -866,9 +868,8 @@ class CVC5_EXPORT SolverEngine
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
-   * by an UNSAT or ENTAILED query). Only permitted if cvc5 was built with
-   * unsat-core support and produce-unsat-cores is on. Does not dump the
-   * command.
+   * by an UNSAT query). Only permitted if cvc5 was built with unsat-core
+   * support and produce-unsat-cores is on. Does not dump the command.
    */
   UnsatCore getUnsatCoreInternal();
 
@@ -934,14 +935,6 @@ class CVC5_EXPORT SolverEngine
    * this method was called.
    */
   theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
-
-  /**
-   * Deep restart, assumes that we just ran a satisfiability check.
-   * Returns true if we wish to reconstruct the SMT solver and try again. If
-   * so, the SMT solver is deep restarted, and we are prepared to make another
-   * satisfiability check.
-   */
-  bool deepRestart();
 
   /**
    * Internally handle the setting of a logic.  This function should always
@@ -1023,13 +1016,13 @@ class CVC5_EXPORT SolverEngine
 
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
-  /** Assertions manager */
-  std::unique_ptr<smt::Assertions> d_asserts;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
 
   /** The SMT solver */
   std::unique_ptr<smt::SmtSolver> d_smtSolver;
+  /** The SMT solver driver */
+  std::unique_ptr<smt::SmtDriver> d_smtDriver;
 
   /**
    * The utility used for checking models

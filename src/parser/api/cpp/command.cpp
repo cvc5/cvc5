@@ -13,7 +13,7 @@
  * Implementation of command objects.
  */
 
-#include "smt/command.h"
+#include "parser/api/cpp/command.h"
 
 #include <exception>
 #include <iostream>
@@ -42,7 +42,7 @@
 using namespace std;
 using namespace cvc5::parser;
 
-namespace cvc5 {
+namespace cvc5::parser {
 
 using namespace internal;
 
@@ -180,11 +180,6 @@ std::string Command::toString() const
   return ss.str();
 }
 
-void CommandStatus::toStream(std::ostream& out) const
-{
-  Printer::getPrinter(out)->toStream(out, this);
-}
-
 void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
   if (!ok()
@@ -193,6 +188,31 @@ void Command::printResult(cvc5::Solver* solver, std::ostream& out) const
   {
     out << *d_commandStatus;
   }
+}
+
+void CommandSuccess::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdSuccess(out);
+}
+
+void CommandInterrupted::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdInterrupted(out);
+}
+
+void CommandUnsupported::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdUnsupported(out);
+}
+
+void CommandFailure::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdFailure(out, d_message);
+}
+
+void CommandRecoverableFailure::toStream(std::ostream& out) const
+{
+  Printer::getPrinter(out)->toStreamCmdRecoverableFailure(out, d_message);
 }
 
 void Command::resetSolver(cvc5::Solver* solver)
@@ -1228,15 +1248,8 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    std::vector<cvc5::Term> result = solver->getValue(d_terms);
-    Assert(result.size() == d_terms.size());
-    for (int i = 0, size = d_terms.size(); i < size; i++)
-    {
-      cvc5::Term request = d_terms[i];
-      cvc5::Term value = result[i];
-      result[i] = solver->mkTerm(cvc5::SEXPR, {request, value});
-    }
-    d_result = solver->mkTerm(cvc5::SEXPR, {result});
+    d_result = solver->getValue(d_terms);
+    Assert(d_result.size() == d_terms.size());
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1249,12 +1262,30 @@ void GetValueCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   }
 }
 
-cvc5::Term GetValueCommand::getResult() const { return d_result; }
+const std::vector<cvc5::Term>& GetValueCommand::getResult() const
+{
+  return d_result;
+}
 void GetValueCommand::printResult(cvc5::Solver* solver, std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
-  out << d_result << endl;
+  Assert(d_result.size() == d_terms.size());
+  // we print each of the values separately since we do not want
+  // to letify across key/value pairs in this list.
+  out << "(";
+  bool firstTime = true;
+  for (size_t i = 0, rsize = d_result.size(); i < rsize; i++)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << "(" << d_terms[i] << " " << d_result[i] << ")";
+  }
+  out << ")" << std::endl;
 }
 
 std::string GetValueCommand::getCommandName() const { return "get-value"; }
@@ -1516,8 +1547,7 @@ void GetInstantiationsCommand::toStream(std::ostream& out) const
 /* class GetInterpolCommand                                                   */
 /* -------------------------------------------------------------------------- */
 
-GetInterpolantCommand::GetInterpolantCommand(const std::string& name,
-                                             Term conj)
+GetInterpolantCommand::GetInterpolantCommand(const std::string& name, Term conj)
     : d_name(name), d_conj(conj), d_sygus_grammar(nullptr)
 {
 }
@@ -1563,8 +1593,6 @@ void GetInterpolantCommand::invoke(Solver* solver, SymbolManager* sm)
 void GetInterpolantCommand::printResult(cvc5::Solver* solver,
                                         std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1613,8 +1641,6 @@ void GetInterpolantNextCommand::invoke(Solver* solver, SymbolManager* sm)
 void GetInterpolantNextCommand::printResult(cvc5::Solver* solver,
                                             std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1687,8 +1713,6 @@ void GetAbductCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetAbductCommand::printResult(cvc5::Solver* solver,
                                    std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -1734,8 +1758,6 @@ void GetAbductNextCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 void GetAbductNextCommand::printResult(cvc5::Solver* solver,
                                        std::ostream& out) const
 {
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   if (!d_result.isNull())
   {
     out << "(define-fun " << d_name << " () Bool " << d_result << ")"
@@ -2312,4 +2334,4 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out) const
       out, sortVectorToTypeNodes(d_datatypes));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::parser

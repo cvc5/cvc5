@@ -133,6 +133,8 @@ enum BlockModelsMode
   /** Block models based on the concrete model values for the free variables. */
   VALUES
 };
+/** Writes a block models mode to a stream. */
+std::ostream& operator<<(std::ostream& out, BlockModelsMode bmode);
 
 /**
  * Types of learned literals.
