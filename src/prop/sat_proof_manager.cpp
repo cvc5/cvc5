@@ -26,7 +26,6 @@ namespace prop {
 
 void SatBufferedProofGenerator::addStep(Node fact, ProofStep ps)
 {
-  Trace("test") << "??\n";
   Assert(d_facts.find(fact) == d_facts.end());
   d_facts.insert(fact, std::make_shared<ProofStep>(ps));
 }

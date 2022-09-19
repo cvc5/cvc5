@@ -52,7 +52,7 @@ class BufferedProofGenerator : protected EnvObj, public ProofGenerator
   std::string identify() const override { return "BufferedProofGenerator"; }
 
  protected:
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofStep>> NodeProofStepMap;
+  using NodeProofStepMap = context::CDHashMap<Node, std::shared_ptr<ProofStep>>;
 
   /** maps expected to ProofStep */
   NodeProofStepMap d_facts;

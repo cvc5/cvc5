@@ -48,7 +48,7 @@ class CnfStream;
  */
 class SatBufferedProofGenerator : public BufferedProofGenerator
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
+  using NodeProofNodeMap = context::CDHashMap<Node, std::shared_ptr<ProofNode>>;
 
  public:
   SatBufferedProofGenerator(Env& env, context::Context* c)
