@@ -31,6 +31,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
+class InferenceManager;
+
 /**
  * Eager solver, which is responsible for tracking of eager information and
  * reporting conflicts to the solver state.
@@ -38,7 +40,10 @@ namespace bags {
 class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(Env& env, SolverState& state, InferenceManager& im, TermRegistry& treg);
+  EagerSolver(Env& env,
+              SolverState& state,
+              InferenceManager* im,
+              TermRegistry& treg);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -55,9 +60,9 @@ class EagerSolver : protected EnvObj
   bool checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
   /** Reference to the solver state */
   SolverState& d_state;
-  /** Reference to the term registry */
-  TermRegistry& d_treg;
-  /** The inference generator object*/
+  /** Reference to inference manager */
+  InferenceManager* d_im;
+  /** Reference to inference generator*/
   InferenceGenerator d_ig;
 };
 

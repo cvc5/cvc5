@@ -154,18 +154,6 @@ InferInfo InferenceGenerator::mergeTwoBagMakeNodes(Node n1, Node n2)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::mergeEmptyWithBagMake(Node n1, Node n2)
-{
-  Assert(n1.getKind() == BAG_EMPTY && n2.getKind() == BAG_MAKE);
-  Assert(n1.getType() == n2.getType());
-  Node c = n2[1];
-
-  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
-  inferInfo.d_premises.push_back(n1.eqNode(n2));
-  inferInfo.d_conclusion = d_nm->mkNode(LEQ, c, d_zero);
-  return inferInfo;
-}
-
 /**
  * A bound variable corresponding to the universally quantified integer
  * variable used to range over the distinct elements in a bag, used

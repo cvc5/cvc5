@@ -95,15 +95,6 @@ class InferenceGenerator
    *   (and (= x y) (= c d)))
    */
   InferInfo mergeTwoBagMakeNodes(Node n1, Node n2);
-  /**
-   * @param empty is an empty bag of type (Bag E)
-   * @param bagMake is (bag x c) of type (Bag E).
-   * @return an inference that represents the following:
-   * (=>
-   *   (= (as empty (Bag E)) (bag x c))
-   *   (<= c 0))
-   */
-  InferInfo mergeEmptyWithBagMake(Node empty, Node bagMake);
 
   /**
    * @param equality is (= A B) where A, B are bags of type (Bag E), and

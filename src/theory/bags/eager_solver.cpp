@@ -16,6 +16,7 @@
 #include "theory/bags/eager_solver.h"
 
 #include "options/bags_options.h"
+#include "theory/bags/inference_manager.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "util/rational.h"
 
@@ -27,9 +28,9 @@ namespace bags {
 
 EagerSolver::EagerSolver(Env& env,
                          SolverState& s,
-                         InferenceManager& im,
+                         InferenceManager* im,
                          TermRegistry& treg)
-    : EnvObj(env), d_state(s), d_treg(treg), d_ig(&s, &im)
+    : EnvObj(env), d_state(s), d_im(im), d_ig(&s, im)
 {
 }
 
@@ -77,8 +78,15 @@ void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
     {
       Node bagMake = n1.getKind() == BAG_MAKE ? n1 : n2;
       Node empty = n1.getKind() == BAG_EMPTY ? n1 : n2;
-      InferInfo info = d_ig.mergeEmptyWithBagMake(empty, bagMake);
-      info.assertInternalFact();
+      if (bagMake[1].isConst() && bagMake[1].getConst<Rational>() > Rational(0))
+      {
+        // return a conflict when (as bag.empty (Bag E)) is merged with
+        // (bag x c) where c > 0 is a constant
+        Node equal = n1.eqNode(n2);
+        Trace("bags-notify")
+            << "EagerSolver::eqNotifyMerge:conflict " << equal << std::endl;
+        d_im->conflict(equal, InferenceId::SETS_EQ_CONFLICT);
+      }
     }
   }
 }
