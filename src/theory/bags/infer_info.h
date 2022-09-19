@@ -44,6 +44,8 @@ class InferInfo : public TheoryInference
   ~InferInfo() {}
   /** Process lemma */
   TrustNode processLemma(LemmaProperty& p) override;
+  /** assert internal fact */
+  bool assertInternalFact();
   /** Pointer to the class used for processing this info */
   InferenceManagerBuffered* d_im;
   /** The conclusion */

@@ -42,7 +42,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env, d_state, d_im),
       d_eagerSolver(options().bags.bagEagerSolver
-                        ? new EagerSolver(env, d_state, d_termReg)
+                        ? new EagerSolver(env, d_state, d_im, d_termReg)
                         : nullptr),
       d_solver(env, d_state, d_im, d_termReg),
       d_cardSolver(env, d_state, d_im),

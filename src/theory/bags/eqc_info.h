@@ -36,32 +36,12 @@ namespace bags {
 class EqcInfo
 {
  public:
-  EqcInfo(context::Context* c, Node eqc);
+  EqcInfo(context::Context* c);
   ~EqcInfo() {}
-  /** add prefix constant
-   *
-   * This informs this equivalence class info that a term t in its
-   * equivalence class has a constant lower bound (if isLowerBound is true) or
-   * an upper bound (if isLowerBound is false).
-   * The constant c (if non-null) is the value of that constant,
-   * if it has been computed already.
-   *
-   * If this method returns a non-null node ret, then ret is a conjunction
-   * corresponding to a conflict that holds in the current context.
-   * TODO: why do we need the parameter t here.
-   */
-  Node addBoundConst(Node t, Node c, bool isLowerBound);
-
-  /** the bounded term */
-  // TODO: delete this field if it is not absolutely necessary
-  Node d_term;
   /**
-   * If this is an integer equivalence class, this is the lower bound
-   * of the value of this equivalence class.
+   * an equivalent class
    */
-  context::CDO<Node> d_firstBound;
-  /** same as above, for integer upper bounds. */
-  context::CDO<Node> d_secondBound;
+  context::CDO<Node> d_representative;
 };
 
 /**

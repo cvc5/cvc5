@@ -160,7 +160,7 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
   }
   if (doMake)
   {
-    EqcInfo* ei = new EqcInfo(d_env.getContext(), eqc);
+    EqcInfo* ei = new EqcInfo(d_env.getContext());
     d_eqcInfo[eqc] = ei;
     return ei;
   }

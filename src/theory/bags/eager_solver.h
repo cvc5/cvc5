@@ -23,9 +23,9 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/bags/eqc_info.h"
+#include "theory/bags/inference_generator.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
-#include "theory/strings/arith_entail.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -38,7 +38,7 @@ namespace bags {
 class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(Env& env, SolverState& state, TermRegistry& treg);
+  EagerSolver(Env& env, SolverState& state, InferenceManager& im, TermRegistry& treg);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -53,17 +53,12 @@ class EagerSolver : protected EnvObj
    * return true if we are in conflict.
    */
   bool checkForMergeConflict(Node a, Node b, EqcInfo* ea, EqcInfo* eb);
-  /** add arithmetic bound, return true if in conflict */
-  bool addArithmeticBound(EqcInfo* e, Node t, bool isLower);
-  void propagateBounds(Node n);
-  /** get bound for length term or regular expression membership */
-  Node getBoundForLength(Node t, bool isLower) const;
   /** Reference to the solver state */
   SolverState& d_state;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** Arithmetic entailment */
-  strings::ArithEntail d_aent;
+  /** The inference generator object*/
+  InferenceGenerator d_ig;
 };
 
 }  // namespace bags

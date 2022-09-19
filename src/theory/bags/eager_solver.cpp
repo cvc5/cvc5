@@ -25,8 +25,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
-    : EnvObj(env), d_state(state), d_treg(treg), d_aent(env.getRewriter())
+EagerSolver::EagerSolver(Env& env,
+                         SolverState& s,
+                         InferenceManager& im,
+                         TermRegistry& treg)
+    : EnvObj(env), d_state(s), d_treg(treg), d_ig(&s, &im)
 {
 }
 
@@ -34,47 +37,10 @@ EagerSolver::~EagerSolver() {}
 
 void EagerSolver::eqNotifyNewClass(TNode t)
 {
-  Kind k = t.getKind();
-  NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConstInt(Rational(0));
-  if (t.getType().isInteger())
+  if (t.getKind() == BAG_MAKE || t.getKind() == BAG_EMPTY)
   {
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(t, true);
-    if (t.isConst())
-    {
-      // the constant is its bounds
-      ei->addBoundConst(t, t, true);
-      ei->addBoundConst(t, t, false);
-    }
-    if (k == BAG_COUNT)
-    {
-      // initial lower bound is zero, and upper bound is null (i.e., infinity)
-      ei->addBoundConst(t, nm->mkConstInt(Rational(0)), true);
-      Node bag = t[1];
-      Kind bagKind = bag.getKind();
-      switch (bagKind)
-      {
-        case BAG_EMPTY:
-        {  // the constant is its bounds
-          ei->addBoundConst(t, zero, true);
-          ei->addBoundConst(t, zero, false);
-          break;
-        }
-        case BAG_MAKE:
-        {
-          if (bag[1].isConst())
-          {
-            // (bag x c) implies c is both the lower and the upper bound
-            ei->addBoundConst(t, bag[1], true);
-            ei->addBoundConst(t, bag[1], false);
-          }
-          break;
-        }
-
-        default: break;
-      }
-    }
-    Trace("bags-notify") << *ei << std::endl;
+    EqcInfo* e = d_state.getOrMakeEqcInfo(t, true);
+    e->d_representative = t;
   }
 }
 
@@ -82,54 +48,37 @@ void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
 {
   Assert(e1 != nullptr);
   Assert(e2 != nullptr);
-  if (t1.getType().isInteger())
+  if (!d_state.isInConflict() && t1.getType().isBag())
   {
-    e1->addBoundConst(t1, e2->d_firstBound, true);
-    e1->addBoundConst(t1, e2->d_secondBound, false);
-    e2->addBoundConst(t2, e1->d_firstBound, true);
-    e2->addBoundConst(t2, e1->d_secondBound, false);
-    propagateBounds(t1);
-    propagateBounds(t2);
-
-    Trace("bags-notify") << *e1 << std::endl;
-    Trace("bags-notify") << *e2 << std::endl;
-  }
-}
-
-void EagerSolver::propagateBounds(Node t1)
-{
-  if (t1.getKind() == BAG_COUNT)
-  {
-    Node bag = t1[1];
-    Node bagRep = d_state.getRepresentative(bag);
-    eq::EqClassIterator it =
-        eq::EqClassIterator(bagRep, d_state.getEqualityEngine());
-    while (!it.isFinished())
+    Trace("bags-notify") << "EagerSolver::eqNotifyMerge::e1: " << *e1
+                         << std::endl;
+    Trace("bags-notify") << "EagerSolver::eqNotifyMerge::e2: " << *e2
+                         << std::endl;
+    Node n1 = e1->d_representative;
+    Node n2 = e2->d_representative;
+    if (n1.isNull() || n2.isNull())
     {
-      Node n = (*it);
-      Kind k = n.getKind();
-      switch (k)
+      return;
+    }
+    if (n1.getKind() == BAG_MAKE && n2.getKind() == BAG_MAKE)
+    {
+      if (!(n1[1].isConst() && n2[1].isConst()
+            && n1[1].getConst<Rational>() > Rational(0)
+            && n2[1].getConst<Rational>() > Rational(0)))
       {
-        case kind::BAG_EMPTY: break;
-        case kind::BAG_MAKE: break;
-        case kind::BAG_UNION_DISJOINT:
-        {
-          Trace("bags-notify") << "UNION_DISJOINT: " << n << std::endl;
-          break;
-        }
-        case kind::BAG_UNION_MAX: break;
-        case kind::BAG_INTER_MIN: break;
-        case kind::BAG_DIFFERENCE_SUBTRACT: break;
-        case kind::BAG_DIFFERENCE_REMOVE: break;
-        case kind::BAG_DUPLICATE_REMOVAL: break;
-        case kind::BAG_FILTER: break;
-        case kind::BAG_MAP: break;
-        case kind::TABLE_PRODUCT: break;
-        case kind::TABLE_JOIN: break;
-        case kind::TABLE_GROUP: break;
-        default: break;
+        // only merge when the multiplicities are constants
+        return;
       }
-      it++;
+      InferInfo info = d_ig.mergeTwoBagMakeNodes(n1, n2);
+      info.assertInternalFact();
+    }
+    else if ((n1.getKind() == BAG_MAKE && n2.getKind() == kind::BAG_EMPTY)
+             || (n2.getKind() == BAG_MAKE && n1.getKind() == kind::BAG_EMPTY))
+    {
+      Node bagMake = n1.getKind() == BAG_MAKE ? n1 : n2;
+      Node empty = n1.getKind() == BAG_EMPTY ? n1 : n2;
+      InferInfo info = d_ig.mergeEmptyWithBagMake(empty, bagMake);
+      info.assertInternalFact();
     }
   }
 }
@@ -150,16 +99,6 @@ void EagerSolver::notifyFact(TNode atom,
                              TNode fact,
                              bool isInternal)
 {
-}
-
-bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
-{
-  return false;
-}
-
-Node EagerSolver::getBoundForLength(Node t, bool isLower) const
-{
-  return Node::null();
 }
 
 }  // namespace bags

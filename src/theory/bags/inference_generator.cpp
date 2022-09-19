@@ -135,6 +135,37 @@ InferInfo InferenceGenerator::bagMake(Node n, Node e)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::mergeTwoBagMakeNodes(Node n1, Node n2)
+{
+  Assert(n1.getKind() == BAG_MAKE && n2.getKind() == BAG_MAKE);
+  Assert(n1.getType() == n2.getType());
+  Assert(n1[1].isConst() && n2[1].isConst());
+
+  Node x = n1[0];
+  Node c = n1[1];
+  Node y = n2[0];
+  Node d = n2[1];
+
+  Assert(c.getConst<Rational>() > Rational(0)
+         && d.getConst<Rational>() > Rational(0));
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
+  inferInfo.d_premises.push_back(n1.eqNode(n2));
+  inferInfo.d_conclusion = x.eqNode(c).andNode(y.eqNode(d));
+  return inferInfo;
+}
+
+InferInfo InferenceGenerator::mergeEmptyWithBagMake(Node n1, Node n2)
+{
+  Assert(n1.getKind() == BAG_EMPTY && n2.getKind() == BAG_MAKE);
+  Assert(n1.getType() == n2.getType());
+  Node c = n2[1];
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_BAG_MAKE);
+  inferInfo.d_premises.push_back(n1.eqNode(n2));
+  inferInfo.d_conclusion = d_nm->mkNode(LEQ, c, d_zero);
+  return inferInfo;
+}
+
 /**
  * A bound variable corresponding to the universally quantified integer
  * variable used to range over the distinct elements in a bag, used
