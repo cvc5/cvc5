@@ -127,7 +127,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     Node si = d_tproc.convert(s);
     preambleSymDecl << "(define " << si << " (var "
-                    << d_tproc.getOrAssignIndexForVar(s) << " ";
+                    << d_tproc.getOrAssignIndexForFVar(s) << " ";
     printType(preambleSymDecl, st);
     preambleSymDecl << "))" << std::endl;
   }

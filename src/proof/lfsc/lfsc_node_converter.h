@@ -90,15 +90,15 @@ class LfscNodeConverter : public NodeConverter
    */
   Node getOperatorOfBoundVar(Node cop, Node v);
   /**
-   * Get the variable index for variable v, or assign a fresh index if it is
-   * not yet assigned.
+   * Get the variable index for free variable fv, or assign a fresh index if it
+   * is not yet assigned.
    */
-  size_t getOrAssignIndexForBVar(Node v);
+  size_t getOrAssignIndexForFVar(Node fv);
   /**
-   * Get the variable index for variable v, or assign a fresh index if it is
-   * not yet assigned.
+   * Get the variable index for bound variable bv, or assign a fresh index if it
+   * is not yet assigned.
    */
-  size_t getOrAssignIndexForVar(Node v);
+  size_t getOrAssignIndexForBVar(Node bv);
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The
@@ -189,8 +189,8 @@ class LfscNodeConverter : public NodeConverter
   TypeNode d_arrow;
   /** the type of LFSC sorts, which can appear in terms */
   TypeNode d_sortType;
-  /** Used for getting unique index for variable */
-  std::map<Node, size_t> d_varIndex;
+  /** Used for getting unique index for free variable */
+  std::map<Node, size_t> d_fvarIndex;
   /** Used for getting unique index for bound variable */
   std::map<Node, size_t> d_bvarIndex;
   /** Cache for typeAsNode */

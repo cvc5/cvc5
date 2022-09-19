@@ -87,9 +87,15 @@ bool LfscProofPostprocessCallback::update(Node res,
           for (const Node& arg : args)
           {
             d_defs.insert(arg);
-            // Some declarations only appear inside definitions and don't show
-            // up in assertions. We need to keep track of those declarations and
-            // print them with other declarations.
+            // Notes:
+            // - Some declarations only appear inside definitions and don't show
+            // up in assertions. To ensure that those declarations are printed,
+            // we need to process the definitions.
+            // - We process the definitions here before the rest of the proof to
+            // keep the indicies of bound variables consistant between different
+            // queries that share the same definitions (e.g., incremental mode).
+            // Otherwise, bound variables will be assigned indicies according to
+            // the order in which they appear in the proof.
             d_tproc.convert(arg);
           }
         }
