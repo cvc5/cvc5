@@ -23,6 +23,7 @@
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
+#include "proof/eager_proof_generator.h"
 
 namespace cvc5::internal {
 namespace theory {
