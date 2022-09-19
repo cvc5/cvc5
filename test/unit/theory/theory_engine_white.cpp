@@ -26,13 +26,13 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "options/options.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/theory_engine.h"
 #include "util/integer.h"
 #include "util/rational.h"
-#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 

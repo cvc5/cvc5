@@ -18,11 +18,11 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
-#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 
@@ -39,7 +39,7 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   {
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->finishInit();
-    TheoryEngine * te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
     delete te->d_theoryTable[THEORY_BUILTIN];
     delete te->d_theoryOut[THEORY_BUILTIN];
     te->d_theoryTable[THEORY_BUILTIN] = nullptr;

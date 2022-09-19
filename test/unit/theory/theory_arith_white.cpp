@@ -18,13 +18,13 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/rational.h"
-#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 
@@ -45,9 +45,8 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->setOption("incremental", "false");
     d_slvEngine->finishInit();
-    TheoryEngine * te = d_slvEngine->d_smtSolver->getTheoryEngine();
-    d_arith = static_cast<TheoryArith*>(
-        te->d_theoryTable[THEORY_ARITH]);
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    d_arith = static_cast<TheoryArith*>(te->d_theoryTable[THEORY_ARITH]);
 
     d_realType.reset(new TypeNode(d_nodeManager->realType()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
@@ -57,7 +56,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
   {
     Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     Assert(input == rr->rewrite(input));
-    TheoryEngine * te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
     te->preRegister(input);
   }
 
