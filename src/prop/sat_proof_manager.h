@@ -41,45 +41,6 @@ namespace prop {
 class CnfStream;
 
 /**
- * Works exactly as the regular buffered proof generator but when retrieving the
- * proof of a step, we reuse the same ASSUMPTION step for repeated
- * premises. This can be done because in the SAT proof there are no SCOPE steps,
- * so there is no danger of mixing the scopes of assumptions.
- */
-class SatBufferedProofGenerator : public BufferedProofGenerator
-{
-  using NodeProofNodeMap = context::CDHashMap<Node, std::shared_ptr<ProofNode>>;
-
- public:
-  SatBufferedProofGenerator(Env& env, context::Context* c)
-      : BufferedProofGenerator(env, c), d_assumptionsToPfNodes(c)
-  {
-  }
-  ~SatBufferedProofGenerator() {}
-
-  /** add step
-   *
-   * Here we assume that facts are never added repeatedly, so we do not handle
-   * overwriting policies.
-   */
-  void addStep(Node fact, ProofStep ps);
-  /** Get proof for fact f.
-   *
-   * The resulting proof node has the invariant that its children will be
-   * assumptions and the same ASSUMPTION proof nodes are used for the same
-   * nodes.
-   */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** identify */
-  std::string identify() const override { return "SatBufferedProofGenerator"; }
-
- private:
-  /** Cache of ASSUMPTION proof nodes for nodes used as assumptions in proof
-   * steps */
-  NodeProofNodeMap d_assumptionsToPfNodes;
-};
-
-/**
  * This class is responsible for managing the proof production of the SAT
  * solver. It tracks resolutions produced during solving and stores them,
  * independently, with the connection of the resolutions only made when the
@@ -606,7 +567,7 @@ class SatProofManager : protected EnvObj
   LazyCDProofChain d_resChains;
 
   /** The proof generator for resolution chains */
-  SatBufferedProofGenerator d_resChainPg;
+  BufferedProofGenerator d_resChainPg;
 
   /** The true/false nodes */
   Node d_true;
