@@ -1,4 +1,4 @@
-; COMMAND-LINE: --learned-rewrite -q --no-produce-proofs
+; COMMAND-LINE: --learned-rewrite --no-produce-proofs
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const a Int)

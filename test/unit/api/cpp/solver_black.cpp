@@ -41,6 +41,28 @@ TEST_F(TestApiBlackSolver, proj_issue416)
   slv.checkSat();
 }
 
+TEST_F(TestApiBlackSolver, proj_issue435)
+{
+  Solver slv;
+  slv.setOption("strings-exp", "true");
+  Sort s1 = slv.mkUninterpretedSort("_u0");
+  Sort s3 = slv.getBooleanSort();
+  Sort _p7 = slv.mkParamSort("_p7");
+  DatatypeDecl _dt5 = slv.mkDatatypeDecl("_dt5", {_p7});
+  DatatypeConstructorDecl _cons33 = slv.mkDatatypeConstructorDecl("_cons33");
+  _cons33.addSelector("_sel31", s1);
+  _cons33.addSelector("_sel32", _p7);
+  _dt5.addConstructor(_cons33);
+  std::vector<Sort> _s6 = slv.mkDatatypeSorts({_dt5});
+  Sort s6 = _s6[0];
+  Sort s21 = s6.instantiate({s3});
+  Sort s42 = slv.mkSequenceSort(s21);
+  Term t40 = slv.mkConst(s42, "_x64");
+  Term t75 = slv.mkTerm(Kind::SEQ_REV, {t40});
+  Term t91 = slv.mkTerm(Kind::SEQ_PREFIX, {t75, t40});
+  slv.checkSatAssuming({t91});
+}
+
 TEST_F(TestApiBlackSolver, pow2Large1)
 {
   // Based on https://github.com/cvc5/cvc5-projects/issues/371

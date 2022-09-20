@@ -24,7 +24,6 @@
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -37,11 +36,10 @@ namespace smt {
 
 SmtSolver::SmtSolver(Env& env,
                      AbstractValues& abs,
-                     Assertions& asserts,
                      SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_pp(env, abs, stats),
-      d_asserts(asserts),
+      d_pp(env, stats),
+      d_asserts(env, abs),
       d_stats(stats),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr)
@@ -156,26 +154,26 @@ Result SmtSolver::checkSatInternal()
   return result;
 }
 
-void SmtSolver::processAssertions(Assertions& as)
+void SmtSolver::processAssertions()
 {
   // preprocess
-  preprocess(as);
+  preprocess();
   // assert to internal
-  assertToInternal(as);
+  assertToInternal();
 }
 
-void SmtSolver::preprocess(Assertions& as)
+void SmtSolver::preprocess()
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
   // process the assertions with the preprocessor
-  d_pp.process(as);
+  d_pp.process(d_asserts);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
@@ -217,17 +215,17 @@ void SmtSolver::preprocess(Assertions& as)
   }
 }
 
-void SmtSolver::assertToInternal(Assertions& as)
+void SmtSolver::assertToInternal()
 {
   // get the assertions
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
   // clear the current assertions
-  as.clearCurrent();
+  d_asserts.clearCurrent();
 }
 
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const
@@ -265,7 +263,7 @@ void SmtSolver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make
   // the state accurate prior to pushing
-  processAssertions(d_asserts);
+  processAssertions();
 }
 
 void SmtSolver::notifyPushPost()

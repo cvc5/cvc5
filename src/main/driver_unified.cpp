@@ -35,9 +35,9 @@
 #include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -194,7 +194,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
         {
           break;
         }
-        for (std::unique_ptr<cvc5::Command>& cmd : *cmds)
+        for (std::unique_ptr<cvc5::parser::Command>& cmd : *cmds)
         {
           status = pExecutor->doCommand(cmd) && status;
           if (cmd->interrupted())

@@ -437,10 +437,7 @@ const std::string& SymbolManager::getLastSynthName() const
   return d_implementation->getLastSynthName();
 }
 
-void SymbolManager::reset()
-{
-  d_implementation->reset();
-}
+void SymbolManager::reset() { d_implementation->reset(); }
 
 void SymbolManager::resetAssertions()
 {
