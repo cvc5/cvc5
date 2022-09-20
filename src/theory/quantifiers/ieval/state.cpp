@@ -84,7 +84,8 @@ void State::setEvaluatorMode(TermEvaluatorMode tev)
 
 void State::watch(Node q, const std::vector<Node>& vars, Node body)
 {
-  // Note this method cannot rely on d_tec currently!
+  // Note this method does not rely on d_tec, since evaluation may be
+  // context dependent.
   std::map<Node, QuantInfo>::iterator it = d_quantInfo.find(q);
   if (it != d_quantInfo.end())
   {
@@ -401,7 +402,10 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     {
       // if we are looking for conflicts and propagations only, we are now
       // inactive
-      inactiveReason << "none, req conflict/prop";
+      if (TraceIsOn("ieval"))
+      {
+        inactiveReason << "none, req conflict/prop";
+      }
       setInactive = true;
     }
     else
@@ -416,7 +420,10 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     if (d_tevMode == TermEvaluatorMode::CONFLICT)
     {
       // if we require conflicts, we are inactive now
-      inactiveReason << "some, req conflict";
+      if (TraceIsOn("ieval"))
+      {
+        inactiveReason << "some, req conflict";
+      }
       setInactive = true;
     }
     else
@@ -433,7 +440,10 @@ void State::notifyQuant(TNode q, TNode p, TNode val)
     if (val.getConst<bool>() != itm->second)
     {
       setInactive = true;
-      inactiveReason << "constraint-true";
+      if (TraceIsOn("ieval"))
+      {
+        inactiveReason << "constraint-true";
+      }
     }
     else
     {
