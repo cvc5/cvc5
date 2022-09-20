@@ -105,8 +105,20 @@ PfManager::PfManager(Env& env)
 
 PfManager::~PfManager() {}
 
+// TODO: Remove in favor of `std::erase_if` with C++ 20+ (see cvc5-wishues#137).
+template <class T, class Alloc, class Pred>
+constexpr typename std::vector<T, Alloc>::size_type erase_if(
+    std::vector<T, Alloc>& c, Pred pred)
+{
+  typename std::vector<T, Alloc>::iterator it =
+      std::remove_if(c.begin(), c.end(), pred);
+  typename std::vector<T, Alloc>::size_type r = std::distance(it, c.end());
+  c.erase(it, c.end());
+  return r;
+}
+
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
-    std::shared_ptr<ProofNode> pfn, Assertions& as, bool mkOuterScope)
+    std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
 {
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
@@ -120,9 +132,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof-debug") << *pfn.get() << std::endl;
     Trace("smt-proof-debug") << "=====" << std::endl;
   }
-
-  std::vector<Node> assertions;
-  getAssertions(as, assertions);
 
   if (TraceIsOn("smt-proof"))
   {
@@ -140,6 +149,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): assertions are:\n";
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
     for (const Node& n : assertions)
     {
       Trace("smt-proof") << "- " << n << std::endl;
@@ -152,18 +163,57 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   Assert(d_pfpp != nullptr);
   d_pfpp->process(pfn);
 
-  if (!mkOuterScope)
+  switch (scopeMode)
   {
-    return pfn;
+    case ProofScopeMode::NONE:
+    {
+      return pfn;
+    }
+    // Now make the final scope(s), which ensure(s) that the only open leaves
+    // of the proof are the assertions (and definitions). If we are pruning
+    // the input, we will try to minimize the used assertions (and definitions).
+    case ProofScopeMode::UNIFIED:
+    {
+      Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): make "
+                            "unified scope...\n";
+      std::vector<Node> assertions;
+      getAssertions(as, assertions);
+      return d_pnm->mkScope(
+          pfn, assertions, true, options().proof.proofPruneInput);
+    }
+    case ProofScopeMode::DEFINITIONS_AND_ASSERTIONS:
+    {
+      Trace("smt-proof")
+          << "SolverEngine::connectProofToAssertions(): make split scope...\n";
+      // To support proof pruning for nested scopes, we need to:
+      // 1. Minimize assertions of closed unified scope.
+      std::vector<Node> unifiedAssertions;
+      getAssertions(as, unifiedAssertions);
+      Pf pf = d_pnm->mkScope(
+          pfn, unifiedAssertions, true, options().proof.proofPruneInput);
+      Assert(pf->getRule() == PfRule::SCOPE);
+      // 2. Extract minimum unified assertions from the scope node.
+      std::unordered_set<Node> minUnifiedAssertions;
+      minUnifiedAssertions.insert(pf->getArguments().cbegin(),
+                                  pf->getArguments().cend());
+      // 3. Split those assertions into minimized definitions and assertions.
+      std::vector<Node> minDefinitions;
+      std::vector<Node> minAssertions;
+      getDefinitionsAndAssertions(as, minDefinitions, minAssertions);
+      std::function<bool(Node)> predicate = [&minUnifiedAssertions](Node n) {
+        return minUnifiedAssertions.find(n) == minUnifiedAssertions.cend();
+      };
+      erase_if(minDefinitions, predicate);
+      erase_if(minAssertions, predicate);
+      // 4. Extract proof from unified scope and encapsulate it with split
+      // scopes introducing minimized definitions and assertions.
+      return d_pnm->mkNode(
+          PfRule::SCOPE,
+          {d_pnm->mkNode(PfRule::SCOPE, pf->getChildren(), minAssertions)},
+          minDefinitions);
+    }
+    default: Unreachable();
   }
-
-  Trace("smt-proof")
-      << "SolverEngine::connectProofToAssertions(): make scope...\n";
-
-  // Now make the final scope, which ensures that the only open leaves of the
-  // proof are the assertions. If we are pruning the input, we will try to
-  // minimize the used assertions.
-  return d_pnm->mkScope(pfn, assertions, true, options().proof.proofPruneInput);
 }
 
 void PfManager::printProof(std::ostream& out,
@@ -197,12 +247,11 @@ void PfManager::printProof(std::ostream& out,
   else if (mode == options::ProofFormatMode::LFSC)
   {
     Assert(fp->getRule() == PfRule::SCOPE);
-    std::vector<Node> assertions = fp->getArguments();
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
     proof::LfscPrinter lp(ltp);
-    lp.print(out, assertions, fp.get());
+    lp.print(out, fp.get());
   }
   else if (mode == options::ProofFormatMode::TPTP)
   {
@@ -294,14 +343,38 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
   return d_pppg.get();
 }
 
-void PfManager::getAssertions(Assertions& as,
-                              std::vector<Node>& assertions)
+void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
 {
   // note that the assertion list is always available
   const context::CDList<Node>& al = as.getAssertionList();
   for (const Node& a : al)
   {
     assertions.push_back(a);
+  }
+}
+
+void PfManager::getDefinitionsAndAssertions(Assertions& as,
+                                            std::vector<Node>& definitions,
+                                            std::vector<Node>& assertions)
+{
+  const context::CDList<Node>& defs = as.getAssertionListDefinitions();
+  for (const Node& d : defs)
+  {
+    // Keep treating (mutually) recursive functions as declarations +
+    // assertions.
+    if (d.getKind() == kind::EQUAL)
+    {
+      definitions.push_back(d);
+    }
+  }
+  const context::CDList<Node>& asserts = as.getAssertionList();
+  for (const Node& a : asserts)
+  {
+    if (std::find(definitions.cbegin(), definitions.cend(), a)
+        == definitions.cend())
+    {
+      assertions.push_back(a);
+    }
   }
 }
 

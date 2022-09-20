@@ -20,6 +20,8 @@
 
 #include <string>
 
+#include "cvc5_export.h"
+
 namespace cvc5::internal {
 
 /**
@@ -30,7 +32,7 @@ std::string quoteSymbol(const std::string& s);
 /**
  * SMT-LIB 2 quoting for strings
  */
-std::string quoteString(const std::string& s);
+std::string quoteString(const std::string& s) CVC5_EXPORT;
 
 }  // namespace cvc5::internal
 

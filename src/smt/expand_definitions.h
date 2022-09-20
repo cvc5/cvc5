@@ -21,21 +21,23 @@
 #include <unordered_map>
 
 #include "expr/node.h"
-#include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
-
-class ProofNodeManager;
-class TConvProofGenerator;
-
 namespace smt {
 
 /**
- * Module in charge of expanding definitions for an SMT engine.
+ * Implements expand definitions, which returns the expanded form of a term.
  *
- * Its main features is expandDefinitions(TNode, ...), which returns the
- * expanded formula of a term.
+ * This method is similar in nature to PropEngine::preprocess in that it
+ * converts a (possibly user-provided) term into the form that we pass
+ * internally. However, this method can be seen as a lightweight version
+ * of that method which only does enough conversions to make, e.g., get-value
+ * accurate on the resulting term. Moreover, this method does not impact
+ * the state of lemmas known to the PropEngine.
+ *
+ * This utility is not proof producing, since it should only be used for
+ * getting model values.
  */
 class ExpandDefs : protected EnvObj
 {
@@ -50,20 +52,6 @@ class ExpandDefs : protected EnvObj
    * @return The expanded term.
    */
   Node expandDefinitions(TNode n, std::unordered_map<Node, Node>& cache);
-
-  /** Enable proofs using the proof node manager of the env. */
-  void enableProofs();
-
- private:
-  /**
-   * Helper function for above, called to specify if we want proof production
-   * based on the optional argument tpg.
-   */
-  TrustNode expandDefinitions(TNode n,
-                              std::unordered_map<Node, Node>& cache,
-                              TConvProofGenerator* tpg);
-  /** A proof generator for the term conversion. */
-  std::unique_ptr<TConvProofGenerator> d_tpg;
 };
 
 }  // namespace smt
