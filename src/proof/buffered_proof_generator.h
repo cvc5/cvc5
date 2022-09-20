@@ -46,7 +46,7 @@ class BufferedProofGenerator : protected EnvObj, public ProofGenerator
    * danger of mixing the scopes of assumptions.
    * @param autoSymm Whether the proof requestes are robust to (dis)equality
    * symmetry.
-*/
+   */
   BufferedProofGenerator(Env& env,
                          context::Context* c,
                          bool mkUniqueAssume = false,
