@@ -30,10 +30,10 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
