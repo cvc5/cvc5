@@ -71,11 +71,10 @@ class InstEvaluator : protected EnvObj
    * we learn a generalized substitution from the current one that explains
    * the failure. This is tracked in a data structure, which is subsequently
    * used for fast lookups for future assignments.
-   * @param canonize If this flag is true, we canonize the bodies of quantified
-   * formulas are made canonical. This means that portions of quantified
-   * formulas that are alpha-equivalent share information on how they
-   * evaluate. This method is recommended if multiple quantified formulas
-   * are being watched
+   * @param canonize If this flag is true, the bodies of quantified formulas are
+   * made canonical. This means that portions of quantified formulas that are
+   * alpha-equivalent share information on how they evaluate. This method is
+   * recommended if multiple quantified formulas are being watched
    * @param trackAssignedQuant If this flag is true, we calculate when
    * quantified formulas have a complete assignment, for push.
    */

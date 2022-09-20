@@ -43,7 +43,7 @@ class State : protected EnvObj
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb);
 
-  /** has initialize */
+  /** has initialized */
   bool hasInitialized() const;
 
   /** initialize, return false if we are finished */
