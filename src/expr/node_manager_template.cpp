@@ -32,6 +32,7 @@
 #include "expr/type_properties.h"
 #include "util/bitvector.h"
 #include "util/ff_val.h"
+#include "util/integer.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"

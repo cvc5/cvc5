@@ -169,6 +169,8 @@ class BaseSolver : protected EnvObj
      * index: the child of n we are currently processing,
      * s : reference to solver state,
      * er : the representative of the empty equivalence class.
+     * overwrite : if this is set to true then an existing element at the same
+     *             index is updated to `n`
      *
      * We store the vector of terms that n was indexed by in the vector c.
      */
@@ -176,6 +178,7 @@ class BaseSolver : protected EnvObj
              unsigned index,
              const SolverState& s,
              Node er,
+             bool overwrite,
              std::vector<Node>& c);
     /** Clear this trie */
     void clear() { d_children.clear(); }
@@ -228,6 +231,8 @@ class BaseSolver : protected EnvObj
   /** Commonly used constants */
   Node d_emptyString;
   Node d_false;
+  /** Set of terms that appear in the current assertions */
+  std::set<Node> d_relevantTerms;
   /**
    * A congruence class is a set of terms f( t1 ), ..., f( tn ) where
    * t1 = ... = tn. Congruence classes are important since all but

@@ -43,8 +43,10 @@ TEST_F(TestApiBlackUncovered, exception_getmessage)
 TEST_F(TestApiBlackUncovered, streaming_operators)
 {
   std::stringstream ss;
-  ss << cvc5::modes::LEARNED_LIT_PREPROCESS;
   ss << cvc5::UnknownExplanation::UNKNOWN_REASON;
+  ss << cvc5::modes::BlockModelsMode::LITERALS;
+  ss << cvc5::modes::LearnedLitType::LEARNED_LIT_PREPROCESS;
+  ss << cvc5::modes::ProofComponent::PROOF_COMPONENT_FULL;
   ss << cvc5::Result();
   ss << cvc5::Op();
   ss << cvc5::SynthResult();
@@ -222,6 +224,18 @@ TEST_F(TestApiBlackUncovered, Statistics)
     testing::internal::CaptureStdout();
     d_solver.printStatisticsSafe(STDOUT_FILENO);
     testing::internal::GetCapturedStdout();
+}
+
+TEST_F(TestApiBlackUncovered, DeclareOracleFun)
+{
+  // oracle functions currently not supported in Python API due to restrictions
+  // on passing functionals
+  d_solver.setOption("oracles", "true");
+  Sort iSort = d_solver.getIntegerSort();
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        return d_solver.mkInteger(0);
+      });
 }
 
 }  // namespace test

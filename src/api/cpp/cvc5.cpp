@@ -3345,6 +3345,7 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
 
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
+  // Note that this ignores the options::ioutils properties of `out`.
   out << t.toString();
   return out;
 }
