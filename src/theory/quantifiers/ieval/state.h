@@ -52,7 +52,11 @@ class State : protected EnvObj
   /** Set evaluator mode */
   void setEvaluatorMode(TermEvaluatorMode tev);
 
-  /** Watch quantified formula with the given variables and body */
+  /**
+   * Watch quantified formula with the given variables and body. This impacts
+   * whether the state is finished (isFinished), in particular, that method
+   * returns false if at least one watched quantified formula is active.
+   */
   void watch(Node q, const std::vector<Node>& vars, Node body);
 
   /** Assign variable, return false if we are finished */
