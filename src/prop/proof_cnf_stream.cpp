@@ -43,9 +43,9 @@ ProofCnfStream::ProofCnfStream(Env& env,
       // no genarotor for (= b a), a proof (= b a) can be generated via symmetry
       // on the proof of (= a b). As a result the assumption (= b a) would be
       // assigned a proof with assumption (= b a). This breakes the invariant of
-      // the proof node manager of no cyclic proofs the ASSUMPTION proof node of
-      // both the (= b a) we are asking the proof for and the assumption (= b a)
-      // in the proof of (= a b) are the same.
+      // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
+      // of both the assumption (= b a) we are asking the proof for and the
+      // assumption (= b a) in the proof of (= a b) are the same.
       d_proof(
           env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_blocked(userContext()),
