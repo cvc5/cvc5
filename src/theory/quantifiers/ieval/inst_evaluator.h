@@ -41,8 +41,12 @@ namespace ieval {
 /**
  * Inst evaluator
  *
- * Incrementally maintains the state of the rewritten form of the quantified
- * formula under a substitution.
+ * Incrementally maintains the state of the evaluated form of the quantified
+ * formula under a substitution. In other words, substitutions can
+ * be added one variable at a time with push, and removed with pop. This
+ * class tracks whether the evaluated form of a quantified formula meets
+ * a certain criteria based on the term evaluation mode (e.g. is not entailed,
+ * is false in model, etc.).
  *
  * To use this class, after construction, you must:
  * - Watch quantified formulas.
@@ -64,14 +68,13 @@ class InstEvaluator : protected EnvObj
    * @param tev The evaluation mode for this inst evaluator
    * @param genLearning If this flag is true, then whenever we discover
    * that the set of quantified formulas watched by this class is infeasible,
-   * we learn the most general substitution from the current one that explains
+   * we learn a generalized substitution from the current one that explains
    * the failure. This is tracked in a data structure, which is subsequently
    * used for fast lookups for future assignments.
-   * @param canonize If this flag is true, we canonize the bodies of quantified
-   * formulas are made canonical. This means that portions of quantified
-   * formulas that are alpha-equivalent share information on how they
-   * evaluate. This method is recommended if multiple quantified formulas
-   * are being watched
+   * @param canonize If this flag is true, the bodies of quantified formulas are
+   * made canonical. This means that portions of quantified formulas that are
+   * alpha-equivalent share information on how they evaluate. This method is
+   * recommended if multiple quantified formulas are being watched
    * @param trackAssignedQuant If this flag is true, we calculate when
    * quantified formulas have a complete assignment, for push.
    */
@@ -112,7 +115,7 @@ class InstEvaluator : protected EnvObj
    * If isSoft is false, this saves the watched quantifier information only.
    */
   void resetAll(bool isSoft = true);
-  /** Get instantiation for quantified formula q. */
+  /** Get current instantiation for quantified formula q. */
   std::vector<Node> getInstantiationFor(Node q) const;
   /**
    * Is feasible, return true if at least one watched quantified formula is
