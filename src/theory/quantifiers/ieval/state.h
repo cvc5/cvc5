@@ -43,10 +43,50 @@ class State : protected EnvObj
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb);
 
+  /** has initialized */
+  bool hasInitialized() const;
+
+  /** initialize, return false if we are finished */
+  bool initialize();
+
+  /** Set evaluator mode */
+  void setEvaluatorMode(TermEvaluatorMode tev);
+
+  /**
+   * Watch quantified formula with the given variables and body. This impacts
+   * whether the state is finished (isFinished), in particular, that method
+   * returns false if at least one watched quantified formula is active.
+   */
+  void watch(Node q, const std::vector<Node>& vars, Node body);
+
+  /** Assign variable, return false if we are finished */
+  bool assignVar(TNode v,
+                 TNode r,
+                 std::vector<Node>& assignedQuants,
+                 bool trackAssignedQuant);
+
+  /**
+   * Get failure explanation for q, add all terms that were the reason for
+   * q failing to processed.
+   */
+  void getFailureExp(Node q, std::unordered_set<Node>& processed) const;
+
+  /** Is finished */
+  bool isFinished() const;
   /** Evaluate ground term n */
   TNode evaluate(TNode n) const;
   /** Get value for pattern or ground term p. */
   TNode getValue(TNode p) const;
+  /** Get none node */
+  TNode getNone() const;
+  /** Is none */
+  bool isNone(TNode n) const;
+  /** Get some node */
+  TNode getSome() const;
+  /** Is some */
+  bool isSome(TNode n) const;
+  /** Invoke the rewriter for term n */
+  Node doRewrite(Node n) const;
 
  private:
   //---------------quantifiers info
@@ -79,6 +119,10 @@ class State : protected EnvObj
   std::map<Node, FreeVarInfo> d_fvInfo;
   /** Pattern term info */
   std::map<Node, PatTermInfo> d_pInfo;
+  /** The none node */
+  Node d_none;
+  /** The some node */
+  Node d_some;
 };
 
 }  // namespace ieval

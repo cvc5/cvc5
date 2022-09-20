@@ -605,7 +605,7 @@ void TheoryUF::computeCareGraph() {
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
-  std::map<TypeNode, TNodeTrie> hoIndex;
+  std::map<TypeNode, TNodeTrie> typeIndex;
   std::map<Node, size_t> arity;
   for (TNode app : d_functionsTerms)
   {
@@ -621,7 +621,8 @@ void TheoryUF::computeCareGraph() {
     }
     if (has_trigger_arg)
     {
-      if (app.getKind() == kind::APPLY_UF)
+      Kind k = app.getKind();
+      if (k == kind::APPLY_UF)
       {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
@@ -640,20 +641,23 @@ void TheoryUF::computeCareGraph() {
           for (const Node& c : app)
           {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
-            hoIndex[curr.getType()].addTerm(happ, {curr, c});
+            Assert(curr.getType().isFunction());
+            typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
             keep.push_back(happ);
           }
         }
       }
-      else if (app.getKind() == kind::HO_APPLY)
+      else if (k == kind::HO_APPLY || k == kind::BITVECTOR_TO_NAT)
       {
-        // add it to the hoIndex for the function type
-        hoIndex[app[0].getType()].addTerm(app, reps);
+        // add it to the typeIndex for the function type if HO_APPLY, or the
+        // bitvector type if bv2nat. The latter ensures that we compute
+        // care pairs based on bv2nat only for bitvectors of the same width.
+        typeIndex[app[0].getType()].addTerm(app, reps);
       }
       else
       {
-        // case for other operators, e.g. int2bv, bv2nat
+        // case for other operators, e.g. int2bv
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
         arity[op] = reps.size();
@@ -668,12 +672,15 @@ void TheoryUF::computeCareGraph() {
     Assert(arity.find(tt.first) != arity.end());
     nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
-  for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
+  for (std::pair<const TypeNode, TNodeTrie>& tt : typeIndex)
   {
+    // functions for HO_APPLY which has arity 2, bitvectors for bv2nat which
+    // has arity one
+    size_t a = tt.first.isFunction() ? 2 : 1;
     Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
+    nodeTriePathPairProcess(&tt.second, a, d_cpacb);
   }
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;

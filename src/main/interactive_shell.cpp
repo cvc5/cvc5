@@ -42,18 +42,18 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
+#include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
 
 using namespace std;
+using namespace cvc5::parser;
 
 namespace cvc5::internal {
 
-using namespace cvc5::parser;
 using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
@@ -307,7 +307,7 @@ restart:
 
   /* There may be more than one command in the input. Build up a
      sequence. */
-  std::vector<std::unique_ptr<cvc5::Command>> cmdSeq;
+  std::vector<std::unique_ptr<Command>> cmdSeq;
   Command *cmd;
 
   try
