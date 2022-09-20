@@ -34,8 +34,46 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
       d_tdb(tdb),
       d_tevMode(ieval::TermEvaluatorMode::NONE)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  TypeNode btype = nm->booleanType();
+  d_none = sm->mkSkolemFunction(SkolemFunId::IEVAL_NONE, btype);
+  d_some = sm->mkSkolemFunction(SkolemFunId::IEVAL_SOME, btype);
 }
 
+bool State::hasInitialized() const { return false; }
+
+bool State::initialize()
+{
+  // NOTE: implementation to be added
+  return true;
+}
+
+void State::setEvaluatorMode(TermEvaluatorMode tev)
+{
+  // NOTE: implementation to be added
+}
+
+void State::watch(Node q, const std::vector<Node>& vars, Node body)
+{
+  // NOTE: implementation to be added
+}
+
+bool State::assignVar(TNode v,
+                      TNode r,
+                      std::vector<Node>& assignedQuants,
+                      bool trackAssignedQuant)
+{
+  // NOTE: implementation to be added
+  return true;
+}
+
+void State::getFailureExp(Node q, std::unordered_set<Node>& processed) const
+{
+  // NOTE: implementation to be added
+}
+
+bool State::isFinished() const { return false; }
 
 QuantInfo& State::getQuantInfo(TNode q)
 {
@@ -94,6 +132,16 @@ const PatTermInfo& State::getPatTermInfo(TNode p) const
   Assert(it != d_pInfo.end());
   return it->second;
 }
+
+TNode State::getNone() const { return d_none; }
+
+bool State::isNone(TNode n) const { return n == d_none; }
+
+TNode State::getSome() const { return d_some; }
+
+bool State::isSome(TNode n) const { return n == d_some; }
+
+Node State::doRewrite(Node n) const { return rewrite(n); }
 
 TNode State::evaluate(TNode n) const
 {

@@ -213,18 +213,21 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact, bool& isSym)
   {
     return (*it).second;
   }
-  Node factSym = CDProof::getSymmFact(fact);
-  // could be symmetry
-  if (factSym.isNull())
+  if (d_autoSymm)
   {
-    // can't be symmetry, return the default generator
-    return d_defaultGen;
-  }
-  it = d_gens.find(factSym);
-  if (it != d_gens.end())
-  {
-    isSym = true;
-    return (*it).second;
+    Node factSym = CDProof::getSymmFact(fact);
+    // could be symmetry
+    if (factSym.isNull())
+    {
+      // can't be symmetry, return the default generator
+      return d_defaultGen;
+    }
+    it = d_gens.find(factSym);
+    if (it != d_gens.end())
+    {
+      isSym = true;
+      return (*it).second;
+    }
   }
   // return the default generator
   return d_defaultGen;

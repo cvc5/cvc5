@@ -31,7 +31,13 @@ SatProofManager::SatProofManager(Env& env,
       d_solver(solver),
       d_cnfStream(cnfStream),
       d_resChains(d_env, true, userContext()),
-      d_resChainPg(d_env, userContext()),
+      // enforce unique assumptions and no symmetry. This avoids creating
+      // duplicate assumption proof nodes for the premises of resolution steps,
+      // which when expanded in the lazy proof chain would duplicate their
+      // justifications (which can lead to performance impacts when proof
+      // post-processing). Symmetry we can disable because there is no equality
+      // reasoning performed here
+      d_resChainPg(d_env, userContext(), true, false),
       d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),

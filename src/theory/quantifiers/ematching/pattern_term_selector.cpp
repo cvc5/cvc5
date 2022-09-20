@@ -268,7 +268,7 @@ void PatternTermSelector::collectTermsInternal(
       << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol
       << " " << hasEPol << std::endl;
   Kind nk = n.getKind();
-  if (nk == FORALL || nk == INST_CONSTANT)
+  if (n.isClosure() || nk == INST_CONSTANT)
   {
     // do not traverse beneath quantified formulas
     return;

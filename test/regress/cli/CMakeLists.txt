@@ -776,6 +776,7 @@ set(regress_0_tests
   regress0/issue8807-model-core-partial.smt2
   regress0/issue8833-interpol-no-shared-var.smt2
   regress0/issue8834-model-core-nconst.smt2
+  regress0/issue9121-theoryof-no-enabled.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -2361,6 +2362,7 @@ set(regress_1_tests
   regress1/quantifiers/proj-issue151-2.smt2
   regress1/quantifiers/proj-issue155.smt2
   regress1/quantifiers/proj-issue295.smt2
+  regress1/quantifiers/proj-issue532-set-comp-fv-trigger.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
   regress1/quantifiers/psyco-196.smt2

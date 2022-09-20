@@ -15,6 +15,7 @@
 
 #include "unsat_core_manager.h"
 
+#include "expr/skolem_manager.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/assertions.h"
 
@@ -52,11 +53,13 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
   }
 }
 
-void UnsatCoreManager::getRelevantInstantiations(
+void UnsatCoreManager::getRelevantQuantTermVectors(
     std::shared_ptr<ProofNode> pfn,
     std::map<Node, InstantiationList>& insts,
+    std::map<Node, std::vector<Node>>& sks,
     bool getDebugInfo)
 {
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
@@ -74,7 +77,8 @@ void UnsatCoreManager::getRelevantInstantiations(
     }
     visited[cur.get()] = true;
     const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
-    if (cur->getRule() == PfRule::INSTANTIATE)
+    PfRule r = cur->getRule();
+    if (r == PfRule::INSTANTIATE)
     {
       const std::vector<Node>& instTerms = cur->getArguments();
       Assert(cs.size() == 1);
@@ -101,6 +105,28 @@ void UnsatCoreManager::getRelevantInstantiations(
         {
           itq->second.d_inst.back().d_pfArg = extraArgs[1];
         }
+      }
+    }
+    else if (r == PfRule::SKOLEMIZE)
+    {
+      Node q = cur->getChildren()[0]->getResult();
+      Node exists;
+      if (q.getKind() == kind::NOT && q.getKind() == kind::FORALL)
+      {
+        std::vector<Node> echildren(q[0].begin(), q[0].end());
+        echildren[1] = echildren[1].notNode();
+        exists = nm->mkNode(kind::EXISTS, echildren);
+      }
+      else if (q.getKind() == kind::EXISTS)
+      {
+        exists = q;
+      }
+      if (!exists.isNull())
+      {
+        std::vector<Node> skolems;
+        SkolemManager* sm = nm->getSkolemManager();
+        Node res = sm->mkSkolemize(q, skolems, "k");
+        sks[q] = skolems;
       }
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)
