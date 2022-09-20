@@ -204,7 +204,9 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       {
         Trace("lazy-cdproofchain")
             << "LazyCDProofChain::getProofFor: marking " << fap.first
-            << " for revisit and for expansion\n";
+            << " for revisit and for expansion (curr: "
+            << assumptionsToExpand[fap.first].size()
+            << ", adding: " << fap.second.size() << ")\n";
         // We always add assumptions to visit so that their last seen occurrence
         // is expanded (rather than the first seen occurrence, if we were not
         // adding assumptions, say, in assumptionsToExpand). This is so because

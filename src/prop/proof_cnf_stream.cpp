@@ -31,7 +31,23 @@ ProofCnfStream::ProofCnfStream(Env& env,
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
       d_satPM(satPM),
-      d_proof(env, nullptr, userContext(), "ProofCnfStream::LazyCDProof"),
+      // Since the ProofCnfStream performs no equality reasoning, there is no
+      // need to automatically add symmetry steps. Note that it is *safer* to
+      // forbid this, since adding symmetry steps when proof nodes are being
+      // updated may inadvertently generate cyclic proofs.
+      //
+      // This can happen for example if the proof cnf stream has a generator for
+      // (= a b), whose proof depends on symmetry applied to (= b a). It does
+      // not have a generator for (= b a). However if asked for a proof of the
+      // fact (= b a) (after having expanded the proof of (= a b)), since it has
+      // no genarotor for (= b a), a proof (= b a) can be generated via symmetry
+      // on the proof of (= a b). As a result the assumption (= b a) would be
+      // assigned a proof with assumption (= b a). This breakes the invariant of
+      // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
+      // of both the assumption (= b a) we are asking the proof for and the
+      // assumption (= b a) in the proof of (= a b) are the same.
+      d_proof(
+          env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
       d_blocked(userContext()),
       d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
