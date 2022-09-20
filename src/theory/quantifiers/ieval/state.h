@@ -43,6 +43,36 @@ class State : protected EnvObj
  public:
   State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb);
 
+  /** has initialized */
+  bool hasInitialized() const;
+
+  /** initialize, return false if we are finished */
+  bool initialize();
+
+  /** Set evaluator mode */
+  void setEvaluatorMode(TermEvaluatorMode tev);
+
+  /**
+   * Watch quantified formula with the given variables and body. This impacts
+   * whether the state is finished (isFinished), in particular, that method
+   * returns false if at least one watched quantified formula is active.
+   */
+  void watch(Node q, const std::vector<Node>& vars, Node body);
+
+  /** Assign variable, return false if we are finished */
+  bool assignVar(TNode v,
+                 TNode r,
+                 std::vector<Node>& assignedQuants,
+                 bool trackAssignedQuant);
+
+  /**
+   * Get failure explanation for q, add all terms that were the reason for
+   * q failing to processed.
+   */
+  void getFailureExp(Node q, std::unordered_set<Node>& processed) const;
+
+  /** Is finished */
+  bool isFinished() const;
   /** Evaluate ground term n */
   TNode evaluate(TNode n) const;
   /** Get value for pattern or ground term p. */
