@@ -72,16 +72,13 @@ bool State::initialize()
 void State::setEvaluatorMode(TermEvaluatorMode tev)
 {
   d_tevMode = tev;
-  // TODO: could preserve the term evaluator?
-  // initialize the term evaluator
+  // initialize the term evaluator, which is freshly allocated
   if (tev == TermEvaluatorMode::CONFLICT || tev == TermEvaluatorMode::PROP
       || tev == TermEvaluatorMode::NO_ENTAIL)
   {
+    // finding conflict, propagating, or non-entailed instances all
+    // involve the entailment term evaluator
     d_tec.reset(new TermEvaluatorEntailed(d_env, tev, d_qstate, d_tdb));
-  }
-  else if (tev == TermEvaluatorMode::MODEL)
-  {
-    // d_tec.reset(new TermEvaluatorModel(
   }
 }
 
@@ -113,7 +110,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
   {
     // we will notify the quantified formula when the pattern becomes set
     PatTermInfo& pi = getOrMkPatTermInfo(c.first);
-    // (2) when the constraint term is assigned, we notify q
+    // when the constraint term is assigned, we notify q
     pi.d_parentNotify.push_back(q);
     // we visit the constraint term below
     visit.push_back(c.first);
