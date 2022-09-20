@@ -32,10 +32,11 @@
 
 namespace cvc5 {
 
-class Command;
 class Solver;
 
 namespace parser {
+
+class Command;
 
 class Smt2 : public Parser
 {

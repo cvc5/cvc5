@@ -36,6 +36,7 @@ namespace cvc5::internal {
 class NodeManager;
 class Cardinality;
 class DType;
+class Integer;
 
 namespace expr {
   class NodeValue;
@@ -45,9 +46,9 @@ namespace expr {
  * Encapsulation of an NodeValue pointer for Types. The reference count is
  * maintained in the NodeValue.
  */
-class TypeNode {
-
-private:
+class CVC5_EXPORT TypeNode
+{
+ private:
 
   /**
    * The NodeValue has access to the private constructors, so that the
@@ -457,6 +458,9 @@ private:
   /** Is this an array type? */
   bool isArray() const;
 
+  /** Is this a finite-field type? */
+  bool isFiniteField() const;
+
   /** Is this a Set type? */
   bool isSet() const;
 
@@ -652,6 +656,9 @@ private:
 
   /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
+
+  /** Get the field cardinality (order) of this finite-field type. */
+  const Integer& getFfSize() const;
 
   /** Is this a sort kind? */
   bool isUninterpretedSort() const;
@@ -877,6 +884,11 @@ inline bool TypeNode::isArray() const {
   return getKind() == kind::ARRAY_TYPE;
 }
 
+inline bool TypeNode::isFiniteField() const
+{
+  return getKind() == kind::FINITE_FIELD_TYPE;
+}
+
 inline TypeNode TypeNode::getArrayIndexType() const {
   Assert(isArray());
   return (*this)[0];
@@ -937,26 +949,6 @@ inline bool TypeNode::isPredicate() const {
 
 inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
-}
-
-/** Is this a floating-point type of with <code>exp</code> exponent bits
-    and <code>sig</code> significand bits */
-inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return (getKind() == kind::FLOATINGPOINT_TYPE
-          && getConst<FloatingPointSize>().exponentWidth() == exp
-          && getConst<FloatingPointSize>().significandWidth() == sig);
-}
-
-/** Get the exponent size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointExponentSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponentWidth();
-}
-
-/** Get the significand size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointSignificandSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significandWidth();
 }
 
 }  // namespace cvc5::internal

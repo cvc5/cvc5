@@ -24,6 +24,8 @@
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
+#include "util/ff_val.h"
+#include "util/integer.h"
 
 using namespace std;
 
@@ -99,8 +101,8 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint()
-           || isRoundingMode())
+  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
+           || isFiniteField())
   {
     ret = CardinalityClass::FINITE;
   }
@@ -466,6 +468,13 @@ bool TypeNode::isFloatingPoint() const
   return getKind() == kind::FLOATINGPOINT_TYPE;
 }
 
+bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const
+{
+  return (getKind() == kind::FLOATINGPOINT_TYPE
+          && getConst<FloatingPointSize>().exponentWidth() == exp
+          && getConst<FloatingPointSize>().significandWidth() == sig);
+}
+
 bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
 
 bool TypeNode::isDatatype() const
@@ -546,10 +555,28 @@ bool TypeNode::isBitVector(unsigned size) const
           && getConst<BitVectorSize>() == size);
 }
 
+unsigned TypeNode::getFloatingPointExponentSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().exponentWidth();
+}
+
+unsigned TypeNode::getFloatingPointSignificandSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().significandWidth();
+}
+
 uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();
+}
+
+const Integer& TypeNode::getFfSize() const
+{
+  Assert(getKind() == kind::FINITE_FIELD_TYPE);
+  return getConst<FfSize>();
 }
 
 TypeNode TypeNode::getRangeType() const

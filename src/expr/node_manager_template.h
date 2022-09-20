@@ -46,6 +46,7 @@ class BoundVarManager;
 
 class DType;
 class Oracle;
+class Integer;
 class Rational;
 
 namespace expr {
@@ -448,6 +449,9 @@ class NodeManager
 
   /** Make the type of bitvectors of size <code>size</code> */
   TypeNode mkBitVectorType(unsigned size);
+
+  /** Make the type of finite field elements modulo <code>modulus</code> */
+  TypeNode mkFiniteFieldType(const Integer& modulus);
 
   /** Make the type of arrays with the given parameterization */
   TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
