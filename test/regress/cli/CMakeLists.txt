@@ -2104,6 +2104,7 @@ set(regress_1_tests
   regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
+  regress1/nl/issue9113-iand-cg.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
