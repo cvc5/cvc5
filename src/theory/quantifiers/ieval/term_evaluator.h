@@ -82,6 +82,38 @@ class TermEvaluator : protected EnvObj
   TermEvaluatorMode d_tevMode;
 };
 
+/**
+ * A term evaluator based on entailment utilities in the term database.
+ * According to this evaluator, a term t may evaluate to a term s
+ * such that t = s is entailed by the current set of equalities known to the
+ * term database, where s is a term occurring in the current set of assertions.
+ */
+class TermEvaluatorEntailed : public TermEvaluator
+{
+ public:
+  TermEvaluatorEntailed(Env& env,
+                        TermEvaluatorMode tev,
+                        QuantifiersState& qs,
+                        TermDb& tdb);
+  /** Evaluate base */
+  TNode evaluateBase(const State& s, TNode n) override;
+  /** Partial evaluate child */
+  TNode partialEvaluateChild(
+      const State& s, TNode n, TNode child, TNode val, Node& exp) override;
+  /** Evaluate term */
+  TNode evaluate(const State& s,
+                 TNode n,
+                 const std::vector<TNode>& childValues) override;
+
+ private:
+  /** Quantifiers state */
+  QuantifiersState& d_qs;
+  /** Pointer to the term database */
+  TermDb& d_tdb;
+  /** Whether we are using an optimization for checking the relevant domain */
+  bool d_checkRelDom;
+};
+
 }  // namespace ieval
 }  // namespace quantifiers
 }  // namespace theory

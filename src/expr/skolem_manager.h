@@ -215,7 +215,11 @@ enum class SkolemFunId
    */
   SETS_MAP_DOWN_ELEMENT,
   /** Higher-order type match predicate, see HoTermDb */
-  HO_TYPE_MATCH_PRED
+  HO_TYPE_MATCH_PRED,
+  /** the "none" term, for instantiation evaluation */
+  IEVAL_NONE,
+  /** the "some" term, for instantiation evaluation */
+  IEVAL_SOME
 };
 /** Converts a skolem function name to a string. */
 const char* toString(SkolemFunId id);
