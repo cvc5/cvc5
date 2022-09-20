@@ -191,9 +191,9 @@ class LfscNodeConverter : public NodeConverter
   TypeNode d_sortType;
   /** Used for getting unique index for free variable */
   std::map<Node, size_t> d_fvarIndex;
-  // We use different maps for free and bound variables to ensure that the order
-  // of bound variables appearing in definitions does not depend on the order in
-  // which free variables appear in assertions/proof.
+  // We use different maps for free and bound variables to ensure that the
+  // indices of bound variables appearing in definitions do not depend on the
+  // order in which free variables appear in assertions/proof.
   /** Used for getting unique index for bound variable */
   std::map<Node, size_t> d_bvarIndex;
   /** Cache for typeAsNode */
