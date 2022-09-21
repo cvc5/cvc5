@@ -1077,10 +1077,10 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
   try
   {
     bool global = sm->getGlobalDeclarations();
-    cvc5::Term fun =
-        solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
     if (d_reqBinding)
     {
+      cvc5::Term fun =
+          solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
       sm->bind(d_symbol, fun, global);
     }
     d_commandStatus = CommandSuccess::instance();
