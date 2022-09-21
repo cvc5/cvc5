@@ -51,10 +51,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (const Node& n : definitions)
   {
     definedSymbols.insert(n[0]);
-    // Some declarations only appear inside definitions and don't show up in
-    // assertions. We need to keep track of those declarations and print them
-    // with other declarations.
-    d_tproc.convert(n);
   }
   const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pn->getChildren()[0]->getChildren()[0].get();
@@ -131,7 +127,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     }
     Node si = d_tproc.convert(s);
     preambleSymDecl << "(define " << si << " (var "
-                    << d_tproc.getOrAssignIndexForVar(s) << " ";
+                    << d_tproc.getOrAssignIndexForFVar(s) << " ";
     printType(preambleSymDecl, st);
     preambleSymDecl << "))" << std::endl;
   }
@@ -212,7 +208,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
-    out << "(% ";
+    out << "(# ";
     LfscPrintChannelOut::printAssumeId(out, i);
     out << " (holds ";
     printInternal(out, ia, lbind);
