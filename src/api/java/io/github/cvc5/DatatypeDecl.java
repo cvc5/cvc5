@@ -29,7 +29,16 @@ package io.github.cvc5;
  */
 public class DatatypeDecl extends AbstractPointer
 {
-  // region construction and destruction
+  /**
+   * @return Null DatatypeDecl.
+   */
+  public DatatypeDecl()
+  {
+    super(getNullDatatypeDecl());
+  }
+
+  private static native long getNullDatatypeDecl();
+
   DatatypeDecl(long pointer)
   {
     super(pointer);
@@ -42,7 +51,6 @@ public class DatatypeDecl extends AbstractPointer
     return pointer;
   }
 
-  // endregion
   /**
    * Add datatype constructor declaration.
    * @param ctor The datatype constructor declaration to add.

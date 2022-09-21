@@ -325,7 +325,7 @@ class DatatypeTest
     assertEquals(dselTail.getCodomainSort(), dtypeSort);
 
     // possible to construct null datatype declarations if not using solver
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullDatatypeDecl().getName());
+    assertThrows(CVC5ApiException.class, () -> new DatatypeDecl().getName());
   }
 
   @Test

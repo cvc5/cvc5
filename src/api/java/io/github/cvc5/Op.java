@@ -24,7 +24,16 @@ package io.github.cvc5;
  */
 public class Op extends AbstractPointer
 {
-  // region construction and destruction
+  /**
+   * @return Null op.
+   */
+  public Op()
+  {
+    super(getNullOp());
+  }
+
+  private static native long getNullOp();
+
   Op(long pointer)
   {
     super(pointer);
@@ -36,8 +45,6 @@ public class Op extends AbstractPointer
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * Syntactic equality operator.

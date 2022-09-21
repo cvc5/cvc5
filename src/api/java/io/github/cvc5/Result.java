@@ -23,7 +23,16 @@ import java.util.Map;
  */
 public class Result extends AbstractPointer
 {
-  // region construction and destruction
+  /**
+   * @return Null result.
+   */
+  public Result()
+  {
+    super(getNullResult());
+  }
+
+  private static native long getNullResult();
+
   Result(long pointer)
   {
     super(pointer);
@@ -35,8 +44,6 @@ public class Result extends AbstractPointer
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * @return True if Result is empty, i.e., a nullary Result, and not an actual

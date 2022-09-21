@@ -41,7 +41,7 @@ class ResultTest
   @Test
   void isNull()
   {
-    Result res_null = d_solver.getNullResult();
+    Result res_null = new Result();
     assertTrue(res_null.isNull());
     assertFalse(res_null.isSat());
     assertFalse(res_null.isUnsat());

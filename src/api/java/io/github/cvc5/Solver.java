@@ -2909,61 +2909,6 @@ public class Solver implements IPointer, AutoCloseable
   private native long getStatistics(long pointer);
 
   /**
-   * @return Null term.
-   */
-  public Term getNullTerm()
-  {
-    long termPointer = getNullTerm(pointer);
-    return new Term(termPointer);
-  }
-
-  private native long getNullTerm(long pointer);
-
-  /**
-   * @return Null result.
-   */
-  public Result getNullResult()
-  {
-    long resultPointer = getNullResult(pointer);
-    return new Result(resultPointer);
-  }
-
-  private native long getNullResult(long pointer);
-
-  /**
-   * @return Null synth result.
-   */
-  public SynthResult getNullSynthResult()
-  {
-    long resultPointer = getNullSynthResult(pointer);
-    return new SynthResult(resultPointer);
-  }
-
-  private native long getNullSynthResult(long pointer);
-
-  /**
-   * @return Null op.
-   */
-  public Op getNullOp()
-  {
-    long opPointer = getNullOp(pointer);
-    return new Op(opPointer);
-  }
-
-  private native long getNullOp(long pointer);
-
-  /**
-   * @return Null op.
-   */
-  public DatatypeDecl getNullDatatypeDecl()
-  {
-    long declPointer = getNullDatatypeDecl(pointer);
-    return new DatatypeDecl(declPointer);
-  }
-
-  private native long getNullDatatypeDecl(long pointer);
-
-  /**
    * Get a string representation of the version of this solver.
    * @return The version string.
    */

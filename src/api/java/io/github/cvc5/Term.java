@@ -28,7 +28,16 @@ import java.util.Set;
  */
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
-  // region construction and destruction
+  /**
+   * @return Null term.
+   */
+  public Term()
+  {
+    super(getNullTerm());
+  }
+
+  private static native long getNullTerm();
+
   Term(long pointer)
   {
     super(pointer);
@@ -40,8 +49,6 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   {
     return pointer;
   }
-
-  // endregion
 
   /**
    * Syntactic equality operator.

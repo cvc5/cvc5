@@ -41,7 +41,7 @@ class SynthResultTest
   @Test
   void isNull()
   {
-    SynthResult res_null = d_solver.getNullSynthResult();
+    SynthResult res_null = new SynthResult();
     assertTrue(res_null.isNull());
     assertFalse(res_null.hasSolution());
     assertFalse(res_null.hasNoSolution());
@@ -66,7 +66,7 @@ class SynthResultTest
   @Test
   void hasNoSolution()
   {
-    SynthResult res_null = d_solver.getNullSynthResult();
+    SynthResult res_null = new SynthResult();
     assertFalse(res_null.hasSolution());
   }
 
