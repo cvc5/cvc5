@@ -336,7 +336,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
-    GET_VALUE_TOK 
+    GET_VALUE_TOK
     {
       PARSER_STATE->checkThatLogicIsSet();
       // bind all symbols specific to the model, e.g. uninterpreted constant
@@ -414,7 +414,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
   | /* get-learned-literals */
-    GET_LEARNED_LITERALS_TOK ( KEYWORD { readKeyword = true; } )? { 
+    GET_LEARNED_LITERALS_TOK ( KEYWORD { readKeyword = true; } )? {
       PARSER_STATE->checkThatLogicIsSet();
       modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
       if (readKeyword)
@@ -1244,7 +1244,7 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
       expr = PARSER_STATE->applyParseOp(p, args);
     }
   | /* a let or sygus let binding */
-    LPAREN_TOK 
+    LPAREN_TOK
       LET_TOK LPAREN_TOK
       { PARSER_STATE->pushScope(); }
       ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
@@ -1786,7 +1786,7 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   | ( ATTRIBUTE_PATTERN_TOK { k = cvc5::INST_PATTERN; } |
       ATTRIBUTE_POOL_TOK { k = cvc5::INST_POOL; }  |
       ATTRIBUTE_INST_ADD_TO_POOL_TOK { k = cvc5::INST_ADD_TO_POOL; }  |
-      ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK{ k = cvc5::SKOLEM_ADD_TO_POOL; } 
+      ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK{ k = cvc5::SKOLEM_ADD_TO_POOL; }
     )
     LPAREN_TOK
     ( term[patexpr, e2]
@@ -1818,9 +1818,11 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       Trace("parser") << "Named: " << s << " for " << expr << std::endl;
-      // notify that expression was given a name
+      // notify that expression was given a name. The define-fun command we
+      // create here does not bind the name to the term in the symbol table,
+      // however, since this is already done in notifyNamedExpression below.
       DefineFunctionCommand* defFunCmd =
-          new DefineFunctionCommand(s, expr.getSort(), expr);
+          new DefineFunctionCommand(s, expr.getSort(), expr, false);
       defFunCmd->setMuted(true);
       PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
@@ -1966,8 +1968,8 @@ sortSymbol[cvc5::Sort& t]
   | LPAREN_TOK (INDEX_TOK {indexed = true;} | {indexed = false;})
     symbol[name,CHECK_NONE,SYM_SORT]
     ( nonemptyNumeralList[numerals]
-      { 
-        if (!indexed) 
+      {
+        if (!indexed)
         {
           std::stringstream ss;
           ss << "SMT-LIB requires use of an indexed sort here, e.g. (_ " << name
@@ -2164,7 +2166,7 @@ selector[cvc5::DatatypeConstructorDecl& ctor]
   cvc5::Sort t, t2;
 }
   : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t]
-    { 
+    {
       ctor.addSelector(id, t);
       Trace("parser-idt") << "selector: " << id.c_str()
                           << " of type " << t << std::endl;
@@ -2375,7 +2377,7 @@ BINARY_LITERAL
  * of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
-  : '"' (~('"') | '""')* '"' 
+  : '"' (~('"') | '""')* '"'
   ;
 
 /**
