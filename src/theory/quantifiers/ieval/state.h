@@ -89,7 +89,7 @@ class State : protected EnvObj
   Node doRewrite(Node n) const;
   /** Is quantifier active? */
   bool isQuantActive(TNode q) const;
-  /** Set quantified formula active / inactive */
+  /** Set quantified formula inactive */
   void setQuantInactive(QuantInfo& qi);
 
   /** debugging */
