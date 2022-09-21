@@ -1852,12 +1852,17 @@ bool AletheProofPostprocessCallback::update(Node res,
       Trace("alethe-proof")
           << "... rule not translated yet " << id << " / " << res << " "
           << children << " " << args << std::endl;
-      std::cout << "UNTRANSLATED rule: " << id << std::endl;
+      // std::cout << "UNTRANSLATED rule: " << id << std::endl;
+      std::stringstream ss;
+      ss << id;
+      Node newVar = nm->mkBoundVar(ss.str(), nm->sExprType());
+      std::vector<Node> newArgs{newVar};
+      newArgs.insert(newArgs.end(), args.begin(), args.end());
       return addAletheStep(AletheRule::UNDEFINED,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           args,
+                           newArgs,
                            *cdp);
     }
       Trace("alethe-proof")
