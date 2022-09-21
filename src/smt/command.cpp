@@ -1019,11 +1019,13 @@ void DefineSortCommand::toStream(std::ostream& out) const
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              cvc5::Sort sort,
-                                             cvc5::Term formula)
+                                             cvc5::Term formula,
+                                             bool reqBinding)
     : DeclarationDefinitionCommand(id),
       d_formals(),
       d_sort(sort),
-      d_formula(formula)
+      d_formula(formula),
+      d_reqBinding(reqBinding)
 {
 }
 
@@ -1031,11 +1033,13 @@ DefineFunctionCommand::DefineFunctionCommand(
     const std::string& id,
     const std::vector<cvc5::Term>& formals,
     cvc5::Sort sort,
-    cvc5::Term formula)
+    cvc5::Term formula,
+    bool reqBinding)
     : DeclarationDefinitionCommand(id),
       d_formals(formals),
       d_sort(sort),
-      d_formula(formula)
+      d_formula(formula),
+      d_reqBinding(reqBinding)
 {
 }
 
@@ -1055,7 +1059,10 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     bool global = sm->getGlobalDeclarations();
     cvc5::Term fun =
         solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
-    sm->bind(d_symbol, fun, global);
+    if (d_reqBinding)
+    {
+      sm->bind(d_symbol, fun, global);
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
