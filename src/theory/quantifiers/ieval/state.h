@@ -115,9 +115,15 @@ class State : protected EnvObj
   /**
    * Called when it is determined what pattern p is equal to.
    *
-   * If g is not none, then g is the (ground) equivalence class that pattern p
-   * is equal to. If g is none, then we have determined that p will *never*
-   * merge into a ground equivalence class in this context.
+   * If g is none, then we have determined that p will *never*
+   * evaluate to a ground equivalence class in this context.
+   *
+   * If g is some, then we know that p evaluates to some ground equivalence
+   * class. This is the case when p meets the criteria of the term evaluator
+   * for evaluation but it is not entailed to be equal to value currently.
+   *
+   * Otherwise, g is the (ground) equivalence class that pattern p
+   * is equal to.
    */
   void notifyPatternEqGround(TNode p, TNode g);
   /**
