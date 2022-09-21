@@ -641,8 +641,11 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
         << "---- now bound " << d_vars_set.size() << " / "
         << d_q[0].getNumChildren() << " base variables." << std::endl;
   }
-  // TODO: assigning to a variable that an original variable is equal to
-  // should trigger the match object
+  // Note that assigning to a variable that an original variable is equal to
+  // should trigger the match object. For example, if we have auxiliary
+  // variable k and original variable x where x <-> k currently, and we set
+  // k -> t, then we should notify the match object that x -> t. However,
+  // this is not done here, as it would require more complex bookkeeping.
   d_match[v] = n;
   return true;
 }
