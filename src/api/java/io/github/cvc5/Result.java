@@ -24,7 +24,7 @@ import java.util.Map;
 public class Result extends AbstractPointer
 {
   /**
-   * @return Null result.
+   * Null result
    */
   public Result()
   {

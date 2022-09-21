@@ -30,7 +30,7 @@ package io.github.cvc5;
 public class DatatypeDecl extends AbstractPointer
 {
   /**
-   * @return Null DatatypeDecl.
+   * Null datatypeDecl
    */
   public DatatypeDecl()
   {

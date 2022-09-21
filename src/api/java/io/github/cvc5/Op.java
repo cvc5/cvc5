@@ -25,7 +25,7 @@ package io.github.cvc5;
 public class Op extends AbstractPointer
 {
   /**
-   * @return Null op.
+   * Null op
    */
   public Op()
   {

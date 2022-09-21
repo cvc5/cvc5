@@ -28,7 +28,7 @@ package io.github.cvc5;
 public class SynthResult extends AbstractPointer
 {
   /**
-   * @return Null synth result.
+   * Null synthResult
    */
   public SynthResult()
   {

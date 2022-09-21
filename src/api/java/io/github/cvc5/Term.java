@@ -29,7 +29,7 @@ import java.util.Set;
 public class Term extends AbstractPointer implements Comparable<Term>, Iterable<Term>
 {
   /**
-   * @return Null term.
+   * Null term
    */
   public Term()
   {
