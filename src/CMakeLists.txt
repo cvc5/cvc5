@@ -817,6 +817,8 @@ libcvc5_add_sources(
   theory/quantifiers/ieval/free_var_info.h
   theory/quantifiers/ieval/inst_evaluator.cpp
   theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/inst_evaluator_manager.cpp
+  theory/quantifiers/ieval/inst_evaluator_manager.h
   theory/quantifiers/ieval/pattern_term_info.cpp
   theory/quantifiers/ieval/pattern_term_info.h
   theory/quantifiers/ieval/quant_info.cpp
