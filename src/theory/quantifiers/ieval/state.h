@@ -87,6 +87,15 @@ class State : protected EnvObj
   bool isSome(TNode n) const;
   /** Invoke the rewriter for term n */
   Node doRewrite(Node n) const;
+  /** Is quantifier active? */
+  bool isQuantActive(TNode q) const;
+  /** Set quantified formula inactive */
+  void setQuantInactive(QuantInfo& qi);
+
+  /** debugging */
+  std::string toString() const;
+  std::string toStringSearch() const;
+  std::string toStringDebugSearch() const;
 
  private:
   //---------------quantifiers info
@@ -103,6 +112,27 @@ class State : protected EnvObj
   PatTermInfo& getPatTermInfo(TNode p);
   const PatTermInfo& getPatTermInfo(TNode p) const;
   //---------------queries
+  /**
+   * Called when it is determined what pattern p is equal to.
+   *
+   * If g is none, then we have determined that p will *never*
+   * evaluate to a ground equivalence class in this context.
+   *
+   * If g is some, then we know that p evaluates to some ground equivalence
+   * class. This is the case when p meets the criteria of the term evaluator
+   * for evaluation but it is not entailed to be equal to value currently.
+   *
+   * Otherwise, g is the (ground) equivalence class that pattern p
+   * is equal to.
+   */
+  void notifyPatternEqGround(TNode p, TNode g);
+  /**
+   * Notify quantified formula.
+   *
+   * Called when a constraint term p of quantified formula q has been assigned
+   * the value val.
+   */
+  void notifyQuant(TNode q, TNode p, TNode val);
   /** The context, managed by the parent inst evaluator */
   context::Context* d_ctx;
   /** Reference to quantifiers state */
@@ -123,6 +153,17 @@ class State : protected EnvObj
   Node d_none;
   /** The some node */
   Node d_some;
+  /** The terms we have set up notifications for */
+  NodeSet d_registeredTerms;
+  /**
+   * The terms we have set up notifications for that have no notifying children.
+   * These terms must be evaluated at the very beginning.
+   */
+  NodeSet d_registeredBaseTerms;
+  /** Has the state been initialized? */
+  context::CDO<bool> d_initialized;
+  /** total number of alive quantified formulas */
+  context::CDO<size_t> d_numActiveQuant;
 };
 
 }  // namespace ieval
