@@ -430,13 +430,11 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
  public:
   DefineFunctionCommand(const std::string& id,
                         cvc5::Sort sort,
-                        cvc5::Term formula,
-                        bool reqBinding = true);
+                        cvc5::Term formula);
   DefineFunctionCommand(const std::string& id,
                         const std::vector<cvc5::Term>& formals,
                         cvc5::Sort sort,
-                        cvc5::Term formula,
-                        bool reqBinding = true);
+                        cvc5::Term formula);
 
   const std::vector<cvc5::Term>& getFormals() const;
   cvc5::Sort getSort() const;
@@ -453,9 +451,6 @@ class CVC5_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
   cvc5::Sort d_sort;
   /** The formula corresponding to the body of the function we are defining */
   cvc5::Term d_formula;
-  /** Whether this define-fun command must also bind the function and its
-   * definition in the symbol table */
-  bool d_reqBinding;
 }; /* class DefineFunctionCommand */
 
 /**

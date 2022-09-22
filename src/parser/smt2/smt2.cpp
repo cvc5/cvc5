@@ -1399,11 +1399,8 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // define the variable. Note that we must do this binding here and not via the
-  // command created in the parser because that command is only invoked after
-  // the command who contains this :named attribute. As a consequence we'd not
-  // be able to use the name within this command, which we must be able to,
-  // given the semantics of :named.
+  // define the variable. This needs to be done here so that in the rest of the
+  // command we can use this name, which is required by the semantics of :named.
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
   // named

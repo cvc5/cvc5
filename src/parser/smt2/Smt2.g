@@ -1818,13 +1818,6 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       Trace("parser") << "Named: " << s << " for " << expr << std::endl;
-      // notify that expression was given a name. The define-fun command we
-      // create here does not bind the name to the term in the symbol table,
-      // however, since this is already done in notifyNamedExpression below.
-      DefineFunctionCommand* defFunCmd =
-          new DefineFunctionCommand(s, expr.getSort(), expr, false);
-      defFunCmd->setMuted(true);
-      PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
