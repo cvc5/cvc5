@@ -37,6 +37,7 @@ class GrammarTest
   void tearDown()
   {
     d_solver.close();
+    Context.deletePointers();
   }
 
   @Test

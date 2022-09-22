@@ -41,6 +41,7 @@ class SortTest
   void tearDown()
   {
     d_solver.close();
+    Context.deletePointers();
   }
 
   Sort create_datatype_sort() throws CVC5ApiException

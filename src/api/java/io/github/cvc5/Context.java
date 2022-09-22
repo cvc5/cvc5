@@ -34,5 +34,6 @@ class Context
     {
       abstractPointers.get(i).deletePointer();
     }
+    abstractPointers.clear();
   }
 }

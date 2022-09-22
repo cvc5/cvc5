@@ -40,6 +40,7 @@ class OpTest
   void tearDown()
   {
     d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
