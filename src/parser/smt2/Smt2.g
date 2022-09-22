@@ -154,7 +154,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
     /* This extended command has to be in the outermost production so that
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
-  | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
+  | LPAREN_TOK INCLUDE_TOK str[name, true] RPAREN_TOK
     { if(!PARSER_STATE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this "
                                  "run.");
@@ -767,7 +767,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( str[s]
+    ( str[s, true]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
@@ -1118,12 +1118,8 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
-  | SIMPLE_SYMBOL
-    { s = AntlrInput::tokenText($SIMPLE_SYMBOL); }
-  | QUOTED_SYMBOL
-    { s = AntlrInput::tokenText($QUOTED_SYMBOL); }
-  | STRING_LITERAL
-    { s = AntlrInput::tokenText($STRING_LITERAL); }
+  | symbol[s, CHECK_NONE, SYM_VARIABLE]
+  | str[s, false]
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
@@ -1754,7 +1750,7 @@ termAtomic[cvc5::Term& atomTerm]
     }
 
   // String constant
-  | str[s] { atomTerm = PARSER_STATE->mkStringConstant(s); }
+  | str[s, true] { atomTerm = PARSER_STATE->mkStringConstant(s); }
 
   // NOTE: Theory constants go here
 
@@ -1843,14 +1839,17 @@ termList[std::vector<cvc5::Term>& formulas, cvc5::Term& expr]
   ;
 
 /**
- * Matches a string, and strips off the quotes.
+ * Matches a string, and (optionally) strips off the quotes.
  */
-str[std::string& s]
+str[std::string& s, bool strip]
   : STRING_LITERAL
     {
       s = AntlrInput::tokenText($STRING_LITERAL);
-      /* strip off the quotes */
-      s = s.substr(1, s.size() - 2);
+      if (strip)
+      {
+        /* strip off the quotes */
+        s = s.substr(1, s.size() - 2);
+      }
       for (size_t i = 0; i < s.size(); i++)
       {
         if ((unsigned)s[i] > 127 && !isprint(s[i]))
@@ -1863,9 +1862,13 @@ str[std::string& s]
       }
       char* p_orig = strdup(s.c_str());
       char *p = p_orig, *q = p_orig;
+      if (!strip)
+      {
+        *p++ = *q++;
+      }
       while (*q != '\0')
       {
-        if (*q == '"')
+        if (*q == '"' && (strip || *(q + 1) != '\0'))
         {
           // Handle SMT-LIB >=2.5 standard escape '""'.
           ++q;
@@ -1877,6 +1880,8 @@ str[std::string& s]
       s = p_orig;
       free(p_orig);
     }
+  | UNTERMINATED_STRING_LITERAL EOF
+    { PARSER_STATE->unexpectedEOF("unterminated string literal"); }
   ;
 
 quantOp[cvc5::Kind& kind]
@@ -2376,6 +2381,10 @@ BINARY_LITERAL
  */
 STRING_LITERAL
   : '"' (~('"') | '""')* '"' 
+  ;
+
+UNTERMINATED_STRING_LITERAL
+  : '"' (~('"') | '""')*
   ;
 
 /**
