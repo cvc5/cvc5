@@ -57,7 +57,6 @@ void BaseSolver::checkInit()
   d_termIndex.clear();
   d_stringLikeEqc.clear();
 
-  d_termReg.computeRelevantTermSet();
   const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
