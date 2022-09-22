@@ -701,15 +701,12 @@ void TermRegistry::notifyStartFullEffortCheck()
   d_theory.computeRelevantTerms(d_relevantTerms);
 }
 
-void TermRegistry::notifyEndFullEffortCheck()
-{
-  d_inFullEffortCheck = false;
-}
+void TermRegistry::notifyEndFullEffortCheck() { d_inFullEffortCheck = false; }
 
 const std::set<Node>& TermRegistry::getRelevantTermSet() const
 {
   // must be in full effort check for relevant terms to be valid
-  Assert (d_inFullEffortCheck);
+  Assert(d_inFullEffortCheck);
   return d_relevantTerms;
 }
 
