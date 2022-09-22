@@ -1118,7 +1118,7 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
-  | symbol[s, CHECK_NONE, SYM_VARIABLE]
+  | symbol[s, CHECK_NONE, SYM_VERBATIM]
   | str[s, false]
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
@@ -2096,8 +2096,11 @@ symbol[std::string& id,
     }
   | QUOTED_SYMBOL
     { id = AntlrInput::tokenText($QUOTED_SYMBOL);
-      /* strip off the quotes */
-      id = id.substr(1, id.size() - 2);
+      if (type != SymbolType::SYM_VERBATIM)
+      {
+        /* strip off the quotes */
+        id = id.substr(1, id.size() - 2);
+      }
       if(!PARSER_STATE->isAbstractValue(id)) {
         // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
