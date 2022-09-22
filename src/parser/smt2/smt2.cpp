@@ -1401,6 +1401,16 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
   }
   // define the variable. This needs to be done here so that in the rest of the
   // command we can use this name, which is required by the semantics of :named.
+  //
+  // Note that as we are defining the name to the expression here, names never
+  // show up in "-o raw-benchmark" nor in proofs. To be able to do it it'd be
+  // necessary to not define this variable here and create a
+  // DefineFunctionCommand with the binding, so that names are handled as
+  // defined functions. However, these commands would need to be processed
+  // *before* the rest of the command in which the :named attribute appears, so
+  // the name can be defined in the rest of the command. This would greatly
+  // complicate the design of the parser and provide little gain, so we opt to
+  // handle :named as a macro processed directly in the parser.
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
   // named
