@@ -595,6 +595,8 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
     case SYM_VARIABLE: return d_symtab->isBound(name);
     case SYM_SORT:
       return d_symtab->isBoundType(name);
+    case SYM_VERBATIM:
+      Unreachable();
   }
   Assert(false);  // Unhandled(type);
   return false;
