@@ -1116,14 +1116,15 @@ Sort::Sort(internal::NodeManager* nm, const internal::TypeNode& t)
 {
 }
 
-Sort::Sort() : d_nm(nullptr), d_type(new internal::TypeNode()) {}
+Sort::Sort()
+    : d_nm(internal::NodeManager::currentNM()), d_type(new internal::TypeNode())
+{
+}
 
 Sort::~Sort()
 {
-  if (d_nm != nullptr)
-  {
-    d_type.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_type.reset();
 }
 
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
@@ -1850,7 +1851,12 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_nm(nullptr), d_kind(NULL_TERM), d_node(new internal::Node()) {}
+Op::Op()
+    : d_nm(internal::NodeManager::currentNM()),
+      d_kind(NULL_TERM),
+      d_node(new internal::Node())
+{
+}
 
   Op::Op(internal::NodeManager* nm, const Kind k)
     : d_nm(nm), d_kind(k), d_node(new internal::Node())
@@ -1864,12 +1870,8 @@ Op::Op(internal::NodeManager* nm, const Kind k, const internal::Node& n)
 
 Op::~Op()
 {
-  if (d_nm != nullptr)
-  {
-    // Ensure that the correct node manager is in scope when the type node is
-    // destroyed.
-    d_node.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_node.reset();
 }
 
 /* Public methods                                                             */
@@ -2189,10 +2191,7 @@ std::string Op::toString() const
   {
     CVC5_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
-    if (d_nm != nullptr)
-    {
-      return d_node->toString();
-    }
+    Assert(d_nm != nullptr);
     return d_node->toString();
   }
   ////////
@@ -2222,7 +2221,10 @@ bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term::Term() : d_nm(nullptr), d_node(new internal::Node()) {}
+Term::Term()
+    : d_nm(internal::NodeManager::currentNM()), d_node(new internal::Node())
+{
+}
 
 Term::Term(internal::NodeManager* nm, const internal::Node& n) : d_nm(nm)
 {
@@ -2231,10 +2233,8 @@ Term::Term(internal::NodeManager* nm, const internal::Node& n) : d_nm(nm)
 
 Term::~Term()
 {
-  if (d_nm != nullptr)
-  {
-    d_node.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_node.reset();
 }
 
 bool Term::operator==(const Term& t) const
@@ -2576,7 +2576,7 @@ std::string Term::toString() const
 }
 
 Term::const_iterator::const_iterator()
-    : d_nm(nullptr), d_origNode(nullptr), d_pos(0)
+    : d_nm(internal::NodeManager::currentNM()), d_origNode(nullptr), d_pos(0)
 {
 }
 
@@ -2588,7 +2588,7 @@ Term::const_iterator::const_iterator(internal::NodeManager* nm,
 }
 
 Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_nm(nullptr), d_origNode(nullptr)
+    : d_nm(internal::NodeManager::currentNM()), d_origNode(nullptr)
 {
   if (it.d_origNode != nullptr)
   {
@@ -3435,7 +3435,7 @@ Kind Term::getKindHelper() const
 /* DatatypeConstructorDecl -------------------------------------------------- */
 
 DatatypeConstructorDecl::DatatypeConstructorDecl()
-    : d_nm(nullptr), d_ctor(nullptr)
+    : d_nm(internal::NodeManager::currentNM()), d_ctor(nullptr)
 {
 }
 
@@ -3533,7 +3533,10 @@ bool DatatypeConstructorDecl::isResolved() const
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl() : d_nm(nullptr), d_dtype(nullptr) {}
+DatatypeDecl::DatatypeDecl()
+    : d_nm(internal::NodeManager::currentNM()), d_dtype(nullptr)
+{
+}
 
 DatatypeDecl::DatatypeDecl(internal::NodeManager* nm,
                            const std::string& name,
@@ -3661,7 +3664,10 @@ internal::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 /* DatatypeSelector --------------------------------------------------------- */
 
-DatatypeSelector::DatatypeSelector() : d_nm(nullptr), d_stor(nullptr) {}
+DatatypeSelector::DatatypeSelector()
+    : d_nm(internal::NodeManager::currentNM()), d_stor(nullptr)
+{
+}
 
 DatatypeSelector::DatatypeSelector(internal::NodeManager* nm,
                                    const internal::DTypeSelector& stor)
@@ -3748,7 +3754,10 @@ bool DatatypeSelector::isNullHelper() const { return d_stor == nullptr; }
 
 /* DatatypeConstructor ------------------------------------------------------ */
 
-DatatypeConstructor::DatatypeConstructor() : d_nm(nullptr), d_ctor(nullptr) {}
+DatatypeConstructor::DatatypeConstructor()
+    : d_nm(internal::NodeManager::currentNM()), d_ctor(nullptr)
+{
+}
 
 DatatypeConstructor::DatatypeConstructor(internal::NodeManager* nm,
                                          const internal::DTypeConstructor& ctor)
@@ -3884,7 +3893,7 @@ DatatypeConstructor::const_iterator::const_iterator(
 }
 
 DatatypeConstructor::const_iterator::const_iterator()
-    : d_nm(nullptr), d_int_stors(nullptr), d_idx(0)
+    : d_nm(internal::NodeManager::currentNM()), d_int_stors(nullptr), d_idx(0)
 {
 }
 
@@ -4001,7 +4010,10 @@ Datatype::Datatype(internal::NodeManager* nm, const internal::DType& dtype)
   CVC5_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
 
-Datatype::Datatype() : d_nm(nullptr), d_dtype(nullptr) {}
+Datatype::Datatype()
+    : d_nm(internal::NodeManager::currentNM()), d_dtype(nullptr)
+{
+}
 
 Datatype::~Datatype()
 {
@@ -4246,7 +4258,7 @@ Datatype::const_iterator::const_iterator(internal::NodeManager* nm,
 }
 
 Datatype::const_iterator::const_iterator()
-    : d_nm(nullptr), d_int_ctors(nullptr), d_idx(0)
+    : d_nm(internal::NodeManager::currentNM()), d_int_ctors(nullptr), d_idx(0)
 {
 }
 
@@ -4307,7 +4319,7 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
 /* -------------------------------------------------------------------------- */
 
 Grammar::Grammar()
-    : d_nm(nullptr),
+    : d_nm(internal::NodeManager::currentNM()),
       d_sygusVars(),
       d_ntSyms(),
       d_ntsToTerms(0),
