@@ -87,7 +87,11 @@ InteractiveShell::InteractiveShell(Solver* solver,
                                    std::istream& in,
                                    std::ostream& out,
                                    bool isInteractive)
-    : d_solver(solver), d_in(in), d_out(out), d_isInteractive(isInteractive), d_quit(false)
+    : d_solver(solver),
+      d_in(in),
+      d_out(out),
+      d_isInteractive(isInteractive),
+      d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
@@ -198,7 +202,8 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    lineBuf = ::readline(d_isInteractive ? "" : (line == "" ? "cvc5> " : "... > "));
+    lineBuf =
+        ::readline(d_isInteractive ? "" : (line == "" ? "cvc5> " : "... > "));
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -253,7 +258,7 @@ restart:
     {
       input += line;
 
-      if(input.empty())
+      if (input.empty())
       {
         /* Nothing left to parse. */
         if (d_isInteractive)
