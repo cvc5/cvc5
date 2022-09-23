@@ -42,7 +42,8 @@ class InteractiveShell
   InteractiveShell(Solver* solver,
                    cvc5::parser::SymbolManager* sm,
                    std::istream& in,
-                   std::ostream& out);
+                   std::ostream& out,
+                   bool isInteractive = true);
 
   /**
    * Close out the interactive session.
@@ -65,6 +66,8 @@ class InteractiveShell
   std::istream& d_in;
   std::ostream& d_out;
   std::unique_ptr<cvc5::parser::Parser> d_parser;
+  /** Only true if we are actually asking the user for commands */
+  bool d_isInteractive;
   bool d_quit;
   bool d_usingEditline;
 

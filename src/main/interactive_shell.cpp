@@ -85,8 +85,9 @@ static set<string> s_declarations;
 InteractiveShell::InteractiveShell(Solver* solver,
                                    SymbolManager* sm,
                                    std::istream& in,
-                                   std::ostream& out)
-    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
+                                   std::ostream& out,
+                                   bool isInteractive)
+    : d_solver(solver), d_in(in), d_out(out), d_isInteractive(isInteractive), d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
@@ -181,7 +182,10 @@ restart:
   /* Don't do anything if the input is closed or if we've seen a
    * QuitCommand. */
   if(d_in.eof() || d_quit) {
-    d_out << endl;
+    if (d_isInteractive)
+    {
+      d_out << endl;
+    }
     return {};
   }
 
@@ -194,7 +198,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
+    lineBuf = ::readline(d_isInteractive ? "" : (line == "" ? "cvc5> " : "... > "));
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
     }
@@ -204,13 +208,16 @@ restart:
   }
   else
   {
-    if (line == "")
+    if (d_isInteractive)
     {
-      d_out << "cvc5> " << flush;
-    }
-    else
-    {
-      d_out << "... > " << flush;
+      if (line == "")
+      {
+        d_out << "cvc5> " << flush;
+      }
+      else
+      {
+        d_out << "... > " << flush;
+      }
     }
 
     /* Read a line */
@@ -246,9 +253,13 @@ restart:
     {
       input += line;
 
-      if(input.empty()) {
+      if(input.empty())
+      {
         /* Nothing left to parse. */
-        d_out << endl;
+        if (d_isInteractive)
+        {
+          d_out << endl;
+        }
         return {};
       }
 
@@ -288,7 +299,10 @@ restart:
       }
       else
       {
-        d_out << "... > " << flush;
+        if (d_isInteractive)
+        {
+          d_out << "... > " << flush;
+        }
 
         /* Read a line */
         stringbuf sb;
