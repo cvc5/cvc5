@@ -1839,46 +1839,43 @@ termList[std::vector<cvc5::Term>& formulas, cvc5::Term& expr]
   ;
 
 /**
- * Matches a string, and (optionally) strips off the quotes.
+ * Matches a string, and (optionally) strips off the quotes/unescapes the
+ * string when `unescape` is set to true.
  */
-str[std::string& s, bool strip]
+str[std::string& s, bool unescape]
   : STRING_LITERAL
     {
       s = AntlrInput::tokenText($STRING_LITERAL);
-      if (strip)
+      if (unescape)
       {
         /* strip off the quotes */
         s = s.substr(1, s.size() - 2);
-      }
-      for (size_t i = 0; i < s.size(); i++)
-      {
-        if ((unsigned)s[i] > 127 && !isprint(s[i]))
+        for (size_t i = 0; i < s.size(); i++)
         {
-          PARSER_STATE->parseError(
-              "Extended/unprintable characters are not "
-              "part of SMT-LIB, and they must be encoded "
-              "as escape sequences");
+          if ((unsigned)s[i] > 127 && !isprint(s[i]))
+          {
+            PARSER_STATE->parseError(
+                "Extended/unprintable characters are not "
+                "part of SMT-LIB, and they must be encoded "
+                "as escape sequences");
+          }
         }
-      }
-      char* p_orig = strdup(s.c_str());
-      char *p = p_orig, *q = p_orig;
-      if (!strip)
-      {
-        *p++ = *q++;
-      }
-      while (*q != '\0')
-      {
-        if (*q == '"' && (strip || *(q + 1) != '\0'))
+        char* p_orig = strdup(s.c_str());
+        char *p = p_orig, *q = p_orig;
+        while (*q != '\0')
         {
-          // Handle SMT-LIB >=2.5 standard escape '""'.
-          ++q;
-          Assert(*q == '"');
+          if (*q == '"')
+          {
+            // Handle SMT-LIB >=2.5 standard escape '""'.
+            ++q;
+            Assert(*q == '"');
+          }
+          *p++ = *q++;
         }
-        *p++ = *q++;
+        *p = '\0';
+        s = p_orig;
+        free(p_orig);
       }
-      *p = '\0';
-      s = p_orig;
-      free(p_orig);
     }
   | UNTERMINATED_STRING_LITERAL EOF
     { PARSER_STATE->unexpectedEOF("unterminated string literal"); }
