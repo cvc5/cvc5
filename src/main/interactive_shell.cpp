@@ -236,12 +236,12 @@ restart:
     Trace("interactive") << "Input now '" << input << line << "'" << endl
                          << flush;
 
-    Assert(!(d_in.fail() && !d_in.eof()) || line.empty());
+    Assert(!(d_in.fail() && !d_in.eof()) || line.empty() || !d_isInteractive);
 
     /* Check for failure. */
     if(d_in.fail() && !d_in.eof()) {
       /* This should only happen if the input line was empty. */
-      Assert(line.empty());
+      Assert(line.empty() || !d_isInteractive);
       d_in.clear();
     }
 
