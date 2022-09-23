@@ -4939,7 +4939,6 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 Solver::Solver(std::unique_ptr<internal::Options>&& original)
 {
   d_nm = internal::NodeManager::currentNM();
-  d_nm->init();
   d_originalOptions = std::move(original);
   d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);

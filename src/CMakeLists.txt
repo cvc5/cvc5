@@ -205,6 +205,8 @@ libcvc5_add_sources(
   proof/proof_node_updater.h
   proof/proof_rule.cpp
   proof/proof_rule.h
+  proof/proof_rule_checker.cpp
+  proof/proof_rule_checker.h
   proof/proof_set.h
   proof/proof_step_buffer.cpp
   proof/proof_step_buffer.h
@@ -817,6 +819,10 @@ libcvc5_add_sources(
   theory/quantifiers/ho_term_database.h
   theory/quantifiers/ieval/free_var_info.cpp
   theory/quantifiers/ieval/free_var_info.h
+  theory/quantifiers/ieval/inst_evaluator.cpp
+  theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/inst_evaluator_manager.cpp
+  theory/quantifiers/ieval/inst_evaluator_manager.h
   theory/quantifiers/ieval/pattern_term_info.cpp
   theory/quantifiers/ieval/pattern_term_info.h
   theory/quantifiers/ieval/quant_info.cpp

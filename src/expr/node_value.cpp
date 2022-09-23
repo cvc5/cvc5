@@ -113,11 +113,5 @@ void NodeValue::markForDeletion()
   NodeManager::currentNM()->markForDeletion(this);
 }
 
-bool NodeValue::isBeingDeleted() const
-{
-  return NodeManager::currentNM() != NULL
-         && NodeManager::currentNM()->isCurrentlyDeleting(this);
-}
-
 }  // namespace expr
 }  // namespace cvc5::internal
