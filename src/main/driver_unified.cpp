@@ -171,9 +171,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       }
       // We always use the interactive shell when piping from stdin. We do this
       // to avoid memory issues involving tokens that span multiple lines.
-      // We compute a flag here to check if the interactive shell is actually
-      // interactive, which disables certain output information when
-      // isInteractive is false.
+      // We compute whether the interactive shell is actually interactive
+      // (via isatty). If we are not interactive, we disable certain output
+      // information, e.g. for querying the user.
       bool isInteractive = isatty(fileno(stdin));
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager(),
