@@ -169,6 +169,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       {
         solver->setOption("incremental", "true");
       }
+      // We always use the interactive shell when piping from stdin. We do this
+      // to avoid memory issues involving tokens that span multiple lines.
+      // We compute a flag here to check if the interactive shell is actually
+      // interactive, which disables certain output information when
+      // isInteractive is false.
       bool isInteractive = isatty(fileno(stdin));
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager(),
