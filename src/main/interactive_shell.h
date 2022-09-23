@@ -66,7 +66,7 @@ class InteractiveShell
   std::istream& d_in;
   std::ostream& d_out;
   std::unique_ptr<cvc5::parser::Parser> d_parser;
-  /** Only true if we are actually asking the user for commands */
+  /** Only true if we are actually asking the user for input */
   bool d_isInteractive;
   bool d_quit;
   bool d_usingEditline;
