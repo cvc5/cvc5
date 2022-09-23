@@ -202,7 +202,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
-    Assert(!d_isInteractive);
+    Assert(d_isInteractive);
     lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
