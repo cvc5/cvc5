@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -18,22 +18,31 @@ package io.github.cvc5;
 import java.util.ArrayList;
 import java.util.List;
 
-class Context
+public class Context
 {
   // store pointers for terms, sorts, etc
   private static List<AbstractPointer> abstractPointers = new ArrayList<>();
-  public static void addAbstractPointer(AbstractPointer pointer)
+
+  static void addAbstractPointer(AbstractPointer pointer)
   {
     abstractPointers.add(pointer);
   }
 
+  static boolean hasPointer(AbstractPointer pointer)
+  {
+    return abstractPointers.contains(pointer);
+  }
+
+  public static boolean deletePointer(AbstractPointer pointer)
+  {
+    return abstractPointers.remove(pointer);
+  }
+
   public static void deletePointers()
   {
-    // delete heap memory for terms, sorts, etc
     for (int i = abstractPointers.size() - 1; i >= 0; i--)
     {
       abstractPointers.get(i).deletePointer();
     }
-    abstractPointers.clear();
   }
 }
