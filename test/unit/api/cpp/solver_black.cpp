@@ -139,11 +139,6 @@ TEST_F(TestApiBlackSolver, getIntegerSort)
   ASSERT_NO_THROW(d_solver.getIntegerSort());
 }
 
-TEST_F(TestApiBlackSolver, getNullSort)
-{
-  ASSERT_NO_THROW(d_solver.getNullSort());
-}
-
 TEST_F(TestApiBlackSolver, getRealSort)
 {
   ASSERT_NO_THROW(d_solver.getRealSort());
@@ -2617,8 +2612,7 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   ASSERT_NO_THROW(d_solver.declareSygusVar("", funSort));
   ASSERT_NO_THROW(d_solver.declareSygusVar(std::string("b"), boolSort));
   ASSERT_THROW(d_solver.declareSygusVar("", Sort()), CVC5ApiException);
-  ASSERT_THROW(d_solver.declareSygusVar("a", d_solver.getNullSort()),
-               CVC5ApiException);
+  ASSERT_THROW(d_solver.declareSygusVar("a", Sort()), CVC5ApiException);
   Solver slv;
   ASSERT_THROW(slv.declareSygusVar("", boolSort), CVC5ApiException);
 }
@@ -2647,7 +2641,7 @@ TEST_F(TestApiBlackSolver, mkGrammar)
 TEST_F(TestApiBlackSolver, synthFun)
 {
   d_solver.setOption("sygus", "true");
-  Sort null = d_solver.getNullSort();
+  Sort null;
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
 
