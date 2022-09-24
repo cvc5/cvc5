@@ -28,9 +28,8 @@ abstract class AbstractPointer implements IPointer
 
   public void deletePointer()
   {
-    if (pointer != 0 && Context.hasPointer(this))
+    if (pointer != 0)
     {
-      Context.deletePointer(this);
       deletePointer(pointer);
     }
     pointer = 0;

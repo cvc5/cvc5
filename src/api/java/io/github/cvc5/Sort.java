@@ -22,7 +22,16 @@ import java.util.List;
  */
 public class Sort extends AbstractPointer implements Comparable<Sort>
 {
-  // region construction and destruction
+  /**
+   * Null sort
+   */
+  public Sort()
+  {
+    super(getNullSort());
+  }
+
+  private static native long getNullSort();
+
   Sort(long pointer)
   {
     super(pointer);

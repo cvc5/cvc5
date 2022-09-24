@@ -28,16 +28,6 @@ public class Context
     abstractPointers.add(pointer);
   }
 
-  static boolean hasPointer(AbstractPointer pointer)
-  {
-    return abstractPointers.contains(pointer);
-  }
-
-  public static boolean deletePointer(AbstractPointer pointer)
-  {
-    return abstractPointers.remove(pointer);
-  }
-
   public static void deletePointers()
   {
     for (int i = abstractPointers.size() - 1; i >= 0; i--)

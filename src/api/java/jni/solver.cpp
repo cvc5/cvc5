@@ -50,22 +50,6 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    getNullSort
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullSort(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Sort* sortPointer = new Sort(solver->getNullSort());
-  return reinterpret_cast<jlong>(sortPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
  * Method:    getBooleanSort
  * Signature: (J)J
  */

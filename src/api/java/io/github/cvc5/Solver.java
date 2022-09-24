@@ -85,18 +85,6 @@ public class Solver implements IPointer, AutoCloseable
   /* .................................................................... */
 
   /**
-   * @return Sort null.
-   */
-
-  public Sort getNullSort()
-  {
-    long sortPointer = getNullSort(pointer);
-    return new Sort(sortPointer);
-  }
-
-  private native long getNullSort(long pointer);
-
-  /**
    * @return Sort Boolean.
    */
   public Sort getBooleanSort()

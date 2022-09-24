@@ -229,7 +229,7 @@ class DatatypeTest
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     cons.addSelector("head", intSort);
     cons.addSelectorSelf("tail");
-    Sort nullSort = d_solver.getNullSort();
+    Sort nullSort = new Sort();
     assertThrows(CVC5ApiException.class, () -> cons.addSelector("null", nullSort));
     dtypeSpec.addConstructor(cons);
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
