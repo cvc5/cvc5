@@ -191,6 +191,8 @@ TEST_F(TestApiBlackSolver, mkFloatingPointSort)
   ASSERT_NO_THROW(d_solver.mkFloatingPointSort(4, 8));
   ASSERT_THROW(d_solver.mkFloatingPointSort(0, 8), CVC5ApiException);
   ASSERT_THROW(d_solver.mkFloatingPointSort(4, 0), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFloatingPointSort(1, 8), CVC5ApiException);
+  ASSERT_THROW(d_solver.mkFloatingPointSort(4, 1), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkDatatypeSort)

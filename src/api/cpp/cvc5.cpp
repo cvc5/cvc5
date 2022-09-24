@@ -5455,8 +5455,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
-  CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Sort(d_nm, d_nm->mkFloatingPointType(exp, sig));
   ////////
@@ -6186,25 +6186,35 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPIEEEBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_FP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPFloatingPoint(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_REAL:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(kind, internal::FloatingPointToFPReal(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPSignedBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPUnsignedBitVector(args[0], args[1]));
       break;

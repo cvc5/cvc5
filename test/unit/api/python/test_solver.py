@@ -91,6 +91,10 @@ def test_mk_floating_point_sort(solver):
         solver.mkFloatingPointSort(0, 8)
     with pytest.raises(RuntimeError):
         solver.mkFloatingPointSort(4, 0)
+    with pytest.raises(RuntimeError):
+        solver.mkFloatingPointSort(1, 8)
+    with pytest.raises(RuntimeError):
+        solver.mkFloatingPointSort(4, 1)
 
 
 def test_mk_datatype_sort(solver):
