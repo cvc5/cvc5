@@ -28,11 +28,15 @@ public class Context
     abstractPointers.add(pointer);
   }
 
+  /**
+   * Delete all cpp pointers for terms, sorts, etc
+   */
   public static void deletePointers()
   {
     for (int i = abstractPointers.size() - 1; i >= 0; i--)
     {
       abstractPointers.get(i).deletePointer();
     }
+    abstractPointers.clear();
   }
 }
