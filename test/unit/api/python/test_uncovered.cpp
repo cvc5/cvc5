@@ -232,10 +232,11 @@ TEST_F(TestApiBlackUncovered, DeclareOracleFun)
   // on passing functionals
   d_solver.setOption("oracles", "true");
   Sort iSort = d_solver.getIntegerSort();
-  Term f = d_solver.declareOracleFun(
-      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
-        return d_solver.mkInteger(0);
-      });
+  std::function<Term(const std::vector<Term>&)> fn =
+      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); };
+  Term f = d_solver.declareOracleFun("f", {iSort}, iSort, fn);
+  std::vector<Term> terms;
+  Term ret = fn(terms);
 }
 
 }  // namespace test

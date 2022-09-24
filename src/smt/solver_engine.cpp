@@ -1493,8 +1493,10 @@ UnsatCore SolverEngine::getUnsatCore()
   return getUnsatCoreInternal();
 }
 
-void SolverEngine::getRelevantInstantiationTermVectors(
-    std::map<Node, InstantiationList>& insts, bool getDebugInfo)
+void SolverEngine::getRelevantQuantTermVectors(
+    std::map<Node, InstantiationList>& insts,
+    std::map<Node, std::vector<Node>>& sks,
+    bool getDebugInfo)
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
@@ -1504,7 +1506,7 @@ void SolverEngine::getRelevantInstantiationTermVectors(
   std::shared_ptr<ProofNode> pfn = pe->getProof();
   // note that we don't have to connect the SAT proof to the input assertions,
   // and preprocessing proofs don't impact what instantiations are used
-  d_ucManager->getRelevantInstantiations(pfn, insts, getDebugInfo);
+  d_ucManager->getRelevantQuantTermVectors(pfn, insts, sks, getDebugInfo);
 }
 
 std::string SolverEngine::getProof(modes::ProofComponent c)
@@ -1627,11 +1629,41 @@ void SolverEngine::printInstantiations(std::ostream& out)
   // First, extract and print the skolemizations
   bool printed = false;
   bool reqNames = !d_env->getOptions().quantifiers.printInstFull;
-  // only print when in list mode
-  if (d_env->getOptions().quantifiers.printInstMode == options::PrintInstMode::LIST)
+
+  // Extract the skolemizations and instantiations
+  std::map<Node, std::vector<Node>> sks;
+  std::map<Node, InstantiationList> rinsts;
+  if ((d_env->getOptions().smt.produceProofs
+       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL)
+      && getSmtMode() == SmtMode::UNSAT)
   {
-    std::map<Node, std::vector<Node>> sks;
+    // minimize skolemizations and instantiations based on proof manager
+    getRelevantQuantTermVectors(
+        rinsts, sks, options().driver.dumpInstantiationsDebug);
+  }
+  else
+  {
+    // get all skolem term vectors
     qe->getSkolemTermVectors(sks);
+    // get all instantiations
+    std::map<Node, std::vector<std::vector<Node>>> insts;
+    qe->getInstantiationTermVectors(insts);
+    for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
+    {
+      // convert to instantiation list
+      Node q = i.first;
+      InstantiationList& ilq = rinsts[q];
+      ilq.initialize(q);
+      for (const std::vector<Node>& ii : i.second)
+      {
+        ilq.d_inst.push_back(InstantiationVec(ii));
+      }
+    }
+  }
+  // only print when in list mode
+  if (d_env->getOptions().quantifiers.printInstMode
+      == options::PrintInstMode::LIST)
+  {
     for (const std::pair<const Node, std::vector<Node>>& s : sks)
     {
       Node name;
@@ -1643,33 +1675,6 @@ void SolverEngine::printInstantiations(std::ostream& out)
       SkolemList slist(name, s.second);
       out << slist;
       printed = true;
-    }
-  }
-
-  // Second, extract and print the instantiations
-  std::map<Node, InstantiationList> rinsts;
-  if ((d_env->getOptions().smt.produceProofs
-       && d_env->getOptions().smt.proofMode == options::ProofMode::FULL)
-      && getSmtMode() == SmtMode::UNSAT)
-  {
-    // minimize instantiations based on proof manager
-    getRelevantInstantiationTermVectors(
-        rinsts, options().driver.dumpInstantiationsDebug);
-  }
-  else
-  {
-    std::map<Node, std::vector<std::vector<Node>>> insts;
-    getInstantiationTermVectors(insts);
-    for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
-    {
-      // convert to instantiation list
-      Node q = i.first;
-      InstantiationList& ilq = rinsts[q];
-      ilq.initialize(q);
-      for (const std::vector<Node>& ii : i.second)
-      {
-        ilq.d_inst.push_back(InstantiationVec(ii));
-      }
     }
   }
   for (std::pair<const Node, InstantiationList>& i : rinsts)
