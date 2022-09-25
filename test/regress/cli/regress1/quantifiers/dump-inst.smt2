@@ -7,6 +7,8 @@
 ; EXPECT: (instantiations (forall ((x Int)) (P x))
 ; EXPECT:   ( skv_TERM )
 ; EXPECT: )
+; disable proofs since it impacts what is relevant (e.g. the skolem lemmas)
+; DISABLE-TESTER: proof
 (set-logic UFLIA)
 (set-info :status unsat)
 (declare-fun P (Int) Bool)

@@ -1116,14 +1116,15 @@ Sort::Sort(internal::NodeManager* nm, const internal::TypeNode& t)
 {
 }
 
-Sort::Sort() : d_nm(nullptr), d_type(new internal::TypeNode()) {}
+Sort::Sort()
+    : d_nm(internal::NodeManager::currentNM()), d_type(new internal::TypeNode())
+{
+}
 
 Sort::~Sort()
 {
-  if (d_nm != nullptr)
-  {
-    d_type.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_type.reset();
 }
 
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
@@ -1850,7 +1851,12 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_nm(nullptr), d_kind(NULL_TERM), d_node(new internal::Node()) {}
+Op::Op()
+    : d_nm(internal::NodeManager::currentNM()),
+      d_kind(NULL_TERM),
+      d_node(new internal::Node())
+{
+}
 
   Op::Op(internal::NodeManager* nm, const Kind k)
     : d_nm(nm), d_kind(k), d_node(new internal::Node())
@@ -1864,12 +1870,8 @@ Op::Op(internal::NodeManager* nm, const Kind k, const internal::Node& n)
 
 Op::~Op()
 {
-  if (d_nm != nullptr)
-  {
-    // Ensure that the correct node manager is in scope when the type node is
-    // destroyed.
-    d_node.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_node.reset();
 }
 
 /* Public methods                                                             */
@@ -2189,10 +2191,7 @@ std::string Op::toString() const
   {
     CVC5_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
-    if (d_nm != nullptr)
-    {
-      return d_node->toString();
-    }
+    Assert(d_nm != nullptr);
     return d_node->toString();
   }
   ////////
@@ -2222,7 +2221,10 @@ bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term::Term() : d_nm(nullptr), d_node(new internal::Node()) {}
+Term::Term()
+    : d_nm(internal::NodeManager::currentNM()), d_node(new internal::Node())
+{
+}
 
 Term::Term(internal::NodeManager* nm, const internal::Node& n) : d_nm(nm)
 {
@@ -2231,10 +2233,8 @@ Term::Term(internal::NodeManager* nm, const internal::Node& n) : d_nm(nm)
 
 Term::~Term()
 {
-  if (d_nm != nullptr)
-  {
-    d_node.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_node.reset();
 }
 
 bool Term::operator==(const Term& t) const
@@ -2576,7 +2576,7 @@ std::string Term::toString() const
 }
 
 Term::const_iterator::const_iterator()
-    : d_nm(nullptr), d_origNode(nullptr), d_pos(0)
+    : d_nm(internal::NodeManager::currentNM()), d_origNode(nullptr), d_pos(0)
 {
 }
 
@@ -2588,7 +2588,7 @@ Term::const_iterator::const_iterator(internal::NodeManager* nm,
 }
 
 Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_nm(nullptr), d_origNode(nullptr)
+    : d_nm(internal::NodeManager::currentNM()), d_origNode(nullptr)
 {
   if (it.d_origNode != nullptr)
   {
@@ -3435,7 +3435,7 @@ Kind Term::getKindHelper() const
 /* DatatypeConstructorDecl -------------------------------------------------- */
 
 DatatypeConstructorDecl::DatatypeConstructorDecl()
-    : d_nm(nullptr), d_ctor(nullptr)
+    : d_nm(internal::NodeManager::currentNM()), d_ctor(nullptr)
 {
 }
 
@@ -3533,7 +3533,10 @@ bool DatatypeConstructorDecl::isResolved() const
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl() : d_nm(nullptr), d_dtype(nullptr) {}
+DatatypeDecl::DatatypeDecl()
+    : d_nm(internal::NodeManager::currentNM()), d_dtype(nullptr)
+{
+}
 
 DatatypeDecl::DatatypeDecl(internal::NodeManager* nm,
                            const std::string& name,
@@ -3661,7 +3664,10 @@ internal::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 /* DatatypeSelector --------------------------------------------------------- */
 
-DatatypeSelector::DatatypeSelector() : d_nm(nullptr), d_stor(nullptr) {}
+DatatypeSelector::DatatypeSelector()
+    : d_nm(internal::NodeManager::currentNM()), d_stor(nullptr)
+{
+}
 
 DatatypeSelector::DatatypeSelector(internal::NodeManager* nm,
                                    const internal::DTypeSelector& stor)
@@ -3748,7 +3754,10 @@ bool DatatypeSelector::isNullHelper() const { return d_stor == nullptr; }
 
 /* DatatypeConstructor ------------------------------------------------------ */
 
-DatatypeConstructor::DatatypeConstructor() : d_nm(nullptr), d_ctor(nullptr) {}
+DatatypeConstructor::DatatypeConstructor()
+    : d_nm(internal::NodeManager::currentNM()), d_ctor(nullptr)
+{
+}
 
 DatatypeConstructor::DatatypeConstructor(internal::NodeManager* nm,
                                          const internal::DTypeConstructor& ctor)
@@ -3884,7 +3893,7 @@ DatatypeConstructor::const_iterator::const_iterator(
 }
 
 DatatypeConstructor::const_iterator::const_iterator()
-    : d_nm(nullptr), d_int_stors(nullptr), d_idx(0)
+    : d_nm(internal::NodeManager::currentNM()), d_int_stors(nullptr), d_idx(0)
 {
 }
 
@@ -4001,7 +4010,10 @@ Datatype::Datatype(internal::NodeManager* nm, const internal::DType& dtype)
   CVC5_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
 
-Datatype::Datatype() : d_nm(nullptr), d_dtype(nullptr) {}
+Datatype::Datatype()
+    : d_nm(internal::NodeManager::currentNM()), d_dtype(nullptr)
+{
+}
 
 Datatype::~Datatype()
 {
@@ -4246,7 +4258,7 @@ Datatype::const_iterator::const_iterator(internal::NodeManager* nm,
 }
 
 Datatype::const_iterator::const_iterator()
-    : d_nm(nullptr), d_int_ctors(nullptr), d_idx(0)
+    : d_nm(internal::NodeManager::currentNM()), d_int_ctors(nullptr), d_idx(0)
 {
 }
 
@@ -4307,7 +4319,7 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
 /* -------------------------------------------------------------------------- */
 
 Grammar::Grammar()
-    : d_nm(nullptr),
+    : d_nm(internal::NodeManager::currentNM()),
       d_sygusVars(),
       d_ntSyms(),
       d_ntsToTerms(0),
@@ -4939,7 +4951,6 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 Solver::Solver(std::unique_ptr<internal::Options>&& original)
 {
   d_nm = internal::NodeManager::currentNM();
-  d_nm->init();
   d_originalOptions = std::move(original);
   d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
@@ -5453,8 +5464,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
-  CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Sort(d_nm, d_nm->mkFloatingPointType(exp, sig));
   ////////
@@ -6184,25 +6195,35 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPIEEEBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_FP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPFloatingPoint(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_REAL:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(kind, internal::FloatingPointToFPReal(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPSignedBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPUnsignedBitVector(args[0], args[1]));
       break;

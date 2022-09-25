@@ -59,7 +59,7 @@ class QuantInfo
   //-------------------------- queries local to round
   /**
    * Is active? True if the current substitution for this quantified formula
-   * does not generate an entailed instance.
+   * does not generate an redundant instance.
    */
   bool isActive() const;
   /** set active */
@@ -101,7 +101,7 @@ class QuantInfo
    * The match terms mapped to their requirements. A requirement for p is a
    * Boolean, indicating what value the term must be for the body of the
    * quantified formula to be a conflict. Having the opposite value of
-   * the requirement implies the instance is entailed.
+   * the requirement implies the instance is redundant.
    */
   std::map<TNode, bool> d_req;
   /** The domain of d_req */
