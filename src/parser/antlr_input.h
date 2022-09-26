@@ -48,11 +48,8 @@ private:
    */
   pANTLR3_UINT8 d_inputString;
 
-  LineBuffer* d_line_buffer;
-
   AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
-                   bool fileIsTemporary, pANTLR3_UINT8 inputString,
-                   LineBuffer* line_buffer);
+                   bool fileIsTemporary, pANTLR3_UINT8 inputString);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream) = delete;
@@ -71,10 +68,6 @@ public:
    * @param name the path of the file to read
    */
   static AntlrInputStream* newFileInputStream(const std::string& name);
-
-  /** Create an input from an istream. */
-  static AntlrInputStream* newStreamInputStream(std::istream& input,
-                                                const std::string& name);
 
   /** Create a string input.
    * NOTE: the new AntlrInputStream will take ownership of input over

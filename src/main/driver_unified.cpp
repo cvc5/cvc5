@@ -165,7 +165,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 
     // Parse and execute commands until we are done
     bool status = true;
-    if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
+    if (inputFromStdin)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
@@ -233,15 +233,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       ParserBuilder parserBuilder(
           pExecutor->getSolver(), pExecutor->getSymbolManager(), true);
       std::unique_ptr<Parser> parser(parserBuilder.build());
-      if( inputFromStdin ) {
-        parser->setInput(Input::newStreamInput(
-            solver->getOption("input-language"), cin, filename));
-      }
-      else
-      {
-        parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"), filename));
-      }
+      parser->setInput(
+          Input::newFileInput(solver->getOption("input-language"), filename));
+      
 
       PortfolioDriver driver(parser);
       returnValue = driver.solve(pExecutor) ? 0 : 1;
