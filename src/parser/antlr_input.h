@@ -29,7 +29,6 @@
 #include "cvc5parser_private.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
-#include "parser/line_buffer.h"
 #include "parser/parser_exception.h"
 
 namespace cvc5 {
