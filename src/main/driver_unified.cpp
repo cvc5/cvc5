@@ -235,7 +235,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       std::unique_ptr<Parser> parser(parserBuilder.build());
       parser->setInput(
           Input::newFileInput(solver->getOption("input-language"), filename));
-      
 
       PortfolioDriver driver(parser);
       returnValue = driver.solve(pExecutor) ? 0 : 1;

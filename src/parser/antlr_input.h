@@ -48,8 +48,10 @@ private:
    */
   pANTLR3_UINT8 d_inputString;
 
-  AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
-                   bool fileIsTemporary, pANTLR3_UINT8 inputString);
+  AntlrInputStream(std::string name,
+                   pANTLR3_INPUT_STREAM input,
+                   bool fileIsTemporary,
+                   pANTLR3_UINT8 inputString);
 
   /* This is private and unimplemented, because you should never use it. */
   AntlrInputStream(const AntlrInputStream& inputStream) = delete;

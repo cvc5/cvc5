@@ -76,12 +76,14 @@ pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
   return inputStream;
 }
 
-AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
+AntlrInputStream::AntlrInputStream(std::string name,
+                                   pANTLR3_INPUT_STREAM input,
                                    bool fileIsTemporary,
                                    pANTLR3_UINT8 inputString)
     : InputStream(name, fileIsTemporary),
       d_input(input),
-      d_inputString(inputString) {
+      d_inputString(inputString)
+{
   Assert(input != NULL);
   input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
