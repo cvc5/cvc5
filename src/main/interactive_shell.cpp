@@ -381,6 +381,12 @@ restart:
     {
       d_out << pe << endl;
     }
+    // if not interactive, we quit when we encounter a parse error
+    if (!d_isInteractive)
+    {
+      d_quit = true;
+      return {};
+    }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
     // line.  The first ones haven't yet been executed by the SolverEngine,
