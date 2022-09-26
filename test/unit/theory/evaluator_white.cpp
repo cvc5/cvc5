@@ -59,7 +59,7 @@ TEST_F(TestTheoryWhiteEvaluator, simple)
   std::vector<Node> args = {w, x, y, z};
   std::vector<Node> vals = {c1, zero, one, c1};
 
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Evaluator eval(rr);
   Node r = eval.eval(t, args, vals);
   ASSERT_EQ(r,
@@ -91,7 +91,7 @@ TEST_F(TestTheoryWhiteEvaluator, loop)
 
   std::vector<Node> args = {x};
   std::vector<Node> vals = {c};
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Evaluator eval(rr);
   Node r = eval.eval(t, args, vals);
   ASSERT_EQ(r,
@@ -108,7 +108,7 @@ TEST_F(TestTheoryWhiteEvaluator, strIdOf)
 
   std::vector<Node> args;
   std::vector<Node> vals;
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Evaluator eval(rr);
 
   {
@@ -143,7 +143,7 @@ TEST_F(TestTheoryWhiteEvaluator, code)
 
   std::vector<Node> args;
   std::vector<Node> vals;
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Evaluator eval(rr);
 
   // (str.code "A") ---> 65

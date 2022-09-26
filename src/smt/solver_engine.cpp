@@ -135,24 +135,6 @@ Result SolverEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
 }
-UserContext* SolverEngine::getUserContext()
-{
-  return d_env->getUserContext();
-}
-Context* SolverEngine::getContext()
-{
-  return d_env->getContext();
-}
-
-TheoryEngine* SolverEngine::getTheoryEngine()
-{
-  return d_smtSolver->getTheoryEngine();
-}
-
-prop::PropEngine* SolverEngine::getPropEngine()
-{
-  return d_smtSolver->getPropEngine();
-}
 
 void SolverEngine::finishInit()
 {
@@ -235,7 +217,7 @@ void SolverEngine::finishInit()
     d_checkModels.reset(new CheckModels(*d_env.get()));
   }
 
-  AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
+  AlwaysAssert(d_smtSolver->getPropEngine()->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SolverEngine "
          "hasn't finished initializing!";
 
@@ -1225,6 +1207,7 @@ std::vector<Node> SolverEngine::getSubstitutedAssertions()
   d_smtSolver->getPreprocessor()->applySubstitutions(easserts);
   return easserts;
 }
+
 Env& SolverEngine::getEnv() { return *d_env.get(); }
 
 void SolverEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
@@ -1274,7 +1257,7 @@ std::vector<Node> SolverEngine::getLearnedLiterals(modes::LearnedLitType t)
   Trace("smt") << "SMT getLearnedLiterals()" << std::endl;
   // note that the default mode for learned literals is via the prop engine,
   // although other modes could use the preprocessor
-  PropEngine* pe = getPropEngine();
+  PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
   return pe->getLearnedZeroLevelLiterals(t);
 }
@@ -1283,7 +1266,7 @@ void SolverEngine::checkProof()
 {
   Assert(d_env->getOptions().smt.produceProofs);
   // internal check the proof
-  PropEngine* pe = getPropEngine();
+  PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
   if (d_env->getOptions().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
@@ -1319,7 +1302,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
         "UNSAT response.");
   }
   // generate with new proofs
-  PropEngine* pe = getPropEngine();
+  PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
 
   // make the proof corresponding to a dummy step (SAT_REFUTATION) of the
@@ -1476,7 +1459,7 @@ void SolverEngine::checkModel(bool hardFailure)
   // check the model with the theory engine for debugging
   if (options().smt.debugCheckModels)
   {
-    TheoryEngine* te = getTheoryEngine();
+    TheoryEngine* te = d_smtSolver->getTheoryEngine();
     Assert(te != nullptr);
     te->checkTheoryAssertionsWithModel(hardFailure);
   }
@@ -1500,7 +1483,7 @@ void SolverEngine::getRelevantQuantTermVectors(
 {
   Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
-  PropEngine* pe = getPropEngine();
+  PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
   std::shared_ptr<ProofNode> pfn = pe->getProof();
@@ -1527,7 +1510,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
         "UNSAT response.");
   }
   // determine if we should get the full proof from the SAT solver
-  PropEngine* pe = getPropEngine();
+  PropEngine* pe = d_smtSolver->getPropEngine();
   Assert(pe != nullptr);
   std::vector<std::shared_ptr<ProofNode>> ps;
   bool connectToPreprocess = false;
@@ -1849,7 +1832,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   // the prop engine has the proof of false
   Assert(d_pfManager);
   // get difficulty map from theory engine first
-  TheoryEngine* te = getTheoryEngine();
+  TheoryEngine* te = d_smtSolver->getTheoryEngine();
   te->getDifficultyMap(dmap);
   // then ask proof manager to translate dmap in terms of the input
   Assertions& as = d_smtSolver->getAssertions();
@@ -1877,7 +1860,7 @@ void SolverEngine::pop()
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
   Trace("userpushpop") << "SolverEngine: popped to level "
-                       << getUserContext()->getLevel() << endl;
+                       << d_env->getUserContext()->getLevel() << endl;
   // should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
@@ -1888,8 +1871,8 @@ void SolverEngine::resetAssertions()
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
     // (see solver execution modes in the SMT-LIB standard)
-    Assert(getContext()->getLevel() == 0);
-    Assert(getUserContext()->getLevel() == 0);
+    Assert(d_env->getContext()->getLevel() == 0);
+    Assert(d_env->getUserContext()->getLevel() == 0);
     return;
   }
 
@@ -1979,7 +1962,5 @@ ResourceManager* SolverEngine::getResourceManager() const
 {
   return d_env->getResourceManager();
 }
-
-theory::Rewriter* SolverEngine::getRewriter() { return d_env->getRewriter(); }
 
 }  // namespace cvc5::internal
