@@ -104,7 +104,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   // If no file supplied we will read from standard input
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
-  // if we're reading from stdin on a TTY, default to interactive mode
+  // If we're reading from stdin, use interactive mode. This is independent
+  // of whether we are using a TTY, since otherwise we encounter issues
+  // when parsing tokens that are split over multiple lines (see issue #8374).
   if (!solver->getOptionInfo("interactive").setByUser)
   {
     solver->setOption("interactive", inputFromStdin ? "true" : "false");
