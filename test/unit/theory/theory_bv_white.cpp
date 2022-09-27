@@ -42,7 +42,7 @@ class TestTheoryWhiteBv : public TestSmtNoFinishInit
 TEST_F(TestTheoryWhiteBv, umulo)
 {
   d_slvEngine->setOption("incremental", "true");
-  for (uint32_t w = 1; w < 16; ++w)
+  for (uint32_t w = 1; w < 8; ++w)
   {
     d_slvEngine->push();
     Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(w));
