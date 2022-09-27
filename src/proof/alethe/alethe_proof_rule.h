@@ -423,6 +423,9 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_BVEQUAL,
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
+  // ======== hole
+  // Used for unjustified steps
+  HOLE,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED

@@ -138,6 +138,8 @@ const char* aletheRuleToString(AletheRule id)
       return "bv_bitblast_step_bvequal";
     case AletheRule::BV_BITBLAST_STEP_CONCAT: return "bv_bitblast_step_concat";
     case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
+    //================================================= Hole
+    case AletheRule::HOLE: return "hole";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";
