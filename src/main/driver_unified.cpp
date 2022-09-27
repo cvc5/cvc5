@@ -104,12 +104,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   // If no file supplied we will read from standard input
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
-  // If we're reading from stdin, use interactive mode. This is independent
-  // of whether we are using a TTY, since otherwise we encounter issues
-  // when parsing tokens that are split over multiple lines (see issue #8374).
+  // If we're reading from stdin, use interactive mode if stdin-input-per-line
+  // is true, or if we are a TTY.
   if (!solver->getOptionInfo("interactive").setByUser)
   {
-    solver->setOption("interactive", inputFromStdin ? "true" : "false");
+    bool inputPerLine = solver->getOptionInfo("stdin-input-per-line").boolValue();
+    solver->setOption("interactive", (inputFromStdin && (inputPerLine || isatty(fileno(stdin)))) ? "true" : "false");
   }
 
   // Auto-detect input language by filename extension
@@ -165,7 +165,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
 
     // Parse and execute commands until we are done
     bool status = true;
-    if (inputFromStdin)
+    if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
       {
