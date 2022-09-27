@@ -121,25 +121,5 @@ TEST_F(TestParseBlackParserBuilder, true_string_input)
   checkInput(parser.get(), "(assert true)\n");
 }
 
-TEST_F(TestParseBlackParserBuilder, empty_stream_input)
-{
-  std::stringstream ss("", std::ios_base::in);
-  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_SMTLIB_V2_6")
-                                     .build());
-  parser->setInput(Input::newStreamInput("LANG_SMTLIB_V2_6", ss, "foo"));
-  checkEmptyInput(parser.get());
-}
-
-TEST_F(TestParseBlackParserBuilder, true_stream_input)
-{
-  std::stringstream ss("(assert false)", std::ios_base::in);
-  std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
-                                     .withInputLanguage("LANG_SMTLIB_V2_6")
-                                     .build());
-  parser->setInput(Input::newStreamInput("LANG_SMTLIB_V2_6", ss, "foo"));
-  checkInput(parser.get(), "(assert false)\n");
-}
-
 }  // namespace test
 }  // namespace cvc5::internal
