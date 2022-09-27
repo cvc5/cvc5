@@ -48,6 +48,7 @@ enum RewriteRuleId
   /// operator elimination rules
   UgtEliminate,
   UgeEliminate,
+  UmuloEliminate,
   SgeEliminate,
   SgtEliminate,
   RedorEliminate,

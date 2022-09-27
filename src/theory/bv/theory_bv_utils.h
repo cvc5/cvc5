@@ -188,12 +188,6 @@ Node mkInc(TNode t);
 /* Create bit-vector addition node representing the decrement of given node. */
 Node mkDec(TNode t);
 
-/* Unsigned multiplication overflow detection.
- * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
- * overflow detection circuits", 2001.
- * http://ieeexplore.ieee.org/document/987767 */
-Node mkUmulo(TNode t1, TNode t2);
-
 /* Create conjunction.  */
 Node mkConjunction(const std::vector<TNode>& nodes);
 

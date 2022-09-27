@@ -91,6 +91,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_ADD, "bvadd");
   addOperator(cvc5::BITVECTOR_MULT, "bvmul");
   addOperator(cvc5::BITVECTOR_UDIV, "bvudiv");
+  addOperator(cvc5::BITVECTOR_UMULO, "bvumulo");
   addOperator(cvc5::BITVECTOR_UREM, "bvurem");
   addOperator(cvc5::BITVECTOR_SHL, "bvshl");
   addOperator(cvc5::BITVECTOR_LSHR, "bvlshr");

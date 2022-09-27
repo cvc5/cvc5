@@ -164,8 +164,16 @@ RewriteResponse TheoryBVRewriter::RewriteUge(TNode node, bool prerewrite){
   Node resultNode = LinearRewriteStrategy
     < RewriteRule<UgeEliminate>
     >::apply(node);
-  
-  return RewriteResponse(REWRITE_AGAIN, resultNode); 
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
+RewriteResponse TheoryBVRewriter::RewriteUmulo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<UmuloEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite){
@@ -698,6 +706,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_NOR ] = RewriteNor;
   d_rewriteTable [ kind::BITVECTOR_COMP ] = RewriteComp;
   d_rewriteTable [ kind::BITVECTOR_MULT ] = RewriteMult;
+  d_rewriteTable[kind::BITVECTOR_UMULO] = RewriteUmulo;
   d_rewriteTable[kind::BITVECTOR_ADD] = RewriteAdd;
   d_rewriteTable [ kind::BITVECTOR_SUB ] = RewriteSub;
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
