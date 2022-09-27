@@ -43,7 +43,7 @@ class TestTheoryWhiteSetsRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsRewriter, map)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node one = d_nodeManager->mkConstInt(Rational(1));
   TypeNode stringType = d_nodeManager->stringType();
   TypeNode integerType = d_nodeManager->integerType();
