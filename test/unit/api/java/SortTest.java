@@ -40,7 +40,6 @@ class SortTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
     Context.deletePointers();
   }
 

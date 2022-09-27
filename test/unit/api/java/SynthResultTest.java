@@ -35,7 +35,6 @@ class SynthResultTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
     Context.deletePointers();
   }
 

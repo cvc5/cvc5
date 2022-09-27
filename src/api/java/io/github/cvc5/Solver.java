@@ -24,8 +24,13 @@ import java.util.*;
 /**
  * A cvc5 solver.
  */
-public class Solver implements IPointer, AutoCloseable
+public class Solver implements IPointer
 {
+  static
+  {
+    Utils.loadLibraries();
+  }
+
   private long pointer;
 
   public long getPointer()
@@ -46,30 +51,8 @@ public class Solver implements IPointer, AutoCloseable
 
   private static native void deletePointer(long pointer);
 
-  // store pointers for terms, sorts, etc
-  List<AbstractPointer> abstractPointers = new ArrayList<>();
-
   // store IOracle objects
   List<IOracle> oracles = new ArrayList<>();
-
-  @Override
-  public void close()
-  {
-    // delete the heap memory for this solver
-    deletePointer();
-    // clear oracles
-    oracles.clear();
-  }
-
-  void addAbstractPointer(AbstractPointer abstractPointer)
-  {
-    abstractPointers.add(abstractPointer);
-  }
-
-  static
-  {
-    Utils.loadLibraries();
-  }
 
   /* .................................................................... */
   /* Constructors                                                         */
