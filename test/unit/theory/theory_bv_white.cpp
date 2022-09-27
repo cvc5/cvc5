@@ -39,7 +39,7 @@ class TestTheoryWhiteBv : public TestSmtNoFinishInit
 {
 };
 
-TEST_F(TestTheoryWhiteBv, mkUmulo)
+TEST_F(TestTheoryWhiteBv, umulo)
 {
   d_slvEngine->setOption("incremental", "true");
   for (uint32_t w = 1; w < 16; ++w)
@@ -53,7 +53,7 @@ TEST_F(TestTheoryWhiteBv, mkUmulo)
     Node mul = d_nodeManager->mkNode(kind::BITVECTOR_MULT, zx, zy);
     Node lhs = d_nodeManager->mkNode(
         kind::DISTINCT, mkExtract(mul, 2 * w - 1, w), mkZero(w));
-    Node rhs = mkUmulo(x, y);
+    Node rhs = d_nodeManager->mkNode(kind::BITVECTOR_UMULO, x, y);
     Node eq = d_nodeManager->mkNode(kind::DISTINCT, lhs, rhs);
     d_slvEngine->assertFormula(eq);
     Result res = d_slvEngine->checkSat();
