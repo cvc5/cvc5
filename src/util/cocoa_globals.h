@@ -34,10 +34,13 @@
 
 namespace cvc5::internal {
 
+/**
+ * The pointer to the singleton CoCoA global manager.
+ */
 extern CoCoA::GlobalManager* s_cocoaGlobalManager;
 
 /**
- * Intializes the CoCoA global manager if it has not been intialized already
+ * Intializes the CoCoA global manager if it has not been intialized already.
  */
 void initCocoaGlobalManager();
 
