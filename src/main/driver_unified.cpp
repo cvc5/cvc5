@@ -108,8 +108,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   // is true, or if we are a TTY.
   if (!solver->getOptionInfo("interactive").setByUser)
   {
-    bool inputPerLine = solver->getOptionInfo("stdin-input-per-line").boolValue();
-    solver->setOption("interactive", (inputFromStdin && (inputPerLine || isatty(fileno(stdin)))) ? "true" : "false");
+    bool inputPerLine =
+        solver->getOptionInfo("stdin-input-per-line").boolValue();
+    solver->setOption(
+        "interactive",
+        (inputFromStdin && (inputPerLine || isatty(fileno(stdin)))) ? "true"
+                                                                    : "false");
   }
 
   // Auto-detect input language by filename extension
