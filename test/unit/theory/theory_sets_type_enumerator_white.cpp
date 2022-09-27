@@ -41,7 +41,7 @@ class TestTheoryWhiteSetsTypeEnumerator : public TestSmt
 
 TEST_F(TestTheoryWhiteSetsTypeEnumerator, set_of_booleans)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   SetEnumerator setEnumerator(d_nodeManager->mkSetType(boolType));
   ASSERT_FALSE(setEnumerator.isFinished());

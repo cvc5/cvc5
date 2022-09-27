@@ -21,7 +21,6 @@
 #include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"

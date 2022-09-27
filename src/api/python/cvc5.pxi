@@ -259,9 +259,9 @@ cdef class DatatypeConstructor:
         return self.cdc.getName().decode()
 
     def getTerm(self):
-        """   
+        """
             Get the constructor term of this datatype constructor.
-            
+
             Datatype constructors are a special class of function-like terms
             whose sort is datatype constructor
             (:py:meth:`Sort.isDatatypeConstructor()`). All datatype
@@ -834,14 +834,6 @@ cdef class Solver:
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getIntegerSort()
-        return sort
-
-    def getNullSort(self):
-        """
-            :return: A null sort object.
-        """
-        cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.getNullSort()
         return sort
 
     def getRealSort(self):

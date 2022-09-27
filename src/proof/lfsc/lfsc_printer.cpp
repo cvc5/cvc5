@@ -145,7 +145,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   std::unordered_set<size_t> tupleArity;
   // get the types from the term processor, which has seen all terms occurring
   // in the proof at this point
-  const std::unordered_set<TypeNode>& types = d_tproc.getDeclaredTypes();
+  // The for loop below may add elements to the set of declared types, so we
+  // copy the set to ensure that the for loop iterators do not become outdated.
+  const std::unordered_set<TypeNode> types = d_tproc.getDeclaredTypes();
   for (const TypeNode& st : types)
   {
     // note that we must get all "component types" of a type, so that
