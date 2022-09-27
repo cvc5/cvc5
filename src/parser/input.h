@@ -100,6 +100,19 @@ class CVC5_EXPORT Input
   static Input* newFileInput(const std::string& lang,
                              const std::string& filename);
 
+  /** Create an input for the given stream.
+   *
+   * @param lang the input language
+   * @param input the input stream
+   * @param name the name of the stream, for use in error messages
+   * @param lineBuffered whether this Input should be line-buffered
+   * (false, the default, means that the entire Input might be read
+   * before being lexed and parsed)
+   */
+  static Input* newStreamInput(const std::string& lang,
+                               std::istream& input,
+                               const std::string& name);
+
   /** Create an input for the given string
    *
    * @param lang the input language

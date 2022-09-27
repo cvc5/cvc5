@@ -20,6 +20,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
 #include "parser/input.h"
@@ -37,10 +38,31 @@ namespace parser {
 // These functions exactly wrap the antlr3 source inconsistencies.
 // These are the only location CVC5_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
 // No other sanity checking happens;
+pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
+                                             const std::string& name,
+                                             LineBuffer* line_buffer);
 pANTLR3_INPUT_STREAM newAntlr3FileStream(const std::string& name);
 pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
                                             uint32_t size,
                                             const std::string& name);
+
+pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
+                                             const std::string& name,
+                                             LineBuffer* line_buffer) {
+  pANTLR3_INPUT_STREAM inputStream = NULL;
+  pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
+
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
+  inputStream =
+      antlr3LineBufferedStreamNew(input, 0, name_duplicate, line_buffer);
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
+  inputStream = antlr3LineBufferedStreamNew(input, ANTLR3_ENC_8BIT,
+                                            name_duplicate, line_buffer);
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
+
+  free(name_duplicate);
+  return inputStream;
+}
 
 pANTLR3_INPUT_STREAM newAntlr3FileStream(const std::string& name){
   pANTLR3_INPUT_STREAM input = NULL;
@@ -76,14 +98,14 @@ pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
   return inputStream;
 }
 
-AntlrInputStream::AntlrInputStream(std::string name,
-                                   pANTLR3_INPUT_STREAM input,
+AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
                                    bool fileIsTemporary,
-                                   pANTLR3_UINT8 inputString)
+                                   pANTLR3_UINT8 inputString,
+                                   LineBuffer* line_buffer)
     : InputStream(name, fileIsTemporary),
       d_input(input),
-      d_inputString(inputString)
-{
+      d_inputString(inputString),
+      d_line_buffer(line_buffer) {
   Assert(input != NULL);
   input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
@@ -92,6 +114,9 @@ AntlrInputStream::~AntlrInputStream() {
   d_input->free(d_input);
   if(d_inputString != NULL){
     free(d_inputString);
+  }
+  if (d_line_buffer != NULL) {
+    delete d_line_buffer;
   }
 }
 
@@ -106,8 +131,20 @@ AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name)
   {
     throw InputStreamException("Couldn't open file: " + name);
   }
-  return new AntlrInputStream(name, input, false, nullptr);
+  return new AntlrInputStream(name, input, false, NULL, NULL);
 }
+
+AntlrInputStream* AntlrInputStream::newStreamInputStream(
+    std::istream& input, const std::string& name)
+{
+  pANTLR3_INPUT_STREAM inputStream = NULL;
+  pANTLR3_UINT8 inputStringCopy = NULL;
+  LineBuffer* line_buffer = new LineBuffer(&input);
+  inputStream = newAntlr3BufferedStream(input, name, line_buffer);
+  return new AntlrInputStream(name, inputStream, false, inputStringCopy,
+                              line_buffer);
+}
+
 
 AntlrInputStream*
 AntlrInputStream::newStringInputStream(const std::string& input,
@@ -127,7 +164,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
   if( inputStream==NULL ) {
     throw InputStreamException("Couldn't initialize string input: '" + input + "'");
   }
-  return new AntlrInputStream(name, inputStream, false, input_duplicate);
+  return new AntlrInputStream(name, inputStream, false, input_duplicate, NULL);
 }
 
 AntlrInput* AntlrInput::newInput(const std::string& lang,

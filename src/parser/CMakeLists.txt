@@ -32,12 +32,16 @@ set(libcvc5parser_src_files
   antlr_input.cpp
   antlr_input.h
   antlr_input_imports.cpp
+  antlr_line_buffered_input.cpp
+  antlr_line_buffered_input.h
   bounded_token_buffer.cpp
   bounded_token_buffer.h
   bounded_token_factory.cpp
   bounded_token_factory.h
   input.cpp
   input.h
+  line_buffer.cpp
+  line_buffer.h
   parse_op.cpp
   parse_op.h
   parser.cpp

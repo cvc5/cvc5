@@ -57,6 +57,15 @@ Input* Input::newFileInput(const std::string& lang, const std::string& filename)
   return AntlrInput::newInput(lang, *inputStream);
 }
 
+Input* Input::newStreamInput(const std::string& lang,
+                             std::istream& input,
+                             const std::string& name)
+{
+  AntlrInputStream* inputStream =
+      AntlrInputStream::newStreamInputStream(input, name);
+  return AntlrInput::newInput(lang, *inputStream);
+}
+
 Input* Input::newStringInput(const std::string& lang,
                              const std::string& str,
                              const std::string& name)
