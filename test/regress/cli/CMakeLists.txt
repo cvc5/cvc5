@@ -3386,6 +3386,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
+    ${PYTHON_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
