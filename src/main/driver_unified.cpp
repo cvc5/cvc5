@@ -104,10 +104,16 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   // If no file supplied we will read from standard input
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
-  // if we're reading from stdin on a TTY, default to interactive mode
+  // If we're reading from stdin, use interactive mode if stdin-input-per-line
+  // is true, or if we are a TTY.
   if (!solver->getOptionInfo("interactive").setByUser)
   {
-    solver->setOption("interactive", (inputFromStdin && isatty(fileno(stdin))) ? "true" : "false");
+    bool inputPerLine =
+        solver->getOptionInfo("stdin-input-per-line").boolValue();
+    solver->setOption(
+        "interactive",
+        (inputFromStdin && (inputPerLine || isatty(fileno(stdin)))) ? "true"
+                                                                    : "false");
   }
 
   // Auto-detect input language by filename extension
@@ -169,22 +175,33 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       {
         solver->setOption("incremental", "true");
       }
+      // We use the interactive shell when piping from stdin, even some cases
+      // where the input stream is not a TTY. We do this to avoid memory issues
+      // involving tokens that span multiple lines.
+      // We compute whether the interactive shell is actually interactive
+      // (via isatty). If we are not interactive, we disable certain output
+      // information, e.g. for querying the user.
+      bool isInteractive = isatty(fileno(stdin));
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager(),
                              dopts.in(),
-                             dopts.out());
+                             dopts.out(),
+                             isInteractive);
 
-      auto& out = solver->getDriverOptions().out();
-      out << Configuration::getPackageName() << " "
-          << Configuration::getVersionString();
-      if (Configuration::isGitBuild())
+      if (isInteractive)
       {
-        out << " [" << Configuration::getGitInfo() << "]";
+        auto& out = solver->getDriverOptions().out();
+        out << Configuration::getPackageName() << " "
+            << Configuration::getVersionString();
+        if (Configuration::isGitBuild())
+        {
+          out << " [" << Configuration::getGitInfo() << "]";
+        }
+        out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
+            << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
+            << std::endl
+            << Configuration::copyright() << std::endl;
       }
-      out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
-          << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
-          << std::endl
-          << Configuration::copyright() << std::endl;
 
       bool quit = false;
       while (!quit)
