@@ -429,7 +429,7 @@ void TheoryArith::updateModelCache(std::set<Node>& termSet)
 {
   if (!d_arithModelCacheSet)
   {
-    collectAssertedTerms(termSet);
+    collectAssertedTermsForModel(termSet);
     updateModelCacheInternal(termSet);
   }
 }
