@@ -91,7 +91,6 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_ADD, "bvadd");
   addOperator(cvc5::BITVECTOR_MULT, "bvmul");
   addOperator(cvc5::BITVECTOR_UDIV, "bvudiv");
-  addOperator(cvc5::BITVECTOR_UMULO, "bvumulo");
   addOperator(cvc5::BITVECTOR_UREM, "bvurem");
   addOperator(cvc5::BITVECTOR_SHL, "bvshl");
   addOperator(cvc5::BITVECTOR_LSHR, "bvlshr");
@@ -115,6 +114,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_SGE, "bvsge");
   addOperator(cvc5::BITVECTOR_REDOR, "bvredor");
   addOperator(cvc5::BITVECTOR_REDAND, "bvredand");
+  addOperator(cvc5::BITVECTOR_UMULO, "bvumulo");
 
   addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
