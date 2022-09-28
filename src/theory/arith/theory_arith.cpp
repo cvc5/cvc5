@@ -240,7 +240,6 @@ void TheoryArith::postCheck(Effort level)
   {
     d_arithModelCache.clear();
     d_arithModelCacheIllTyped.clear();
-    d_arithModelCacheVars.clear();
     d_arithModelCacheSubs.clear();
     d_arithModelCacheSet = false;
     std::set<Node> termSet;
@@ -389,11 +388,11 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
     Trace("arith") << "...return (from linear) " << es << std::endl;
     return es;
   }
-  Trace("arith") << "Evaluate under " << d_arithModelCacheVars << " / "
-                 << d_arithModelCacheSubs << std::endl;
+  Trace("arith") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
+                 << d_arithModelCacheSubs.d_subs << std::endl;
   Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
   std::optional<bool> isZero = isExpressionZero(
-      d_env, diff, d_arithModelCacheVars, d_arithModelCacheSubs);
+      d_env, diff, d_arithModelCacheSubs);
   if (isZero)
   {
     EqualityStatus es =
@@ -454,8 +453,7 @@ void TheoryArith::finalizeModelCache()
     // non-linear term from the linear solver, which can be incorrect.
     if (Theory::isLeafOf(node, TheoryId::THEORY_ARITH))
     {
-      d_arithModelCacheVars.emplace_back(node);
-      d_arithModelCacheSubs.emplace_back(repl);
+      d_arithModelCacheSubs.add(node, repl);
     }
   }
 }

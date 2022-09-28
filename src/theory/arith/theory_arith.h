@@ -21,6 +21,7 @@
 #include "theory/arith/arith_preprocess.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
@@ -192,8 +193,7 @@ class TheoryArith : public Theory {
   /** Component of the above that was ill-typed */
   std::map<Node, Node> d_arithModelCacheIllTyped;
   /** The above model cache, in substitution form. */
-  std::vector<TNode> d_arithModelCacheVars;
-  std::vector<TNode> d_arithModelCacheSubs;
+  ArithSubs d_arithModelCacheSubs;
   /** Is the above map computed? */
   bool d_arithModelCacheSet;
 

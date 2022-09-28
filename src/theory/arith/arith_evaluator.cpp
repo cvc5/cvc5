@@ -25,8 +25,7 @@ namespace arith {
 
 std::optional<bool> isExpressionZero(Env& env,
                                      Node expr,
-                                     const std::vector<TNode>& nodes,
-                                     const std::vector<TNode>& repls)
+                                     const ArithSubs& subs)
 {
   // Substitute constants and rewrite
   expr = env.getRewriter()->rewrite(expr);
@@ -34,8 +33,7 @@ std::optional<bool> isExpressionZero(Env& env,
   {
     return expr.getConst<Rational>().isZero();
   }
-  expr =
-      expr.substitute(nodes.begin(), nodes.end(), repls.begin(), repls.end());
+  expr = subs.applyArith(expr);
   expr = env.getRewriter()->rewrite(expr);
   if (expr.isConst())
   {
