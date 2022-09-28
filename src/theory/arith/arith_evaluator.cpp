@@ -31,6 +31,8 @@ std::optional<bool> isExpressionZero(Env& env, Node expr, const ArithSubs& subs)
   {
     return expr.getConst<Rational>().isZero();
   }
+  // we use an arithmetic substitution, which does not traverse into
+  // terms that do not belong to the core theory of arithmetic.
   expr = subs.applyArith(expr);
   expr = env.getRewriter()->rewrite(expr);
   if (expr.isConst())
