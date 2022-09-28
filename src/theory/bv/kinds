@@ -90,7 +90,7 @@ operator BITVECTOR_REDAND 1 "bit-vector redand"
 operator BITVECTOR_REDOR 1 "bit-vector redor"
 
 ## overflow kinds
-operator BITVECTOR_UMULO 2 "bit-vector unsigned multiplication overflow tester"
+operator BITVECTOR_UMULO 2 "bit-vector unsigned multiplication overflow predicate"
 
 ## if-then-else kind
 operator BITVECTOR_ITE 3 "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
