@@ -339,6 +339,12 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       continue;
     }
+    // do not assert non-leafs e.g. non-linear multiplication terms,
+    // transcendental functions, etc.
+    if (!Theory::isLeafOf(p.first, TheoryId::THEORY_ARITH))
+    {
+      continue;
+    }
     // maps to constant of same type
     Assert(p.first.getType() == p.second.getType())
         << "Bad type : " << p.first << " -> " << p.second;
