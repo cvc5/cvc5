@@ -391,8 +391,8 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   Trace("arith") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
                  << d_arithModelCacheSubs.d_subs << std::endl;
   Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
-  std::optional<bool> isZero = isExpressionZero(
-      d_env, diff, d_arithModelCacheSubs);
+  std::optional<bool> isZero =
+      isExpressionZero(d_env, diff, d_arithModelCacheSubs);
   if (isZero)
   {
     EqualityStatus es =

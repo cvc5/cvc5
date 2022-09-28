@@ -23,9 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::optional<bool> isExpressionZero(Env& env,
-                                     Node expr,
-                                     const ArithSubs& subs)
+std::optional<bool> isExpressionZero(Env& env, Node expr, const ArithSubs& subs)
 {
   // Substitute constants and rewrite
   expr = env.getRewriter()->rewrite(expr);
