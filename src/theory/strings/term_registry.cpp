@@ -231,6 +231,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     registerTerm(n);
   }
   TypeNode tn = n.getType();
+  registerType(tn);
   if (tn.isRegExp() && n.isVar())
   {
     std::stringstream ss;
@@ -336,7 +337,6 @@ void TermRegistry::registerTermInternal(Node n)
   d_registeredTerms.insert(n);
   // ensure the type is registered
   TypeNode tn = n.getType();
-  registerType(tn);
   TrustNode regTermLem;
   if (tn.isStringLike())
   {
