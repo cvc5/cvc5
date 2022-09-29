@@ -656,6 +656,13 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite) {
   }
 }
 
+RewriteResponse TheoryBVRewriter::RewriteUmulo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<UmuloEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
 
 RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_DONE, node);
@@ -691,7 +698,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_NAND ] = RewriteNand;
   d_rewriteTable [ kind::BITVECTOR_NOR ] = RewriteNor;
   d_rewriteTable [ kind::BITVECTOR_COMP ] = RewriteComp;
-  d_rewriteTable [ kind::BITVECTOR_MULT ] = RewriteMult;
+  d_rewriteTable[kind::BITVECTOR_MULT] = RewriteMult;
   d_rewriteTable[kind::BITVECTOR_ADD] = RewriteAdd;
   d_rewriteTable [ kind::BITVECTOR_SUB ] = RewriteSub;
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
@@ -714,6 +721,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_ULTBV ] = RewriteUltBv;
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
+  d_rewriteTable[kind::BITVECTOR_UMULO] = RewriteUmulo;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 }
 
