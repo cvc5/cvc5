@@ -226,7 +226,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       }
     }
   }
-  registerTerm(n, 0);
+  registerTerm(n);
   TypeNode tn = n.getType();
   if (tn.isRegExp() && n.isVar())
   {
@@ -297,36 +297,18 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
 }
 
-void TermRegistry::registerTerm(Node n, int effort)
+void TermRegistry::registerTerm(Node n)
 {
-  Trace("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
+  Trace("strings-register") << "TheoryStrings::registerTerm() " << n << std::endl;
   if (d_registeredTerms.find(n) != d_registeredTerms.end())
   {
     Trace("strings-register") << "...already registered" << std::endl;
     return;
   }
-  bool do_register = true;
-  TypeNode tn = n.getType();
-  if (!tn.isStringLike())
-  {
-    if (options().strings.stringEagerLen)
-    {
-      do_register = effort == 0;
-    }
-    else
-    {
-      do_register = effort > 0 || n.getKind() != STRING_CONCAT;
-    }
-  }
-  if (!do_register)
-  {
-    Trace("strings-register") << "...do not register" << std::endl;
-    return;
-  }
   Trace("strings-register") << "...register" << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
+  TypeNode tn = n.getType();
   registerType(tn);
   TrustNode regTermLem;
   if (tn.isStringLike())
@@ -646,7 +628,7 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   Node proxy = getProxyVariableFor(n);
   if (proxy.isNull())
   {
-    registerTerm(n, 0);
+    registerTerm(n);
     proxy = getProxyVariableFor(n);
   }
   Assert(!proxy.isNull());

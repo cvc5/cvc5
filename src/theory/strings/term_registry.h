@@ -112,17 +112,11 @@ class TermRegistry : protected EnvObj
    * variables for string terms and asserting that str.code terms are within
    * proper bounds.
    *
-   * Effort is one of the following (TODO make enum #1881):
-   * 0 : upon preregistration or internal assertion
-   * 1 : upon occurrence in length term
-   * 2 : before normal form computation
-   * 3 : called on normal form terms
-   *
    * Based on the strategy, we may choose to add these initial refinement
    * lemmas at one of the following efforts, where if it is not the given
    * effort, the call to this method does nothing.
    */
-  void registerTerm(Node n, int effort);
+  void registerTerm(Node n);
   /** register length
    *
    * This method is called on non-constant string terms n that are "atomic"

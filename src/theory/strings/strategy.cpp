@@ -115,10 +115,6 @@ void Strategy::initializeStrategy()
       addStrategyStep(CHECK_FLAT_FORMS);
     }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
-    if (!options().strings.stringEagerLen)
-    {
-      addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
-    }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
     if (!options().strings.stringEagerLen && options().strings.stringLenNorm)

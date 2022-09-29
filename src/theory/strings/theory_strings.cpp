@@ -866,7 +866,7 @@ bool TheoryStrings::preNotifyFact(
       // effort in e.g. BaseSolver::init.
       for (const Node& t : atom)
       {
-        d_termReg.registerTerm(t, 0);
+        d_termReg.registerTerm(t);
       }
     }
     // store disequalities between strings that occur as literals
@@ -994,8 +994,6 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   if (k == STRING_LENGTH || k == STRING_TO_CODE)
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
-    //we care about the length of this string
-    d_termReg.registerTerm(t[0], 1);
 
     eq::EqualityEngine* ee = d_state.getEqualityEngine();
     Node r = ee->getRepresentative(t[0]);
@@ -1085,24 +1083,6 @@ void TheoryStrings::computeCareGraph(){
                         << ti.first << "..." << std::endl;
     Node op = ti.first.second;
     nodeTriePathPairProcess(&ti.second, arity[op], d_cpacb);
-  }
-}
-
-void TheoryStrings::checkRegisterTermsPreNormalForm()
-{
-  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
-  for (const Node& eqc : seqc)
-  {
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
-    while (!eqc_i.isFinished())
-    {
-      Node n = (*eqc_i);
-      if (!d_bsolver.isCongruent(n))
-      {
-        d_termReg.registerTerm(n, 2);
-      }
-      ++eqc_i;
-    }
   }
 }
 
@@ -1200,7 +1180,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
     if (lt.isNull())
     {
       Node c = d_termReg.mkNConcat(nfi.d_nf, eqc.getType());
-      d_termReg.registerTerm(c, 3);
+      d_termReg.registerTerm(c);
     }
   }
 }
@@ -1279,7 +1259,6 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
     case CHECK_CYCLES: d_csolver.checkCycles(); break;
     case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
-    case CHECK_REGISTER_TERMS_PRE_NF: checkRegisterTermsPreNormalForm(); break;
     case CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
     case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
     case CHECK_CODES: checkCodes(); break;
