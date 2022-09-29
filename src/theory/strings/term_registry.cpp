@@ -303,10 +303,11 @@ void TermRegistry::registerSubterms(Node n)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (d_registeredTerms.find(cur) == d_registeredTerms.end()) 
+    if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
       registerTermInternal(n);
       visit.insert(visit.end(), cur.begin(), cur.end());
@@ -316,7 +317,8 @@ void TermRegistry::registerSubterms(Node n)
 
 void TermRegistry::registerTerm(Node n)
 {
-  Trace("strings-register") << "TheoryStrings::registerTerm() " << n << std::endl;
+  Trace("strings-register")
+      << "TheoryStrings::registerTerm() " << n << std::endl;
   if (d_registeredTerms.find(n) != d_registeredTerms.end())
   {
     Trace("strings-register") << "...already registered" << std::endl;
