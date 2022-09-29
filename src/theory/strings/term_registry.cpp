@@ -226,7 +226,10 @@ void TermRegistry::preRegisterTerm(TNode n)
       }
     }
   }
-  registerTerm(n);
+  if (options().strings.stringEagerReg)
+  {
+    registerTerm(n);
+  }
   TypeNode tn = n.getType();
   if (tn.isRegExp() && n.isVar())
   {

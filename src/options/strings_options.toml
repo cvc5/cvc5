@@ -42,12 +42,12 @@ name   = "Strings Theory"
   help       = "generalized inferences in strings based on proxy symbols"
 
 [[option]]
-  name       = "stringEagerLen"
+  name       = "stringEagerReg"
   category   = "expert"
-  long       = "strings-eager-len"
+  long       = "strings-eager-reg"
   type       = "bool"
   default    = "true"
-  help       = "strings eager length lemmas"
+  help       = "do registration lemmas for terms during preregistration instead of during assertion"
 
 [[option]]
   name       = "stringCheckEntailLen"

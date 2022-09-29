@@ -901,6 +901,10 @@ void TheoryStrings::notifyFact(TNode atom,
     d_im.processConflict(iiPendingConf);
     return;
   }
+  if (!options().strings.stringEagerReg)
+  {
+    d_termReg.registerSubterms(atom);
+  }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
