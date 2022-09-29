@@ -106,7 +106,7 @@ class TermRegistry : protected EnvObj
   void preRegisterTerm(TNode n);
   /** Register term
    *
-   * This performs SAT-context-independent registration for a term n, which
+   * This performs user-context-independent registration for a term n, which
    * may cause lemmas to be sent on the output channel that involve
    * "initial refinement lemmas" for n. This includes introducing proxy
    * variables for string terms and asserting that str.code terms are within
@@ -117,6 +117,9 @@ class TermRegistry : protected EnvObj
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n);
+  /**
+   * Call the above method for each subterm of n
+   */
   void registerSubterms(Node n);
   /** register length
    *

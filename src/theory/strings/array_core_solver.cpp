@@ -142,7 +142,8 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node lem = nm->mkNode(EQUAL, left, right);
 
       std::vector<Node> exp;
-      //d_im.addToExplanation(termProxy, n, exp);
+      // we don't have to add (termProxy = n) to the explanation, since this
+      // is always true and justified by definition.
       d_im.sendInference(exp,
                          lem,
                          InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
