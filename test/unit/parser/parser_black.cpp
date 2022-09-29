@@ -20,11 +20,11 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
+#include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
-#include "smt/command.h"
 #include "test.h"
 
 using namespace cvc5::parser;

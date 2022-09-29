@@ -42,18 +42,18 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
+#include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "theory/logic_info.h"
 
 using namespace std;
+using namespace cvc5::parser;
 
 namespace cvc5::internal {
 
-using namespace cvc5::parser;
 using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
@@ -85,8 +85,13 @@ static set<string> s_declarations;
 InteractiveShell::InteractiveShell(Solver* solver,
                                    SymbolManager* sm,
                                    std::istream& in,
-                                   std::ostream& out)
-    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
+                                   std::ostream& out,
+                                   bool isInteractive)
+    : d_solver(solver),
+      d_in(in),
+      d_out(out),
+      d_isInteractive(isInteractive),
+      d_quit(false)
 {
   ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
@@ -181,7 +186,10 @@ restart:
   /* Don't do anything if the input is closed or if we've seen a
    * QuitCommand. */
   if(d_in.eof() || d_quit) {
-    d_out << endl;
+    if (d_isInteractive)
+    {
+      d_out << endl;
+    }
     return {};
   }
 
@@ -194,6 +202,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
+    Assert(d_isInteractive);
     lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
@@ -204,13 +213,16 @@ restart:
   }
   else
   {
-    if (line == "")
+    if (d_isInteractive)
     {
-      d_out << "cvc5> " << flush;
-    }
-    else
-    {
-      d_out << "... > " << flush;
+      if (line == "")
+      {
+        d_out << "cvc5> " << flush;
+      }
+      else
+      {
+        d_out << "... > " << flush;
+      }
     }
 
     /* Read a line */
@@ -224,12 +236,12 @@ restart:
     Trace("interactive") << "Input now '" << input << line << "'" << endl
                          << flush;
 
-    Assert(!(d_in.fail() && !d_in.eof()) || line.empty());
+    Assert(!(d_in.fail() && !d_in.eof()) || line.empty() || !d_isInteractive);
 
     /* Check for failure. */
     if(d_in.fail() && !d_in.eof()) {
       /* This should only happen if the input line was empty. */
-      Assert(line.empty());
+      Assert(line.empty() || !d_isInteractive);
       d_in.clear();
     }
 
@@ -246,9 +258,13 @@ restart:
     {
       input += line;
 
-      if(input.empty()) {
+      if (input.empty())
+      {
         /* Nothing left to parse. */
-        d_out << endl;
+        if (d_isInteractive)
+        {
+          d_out << endl;
+        }
         return {};
       }
 
@@ -288,7 +304,10 @@ restart:
       }
       else
       {
-        d_out << "... > " << flush;
+        if (d_isInteractive)
+        {
+          d_out << "... > " << flush;
+        }
 
         /* Read a line */
         stringbuf sb;
@@ -307,7 +326,7 @@ restart:
 
   /* There may be more than one command in the input. Build up a
      sequence. */
-  std::vector<std::unique_ptr<cvc5::Command>> cmdSeq;
+  std::vector<std::unique_ptr<Command>> cmdSeq;
   Command *cmd;
 
   try
@@ -361,6 +380,12 @@ restart:
     else
     {
       d_out << pe << endl;
+    }
+    // if not interactive, we quit when we encounter a parse error
+    if (!d_isInteractive)
+    {
+      d_quit = true;
+      return {};
     }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the

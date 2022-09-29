@@ -26,9 +26,9 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
+#include "parser/api/cpp/command.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "smt/command.h"
 
 using namespace std;
 
@@ -595,6 +595,8 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
     case SYM_VARIABLE: return d_symtab->isBound(name);
     case SYM_SORT:
       return d_symtab->isBoundType(name);
+    case SYM_VERBATIM:
+      Unreachable();
   }
   Assert(false);  // Unhandled(type);
   return false;

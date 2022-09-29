@@ -19,7 +19,7 @@
 set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")
 # base path to installed dependencies
 set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
-# CMake wants directories specified via INTERFACE_INCLUDE_DIRECTORIES
+# CMake wants directories specified via INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
 # (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")
 

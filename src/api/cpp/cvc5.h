@@ -35,8 +35,6 @@
 
 namespace cvc5 {
 
-class Command;
-
 namespace main {
 class CommandExecutor;
 }  // namespace main
@@ -62,6 +60,10 @@ class Result;
 class SynthResult;
 class StatisticsRegistry;
 }  // namespace internal
+
+namespace parser {
+class Command;
+}
 
 class Solver;
 class Statistics;
@@ -350,7 +352,7 @@ class Datatype;
  */
 class CVC5_EXPORT Sort
 {
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
@@ -1063,7 +1065,7 @@ namespace cvc5 {
  */
 class CVC5_EXPORT Term
 {
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
@@ -2706,7 +2708,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC5_EXPORT Grammar
 {
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class Solver;
 
  public:
@@ -3216,7 +3218,7 @@ class CVC5_EXPORT Solver
   friend class DriverOptions;
   friend class Grammar;
   friend class Op;
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
@@ -4664,7 +4666,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Block the current model values of (at least) the values in terms. Can be
-   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * called only if immediately preceded by a SAT query.
    *
    * SMT-LIB:
    *
@@ -5008,6 +5010,12 @@ class CVC5_EXPORT Solver
    * @return The output stream.
    */
   std::ostream& getOutput(const std::string& tag) const;
+
+  /**
+   * Get a string representation of the version of this solver.
+   * @return The version string.
+   */
+  std::string getVersion() const;
 
  private:
   /**

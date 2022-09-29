@@ -206,7 +206,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Solver() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
-        Sort getNullSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
         Sort getRoundingModeSort() except +
@@ -352,6 +351,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
         Statistics getStatistics() except +
+        string getVersion() except +
 
     cdef cppclass Grammar:
         Grammar() except +

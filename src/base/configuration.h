@@ -109,11 +109,6 @@ public:
 
   static bool isBuiltWithCoCoA();
 
-  /* Return a sorted array of the debug tags name */
-  static const std::vector<std::string>& getDebugTags();
-  /* Test if the given argument is a known debug tag name */
-  static bool isDebugTag(const std::string& tag);
-
   /* Return a sorted array of the trace tags name */
   static const std::vector<std::string>& getTraceTags();
   /* Test if the given argument is a known trace tag name */

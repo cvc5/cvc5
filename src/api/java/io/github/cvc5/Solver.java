@@ -2491,7 +2491,7 @@ public class Solver implements IPointer, AutoCloseable
   /**
    * Block the current model values of (at least) the values in terms.
    *
-   * Can be called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * Can be called only if immediately preceded by a SAT query.
    *
    * SMT-LIB:
    * {@code
@@ -2967,4 +2967,15 @@ public class Solver implements IPointer, AutoCloseable
   }
 
   private native long getNullDatatypeDecl(long pointer);
+
+  /**
+   * Get a string representation of the version of this solver.
+   * @return The version string.
+   */
+  public String getVersion()
+  {
+    return getVersion(pointer);
+  }
+
+  private native String getVersion(long pointer);
 }

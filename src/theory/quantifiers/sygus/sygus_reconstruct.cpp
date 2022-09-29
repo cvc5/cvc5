@@ -18,7 +18,7 @@
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "smt/command.h"
+#include "printer/printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/rewriter.h"
 
@@ -87,8 +87,8 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   // we ran out of elements, return null
   reconstructed = -1;
-  warning() << CommandFailure(
-      "Cannot get synth function: reconstruction to syntax failed.");
+  Printer::getPrinter(warning())->toStreamCmdFailure(
+      warning(), "Cannot get synth function: reconstruction to syntax failed.");
   return Node::null();
 }
 

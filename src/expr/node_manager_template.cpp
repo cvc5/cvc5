@@ -31,6 +31,8 @@
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
 #include "util/bitvector.h"
+#include "util/ff_val.h"
+#include "util/integer.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
@@ -83,7 +85,7 @@ struct NVReclaim {
 
   ~NVReclaim() {
     Trace("gc") << "<< clearing NVRECLAIM field\n";
-    d_deletionField = NULL;
+    d_deletionField = nullptr;
   }
 };
 
@@ -106,12 +108,22 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node>
 NodeManager::NodeManager()
     : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
-      d_initialized(false),
       d_nextId(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false)
 {
+  poolInsert(&expr::NodeValue::null());
+
+  for (uint32_t i = 0; i < uint32_t (kind::LAST_KIND); ++i)
+  {
+    Kind k = Kind(i);
+
+    if (hasOperator(k))
+    {
+      d_operators[i] = mkConst(Kind(k));
+    }
+  }
 }
 
 NodeManager* NodeManager::currentNM()
@@ -180,6 +192,11 @@ TypeNode NodeManager::mkBitVectorType(unsigned size)
   return mkTypeConst<BitVectorSize>(BitVectorSize(size));
 }
 
+TypeNode NodeManager::mkFiniteFieldType(const Integer& modulus)
+{
+  return mkTypeConst<FfSize>(FfSize(modulus));
+}
+
 TypeNode NodeManager::sExprType()
 {
   return mkTypeConst<TypeConstant>(SEXPR_TYPE);
@@ -193,30 +210,6 @@ TypeNode NodeManager::mkFloatingPointType(unsigned exp, unsigned sig)
 TypeNode NodeManager::mkFloatingPointType(FloatingPointSize fs)
 {
   return mkTypeConst<FloatingPointSize>(fs);
-}
-
-void NodeManager::init()
-{
-  if (d_initialized)
-  {
-    return;
-  }
-  d_initialized = true;
-
-  // Note: This code cannot be part of the constructor because it indirectly
-  // calls `NodeManager::currentNM()`, which is where the `NodeManager` is
-  // being constructed.
-  poolInsert(&expr::NodeValue::null());
-
-  for (unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i)
-  {
-    Kind k = Kind(i);
-
-    if (hasOperator(k))
-    {
-      d_operators[i] = mkConst(Kind(k));
-    }
-  }
 }
 
 NodeManager::~NodeManager()
@@ -276,10 +269,7 @@ NodeManager::~NodeManager()
     }
   }
 
-  if (d_initialized)
-  {
-    poolRemove(&expr::NodeValue::null());
-  }
+  poolRemove(&expr::NodeValue::null());
 
   if (TraceIsOn("gc:leaks"))
   {

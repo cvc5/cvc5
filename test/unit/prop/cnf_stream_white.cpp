@@ -107,7 +107,6 @@ class TestPropWhiteCnfStream : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_theoryEngine = d_slvEngine->getTheoryEngine();
     d_satSolver.reset(new FakeSatSolver());
     d_cnfContext.reset(new Context());
     d_cnfRegistrar.reset(new prop::NullRegistrar);
@@ -128,8 +127,6 @@ class TestPropWhiteCnfStream : public TestSmt
 
   /** The SAT solver proxy */
   std::unique_ptr<FakeSatSolver> d_satSolver;
-  /** The theory engine */
-  TheoryEngine* d_theoryEngine;
   /** The CNF converter in use */
   std::unique_ptr<CnfStream> d_cnfStream;
   /** The context of the CnfStream. */

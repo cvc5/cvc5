@@ -44,7 +44,7 @@ class TestTheoryWhiteBvRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_to_fixpoint)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   TypeNode bvType = d_nodeManager->mkBitVectorType(1);
 
@@ -69,7 +69,7 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_to_fixpoint)
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_concat_to_fixpoint)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   TypeNode bvType = d_nodeManager->mkBitVectorType(4);
 
@@ -88,7 +88,7 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_concat_to_fixpoint)
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode boolType = d_nodeManager->booleanType();
   TypeNode bvType = d_nodeManager->mkBitVectorType(1);
 
@@ -104,7 +104,7 @@ TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_ite)
 
 TEST_F(TestTheoryWhiteBvRewriter, rewrite_bv_comp)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bvType = d_nodeManager->mkBitVectorType(1);
   Node zero = d_nodeManager->mkConst(BitVector(1, 0u));
   Node x = d_nodeManager->mkVar("x", bvType);

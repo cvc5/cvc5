@@ -138,6 +138,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkFloatingPointSort(4, 8));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(0, 8));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 0));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(1, 8));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 1));
   }
 
   @Test
@@ -3086,5 +3088,11 @@ class SolverTest
     Term xval = d_solver.getValue(x);
     Term yval = d_solver.getValue(y);
     assertFalse(xval.equals(yval));
+  }
+
+  @Test
+  void getVersion() throws CVC5ApiException
+  {
+    System.out.println(d_solver.getVersion());
   }
 }

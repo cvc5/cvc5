@@ -649,11 +649,14 @@ inline bool RewriteRule<RedorEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RedorEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
-  unsigned size = utils::getSize(node[0]); 
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkConst( size, 0 ) );
-  return result.negate();
+  unsigned size = utils::getSize(node[0]);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      kind::BITVECTOR_NOT,
+      nm->mkNode(kind::BITVECTOR_COMP, a, utils::mkConst(size, 0)));
 }
 
 template <>
@@ -665,13 +668,59 @@ inline bool RewriteRule<RedandEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
-  unsigned size = utils::getSize(node[0]); 
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkOnes( size ) );
+  unsigned size = utils::getSize(node[0]);
+  Node result = NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_COMP, a, utils::mkOnes(size));
   return result;
 }
 
+template <>
+inline bool RewriteRule<UmuloEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UMULO);
+}
+
+template <>
+inline Node RewriteRule<UmuloEliminate>::apply(TNode node)
+{
+  /* Unsigned multiplication overflow detection.
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767 */
+
+  Trace("bv-rewrite") << "RewriteRule<UmuloEliminate>(" << node << ")"
+                      << std::endl;
+
+  uint32_t size = node[0].getType().getBitVectorSize();
+
+  if (size == 1)
+  {
+    return utils::mkFalse();
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node uppc;
+  std::vector<Node> tmp;
+
+  uppc = utils::mkExtract(node[0], size - 1, size - 1);
+  for (size_t i = 1; i < size; ++i)
+  {
+    tmp.push_back(
+        nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(node[1], i, i), uppc));
+    uppc = nm->mkNode(kind::BITVECTOR_OR,
+                      utils::mkExtract(node[0], size - 1 - i, size - 1 - i),
+                      uppc);
+  }
+  Node zext_t1 = utils::mkConcat(utils::mkZero(1), node[0]);
+  Node zext_t2 = utils::mkConcat(utils::mkZero(1), node[1]);
+  Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
+  tmp.push_back(utils::mkExtract(mul, size, size));
+  return nm->mkNode(
+      kind::EQUAL, nm->mkNode(kind::BITVECTOR_OR, tmp), utils::mkOne(1));
+}
 }
 }
 }  // namespace cvc5::internal

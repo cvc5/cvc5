@@ -44,7 +44,7 @@ enum RegExpConstType
   // re.allchar or re.range (call these three operators "non-concrete
   // operators"). Notice that re.comp is a non-concrete operator
   // since it can be seen as indirectly defined in terms of re.allchar.
-  RE_C_CONRETE_CONSTANT,
+  RE_C_CONCRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
   // re.comp, re.allchar or re.range
   RE_C_CONSTANT,

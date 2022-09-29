@@ -19,6 +19,7 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_INTERNAL_H
 #define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_INTERNAL_H
 
+#include "proof/eager_proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"
