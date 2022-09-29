@@ -664,6 +664,14 @@ RewriteResponse TheoryBVRewriter::RewriteUmulo(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
+RewriteResponse TheoryBVRewriter::RewriteSmulo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<SmuloEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -722,6 +730,7 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
   d_rewriteTable[kind::BITVECTOR_UMULO] = RewriteUmulo;
+  d_rewriteTable[kind::BITVECTOR_SMULO] = RewriteSmulo;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 }
 
