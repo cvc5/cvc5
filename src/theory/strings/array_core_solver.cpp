@@ -120,7 +120,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
 
     // note that the term could rewrites to a skolem
     // get proxy variable for the update term as t
-    Node termProxy = d_termReg.getProxyVariableFor(n);
+    Node termProxy = d_termReg.ensureProxyVariableFor(n);
 
     if (d_registeredUpdates.find(n) == d_registeredUpdates.end())
     {
@@ -142,7 +142,7 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node lem = nm->mkNode(EQUAL, left, right);
 
       std::vector<Node> exp;
-      d_im.addToExplanation(termProxy, n, exp);
+      //d_im.addToExplanation(termProxy, n, exp);
       d_im.sendInference(exp,
                          lem,
                          InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,
