@@ -100,10 +100,6 @@ void Strategy::initializeStrategy()
     d_strategy_init = true;
     // beginning indices
     step_begin[Theory::EFFORT_FULL] = 0;
-    if (options().strings.stringEager)
-    {
-      step_begin[Theory::EFFORT_STANDARD] = 0;
-    }
     // add the inference steps
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
@@ -119,11 +115,6 @@ void Strategy::initializeStrategy()
       addStrategyStep(CHECK_FLAT_FORMS);
     }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
-    if (options().strings.stringEager)
-    {
-      // do only the above inferences at standard effort, if applicable
-      step_end[Theory::EFFORT_STANDARD] = d_infer_steps.size() - 1;
-    }
     if (!options().strings.stringEagerLen)
     {
       addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);

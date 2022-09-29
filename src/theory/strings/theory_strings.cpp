@@ -908,10 +908,14 @@ void TheoryStrings::notifyFact(TNode atom,
 void TheoryStrings::postCheck(Effort e)
 {
   d_im.doPendingFacts();
+  
+  if (e!=Theory::EFFORT_FULL)
+  {
+    return;
+  }
 
   Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && d_strat.hasStrategyEffort(e))
+  if (!d_state.isInConflict() && !d_valuation.needCheck())
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
@@ -919,9 +923,6 @@ void TheoryStrings::postCheck(Effort e)
     {
       Trace("strings-eqc") << debugPrintStringsEqc() << std::endl;
     }
-    // Start the full effort check. This will compute the relevant term set,
-    // which is independent of the loop below, which adds internal facts.
-    d_termReg.notifyStartFullEffortCheck();
     ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
     bool hadPending = false;
@@ -958,8 +959,6 @@ void TheoryStrings::postCheck(Effort e)
       // repeat if we did not add a lemma or conflict, and we had pending
       // facts or lemmas.
     } while (!d_state.isInConflict() && !sentLemma && hadPending);
-    // End the full effort check.
-    d_termReg.notifyEndFullEffortCheck();
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Assert(!d_im.hasPendingFact());
