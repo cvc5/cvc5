@@ -47,7 +47,7 @@ name   = "Strings Theory"
   long       = "strings-eager-reg"
   type       = "bool"
   default    = "true"
-  help       = "do registration lemmas for terms during preregistration instead of during assertion"
+  help       = "do registration lemmas for terms during preregistration. If false, do registration lemmas for terms when they appear in asserted literals"
 
 [[option]]
   name       = "stringCheckEntailLen"
