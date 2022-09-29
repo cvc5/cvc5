@@ -337,6 +337,7 @@ class TermRegistry : protected EnvObj
   TrustNode getRegisterTermAtomicLemma(Node n,
                                        LengthStatus s,
                                        std::map<Node, bool>& reqPhase);
+  /** register term n, called when it is known n is not already registered */
   void registerTermInternal(Node n);
 };
 
