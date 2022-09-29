@@ -689,6 +689,10 @@ libcvc5_add_sources(
   theory/ext_theory.h
   theory/ff/model.cpp
   theory/ff/model.h
+  theory/ff/roots.cpp
+  theory/ff/roots.h
+  theory/ff/stats.cpp
+  theory/ff/stats.h
   theory/ff/theory_ff.cpp
   theory/ff/theory_ff.h
   theory/ff/theory_ff_rewriter.cpp
