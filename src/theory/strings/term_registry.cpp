@@ -297,6 +297,23 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
 }
 
+void TermRegistry::registerSubterms(Node n)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    if (d_registeredTerms.find(cur) == d_registeredTerms.end()) 
+    {
+      registerTermInternal(n);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
 void TermRegistry::registerTerm(Node n)
 {
   Trace("strings-register") << "TheoryStrings::registerTerm() " << n << std::endl;
@@ -305,6 +322,11 @@ void TermRegistry::registerTerm(Node n)
     Trace("strings-register") << "...already registered" << std::endl;
     return;
   }
+  registerTermInternal(n);
+}
+
+void TermRegistry::registerTermInternal(Node n)
+{
   Trace("strings-register") << "...register" << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered

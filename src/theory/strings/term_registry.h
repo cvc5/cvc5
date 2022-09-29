@@ -117,6 +117,7 @@ class TermRegistry : protected EnvObj
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n);
+  void registerSubterms(Node n);
   /** register length
    *
    * This method is called on non-constant string terms n that are "atomic"
@@ -333,6 +334,7 @@ class TermRegistry : protected EnvObj
   TrustNode getRegisterTermAtomicLemma(Node n,
                                        LengthStatus s,
                                        std::map<Node, bool>& reqPhase);
+  void registerTermInternal(Node n);
 };
 
 }  // namespace strings
