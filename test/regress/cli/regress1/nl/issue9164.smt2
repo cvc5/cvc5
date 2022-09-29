@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun a () Real)
