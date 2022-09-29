@@ -26,6 +26,7 @@
 
 #include "test_smt.h"
 #include "theory/ff/model.h"
+#include "util/cocoa_globals.h"
 
 namespace cvc5::internal {
 
@@ -37,6 +38,11 @@ namespace test {
 
 class TestTheoryFfModelBlack : public TestSmt
 {
+  void SetUp() override
+  {
+    TestSmt::SetUp();
+    initCocoaGlobalManager();
+  }
 };
 
 TEST_F(TestTheoryFfModelBlack, UnivariateEnumerator)
