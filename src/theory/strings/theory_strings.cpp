@@ -1051,7 +1051,8 @@ void TheoryStrings::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-void TheoryStrings::computeCareGraph(){
+void TheoryStrings::computeCareGraph()
+{
   //computing the care graph here is probably still necessary, due to operators that take non-string arguments  TODO: verify
   Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Build term indices..." << std::endl;
   // Term index for each (type, operator) pair. We require the operator here
@@ -1087,6 +1088,14 @@ void TheoryStrings::computeCareGraph(){
                         << ti.first << "..." << std::endl;
     Node op = ti.first.second;
     nodeTriePathPairProcess(&ti.second, arity[op], d_cpacb);
+  }
+}
+
+void TheoryStrings::notifySharedTerm(TNode n)
+{
+  if (!options().strings.stringEagerReg)
+  {
+    d_termReg.registerSubterms(n);
   }
 }
 
