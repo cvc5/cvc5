@@ -313,7 +313,7 @@ void TermRegistry::registerSubterms(Node n)
     visit.pop_back();
     if (d_registeredTerms.find(cur) == d_registeredTerms.end())
     {
-      registerTermInternal(n);
+      registerTermInternal(cur);
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
@@ -384,10 +384,7 @@ void TermRegistry::registerType(TypeNode tn)
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
-    if (!d_state.hasTerm(emp))
-    {
-      preRegisterTerm(emp);
-    }
+    preRegisterTerm(emp);
   }
 }
 
