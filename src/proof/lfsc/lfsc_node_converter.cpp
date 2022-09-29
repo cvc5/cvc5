@@ -109,7 +109,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
-    Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
+    Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(n)));
     Node tc = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
@@ -162,7 +162,7 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode intType = nm->integerType();
     TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
     Node var = mkInternalSymbol("var", varType);
-    Node index = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
+    Node index = nm->mkConstInt(Rational(getOrAssignIndexForFVar(n)));
     Node tc = typeAsNode(convertType(tn));
     return nm->mkNode(APPLY_UF, var, index, tc);
   }
@@ -1262,21 +1262,34 @@ Node LfscNodeConverter::getOperatorOfClosure(Node q,
 Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(v)));
+  Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(v)));
   Node tc = typeAsNode(convertType(v.getType()));
   return nm->mkNode(APPLY_UF, cop, x, tc);
 }
 
-size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
+size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)
 {
-  Assert(v.isVar());
-  std::map<Node, size_t>::iterator it = d_varIndex.find(v);
-  if (it != d_varIndex.end())
+  Assert(fv.isVar());
+  std::map<Node, size_t>::iterator it = d_fvarIndex.find(fv);
+  if (it != d_fvarIndex.end())
   {
     return it->second;
   }
-  size_t id = d_varIndex.size();
-  d_varIndex[v] = id;
+  size_t id = d_fvarIndex.size();
+  d_fvarIndex[fv] = id;
+  return id;
+}
+
+size_t LfscNodeConverter::getOrAssignIndexForBVar(Node bv)
+{
+  Assert(bv.isVar());
+  std::map<Node, size_t>::iterator it = d_bvarIndex.find(bv);
+  if (it != d_bvarIndex.end())
+  {
+    return it->second;
+  }
+  size_t id = d_bvarIndex.size();
+  d_bvarIndex[bv] = id;
   return id;
 }
 

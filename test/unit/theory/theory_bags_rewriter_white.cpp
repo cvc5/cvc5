@@ -687,7 +687,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, to_set)
 
 TEST_F(TestTheoryWhiteBagsRewriter, map)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bagStringType =
       d_nodeManager->mkBagType(d_nodeManager->stringType());
   Node emptybagString = d_nodeManager->mkConst(EmptyBag(bagStringType));
@@ -740,7 +740,7 @@ TEST_F(TestTheoryWhiteBagsRewriter, map)
 
 TEST_F(TestTheoryWhiteBagsRewriter, fold)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode bagIntegerType =
       d_nodeManager->mkBagType(d_nodeManager->integerType());
   Node emptybag = d_nodeManager->mkConst(EmptyBag(bagIntegerType));

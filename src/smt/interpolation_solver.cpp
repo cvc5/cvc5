@@ -21,7 +21,6 @@
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
-#include "smt/solver_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"

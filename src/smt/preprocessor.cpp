@@ -24,7 +24,6 @@
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
-#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -35,10 +34,8 @@ namespace cvc5::internal {
 namespace smt {
 
 Preprocessor::Preprocessor(Env& env,
-                           AbstractValues& abs,
                            SolverEngineStatistics& stats)
     : EnvObj(env),
-      d_absValues(abs),
       d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_processor(env, stats)
@@ -111,44 +108,17 @@ std::vector<Node> Preprocessor::getLearnedLiterals() const
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
 
-Node Preprocessor::applySubstitutions(const Node& n)
+Node Preprocessor::applySubstitutions(const Node& node)
 {
-  std::unordered_map<Node, Node> cache;
-  return applySubstitutions(n, cache);
-}
-
-Node Preprocessor::applySubstitutions(const Node& node,
-                                      std::unordered_map<Node, Node>& cache)
-{
-  Trace("smt") << "SMT applySubstitutions(" << node << ")" << endl;
-  // Substitute out any abstract values in node.
-  Node n = d_absValues.substituteAbstractValues(node);
-  if (options().expr.typeChecking)
-  {
-    // Ensure node is type-checked at this point.
-    n.getType(true);
-  }
-  // apply substitutions here (without rewriting), before expanding definitions
-  n = d_env.getTopLevelSubstitutions().apply(n);
-  Trace("smt-debug") << "...after top-level subs: " << n << std::endl;
-  return n;
+  return d_env.getTopLevelSubstitutions().apply(node);
 }
 
 void Preprocessor::applySubstitutions(std::vector<Node>& ns)
 {
-  std::unordered_map<Node, Node> cache;
   for (size_t i = 0, nasserts = ns.size(); i < nasserts; i++)
   {
-    ns[i] = applySubstitutions(ns[i], cache);
+    ns[i] = applySubstitutions(ns[i]);
   }
-}
-
-Node Preprocessor::simplify(const Node& node)
-{
-  Trace("smt") << "SMT simplify(" << node << ")" << endl;
-  Node ret = applySubstitutions(node);
-  ret = rewrite(ret);
-  return ret;
 }
 
 void Preprocessor::enableProofs(PreprocessProofGenerator* pppg)

@@ -161,6 +161,15 @@ class ExtfSolver : protected EnvObj
    * the same as its representative in the equality engine).
    */
   bool isActiveInModel(Node n) const;
+  /**
+   * @return The relevant active terms. This method retrieves the relevant
+   * terms from the term registry and filters out inactive terms.
+   *
+   * Note that the set of active terms is not a subset of the relevant terms
+   * since active terms may include preregistered terms that don't appear
+   * in any current assertions.
+   */
+  std::vector<Node> getRelevantActive() const;
   //---------------------------------- end information about ExtTheory
   /**
    * Print the relevant information regarding why we have a model, return as a

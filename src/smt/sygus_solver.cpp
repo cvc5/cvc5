@@ -26,6 +26,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/preprocessor.h"
+#include "smt/smt_driver.h"
 #include "smt/smt_solver.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -183,7 +184,7 @@ void SygusSolver::assertSygusInvConstraint(Node inv,
   d_sygusConjectureStale = true;
 }
 
-SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
+SynthResult SygusSolver::checkSynth(bool isNext)
 {
   Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   // if applicable, check if the subsolver is the correct one
@@ -237,6 +238,7 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
     if (usingSygusSubsolver())
     {
       // we generate a new solver engine to do the SyGuS query
+      Assertions& as = d_smtSolver.getAssertions();
       initializeSygusSubsolver(d_subsolver, as);
 
       // store the pointer (context-dependent)
@@ -259,7 +261,9 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
   {
     std::vector<Node> query;
     query.push_back(d_conj);
-    r = d_smtSolver.checkSatisfiability(query);
+    // use a single call driver
+    SmtDriverSingleCall sdsc(d_env, d_smtSolver);
+    r = sdsc.checkSat(query);
   }
   // The result returned by the above call is typically "unknown", which may
   // or may not correspond to a state in which we solved the conjecture
@@ -295,6 +299,7 @@ SynthResult SygusSolver::checkSynth(Assertions& as, bool isNext)
     // Check that synthesis solutions satisfy the conjecture
     if (options().smt.checkSynthSol)
     {
+      Assertions& as = d_smtSolver.getAssertions();
       checkSynthSolution(as, sol_map);
     }
   }
@@ -441,7 +446,8 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
       processed.insert(def);
     }
   }
-  // Also assert auxiliary assertions
+  // Also assert auxiliary assertions, which typically correspond to
+  // quantified formulas for define-fun-rec only.
   const context::CDList<Node>& alist = as.getAssertionList();
   for (size_t i = 0, asize = alist.size(); i < asize; ++i)
   {

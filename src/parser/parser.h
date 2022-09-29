@@ -34,11 +34,11 @@
 namespace cvc5 {
 
 // Forward declarations
-class Command;
 class ResourceManager;
 
 namespace parser {
 
+class Command;
 class Input;
 
 /** Types of checks for the symbols */
@@ -76,7 +76,9 @@ enum SymbolType {
   /** Variables */
   SYM_VARIABLE,
   /** Sorts */
-  SYM_SORT
+  SYM_SORT,
+  /** Symbols that should be preserved verbatim */
+  SYM_VERBATIM
 };/* enum SymbolType */
 
 /**
@@ -90,6 +92,8 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
     return out << "SYM_VARIABLE";
   case SYM_SORT:
     return out << "SYM_SORT";
+  case SYM_VERBATIM:
+    return out << "SYM_VERBATIM";
   default:
     return out << "SymbolType!UNKNOWN";
   }

@@ -95,6 +95,16 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     d_smt.getPropEngine()->resetTrail();
     throw;
   }
+  catch (const TypeCheckingExceptionPrivate& e)
+  {
+    // The exception has been throw during solving, backtrack to reset the
+    // decision level to the level expected after this method finishes. Note
+    // that we do not expect type checking exceptions to occur during solving.
+    // However, if they occur due to a bug, we don't want to additionally cause
+    // an assertion failure.
+    d_smt.getPropEngine()->resetTrail();
+    throw;
+  }
 
   return result;
 }
@@ -106,9 +116,8 @@ SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
 
 Result SmtDriverSingleCall::checkSatNext()
 {
-  Assertions& as = d_smt.getAssertions();
-  d_smt.preprocess(as);
-  d_smt.assertToInternal(as);
+  d_smt.preprocess();
+  d_smt.assertToInternal();
   return d_smt.checkSatInternal();
 }
 

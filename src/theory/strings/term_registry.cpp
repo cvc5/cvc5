@@ -59,7 +59,8 @@ TermRegistry::TermRegistry(Env& env,
       d_epg(
           env.isTheoryProofProducing() ? new EagerProofGenerator(
               env, userContext(), "strings::TermRegistry::EagerProofGenerator")
-                                       : nullptr)
+                                       : nullptr),
+      d_inFullEffortCheck(false)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
@@ -689,11 +690,24 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
-void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
+void TermRegistry::notifyStartFullEffortCheck()
 {
-  d_theory.collectAssertedTerms(termSet);
+  d_inFullEffortCheck = true;
+  d_relevantTerms.clear();
+  // get the asserted terms
+  std::set<Kind> irrKinds;
+  d_theory.collectAssertedTerms(d_relevantTerms, true, irrKinds);
   // also, get the additionally relevant terms
-  d_theory.computeRelevantTerms(termSet);
+  d_theory.computeRelevantTerms(d_relevantTerms);
+}
+
+void TermRegistry::notifyEndFullEffortCheck() { d_inFullEffortCheck = false; }
+
+const std::set<Node>& TermRegistry::getRelevantTermSet() const
+{
+  // must be in full effort check for relevant terms to be valid
+  Assert(d_inFullEffortCheck);
+  return d_relevantTerms;
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const

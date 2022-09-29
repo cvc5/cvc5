@@ -71,6 +71,7 @@ set(regress_0_tests
   regress0/arith/issue8905-pi-to-int.smt2
   regress0/arith/issue8872-msum-types.smt2
   regress0/arith/issue8872-2-msum-types.smt2
+  regress0/arith/issue9131-inverse-of-int.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc.smt2
@@ -474,6 +475,8 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/umulo1.smt2
+  regress0/bv/overflow/umulo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
@@ -775,6 +778,7 @@ set(regress_0_tests
   regress0/issue8807-model-core-partial.smt2
   regress0/issue8833-interpol-no-shared-var.smt2
   regress0/issue8834-model-core-nconst.smt2
+  regress0/issue9121-theoryof-no-enabled.smt2
   regress0/ite_arith.smt2
   regress0/ite_real_int_type.smtv1.smt2
   regress0/ite_real_valid.smtv1.smt2
@@ -929,6 +933,8 @@ set(regress_0_tests
   regress0/parser/issue7860-parse-only-reset.smt2
   regress0/parser/issue7894-parse-error-assoc.smt2
   regress0/parser/issue8377-resolve-indexed.smt2
+  regress0/parser/issue8767-exception.smt2
+  regress0/parser/issue9140-check-to-fp-args.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -946,6 +952,8 @@ set(regress_0_tests
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
+  regress0/parser/use-name-in-same-command.smt2
+  regress0/parser/use-name-in-same-command-minimal.smt2
   regress0/precedence/and-not.cvc.smt2
   regress0/precedence/and-xor.cvc.smt2
   regress0/precedence/bool-cmp.cvc.smt2
@@ -999,6 +1007,7 @@ set(regress_0_tests
   regress0/printer/deep-restart-output.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/get-value-no-letify.smt2
   regress0/printer/incomplete.smt2
   regress0/printer/learned-lit-output.smt2
   regress0/printer/let_shadowing.smt2
@@ -1026,6 +1035,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue468-mkScope.smt2
   regress0/proofs/proj-issue492-skolem-lemma-pf.smt2
   regress0/proofs/proj-issue528-ufpfchecker.smt2
+  regress0/proofs/proj-issue529-open-pf.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -1035,6 +1045,8 @@ set(regress_0_tests
   regress0/proofs/scope.smt2
   regress0/proofs/tricky-sat-assumption-incremental-bookeeping.smt2
   regress0/proofs/trust-subs-eq-open.smt2
+  regress0/proofs/unused-def1.smt2
+  regress0/proofs/unused-def2.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -1400,6 +1412,7 @@ set(regress_0_tests
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/set-info-status.smt2
+  regress0/solver/issue8854-get-model-after-unknown.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
@@ -2044,6 +2057,7 @@ set(regress_1_tests
   regress1/issue8852-interpol-no-var.smt2
   regress1/issue8958-bv2nat-lazy.smt2
   regress1/issue9057-block-m-lit.smt2
+  regress1/issue9112-bv2nat-cg.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/minimal_unsat_core.smt2
@@ -2096,6 +2110,8 @@ set(regress_1_tests
   regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
+  regress1/nl/issue9113-1-iand-cg.smt2
+  regress1/nl/issue9113-iand-cg.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2354,6 +2370,7 @@ set(regress_1_tests
   regress1/quantifiers/proj-issue151-2.smt2
   regress1/quantifiers/proj-issue155.smt2
   regress1/quantifiers/proj-issue295.smt2
+  regress1/quantifiers/proj-issue532-set-comp-fv-trigger.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
   regress1/quantifiers/psyco-196.smt2
@@ -3371,6 +3388,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
+    ${PYTHON_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc

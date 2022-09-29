@@ -43,7 +43,7 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
   void includes(Node r1, Node r2)
   {
-    Rewriter* rr = d_slvEngine->getRewriter();
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     r1 = rr->rewrite(r1);
     r2 = rr->rewrite(r2);
     std::cout << r1 << " includes " << r2 << std::endl;
@@ -52,7 +52,7 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
   void doesNotInclude(Node r1, Node r2)
   {
-    Rewriter* rr = d_slvEngine->getRewriter();
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     r1 = rr->rewrite(r1);
     r2 = rr->rewrite(r2);
     std::cout << r1 << " does not include " << r2 << std::endl;
@@ -89,7 +89,7 @@ TEST_F(TestTheoryBlackRegexpOperation, basic)
 
 TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node sigma = d_nodeManager->mkNode(REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(REGEXP_STAR, sigma);
   Node a = d_nodeManager->mkNode(STRING_TO_REGEXP,

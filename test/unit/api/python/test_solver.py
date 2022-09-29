@@ -43,10 +43,6 @@ def test_get_integer_sort(solver):
     solver.getIntegerSort()
 
 
-def test_get_null_sort(solver):
-    solver.getNullSort()
-
-
 def test_get_real_sort(solver):
     solver.getRealSort()
 
@@ -95,6 +91,10 @@ def test_mk_floating_point_sort(solver):
         solver.mkFloatingPointSort(0, 8)
     with pytest.raises(RuntimeError):
         solver.mkFloatingPointSort(4, 0)
+    with pytest.raises(RuntimeError):
+        solver.mkFloatingPointSort(1, 8)
+    with pytest.raises(RuntimeError):
+        solver.mkFloatingPointSort(4, 1)
 
 
 def test_mk_datatype_sort(solver):
@@ -2614,8 +2614,6 @@ def test_mk_sygus_var(solver):
     solver.declareSygusVar("b", boolSort)
     with pytest.raises(RuntimeError):
         solver.declareSygusVar("", cvc5.Sort(solver))
-    with pytest.raises(RuntimeError):
-        solver.declareSygusVar("a", solver.getNullSort())
     slv = cvc5.Solver()
     solver.setOption("sygus", "true")
     with pytest.raises(RuntimeError):
@@ -2624,7 +2622,7 @@ def test_mk_sygus_var(solver):
 
 def test_synth_fun(solver):
     solver.setOption("sygus", "true")
-    null = solver.getNullSort()
+    null = cvc5.Sort(solver)
     boolean = solver.getBooleanSort()
     integer = solver.getIntegerSort()
 
