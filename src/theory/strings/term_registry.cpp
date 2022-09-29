@@ -321,11 +321,8 @@ void TermRegistry::registerSubterms(Node n)
 
 void TermRegistry::registerTerm(Node n)
 {
-  Trace("strings-register")
-      << "TheoryStrings::registerTerm() " << n << std::endl;
   if (d_registeredTerms.find(n) != d_registeredTerms.end())
   {
-    Trace("strings-register") << "...already registered" << std::endl;
     return;
   }
   registerTermInternal(n);
@@ -333,7 +330,8 @@ void TermRegistry::registerTerm(Node n)
 
 void TermRegistry::registerTermInternal(Node n)
 {
-  Trace("strings-register") << "...register" << std::endl;
+  Trace("strings-register")
+      << "TheoryStrings::registerTermInternal() " << n << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
   TypeNode tn = n.getType();
@@ -384,7 +382,9 @@ void TermRegistry::registerType(TypeNode tn)
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
+    // always preregister and register unconditionally eagerly
     preRegisterTerm(emp);
+    registerTerm(emp);
   }
 }
 
