@@ -1379,11 +1379,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     //================================================= Quantifiers rules
     // ======== Skolem intro
-    /*case PfRule::SKOLEM_INTRO:
+    case PfRule::SKOLEM_INTRO:
     {
-      return
-    addAletheStep(AletheRule::REFL,res,nm->mkNode(kind::SEXPR,d_cl,res),{},{},*cdp);
-    }*/
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
     // ======== Skolemize
     // See proof_rule.h for documentation on the SKOLEMIZE rule. This
     // comment uses variable names as introduced there.
@@ -2191,11 +2195,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
     CDProof& cdp)
 {
   // delete attributes
-  Node sanitized_conclusion = conclusion;
-  if (expr::hasClosure(conclusion))
-  {
-    sanitized_conclusion = d_anc.convert(conclusion);
-  }
+  Node sanitized_conclusion = d_anc.convert(conclusion);
 
   std::vector<Node> new_args = std::vector<Node>();
   new_args.push_back(NodeManager::currentNM()->mkConstInt(

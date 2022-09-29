@@ -471,7 +471,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-	      out << ' ';
+        out << ' ';
               toStream(out, n[i], toDepth);
       }
       out << ')';
@@ -1089,7 +1089,7 @@ std::string Smt2Printer::smtKindString(Kind k)
 
   case kind::LAMBDA: return "lambda";
   case kind::MATCH: return "match";
-  case kind::WITNESS: return "witness";
+  case kind::WITNESS: return "choice";
 
   // arith theory
   case kind::ADD: return "+";
