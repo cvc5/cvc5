@@ -217,6 +217,8 @@ class CDList : public ContextObj
     {
       d_size = size;
     }
+    // Note that std::vector::resize() would require a default constructor for
+    // the elements in std::vector
     d_list.erase(d_list.begin() + d_size, d_list.end());
   }
 

@@ -31,6 +31,9 @@ namespace test {
 class TestObject
 {
  public:
+  // Test support for elements without default constructor
+  TestObject() = delete;
+
   TestObject(bool* cleanupCalled) : d_cleanupCalled(cleanupCalled) {}
 
   bool* d_cleanupCalled;
