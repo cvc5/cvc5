@@ -1,28 +1,27 @@
-/*********************                                                        */
-/*! \file ascription_type.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class representing a type ascription
- **
- ** A class representing a parameter for the type ascription operator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class representing a parameter for the type ascription operator.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__ASCRIPTION_TYPE_H
-#define CVC4__ASCRIPTION_TYPE_H
+#ifndef CVC5__ASCRIPTION_TYPE_H
+#define CVC5__ASCRIPTION_TYPE_H
 
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TypeNode;
 
@@ -33,7 +32,8 @@ class TypeNode;
  * AscriptionType payload.  (Essentially, all of this is a way to
  * coerce a Type into the expression tree.)
  */
-class CVC4_PUBLIC AscriptionType {
+class AscriptionType
+{
  public:
   AscriptionType(TypeNode t);
   ~AscriptionType();
@@ -46,18 +46,19 @@ class CVC4_PUBLIC AscriptionType {
  private:
   /** The type */
   std::unique_ptr<TypeNode> d_type;
-};/* class AscriptionType */
+}; /* class AscriptionType */
 
 /**
  * A hash function for type ascription operators.
  */
-struct CVC4_PUBLIC AscriptionTypeHashFunction {
+struct AscriptionTypeHashFunction
+{
   size_t operator()(const AscriptionType& at) const;
-};/* struct AscriptionTypeHashFunction */
+}; /* struct AscriptionTypeHashFunction */
 
 /** An output routine for AscriptionTypes */
-std::ostream& operator<<(std::ostream& out, AscriptionType at) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, AscriptionType at);
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* CVC4__ASCRIPTION_TYPE_H */
+#endif /* CVC5__ASCRIPTION_TYPE_H */

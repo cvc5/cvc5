@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file rewrites.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of inference information utility.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of inference information utility.
+ */
 
 #include "theory/strings/rewrites.h"
 
 #include <iostream>
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -67,10 +68,19 @@ const char* toString(Rewrite r)
     case Rewrite::IDOF_PULL_ENDPT: return "IDOF_PULL_ENDPT";
     case Rewrite::IDOF_STRIP_CNST_ENDPTS: return "IDOF_STRIP_CNST_ENDPTS";
     case Rewrite::IDOF_STRIP_SYM_LEN: return "IDOF_STRIP_SYM_LEN";
+    case Rewrite::INDEXOF_RE_EMP_RE: return "INDEXOF_RE_EMP_RE";
+    case Rewrite::INDEXOF_RE_EVAL: return "INDEXOF_RE_EVAL";
+    case Rewrite::INDEXOF_RE_INVALID_INDEX: return "INDEXOF_RE_INVALID_INDEX";
+    case Rewrite::INDEXOF_RE_MAX_INDEX: return "INDEXOF_RE_MAX_INDEX";
     case Rewrite::ITOS_EVAL: return "ITOS_EVAL";
+    case Rewrite::RE_ALL_ELIM: return "RE_ALL_ELIM";
     case Rewrite::RE_AND_EMPTY: return "RE_AND_EMPTY";
     case Rewrite::RE_ANDOR_FLATTEN: return "RE_ANDOR_FLATTEN";
     case Rewrite::RE_ANDOR_INC_CONFLICT: return "RE_ANDOR_INC_CONFLICT";
+    case Rewrite::RE_INTER_CONST_CONST_CONFLICT:
+      return "RE_INTER_CONST_CONST_CONFLICT";
+    case Rewrite::RE_INTER_CONST_RE_CONFLICT:
+      return "RE_INTER_CONST_RE_CONFLICT";
     case Rewrite::RE_CHAR_IN_STR_STAR: return "RE_CHAR_IN_STR_STAR";
     case Rewrite::RE_CONCAT: return "RE_CONCAT";
     case Rewrite::RE_CONCAT_FLATTEN: return "RE_CONCAT_FLATTEN";
@@ -80,7 +90,9 @@ const char* toString(Rewrite r)
     case Rewrite::RE_EMPTY_IN_STR_STAR: return "RE_EMPTY_IN_STR_STAR";
     case Rewrite::RE_IN_DIST_CHAR_STAR: return "RE_IN_DIST_CHAR_STAR";
     case Rewrite::RE_IN_SIGMA_STAR: return "RE_IN_SIGMA_STAR";
+    case Rewrite::RE_IN_CHAR_MODULUS_STAR: return "RE_IN_CHAR_MODULUS_STAR";
     case Rewrite::RE_LOOP: return "RE_LOOP";
+    case Rewrite::RE_LOOP_NONE: return "RE_LOOP_NONE";
     case Rewrite::RE_LOOP_STAR: return "RE_LOOP_STAR";
     case Rewrite::RE_OR_ALL: return "RE_OR_ALL";
     case Rewrite::RE_SIMPLE_CONSUME: return "RE_SIMPLE_CONSUME";
@@ -88,6 +100,7 @@ const char* toString(Rewrite r)
     case Rewrite::RE_STAR_EMPTY_STRING: return "RE_STAR_EMPTY_STRING";
     case Rewrite::RE_STAR_NESTED_STAR: return "RE_STAR_NESTED_STAR";
     case Rewrite::RE_STAR_UNION: return "RE_STAR_UNION";
+    case Rewrite::RE_STAR_UNION_CHAR: return "RE_STAR_UNION_CHAR";
     case Rewrite::REPL_CHAR_NCONTRIB_FIND: return "REPL_CHAR_NCONTRIB_FIND";
     case Rewrite::REPL_DUAL_REPL_ITE: return "REPL_DUAL_REPL_ITE";
     case Rewrite::REPL_REPL_SHORT_CIRCUIT: return "REPL_REPL_SHORT_CIRCUIT";
@@ -140,10 +153,13 @@ const char* toString(Rewrite r)
     case Rewrite::SS_STRIP_END_PT: return "SS_STRIP_END_PT";
     case Rewrite::SS_STRIP_START_PT: return "SS_STRIP_START_PT";
     case Rewrite::UPD_EVAL: return "UPD_EVAL";
+    case Rewrite::UPD_EVAL_SYM: return "UPD_EVAL_SYM";
     case Rewrite::UPD_EMPTYSTR: return "UPD_EMPTYSTR";
     case Rewrite::UPD_CONST_INDEX_MAX_OOB: return "UPD_CONST_INDEX_MAX_OOB";
     case Rewrite::UPD_CONST_INDEX_NEG: return "UPD_CONST_INDEX_NEG";
     case Rewrite::UPD_CONST_INDEX_OOB: return "UPD_CONST_INDEX_OOB";
+    case Rewrite::UPD_REV: return "UPD_REV";
+    case Rewrite::UPD_OOB: return "UPD_OOB";
     case Rewrite::STOI_CONCAT_NONNUM: return "STOI_CONCAT_NONNUM";
     case Rewrite::STOI_EVAL: return "STOI_EVAL";
     case Rewrite::STR_CONV_CONST: return "STR_CONV_CONST";
@@ -200,6 +216,7 @@ const char* toString(Rewrite r)
     case Rewrite::SUF_PREFIX_ELIM: return "SUF_PREFIX_ELIM";
     case Rewrite::STR_LT_ELIM: return "STR_LT_ELIM";
     case Rewrite::RE_RANGE_SINGLE: return "RE_RANGE_SINGLE";
+    case Rewrite::RE_RANGE_EMPTY: return "RE_RANGE_EMPTY";
     case Rewrite::RE_OPT_ELIM: return "RE_OPT_ELIM";
     case Rewrite::RE_PLUS_ELIM: return "RE_PLUS_ELIM";
     case Rewrite::RE_DIFF_ELIM: return "RE_DIFF_ELIM";
@@ -210,7 +227,9 @@ const char* toString(Rewrite r)
     case Rewrite::LEN_SEQ_UNIT: return "LEN_SEQ_UNIT";
     case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
-    case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";      
+    case Rewrite::SEQ_NTH_EVAL: return "SEQ_NTH_EVAL";
+    case Rewrite::SEQ_NTH_EVAL_OOB: return "SEQ_NTH_EVAL_OOB";
+    case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     default: return "?";
   }
 }
@@ -223,4 +242,4 @@ std::ostream& operator<<(std::ostream& out, Rewrite r)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

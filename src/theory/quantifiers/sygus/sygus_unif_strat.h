@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_unif_strat.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_unif_strat
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_unif_strat
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
 
 #include <map>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** roles for enumerators
  *
@@ -276,10 +278,10 @@ struct StrategyRestrictions
  * the grammar of the function to synthesize f. This tree is represented by
  * the above classes.
  */
-class SygusUnifStrategy
+class SygusUnifStrategy : protected EnvObj
 {
  public:
-  SygusUnifStrategy() : d_qe(nullptr) {}
+  SygusUnifStrategy(Env& env) : EnvObj(env), d_tds(nullptr) {}
   /** initialize
    *
    * This initializes this class with function-to-synthesize f. We also call
@@ -288,7 +290,7 @@ class SygusUnifStrategy
    * This call constructs a set of enumerators for the relevant subfields of
    * the grammar of f and adds them to enums.
    */
-  void initialize(QuantifiersEngine* qe, Node f, std::vector<Node>& enums);
+  void initialize(TermDbSygus* tds, Node f, std::vector<Node>& enums);
   /** Get the root enumerator for this class */
   Node getRootEnumerator() const;
   /**
@@ -329,8 +331,8 @@ class SygusUnifStrategy
   void debugPrint(const char* c);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
+  /** pointer to the term database sygus */
+  TermDbSygus* d_tds;
   /** The candidate variable this strategy is for */
   Node d_candidate;
   /** maps enumerators to relevant information */
@@ -427,8 +429,8 @@ class SygusUnifStrategy
   //------------------------------ end strategy registration
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

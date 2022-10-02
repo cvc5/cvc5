@@ -1,25 +1,27 @@
-/*********************                                                        */
-/*! \file term_context.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term context utilities.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term context utilities.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONTEXT_H
-#define CVC4__EXPR__TERM_CONTEXT_H
+#ifndef CVC5__EXPR__TERM_CONTEXT_H
+#define CVC5__EXPR__TERM_CONTEXT_H
 
 #include "expr/node.h"
+#include "theory/theory_id.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * This is an abstract class for computing "term context identifiers". A term
@@ -163,6 +165,23 @@ class PolarityTermContext : public TermContext
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
 };
 
-}  // namespace CVC4
+/**
+ * Similar to InQuantTermContext, but computes whether we are below a theory
+ * leaf of given theory id.
+ */
+class TheoryLeafTermContext : public TermContext
+{
+ public:
+  TheoryLeafTermContext(theory::TheoryId id) : d_theoryId(id) {}
+  /** The initial value: not beneath a theory leaf. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+ private:
+  theory::TheoryId d_theoryId;
+};
+
+}  // namespace cvc5::internal
+
+#endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

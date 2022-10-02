@@ -1,38 +1,44 @@
-/*********************                                                        */
-/*! \file quantifiers_modules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Class for initializing the modules of quantifiers engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for initializing the modules of quantifiers engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
-#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
+#define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/inst_strategy_mbqi.h"
+#include "theory/quantifiers/inst_strategy_pool.h"
+#include "theory/quantifiers/oracle_engine.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus_inst.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
-  
+
 class QuantifiersEngine;
+class DecisionManager;
 
 namespace quantifiers {
 
@@ -43,7 +49,8 @@ namespace quantifiers {
  */
 class QuantifiersModules
 {
-  friend class ::CVC4::theory::QuantifiersEngine;
+  friend class theory::QuantifiersEngine;
+
  public:
   QuantifiersModules();
   ~QuantifiersModules();
@@ -52,42 +59,51 @@ class QuantifiersModules
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules.
    */
-  void initialize(QuantifiersEngine* qe,
-                  context::Context* c,
+  void initialize(Env& env,
+                  QuantifiersState& qs,
+                  QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr,
+                  QModelBuilder* builder,
                   std::vector<QuantifiersModule*>& modules);
+
  private:
   //------------------------------ quantifier utilities
   /** relevant domain */
-  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
+  std::unique_ptr<RelevantDomain> d_rel_dom;
   //------------------------------ quantifiers modules
   /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
+  std::unique_ptr<AlphaEquivalence> d_alpha_equiv;
   /** instantiation engine */
-  std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
+  std::unique_ptr<InstantiationEngine> d_inst_engine;
   /** model engine */
-  std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
+  std::unique_ptr<ModelEngine> d_model_engine;
   /** bounded integers utility */
-  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
+  std::unique_ptr<BoundedIntegers> d_bint;
   /** Conflict find mechanism for quantifiers */
-  std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
+  std::unique_ptr<QuantConflictFind> d_qcf;
   /** subgoal generator */
-  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
+  std::unique_ptr<ConjectureGenerator> d_sg_gen;
   /** ceg instantiation */
-  std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
+  std::unique_ptr<SynthEngine> d_synth_e;
   /** full saturation */
-  std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
+  std::unique_ptr<InstStrategyEnum> d_fs;
+  /** pool-based instantiation */
+  std::unique_ptr<InstStrategyPool> d_ipool;
   /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCegqi> d_i_cbqi;
+  std::unique_ptr<InstStrategyCegqi> d_i_cbqi;
   /** quantifiers splitting */
-  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
-  /** quantifiers anti-skolemization */
-  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
+  std::unique_ptr<QuantDSplit> d_qsplit;
   /** SyGuS instantiation engine */
-  std::unique_ptr<quantifiers::SygusInst> d_sygus_inst;
+  std::unique_ptr<SygusInst> d_sygus_inst;
+  /** model-based quantifier instantiation */
+  std::unique_ptr<InstStrategyMbqi> d_mbqi;
+  /** Oracle engine */
+  std::unique_ptr<OracleEngine> d_oracleEngine;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H */

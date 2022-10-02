@@ -1,34 +1,40 @@
-/*********************                                                        */
-/*! \file synth_rew_rules.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A technique for synthesizing candidate rewrites of the form t1 = t2,
- ** where t1 and t2 are subterms of the input.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A technique for synthesizing candidate rewrites of the form t1 = t2,
+ * where t1 and t2 are subterms of the input.
+ */
 
 #include "preprocessing/passes/synth_rew_rules.h"
+
+#include <sstream>
 
 #include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
+#include "printer/smt2/smt2_printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -49,8 +55,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
 
   // initialize the candidate rewrite
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, bool> visited;
+  std::unordered_map<TNode, bool>::iterator it;
   std::vector<TNode> visit;
   // Get all usable terms from the input. A term is usable if it does not
   // contain a quantified subterm
@@ -141,26 +147,32 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make synth variables for types..." << std::endl;
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
-  unsigned nvars = options::sygusRewSynthInputNVars();
+  uint64_t nvars = options().quantifiers.sygusRewSynthInputNVars;
   // must have at least one variable per type
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
-  unsigned varCounter = 0;
+  uint64_t varCounter = 0;
   for (std::pair<const TypeNode, bool> tfp : typesFound)
   {
     TypeNode tn = tfp.first;
+    // we do not allocate variables for non-first class types, e.g. regular
+    // expressions
+    if (!tn.isFirstClass())
+    {
+      continue;
+    }
     // If we are not interested in purely propositional rewrites, we only
     // need to make one Boolean variable if the input has a Boolean variable.
     // This ensures that no type in our grammar has zero constructors. If
     // our input does not contain a Boolean variable, we need not allocate any
     // Boolean variables here.
-    unsigned useNVars =
-        (options::sygusRewSynthInputUseBool() || !tn.isBoolean())
+    uint64_t useNVars =
+        (options().quantifiers.sygusRewSynthInputUseBool || !tn.isBoolean())
             ? nvars
             : (hasBoolVar ? 1 : 0);
-    for (unsigned i = 0; i < useNVars; i++)
+    for (uint64_t i = 0; i < useNVars; i++)
     {
       // We must have a good name for these variables, these are
       // the ones output in rewrite rules. We choose
@@ -168,7 +180,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       std::stringstream ssv;
       if (varCounter < 26)
       {
-        ssv << static_cast<char>(varCounter + 61);
+        ssv << static_cast<char>(varCounter + static_cast<uint64_t>('A'));
       }
       else
       {
@@ -176,12 +188,22 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
       varCounter++;
       Node v = nm->mkBoundVar(ssv.str(), tn);
+      Trace("srs-input") << "Make variable " << v << " of type " << tn
+                         << std::endl;
       tvars[tn].push_back(v);
       allVars.push_back(v);
       allVarTypes.push_back(tn);
     }
   }
   Trace("srs-input") << "...finished." << std::endl;
+
+  // if the problem is trivial, e.g. contains no non-constant terms, then we
+  // exit with an exception.
+  if (allVars.empty())
+  {
+    throw Exception("No terms to consider for synthesizing rewrites");
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
 
   Trace("srs-input") << "Convert subterms to free variable form..."
                      << std::endl;
@@ -241,7 +263,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("srs-input") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
-  std::set<TypeNode> unres;
   std::vector<SygusDatatype> sdts;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
@@ -251,9 +272,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::stringstream ss;
     ss << "T" << i;
     std::string tname = ss.str();
-    TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode tnu = nm->mkUnresolvedDatatypeSort(tname);
     cterm_to_utype[ct] = tnu;
-    unres.insert(tnu);
     sdts.push_back(SygusDatatype(tname));
   }
   Trace("srs-input") << "...finished." << std::endl;
@@ -266,26 +286,32 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
     // add the variables for the type
     TypeNode ctt = ct.getType();
-    Assert(tvars.find(ctt) != tvars.end());
     std::vector<TypeNode> argList;
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
     // a Boolean variable.
-    if (!ctt.isBoolean() || options::sygusRewSynthInputUseBool()
+    if (!ctt.isBoolean() || options().quantifiers.sygusRewSynthInputUseBool
         || ct.getKind() == BOUND_VARIABLE)
     {
-      for (const Node& v : tvars[ctt])
+      // may or may not have variables for this type
+      if (tvars.find(ctt) != tvars.end())
       {
-        std::stringstream ssc;
-        ssc << "C_" << i << "_" << v;
-        sdts[i].addConstructor(v, ssc.str(), argList);
+        for (const Node& v : tvars[ctt])
+        {
+          std::stringstream ssc;
+          ssc << "C_" << i << "_" << v;
+          sdts[i].addConstructor(v, ssc.str(), argList);
+        }
       }
     }
     // add the constructor for the operator if it is not a variable
     if (ct.getKind() != BOUND_VARIABLE)
     {
       Assert(!ct.isVar());
-      Node op = ct.hasOperator() ? ct.getOperator() : ct;
+      // note that some terms like re.allchar have operators despite having
+      // no children, we should take ct itself in these cases
+      Node op =
+          (ct.getNumChildren() > 0 && ct.hasOperator()) ? ct.getOperator() : ct;
       // iterate over the original term
       for (const Node& tc : t)
       {
@@ -297,28 +323,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argList.push_back(cterm_to_utype[ctc]);
       }
       // check if we should chain
-      bool do_chain = false;
-      if (argList.size() > 2)
-      {
-        Kind k = NodeManager::operatorToKind(op);
-        do_chain = theory::quantifiers::TermUtil::isAssoc(k)
-                   && theory::quantifiers::TermUtil::isComm(k);
-        // eliminate duplicate child types
-        std::vector<TypeNode> argListTmp = argList;
-        argList.clear();
-        std::map<TypeNode, bool> hasArgType;
-        for (unsigned j = 0, size = argListTmp.size(); j < size; j++)
-        {
-          TypeNode tn = argListTmp[j];
-          if (hasArgType.find(tn) == hasArgType.end())
-          {
-            hasArgType[tn] = true;
-            argList.push_back(tn);
-          }
-        }
-      }
+      Kind k = NodeManager::operatorToKind(op);
+      bool do_chain = argList.size() > 2
+                      && theory::quantifiers::TermUtil::isAssoc(k)
+                      && theory::quantifiers::TermUtil::isComm(k);
       if (do_chain)
       {
+        // eliminate duplicate child types
+        std::set<TypeNode> argSet(argList.begin(), argList.end());
+
         // we make one type per child
         // the operator of each constructor is a no-op
         Node tbv = nm->mkBoundVar(ctt);
@@ -333,17 +346,21 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         // Notice this construction allows to abstract subsets of the factors
         // of t1+t2+t3. This is particularly helpful for terms t1+...+tn for
         // large n, where we would like to consider binary applications of +.
-        for (unsigned j = 0, size = argList.size(); j < size; j++)
+        size_t j = 0;
+        for (const TypeNode& arg : argSet)
         {
           argListc.clear();
-          argListc.push_back(argList[j]);
+          argListc.push_back(arg);
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
+          Trace("srs-input-cons") << "Add (nested chain) " << lambdaOp << " "
+                                  << lambdaOp.getType() << std::endl;
           // ID function is not printed and does not count towards weight
           sdts[i].addConstructor(lambdaOp,
                                  sscs.str(),
                                  argListc,
                                  0);
+          j++;
         }
         // recursive apply
         TypeNode recType = cterm_to_utype[ct];
@@ -352,12 +369,16 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argListc.push_back(recType);
         std::stringstream ssc;
         ssc << "C_" << i << "_rec_" << op;
+        Trace("srs-input-cons")
+            << "Add (chain) " << op << " " << op.getType() << std::endl;
         sdts[i].addConstructor(op, ssc.str(), argListc);
       }
       else
       {
         std::stringstream ssc;
         ssc << "C_" << i << "_" << op;
+        Trace("srs-input-cons")
+            << "Add " << op << " " << op.getType() << std::endl;
         sdts[i].addConstructor(op, ssc.str(), argList);
       }
     }
@@ -374,10 +395,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
-  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(
-      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(datatypes);
   Trace("srs-input") << "...finished." << std::endl;
-  Assert(types.size() == unres.size());
+  Assert(types.size() == datatypes.size());
   std::map<Node, TypeNode> subtermTypes;
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
@@ -419,22 +439,16 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // set that this is a sygus datatype
     sdttl.initializeDatatype(t, sygusVarList, false, false);
     DType dttl = sdttl.getDatatype();
-    TypeNode tlt =
-        nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+    TypeNode tlt = nm->mkDatatypeType(dttl);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
-    Trace("srs-input") << tlt.getDType() << std::endl;
+    Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt)
+                       << std::endl;
   }
   Trace("srs-input") << "...finished." << std::endl;
 
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("srs-input") << "Make sygus conjecture..." << std::endl;
-  Node iaVar = nm->mkSkolem("sygus", nm->booleanType());
-  // the attribute to mark the conjecture as being a sygus conjecture
-  theory::SygusAttribute ca;
-  iaVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, iaVar);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
   // we are "synthesizing" functions for each type of subterm
   std::vector<Node> synthConj;
   unsigned fCounter = 1;
@@ -451,17 +465,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // this marks that the grammar used for solutions for sfun is the type of
     // gvar, which is the sygus datatype type constructed above.
     sfun.setAttribute(ssg, gvar);
-    Node fvarBvl = nm->mkNode(BOUND_VAR_LIST, sfun);
 
     Node body = nm->mkConst(false);
-    body = nm->mkNode(FORALL, fvarBvl, body, instAttrList);
+    body = theory::quantifiers::SygusUtils::mkSygusConjecture({sfun}, body);
     synthConj.push_back(body);
   }
   Node trueNode = nm->mkConst(true);
-  Node res =
-      synthConj.empty()
-          ? trueNode
-          : (synthConj.size() == 1 ? synthConj[0] : nm->mkNode(AND, synthConj));
+  Node res = nm->mkAnd(synthConj);
 
   Trace("srs-input") << "got : " << res << std::endl;
   Trace("srs-input") << "...finished." << std::endl;
@@ -477,4 +487,4 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

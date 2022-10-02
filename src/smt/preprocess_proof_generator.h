@@ -1,34 +1,36 @@
-/*********************                                                        */
-/*! \file preprocess_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for proofs for preprocessing in an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for proofs for preprocessing in an SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-#define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
-
-#include <map>
+#ifndef CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
+#define CVC5__SMT__PREPROCESS_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_set.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/trust_node.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_set.h"
+#include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class LazyCDProof;
+class ProofNodeManager;
+
 namespace smt {
 
 /**
@@ -52,14 +54,13 @@ namespace smt {
  * whose free assumptions are intended to be input assertions, which are
  * implictly all assertions that are not notified to this class.
  */
-class PreprocessProofGenerator : public ProofGenerator
+class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
 {
-  typedef context::CDHashMap<Node, theory::TrustNode, NodeHashFunction>
-      NodeTrustNodeMap;
+  typedef context::CDHashMap<Node, TrustNode> NodeTrustNodeMap;
 
  public:
   /**
-   * @param pnm The proof node manager
+   * @param env Reference to the environment
    * @param c The context this class depends on
    * @param name The name of this generator (for debugging)
    * @param ra The proof rule to use when no generator is provided for new
@@ -67,7 +68,7 @@ class PreprocessProofGenerator : public ProofGenerator
    * @param rpp The proof rule to use when no generator is provided for
    * preprocessing steps.
    */
-  PreprocessProofGenerator(ProofNodeManager* pnm,
+  PreprocessProofGenerator(Env& env,
                            context::Context* c = nullptr,
                            std::string name = "PreprocessProofGenerator",
                            PfRule ra = PfRule::PREPROCESS_LEMMA,
@@ -82,14 +83,14 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   void notifyNewAssert(Node n, ProofGenerator* pg);
   /**  Notify a new assertion, trust node version. */
-  void notifyNewTrustedAssert(theory::TrustNode tn);
+  void notifyNewTrustedAssert(TrustNode tn);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
   /** Notify preprocessed, trust node version */
-  void notifyTrustedPreprocessed(theory::TrustNode tnp);
+  void notifyTrustedPreprocessed(TrustNode tnp);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
@@ -98,8 +99,6 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
-  /** Get the proof manager */
-  ProofNodeManager* getManager();
   /**
    * Allocate a helper proof. This returns a fresh lazy proof object that
    * remains alive in the context. This feature is used to construct
@@ -114,8 +113,6 @@ class PreprocessProofGenerator : public ProofGenerator
    * to this class.
    */
   void checkEagerPedantic(PfRule r);
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The context used here */
@@ -144,6 +141,6 @@ class PreprocessProofGenerator : public ProofGenerator
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

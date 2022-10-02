@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file bv_inverter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__BV_INVERTER_H
-#define CVC4__BV_INVERTER_H
+#ifndef CVC5__BV_INVERTER_H
+#define CVC5__BV_INVERTER_H
 
 #include <map>
 #include <unordered_map>
@@ -24,8 +25,14 @@
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class Options;
+
 namespace theory {
+
+class Rewriter;
+
 namespace quantifiers {
 
 /** BvInverterQuery
@@ -49,7 +56,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter() {}
+  BvInverter(const Options& opts, Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -95,15 +102,12 @@ class BvInverter
                   BvInverterQuery* m);
 
  private:
-  /** Dummy variables for each type */
-  std::map<TypeNode, Node> d_solve_var;
-
   /** Helper function for getPathToPv */
   Node getPathToPv(Node lit,
                    Node pv,
                    Node sv,
                    std::vector<unsigned>& path,
-                   std::unordered_set<TNode, TNodeHashFunction>& visited);
+                   std::unordered_set<TNode>& visited);
 
   /** Helper function for getInv.
    *
@@ -124,10 +128,16 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
+  /** Reference to options */
+  const Options& d_opts;
+  /** (Optional) rewriter used as helper in getInversionNode */
+  Rewriter* d_rewriter;
+  /** Dummy variables for each type */
+  std::map<TypeNode, Node> d_solve_var;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__BV_INVERTER_H */
+#endif /* CVC5__BV_INVERTER_H */

@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file sat_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** SAT Solver.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Mathias Preiner, Liana Hadarean
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PROP__SAT_SOLVER_H
-#define CVC4__PROP__SAT_SOLVER_H
+#ifndef CVC5__PROP__SAT_SOLVER_H
+#define CVC5__PROP__SAT_SOLVER_H
 
 #include <string>
 
@@ -25,11 +24,11 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
+#include "proof/proof_node_manager.h"
 #include "prop/sat_solver_types.h"
-#include "prop/bv_sat_solver_notify.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 namespace prop {
 
@@ -80,6 +79,13 @@ public:
     return SAT_VALUE_UNKNOWN;
   };
 
+  /**
+   * Tell SAT solver to only do propagation on next solve().
+   *
+   * @return true if feature is supported, otherwise false.
+   */
+  virtual bool setPropagateOnly() { return false; }
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -95,40 +101,31 @@ public:
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
+  /**
+   * Get list of unsatisfiable assumptions.
+   *
+   * The returned assumptions are a subset of the assumptions provided to
+   * the solve method.
+   * Can only be called if satisfiability check under assumptions was used and
+   * if it returned SAT_VALUE_FALSE.
+   */
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  {
+    Unimplemented() << "getUnsatAssumptions not implemented";
+  }
+
 };/* class SatSolver */
 
 
-class BVSatSolverInterface: public SatSolver {
-public:
-
-  virtual ~BVSatSolverInterface() {}
-  /** Interface for notifications */
-
-  virtual void setNotify(BVSatSolverNotify* notify) = 0;
-
-  virtual void markUnremovable(SatLiteral lit) = 0;
-
-  virtual void getUnsatCore(SatClause& unsatCore) = 0;
-
-  virtual void addMarkerLiteral(SatLiteral lit) = 0;
-
-  virtual SatValue propagate() = 0;
-
-  virtual void explain(SatLiteral lit, std::vector<SatLiteral>& explanation) = 0;
-
-  virtual SatValue assertAssumption(SatLiteral lit, bool propagate = false) = 0;
-
-  virtual void popAssumption() = 0;
-
-};/* class BVSatSolverInterface */
-
-class DPLLSatSolverInterface : public SatSolver
+class CDCLTSatSolverInterface : public SatSolver
 {
  public:
-  virtual ~DPLLSatSolverInterface(){};
+  virtual ~CDCLTSatSolverInterface(){};
 
   virtual void initialize(context::Context* context,
-                          prop::TheoryProxy* theoryProxy) = 0;
+                          prop::TheoryProxy* theoryProxy,
+                          context::UserContext* userContext,
+                          ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
 
@@ -145,7 +142,31 @@ class DPLLSatSolverInterface : public SatSolver
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-}; /* class DPLLSatSolverInterface */
+
+  /**
+   * Return the current list of decisions made by the SAT solver.
+   */
+  virtual std::vector<SatLiteral> getDecisions() const = 0;
+
+  /**
+   * Return the order heap of the SAT solver, which is a priority queueue
+   * of literals ordered with respect to variable activity.
+   */
+  virtual std::vector<Node> getOrderHeap() const = 0;
+
+  /**
+   * Return the current decision level of `lit`.
+   */
+  virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   */
+  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
+
+  virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+}; /* class CDCLTSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();
@@ -182,7 +203,7 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
   return out;
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+}  // namespace prop
+}  // namespace cvc5::internal
 
-#endif /* CVC4__PROP__SAT_MODULE_H */
+#endif /* CVC5__PROP__SAT_MODULE_H */

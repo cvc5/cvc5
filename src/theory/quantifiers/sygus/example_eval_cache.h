@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file example_eval_cache.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * This class caches the evaluation of nodes on a fixed list of examples.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
-#define CVC4__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
+#define CVC5__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
 
 #include "expr/node_trie.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -72,8 +73,12 @@ class ExampleEvalCache
    * are builtin terms that the analog of values taken by enumerator e that
    * is associated with f.
    */
-  ExampleEvalCache(TermDbSygus* tds, SynthConjecture* p, Node f, Node e);
+  ExampleEvalCache(TermDbSygus* tds, Node e);
   ~ExampleEvalCache();
+  /**
+   * Add example to the list of examples maintained by this class.
+   */
+  void addExample(const std::vector<Node>& ex);
 
   /** Add search value
    *
@@ -160,6 +165,6 @@ class ExampleEvalCache
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5::internal
 
 #endif

@@ -1,27 +1,29 @@
-/*********************                                                        */
-/*! \file bound_inference.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Extract bounds on variables from theory atoms.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extract bounds on variables from theory atoms.
+ */
 
-#ifndef CVC4__THEORY__ARITH__BOUND_INFERENCE_H
-#define CVC4__THEORY__ARITH__BOUND_INFERENCE_H
+#ifndef CVC5__THEORY__ARITH__BOUND_INFERENCE_H
+#define CVC5__THEORY__ARITH__BOUND_INFERENCE_H
 
 #include <map>
 #include <utility>
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -52,9 +54,10 @@ namespace arith {
    * A utility class that extracts direct bounds on arithmetic terms from theory
    * atoms.
    */
-  class BoundInference
+  class BoundInference : protected EnvObj
   {
    public:
+    BoundInference(Env& env);
     void reset();
 
     /**
@@ -109,10 +112,8 @@ namespace arith {
 /** Print the current variable bounds. */
 std::ostream& operator<<(std::ostream& os, const BoundInference& bi);
 
-std::map<Node, std::pair<Node,Node>> getBounds(const std::vector<Node>& assertions);
-
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

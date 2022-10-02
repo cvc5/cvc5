@@ -1,35 +1,40 @@
-/*********************                                                        */
-/*! \file combination_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Abstract interface for theory combination.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Abstract interface for theory combination.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__COMBINATION_ENGINE__H
-#define CVC4__THEORY__COMBINATION_ENGINE__H
+#ifndef CVC5__THEORY__COMBINATION_ENGINE__H
+#define CVC5__THEORY__COMBINATION_ENGINE__H
 
-#include <vector>
 #include <memory>
+#include <vector>
 
-#include "theory/eager_proof_generator.h"
+#include "smt/env_obj.h"
 #include "theory/ee_manager.h"
-#include "theory/model_manager.h"
-#include "theory/shared_solver.h"
+#include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TheoryEngine;
+class Env;
+class EagerProofGenerator;
 
 namespace theory {
+
+class ModelManager;
+class SharedSolver;
 
 /**
  * Manager for doing theory combination. This class is responsible for:
@@ -38,26 +43,19 @@ namespace theory {
  * mode, and
  * (2) Implementing the main combination method (combineTheories).
  */
-class CombinationEngine
+class CombinationEngine : protected EnvObj
 {
  public:
-  CombinationEngine(TheoryEngine& te,
-                    const std::vector<Theory*>& paraTheories,
-                    ProofNodeManager* pnm);
+  CombinationEngine(Env& env,
+                    TheoryEngine& te,
+                    const std::vector<Theory*>& paraTheories);
   virtual ~CombinationEngine();
 
   /** Finish initialization */
   void finishInit();
 
-  //-------------------------- equality engine
   /** Get equality engine theory information for theory with identifier tid. */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /**
-   * Get the "core" equality engine. This is the equality engine that
-   * quantifiers should use.
-   */
-  eq::EqualityEngine* getCoreEqualityEngine();
-  //-------------------------- end equality engine
   //-------------------------- model
   /**
    * Reset the model maintained by this class. This resets all local information
@@ -107,12 +105,10 @@ class CombinationEngine
    * who listens to the model's equality engine (if any).
    */
   virtual eq::EqualityEngineNotify* getModelEqualityEngineNotify();
-  /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
-  void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
+  /** Valuation for the engine */
+  Valuation d_valuation;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
   /** List of parametric theories of theory engine */
@@ -140,6 +136,6 @@ class CombinationEngine
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__COMBINATION_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__COMBINATION_DISTRIBUTED__H */

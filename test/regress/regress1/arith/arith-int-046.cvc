@@ -1,6 +1,0 @@
-% EXPECT: not_entailed
-x0, x1, x2, x3 : INT;
-ASSERT (2 * x0) + (-6 * x1) + (14 * x2) + (-24 * x3) > 4 ;
-ASSERT  (-13 * x0) + (-2 * x1) + (-9 * x2) + (-7 * x3) >= 29 ;
-ASSERT  (-11 * x0) + (28 * x1) + (-20 * x2) + (-2 * x3) >= 31;
-QUERY FALSE;

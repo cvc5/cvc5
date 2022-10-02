@@ -1,45 +1,65 @@
 id     = "PRINTER"
 name   = "Printing"
-header = "options/printer_options.h"
 
 [[option]]
-  name       = "modelFormatMode"
-  category   = "regular"
-  long       = "model-format=MODE"
-  type       = "ModelFormatMode"
-  default    = "DEFAULT"
-  help       = "print format mode for models, see --model-format=help"
-  help_mode  = "Model format modes."
-[[option.mode.DEFAULT]]
-  name = "default"
-  help = "Print model as expressions in the output language format."
-[[option.mode.TABLE]]
-  name = "table"
-  help = "Print functional expressions over finite domains in a table format."
+  name       = "outputLanguage"
+  alias      = ["output-language"]
+  category   = "common"
+  long       = "output-lang=LANG"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  includes   = ["options/language.h"]
+  help       = "force output language (default is \"auto\"; see --output-lang help)"
 
 [[option]]
-  name       = "instFormatMode"
-  category   = "regular"
-  long       = "inst-format=MODE"
-  type       = "InstFormatMode"
-  default    = "InstFormatMode::DEFAULT"
-  handler    = "stringToInstFormatMode"
-  includes   = ["options/printer_modes.h"]
-  help       = "print format mode for instantiations, see --inst-format=help"
-# InstFormatMode is currently exported as public so we can't auto genenerate
-# the enum.
-#  help_mode  = "Inst format modes."
-#[[option.mode.DEFAULT]]
-#  name = "default"
-#  help = "Print instantiations as a list in the output language format."
-#[[option.mode.SZS]]
-#  name = "szs"
-#  help = "Print instantiations as SZS compliant proof."
+  name       = "nodeDepth"
+  category   = "expert"
+  long       = "expr-depth=N"
+  type       = "int64_t"
+  default    = "-1"
+  minimum    = "-1"
+  help       = "print exprs to depth N (0 == default, -1 == no limit)"
+
+[[option]]
+  name       = "dagThresh"
+  category   = "common"
+  long       = "dag-thresh=N"
+  type       = "int64_t"
+  default    = "1"
+  minimum    = "0"
+  help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
 [[option]]
   name       = "flattenHOChains"
-  category   = "regular"
+  category   = "expert"
   long       = "flatten-ho-chains"
   type       = "bool"
   default    = "false"
   help       = "print (binary) application chains in a flattened way, e.g. (a b c) rather than ((a b) c)"
+
+[[option]]
+  name       = "modelUninterpPrint"
+  category   = "regular"
+  long       = "model-u-print=MODE"
+  type       = "ModelUninterpPrintMode"
+  default    = "None"
+  help       = "determines how to print uninterpreted elements in models"
+  help_mode  = "uninterpreted elements in models printing modes."
+[[option.mode.DeclSortAndFun]]
+  name = "decl-sort-and-fun"
+  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
+[[option.mode.DeclFun]]
+  name = "decl-fun"
+  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.None]]
+  name = "none"
+  help = "(default) do not print declarations of uninterpreted elements in models."
+
+[[option]]
+  name       = "bvPrintConstsAsIndexedSymbols"
+  category   = "regular"
+  long       = "bv-print-consts-as-indexed-symbols"
+  type       = "bool"
+  default    = "false"
+  help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"

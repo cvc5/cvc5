@@ -1,71 +1,82 @@
-/*********************                                                        */
-/*! \file term_registry.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of term registry for the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of term registry for the theory of strings.
+ */
 
 #include "theory/strings/term_registry.h"
 
-#include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "theory/theory.h"
+#include "util/rational.h"
+#include "util/string.h"
 
 using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+using namespace cvc5::context;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-struct StringsProxyVarAttributeId
-{
-};
-typedef expr::Attribute<StringsProxyVarAttributeId, bool>
-    StringsProxyVarAttribute;
-
-TermRegistry::TermRegistry(SolverState& s,
-                           OutputChannel& out,
-                           SequencesStatistics& statistics,
-                           ProofNodeManager* pnm)
-    : d_state(s),
-      d_out(out),
+TermRegistry::TermRegistry(Env& env,
+                           Theory& t,
+                           SolverState& s,
+                           SequencesStatistics& statistics)
+    : EnvObj(env),
+      d_theory(t),
+      d_state(s),
+      d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
-      d_functionsTerms(s.getSatContext()),
-      d_inputVars(s.getUserContext()),
-      d_preregisteredTerms(s.getUserContext()),
-      d_registeredTerms(s.getUserContext()),
-      d_registeredTypes(s.getUserContext()),
-      d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      s.getUserContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_hasSeqUpdate(false),
+      d_skCache(env.getRewriter()),
+      d_aent(env.getRewriter()),
+      d_functionsTerms(context()),
+      d_inputVars(userContext()),
+      d_preregisteredTerms(context()),
+      d_registeredTerms(userContext()),
+      d_registeredTypes(userContext()),
+      d_proxyVar(userContext()),
+      d_proxyVarToLength(userContext()),
+      d_lengthLemmaTermsCache(userContext()),
+      d_epg(
+          env.isTheoryProofProducing() ? new EagerProofGenerator(
+              env, userContext(), "strings::TermRegistry::EagerProofGenerator")
+                                       : nullptr),
+      d_inFullEffortCheck(false)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_negOne = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_cardSize = utils::getAlphabetCardinality();
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
+  Assert(options().strings.stringsAlphaCard <= String::num_codes());
+  d_alphaCard = options().strings.stringsAlphaCard;
 }
 
 TermRegistry::~TermRegistry() {}
 
-Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
+uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
+
+void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
+
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
@@ -73,37 +84,59 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
   if (tk == STRING_TO_CODE)
   {
     // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
-    Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
-    Node code_range = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
-        nm->mkNode(
-            LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+    Node len = nm->mkNode(STRING_LENGTH, t[0]);
+    Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
+    Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
+    Node code_range = utils::mkCodeRange(t, alphaCard);
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
-  else if (tk == STRING_STRIDOF)
+  else if (tk == SEQ_NTH)
   {
-    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
-    // x)))
-    Node l = utils::mkNLength(t[0]);
+    if (t[0].getType().isString())
+    {
+      Node s = t[0];
+      Node n = t[1];
+      // start point is greater than or equal zero
+      Node c1 = nm->mkNode(GEQ, n, nm->mkConstInt(0));
+      // start point is less than end of string
+      Node c2 = nm->mkNode(GT, nm->mkNode(STRING_LENGTH, s), n);
+      // check whether this application of seq.nth is defined.
+      Node cond = nm->mkNode(AND, c1, c2);
+      Node code_range = utils::mkCodeRange(t, alphaCard);
+      // the lemma for `seq.nth`
+      lemma = nm->mkNode(ITE, cond, code_range, t.eqNode(nm->mkConstInt(Rational(-1))));
+      // IF: n >=0 AND n < len( s )
+      // THEN: 0 <= (seq.nth s n) < |A|
+      // ELSE: (seq.nth s n) = -1
+    }
+  }
+  else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
+  {
+    // (and
+    //   (or (= (f x y n) (- 1)) (>= (f x y n) n))
+    //   (<= (f x y n) (str.len x)))
+    //
+    // where f in { str.indexof, str.indexof_re }
+    Node l = nm->mkNode(STRING_LENGTH, t[0]);
     lemma = nm->mkNode(AND,
-                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                       nm->mkNode(OR,
+                                  t.eqNode(nm->mkConstInt(Rational(-1))),
+                                  nm->mkNode(GEQ, t, t[2])),
                        nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
   {
     // (>= (str.to_int x) (- 1))
-    lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
+    lemma = nm->mkNode(GEQ, t, nm->mkConstInt(Rational(-1)));
   }
-  else if (tk == STRING_STRCTN)
+  else if (tk == STRING_CONTAINS)
   {
     // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
     Node sk1 =
         sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
     Node sk2 =
         sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
+    lemma = t[0].eqNode(nm->mkNode(STRING_CONCAT, sk1, t[1], sk2));
     lemma = nm->mkNode(ITE, t, lemma, t[0].eqNode(t[1]).notNode());
   }
   return lemma;
@@ -112,7 +145,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
 Node TermRegistry::lengthPositive(Node t)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(Rational(0));
+  Node zero = nm->mkConstInt(Rational(0));
   Node emp = Word::mkEmptyWord(t.getType());
   Node tlen = nm->mkNode(STRING_LENGTH, t);
   Node tlenEqZero = tlen.eqNode(zero);
@@ -135,16 +168,17 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
-  if (!options::stringExp())
+  if (!options().strings.stringExp)
   {
-    if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
-        || k == SEQ_NTH || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
-        || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
-        || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
+    if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
+        || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
+        || k == STRING_REPLACE_ALL || k == SEQ_NTH || k == STRING_REPLACE_RE
+        || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
+        || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV
+        || k == STRING_UPDATE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(n)
          << " not supported in default mode, try --strings-exp";
       throw LogicException(ss.str());
     }
@@ -162,7 +196,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (k == STRING_IN_REGEXP)
   {
-    d_out.requirePhase(n, true);
+    d_im->requirePhase(n, true);
     ee->addTriggerPredicate(n);
     ee->addTerm(n[0]);
     ee->addTerm(n[1]);
@@ -171,6 +205,26 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == STRING_TO_CODE)
   {
     d_hasStrCode = true;
+  }
+  else if (k == SEQ_NTH || k == STRING_UPDATE)
+  {
+    d_hasSeqUpdate = true;
+  }
+  else if (k == REGEXP_RANGE)
+  {
+    for (const Node& nc : n)
+    {
+      if (!nc.isConst())
+      {
+        throw LogicException(
+            "expecting a constant string term in regexp range");
+      }
+      if (nc.getConst<String>().size() != 1)
+      {
+        throw LogicException(
+            "expecting a single constant string term in regexp range");
+      }
+    }
   }
   registerTerm(n, 0);
   TypeNode tn = n.getType();
@@ -188,7 +242,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       std::vector<unsigned> vec = n.getConst<String>().getVec();
       for (unsigned u : vec)
       {
-        if (u >= d_cardSize)
+        if (u >= d_alphaCard)
         {
           std::stringstream ss;
           ss << "Characters in string \"" << n
@@ -202,7 +256,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (tn.isBoolean())
   {
     // All kinds that we do congruence over that may return a Boolean go here
-    if (k==STRING_STRCTN || k == STRING_LEQ || k == SEQ_NTH)
+    if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH)
     {
       // Get triggered for both equal and dis-equal
       ee->addTriggerPredicate(n);
@@ -221,11 +275,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   // Concatenation terms do not need to be considered here because
   // their arguments have string type and do not introduce any shared
   // terms.
-  if (n.hasOperator() && ee->isFunctionKind(k) && k != STRING_CONCAT)
+  if (n.hasOperator() && ee->isFunctionKind(k)
+      && kindToTheoryId(k) == THEORY_STRINGS && k != STRING_CONCAT)
   {
     d_functionsTerms.push_back(n);
   }
-  if (options::stringFMF())
+  if (options().strings.stringFMF)
   {
     if (tn.isStringLike())
     {
@@ -244,11 +299,18 @@ void TermRegistry::preRegisterTerm(TNode n)
 
 void TermRegistry::registerTerm(Node n, int effort)
 {
-  TypeNode tn = n.getType();
+  Trace("strings-register") << "TheoryStrings::registerTerm() " << n
+                            << ", effort = " << effort << std::endl;
+  if (d_registeredTerms.find(n) != d_registeredTerms.end())
+  {
+    Trace("strings-register") << "...already registered" << std::endl;
+    return;
+  }
   bool do_register = true;
+  TypeNode tn = n.getType();
   if (!tn.isStringLike())
   {
-    if (options::stringEagerLen())
+    if (options().strings.stringEagerLen)
     {
       do_register = effort == 0;
     }
@@ -259,17 +321,13 @@ void TermRegistry::registerTerm(Node n, int effort)
   }
   if (!do_register)
   {
+    Trace("strings-register") << "...do not register" << std::endl;
     return;
   }
-  if (d_registeredTerms.find(n) != d_registeredTerms.end())
-  {
-    return;
-  }
+  Trace("strings-register") << "...register" << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
   registerType(tn);
-  Debug("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
   TrustNode regTermLem;
   if (tn.isStringLike())
   {
@@ -278,10 +336,10 @@ void TermRegistry::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind() != STRING_STRCTN)
+  else if (n.getKind() != STRING_CONTAINS)
   {
     // we don't send out eager reduction lemma for str.contains currently
-    Node eagerRedLemma = eagerReduce(n, &d_skCache);
+    Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it
@@ -302,8 +360,7 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << regTermLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.trustedLemma(regTermLem);
+    d_im->trustedLemma(regTermLem, InferenceId::STRINGS_REGISTER_TERM);
   }
 }
 
@@ -336,7 +393,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() != STRING_CONCAT && !n.isConst())
   {
     Node lsumb = nm->mkNode(STRING_LENGTH, n);
-    lsum = Rewriter::rewrite(lsumb);
+    lsum = rewrite(lsumb);
     // can register length term if it does not rewrite
     if (lsum == lsumb)
     {
@@ -345,9 +402,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
-  StringsProxyVarAttribute spva;
-  sk.setAttribute(spva, true);
-  Node eq = Rewriter::rewrite(sk.eqNode(n));
+  Node eq = rewrite(sk.eqNode(n));
   d_proxyVar[n] = sk;
   // If we are introducing a proxy for a constant or concat term, we do not
   // need to send lemmas about its length, since its length is already
@@ -361,12 +416,13 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
+    NodeNodeMap::const_iterator itl;
     for (const Node& nc : n)
     {
-      if (nc.getAttribute(StringsProxyVarAttribute()))
+      itl = d_proxyVarToLength.find(nc);
+      if (itl != d_proxyVarToLength.end())
       {
-        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
-        nodeVec.push_back(d_proxyVarToLength[nc]);
+        nodeVec.push_back(itl->second);
       }
       else
       {
@@ -374,16 +430,16 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
         nodeVec.push_back(lni);
       }
     }
-    lsum = nm->mkNode(PLUS, nodeVec);
-    lsum = Rewriter::rewrite(lsum);
+    lsum = nm->mkNode(ADD, nodeVec);
+    lsum = rewrite(lsum);
   }
   else if (n.isConst())
   {
-    lsum = nm->mkConst(Rational(Word::getLength(n)));
+    lsum = nm->mkConstInt(Rational(Word::getLength(n)));
   }
   Assert(!lsum.isNull());
   d_proxyVarToLength[sk] = lsum;
-  Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
+  Node ceq = rewrite(skl.eqNode(lsum));
 
   Node ret = nm->mkNode(AND, eq, ceq);
 
@@ -416,12 +472,11 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << lenLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.trustedLemma(lenLem);
+    d_im->trustedLemma(lenLem, InferenceId::STRINGS_REGISTER_TERM_ATOMIC);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_out.requirePhase(rp.first, rp.second);
+    d_im->requirePhase(rp.first, rp.second);
   }
 }
 
@@ -432,13 +487,36 @@ const context::CDList<TNode>& TermRegistry::getFunctionTerms() const
   return d_functionsTerms;
 }
 
-const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
-    const
+const context::CDHashSet<Node>& TermRegistry::getInputVars() const
 {
   return d_inputVars;
 }
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
+
+bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
+
+bool TermRegistry::isHandledUpdateOrSubstr(Node n)
+{
+  Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
+  NodeManager* nm = NodeManager::currentNM();
+  Node lenN = n[2];
+  if (n.getKind() == STRING_UPDATE)
+  {
+    lenN = nm->mkNode(STRING_LENGTH, n[2]);
+  }
+  Node one = nm->mkConstInt(Rational(1));
+  return d_aent.checkEq(lenN, one);
+}
+
+Node TermRegistry::getUpdateBase(Node n)
+{
+  while (n.getKind() == STRING_UPDATE)
+  {
+    n = n[0];
+  }
+  return n;
+}
 
 TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
@@ -481,16 +559,16 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   Node n_len_eq_z = n_len.eqNode(d_zero);
   Node n_len_eq_z_2 = n.eqNode(emp);
   Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-  Node case_emptyr = Rewriter::rewrite(case_empty);
+  Node case_emptyr = rewrite(case_empty);
   if (!case_emptyr.isConst())
   {
     // prefer trying the empty case first
     // notice that requirePhase must only be called on rewritten literals that
     // occur in the CNF stream.
-    n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
+    n_len_eq_z = rewrite(n_len_eq_z);
     Assert(!n_len_eq_z.isConst());
     reqPhase[n_len_eq_z] = true;
-    n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
+    n_len_eq_z_2 = rewrite(n_len_eq_z_2);
     Assert(!n_len_eq_z_2.isConst());
     reqPhase[n_len_eq_z_2] = true;
   }
@@ -519,7 +597,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
       return Node::null();
     }
     Node eq = n.eqNode(pn);
-    eq = Rewriter::rewrite(eq);
+    eq = rewrite(eq);
     if (std::find(exp.begin(), exp.end(), eq) == exp.end())
     {
       exp.push_back(eq);
@@ -555,7 +633,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 
 Node TermRegistry::getProxyVariableFor(Node n) const
 {
-  std::map<Node, Node>::const_iterator it = d_proxyVar.find(n);
+  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
   if (it != d_proxyVar.end())
   {
     return (*it).second;
@@ -575,87 +653,78 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   return proxy;
 }
 
-void TermRegistry::inferSubstitutionProxyVars(Node n,
-                                              std::vector<Node>& vars,
-                                              std::vector<Node>& subs,
-                                              std::vector<Node>& unproc) const
+void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
 {
   if (n.getKind() == AND)
   {
     for (const Node& nc : n)
     {
-      inferSubstitutionProxyVars(nc, vars, subs, unproc);
+      removeProxyEqs(nc, unproc);
     }
     return;
   }
-  if (n.getKind() == EQUAL)
+  Trace("strings-subs-proxy") << "Input : " << n << std::endl;
+  Node ns = rewrite(n);
+  if (ns.getKind() == EQUAL)
   {
-    Node ns = n.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    ns = Rewriter::rewrite(ns);
-    if (ns.getKind() == EQUAL)
+    for (size_t i = 0; i < 2; i++)
     {
-      Node s;
-      Node v;
-      for (unsigned i = 0; i < 2; i++)
+      // determine whether this side has a proxy variable
+      if (d_proxyVar.find(ns[i]) != d_proxyVar.end())
       {
-        Node ss;
-        // determine whether this side has a proxy variable
-        if (ns[i].getAttribute(StringsProxyVarAttribute()))
+        if (getProxyVariableFor(ns[1 - i]) == ns[i])
         {
-          // it is a proxy variable
-          ss = ns[i];
-        }
-        else if (ns[i].isConst())
-        {
-          ss = getProxyVariableFor(ns[i]);
-        }
-        if (!ss.isNull())
-        {
-          v = ns[1 - i];
-          // if the other side is a constant or variable
-          if (v.getNumChildren() == 0)
-          {
-            if (s.isNull())
-            {
-              s = ss;
-            }
-            else
-            {
-              // both sides of the equality correspond to a proxy variable
-              if (ss == s)
-              {
-                // it is a trivial equality, e.g. between a proxy variable
-                // and its definition
-                return;
-              }
-              else
-              {
-                // equality between proxy variables, non-trivial
-                s = Node::null();
-              }
-            }
-          }
+          Trace("strings-subs-proxy")
+              << "...trivial definition via " << ns[i] << std::endl;
+          // it is a trivial equality, e.g. between a proxy variable
+          // and its definition
+          return;
         }
       }
-      if (!s.isNull())
-      {
-        // the equality can be turned into a substitution
-        subs.push_back(s);
-        vars.push_back(v);
-        return;
-      }
-    }
-    else
-    {
-      n = ns;
     }
   }
   if (!n.isConst() || !n.getConst<bool>())
   {
+    Trace("strings-subs-proxy") << "...unprocessed" << std::endl;
     unproc.push_back(n);
   }
 }
 
+void TermRegistry::notifyStartFullEffortCheck()
+{
+  d_inFullEffortCheck = true;
+  d_relevantTerms.clear();
+  // get the asserted terms
+  std::set<Kind> irrKinds;
+  d_theory.collectAssertedTerms(d_relevantTerms, true, irrKinds);
+  // also, get the additionally relevant terms
+  d_theory.computeRelevantTerms(d_relevantTerms);
+}
+
+void TermRegistry::notifyEndFullEffortCheck() { d_inFullEffortCheck = false; }
+
+const std::set<Node>& TermRegistry::getRelevantTermSet() const
+{
+  // must be in full effort check for relevant terms to be valid
+  Assert(d_inFullEffortCheck);
+  return d_relevantTerms;
+}
+
+Node TermRegistry::mkNConcat(Node n1, Node n2) const
+{
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
+}
+
+Node TermRegistry::mkNConcat(Node n1, Node n2, Node n3) const
+{
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
+}
+
+Node TermRegistry::mkNConcat(const std::vector<Node>& c, TypeNode tn) const
+{
+  return rewrite(utils::mkConcat(c, tn));
+}
+
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

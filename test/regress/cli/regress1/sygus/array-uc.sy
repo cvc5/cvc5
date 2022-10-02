@@ -1,0 +1,14 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(declare-sort U 0)
+(synth-fun f ((x (Array U Int)) (y U)) Bool)
+
+(declare-var x (Array U Int))
+(declare-var y U)
+
+(constraint (= (f (store x y 0) y) true))
+(constraint (= (f (store x y 1) y) false))
+
+; f can be (= (select x y) 0)
+(check-synth)

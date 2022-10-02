@@ -1,36 +1,44 @@
-/*********************                                                        */
-/*! \file string.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The string data type.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The string data type.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__UTIL__STRING_H
-#define CVC4__UTIL__STRING_H
+#ifndef CVC5__UTIL__STRING_H
+#define CVC5__UTIL__STRING_H
 
-#include <functional>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
+
 #include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-/** The CVC4 string class
+namespace strings {
+struct StringHashFunction;
+}
+
+/** The cvc5 string class
  *
  * This data structure is the domain of values for the string type. It can also
  * be used as a generic utility for representing strings.
  */
-class CVC4_PUBLIC String {
+class String
+{
+  friend strings::StringHashFunction;
+
  public:
   /**
    * This is the cardinality of the alphabet that is representable by this
@@ -45,7 +53,7 @@ class CVC4_PUBLIC String {
   static inline unsigned num_codes() { return 196608; }
   /** constructors for String
    *
-   * Internally, a CVC4::String is represented by a vector of unsigned
+   * Internally, a cvc5::internal::String is represented by a vector of unsigned
    * integers (d_str) representing the code points of the characters.
    *
    * To build a string from a C++ string, we may process escape sequences
@@ -60,13 +68,14 @@ class CVC4_PUBLIC String {
    * where d_0 ... d_4 are hexadecimal digits, to the appropriate character.
    *
    * If useEscSequences is false, then the characters of the constructed
-   * CVC4::String correspond one-to-one with the input string.
+   * cvc5::internal::String correspond one-to-one with the input string.
    */
   String() = default;
   explicit String(const std::string& s, bool useEscSequences = false)
       : d_str(toInternal(s, useEscSequences))
   {
   }
+  explicit String(const std::wstring& s);
   explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences))
   {
@@ -111,9 +120,16 @@ class CVC4_PUBLIC String {
    * If useEscSequences is false, the string's printable characters are
    * printed as characters. Notice that for all std::string s having only
    * printable characters, we have that
-   *    CVC4::String( s ).toString() = s.
+   *    cvc5::internal::String( s ).toString() = s.
    */
   std::string toString(bool useEscSequences = false) const;
+  /* toWString
+   * Converts this string to a std::wstring.
+   *
+   * Unlike toString(), this method uses no escape sequences as both this class
+   * and std::wstring use 32bit characters.
+   */
+  std::wstring toWString() const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
   /** is less than or equal to string y */
@@ -255,16 +271,15 @@ class CVC4_PUBLIC String {
 
 namespace strings {
 
-struct CVC4_PUBLIC StringHashFunction {
-  size_t operator()(const ::CVC4::String& s) const {
-    return std::hash<std::string>()(s.toString());
-  }
+struct StringHashFunction
+{
+  size_t operator()(const cvc5::internal::String& s) const;
 }; /* struct StringHashFunction */
 
 }  // namespace strings
 
-std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const String& s);
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__UTIL__STRING_H */
+#endif /* CVC5__UTIL__STRING_H */

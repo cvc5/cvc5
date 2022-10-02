@@ -1,47 +1,40 @@
-/*********************                                                        */
-/*! \file equality_engine.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * [[ Add one-line brief description here ]]
+ *
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
-#include "smt/smt_statistics_registry.h"
+#include "smt/env.h"
+#include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-EqualityEngine::Statistics::Statistics(std::string name)
-    : d_mergesCount(name + "::mergesCount", 0),
-      d_termsCount(name + "::termsCount", 0),
-      d_functionTermsCount(name + "::functionTermsCount", 0),
-      d_constantTermsCount(name + "::constantTermsCount", 0)
+EqualityEngine::Statistics::Statistics(StatisticsRegistry& sr,
+                                       const std::string& name)
+    : d_mergesCount(sr.registerInt(name + "mergesCount")),
+      d_termsCount(sr.registerInt(name + "termsCount")),
+      d_functionTermsCount(sr.registerInt(name + "functionTermsCount")),
+      d_constantTermsCount(sr.registerInt(name + "constantTermsCount"))
 {
-  smtStatisticsRegistry()->registerStat(&d_mergesCount);
-  smtStatisticsRegistry()->registerStat(&d_termsCount);
-  smtStatisticsRegistry()->registerStat(&d_functionTermsCount);
-  smtStatisticsRegistry()->registerStat(&d_constantTermsCount);
-}
-
-EqualityEngine::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_mergesCount);
-  smtStatisticsRegistry()->unregisterStat(&d_termsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_functionTermsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_constantTermsCount);
 }
 
 /**
@@ -79,9 +72,9 @@ class ScopedBool {
 EqualityEngineNotifyNone EqualityEngine::s_notifyNone;
 
 void EqualityEngine::init() {
-  Debug("equality") << "EqualityEdge::EqualityEngine(): id_null = " << +null_id << std::endl;
-  Debug("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
-  Debug("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
+  Trace("equality") << "EqualityEdge::EqualityEngine(): id_null = " << +null_id << std::endl;
+  Trace("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
+  Trace("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
 
   // If we are not at level zero when we initialize this equality engine, we
   // may remove true/false from the equality engine when we pop to level zero,
@@ -94,10 +87,6 @@ void EqualityEngine::init() {
   d_triggerDatabaseAllocatedSize = 100000;
   d_triggerDatabase = (char*) malloc(d_triggerDatabaseAllocatedSize);
 
-  //We can't notify during the initialization because it notifies
-  // QuantifiersEngine.AddTermToDatabase that try to access to the uf
-  // instantiator that currently doesn't exist.
-  ScopedBool sb(d_performNotify, false);
   addTermInternal(d_true);
   addTermInternal(d_false);
 
@@ -109,72 +98,89 @@ EqualityEngine::~EqualityEngine() {
   free(d_triggerDatabase);
 }
 
-EqualityEngine::EqualityEngine(context::Context* context,
+EqualityEngine::EqualityEngine(Env& env,
+                               context::Context* c,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(context),
+    : ContextNotifyObj(c),
+      EnvObj(env),
       d_masterEqualityEngine(0),
-      d_context(context),
-      d_done(context, false),
-      d_performNotify(true),
-      d_notify(s_notifyNone),
-      d_applicationLookupsCount(context, 0),
-      d_nodesCount(context, 0),
-      d_assertedEqualitiesCount(context, 0),
-      d_equalityTriggersCount(context, 0),
-      d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+      d_context(c),
+      d_done(c, false),
+      d_notify(&s_notifyNone),
+      d_applicationLookupsCount(c, 0),
+      d_nodesCount(c, 0),
+      d_assertedEqualitiesCount(c, 0),
+      d_equalityTriggersCount(c, 0),
+      d_subtermEvaluatesSize(c, 0),
+      d_stats(statisticsRegistry(), name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
-      d_triggerDatabaseSize(context, 0),
-      d_triggerTermSetUpdatesSize(context, 0),
-      d_deducedDisequalitiesSize(context, 0),
-      d_deducedDisequalityReasonsSize(context, 0),
-      d_propagatedDisequalities(context),
+      d_triggerDatabaseSize(c, 0),
+      d_triggerTermSetUpdatesSize(c, 0),
+      d_deducedDisequalitiesSize(c, 0),
+      d_deducedDisequalityReasonsSize(c, 0),
+      d_propagatedDisequalities(c),
       d_name(name)
 {
   init();
 }
 
-EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
-                               context::Context* context,
+EqualityEngine::EqualityEngine(Env& env,
+                               context::Context* c,
+                               EqualityEngineNotify& notify,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(context),
-      d_masterEqualityEngine(0),
-      d_context(context),
-      d_done(context, false),
-      d_performNotify(true),
-      d_notify(notify),
-      d_applicationLookupsCount(context, 0),
-      d_nodesCount(context, 0),
-      d_assertedEqualitiesCount(context, 0),
-      d_equalityTriggersCount(context, 0),
-      d_subtermEvaluatesSize(context, 0),
-      d_stats(name),
+    : ContextNotifyObj(c),
+      EnvObj(env),
+      d_masterEqualityEngine(nullptr),
+      d_proofEqualityEngine(nullptr),
+      d_context(c),
+      d_done(c, false),
+      d_notify(&s_notifyNone),
+      d_applicationLookupsCount(c, 0),
+      d_nodesCount(c, 0),
+      d_assertedEqualitiesCount(c, 0),
+      d_equalityTriggersCount(c, 0),
+      d_subtermEvaluatesSize(c, 0),
+      d_stats(statisticsRegistry(), name + "::"),
       d_inPropagate(false),
       d_constantsAreTriggers(constantsAreTriggers),
       d_anyTermsAreTriggers(anyTermTriggers),
-      d_triggerDatabaseSize(context, 0),
-      d_triggerTermSetUpdatesSize(context, 0),
-      d_deducedDisequalitiesSize(context, 0),
-      d_deducedDisequalityReasonsSize(context, 0),
-      d_propagatedDisequalities(context),
+      d_triggerDatabaseSize(c, 0),
+      d_triggerTermSetUpdatesSize(c, 0),
+      d_deducedDisequalitiesSize(c, 0),
+      d_deducedDisequalityReasonsSize(c, 0),
+      d_propagatedDisequalities(c),
       d_name(name)
 {
   init();
+  // since init makes notifications (e.g. new eq class for true/false), and
+  // since the notify class may not be fully constructed yet, we
+  // don't set up the provided notification class until after initialization.
+  d_notify = &notify;
 }
 
 void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
-  Assert(d_masterEqualityEngine == 0);
+  Assert(d_masterEqualityEngine == nullptr);
   d_masterEqualityEngine = master;
 }
 
+void EqualityEngine::setProofEqualityEngine(ProofEqEngine* pfee)
+{
+  Assert(d_proofEqualityEngine == nullptr);
+  d_proofEqualityEngine = pfee;
+}
+ProofEqEngine* EqualityEngine::getProofEqualityEngine()
+{
+  return d_proofEqualityEngine;
+}
+
 void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
-  Debug("equality") << d_name << "::eq::enqueue({" << candidate.d_t1Id << "} "
+  Trace("equality") << d_name << "::eq::enqueue({" << candidate.d_t1Id << "} "
                     << d_nodes[candidate.d_t1Id] << ", {" << candidate.d_t2Id
                     << "} " << d_nodes[candidate.d_t2Id] << ", "
                     << static_cast<MergeReasonType>(candidate.d_type)
@@ -187,7 +193,7 @@ void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
 }
 
 EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type) {
-  Debug("equality") << d_name << "::eq::newApplicationNode(" << original
+  Trace("equality") << d_name << "::eq::newApplicationNode(" << original
                     << ", {" << t1 << "} " << d_nodes[t1] << ", {" << t2 << "} "
                     << d_nodes[t2] << ")" << std::endl;
 
@@ -201,7 +207,7 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
   EqualityNodeId t2ClassId = getEqualityNode(t2).getFind();
   FunctionApplication funNormalized(type, t1ClassId, t2ClassId);
 
-  Debug("equality") << d_name << "::eq::newApplicationNode: funOriginal: ("
+  Trace("equality") << d_name << "::eq::newApplicationNode: funOriginal: ("
                     << type << " " << d_nodes[t1] << " " << d_nodes[t2]
                     << "), funNorm: (" << type << " " << d_nodes[t1ClassId]
                     << " " << d_nodes[t2ClassId] << ")\n";
@@ -212,7 +218,7 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
   // Add the lookup data, if it's not already there
   ApplicationIdsMap::iterator find = d_applicationLookup.find(funNormalized);
   if (find == d_applicationLookup.end()) {
-    Debug("equality") << d_name << "::eq::newApplicationNode(" << original
+    Trace("equality") << d_name << "::eq::newApplicationNode(" << original
                       << ", " << t1 << ", " << t2
                       << "): no lookup, setting up funNorm: (" << type << " "
                       << d_nodes[t1ClassId] << " " << d_nodes[t2ClassId]
@@ -221,26 +227,26 @@ EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId
     storeApplicationLookup(funNormalized, funId);
   } else {
     // If it's there, we need to merge these two
-    Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup exists, adding to queue" << std::endl;
-    Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup = " << d_nodes[find->second] << std::endl;
+    Trace("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup exists, adding to queue" << std::endl;
+    Trace("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): lookup = " << d_nodes[find->second] << std::endl;
     enqueue(MergeCandidate(funId, find->second, MERGED_THROUGH_CONGRUENCE, TNode::null()));
   }
 
   // Add to the use lists
-  Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): adding " << original << " to the uselist of " << d_nodes[t1] << std::endl;
+  Trace("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): adding " << original << " to the uselist of " << d_nodes[t1] << std::endl;
   d_equalityNodes[t1].usedIn(funId, d_useListNodes);
-  Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): adding " << original << " to the uselist of " << d_nodes[t2] << std::endl;
+  Trace("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << "): adding " << original << " to the uselist of " << d_nodes[t2] << std::endl;
   d_equalityNodes[t2].usedIn(funId, d_useListNodes);
 
   // Return the new id
-  Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ") => " << funId << std::endl;
+  Trace("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ") => " << funId << std::endl;
 
   return funId;
 }
 
 EqualityNodeId EqualityEngine::newNode(TNode node) {
 
-  Debug("equality") << d_name << "::eq::newNode(" << node << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::newNode(" << node << ")" << std::endl;
 
   ++d_stats.d_termsCount;
 
@@ -271,27 +277,37 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   // Increase the counters
   d_nodesCount = d_nodesCount + 1;
 
-  Debug("equality") << d_name << "::eq::newNode(" << node << ") => " << newId << std::endl;
+  Trace("equality") << d_name << "::eq::newNode(" << node << ") => " << newId << std::endl;
 
   return newId;
 }
 
-void EqualityEngine::addFunctionKind(Kind fun, bool interpreted, bool extOperator) {
-  d_congruenceKinds |= fun;
-  if (fun != kind::EQUAL) {
-    if (interpreted) {
-      Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
-      d_congruenceKindsInterpreted |= fun;
+void EqualityEngine::addFunctionKind(Kind fun,
+                                     bool interpreted,
+                                     bool extOperator)
+{
+  d_congruenceKinds.set(fun);
+  if (fun != kind::EQUAL)
+  {
+    if (interpreted)
+    {
+      Trace("equality::evaluation")
+          << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted "
+          << std::endl;
+      d_congruenceKindsInterpreted.set(fun);
     }
-    if (extOperator) {
-      Debug("equality::extoperator") << d_name << "::eq::addFunctionKind(): " << fun << " is an external operator kind " << std::endl;
-      d_congruenceKindsExtOperators |= fun;
+    if (extOperator)
+    {
+      Trace("equality::extoperator")
+          << d_name << "::eq::addFunctionKind(): " << fun
+          << " is an external operator kind " << std::endl;
+      d_congruenceKindsExtOperators.set(fun);
     }
   }
 }
 
 void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
-  Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): " << d_subtermsToEvaluate[id] << std::endl;
+  Trace("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): " << d_subtermsToEvaluate[id] << std::endl;
   Assert(!d_isInternal[id]);
   Assert(d_subtermsToEvaluate[id] > 0);
   if ((-- d_subtermsToEvaluate[id]) == 0) {
@@ -299,16 +315,16 @@ void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
   }
   d_subtermEvaluates.push_back(id);
   d_subtermEvaluatesSize = d_subtermEvaluates.size();
-  Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): new " << d_subtermsToEvaluate[id] << std::endl;
+  Trace("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): new " << d_subtermsToEvaluate[id] << std::endl;
 }
 
 void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
 
-  Debug("equality") << d_name << "::eq::addTermInternal(" << t << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::addTermInternal(" << t << ")" << std::endl;
 
   // If there already, we're done
   if (hasTerm(t)) {
-    Debug("equality") << d_name << "::eq::addTermInternal(" << t << "): already there" << std::endl;
+    Trace("equality") << d_name << "::eq::addTermInternal(" << t << "): already there" << std::endl;
     return;
   }
 
@@ -352,7 +368,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       d_subtermsToEvaluate[result] = t.getNumChildren();
       for (unsigned i = 0; i < t.getNumChildren(); ++ i) {
         if (isConstant(getNodeId(t[i]))) {
-          Debug("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
+          Trace("equality::evaluation") << d_name << "::eq::addTermInternal(" << t << "): evaluates " << t[i] << std::endl;
           subtermEvaluates(result);
         }
       }
@@ -377,10 +393,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   {
     // Notify e.g. the theory that owns this equality engine that there is a
     // new equivalence class.
-    if (d_performNotify)
-    {
-      d_notify.eqNotifyNewClass(t);
-    }
+    d_notify->eqNotifyNewClass(t);
     if (d_constantsAreTriggers && d_isConstant[result])
     {
       // Non-Boolean constants are trigger terms for all tags
@@ -414,7 +427,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
 
   Assert(hasTerm(t));
 
-  Debug("equality") << d_name << "::eq::addTermInternal(" << t << ") => " << result << std::endl;
+  Trace("equality") << d_name << "::eq::addTermInternal(" << t << ") => " << result << std::endl;
 }
 
 bool EqualityEngine::hasTerm(TNode t) const {
@@ -445,7 +458,7 @@ const EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) const
 }
 
 void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, unsigned pid) {
-  Debug("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2
+  Trace("equality") << d_name << "::eq::addEqualityInternal(" << t1 << "," << t2
                     << "), reason = " << reason
                     << ", pid = " << static_cast<MergeReasonType>(pid)
                     << std::endl;
@@ -469,7 +482,7 @@ bool EqualityEngine::assertPredicate(TNode t,
                                      TNode reason,
                                      unsigned pid)
 {
-  Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
   TNode b = polarity ? d_true : d_false;
   if (hasTerm(t) && areEqual(t, b))
@@ -486,7 +499,7 @@ bool EqualityEngine::assertEquality(TNode eq,
                                     TNode reason,
                                     unsigned pid)
 {
-  Debug("equality") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
   if (polarity) {
     // If two terms are already equal, don't assert anything
     if (hasTerm(eq[0]) && hasTerm(eq[1]) && areEqual(eq[0], eq[1])) {
@@ -502,11 +515,9 @@ bool EqualityEngine::assertEquality(TNode eq,
     }
 
     // notify the theory
-    if (d_performNotify) {
-      d_notify.eqNotifyDisequal(eq[0], eq[1], reason);
-    }
+    d_notify->eqNotifyDisequal(eq[0], eq[1], reason);
 
-    Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
+    Trace("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ")" << std::endl;
 
     assertEqualityInternal(eq, d_false, reason, pid);
     propagate();
@@ -529,7 +540,7 @@ bool EqualityEngine::assertEquality(TNode eq,
     TriggerTermSetRef aTriggerRef = d_nodeIndividualTrigger[aClassId];
     TriggerTermSetRef bTriggerRef = d_nodeIndividualTrigger[bClassId];
     if (aTriggerRef != +null_set_id && bTriggerRef != +null_set_id) {
-      Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": have triggers" << std::endl;
+      Trace("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": have triggers" << std::endl;
       // The sets of trigger terms
       TriggerTermSet& aTriggerTerms = getTriggerTermSet(aTriggerRef);
       TriggerTermSet& bTriggerTerms = getTriggerTermSet(bTriggerRef);
@@ -561,8 +572,8 @@ bool EqualityEngine::assertEquality(TNode eq,
             // Store the propagation
             storePropagatedDisequality(aTag, aSharedId, bSharedId);
             // Notify
-            Debug("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": notifying " << aTag << " for " << d_nodes[aSharedId] << " != " << d_nodes[bSharedId] << std::endl;
-            if (!d_notify.eqNotifyTriggerTermEquality(aTag, d_nodes[aSharedId], d_nodes[bSharedId], false)) {
+            Trace("equality::trigger") << d_name << "::eq::addEquality(" << eq << "," << (polarity ? "true" : "false") << ": notifying " << aTag << " for " << d_nodes[aSharedId] << " != " << d_nodes[bSharedId] << std::endl;
+            if (!d_notify->eqNotifyTriggerTermEquality(aTag, d_nodes[aSharedId], d_nodes[bSharedId], false)) {
               break;
             }
           }
@@ -577,17 +588,17 @@ bool EqualityEngine::assertEquality(TNode eq,
 }
 
 TNode EqualityEngine::getRepresentative(TNode t) const {
-  Debug("equality::internal") << d_name << "::eq::getRepresentative(" << t << ")" << std::endl;
+  Trace("equality::internal") << d_name << "::eq::getRepresentative(" << t << ")" << std::endl;
   Assert(hasTerm(t));
   EqualityNodeId representativeId = getEqualityNode(t).getFind();
   Assert(!d_isInternal[representativeId]);
-  Debug("equality::internal") << d_name << "::eq::getRepresentative(" << t << ") => " << d_nodes[representativeId] << std::endl;
+  Trace("equality::internal") << d_name << "::eq::getRepresentative(" << t << ") => " << d_nodes[representativeId] << std::endl;
   return d_nodes[representativeId];
 }
 
 bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vector<TriggerId>& triggersFired) {
 
-  Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << ")" << std::endl;
 
   Assert(triggersFired.empty());
 
@@ -604,7 +615,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   // Determine if we should notify the owner of this class of this merge.
   // The second part of this check is needed due to the internal implementation
   // of this class. It ensures that we are merging terms and not operators.
-  if (d_performNotify && class1Id == cc1.getFind() && class2Id == cc2.getFind())
+  if (class1Id == cc1.getFind() && class2Id == cc2.getFind())
   {
     doNotify = true;
   }
@@ -645,14 +656,14 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   }
 
   // Update class2 representative information
-  Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating class " << class2Id << std::endl;
+  Trace("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating class " << class2Id << std::endl;
   EqualityNodeId currentId = class2Id;
   do {
     // Get the current node
     EqualityNode& currentNode = getEqualityNode(currentId);
 
     // Update it's find to class1 id
-    Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << currentId << "->" << class1Id << std::endl;
+    Trace("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << currentId << "->" << class1Id << std::endl;
     currentNode.setFind(class1Id);
 
     // Go through the triggers and inform if necessary
@@ -685,11 +696,11 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   // Update class2 table lookup and information if not a boolean
   // since booleans can't be in an application
   if (!d_isEquality[class2Id]) {
-    Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating lookups of " << class2Id << std::endl;
+    Trace("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating lookups of " << class2Id << std::endl;
     do {
       // Get the current node
       EqualityNode& currentNode = getEqualityNode(currentId);
-      Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating lookups of node " << currentId << std::endl;
+      Trace("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): updating lookups of node " << currentId << std::endl;
 
       // Go through the uselist and check for congruences
       UseListNodeId currentUseId = currentNode.getUseList();
@@ -698,7 +709,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
         UseListNode& useNode = d_useListNodes[currentUseId];
         // Get the function application
         EqualityNodeId funId = useNode.getApplicationId();
-        Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
+        Trace("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << "): " << d_nodes[currentId] << " in " << d_nodes[funId] << std::endl;
         const FunctionApplication& fun =
             d_applications[useNode.getApplicationId()].d_normalized;
         // If it's interpreted and we can interpret
@@ -737,7 +748,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // notify the theory
   if (doNotify) {
-    d_notify.eqNotifyMerge(n1, n2);
+    d_notify->eqNotifyMerge(n1, n2);
   }
 
   // Go through the trigger term disequalities and propagate
@@ -793,11 +804,11 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
           EqualityNodeId tag1id = newSetTriggers[newSetTriggersSize++] =
               class1triggers.d_triggers[i1++];
           // since they are both tagged notify of merge
-          if (d_performNotify) {
-            EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
-            if (!d_notify.eqNotifyTriggerTermEquality(tag1, d_nodes[tag1id], d_nodes[tag2id], true)) {
-              return false;
-            }
+          EqualityNodeId tag2id = class2triggers.d_triggers[i2++];
+          if (!d_notify->eqNotifyTriggerTermEquality(
+                  tag1, d_nodes[tag1id], d_nodes[tag2id], true))
+          {
+            return false;
           }
           // Next tags
           tag1 = TheoryIdSetUtil::setPop(tags1);
@@ -823,14 +834,14 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
 void EqualityEngine::undoMerge(EqualityNode& class1, EqualityNode& class2, EqualityNodeId class2Id) {
 
-  Debug("equality") << d_name << "::eq::undoMerge(" << class1.getFind() << "," << class2Id << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::undoMerge(" << class1.getFind() << "," << class2Id << ")" << std::endl;
 
   // Now unmerge the lists (same as merge)
   class1.merge<false>(class2);
 
   // Update class2 representative information
   EqualityNodeId currentId = class2Id;
-  Debug("equality") << d_name << "::eq::undoMerge(" << class1.getFind() << "," << class2Id << "): undoing representative info" << std::endl;
+  Trace("equality") << d_name << "::eq::undoMerge(" << class1.getFind() << "," << class2Id << "): undoing representative info" << std::endl;
   do {
     // Get the current node
     EqualityNode& currentNode = getEqualityNode(currentId);
@@ -855,7 +866,7 @@ void EqualityEngine::undoMerge(EqualityNode& class1, EqualityNode& class2, Equal
 
 void EqualityEngine::backtrack() {
 
-  Debug("equality::backtrack") << "backtracking" << std::endl;
+  Trace("equality::backtrack") << "backtracking" << std::endl;
 
   // If we need to backtrack then do it
   if (d_assertedEqualitiesCount < d_assertedEqualities.size()) {
@@ -865,7 +876,7 @@ void EqualityEngine::backtrack() {
       d_propagationQueue.pop_front();
     }
 
-    Debug("equality") << d_name << "::eq::backtrack(): nodes" << std::endl;
+    Trace("equality") << d_name << "::eq::backtrack(): nodes" << std::endl;
 
     for (int i = (int)d_assertedEqualities.size() - 1, i_end = (int)d_assertedEqualitiesCount; i >= i_end; --i) {
       // Get the ids of the merged classes
@@ -880,7 +891,7 @@ void EqualityEngine::backtrack() {
 
     d_assertedEqualities.resize(d_assertedEqualitiesCount);
 
-    Debug("equality") << d_name << "::eq::backtrack(): edges" << std::endl;
+    Trace("equality") << d_name << "::eq::backtrack(): edges" << std::endl;
 
     for (int i = (int)d_equalityEdges.size() - 2, i_end = (int)(2*d_assertedEqualitiesCount); i >= i_end; i -= 2) {
       EqualityEdge& edge1 = d_equalityEdges[i];
@@ -930,7 +941,7 @@ void EqualityEngine::backtrack() {
     // Go down the nodes, check the application nodes and remove them from use-lists
     for(int i = d_nodes.size() - 1, i_end = (int)d_nodesCount; i >= i_end; -- i) {
       // Remove from the node -> id map
-      Debug("equality") << d_name << "::eq::backtrack(): removing node " << d_nodes[i] << std::endl;
+      Trace("equality") << d_name << "::eq::backtrack(): removing node " << d_nodes[i] << std::endl;
       d_nodeIds.erase(d_nodes[i]);
 
       const FunctionApplication& app = d_applications[i].d_original;
@@ -972,7 +983,7 @@ void EqualityEngine::backtrack() {
 }
 
 void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned type, TNode reason) {
-  Debug("equality") << d_name << "::eq::addGraphEdge({" << t1 << "} "
+  Trace("equality") << d_name << "::eq::addGraphEdge({" << t1 << "} "
                     << d_nodes[t1] << ", {" << t2 << "} " << d_nodes[t2] << ","
                     << reason << ")" << std::endl;
   EqualityEdgeId edge = d_equalityEdges.size();
@@ -981,7 +992,7 @@ void EqualityEngine::addGraphEdge(EqualityNodeId t1, EqualityNodeId t2, unsigned
   d_equalityGraph[t1] = edge;
   d_equalityGraph[t2] = edge | 1;
 
-  if (Debug.isOn("equality::internal")) {
+  if (TraceIsOn("equality::internal")) {
     debugPrintGraph();
   }
 }
@@ -1016,13 +1027,13 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if ((d_isInternal[id1] || d_isInternal[id2])
       && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
           || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
-          || !ExprManager::isNAryKind(k1)))
+          || !NodeManager::isNAryKind(k1)))
   {
     return;
   }
-  Debug("equality") << "buildEqConclusion: {" << id1 << "} " << d_nodes[id1]
+  Trace("equality") << "buildEqConclusion: {" << id1 << "} " << d_nodes[id1]
                     << "\n";
-  Debug("equality") << "buildEqConclusion: {" << id2 << "} " << d_nodes[id2]
+  Trace("equality") << "buildEqConclusion: {" << id2 << "} " << d_nodes[id2]
                     << "\n";
   Node eq[2];
   NodeManager* nm = NodeManager::currentNM();
@@ -1063,7 +1074,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
         << id2 << "} " << d_nodes[id2] << "\n";
     // if has at least as many children as the minimal
     // number of children of the n-ary kind, build the node
-    if (numChildren >= ExprManager::minArity(k1))
+    if (numChildren >= kind::metakind::getMinArityForKind(k1))
     {
       std::vector<Node> children;
       for (unsigned j = 0; j < numChildren; ++j)
@@ -1083,20 +1094,23 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
 void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                                      std::vector<TNode>& equalities,
                                      EqProof* eqp) const {
-  Debug("pf::ee") << d_name << "::eq::explainEquality(" << t1 << ", " << t2
+  Trace("pf::ee") << d_name << "::eq::explainEquality(" << t1 << ", " << t2
                   << ", " << (polarity ? "true" : "false") << ")"
                   << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
 
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
 
-  if (Debug.isOn("equality::internal"))
-  {
-    debugPrintGraph();
-  }
   // Get the ids
   EqualityNodeId t1Id = getNodeId(t1);
   EqualityNodeId t2Id = getNodeId(t2);
+
+  Trace("pf::ee") << "Ids: " << t1Id << ", " << t2Id << "\n";
+
+  if (TraceIsOn("equality::internal"))
+  {
+    debugPrintGraph();
+  }
 
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   if (polarity) {
@@ -1115,7 +1129,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
     if (eqp)
     {
-      Debug("pf::ee") << "Deq reason for " << eqp->d_node << " "
+      Trace("pf::ee") << "Deq reason for " << eqp->d_node << " "
                       << reasonRef.d_mergesStart << "..."
                       << reasonRef.d_mergesEnd << std::endl;
     }
@@ -1127,7 +1141,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
       // If we're constructing a (transitivity) proof, we don't need to include an explanation for x=x.
       if (eqp && toExplain.first != toExplain.second) {
         eqpc = std::make_shared<EqProof>();
-        Debug("pf::ee") << "Deq getExplanation #" << i << " for " << eqp->d_node
+        Trace("pf::ee") << "Deq getExplanation #" << i << " for " << eqp->d_node
                         << " : " << toExplain.first << " " << toExplain.second
                         << std::endl;
       }
@@ -1136,9 +1150,9 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           toExplain.first, toExplain.second, equalities, cache, eqpc.get());
 
       if (eqpc) {
-        if (Debug.isOn("pf::ee"))
+        if (TraceIsOn("pf::ee"))
         {
-          Debug("pf::ee") << "Child proof is:" << std::endl;
+          Trace("pf::ee") << "Child proof is:" << std::endl;
           eqpc->debug_print("pf::ee", 1);
         }
         if (eqpc->d_id == MERGED_THROUGH_TRANS)
@@ -1151,7 +1165,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                 && child->d_node.isNull())
             {
               nullCongruenceFound = true;
-              Debug("pf::ee")
+              Trace("pf::ee")
                   << "Have congruence with empty d_node. Splitting..."
                   << std::endl;
               orderedChildren.insert(orderedChildren.begin(),
@@ -1166,9 +1180,9 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
           if (nullCongruenceFound) {
             eqpc->d_children = orderedChildren;
-            if (Debug.isOn("pf::ee"))
+            if (TraceIsOn("pf::ee"))
             {
-              Debug("pf::ee")
+              Trace("pf::ee")
                   << "Child proof's children have been reordered. It is now:"
                   << std::endl;
               eqpc->debug_print("pf::ee", 1);
@@ -1183,14 +1197,14 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
     if (eqp) {
       if (eqp->d_children.size() == 0) {
         // Corner case where this is actually a disequality between two constants
-        Debug("pf::ee") << "Encountered a constant disequality (not a transitivity proof): "
+        Trace("pf::ee") << "Encountered a constant disequality (not a transitivity proof): "
                         << eqp->d_node << std::endl;
         Assert(eqp->d_node[0][0].isConst());
         Assert(eqp->d_node[0][1].isConst());
         eqp->d_id = MERGED_THROUGH_CONSTANTS;
       } else if (eqp->d_children.size() == 1) {
         Node cnode = eqp->d_children[0]->d_node;
-        Debug("pf::ee") << "Simplifying " << cnode << " from " << eqp->d_node
+        Trace("pf::ee") << "Simplifying " << cnode << " from " << eqp->d_node
                         << std::endl;
         bool simpTrans = true;
         if (cnode.getKind() == kind::EQUAL)
@@ -1217,7 +1231,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           if (!c1.isNull() && !c2.isNull())
           {
             simpTrans = false;
-            Assert(c1.getType().isComparableTo(c2.getType()));
+            Assert(c1.getType() == c2.getType());
             std::shared_ptr<EqProof> eqpmc = std::make_shared<EqProof>();
             eqpmc->d_id = MERGED_THROUGH_CONSTANTS;
             eqpmc->d_node = c1.eqNode(c2).eqNode(d_false);
@@ -1233,9 +1247,9 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         }
       }
 
-      if (Debug.isOn("pf::ee"))
+      if (TraceIsOn("pf::ee"))
       {
-        Debug("pf::ee") << "Disequality explanation final proof: " << std::endl;
+        Trace("pf::ee") << "Disequality explanation final proof: " << std::endl;
         eqp->debug_print("pf::ee", 1);
       }
     }
@@ -1245,12 +1259,12 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 void EqualityEngine::explainPredicate(TNode p, bool polarity,
                                       std::vector<TNode>& assertions,
                                       EqProof* eqp) const {
-  Debug("equality") << d_name << "::eq::explainPredicate(" << p << ")"
+  Trace("equality") << d_name << "::eq::explainPredicate(" << p << ")"
                     << std::endl;
   // Must have the term
   Assert(hasTerm(p));
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
-  if (Debug.isOn("equality::internal"))
+  if (TraceIsOn("equality::internal"))
   {
     debugPrintGraph();
   }
@@ -1261,6 +1275,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
 
 void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
 {
+  Trace("eq-exp") << "explainLit: " << lit << std::endl;
   Assert(lit.getKind() != kind::AND);
   bool polarity = lit.getKind() != kind::NOT;
   TNode atom = polarity ? lit : lit[0];
@@ -1286,7 +1301,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
     explainPredicate(atom, polarity, tassumptions);
   }
   // ensure that duplicates are removed
-  for (const TNode a : tassumptions)
+  for (TNode a : tassumptions)
   {
     if (std::find(assumptions.begin(), assumptions.end(), a)
         == assumptions.end())
@@ -1374,14 +1389,14 @@ void EqualityEngine::getExplanation(
   cache[cacheKey] = eqp;
 
   // We can only explain the nodes that got merged
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool canExplain = getEqualityNode(t1Id).getFind() == getEqualityNode(t2Id).getFind()
                   || (d_done && isConstant(t1Id) && isConstant(t2Id));
 
   if (!canExplain) {
-    Warning() << "Can't explain equality:" << std::endl;
-    Warning() << d_nodes[t1Id] << " with find " << d_nodes[getEqualityNode(t1Id).getFind()] << std::endl;
-    Warning() << d_nodes[t2Id] << " with find " << d_nodes[getEqualityNode(t2Id).getFind()] << std::endl;
+    warning() << "Can't explain equality:" << std::endl;
+    warning() << d_nodes[t1Id] << " with find " << d_nodes[getEqualityNode(t1Id).getFind()] << std::endl;
+    warning() << d_nodes[t2Id] << " with find " << d_nodes[getEqualityNode(t2Id).getFind()] << std::endl;
   }
   Assert(canExplain);
 #endif
@@ -1424,15 +1439,15 @@ void EqualityEngine::getExplanation(
     BfsData current = bfsQueue[currentIndex];
     EqualityNodeId currentNode = current.d_nodeId;
 
-    Debug("equality") << d_name << "::eq::getExplanation(): currentNode = {"
+    Trace("equality") << d_name << "::eq::getExplanation(): currentNode = {"
                       << currentNode << "} " << d_nodes[currentNode]
                       << std::endl;
 
     // Go through the equality edges of this node
     EqualityEdgeId currentEdge = d_equalityGraph[currentNode];
-    if (Debug.isOn("equality")) {
-      Debug("equality") << d_name << "::eq::getExplanation(): edgesId =  " << currentEdge << std::endl;
-      Debug("equality") << d_name << "::eq::getExplanation(): edges =  " << edgesToString(currentEdge) << std::endl;
+    if (TraceIsOn("equality")) {
+      Trace("equality") << d_name << "::eq::getExplanation(): edgesId =  " << currentEdge << std::endl;
+      Trace("equality") << d_name << "::eq::getExplanation(): edges =  " << edgesToString(currentEdge) << std::endl;
     }
 
     while (currentEdge != null_edge) {
@@ -1442,7 +1457,7 @@ void EqualityEngine::getExplanation(
       // If not just the backwards edge
       if ((currentEdge | 1u) != (current.d_edgeId | 1u))
       {
-        Debug("equality") << d_name
+        Trace("equality") << d_name
                           << "::eq::getExplanation(): currentEdge = ({"
                           << currentNode << "} " << d_nodes[currentNode]
                           << ", {" << edge.getNodeId() << "} "
@@ -1451,7 +1466,7 @@ void EqualityEngine::getExplanation(
         // Did we find the path
         if (edge.getNodeId() == t2Id) {
 
-          Debug("equality") << d_name << "::eq::getExplanation(): path found: " << std::endl;
+          Trace("equality") << d_name << "::eq::getExplanation(): path found: " << std::endl;
 
           std::vector<std::shared_ptr<EqProof>> eqp_trans;
 
@@ -1464,19 +1479,19 @@ void EqualityEngine::getExplanation(
                 d_equalityEdges[currentEdge].getReasonType());
             Node reason = d_equalityEdges[currentEdge].getReason();
 
-            Debug("equality")
+            Trace("equality")
                 << d_name
                 << "::eq::getExplanation(): currentEdge = " << currentEdge
                 << ", currentNode = " << currentNode << std::endl;
-            Debug("equality")
+            Trace("equality")
                 << d_name << "                       targetNode = {" << edgeNode
                 << "} " << d_nodes[edgeNode] << std::endl;
-            Debug("equality")
+            Trace("equality")
                 << d_name << "                       in currentEdge = ({"
                 << currentNode << "} " << d_nodes[currentNode] << ", {"
                 << edge.getNodeId() << "} " << d_nodes[edge.getNodeId()] << ")"
                 << std::endl;
-            Debug("equality")
+            Trace("equality")
                 << d_name
                 << "                       reason type = " << reasonType
                 << "\n";
@@ -1492,7 +1507,7 @@ void EqualityEngine::getExplanation(
             switch (reasonType) {
             case MERGED_THROUGH_CONGRUENCE: {
               // f(x1, x2) == f(y1, y2) because x1 = y1 and x2 = y2
-              Debug("equality")
+              Trace("equality")
                   << d_name
                   << "::eq::getExplanation(): due to congruence, going deeper"
                   << std::endl;
@@ -1501,12 +1516,12 @@ void EqualityEngine::getExplanation(
               const FunctionApplication& f2 =
                   d_applications[edgeNode].d_original;
 
-              Debug("equality") << push;
-              Debug("equality") << "Explaining left hand side equalities" << std::endl;
+              Trace("equality") << push;
+              Trace("equality") << "Explaining left hand side equalities" << std::endl;
               std::shared_ptr<EqProof> eqpc1 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.d_a, f2.d_a, equalities, cache, eqpc1.get());
-              Debug("equality") << "Explaining right hand side equalities" << std::endl;
+              Trace("equality") << "Explaining right hand side equalities" << std::endl;
               std::shared_ptr<EqProof> eqpc2 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(f1.d_b, f2.d_b, equalities, cache, eqpc2.get());
@@ -1531,34 +1546,34 @@ void EqualityEngine::getExplanation(
                       << " with non-congruence with " << k << "\n";
                 }
               }
-              Debug("equality") << pop;
+              Trace("equality") << pop;
               break;
             }
 
             case MERGED_THROUGH_REFLEXIVITY: {
               // x1 == x1
-              Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
+              Trace("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
               EqualityNodeId eqId = currentNode == d_trueId ? edgeNode : currentNode;
               const FunctionApplication& eq = d_applications[eqId].d_original;
               Assert(eq.isEquality()) << "Must be an equality";
 
               // Explain why a = b constant
-              Debug("equality") << push;
+              Trace("equality") << push;
               std::shared_ptr<EqProof> eqpc1 =
                   eqpc ? std::make_shared<EqProof>() : nullptr;
               getExplanation(eq.d_a, eq.d_b, equalities, cache, eqpc1.get());
               if( eqpc ){
                 eqpc->d_children.push_back( eqpc1 );
               }
-              Debug("equality") << pop;
+              Trace("equality") << pop;
 
               break;
             }
 
             case MERGED_THROUGH_CONSTANTS: {
               // f(c1, ..., cn) = c semantically, we can just ignore it
-              Debug("equality") << d_name << "::eq::getExplanation(): due to constants, explain the constants" << std::endl;
-              Debug("equality") << push;
+              Trace("equality") << d_name << "::eq::getExplanation(): due to constants, explain the constants" << std::endl;
+              Trace("equality") << push;
 
               // Get the node we interpreted
               TNode interpreted;
@@ -1596,9 +1611,9 @@ void EqualityEngine::getExplanation(
                                eqpcc.get());
                 if( eqpc ) {
                   eqpc->d_children.push_back( eqpcc );
-                  if (Debug.isOn("pf::ee"))
+                  if (TraceIsOn("pf::ee"))
                   {
-                    Debug("pf::ee")
+                    Trace("pf::ee")
                         << "MERGED_THROUGH_CONSTANTS. Dumping the child proof"
                         << std::endl;
                     eqpc->debug_print("pf::ee", 1);
@@ -1606,15 +1621,15 @@ void EqualityEngine::getExplanation(
                 }
               }
 
-              Debug("equality") << pop;
+              Trace("equality") << pop;
               break;
             }
 
             default: {
               // Construct the equality
-              Debug("equality") << d_name << "::eq::getExplanation(): adding: "
+              Trace("equality") << d_name << "::eq::getExplanation(): adding: "
                                 << reason << std::endl;
-              Debug("equality")
+              Trace("equality")
                   << d_name
                   << "::eq::getExplanation(): reason type = " << reasonType
                   << "\n";
@@ -1678,7 +1693,7 @@ void EqualityEngine::getExplanation(
               // EqProof::reduceNestedCongruence for more details.
               buildEqConclusion(t1Id, t2Id, eqp);
             }
-            if (Debug.isOn("pf::ee"))
+            if (TraceIsOn("pf::ee"))
             {
               eqp->debug_print("pf::ee", 1);
             }
@@ -1716,11 +1731,11 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 
   // If they are equal or disequal already, no need for the trigger
   if (areEqual(eq[0], eq[1])) {
-    d_notify.eqNotifyTriggerPredicate(eq, true);
+    d_notify->eqNotifyTriggerPredicate(eq, true);
     skipTrigger = true;
   }
   if (areDisequal(eq[0], eq[1], true)) {
-    d_notify.eqNotifyTriggerPredicate(eq, false);
+    d_notify->eqNotifyTriggerPredicate(eq, false);
     skipTrigger = true;
   }
 
@@ -1744,8 +1759,9 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
     // equality is handled separately
     return addTriggerEquality(predicate);
   }
-  Assert(d_congruenceKinds.tst(predicate.getKind()))
-      << "No point in adding non-congruence predicates, kind is " << predicate.getKind();
+  Assert(d_congruenceKinds.test(predicate.getKind()))
+      << "No point in adding non-congruence predicates, kind is "
+      << predicate.getKind();
 
   if (d_done) {
     return;
@@ -1758,11 +1774,11 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
 
   // If it's know already, no need for the trigger
   if (areEqual(predicate, d_true)) {
-    d_notify.eqNotifyTriggerPredicate(predicate, true);
+    d_notify->eqNotifyTriggerPredicate(predicate, true);
     skipTrigger = true;
   }
   if (areEqual(predicate, d_false)) {
-    d_notify.eqNotifyTriggerPredicate(predicate, false);
+    d_notify->eqNotifyTriggerPredicate(predicate, false);
     skipTrigger = true;
   }
 
@@ -1778,7 +1794,7 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
 
 void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigger, bool polarity) {
 
-  Debug("equality") << d_name << "::eq::addTrigger(" << t1 << ", " << t2 << ", " << trigger << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::addTrigger(" << t1 << ", " << t2 << ", " << trigger << ")" << std::endl;
 
   Assert(hasTerm(t1));
   Assert(hasTerm(t2));
@@ -1799,7 +1815,7 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
   // We will attach it to the class representative, since then we know how to backtrack it
   TriggerId t2TriggerId = d_nodeTriggers[t2classId];
 
-  Debug("equality") << d_name << "::eq::addTrigger(" << trigger << "): " << t1Id << " (" << t1classId << ") = " << t2Id << " (" << t2classId << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::addTrigger(" << trigger << "): " << t1Id << " (" << t1classId << ") = " << t2Id << " (" << t2classId << ")" << std::endl;
 
   // Create the triggers
   TriggerId t1NewTriggerId = d_equalityTriggers.size();
@@ -1818,16 +1834,16 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
   d_nodeTriggers[t1classId] = t1NewTriggerId;
   d_nodeTriggers[t2classId] = t2NewTriggerId;
 
-  if (Debug.isOn("equality::internal")) {
+  if (TraceIsOn("equality::internal")) {
     debugPrintGraph();
   }
 
-  Debug("equality") << d_name << "::eq::addTrigger(" << t1 << "," << t2 << ") => (" << t1NewTriggerId << ", " << t2NewTriggerId << ")" << std::endl;
+  Trace("equality") << d_name << "::eq::addTrigger(" << t1 << "," << t2 << ") => (" << t1NewTriggerId << ", " << t2NewTriggerId << ")" << std::endl;
 }
 
 Node EqualityEngine::evaluateTerm(TNode node) {
-  Debug("equality::evaluation") << d_name << "::eq::evaluateTerm(" << node << ")" << std::endl;
-  NodeBuilder<> builder;
+  Trace("equality::evaluation") << d_name << "::eq::evaluateTerm(" << node << ")" << std::endl;
+  NodeBuilder builder;
   builder << node.getKind();
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED) {
     builder << node.getOperator();
@@ -1835,17 +1851,17 @@ Node EqualityEngine::evaluateTerm(TNode node) {
   for (unsigned i = 0; i < node.getNumChildren(); ++ i) {
     TNode child = node[i];
     TNode childRep = getRepresentative(child);
-    Debug("equality::evaluation") << d_name << "::eq::evaluateTerm: " << child << " -> " << childRep << std::endl;
+    Trace("equality::evaluation") << d_name << "::eq::evaluateTerm: " << child << " -> " << childRep << std::endl;
     Assert(childRep.isConst());
     builder << childRep;
   }
   Node newNode = builder;
-  return Rewriter::rewrite(newNode);
+  return d_env.getRewriter()->rewrite(newNode);
 }
 
 void EqualityEngine::processEvaluationQueue() {
 
-  Debug("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): start" << std::endl;
+  Trace("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): start" << std::endl;
 
   while (!d_evaluationQueue.empty()) {
     // Get the node
@@ -1854,7 +1870,7 @@ void EqualityEngine::processEvaluationQueue() {
 
     // Replace the children with their representatives (must be constants)
     Node nodeEvaluated = evaluateTerm(d_nodes[id]);
-    Debug("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): " << d_nodes[id] << " evaluates to " << nodeEvaluated << std::endl;
+    Trace("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): " << d_nodes[id] << " evaluates to " << nodeEvaluated << std::endl;
     Assert(nodeEvaluated.isConst());
     addTermInternal(nodeEvaluated);
     EqualityNodeId nodeEvaluatedId = getNodeId(nodeEvaluated);
@@ -1863,7 +1879,7 @@ void EqualityEngine::processEvaluationQueue() {
     enqueue(MergeCandidate(id, nodeEvaluatedId, MERGED_THROUGH_CONSTANTS, TNode::null()));
   }
 
-  Debug("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): done" << std::endl;
+  Trace("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): done" << std::endl;
 }
 
 void EqualityEngine::propagate() {
@@ -1876,7 +1892,7 @@ void EqualityEngine::propagate() {
   // Make sure we don't get in again
   ScopedBool inPropagate(d_inPropagate, true);
 
-  Debug("equality") << d_name << "::eq::propagate()" << std::endl;
+  Trace("equality") << d_name << "::eq::propagate()" << std::endl;
 
   while (!d_propagationQueue.empty() || !d_evaluationQueue.empty()) {
 
@@ -1906,8 +1922,8 @@ void EqualityEngine::propagate() {
       continue;
     }
 
-    Debug("equality::internal") << d_name << "::eq::propagate(): t1: " << (d_isInternal[t1classId] ? "internal" : "proper") << std::endl;
-    Debug("equality::internal") << d_name << "::eq::propagate(): t2: " << (d_isInternal[t2classId] ? "internal" : "proper") << std::endl;
+    Trace("equality::internal") << d_name << "::eq::propagate(): t1: " << (d_isInternal[t1classId] ? "internal" : "proper") << std::endl;
+    Trace("equality::internal") << d_name << "::eq::propagate(): t2: " << (d_isInternal[t2classId] ? "internal" : "proper") << std::endl;
 
     // Get the nodes of the representatives
     EqualityNode& node1 = getEqualityNode(t1classId);
@@ -1929,9 +1945,8 @@ void EqualityEngine::propagate() {
       d_assertedEqualities.push_back(Equality(null_id, null_id));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
       // Notify
-      if (d_performNotify) {
-        d_notify.eqNotifyConstantTermMerge(d_nodes[t1classId], d_nodes[t2classId]);
-      }
+      d_notify->eqNotifyConstantTermMerge(d_nodes[t1classId],
+                                         d_nodes[t2classId]);
       // Empty the queue and exit
       continue;
     }
@@ -1964,7 +1979,7 @@ void EqualityEngine::propagate() {
     }
 
     if (mergeInto == t2classId) {
-      Debug("equality") << d_name << "::eq::propagate(): merging "
+      Trace("equality") << d_name << "::eq::propagate(): merging "
                         << d_nodes[current.d_t1Id] << " into "
                         << d_nodes[current.d_t2Id] << std::endl;
       d_assertedEqualities.push_back(Equality(t2classId, t1classId));
@@ -1973,7 +1988,7 @@ void EqualityEngine::propagate() {
         d_done = true;
       }
     } else {
-      Debug("equality") << d_name << "::eq::propagate(): merging "
+      Trace("equality") << d_name << "::eq::propagate(): merging "
                         << d_nodes[current.d_t2Id] << " into "
                         << d_nodes[current.d_t1Id] << std::endl;
       d_assertedEqualities.push_back(Equality(t1classId, t2classId));
@@ -1990,7 +2005,8 @@ void EqualityEngine::propagate() {
     }
 
     // Notify the triggers
-    if (d_performNotify && !d_done) {
+    if (!d_done)
+    {
       for (size_t trigger_i = 0, trigger_end = triggers.size(); trigger_i < trigger_end && !d_done; ++ trigger_i) {
         const TriggerInfo& triggerInfo = d_equalityTriggersOriginal[triggers[trigger_i]];
         if (triggerInfo.d_trigger.getKind() == kind::EQUAL)
@@ -2013,7 +2029,7 @@ void EqualityEngine::propagate() {
                 d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
               }
               storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
-              if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+              if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                      triggerInfo.d_polarity))
               {
                 d_done = true;
@@ -2023,7 +2039,7 @@ void EqualityEngine::propagate() {
           else
           {
             // Equalities are simple
-            if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+            if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                    triggerInfo.d_polarity))
             {
               d_done = true;
@@ -2032,7 +2048,7 @@ void EqualityEngine::propagate() {
         }
         else
         {
-          if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+          if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                  triggerInfo.d_polarity))
           {
             d_done = true;
@@ -2043,38 +2059,66 @@ void EqualityEngine::propagate() {
   }
 }
 
-void EqualityEngine::debugPrintGraph() const {
-  Debug("equality::graph") << std::endl << "Dumping graph" << std::endl;
-  for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++ nodeId) {
-
-    Debug("equality::graph") << d_nodes[nodeId] << " " << nodeId << "(" << getEqualityNode(nodeId).getFind() << "):";
+void EqualityEngine::debugPrintGraph() const
+{
+  Trace("equality::internal") << std::endl << "Dumping graph" << std::endl;
+  for (EqualityNodeId nodeId = 0; nodeId < d_nodes.size(); ++nodeId)
+  {
+    Trace("equality::internal") << d_nodes[nodeId] << " " << nodeId << "("
+                                << getEqualityNode(nodeId).getFind() << "):";
 
     EqualityEdgeId edgeId = d_equalityGraph[nodeId];
-    while (edgeId != null_edge) {
+    while (edgeId != null_edge)
+    {
       const EqualityEdge& edge = d_equalityEdges[edgeId];
-      Debug("equality::graph") << " [" << edge.getNodeId() << "] " << d_nodes[edge.getNodeId()] << ":" << edge.getReason();
+      Trace("equality::internal")
+          << " [" << edge.getNodeId() << "] " << d_nodes[edge.getNodeId()]
+          << ":" << edge.getReason();
       edgeId = edge.getNext();
     }
 
-    Debug("equality::graph") << std::endl;
+    Trace("equality::internal") << std::endl;
   }
-  Debug("equality::graph") << std::endl;
+  Trace("equality::internal") << std::endl;
+}
+
+std::string EqualityEngine::debugPrintEqc() const
+{
+  std::stringstream ss;
+  eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(this);
+  while (!eqcs2_i.isFinished())
+  {
+    Node eqc = (*eqcs2_i);
+    eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, this);
+    ss << "Eqc( " << eqc << " ) : { ";
+    while (!eqc2_i.isFinished())
+    {
+      if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != kind::EQUAL)
+      {
+        ss << (*eqc2_i) << " ";
+      }
+      ++eqc2_i;
+    }
+    ss << " } " << std::endl;
+    ++eqcs2_i;
+  }
+  return ss.str();
 }
 
 bool EqualityEngine::areEqual(TNode t1, TNode t2) const {
-  Debug("equality") << d_name << "::eq::areEqual(" << t1 << "," << t2 << ")";
+  Trace("equality") << d_name << "::eq::areEqual(" << t1 << "," << t2 << ")";
 
   Assert(hasTerm(t1));
   Assert(hasTerm(t2));
 
   bool result = getEqualityNode(t1).getFind() == getEqualityNode(t2).getFind();
-  Debug("equality") << (result ? "\t(YES)" : "\t(NO)") << std::endl;
+  Trace("equality") << (result ? "\t(YES)" : "\t(NO)") << std::endl;
   return result;
 }
 
 bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
 {
-  Debug("equality") << d_name << "::eq::areDisequal(" << t1 << "," << t2 << ")";
+  Trace("equality") << d_name << "::eq::areDisequal(" << t1 << "," << t2 << ")";
 
   // Add the terms
   Assert(hasTerm(t1));
@@ -2086,7 +2130,7 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
 
   // If we propagated this disequality we're true
   if (hasPropagatedDisequality(t1Id, t2Id)) {
-    Debug("equality") << "\t(YES)" << std::endl;
+    Trace("equality") << "\t(YES)" << std::endl;
     return true;
   }
 
@@ -2104,7 +2148,7 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
       nonConst->d_deducedDisequalityReasons.push_back(EqualityPair(t2Id, t2ClassId));
       nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
     }
-    Debug("equality") << "\t(YES)" << std::endl;
+    Trace("equality") << "\t(YES)" << std::endl;
     return true;
   }
 
@@ -2123,7 +2167,7 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
             EqualityPair(t2Id, original.d_b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
       }
-      Debug("equality") << "\t(YES)" << std::endl;
+      Trace("equality") << "\t(YES)" << std::endl;
       return true;
     }
   }
@@ -2143,13 +2187,13 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
             EqualityPair(t1Id, original.d_b));
         nonConst->storePropagatedDisequality(THEORY_LAST, t1Id, t2Id);
       }
-      Debug("equality") << "\t(YES)" << std::endl;
+      Trace("equality") << "\t(YES)" << std::endl;
       return true;
     }
   }
 
   // Couldn't deduce dis-equalityReturn whether the terms are disequal
-  Debug("equality") << "\t(NO)" << std::endl;
+  Trace("equality") << "\t(NO)" << std::endl;
   return false;
 }
 
@@ -2163,7 +2207,7 @@ std::string EqualityEngine::identify() const { return d_name; }
 
 void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
 {
-  Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << ")" << std::endl;
+  Trace("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << ")" << std::endl;
 
   Assert(tag != THEORY_LAST);
 
@@ -2189,12 +2233,16 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   TriggerTermSetRef triggerSetRef = d_nodeIndividualTrigger[classId];
   if (triggerSetRef != +null_set_id && getTriggerTermSet(triggerSetRef).hasTrigger(tag)) {
     // If the term already is in the equivalence class that a tagged representative, just notify
-    if (d_performNotify) {
-      EqualityNodeId triggerId = getTriggerTermSet(triggerSetRef).getTrigger(tag);
-      Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << "): already have this trigger in class with " << d_nodes[triggerId] << std::endl;
-      if (eqNodeId != triggerId && !d_notify.eqNotifyTriggerTermEquality(tag, t, d_nodes[triggerId], true)) {
-        d_done = true;
-      }
+    EqualityNodeId triggerId = getTriggerTermSet(triggerSetRef).getTrigger(tag);
+    Trace("equality::trigger")
+        << d_name << "::eq::addTriggerTerm(" << t << ", " << tag
+        << "): already have this trigger in class with " << d_nodes[triggerId]
+        << std::endl;
+    if (eqNodeId != triggerId
+        && !d_notify->eqNotifyTriggerTermEquality(
+               tag, t, d_nodes[triggerId], true))
+    {
+      d_done = true;
     }
   } else {
 
@@ -2243,7 +2291,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
     d_nodeIndividualTrigger[classId] = triggerSetRef = newTriggerTermSet(newSetTags, newSetTriggers, newSetTriggersSize);
 
     // Propagate trigger term disequalities we remembered
-    Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << "): propagating " << disequalitiesToNotify.size() << " disequalities " << std::endl;
+    Trace("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << "): propagating " << disequalitiesToNotify.size() << " disequalities " << std::endl;
     propagateTriggerTermDisequalities(tags, triggerSetRef, disequalitiesToNotify);
   }
 }
@@ -2274,8 +2322,8 @@ void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, 
   d_applicationLookup[funNormalized] = funId;
   d_applicationLookups.push_back(funNormalized);
   d_applicationLookupsCount = d_applicationLookupsCount + 1;
-  Debug("equality::backtrack") << "d_applicationLookupsCount = " << d_applicationLookupsCount << std::endl;
-  Debug("equality::backtrack") << "d_applicationLookups.size() = " << d_applicationLookups.size() << std::endl;
+  Trace("equality::backtrack") << "d_applicationLookupsCount = " << d_applicationLookupsCount << std::endl;
+  Trace("equality::backtrack") << "d_applicationLookups.size() = " << d_applicationLookups.size() << std::endl;
   Assert(d_applicationLookupsCount == d_applicationLookups.size());
 
   // If an equality over constants we merge to false
@@ -2348,11 +2396,11 @@ EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(
 bool EqualityEngine::hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNodeId rhsId) const {
   EqualityPair eq(lhsId, rhsId);
   bool propagated = d_propagatedDisequalities.find(eq) != d_propagatedDisequalities.end();
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
   bool stored = d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end();
   Assert(propagated == stored) << "These two should be in sync";
 #endif
-  Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (propagated ? "true" : "false") << std::endl;
+  Trace("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (propagated ? "true" : "false") << std::endl;
   return propagated;
 }
 
@@ -2364,13 +2412,13 @@ bool EqualityEngine::hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId
   if (it == d_propagatedDisequalities.end()) {
     Assert(d_disequalityReasonsMap.find(eq) == d_disequalityReasonsMap.end())
         << "Why do we have a proof if not propagated";
-    Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => false" << std::endl;
+    Trace("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => false" << std::endl;
     return false;
   }
   Assert(d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end())
       << "We propagated but there is no proof";
   bool result = TheoryIdSetUtil::setContains(tag, (*it).second);
-  Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (result ? "true" : "false") << std::endl;
+  Trace("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (result ? "true" : "false") << std::endl;
   return result;
 }
 
@@ -2380,7 +2428,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
       << "Check before you store it";
   Assert(lhsId != rhsId) << "Wow, wtf!";
 
-  Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ")" << std::endl;
+  Trace("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ")" << std::endl;
 
   EqualityPair pair1(lhsId, rhsId);
   EqualityPair pair2(rhsId, lhsId);
@@ -2398,11 +2446,11 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
 
   // Store the proof if provided
   if (d_deducedDisequalityReasons.size() > d_deducedDisequalityReasonsSize) {
-    Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << "): storing proof" << std::endl;
+    Trace("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << "): storing proof" << std::endl;
     Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end())
         << "There can't be a proof if you're adding a new one";
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
-#ifdef CVC4_ASSERTIONS
+#ifdef CVC5_ASSERTIONS
     // Check that the reasons are valid
     for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
     {
@@ -2411,12 +2459,12 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
           == getEqualityNode(d_deducedDisequalityReasons[i].second).getFind());
     }
 #endif
-    if (Debug.isOn("equality::disequality")) {
+    if (TraceIsOn("equality::disequality")) {
       for (unsigned i = ref.d_mergesStart; i < ref.d_mergesEnd; ++i)
       {
         TNode lhs = d_nodes[d_deducedDisequalityReasons[i].first];
         TNode rhs = d_nodes[d_deducedDisequalityReasons[i].second];
-        Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(): because " << lhs << " == " << rhs << std::endl;
+        Trace("equality::disequality") << d_name << "::eq::storePropagatedDisequality(): because " << lhs << " == " << rhs << std::endl;
       }
     }
 
@@ -2458,7 +2506,7 @@ void EqualityEngine::getDisequalities(bool allowConstants,
   EqualityNodeId currentId = classId;
   do {
 
-    Debug("equality::trigger") << d_name << "::getDisequalities() : going through uselist of " << d_nodes[currentId] << std::endl;
+    Trace("equality::trigger") << d_name << "::getDisequalities() : going through uselist of " << d_nodes[currentId] << std::endl;
 
     // Current node in the equivalence class
     EqualityNode& currentNode = getEqualityNode(currentId);
@@ -2469,7 +2517,7 @@ void EqualityEngine::getDisequalities(bool allowConstants,
       UseListNode& useListNode = d_useListNodes[currentUseId];
       EqualityNodeId funId = useListNode.getApplicationId();
 
-      Debug("equality::trigger") << d_name << "::getDisequalities() : checking " << d_nodes[funId] << std::endl;
+      Trace("equality::trigger") << d_name << "::getDisequalities() : checking " << d_nodes[funId] << std::endl;
 
       const FunctionApplication& fun =
           d_applications[useListNode.getApplicationId()].d_original;
@@ -2574,10 +2622,10 @@ bool EqualityEngine::propagateTriggerTermDisequalities(
         // Store the propagation
         storePropagatedDisequality(currentTag, myRep, tagRep);
         // Notify
-        if (d_performNotify) {
-          if (!d_notify.eqNotifyTriggerTermEquality(currentTag, d_nodes[myRep], d_nodes[tagRep], false)) {
-            d_done = true;
-          }
+        if (!d_notify->eqNotifyTriggerTermEquality(
+                currentTag, d_nodes[myRep], d_nodes[tagRep], false))
+        {
+          d_done = true;
         }
       }
     }
@@ -2598,4 +2646,4 @@ EqualityNodeId EqualityEngine::TriggerTermSet::getTrigger(TheoryId tag) const
 
 } // Namespace uf
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5::internal

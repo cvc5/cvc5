@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file theory_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The TheoryRewriter class
- **
- ** The TheoryRewriter class is the interface that theory rewriters implement.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The TheoryRewriter class.
+ *
+ * The interface that theory rewriters implement.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_REWRITER_H
-#define CVC4__THEORY__THEORY_REWRITER_H
+#ifndef CVC5__THEORY__THEORY_REWRITER_H
+#define CVC5__THEORY__THEORY_REWRITER_H
 
 #include "expr/node.h"
-#include "theory/trust_node.h"
+#include "proof/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 class Rewriter;
@@ -33,13 +34,20 @@ class Rewriter;
  */
 enum RewriteStatus
 {
-  /** The node is fully rewritten (no more rewrites apply) */
+  /**
+   * The node is fully rewritten (no more rewrites apply for the original
+   * kind). If the rewrite changes the kind, the rewriter will apply another
+   * round of rewrites.
+   */
   REWRITE_DONE,
   /** The node may be rewritten further */
   REWRITE_AGAIN,
   /** Subnodes of the node may be rewritten further */
   REWRITE_AGAIN_FULL
 }; /* enum RewriteStatus */
+
+/** Print a RewriteStatus to an output stream */
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs);
 
 /**
  * Instances of this class serve as response codes from
@@ -137,9 +145,33 @@ class TheoryRewriter
    * node if no rewrites are applied.
    */
   virtual TrustNode rewriteEqualityExtWithProof(Node node);
+
+  /**
+   * Expand definitions in the term node. This returns a term that is
+   * equivalent to node. It wraps this term in a TrustNode of kind
+   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
+   * null TrustNode may be returned. This is an optimization to avoid
+   * constructing the trivial equality (= node node) internally within
+   * TrustNode.
+   *
+   * The purpose of this method is typically to eliminate the operators in node
+   * that are syntax sugar that cannot otherwise be eliminated during rewriting.
+   * For example, division relies on the introduction of an uninterpreted
+   * function for the divide-by-zero case, which we do not introduce with
+   * the standard rewrite methods.
+   *
+   * Some theories have kinds that are effectively definitions and should be
+   * expanded before they are handled.  Definitions allow a much wider range of
+   * actions than the normal forms given by the rewriter. However no
+   * assumptions can be made about subterms having been expanded or rewritten.
+   * Where possible rewrite rules should be used, definitions should only be
+   * used when rewrites are not possible, for example in handling
+   * under-specified operations using partially defined functions.
+   */
+  virtual TrustNode expandDefinition(Node node);
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__THEORY_REWRITER_H */
+#endif /* CVC5__THEORY__THEORY_REWRITER_H */

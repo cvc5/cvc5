@@ -1,7 +1,0 @@
-x, y : BOOLEAN;
-
-ASSERT (x OR y);
-ASSERT NOT (x OR y);
-
-% EXPECT: entailed
-QUERY FALSE;

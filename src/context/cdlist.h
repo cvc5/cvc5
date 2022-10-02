@@ -1,28 +1,28 @@
-/*********************                                                        */
-/*! \file cdlist.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Clark Barrett
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent list class (only supports append)
- **
- ** Context-dependent list class.  This list only supports appending
- ** to the list; on backtrack, the list is simply shortened.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andres Noetzli, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ * Context-dependent list class (only supports append).
+ *
+ * This list only supports appending to the list; on backtrack, the list is
+ * simply shortened.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5parser_public.h"
 
-#ifndef CVC4__CONTEXT__CDLIST_H
-#define CVC4__CONTEXT__CDLIST_H
+#ifndef CVC5__CONTEXT__CDLIST_H
+#define CVC5__CONTEXT__CDLIST_H
 
+#include <cstring>
 #include <iterator>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -32,8 +32,7 @@
 #include "context/context_mm.h"
 #include "context/default_clean_up.h"
 
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
 /**
  * Generic context-dependent dynamic array.  Note that for efficiency, this
@@ -110,19 +109,33 @@ class CDList : public ContextObj
   bool empty() const { return d_list.empty(); }
 
   /**
-   * Add an item to the end of the list.
+   * Add an item to the end of the list. This method uses the copy constructor
+   * of T, so the type has to support it. As a result, this method cannot be
+   * used with types that do not have a copy constructor such as
+   * std::unique_ptr. Use CDList::emplace_back() instead of CDList::push_back()
+   * to avoid this issue.
    */
   void push_back(const T& data) {
-    Debug("cdlist") << "push_back " << this << " " << getContext()->getLevel()
+    Trace("cdlist") << "push_back " << this << " " << getContext()->getLevel()
                     << ": make-current" << std::endl;
     makeCurrent();
-
     d_list.push_back(data);
     ++d_size;
+  }
 
-    Debug("cdlist") << "push_back " << this
-                    << " " << getContext()->getLevel()
-                    << ": size now " << d_size << std::endl;
+  /**
+   * Construct an item to the end of the list. This method constructs the item
+   * in-place (similar to std::vector::emplace_back()), so it can be used for
+   * types that do not have a copy constructor such as std::unique_ptr.
+   */
+  template <typename... Args>
+  void emplace_back(Args&&... args)
+  {
+    Trace("cdlist") << "emplace_back " << this << " "
+                    << getContext()->getLevel() << ": make-current" << std::endl;
+    makeCurrent();
+    d_list.emplace_back(std::forward<Args>(args)...);
+    ++d_size;
   }
 
   /**
@@ -164,7 +177,7 @@ class CDList : public ContextObj
         d_callCleanup(false),
         d_cleanUp(l.d_cleanUp)
   {
-    Debug("cdlist") << "copy ctor: " << this << " from " << &l << " size "
+    Trace("cdlist") << "copy ctor: " << this << " from " << &l << " size "
                     << d_size << std::endl;
   }
   CDList& operator=(const CDList& l) = delete;
@@ -176,13 +189,7 @@ class CDList : public ContextObj
 
   void restore(ContextObj* data) override
   {
-    Debug("cdlist") << "restore " << this << " level "
-                    << this->getContext()->getLevel() << " data == " << data
-                    << " call dtor == " << this->d_callCleanup << std::endl;
     truncateList(((CDList<T, CleanUp, Allocator>*)data)->d_size);
-    Debug("cdlist") << "restore " << this << " level "
-                    << this->getContext()->getLevel() << " size back to "
-                    << this->d_size << std::endl;
   }
 
   /**
@@ -245,16 +252,12 @@ class CDList : public ContextObj
    */
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
-    ContextObj* data = new (pCMM) CDList<T, CleanUp, Allocator>(*this);
-    Debug("cdlist") << "save " << this << " at level "
-                    << this->getContext()->getLevel() << " size at "
-                    << this->d_size << " data:" << data << std::endl;
+    ContextObj* data = new(pCMM) CDList<T, CleanUp, Allocator>(*this);
     return data;
   }
 
 }; /* class CDList<> */
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::context
 
-#endif /* CVC4__CONTEXT__CDLIST_H */
+#endif /* CVC5__CONTEXT__CDLIST_H */

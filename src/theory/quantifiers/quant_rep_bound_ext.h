@@ -1,35 +1,36 @@
-/*********************                                                        */
-/*! \file quant_rep_bound_ext.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Quantifiers representative bound utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Quantifiers representative bound utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
-#define CVC4__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
+#define CVC5__THEORY__QUANTIFIERS__QUANT_REP_BOUND_EXT_H
 
 #include <map>
 
 #include "expr/node.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/rep_set.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+class QuantifiersBoundInference;
+class FirstOrderModel;
 
 /** Quantifiers representative bound
  *
@@ -40,32 +41,40 @@ namespace quantifiers {
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersEngine* qe);
+  QRepBoundExt(Env& env,
+               QuantifiersBoundInference& qbi,
+               QuantifiersState& qs,
+               TermRegistry& tr,
+               TNode q);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
-                       unsigned i,
+                       size_t i,
                        std::vector<Node>& elements) override;
   /** reset index */
   bool resetIndex(RepSetIterator* rsi,
                   Node owner,
-                  unsigned i,
+                  size_t i,
                   bool initial,
                   std::vector<Node>& elements) override;
   /** initialize representative set for type */
   bool initializeRepresentativesForType(TypeNode tn) override;
   /** get variable order */
-  bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
+  bool getVariableOrder(Node owner, std::vector<size_t>& varOrder) override;
 
  private:
-  /** Quantifiers engine associated with this bound */
-  QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers bound inference */
+  QuantifiersBoundInference& d_qbi;
+  /** Pointer to the quantifiers model */
+  FirstOrderModel* d_model;
   /** indices that are bound integer enumeration */
-  std::map<unsigned, bool> d_bound_int;
+  std::map<size_t, bool> d_bound_int;
+  /** An instantiation match */
+  InstMatch d_instMatch;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

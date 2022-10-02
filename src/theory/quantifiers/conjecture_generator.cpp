@@ -1,38 +1,39 @@
-/*********************                                                        */
-/*! \file conjecture_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief conjecture generator class
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * conjecture generator class
+ */
 
 #include "theory/quantifiers/conjecture_generator.h"
+
+#include "expr/skolem_manager.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 #include "util/random.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::quantifiers;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 struct sortConjectureScore {
   std::vector< int > d_scores;
@@ -85,12 +86,16 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
-                                         context::Context* c)
-    : QuantifiersModule(qe),
+ConjectureGenerator::ConjectureGenerator(Env& env,
+                                         QuantifiersState& qs,
+                                         QuantifiersInferenceManager& qim,
+                                         QuantifiersRegistry& qr,
+                                         TermRegistry& tr)
+    : QuantifiersModule(env, qs, qim, qr, tr),
       d_notify(*this),
-      d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
-      d_ee_conjectures(c),
+      d_uequalityEngine(
+          env, context(), d_notify, "ConjectureGenerator::ee", false),
+      d_ee_conjectures(context()),
       d_conj_count(0),
       d_subs_confirmCount(0),
       d_subs_unkCount(0),
@@ -152,9 +157,9 @@ void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2)
   }
 }
 
-
-ConjectureGenerator::EqcInfo::EqcInfo( context::Context* c ) : d_rep( c, Node::null() ){
-
+ConjectureGenerator::EqcInfo::EqcInfo(context::Context* c)
+    : d_rep(c, Node::null())
+{
 }
 
 ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bool doMake ) {
@@ -163,7 +168,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
   if( eqc_i!=d_eqc_info.end() ){
     return eqc_i->second;
   }else if( doMake ){
-    EqcInfo* ei = new EqcInfo( d_quantEngine->getSatContext() );
+    EqcInfo* ei = new EqcInfo(context());
     d_eqc_info[n] = ei;
     return ei;
   }else{
@@ -240,6 +245,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
       // now, do instantiation-based merging for each of these terms
       Trace("thm-ee-debug") << "Merge equivalence classes based on instantiations of terms..." << std::endl;
       //merge all pending equalities
+      EntailmentCheck* echeck = d_treg.getEntailmentCheck();
       while( !d_upendingAdds.empty() ){
         Trace("sg-pending") << "Add " << d_upendingAdds.size() << " pending terms..." << std::endl;
         std::vector< Node > pending;
@@ -251,7 +257,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
           Trace("thm-ee-add") << "UEE : Add universal term " << t << std::endl;
           std::vector< Node > eq_terms;
           //if occurs modulo equality at ground level, it is equivalent to representative of ground equality engine
-          Node gt = getTermDatabase()->evaluateTerm(t);
+          Node gt = echeck->evaluateTerm(t);
           if( !gt.isNull() && gt!=t ){
             eq_terms.push_back( gt );
           }
@@ -272,9 +278,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
               {
                 Assert(eqt.getType() == tn);
                 registerPattern(eqt, tn);
-                if (isUniversalLessThan(eqt, t)
-                    || (options::conjectureUeeIntro()
-                        && d_pattern_fun_sum[t] >= d_pattern_fun_sum[eqt]))
+                if (isUniversalLessThan(eqt, t))
                 {
                   setUniversalRelevant(eqt);
                   assertEq = true;
@@ -310,11 +314,13 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
+  return d_termCanon.getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
-  return d_quantEngine->getTermDatabase()->isTermActive( n ) && inst::Trigger::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
+  return getTermDatabase()->isTermActive(n)
+         && inst::TriggerTermInfo::isAtomicTrigger(n)
+         && (n.getKind() != APPLY_UF || n.getOperator().getKind() != SKOLEM);
 }
 
 Node ConjectureGenerator::getGroundEqc( TNode r ) {
@@ -332,21 +338,23 @@ bool ConjectureGenerator::isGroundTerm( TNode n ) {
 
 bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
   // synchonized with instantiation engine
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
-  if( options::conjectureGenGtEnum()>0 ){
+  if (options().quantifiers.conjectureGenGtEnum > 0)
+  {
     std::map< Node, bool >::iterator it = d_uf_enum.find( n.getOperator() );
     if( it==d_uf_enum.end() ){
       d_uf_enum[n.getOperator()] = true;
       std::vector< Node > lem;
-      getEnumeratePredUfTerm( n, options::conjectureGenGtEnum(), lem );
+      getEnumeratePredUfTerm(n, options().quantifiers.conjectureGenGtEnum, lem);
       if( !lem.empty() ){
-        for( unsigned j=0; j<lem.size(); j++ ){
-          d_quantEngine->addLemma( lem[j], false );
-          d_hasAddedLemma = true;
+        for (const Node& l : lem)
+        {
+          d_qim.addPendingLemma(l, InferenceId::QUANTIFIERS_CONJ_GEN_GT_ENUM);
         }
+        d_hasAddedLemma = true;
         return false;
       }
     }
@@ -366,7 +374,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_hasAddedLemma = false;
       d_tge.d_cg = this;
       double clSet = 0;
-      if( Trace.isOn("sg-engine") ){
+      if( TraceIsOn("sg-engine") ){
         clSet = double(clock())/double(CLOCKS_PER_SEC);
         Trace("sg-engine") << "---Conjecture Engine Round, effort = " << e << "---" << std::endl;
       }
@@ -404,8 +412,12 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           Trace("sg-proc-debug") << "......term : " << n << std::endl;
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
-              getTermDatabase()->computeArgReps( n );
-              d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
+              std::vector<TNode> areps;
+              for (const Node& nc : n)
+              {
+                areps.push_back(d_qstate.getRepresentative(nc));
+              }
+              d_op_arg_index[r].addTerm(areps, n);
             }
           }
           ++ieqc_i;
@@ -427,7 +439,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             std::vector< TNode > args;
             Trace("sg-pat-debug") << "******* Get ground term for " << r << std::endl;
             Node n;
-            if (Skolemize::isInductionTerm(r))
+            if (Skolemize::isInductionTerm(options(), r))
             {
               n = d_op_arg_index[r].getGroundTerm( this, args );
             }else{
@@ -453,7 +465,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       Trace("sg-proc") << "...done determine ground EQC" << std::endl;
 
       //debug printing
-      if( Trace.isOn("sg-gen-eqc") ){
+      if( TraceIsOn("sg-gen-eqc") ){
         for( unsigned i=0; i<eqcs.size(); i++ ){
           TNode r = eqcs[i];
           //print out members
@@ -469,9 +481,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
-                getTermDatabase()->computeArgReps( n );
-                for (TNode ar : getTermDatabase()->d_arg_reps[n])
+                for (const Node& nc : n)
                 {
+                  TNode ar = d_qstate.getRepresentative(nc);
                   Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
@@ -526,7 +538,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       d_ue_canon.clear();
       d_thm_index.clear();
       std::vector< Node > provenConj;
-      quantifiers::FirstOrderModel* m = d_quantEngine->getModel();
+      quantifiers::FirstOrderModel* m = d_treg.getModel();
       for( unsigned i=0; i<m->getNumAssertedQuantifiers(); i++ ){
         Node q = m->getAssertedQuantifier( i );
         Trace("thm-db-debug") << "Is " << q << " a relevant theorem?" << std::endl;
@@ -543,7 +555,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
+                eq = d_termCanon.getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -559,7 +571,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                   {
                     isSubsume = true;
                     //set inactive (will be ignored by other modules)
-                    d_quantEngine->getModel()->setQuantifierActive( q, false );
+                    m->setQuantifierActive(q, false);
                   }
                   else
                   {
@@ -592,7 +604,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           //check each skolem variable
           bool disproven = true;
           std::vector<Node> skolems;
-          d_quantEngine->getSkolemize()->getSkolemConstants(q, skolems);
+          d_qim.getSkolemize()->getSkolemConstants(q, skolems);
           Trace("sg-conjecture") << "    CONJECTURE : ";
           std::vector< Node > ce;
           for (unsigned j = 0; j < skolems.size(); j++)
@@ -602,7 +614,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             //check if it is a ground term
             if( git==d_ground_eqc_map.end() ){
               Trace("sg-conjecture") << "ACTIVE : " << q;
-              if( Trace.isOn("sg-gen-eqc") ){
+              if( TraceIsOn("sg-gen-eqc") ){
                 Trace("sg-conjecture") << " { ";
                 for (unsigned k = 0; k < skolems.size(); k++)
                 {
@@ -652,7 +664,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
       std::vector< TypeNode > rt_types;
       std::map< TypeNode, std::map< int, std::vector< Node > > > conj_lhs;
       unsigned addedLemmas = 0;
-      unsigned maxDepth = options::conjectureGenMaxDepth();
+      unsigned maxDepth = options().quantifiers.conjectureGenMaxDepth;
       for( unsigned depth=1; depth<=maxDepth; depth++ ){
         Trace("sg-proc") << "Generate relevant LHS at depth " << depth << "..." << std::endl;
         Trace("sg-rel-term") << "Relevant terms of depth " << depth << " : " << std::endl;
@@ -663,7 +675,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         while( d_tge.getNextTerm() ){
           //construct term
           Node nn = d_tge.getTerm();
-          if( !options::conjectureFilterCanonical() || considerTermCanon( nn, true ) ){
+          if (considerTermCanon(nn, true))
+          {
             rel_term_count++;
             Trace("sg-rel-term") << "*** Relevant term : ";
             d_tge.debugPrint( "sg-rel-term", "sg-rel-term-debug2" );
@@ -698,8 +711,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
                   gsubs_vars.push_back(
-                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
-                          it->first, i));
+                      d_termCanon.getCanonicalFreeVar(it->first, i));
                 }
               }
             }
@@ -759,7 +771,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
             }
             Trace("sg-gen-tg-debug") << "...done build substitutions for ground EQC" << std::endl;
-          }else{
+          }
+          else
+          {
             Trace("sg-gen-tg-debug") << "> not canonical : " << nn << std::endl;
           }
         }
@@ -815,7 +829,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           //consider against all LHS up to depth
           if( rdepth==depth ){
             for( unsigned lhs_depth = 1; lhs_depth<=depth; lhs_depth++ ){
-              if( (int)addedLemmas<options::conjectureGenPerRound() ){
+              if ((int)addedLemmas
+                  < options().quantifiers.conjectureGenPerRound)
+              {
                 Trace("sg-proc") << "Consider conjectures at depth (" << lhs_depth << ", " << rdepth << ")..." << std::endl;
                 for( std::map< TypeNode, std::vector< Node > >::iterator it = conj_rhs.begin(); it != conj_rhs.end(); ++it ){
                   for( unsigned j=0; j<it->second.size(); j++ ){
@@ -828,16 +844,18 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
             }
           }
-          if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+          if ((int)addedLemmas >= options().quantifiers.conjectureGenPerRound)
+          {
             break;
           }
         }
-        if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+        if ((int)addedLemmas >= options().quantifiers.conjectureGenPerRound)
+        {
           break;
         }
       }
       Trace("sg-stats") << "Total conjectures considered : " << d_conj_count << std::endl;
-      if( Trace.isOn("thm-ee") ){
+      if( TraceIsOn("thm-ee") ){
         Trace("thm-ee") << "Universal equality engine is : " << std::endl;
         eq::EqClassesIterator ueqcs_i = eq::EqClassesIterator( &d_uequalityEngine );
         while( !ueqcs_i.isFinished() ){
@@ -864,7 +882,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
         Trace("thm-ee") << std::endl;
       }
-      if( Trace.isOn("sg-engine") ){
+      if( TraceIsOn("sg-engine") ){
         double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
         Trace("sg-engine") << "Finished conjecture generator, time = " << (clSet2-clSet) << std::endl;
       }
@@ -875,7 +893,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth ) {
   if( !d_waiting_conjectures_lhs.empty() ){
     Trace("sg-proc") << "Generated " << d_waiting_conjectures_lhs.size() << " conjectures at depth " << ldepth << "/" << rdepth << "." << std::endl;
-    if( (int)addedLemmas<options::conjectureGenPerRound() ){
+    if ((int)addedLemmas < options().quantifiers.conjectureGenPerRound)
+    {
       /*
       std::vector< unsigned > indices;
       for( unsigned i=0; i<d_waiting_conjectures_lhs.size(); i++ ){
@@ -896,16 +915,20 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
           //we have determined a relevant subgoal
           Node lhs = d_waiting_conjectures_lhs[i];
           Node rhs = d_waiting_conjectures_rhs[i];
-          if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
+          if (getUniversalRepresentative(lhs) != lhs
+              || getUniversalRepresentative(rhs) != rhs)
+          {
             //skip
-          }else{
+          }
+          else
+          {
             Trace("sg-engine") << "*** Consider conjecture : " << lhs << " == " << rhs << std::endl;
             Trace("sg-engine-debug") << "      score : " << d_waiting_conjectures_score[i] << std::endl;
             if( optStatsOnly() ){
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+              for (const std::pair<const TypeNode, unsigned>& lhs_pattern :
                    d_pattern_var_id[lhs])
               {
                 for (unsigned j = 0; j <= lhs_pattern.second; j++)
@@ -920,16 +943,19 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               }else{
                 rsg = lhs.eqNode( rhs );
               }
-              rsg = Rewriter::rewrite( rsg );
+              rsg = rewrite(rsg);
               d_conjectures.push_back( rsg );
               d_eq_conjectures[lhs].push_back( rhs );
               d_eq_conjectures[rhs].push_back( lhs );
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-              d_quantEngine->addLemma( lem, false );
-              d_quantEngine->addRequirePhase( rsg, false );
+              d_qim.addPendingLemma(lem,
+                                    InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT);
+              d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
-              if( (int)addedLemmas>=options::conjectureGenPerRound() ){
+              if ((int)addedLemmas
+                  >= options().quantifiers.conjectureGenPerRound)
+              {
                 break;
               }
             }
@@ -1080,8 +1106,11 @@ int ConjectureGenerator::calculateGeneralizationDepth( TNode n, std::vector< TNo
 Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_typ_pred.find( tn );
   if( it==d_typ_pred.end() ){
-    TypeNode op_tn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node op = NodeManager::currentNM()->mkSkolem( "PE", op_tn, "was created by conjecture ground term enumerator." );
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    TypeNode op_tn = nm->mkFunctionType(tn, nm->booleanType());
+    Node op = sm->mkDummySkolem(
+        "PE", op_tn, "was created by conjecture ground term enumerator.");
     d_typ_pred[tn] = op;
     return op;
   }else{
@@ -1093,7 +1122,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
   if( n.getNumChildren()>0 ){
     Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
                               << ")" << std::endl;
-    TermEnumeration* te = d_quantEngine->getTermEnumeration();
+    TermEnumeration* te = d_treg.getTermEnumeration();
     // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
     std::vector< int > vec;
@@ -1251,94 +1280,118 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
   if( lhs==rhs ){
     Trace("sg-cconj-debug") << "  -> trivial." << std::endl;
     return -1;
-  }else{
-    if( lhs.getKind()==APPLY_CONSTRUCTOR && rhs.getKind()==APPLY_CONSTRUCTOR ){
-      Trace("sg-cconj-debug") << "  -> irrelevant by syntactic analysis." << std::endl;
+  }
+  if (lhs.getKind() == APPLY_CONSTRUCTOR && rhs.getKind() == APPLY_CONSTRUCTOR)
+  {
+    Trace("sg-cconj-debug")
+        << "  -> irrelevant by syntactic analysis." << std::endl;
+    return -1;
+  }
+  // variables of LHS must subsume variables of RHS
+  for (std::pair<const TypeNode, unsigned>& p : d_pattern_var_id[rhs])
+  {
+    std::map<TypeNode, unsigned>::iterator itl =
+        d_pattern_var_id[lhs].find(p.first);
+    if (itl == d_pattern_var_id[lhs].end())
+    {
+      Trace("sg-cconj-debug")
+          << "  -> has no variables of sort " << p.first << "." << std::endl;
       return -1;
     }
-    //variables of LHS must subsume variables of RHS
-    for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[rhs].begin(); it != d_pattern_var_id[rhs].end(); ++it ){
-      std::map< TypeNode, unsigned >::iterator itl = d_pattern_var_id[lhs].find( it->first );
-      if( itl!=d_pattern_var_id[lhs].end() ){
-        if( itl->second<it->second ){
-          Trace("sg-cconj-debug") << "  -> variables of sort " << it->first << " are not subsumed." << std::endl;
-          return -1;
-        }else{
-          Trace("sg-cconj-debug2") << "  variables of sort " << it->first << " are : " << itl->second << " vs " << it->second << std::endl;
-        }
-      }else{
-        Trace("sg-cconj-debug") << "  -> has no variables of sort " << it->first << "." << std::endl;
-        return -1;
-      }
+    if (itl->second < p.second)
+    {
+      Trace("sg-cconj-debug") << "  -> variables of sort " << p.first
+                              << " are not subsumed." << std::endl;
+      return -1;
     }
+    Trace("sg-cconj-debug2")
+        << "  variables of sort " << p.first << " are : " << itl->second
+        << " vs " << p.second << std::endl;
+  }
 
-    //currently active conjecture?
-    std::map< Node, std::vector< Node > >::iterator iteq = d_eq_conjectures.find( lhs );
-    if( iteq!=d_eq_conjectures.end() ){
-      if( std::find( iteq->second.begin(), iteq->second.end(), rhs )!=iteq->second.end() ){
-        Trace("sg-cconj-debug") << "  -> this conjecture is already active." << std::endl;
-        return -1;
-      }
+  // currently active conjecture?
+  std::map<Node, std::vector<Node> >::iterator iteq =
+      d_eq_conjectures.find(lhs);
+  if (iteq != d_eq_conjectures.end())
+  {
+    if (std::find(iteq->second.begin(), iteq->second.end(), rhs)
+        != iteq->second.end())
+    {
+      Trace("sg-cconj-debug")
+          << "  -> this conjecture is already active." << std::endl;
+      return -1;
     }
-    //current a waiting conjecture?
-    std::map< Node, std::vector< Node > >::iterator itw = d_waiting_conjectures.find( lhs );
-    if( itw!=d_waiting_conjectures.end() ){
-      if( std::find( itw->second.begin(), itw->second.end(), rhs )!=itw->second.end() ){
-        Trace("sg-cconj-debug") << "  -> already are considering this conjecture." << std::endl;
-        return -1;
-      }
+  }
+  // current a waiting conjecture?
+  std::map<Node, std::vector<Node> >::iterator itw =
+      d_waiting_conjectures.find(lhs);
+  if (itw != d_waiting_conjectures.end())
+  {
+    if (std::find(itw->second.begin(), itw->second.end(), rhs)
+        != itw->second.end())
+    {
+      Trace("sg-cconj-debug")
+          << "  -> already are considering this conjecture." << std::endl;
+      return -1;
     }
-    //check if canonical representation (should be, but for efficiency this is not guarenteed)
-    //if( options::conjectureFilterCanonical() && ( getUniversalRepresentative( lhs )!=lhs || getUniversalRepresentative( rhs )!=rhs ) ){
-    //  Trace("sg-cconj") << "  -> after processing, not canonical." << std::endl;
-    //  return -1;
-    //}
+  }
 
-    int score;
-    bool scoreSet = false;
+  size_t score;
+  bool scoreSet = false;
 
-    Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
-    //find witness for counterexample, if possible
-    if( options::conjectureFilterModel() ){
-      Assert(d_rel_pattern_var_sum.find(lhs) != d_rel_pattern_var_sum.end());
-      Trace("sg-cconj-debug") << "Notify substitutions over " << d_rel_pattern_var_sum[lhs] << " variables." << std::endl;
-      std::map< TNode, TNode > subs;
-      d_subs_confirmCount = 0;
-      d_subs_confirmWitnessRange.clear();
-      d_subs_confirmWitnessDomain.clear();
-      d_subs_unkCount = 0;
-      if( !d_rel_pattern_subs_index[lhs].notifySubstitutions( this, subs, rhs, d_rel_pattern_var_sum[lhs] ) ){
-        Trace("sg-cconj") << "  -> found witness that falsifies the conjecture." << std::endl;
-        return -1;
-      }
-      //score is the minimum number of distinct substitutions for a variable
-      for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
-        int num = (int)it->second.size();
-        if( !scoreSet || num<score ){
-          score = num;
-          scoreSet = true;
-        }
-      }
-      if( !scoreSet ){
-        score = 0;
-      }
-      Trace("sg-cconj") << "     confirmed = " << d_subs_confirmCount << ", #witnesses range = " << d_subs_confirmWitnessRange.size() << "." << std::endl;
-      for( std::map< TNode, std::vector< TNode > >::iterator it = d_subs_confirmWitnessDomain.begin(); it != d_subs_confirmWitnessDomain.end(); ++it ){
-        Trace("sg-cconj") << "     #witnesses for " << it->first << " : " << it->second.size() << std::endl;
-      }
-    }else{
-      score = 1;
+  Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs
+                    << " == " << rhs << "?" << std::endl;
+  // find witness for counterexample, if possible
+  Assert(d_rel_pattern_var_sum.find(lhs) != d_rel_pattern_var_sum.end());
+  Trace("sg-cconj-debug") << "Notify substitutions over "
+                          << d_rel_pattern_var_sum[lhs] << " variables."
+                          << std::endl;
+  std::map<TNode, TNode> subs;
+  d_subs_confirmCount = 0;
+  d_subs_confirmWitnessRange.clear();
+  d_subs_confirmWitnessDomain.clear();
+  d_subs_unkCount = 0;
+  if (!d_rel_pattern_subs_index[lhs].notifySubstitutions(
+          this, subs, rhs, d_rel_pattern_var_sum[lhs]))
+  {
+    Trace("sg-cconj") << "  -> found witness that falsifies the conjecture."
+                      << std::endl;
+    return -1;
+  }
+  // score is the minimum number of distinct substitutions for a variable
+  for (std::pair<const TNode, std::vector<TNode> >& w :
+       d_subs_confirmWitnessDomain)
+  {
+    size_t num = w.second.size();
+    if (!scoreSet || num < score)
+    {
+      score = num;
+      scoreSet = true;
     }
-
+  }
+  if (!scoreSet)
+  {
+    score = 0;
+  }
+  if (TraceIsOn("sg-cconj"))
+  {
+    Trace("sg-cconj") << "     confirmed = " << d_subs_confirmCount
+                      << ", #witnesses range = "
+                      << d_subs_confirmWitnessRange.size() << "." << std::endl;
+    for (std::pair<const TNode, std::vector<TNode> >& w :
+         d_subs_confirmWitnessDomain)
+    {
+      Trace("sg-cconj") << "     #witnesses for " << w.first << " : "
+                        << w.second.size() << std::endl;
+    }
     Trace("sg-cconj") << "  -> SUCCESS." << std::endl;
     Trace("sg-cconj") << "     score : " << score << std::endl;
-
-    return score;
   }
+  return static_cast<int>(score);
 }
 
 bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode >& subs, TNode rhs ) {
-  if( Trace.isOn("sg-cconj-debug") ){
+  if( TraceIsOn("sg-cconj-debug") ){
     Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
       Assert(getRepresentative(it->second) == it->second);
@@ -1347,7 +1400,8 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   }
   Trace("sg-cconj-debug") << "Evaluate RHS : : " << rhs << std::endl;
   //get the representative of rhs with substitution subs
-  TNode grhs = getTermDatabase()->getEntailedTerm( rhs, subs, true );
+  EntailmentCheck* echeck = d_treg.getEntailmentCheck();
+  TNode grhs = echeck->getEntailedTerm(rhs, subs, true);
   Trace("sg-cconj-debug") << "...done evaluating term, got : " << grhs << std::endl;
   if( !grhs.isNull() ){
     if( glhs!=grhs ){
@@ -1421,7 +1475,7 @@ void TermGenerator::reset( TermGenEnv * s, TypeNode tn ) {
 }
 
 bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
-  if( Trace.isOn("sg-gen-tg-debug2") ){
+  if( TraceIsOn("sg-gen-tg-debug2") ){
     Trace("sg-gen-tg-debug2") << this << " getNextTerm depth " << depth << " : status = " << d_status << ", num = " << d_status_num;
     if( d_status==5 ){
       TNode f = s->getTgFunc( d_typ, d_status_num );
@@ -1566,7 +1620,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
   if( d_match_status<0 ){
     return false;
   }
-  if( Trace.isOn("sg-gen-tg-match") ){
+  if( TraceIsOn("sg-gen-tg-match") ){
     Trace("sg-gen-tg-match") << "Matching ";
     debugPrint( s, "sg-gen-tg-match", "sg-gen-tg-match" );
     Trace("sg-gen-tg-match") << " with eqc e" << s->d_cg->d_em[eqc] << "..." << std::endl;
@@ -1796,11 +1850,18 @@ void TermGenEnv::collectSignatureInformation() {
   d_func_kind.clear();
   d_func_args.clear();
   TypeNode tnull;
-  for( std::map< Node, std::vector< Node > >::iterator it = getTermDatabase()->d_op_map.begin(); it != getTermDatabase()->d_op_map.end(); ++it ){
-    if( !it->second.empty() ){
-      Node nn = it->second[0];
+  TermDb* tdb = getTermDatabase();
+  for (size_t i = 0, nops = tdb->getNumOperators(); i < nops; i++)
+  {
+    Node op = tdb->getOperator(i);
+    DbList* dbl = tdb->getOrMkDbListForOp(op);
+    if (!dbl->d_list.empty())
+    {
+      Node nn = dbl->d_list[0];
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
-      if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
+      if (d_cg->isHandledTerm(nn) && nn.getKind() != APPLY_SELECTOR
+          && !nn.getType().isBoolean())
+      {
         bool do_enum = true;
         //check if we have enumerated ground terms
         if( nn.getKind()==APPLY_UF ){
@@ -1811,16 +1872,20 @@ void TermGenEnv::collectSignatureInformation() {
         }
         if( do_enum ){
           Trace("sg-rel-sig-debug") << "Set enumeration..." << std::endl;
-          d_funcs.push_back( it->first );
-          for( unsigned i=0; i<nn.getNumChildren(); i++ ){
-            d_func_args[it->first].push_back( nn[i].getType() );
+          d_funcs.push_back(op);
+          for (const Node& nnc : nn)
+          {
+            d_func_args[op].push_back(nnc.getType());
           }
-          d_func_kind[it->first] = nn.getKind();
-          d_typ_tg_funcs[tnull].push_back( it->first );
-          d_typ_tg_funcs[nn.getType()].push_back( it->first );
-          d_tg_func_param[it->first] = ( nn.getMetaKind() == kind::metakind::PARAMETERIZED );
-          Trace("sg-rel-sig") << "Will enumerate function applications of : " << it->first << ", #args = " << d_func_args[it->first].size() << ", kind = " << nn.getKind() << std::endl;
-          //getTermDatabase()->computeUfEqcTerms( it->first );
+          d_func_kind[op] = nn.getKind();
+          d_typ_tg_funcs[tnull].push_back(op);
+          d_typ_tg_funcs[nn.getType()].push_back(op);
+          d_tg_func_param[op] =
+              (nn.getMetaKind() == kind::metakind::PARAMETERIZED);
+          Trace("sg-rel-sig")
+              << "Will enumerate function applications of : " << op
+              << ", #args = " << d_func_args[op].size()
+              << ", kind = " << nn.getKind() << std::endl;
         }
       }
       Trace("sg-rel-sig-debug") << "Done check in signature : " << nn << std::endl;
@@ -2001,13 +2066,17 @@ bool TermGenEnv::considerCurrentTerm() {
       }
       Trace("sg-gen-tg-debug") << std::endl;
     }
-    if( options::conjectureFilterActiveTerms() && d_ccand_eqc[0][i].empty() ){
+    // filter based active terms
+    if (d_ccand_eqc[0][i].empty())
+    {
       Trace("sg-gen-consider-term") << "Do not consider term of form ";
       d_tg_alloc[0].debugPrint( this, "sg-gen-consider-term", "sg-gen-consider-term-debug" );
       Trace("sg-gen-consider-term") << " since no relevant EQC matches it." << std::endl;
       return false;
     }
-    if( options::conjectureFilterModel() && d_ccand_eqc[1][i].empty() ){
+    // filter based on model
+    if (d_ccand_eqc[1][i].empty())
+    {
       Trace("sg-gen-consider-term") << "Do not consider term of form ";
       d_tg_alloc[0].debugPrint( this, "sg-gen-consider-term", "sg-gen-consider-term-debug" );
       Trace("sg-gen-consider-term") << " since no ground EQC matches it." << std::endl;
@@ -2039,17 +2108,15 @@ void TermGenEnv::changeContext( bool add ) {
 
 bool TermGenEnv::considerCurrentTermCanon( unsigned tg_id ){
   Assert(tg_id < d_tg_alloc.size());
-  if( options::conjectureFilterCanonical() ){
-    //check based on a canonicity of the term (if there is one)
-    Trace("sg-gen-tg-debug") << "Consider term canon ";
-    d_tg_alloc[0].debugPrint( this, "sg-gen-tg-debug", "sg-gen-tg-debug" );
-    Trace("sg-gen-tg-debug") << ", tg is [" << tg_id << "]..." << std::endl;
+  // filter based on canonical
+  // check based on a canonicity of the term (if there is one)
+  Trace("sg-gen-tg-debug") << "Consider term canon ";
+  d_tg_alloc[0].debugPrint(this, "sg-gen-tg-debug", "sg-gen-tg-debug");
+  Trace("sg-gen-tg-debug") << ", tg is [" << tg_id << "]..." << std::endl;
 
-    Node ln = d_tg_alloc[tg_id].getTerm( this );
-    Trace("sg-gen-tg-debug") << "Term is " << ln << std::endl;
-    return d_cg->considerTermCanon( ln, d_gen_relevant_terms );
-  }
-  return true;
+  Node ln = d_tg_alloc[tg_id].getTerm(this);
+  Trace("sg-gen-tg-debug") << "Term is " << ln << std::endl;
+  return d_cg->considerTermCanon(ln, d_gen_relevant_terms);
 }
 
 bool TermGenEnv::isRelevantFunc( Node f ) {
@@ -2242,4 +2309,4 @@ unsigned ConjectureGenerator::optFullCheckFrequency() { return 1; }
 
 bool ConjectureGenerator::optStatsOnly() { return false; }
 
-}
+}  // namespace cvc5::internal

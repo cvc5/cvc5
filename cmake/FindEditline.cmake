@@ -1,19 +1,22 @@
-#####################
-## FindEditline.cmake
-## Top contributors (to current version):
-##   Andrew V. Jones, Mathias Preiner
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
+###############################################################################
+# Top contributors (to current version):
+#   Andrew V. Jones, Mathias Preiner, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
 # Find Editline
 # Editline_FOUND - found Editline lib
 # Editline_INCLUDE_DIRS - the Editline include directory
 # Editline_LIBRARIES - Libraries needed to use Editline
 # Editline_COMPENTRY_FUNC_RETURNS_CHARPTR - Indicates if compentry function
 #                                           returns a (char *)
+##
 
 # When finding libedit, use pkg-config to ensure we find all the required
 # linking flags for libedit
@@ -37,6 +40,10 @@ if(Editline_INCLUDE_DIRS)
   unset(CMAKE_REQUIRED_QUIET)
   unset(CMAKE_REQUIRED_LIBRARIES)
   unset(CMAKE_REQUIRED_INCLUDES)
+
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd tinfo)
+  endif()
 endif()
 
 include(FindPackageHandleStandardArgs)

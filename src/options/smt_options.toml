@@ -1,24 +1,5 @@
 id     = "SMT"
-name   = "SMT layer"
-header = "options/smt_options.h"
-
-[[option]]
-  name       = "dumpModeString"
-  smt_name   = "dump"
-  category   = "common"
-  long       = "dump=MODE"
-  type       = "std::string"
-  read_only  = true
-  help       = "dump preprocessed assertions, etc., see --dump=help"
-
-[[option]]
-  name       = "dumpToFileName"
-  smt_name   = "dump-to"
-  category   = "common"
-  long       = "dump-to=FILE"
-  type       = "std::string"
-  read_only  = true
-  help       = "all dumping goes to FILE (instead of stdout)"
+name   = "SMT Layer"
 
 [[option]]
   name       = "ackermann"
@@ -30,7 +11,7 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "simplificationMode"
-  smt_name   = "simplification-mode"
+  alias      = ["simplification-mode"]
   category   = "regular"
   long       = "simplification=MODE"
   type       = "SimplificationMode"
@@ -45,22 +26,28 @@ header = "options/smt_options.h"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
 [[option]]
-  name       = "doStaticLearning"
+  name       = "simplificationBoolConstProp"
+  category   = "expert"
+  long       = "simplification-bcp"
+  type       = "bool"
+  default    = "false"
+  help       = "apply Boolean constant propagation as a substituion during simplification"
+
+[[option]]
+  name       = "staticLearning"
   category   = "regular"
   long       = "static-learning"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use static learning (on by default)"
 
 [[option]]
-  name       = "expandDefinitions"
-  smt_name   = "expand-definitions"
+  name       = "learnedRewrite"
   category   = "regular"
+  long       = "learned-rewrite"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "always expand symbol definitions in output"
+  help       = "rewrite the input based on learned literals"
 
 [[option]]
   name       = "produceModels"
@@ -73,26 +60,27 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "checkModels"
-  category   = "regular"
+  category   = "common"
   long       = "check-models"
   type       = "bool"
+  default    = "false"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
 
 [[option]]
   name       = "debugCheckModels"
-  category   = "regular"
+  category   = "expert"
   long       = "debug-check-models"
   type       = "bool"
+  default    = "false"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
-  name       = "dumpModels"
-  category   = "regular"
-  long       = "dump-models"
+  name       = "modelVarElimUneval"
+  category   = "expert"
+  long       = "model-var-elim-uneval"
   type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "output models after every SAT/INVALID/UNKNOWN response"
+  default    = "true"
+  help       = "allow variable elimination based on unevaluatable terms to variables"
 
 [[option]]
   name       = "modelCoresMode"
@@ -113,164 +101,95 @@ header = "options/smt_options.h"
   help = "Only include a subset of variables whose values, in addition to the values of variables whose values are implied, are sufficient to show the input formula is satisfied by the given model."
 
 [[option]]
-  name       = "blockModelsMode"
+  name       = "produceLearnedLiterals"
   category   = "regular"
-  long       = "block-models=MODE"
-  type       = "BlockModelsMode"
-  default    = "NONE"
-  help       = "mode for producing several models"
-  help_mode  = "Blocking models modes."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not block models."
-[[option.mode.LITERALS]]
-  name = "literals"
-  help = "Block models based on the SAT skeleton."
-[[option.mode.VALUES]]
-  name = "values"
-  help = "Block models based on the concrete model values for the free variables."
-
-[[option]]
-  name       = "dumpProofs"
-  category   = "regular"
-  long       = "dump-proofs"
+  long       = "produce-learned-literals"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "output proofs after every UNSAT/VALID response"
+  help       = "produce learned literals, support get-learned-literals"
 
 [[option]]
-  name       = "proofNew"
+  name       = "produceProofs"
   category   = "regular"
-  long       = "proof-new"
+  long       = "produce-proofs"
   type       = "bool"
   default    = "false"
-  help       = "do proof production using the new infrastructure"
+  help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
-  name       = "proofNewPedantic"
-  category   = "regular"
-  long       = "proof-new-pedantic=N"
-  type       = "uint32_t"
-  default    = "0"
-  read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
-
-[[option]]
-  name       = "proofNewEagerChecking"
-  category   = "regular"
-  long       = "proof-new-eager-checking"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "check proofs eagerly with proof-new for local debugging"
-
-[[option]]
-  name       = "proofGranularityMode"
-  category   = "regular"
-  long       = "proof-granularity=MODE"
-  type       = "ProofGranularityMode"
-  default    = "THEORY_REWRITE"
-  help       = "modes for proof granularity"
-  help_mode  = "Modes for proof granularity."
+  name       = "proofMode"
+  category   = "expert"
+  long       = "proof-mode=MODE"
+  type       = "ProofMode"
+  default    = "OFF"
+  help       = "choose proof mode, see --proof-mode=help"
+  help_mode  = "proof modes."
 [[option.mode.OFF]]
   name = "off"
-  help = "Do not improve the granularity of proofs."
-[[option.mode.REWRITE]]
-  name = "rewrite"
-  help = "allow rewrite or substitution steps, expand macros."
-[[option.mode.THEORY_REWRITE]]
-  name = "theory-rewrite"
-  help = "allow theory rewrite steps, expand macros, rewrite and substitution steps."
-[[option.mode.DSL_REWRITE]]
-  name = "dsl-rewrite"
-  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
+[[option.mode.PP_ONLY]]
+  name = "pp-only"
+[[option.mode.SAT]]
+  name = "sat-proof"
+[[option.mode.FULL]]
+  name = "full-proof"
 
 [[option]]
-  name       = "checkProofsNew"
+  name       = "checkProofs"
   category   = "regular"
-  long       = "check-proofs-new"
-  type       = "bool"
-  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
-
-[[option]]
-  name       = "dumpInstantiations"
-  category   = "regular"
-  long       = "dump-instantiations"
+  long       = "check-proofs"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
+  help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
-  name       = "sygusOut"
-  category   = "regular"
-  long       = "sygus-out=MODE"
-  type       = "SygusSolutionOutMode"
-  default    = "STATUS_AND_DEF"
-  help       = "output mode for sygus"
-  help_mode  = "Modes for sygus solution output."
-[[option.mode.STATUS]]
-  name = "status"
-  help = "Print only status for check-synth calls."
-[[option.mode.STATUS_AND_DEF]]
-  name = "status-and-def"
-  help = "Print status followed by definition corresponding to solution."
-[[option.mode.STATUS_OR_DEF]]
-  name = "status-or-def"
-  help = "Print status if infeasible, or definition corresponding to solution if feasible."
-[[option.mode.STANDARD]]
-  name = "sygus-standard"
-  help = "Print based on SyGuS standard."
-
-[[option]]
-  name       = "sygusPrintCallbacks"
-  category   = "regular"
-  long       = "sygus-print-callbacks"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
-
-[[option]]
-  name       = "dumpSynth"
-  category   = "regular"
-  long       = "dump-synth"
-  type       = "bool"
-  default    = "false"
-  help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
-
-[[option]]
-  name       = "unsatCores"
+  name       = "produceUnsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
-  predicates = ["proofEnabledBuild"]
-  help       = "turn on unsat core generation"
+  default    = "false"
+  help       = "turn on unsat core generation. Unless otherwise specified, cores will be produced using SAT soving under assumptions and preprocessing proofs."
+
+[[option]]
+  name       = "unsatCoresMode"
+  category   = "expert"
+  long       = "unsat-cores-mode=MODE"
+  type       = "UnsatCoresMode"
+  default    = "OFF"
+  help       = "choose unsat core mode, see --unsat-cores-mode=help"
+  help_mode  = "unsat cores modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not produce unsat cores."
+[[option.mode.SAT_PROOF]]
+  name = "sat-proof"
+  help = "Produce unsat cores from the SAT proof and prepocessing proofs."
+[[option.mode.ASSUMPTIONS]]
+  name = "assumptions"
+  help = "Produce unsat cores using solving under assumptions and preprocessing proofs."
+
+[[option]]
+  name       = "minimalUnsatCores"
+  category   = "expert"
+  long       = "minimal-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+
+[[option]]
+  name       = "printUnsatCoresFull"
+  category   = "regular"
+  long       = "print-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing unsat cores, include unlabeled assertions"
 
 [[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"
   type       = "bool"
+  default    = "false"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
-
-[[option]]
-  name       = "dumpUnsatCores"
-  category   = "regular"
-  long       = "dump-unsat-cores"
-  type       = "bool"
-  default    = "false"
-  help       = "output unsat cores after every UNSAT/VALID response"
-
-[[option]]
-  name       = "dumpUnsatCoresFull"
-  category   = "regular"
-  long       = "dump-unsat-cores-full"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "dump the full unsat core, including unlabeled assertions"
 
 [[option]]
   name       = "unsatAssumptions"
@@ -278,9 +197,33 @@ header = "options/smt_options.h"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  predicates = ["proofEnabledBuild"]
-  read_only  = true
   help       = "turn on unsat assumptions generation"
+
+[[option]]
+  name       = "produceDifficulty"
+  category   = "regular"
+  long       = "produce-difficulty"
+  type       = "bool"
+  default    = "false"
+  help       = "enable tracking of difficulty."
+
+[[option]]
+  name       = "difficultyMode"
+  category   = "expert"
+  long       = "difficulty-mode=MODE"
+  type       = "DifficultyMode"
+  default    = "LEMMA_LITERAL"
+  help       = "choose output mode for get-difficulty, see --difficulty-mode=help"
+  help_mode  = "difficulty output modes."
+[[option.mode.LEMMA_LITERAL]]
+  name = "lemma-literal"
+  help = "Difficulty of an assertion is how many lemmas (at full effort) use a literal that the assertion depends on to be satisfied."
+[[option.mode.LEMMA_LITERAL_ALL]]
+  name = "lemma-literal-all"
+  help = "Difficulty of an assertion is how many lemmas use a literal that the assertion depends on to be satisfied."
+[[option.mode.MODEL_CHECK]]
+  name = "model-check"
+  help = "Difficulty of an assertion is how many times it was not satisfied in a candidate model."
 
 [[option]]
   name       = "checkSynthSol"
@@ -299,31 +242,25 @@ header = "options/smt_options.h"
   help       = "support the get-assignment command"
 
 [[option]]
-  name       = "interactiveMode"
-  smt_name   = "interactive-mode"
-  category   = "undocumented"
-  type       = "bool"
-  predicates = ["setProduceAssertions"]
-  help       = "deprecated name for produce-assertions"
-
-[[option]]
   name       = "produceAssertions"
-  category   = "common"
+  category   = "regular"
   long       = "produce-assertions"
   type       = "bool"
-  predicates = ["setProduceAssertions"]
-  help       = "keep an assertions list (enables get-assertions command)"
+  alias      = ["interactive-mode"]
+  default    = "true"
+  help       = "keep an assertions list. Note this option is always enabled."
 
 [[option]]
   name       = "doITESimp"
-  category   = "regular"
+  category   = "expert"
   long       = "ite-simp"
   type       = "bool"
+  default    = "false"
   help       = "turn on ite simplification (Kim (and Somenzi) et al., SAT 2009)"
 
 [[option]]
   name       = "doITESimpOnRepeat"
-  category   = "regular"
+  category   = "expert"
   long       = "on-repeat-ite-simp"
   type       = "bool"
   default    = "false"
@@ -332,22 +269,24 @@ header = "options/smt_options.h"
 [[option]]
   name       = "extRewPrep"
   category   = "regular"
-  long       = "ext-rew-prep"
-  type       = "bool"
-  default    = "false"
-  help       = "use extended rewriter as a preprocessing pass"
-
-[[option]]
-  name       = "extRewPrepAgg"
-  category   = "regular"
-  long       = "ext-rew-prep-agg"
-  type       = "bool"
-  default    = "false"
-  help       = "use aggressive extended rewriter as a preprocessing pass"
+  long       = "ext-rew-prep=MODE"
+  type       = "ExtRewPrepMode"
+  default    = "OFF"
+  help       = "mode for using extended rewriter as a preprocessing pass, see --ext-rew-prep=help"
+  help_mode  = "extended rewriter preprocessing pass modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "do not use extended rewriter as a preprocessing pass."
+[[option.mode.USE]]
+  name = "use"
+  help = "use extended rewriter as a preprocessing pass."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "use aggressive extended rewriter as a preprocessing pass."
 
 [[option]]
   name       = "simplifyWithCareEnabled"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-with-care"
   type       = "bool"
   default    = "false"
@@ -355,11 +294,19 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "compressItes"
-  category   = "regular"
+  category   = "expert"
   long       = "simp-ite-compress"
   type       = "bool"
   default    = "false"
   help       = "enables compressing ites after ite simplification"
+
+[[option]]
+  name       = "earlyIteRemoval"
+  category   = "expert"
+  long       = "early-ite-removal"
+  type       = "bool"
+  default    = "false"
+  help       = "remove ITEs early in preprocessing"
 
 [[option]]
   name       = "unconstrainedSimp"
@@ -371,19 +318,11 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "repeatSimp"
-  category   = "regular"
+  category   = "expert"
   long       = "repeat-simp"
   type       = "bool"
+  default    = "false"
   help       = "make multiple passes with nonclausal simplifier"
-
-[[option]]
-  name       = "zombieHuntThreshold"
-  category   = "regular"
-  long       = "simp-ite-hunt-zombies=N"
-  type       = "uint32_t"
-  default    = "524288"
-  read_only  = true
-  help       = "post ite compression enables zombie removal while the number of nodes is above this threshold"
 
 [[option]]
   name       = "sortInference"
@@ -394,291 +333,24 @@ header = "options/smt_options.h"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
 
 [[option]]
-  name       = "incrementalSolving"
-  category   = "common"
-  short      = "i"
-  long       = "incremental"
-  type       = "bool"
-  default    = "true"
-  help       = "enable incremental solving"
-
-[[option]]
   name       = "abstractValues"
-  category   = "regular"
+  category   = "expert"
   long       = "abstract-values"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "in models, output arrays (and in future, maybe others) using abstract values, as required by the SMT-LIB standard"
 
 [[option]]
-  name       = "modelUninterpPrint"
-  smt_name   = "model-uninterp-print"
-  category   = "regular"
-  long       = "model-u-print=MODE"
-  type       = "ModelUninterpPrintMode"
-  default    = "DeclFun"
-  read_only  = true
-  help       = "determines how to print uninterpreted elements in models"
-  help_mode  = "uninterpreted elements in models printing  modes."
-[[option.mode.DtEnum]]
-  name = "dtenum"
-  help = "print uninterpreted elements as datatype enumerations, where the sort is the datatype"
-[[option.mode.DeclSortAndFun]]
-  name = "decl-sort-and-fun"
-  help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
-[[option.mode.DeclFun]]
-  name = "decl-fun"
-  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
-
-[[option]]
-  name       = "modelWitnessValue"
-  category   = "regular"
-  long       = "model-witness-value"
+  name       = "foreignTheoryRewrite"
+  category   = "expert"
+  long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "in models, use a witness constant for choice functions"
-
-[[option]]
-  name       = "regularChannelName"
-  smt_name   = "regular-output-channel"
-  category   = "regular"
-  type       = "std::string"
-  read_only  = true
-  help       = "set the regular output channel of the solver"
-
-[[option]]
-  name       = "diagnosticChannelName"
-  smt_name   = "diagnostic-output-channel"
-  category   = "regular"
-  type       = "std::string"
-  read_only  = true
-  help       = "set the diagnostic output channel of the solver"
-
-[[option]]
-  name       = "cumulativeMillisecondLimit"
-  smt_name   = "tlimit"
-  category   = "common"
-  long       = "tlimit=MS"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable time limiting of wall clock time (give milliseconds)"
-
-[[option]]
-  name       = "perCallMillisecondLimit"
-  smt_name   = "tlimit-per"
-  category   = "common"
-  long       = "tlimit-per=MS"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable time limiting per query (give milliseconds)"
-
-[[option]]
-  name       = "cumulativeResourceLimit"
-  smt_name   = "rlimit"
-  category   = "common"
-  long       = "rlimit=N"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
-
-[[option]]
-  name       = "perCallResourceLimit"
-  smt_name   = "reproducible-resource-limit"
-  category   = "common"
-  long       = "rlimit-per=N"
-  type       = "unsigned long"
-  handler    = "limitHandler"
-  read_only  = true
-  help       = "enable resource limiting per query"
-
-[[option]]
-  name       = "arithPivotStep"
-  category   = "expert"
-  long       = "arith-pivot-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each arithmetic pivot step"
-
-[[option]]
-  name       = "arithNlLemmaStep"
-  category   = "expert"
-  long       = "arith-nl-lemma-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each arithmetic nonlinear lemma step"
-
-[[option]]
-  name       = "rewriteStep"
-  category   = "expert"
-  long       = "rewrite-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each rewrite step"
-
-[[option]]
-  name       = "theoryCheckStep"
-  category   = "expert"
-  long       = "theory-check-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each theory check call"
-
-[[option]]
-  name       = "decisionStep"
-  category   = "expert"
-  long       = "decision-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of getNext decision calls in the decision engine"
-
-[[option]]
-  name       = "bitblastStep"
-  category   = "expert"
-  long       = "bitblast-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each bitblast step"
-
-[[option]]
-  name       = "bvPropagationStep"
-  category   = "expert"
-  long       = "bv-propagation-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each BV propagation step"
-
-[[option]]
-  name       = "bvEagerAssertStep"
-  category   = "expert"
-  long       = "bv-eager-assert-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each eager BV assert step"
-
-[[option]]
-  name       = "parseStep"
-  category   = "expert"
-  long       = "parse-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each command/expression parsing"
-
-[[option]]
-  name       = "lemmaStep"
-  category   = "expert"
-  long       = "lemma-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent when adding lemmas"
-
-[[option]]
-  name       = "newSkolemStep"
-  category   = "expert"
-  long       = "new-skolem-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent when adding new skolems"
-
-[[option]]
-  name       = "restartStep"
-  category   = "expert"
-  long       = "restart-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each theory restart"
-
-[[option]]
-  name       = "cnfStep"
-  category   = "expert"
-  long       = "cnf-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each call to cnf conversion"
-
-[[option]]
-  name       = "preprocessStep"
-  category   = "expert"
-  long       = "preprocess-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each preprocessing step in SmtEngine"
-
-[[option]]
-  name       = "quantifierStep"
-  category   = "expert"
-  long       = "quantifier-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for quantifier instantiations"
-
-[[option]]
-  name       = "satConflictStep"
-  category   = "expert"
-  long       = "sat-conflict-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat conflict (main sat solver)"
-
-[[option]]
-  name       = "bvSatConflictStep"
-  category   = "expert"
-  long       = "bv-sat-conflict-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat conflict (bitvectors)"
-
-[[option]]
-  name       = "bvSatPropagateStep"
-  category   = "expert"
-  long       = "bv-sat-propagate-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat propagate (bitvectors)"
-
-[[option]]
-  name       = "bvSatSimplifyStep"
-  category   = "expert"
-  long       = "bv-sat-simplify-step=N"
-  type       = "unsigned"
-  default    = "1"
-  read_only  = true
-  help       = "amount of resources spent for each sat simplify (bitvectors)"
-
-[[option]]
-  name       = "forceNoLimitCpuWhileDump"
-  category   = "regular"
-  long       = "force-no-limit-cpu-while-dump"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "Force no CPU limit when dumping models and proofs"
+  help       = "Cross-theory rewrites"
 
 [[option]]
   name       = "solveBVAsInt"
-  category   = "undocumented"
+  category   = "expert"
   long       = "solve-bv-as-int=MODE"
   type       = "SolveBVAsIntMode"
   default    = "OFF"
@@ -689,30 +361,39 @@ header = "options/smt_options.h"
   help = "Do not translate bit-vectors to integers"
 [[option.mode.SUM]]
   name = "sum"
-  help = "Generate a sum expression for each bvand instance, based on the value in --solbv-bv-as-int-granularity"
+  help = "Generate a sum expression for each bvand instance, based on the value in --solve-bv-as-int-granularity"
 [[option.mode.IAND]]
   name = "iand"
   help = "Translate bvand to the iand operator (experimental)"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
+
+[[option]]
+  name       = "bvToIntUsePow2"
+  category   = "undocumented"
+  long       = "bv-to-int-use-pow2"
+  type       = "bool"
+  default    = "false"
+  help       = "use internal pow2 operator when translating shift notes"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
-  category   = "undocumented"
+  category   = "expert"
   long       = "bvand-integer-granularity=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "1"
-  read_only  = true
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
 [[option]]
   name       = "iandMode"
-  category   = "undocumented"
+  category   = "expert"
   long       = "iand-mode=mode"
   type       = "IandMode"
   default    = "VALUE"
-  read_only  = true
   help       = "Set the refinement scheme for integer AND"
   help_mode  = "Refinement modes for integer AND"
   [[option.mode.VALUE]]
@@ -727,34 +408,37 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "solveIntAsBV"
-  category   = "undocumented"
+  category   = "regular"
   long       = "solve-int-as-bv=N"
-  type       = "uint32_t"
+  type       = "uint64_t"
   default    = "0"
-  read_only  = true
+  maximum    = "4294967295"
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
   name       = "solveRealAsInt"
-  category   = "undocumented"
+  category   = "regular"
   long       = "solve-real-as-int"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "produceInterpols"
-  category   = "undocumented"
-  long       = "produce-interpols=MODE"
-  type       = "ProduceInterpols"
-  default    = "NONE"
-  read_only  = true
-  help       = "support the get-interpol command"
+  name       = "produceInterpolants"
+  category   = "regular"
+  long       = "produce-interpolants"
+  type       = "bool"
+  default    = "false"
+  help       = "turn on interpolation generation."
+
+[[option]]
+  name       = "interpolantsMode"
+  category   = "regular"
+  long       = "interpolants-mode=MODE"
+  type       = "InterpolantsMode"
+  default    = "DEFAULT"
+  help       = "choose interpolants production mode, see --interpolants-mode=help"
   help_mode  = "Interpolants grammar mode"
-[[option.mode.NONE]]
-  name = "none"
-  help = "don't compute interpolants"
 [[option.mode.DEFAULT]]
   name = "default"
   help = "use the default grammar for the theory or the user-defined grammar if given"
@@ -773,21 +457,19 @@ header = "options/smt_options.h"
 
 [[option]]
   name       = "produceAbducts"
-  category   = "undocumented"
+  category   = "regular"
   long       = "produce-abducts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "support the get-abduct command"
 
 [[option]]
-  name       = "checkInterpols"
+  name       = "checkInterpolants"
   category   = "regular"
-  long       = "check-interpols"
+  long       = "check-interpolants"
   type       = "bool"
   default    = "false"
-  read_only  = true
-  help       = "checks whether produced solutions to get-interpol are correct"
+  help       = "checks whether produced solutions to get-interpolant are correct"
 
 [[option]]
   name       = "checkAbducts"
@@ -795,5 +477,38 @@ header = "options/smt_options.h"
   long       = "check-abducts"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to get-abduct are correct"
+
+[[option]]
+  name       = "deepRestartMode"
+  category   = "expert"
+  long       = "deep-restart=MODE"
+  type       = "DeepRestartMode"
+  default    = "NONE"
+  help       = "mode for deep restarts"
+  help_mode  = "Mode for deep restarts"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use deep restart"
+[[option.mode.INPUT]]
+  name = "input"
+  help = "learn literals that appear in the input"
+[[option.mode.INPUT_AND_SOLVABLE]]
+  name = "input-and-solvable"
+  help = "learn literals that appear in the input and those that can be solved for variables that appear in the input"
+[[option.mode.INPUT_AND_PROP]]
+  name = "input-and-prop"
+  help = "learn literals that appear in the input and those that can be solved for variables, or correspond to constant propagations for terms that appear in the input"
+[[option.mode.ALL]]
+  name = "all"
+  help = "learn all literals"
+
+[[option]]
+  name       = "deepRestartFactor"
+  category   = "expert"
+  long       = "deep-restart-factor=F"
+  type       = "double"
+  default    = "3.0"
+  minimum    = "0.0"
+  maximum    = "1000.0"
+  help       = "sets the threshold for average assertions per literal before a deep restart"

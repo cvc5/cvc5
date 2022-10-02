@@ -1,33 +1,33 @@
-/*********************                                                        */
-/*! \file inst_strategy_cegqi.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief counterexample-guided quantifier instantiation
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Counterexample-guided quantifier instantiation.
+ */
 
+#include "cvc5_private.h"
 
-#include "cvc4_private.h"
+#ifndef CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#define CVC5__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
-#ifndef CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
-#define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
-
+#include "smt/env_obj.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
-#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
+#include "theory/quantifiers/quant_module.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -48,7 +48,7 @@ class InstRewriterCegqi : public InstantiationRewriter
    * corresponding to the rewrite and its proof generator.
    */
   TrustNode rewriteInstantiation(Node q,
-                                 std::vector<Node>& terms,
+                                 const std::vector<Node>& terms,
                                  Node inst,
                                  bool doVts) override;
 
@@ -65,11 +65,15 @@ class InstRewriterCegqi : public InstantiationRewriter
  */
 class InstStrategyCegqi : public QuantifiersModule
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe);
+  InstStrategyCegqi(Env& env,
+                    QuantifiersState& qs,
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr,
+                    TermRegistry& tr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */
@@ -83,7 +87,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** check */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** check complete */
-  bool checkComplete() override;
+  bool checkComplete(IncompleteId& incId) override;
   /** check complete for quantified formula */
   bool checkCompleteFor(Node q) override;
   /** check ownership */
@@ -98,8 +102,6 @@ class InstStrategyCegqi : public QuantifiersModule
   BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
-  // presolve
-  void presolve() override;
 
   /**
    * Rewrite the instantiation inst of quantified formula q for terms; return
@@ -113,7 +115,7 @@ class InstStrategyCegqi : public QuantifiersModule
    * proof generator.
    */
   TrustNode rewriteInstantiation(Node q,
-                                 std::vector<Node>& terms,
+                                 const std::vector<Node>& terms,
                                  Node inst,
                                  bool doVts);
   /** get the instantiation rewriter object */
@@ -122,8 +124,6 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /** Add lemma lem via the output channel of this class. */
-  bool addLemma(Node lem);
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
@@ -155,8 +155,6 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
-  /** virtual term substitution term cache for arithmetic instantiation */
-  std::unique_ptr<VtsTermCache> d_vtsCache;
   /** inversion utility for BV instantiation */
   std::unique_ptr<BvInverter> d_bv_invert;
   /**
@@ -177,8 +175,12 @@ class InstStrategyCegqi : public QuantifiersModule
    * form inf > (1/c)^1, inf > (1/c)^2, ....
    */
   bool d_check_vts_lemma_lc;
+  /** a multiplier used to make d_small_const even smaller over time */
+  const Node d_small_const_multiplier;
   /** a small constant, used as a coefficient above */
   Node d_small_const;
+  /** whether we have initialized the lower bound on the free delta */
+  context::CDO<bool> d_freeDeltaLb;
   //---------------------- end for vts delta minimization
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
@@ -217,6 +219,6 @@ class InstStrategyCegqi : public QuantifiersModule
 
 }
 }
-}
+}  // namespace cvc5::internal
 
 #endif

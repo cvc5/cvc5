@@ -1,26 +1,28 @@
-/*********************                                                        */
-/*! \file ite_simp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ITE simplification preprocessing pass.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ITE simplification preprocessing pass.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__ITE_SIMP_H
-#define CVC4__PREPROCESSING__PASSES__ITE_SIMP_H
+#ifndef CVC5__PREPROCESSING__PASSES__ITE_SIMP_H
+#define CVC5__PREPROCESSING__PASSES__ITE_SIMP_H
 
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
+#include "preprocessing/util/ite_utilities.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -37,10 +39,10 @@ class ITESimp : public PreprocessingPass
   struct Statistics
   {
     IntStat d_arithSubstitutionsAdded;
-    Statistics();
-    ~Statistics();
+    Statistics(StatisticsRegistry& reg);
   };
 
+  Node simpITE(util::ITEUtilities* ite_utils, TNode assertion);
   bool doneSimpITE(AssertionPipeline *assertionsToPreprocesss);
 
   /** A collection of ite preprocessing passes. */
@@ -51,6 +53,6 @@ class ITESimp : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

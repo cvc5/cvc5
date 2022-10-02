@@ -1,16 +1,16 @@
 id     = "DRIVER"
 name   = "Driver"
-header = "options/main_options.h"
 
 [[option]]
-  name       = "version"
+  name       = "showVersion"
   category   = "common"
   short      = "V"
   long       = "version"
   type       = "bool"
-  read_only  = true
+  default    = "false"
+  predicates = ["showVersion"]
   alternate  = false
-  help       = "identify this CVC4 binary"
+  help       = "identify this cvc5 binary"
 
 [[option]]
   name       = "help"
@@ -18,25 +18,29 @@ header = "options/main_options.h"
   short      = "h"
   long       = "help"
   type       = "bool"
-  read_only  = true
+  default    = "false"
   alternate  = false
   help       = "full command line reference"
 
 [[option]]
+  name       = "showConfiguration"
   category   = "common"
   long       = "show-config"
-  type       = "void"
-  handler    = "showConfiguration"
-  read_only  = true
-  help       = "show CVC4 static configuration"
+  type       = "bool"
+  default    = "false"
+  predicates = ["showConfiguration"]
+  alternate  = false
+  help       = "show cvc5 static configuration"
 
 [[option]]
+  name       = "showCopyright"
   category   = "common"
   long       = "copyright"
-  type       = "void"
-  handler    = "copyright"
-  read_only  = true
-  help       = "show CVC4 copyright information"
+  type       = "bool"
+  default    = "false"
+  predicates = ["showCopyright"]
+  alternate  = false
+  help       = "show cvc5 copyright information"
 
 [[option]]
   name       = "seed"
@@ -45,23 +49,16 @@ header = "options/main_options.h"
   long       = "seed=N"
   type       = "uint64_t"
   default    = "0"
-  read_only  = true
   help       = "seed for random number generator"
 
 [[option]]
-  category   = "regular"
-  long       = "show-debug-tags"
-  type       = "void"
-  handler    = "showDebugTags"
-  read_only  = true
-  help       = "show all available tags for debugging"
-
-[[option]]
-  category   = "regular"
+  name       = "showTraceTags"
+  category   = "expert"
   long       = "show-trace-tags"
-  type       = "void"
-  handler    = "showTraceTags"
-  read_only  = true
+  type       = "bool"
+  default    = "false"
+  predicates = ["showTraceTags"]
+  alternate  = false
   help       = "show all available tags for tracing"
 
 [[option]]
@@ -70,39 +67,116 @@ header = "options/main_options.h"
   long       = "early-exit"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do not run destructors at exit; default on except in debug builds"
 
 [[option]]
   name       = "interactive"
-  category   = "regular"
+  category   = "common"
   long       = "interactive"
   type       = "bool"
-  help       = "force interactive/non-interactive mode"
+  default    = "false"
+  help       = "force interactive shell/non-interactive mode"
 
 [[option]]
-  name       = "interactivePrompt"
+  name       = "filename"
   category   = "undocumented"
-  long       = "interactive-prompt"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "interactive prompting while in interactive mode"
+  long       = "filename=FILENAME"
+  type       = "std::string"
+  default    = '""'
+  help       = "filename of the input"
 
 [[option]]
   name       = "segvSpin"
-  category   = "regular"
+  category   = "expert"
   long       = "segv-spin"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "spin on segfault/other crash waiting for gdb"
 
 [[option]]
-  name       = "tearDownIncremental"
+  name       = "dumpModels"
+  category   = "regular"
+  long       = "dump-models"
+  type       = "bool"
+  default    = "false"
+  help       = "output models after every SAT/INVALID/UNKNOWN response"
+
+[[option]]
+  name       = "dumpProofs"
+  category   = "regular"
+  long       = "dump-proofs"
+  type       = "bool"
+  default    = "false"
+  help       = "output proofs after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpInstantiations"
+  category   = "regular"
+  long       = "dump-instantiations"
+  type       = "bool"
+  default    = "false"
+  help       = "output instantiations of quantified formulas after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpInstantiationsDebug"
   category   = "expert"
-  long       = "tear-down-incremental=N"
-  type       = "int"
-  default    = "0"
-  read_only  = true
-  help       = "implement PUSH/POP/multi-query by destroying and recreating SmtEngine every N queries"
+  long       = "dump-instantiations-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "output instantiations of quantified formulas after every UNSAT/VALID response, with debug information"
+
+[[option]]
+  name       = "dumpUnsatCores"
+  category   = "regular"
+  long       = "dump-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "output unsat cores after every UNSAT/VALID response"
+
+[[option]]
+  name       = "dumpDifficulty"
+  category   = "regular"
+  long       = "dump-difficulty"
+  type       = "bool"
+  default    = "false"
+  help       = "dump the difficulty measure after every response to check-sat"
+
+[[option]]
+  name       = "forceNoLimitCpuWhileDump"
+  category   = "expert"
+  long       = "force-no-limit-cpu-while-dump"
+  type       = "bool"
+  default    = "false"
+  help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "usePortfolio"
+  category   = "expert"
+  long       = "use-portfolio"
+  type       = "bool"
+  default    = "false"
+  help       = "Use internal portfolio mode based on the logic"
+
+[[option]]
+  name       = "portfolioJobs"
+  category   = "expert"
+  long       = "portfolio-jobs=n"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "Number of parallel jobs the portfolio engine can run"
+
+[[option]]
+  name       = "printSuccess"
+  category   = "common"
+  long       = "print-success"
+  type       = "bool"
+  default    = "false"
+  help       = "print the \"success\" output required of SMT-LIBv2"
+
+[[option]]
+  name       = "stdinInputPerLine"
+  category   = "expert"
+  long       = "stdin-input-per-line"
+  type       = "bool"
+  default    = "false"
+  help       = "when piping from stdin, feed the input to the parser one line at a time. This avoids potential memory issues when parsing tokens split over multiple lines."

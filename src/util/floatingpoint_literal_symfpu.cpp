@@ -1,428 +1,336 @@
-/*********************                                                        */
-/*! \file floatingpoint_literal_symfpu.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Martin Brain, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SymFPU glue code for floating-point values.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Martin Brain
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SymFPU glue code for floating-point values.
+ */
 #include "util/floatingpoint_literal_symfpu.h"
 
 #include "base/check.h"
 
-namespace CVC4 {
+#include "symfpu/core/add.h"
+#include "symfpu/core/classify.h"
+#include "symfpu/core/compare.h"
+#include "symfpu/core/convert.h"
+#include "symfpu/core/divide.h"
+#include "symfpu/core/fma.h"
+#include "symfpu/core/ite.h"
+#include "symfpu/core/multiply.h"
+#include "symfpu/core/packing.h"
+#include "symfpu/core/remainder.h"
+#include "symfpu/core/sign.h"
+#include "symfpu/core/sqrt.h"
+#include "symfpu/utils/numberOfRoundingModes.h"
+#include "symfpu/utils/properties.h"
 
-#ifndef CVC4_USE_SYMFPU
-void FloatingPointLiteral::unfinished(void) const
-{
-  Unimplemented() << "Floating-point literals not yet implemented.";
-}
+/* -------------------------------------------------------------------------- */
 
-bool FloatingPointLiteral::operator==(const FloatingPointLiteral& other) const
-{
-  unfinished();
-  return false;
-}
+namespace symfpu {
 
-size_t FloatingPointLiteral::hash(void) const
-{
-  unfinished();
-  return 23;
-}
-#endif
-
-namespace symfpuLiteral {
-
-// To simplify the property macros
-typedef traits t;
-
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::one(
-    const CVC4BitWidth& w)
-{
-  return wrappedBitVector<isSigned>(w, 1);
-}
-
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::zero(
-    const CVC4BitWidth& w)
-{
-  return wrappedBitVector<isSigned>(w, 0);
-}
-
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::allOnes(
-    const CVC4BitWidth& w)
-{
-  return ~wrappedBitVector<isSigned>::zero(w);
-}
-
-template <bool isSigned>
-CVC4Prop wrappedBitVector<isSigned>::isAllOnes() const
-{
-  return (*this == wrappedBitVector<isSigned>::allOnes(getWidth()));
-}
-template <bool isSigned>
-CVC4Prop wrappedBitVector<isSigned>::isAllZeros() const
-{
-  return (*this == wrappedBitVector<isSigned>::zero(getWidth()));
-}
-
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::maxValue(
-    const CVC4BitWidth& w)
-{
-  if (isSigned)
-  {
-    BitVector base(w - 1, 0U);
-    return wrappedBitVector<true>((~base).zeroExtend(1));
+#define CVC5_LIT_ITE_DFN(T)                                                    \
+  template <>                                                                  \
+  struct ite<cvc5::internal::symfpuLiteral::Cvc5Prop, T>                       \
+  {                                                                            \
+    static const T& iteOp(const cvc5::internal::symfpuLiteral::Cvc5Prop& cond, \
+                          const T& l,                                          \
+                          const T& r)                                          \
+    {                                                                          \
+      return cond ? l : r;                                                     \
+    }                                                                          \
   }
-  else
-  {
-    return wrappedBitVector<false>::allOnes(w);
-  }
-}
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::minValue(
-    const CVC4BitWidth& w)
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::rm);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::prop);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::sbv);
+CVC5_LIT_ITE_DFN(cvc5::internal::symfpuLiteral::traits::ubv);
+
+#undef CVC5_LIT_ITE_DFN
+}  // namespace symfpu
+
+/* -------------------------------------------------------------------------- */
+
+namespace cvc5::internal {
+
+uint32_t FloatingPointLiteral::getUnpackedExponentWidth(FloatingPointSize& size)
 {
-  if (isSigned)
-  {
-    BitVector base(w, 1U);
-    BitVector shiftAmount(w, w - 1);
-    BitVector result(base.leftShift(shiftAmount));
-    return wrappedBitVector<true>(result);
-  }
-  else
-  {
-    return wrappedBitVector<false>::zero(w);
-  }
+  return SymFPUUnpackedFloatLiteral::exponentWidth(size);
 }
 
-/*** Operators ***/
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator<<(
-    const wrappedBitVector<isSigned>& op) const
+uint32_t FloatingPointLiteral::getUnpackedSignificandWidth(
+    FloatingPointSize& size)
 {
-  return BitVector::leftShift(op);
+  return SymFPUUnpackedFloatLiteral::significandWidth(size);
 }
 
-template <>
-wrappedBitVector<true> wrappedBitVector<true>::operator>>(
-    const wrappedBitVector<true>& op) const
+FloatingPointLiteral::FloatingPointLiteral(uint32_t exp_size,
+                                           uint32_t sig_size,
+                                           const BitVector& bv)
+    : d_fp_size(exp_size, sig_size)
+      ,
+      d_symuf(symfpu::unpack<symfpuLiteral::traits>(
+          symfpuLiteral::Cvc5FPSize(exp_size, sig_size), bv))
 {
-  return BitVector::arithRightShift(op);
 }
 
-template <>
-wrappedBitVector<false> wrappedBitVector<false>::operator>>(
-    const wrappedBitVector<false>& op) const
+FloatingPointLiteral::FloatingPointLiteral(
+    const FloatingPointSize& size, FloatingPointLiteral::SpecialConstKind kind)
+    : d_fp_size(size)
+      ,
+      d_symuf(SymFPUUnpackedFloatLiteral::makeNaN(size))
 {
-  return BitVector::logicalRightShift(op);
+  Assert(kind == FloatingPointLiteral::SpecialConstKind::FPNAN);
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator|(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral::FloatingPointLiteral(
+    const FloatingPointSize& size,
+    FloatingPointLiteral::SpecialConstKind kind,
+    bool sign)
+    : d_fp_size(size)
+      ,
+      d_symuf(kind == FloatingPointLiteral::SpecialConstKind::FPINF
+                  ? SymFPUUnpackedFloatLiteral::makeInf(size, sign)
+                  : SymFPUUnpackedFloatLiteral::makeZero(size, sign))
 {
-  return BitVector::operator|(op);
+  Assert(kind == FloatingPointLiteral::SpecialConstKind::FPINF
+         || kind == FloatingPointLiteral::SpecialConstKind::FPZERO);
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator&(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
+                                           const BitVector& bv)
+    : d_fp_size(size)
+      ,
+      d_symuf(symfpu::unpack<symfpuLiteral::traits>(size, bv))
 {
-  return BitVector::operator&(op);
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator+(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral::FloatingPointLiteral(const FloatingPointSize& size,
+                                           const RoundingMode& rm,
+                                           const BitVector& bv,
+                                           bool signedBV)
+    : d_fp_size(size)
+      ,
+      d_symuf(signedBV ? symfpu::convertSBVToFloat<symfpuLiteral::traits>(
+                  symfpuLiteral::Cvc5FPSize(size),
+                  symfpuLiteral::Cvc5RM(rm),
+                  symfpuLiteral::Cvc5SignedBitVector(bv))
+                       : symfpu::convertUBVToFloat<symfpuLiteral::traits>(
+                           symfpuLiteral::Cvc5FPSize(size),
+                           symfpuLiteral::Cvc5RM(rm),
+                           symfpuLiteral::Cvc5UnsignedBitVector(bv)))
 {
-  return BitVector::operator+(op);
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(
-    const wrappedBitVector<isSigned>& op) const
+BitVector FloatingPointLiteral::pack(void) const
 {
-  return BitVector::operator-(op);
+  BitVector bv(symfpu::pack<symfpuLiteral::traits>(d_fp_size, d_symuf));
+  return bv;
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator*(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral FloatingPointLiteral::absolute(void) const
 {
-  return BitVector::operator*(op);
+  return FloatingPointLiteral(
+      d_fp_size, symfpu::absolute<symfpuLiteral::traits>(d_fp_size, d_symuf));
 }
 
-template <>
-wrappedBitVector<false> wrappedBitVector<false>::operator/(
-    const wrappedBitVector<false>& op) const
+FloatingPointLiteral FloatingPointLiteral::negate(void) const
 {
-  return BitVector::unsignedDivTotal(op);
+  return FloatingPointLiteral(
+      d_fp_size, symfpu::negate<symfpuLiteral::traits>(d_fp_size, d_symuf));
 }
 
-template <>
-wrappedBitVector<false> wrappedBitVector<false>::operator%(
-    const wrappedBitVector<false>& op) const
+FloatingPointLiteral FloatingPointLiteral::add(
+    const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-  return BitVector::unsignedRemTotal(op);
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(d_fp_size,
+                              symfpu::add<symfpuLiteral::traits>(
+                                  d_fp_size, rm, d_symuf, arg.d_symuf, true));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(void) const
+FloatingPointLiteral FloatingPointLiteral::sub(
+    const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-  return BitVector::operator-();
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(d_fp_size,
+                              symfpu::add<symfpuLiteral::traits>(
+                                  d_fp_size, rm, d_symuf, arg.d_symuf, false));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator~(void) const
+FloatingPointLiteral FloatingPointLiteral::mult(
+    const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-  return BitVector::operator~();
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(d_fp_size,
+                              symfpu::multiply<symfpuLiteral::traits>(
+                                  d_fp_size, rm, d_symuf, arg.d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::increment() const
+FloatingPointLiteral FloatingPointLiteral::div(
+    const RoundingMode& rm, const FloatingPointLiteral& arg) const
 {
-  return *this + wrappedBitVector<isSigned>::one(getWidth());
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(d_fp_size,
+                              symfpu::divide<symfpuLiteral::traits>(
+                                  d_fp_size, rm, d_symuf, arg.d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::decrement() const
+FloatingPointLiteral FloatingPointLiteral::fma(
+    const RoundingMode& rm,
+    const FloatingPointLiteral& arg1,
+    const FloatingPointLiteral& arg2) const
 {
-  return *this - wrappedBitVector<isSigned>::one(getWidth());
+  Assert(d_fp_size == arg1.d_fp_size);
+  Assert(d_fp_size == arg2.d_fp_size);
+  return FloatingPointLiteral(
+      d_fp_size,
+      symfpu::fma<symfpuLiteral::traits>(
+          d_fp_size, rm, d_symuf, arg1.d_symuf, arg2.d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::signExtendRightShift(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral FloatingPointLiteral::sqrt(const RoundingMode& rm) const
 {
-  return BitVector::arithRightShift(BitVector(getWidth(), op));
+  return FloatingPointLiteral(
+      d_fp_size, symfpu::sqrt<symfpuLiteral::traits>(d_fp_size, rm, d_symuf));
 }
 
-/*** Modular opertaions ***/
-// No overflow checking so these are the same as other operations
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularLeftShift(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral FloatingPointLiteral::rti(const RoundingMode& rm) const
 {
-  return *this << op;
+  return FloatingPointLiteral(
+      d_fp_size,
+      symfpu::roundToIntegral<symfpuLiteral::traits>(d_fp_size, rm, d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularRightShift(
-    const wrappedBitVector<isSigned>& op) const
+FloatingPointLiteral FloatingPointLiteral::rem(
+    const FloatingPointLiteral& arg) const
 {
-  return *this >> op;
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(d_fp_size,
+                              symfpu::remainder<symfpuLiteral::traits>(
+                                  d_fp_size, d_symuf, arg.d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularIncrement() const
+FloatingPointLiteral FloatingPointLiteral::maxTotal(
+    const FloatingPointLiteral& arg, bool zeroCaseLeft) const
 {
-  return increment();
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(
+      d_fp_size,
+      symfpu::max<symfpuLiteral::traits>(
+          d_fp_size, d_symuf, arg.d_symuf, zeroCaseLeft));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularDecrement() const
+FloatingPointLiteral FloatingPointLiteral::minTotal(
+    const FloatingPointLiteral& arg, bool zeroCaseLeft) const
 {
-  return decrement();
+  Assert(d_fp_size == arg.d_fp_size);
+  return FloatingPointLiteral(
+      d_fp_size,
+      symfpu::min<symfpuLiteral::traits>(
+          d_fp_size, d_symuf, arg.d_symuf, zeroCaseLeft));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularAdd(
-    const wrappedBitVector<isSigned>& op) const
+bool FloatingPointLiteral::operator==(const FloatingPointLiteral& fp) const
 {
-  return *this + op;
+  return ((d_fp_size == fp.d_fp_size)
+          && symfpu::smtlibEqual<symfpuLiteral::traits>(
+              d_fp_size, d_symuf, fp.d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularNegate() const
+bool FloatingPointLiteral::operator<=(const FloatingPointLiteral& arg) const
 {
-  return -(*this);
+  Assert(d_fp_size == arg.d_fp_size);
+  return symfpu::lessThanOrEqual<symfpuLiteral::traits>(
+      d_fp_size, d_symuf, arg.d_symuf);
 }
 
-/*** Comparisons ***/
-
-template <bool isSigned>
-CVC4Prop wrappedBitVector<isSigned>::operator==(
-    const wrappedBitVector<isSigned>& op) const
+bool FloatingPointLiteral::operator<(const FloatingPointLiteral& arg) const
 {
-  return BitVector::operator==(op);
+  Assert(d_fp_size == arg.d_fp_size);
+  return symfpu::lessThan<symfpuLiteral::traits>(
+      d_fp_size, d_symuf, arg.d_symuf);
 }
 
-template <>
-CVC4Prop wrappedBitVector<true>::operator<=(
-    const wrappedBitVector<true>& op) const
+BitVector FloatingPointLiteral::getExponent() const
 {
-  return signedLessThanEq(op);
+  return d_symuf.exponent;
 }
 
-template <>
-CVC4Prop wrappedBitVector<true>::operator>=(
-    const wrappedBitVector<true>& op) const
+BitVector FloatingPointLiteral::getSignificand() const
 {
-  return !(signedLessThan(op));
+  return d_symuf.significand;
 }
 
-template <>
-CVC4Prop wrappedBitVector<true>::operator<(
-    const wrappedBitVector<true>& op) const
+bool FloatingPointLiteral::getSign() const
 {
-  return signedLessThan(op);
+  return d_symuf.sign;
 }
 
-template <>
-CVC4Prop wrappedBitVector<true>::operator>(
-    const wrappedBitVector<true>& op) const
+bool FloatingPointLiteral::isNormal(void) const
 {
-  return !(signedLessThanEq(op));
+  return symfpu::isNormal<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-template <>
-CVC4Prop wrappedBitVector<false>::operator<=(
-    const wrappedBitVector<false>& op) const
+bool FloatingPointLiteral::isSubnormal(void) const
 {
-  return unsignedLessThanEq(op);
+  return symfpu::isSubnormal<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-template <>
-CVC4Prop wrappedBitVector<false>::operator>=(
-    const wrappedBitVector<false>& op) const
+bool FloatingPointLiteral::isZero(void) const
 {
-  return !(unsignedLessThan(op));
+  return symfpu::isZero<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-template <>
-CVC4Prop wrappedBitVector<false>::operator<(
-    const wrappedBitVector<false>& op) const
+bool FloatingPointLiteral::isInfinite(void) const
 {
-  return unsignedLessThan(op);
+  return symfpu::isInfinite<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-template <>
-CVC4Prop wrappedBitVector<false>::operator>(
-    const wrappedBitVector<false>& op) const
+bool FloatingPointLiteral::isNaN(void) const
 {
-  return !(unsignedLessThanEq(op));
+  return symfpu::isNaN<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-/*** Type conversion ***/
-// CVC4 nodes make no distinction between signed and unsigned, thus ...
-template <bool isSigned>
-wrappedBitVector<true> wrappedBitVector<isSigned>::toSigned(void) const
+bool FloatingPointLiteral::isNegative(void) const
 {
-  return wrappedBitVector<true>(*this);
+  return symfpu::isNegative<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-template <bool isSigned>
-wrappedBitVector<false> wrappedBitVector<isSigned>::toUnsigned(void) const
+bool FloatingPointLiteral::isPositive(void) const
 {
-  return wrappedBitVector<false>(*this);
+  return symfpu::isPositive<symfpuLiteral::traits>(d_fp_size, d_symuf);
 }
 
-/*** Bit hacks ***/
-
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
-    CVC4BitWidth extension) const
+FloatingPointLiteral FloatingPointLiteral::convert(
+    const FloatingPointSize& target, const RoundingMode& rm) const
 {
-  if (isSigned)
-  {
-    return BitVector::signExtend(extension);
-  }
-  else
-  {
-    return BitVector::zeroExtend(extension);
-  }
+  return FloatingPointLiteral(
+      target,
+      symfpu::convertFloatToFloat<symfpuLiteral::traits>(
+          d_fp_size, target, rm, d_symuf));
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
-    CVC4BitWidth reduction) const
+BitVector FloatingPointLiteral::convertToSBVTotal(BitVectorSize width,
+                                                  const RoundingMode& rm,
+                                                  BitVector undefinedCase) const
 {
-  Assert(getWidth() > reduction);
-
-  return extract((getWidth() - 1) - reduction, 0);
+  return symfpu::convertFloatToSBV<symfpuLiteral::traits>(
+      d_fp_size, rm, d_symuf, width, undefinedCase);
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::resize(
-    CVC4BitWidth newSize) const
+BitVector FloatingPointLiteral::convertToUBVTotal(BitVectorSize width,
+                                                  const RoundingMode& rm,
+                                                  BitVector undefinedCase) const
 {
-  CVC4BitWidth width = getWidth();
-
-  if (newSize > width)
-  {
-    return extend(newSize - width);
-  }
-  else if (newSize < width)
-  {
-    return contract(width - newSize);
-  }
-  else
-  {
-    return *this;
-  }
+  return symfpu::convertFloatToUBV<symfpuLiteral::traits>(
+      d_fp_size, rm, d_symuf, width, undefinedCase);
 }
 
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::matchWidth(
-    const wrappedBitVector<isSigned>& op) const
-{
-  Assert(getWidth() <= op.getWidth());
-  return extend(op.getWidth() - getWidth());
-}
-
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::append(
-    const wrappedBitVector<isSigned>& op) const
-{
-  return BitVector::concat(op);
-}
-
-// Inclusive of end points, thus if the same, extracts just one bit
-template <bool isSigned>
-wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
-    CVC4BitWidth upper, CVC4BitWidth lower) const
-{
-  Assert(upper >= lower);
-  return BitVector::extract(upper, lower);
-}
-
-// Explicit instantiation
-template class wrappedBitVector<true>;
-template class wrappedBitVector<false>;
-
-traits::rm traits::RNE(void) { return ::CVC4::ROUND_NEAREST_TIES_TO_EVEN; };
-traits::rm traits::RNA(void) { return ::CVC4::ROUND_NEAREST_TIES_TO_AWAY; };
-traits::rm traits::RTP(void) { return ::CVC4::ROUND_TOWARD_POSITIVE; };
-traits::rm traits::RTN(void) { return ::CVC4::ROUND_TOWARD_NEGATIVE; };
-traits::rm traits::RTZ(void) { return ::CVC4::ROUND_TOWARD_ZERO; };
-// This is a literal back-end so props are actually bools
-// so these can be handled in the same way as the internal assertions above
-
-void traits::precondition(const traits::prop& p)
-{
-  Assert(p);
-  return;
-}
-void traits::postcondition(const traits::prop& p)
-{
-  Assert(p);
-  return;
-}
-void traits::invariant(const traits::prop& p)
-{
-  Assert(p);
-  return;
-}
-}  // namespace symfpuLiteral
-
-}  // namespace CVC4
+}  // namespace cvc5::internal

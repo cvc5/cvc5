@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Martin Brain, Andrew Reynolds
- ** Copyright (c) 2009-2015  New York University and The University of Iowa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An enumerator for floating-point numbers.
- **
- ** An enumerator for floating-point numbers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Martin Brain, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An enumerator for floating-point numbers.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__FP__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__FP__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__FP__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__FP__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -26,7 +24,7 @@
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -86,7 +84,7 @@ class RoundingModeEnumerator
  public:
   RoundingModeEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RoundingModeEnumerator>(type),
-        d_rm(ROUND_NEAREST_TIES_TO_EVEN),
+        d_rm(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN),
         d_enumerationComplete(false)
   {
   }
@@ -101,11 +99,21 @@ class RoundingModeEnumerator
 
   RoundingModeEnumerator& operator++() override {
     switch (d_rm) {
-      case ROUND_NEAREST_TIES_TO_EVEN: d_rm = ROUND_TOWARD_POSITIVE; break;
-      case ROUND_TOWARD_POSITIVE: d_rm = ROUND_TOWARD_NEGATIVE; break;
-      case ROUND_TOWARD_NEGATIVE: d_rm = ROUND_TOWARD_ZERO; break;
-      case ROUND_TOWARD_ZERO: d_rm = ROUND_NEAREST_TIES_TO_AWAY; break;
-      case ROUND_NEAREST_TIES_TO_AWAY: d_enumerationComplete = true; break;
+      case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+        d_rm = RoundingMode::ROUND_TOWARD_POSITIVE;
+        break;
+      case RoundingMode::ROUND_TOWARD_POSITIVE:
+        d_rm = RoundingMode::ROUND_TOWARD_NEGATIVE;
+        break;
+      case RoundingMode::ROUND_TOWARD_NEGATIVE:
+        d_rm = RoundingMode::ROUND_TOWARD_ZERO;
+        break;
+      case RoundingMode::ROUND_TOWARD_ZERO:
+        d_rm = RoundingMode::ROUND_NEAREST_TIES_TO_AWAY;
+        break;
+      case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+        d_enumerationComplete = true;
+        break;
       default: Unreachable() << "Unknown rounding mode?"; break;
     }
     return *this;
@@ -120,6 +128,6 @@ class RoundingModeEnumerator
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__FP__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__FP__TYPE_ENUMERATOR_H */

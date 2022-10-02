@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file full_model_check.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Full model check class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Full model check class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
-#define CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#ifndef CVC5__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#define CVC5__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/first_order_model.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace fmcheck {
@@ -95,7 +96,7 @@ protected:
   std::map<Node, Node > d_quant_cond;
   /** A set of quantified formulas that cannot be handled by model-based
    * quantifier instantiation */
-  std::unordered_set<Node, NodeHashFunction> d_unhandledQuant;
+  std::unordered_set<Node> d_unhandledQuant;
   std::map< TypeNode, Node > d_array_cond;
   std::map< Node, Node > d_array_term_cond;
   std::map< Node, std::vector< int > > d_star_insts;
@@ -112,15 +113,20 @@ protected:
    * if a bound variable is of type T, or an uninterpreted function has an
    * argument or a return value of type T.
    */
-  void preInitializeType( FirstOrderModelFmc * fm, TypeNode tn );
+  void preInitializeType(TheoryModel* m, TypeNode tn);
   /** for each type, an equivalence class of that type from the model */
   std::map<TypeNode, Node> d_preinitialized_eqc;
   /** map from types to whether we have called the method above */
   std::map<TypeNode, bool> d_preinitialized_types;
   //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
-  bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
-private:
+  /**
+   * Exhaustively instantiate quantified formula q based on condition c, which
+   * indicate the domain to instantiate.
+   */
+  bool exhaustiveInstantiate(FirstOrderModelFmc* fm, Node q, Node c);
+
+ private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 
   void doNegate( Def & dc );
@@ -141,15 +147,21 @@ private:
                              std::vector< Node > & cond, std::vector<Node> & val );
   int isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
   bool doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c );
-  Node mkCond( std::vector< Node > & cond );
+  Node mkCond(const std::vector<Node>& cond);
   Node mkCondDefault( FirstOrderModelFmc * fm, Node f );
   void mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::vector< Node > & cond );
   void mkCondVec( Node n, std::vector< Node > & cond );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
-public:
-  FullModelChecker( context::Context* c, QuantifiersEngine* qe );
 
+ public:
+  FullModelChecker(Env& env,
+                   QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
+                   QuantifiersRegistry& qr,
+                   TermRegistry& tr);
+  /** finish init, which sets the model object */
+  void finishInit() override;
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);
 
@@ -164,7 +176,6 @@ public:
   bool processBuildModel(TheoryModel* m) override;
 
   bool useSimpleModels();
-
  private:
   /**
    * Register quantified formula.
@@ -174,11 +185,16 @@ public:
   void registerQuantifiedFormula(Node q);
   /** Is quantified formula q handled by model-based instantiation? */
   bool isHandled(Node q) const;
+  /**
+   * The first order model. This is an extended form of the first order model
+   * class that is specialized for this class.
+   */
+  std::unique_ptr<FirstOrderModelFmc> d_fm;
 };/* class FullModelChecker */
 
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fmcheck
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */

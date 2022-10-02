@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file antlr_input_imports.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Francois Bobot, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Christopher L. Conway, Francois Bobot, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 /*
  * The functions in this file are based on implementations in libantlr3c,
- * with only minor CVC4-specific changes.
+ * with only minor cvc5-specific changes.
  */
 
 // [The "BSD licence"]
@@ -49,18 +50,18 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-
 #include <antlr3.h>
+
 #include <sstream>
 
+#include "base/check.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 /// Report a recognition problem.
@@ -78,7 +79,7 @@ namespace parser {
 ///
 /// If you override, make sure to update errorCount if you care about that.
 ///
-/* *** CVC4 NOTE ***
+/* *** cvc5 NOTE ***
  * This function is has been modified in not-completely-trivial ways from its
  * libantlr3c implementation to support more informative error messages and to
  * invoke the error reporting mechanism of the Input class instead of the
@@ -89,13 +90,13 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_UINT8 * tokenNames = recognizer->state->tokenNames;
   stringstream ss;
 
-  // Dig the CVC4 objects out of the ANTLR3 mess
+  // Dig the cvc5 objects out of the ANTLR3 mess
   pANTLR3_PARSER antlr3Parser = (pANTLR3_PARSER)(recognizer->super);
-  assert(antlr3Parser!=NULL);
+  Assert(antlr3Parser != NULL);
   Parser *parser = (Parser*)(antlr3Parser->super);
-  assert(parser!=NULL);
+  Assert(parser != NULL);
   AntlrInput *input = (AntlrInput*) parser->getInput() ;
-  assert(input!=NULL);
+  Assert(input != NULL);
 
   // Signal we are in error recovery now
   recognizer->state->errorRecovery = ANTLR3_TRUE;
@@ -237,7 +238,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
         }
       }
     } else {
-      assert(false);//("Parse error with empty set of expected tokens.");
+      Assert(false);  //("Parse error with empty set of expected tokens.");
     }
   }
     break;
@@ -259,7 +260,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
     // then we are just going to report what we know about the
     // token.
     //
-    assert(false);//("Unexpected exception in parser.");
+    Assert(false);  //("Unexpected exception in parser.");
     break;
   }
 
@@ -284,7 +285,7 @@ void AntlrInput::reportError(pANTLR3_BASE_RECOGNIZER recognizer) {
 ///
 /// \see nextToken
 ///
-/* *** CVC4 NOTE ***
+/* *** cvc5 NOTE ***
  * This is copied, largely unmodified, from antlr3lexer.c
  *
  */
@@ -345,7 +346,7 @@ AntlrInput::nextTokenStr (pANTLR3_TOKEN_SOURCE toksource)
         // Recognition exception, report it and try to recover.
         //
         lexer->rec->state->failed = ANTLR3_TRUE;
-        // *** CVC4 EDIT: Just call the AntlrInput error routine
+        // *** cvc5 EDIT: Just call the AntlrInput error routine
         lexerError(lexer->rec);
         lexer->recover(lexer);
       }
@@ -355,7 +356,7 @@ AntlrInput::nextTokenStr (pANTLR3_TOKEN_SOURCE toksource)
         {
           // Emit the real token, which adds it in to the token stream basically
           //
-          // *** CVC4 Edit: call emit on the lexer object
+          // *** cvc5 Edit: call emit on the lexer object
           lexer->emit(lexer);
         }
         else if (lexer->rec->state->token == &(toksource->skipToken))
@@ -374,7 +375,7 @@ AntlrInput::nextTokenStr (pANTLR3_TOKEN_SOURCE toksource)
   }
 }
 
-/* *** CVC4 NOTE ***
+/* *** cvc5 NOTE ***
  * This is copied, totaly unmodified, from antlr3lexer.c
  * in order to use nextTokenStr previously defined.
  *
@@ -436,4 +437,4 @@ AntlrInput::nextToken	    (pANTLR3_TOKEN_SOURCE toksource)
 
 
 } // namespace parser
-} // namespace CVC4
+}  // namespace cvc5

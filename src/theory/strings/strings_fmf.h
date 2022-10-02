@@ -1,31 +1,33 @@
-/*********************                                                        */
-/*! \file strings_fmf.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A finite model finding decision strategy for strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A finite model finding decision strategy for strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRINGS_FMF_H
-#define CVC4__THEORY__STRINGS__STRINGS_FMF_H
+#ifndef CVC5__THEORY__STRINGS__STRINGS_FMF_H
+#define CVC5__THEORY__STRINGS__STRINGS_FMF_H
 
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/decision_strategy.h"
 #include "theory/strings/term_registry.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -34,15 +36,12 @@ namespace strings {
  * This class manages the creation of a decision strategy that bounds the
  * sum of lengths of terms of type string.
  */
-class StringsFmf
+class StringsFmf : protected EnvObj
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  StringsFmf(context::Context* c,
-             context::UserContext* u,
-             Valuation valuation,
-             TermRegistry& tr);
+  StringsFmf(Env& env, Valuation valuation, TermRegistry& tr);
   ~StringsFmf();
   /** presolve
    *
@@ -67,9 +66,7 @@ class StringsFmf
   class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    StringSumLengthDecisionStrategy(context::Context* c,
-                                    context::UserContext* u,
-                                    Valuation valuation);
+    StringSumLengthDecisionStrategy(Env& env, Valuation valuation);
     /** make literal */
     Node mkLiteral(unsigned i) override;
     /** identify */
@@ -94,10 +91,6 @@ class StringsFmf
   };
   /** an instance of the above class */
   std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
-  /** The SAT search context for the theory of strings. */
-  context::Context* d_satContext;
-  /** The user level assertion context for the theory of strings. */
-  context::UserContext* d_userContext;
   /** The valuation object of theory of strings */
   Valuation d_valuation;
   /** The term registry of theory of strings */
@@ -106,6 +99,6 @@ class StringsFmf
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__STRINGS__STRINGS_FMF_H */
+#endif /* CVC5__THEORY__STRINGS__STRINGS_FMF_H */

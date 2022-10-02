@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file term_context_node.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term context node utility.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term context node utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__TERM_CONTEXT_NODE_H
-#define CVC4__EXPR__TERM_CONTEXT_NODE_H
+#ifndef CVC5__EXPR__TERM_CONTEXT_NODE_H
+#define CVC5__EXPR__TERM_CONTEXT_NODE_H
 
 #include "expr/node.h"
-#include "expr/term_context.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TCtxStack;
+class TermContext;
 
 /**
  * A (term-context) sensitive term. This is a wrapper around a Node that
@@ -53,7 +54,7 @@ class TCtxNode
   Node getNodeHash() const;
   /**
    * Get node hash, which is a unique node representation of the pair (n, val).
-   * In particular, this returns (SEXPR n (CONST_RATIONAL val)).
+   * In particular, this returns (SEXPR n (CONST_INTEGER val)).
    */
   static Node computeNodeHash(Node n, uint32_t val);
   /**
@@ -74,6 +75,6 @@ class TCtxNode
   const TermContext* d_tctx;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */
+#endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

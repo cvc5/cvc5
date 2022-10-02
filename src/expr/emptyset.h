@@ -1,33 +1,34 @@
-/*********************                                                        */
-/*! \file emptyset.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Kshitij Bansal
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Kshitij Bansal, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__EMPTY_SET_H
-#define CVC4__EMPTY_SET_H
+#ifndef CVC5__EMPTY_SET_H
+#define CVC5__EMPTY_SET_H
 
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TypeNode;
 
-class CVC4_PUBLIC EmptySet
+class EmptySet
 {
  public:
   /**
@@ -53,13 +54,13 @@ class CVC4_PUBLIC EmptySet
   std::unique_ptr<TypeNode> d_type;
 }; /* class EmptySet */
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptySet& es);
 
-struct CVC4_PUBLIC EmptySetHashFunction
+struct EmptySetHashFunction
 {
   size_t operator()(const EmptySet& es) const;
 }; /* struct EmptySetHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__EMPTY_SET_H */
+#endif /* CVC5__EMPTY_SET_H */

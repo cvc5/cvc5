@@ -1,5 +1,0 @@
-% EXPECT: entailed
-
-x : BITVECTOR(10);
-
-QUERY x /= ~x;

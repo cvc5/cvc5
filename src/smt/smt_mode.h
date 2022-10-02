@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file smt_mode.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Ying Sheng, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumeration type for the mode of an SmtEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumeration type for the mode of an SolverEngine.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__SMT__SMT_MODE_H
-#define CVC4__SMT__SMT_MODE_H
+#ifndef CVC5__SMT__SMT_MODE_H
+#define CVC5__SMT__SMT_MODE_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * The mode of the solver, which is an extension of Figure 4.1 on
@@ -40,8 +41,10 @@ enum class SmtMode
   UNSAT,
   // immediately after a successful call to get-abduct
   ABDUCT,
-  // immediately after a successful call to get-interpol
-  INTERPOL
+  // immediately after a successful call to get-interpolant
+  INTERPOL,
+  // immediately after a successful call to check-synth or check-synth-next
+  SYNTH
 };
 /**
  * Writes a SmtMode to a stream.
@@ -52,6 +55,6 @@ enum class SmtMode
  */
 std::ostream& operator<<(std::ostream& out, SmtMode m);
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

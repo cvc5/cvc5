@@ -1,0 +1,7 @@
+(set-logic BV)
+(set-info :status sat)
+(set-option :finite-model-find true)
+(set-option :pre-skolem-quant-nested true)
+(set-option :cegqi-nested-qe true)
+(assert (forall ((a (_ BitVec 32))) (exists ((b (_ BitVec 32))) (bvsle a b))))
+(check-sat)

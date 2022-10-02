@@ -1,28 +1,28 @@
-/*********************                                                        */
-/*! \file nl_lemma_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for processing lemmas from the non-linear solver
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for processing lemmas from the non-linear solver.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
-#define CVC4__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
+#ifndef CVC5__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
+#define CVC5__THEORY__ARITH__NL__NL_LEMMA_UTILS_H
 
 #include <tuple>
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/arith_lemma.h"
-#include "theory/output_channel.h"
+#include "theory/theory_inference.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -41,23 +41,19 @@ class NonlinearExtension;
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-class NlLemma : public ArithLemma
+class NlLemma : public SimpleTheoryLemma
 {
  public:
-  NlLemma(Node n,
-          LemmaProperty p,
-          ProofGenerator* pg,
-          InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, p, pg, inf)
-  {
-  }
-  NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
+  NlLemma(InferenceId inf,
+          Node n,
+          LemmaProperty p = LemmaProperty::NONE,
+          ProofGenerator* pg = nullptr)
+      : SimpleTheoryLemma(inf, n, p, pg)
   {
   }
   ~NlLemma() {}
 
-  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  TrustNode processLemma(LemmaProperty& p) override;
 
   /** secant points to add
    *
@@ -149,6 +145,6 @@ class ArgTrie
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__NL_LEMMA_UTILS_H */
+#endif /* CVC5__THEORY__ARITH__NL_LEMMA_UTILS_H */

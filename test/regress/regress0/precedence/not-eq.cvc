@@ -1,6 +1,0 @@
-% EXPECT: entailed
-% Simple test for right precedence of = and NOT.
-
-A, B: INT;
-
-QUERY (NOT A = B) <=> (NOT (A = B));

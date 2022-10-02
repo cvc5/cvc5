@@ -1,23 +1,24 @@
-/*********************                                                        */
-/*! \file bv_inverter_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief inverse rules for bit-vector operators
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Inverse rules for bit-vector operators.
+ */
 
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 namespace utils {
@@ -278,7 +279,7 @@ Node getICBvMult(
 Node getICBvUrem(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  Assert(k == BITVECTOR_UREM_TOTAL);
+  Assert(k == BITVECTOR_UREM);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
@@ -326,7 +327,7 @@ Node getICBvUrem(
          *          (or (= t z) (distinct (bvsub s (_ bv1 w)) t))))
          * where
          * z = 0 with getSize(z) = w  */
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
         scl = nm->mkNode(BITVECTOR_UGE, a, t);
@@ -385,7 +386,7 @@ Node getICBvUrem(
          * (or
          *   (bvuge (bvand (bvsub (bvadd t t) s) s) t)  ; eq, synthesized
          *   (bvult t s))                               ; ugt, synthesized  */
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, t);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, t);
         Node sub = nm->mkNode(BITVECTOR_SUB, add, s);
         Node a = nm->mkNode(BITVECTOR_AND, sub, s);
         Node sceq = nm->mkNode(BITVECTOR_UGE, a, t);
@@ -586,7 +587,7 @@ Node getICBvUrem(
 Node getICBvUdiv(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  Assert(k == BITVECTOR_UDIV_TOTAL);
+  Assert(k == BITVECTOR_UDIV);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
@@ -618,7 +619,7 @@ Node getICBvUdiv(
          * umulo(s, t) is true if s * t produces and overflow
          * and z = 0 with getSize(z) = w  */
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV, mul, s);
         scl = nm->mkNode(EQUAL, div, t);
       }
       else
@@ -655,8 +656,8 @@ Node getICBvUdiv(
          *
          * where
          * z = 0 with getSize(z) = w  */
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, s, t);
-        scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, s, div), t);
+        Node div = nm->mkNode(BITVECTOR_UDIV, s, t);
+        scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV, s, div), t);
       }
       else
       {
@@ -701,7 +702,7 @@ Node getICBvUdiv(
          * with invertibility condition (synthesized):
          * (= (bvand (bvudiv (bvmul s t) t) s) s)  */
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, t);
+        Node div = nm->mkNode(BITVECTOR_UDIV, mul, t);
         scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_AND, div, s), s);
       }
     }
@@ -739,7 +740,7 @@ Node getICBvUdiv(
          * where
          * ones = ~0 with getSize(ones) = w  */
         Node ones = bv::utils::mkOnes(w);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV, ones, s);
         scl = nm->mkNode(BITVECTOR_UGT, div, t);
       }
       else
@@ -792,7 +793,7 @@ Node getICBvUdiv(
          * and min is the minimum signed value with getSize(min) = w  */
         Node min = bv::utils::mkMinSigned(w);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div, t);
         scl = nm->mkNode(IMPLIES, sle, slt);
       }
@@ -808,8 +809,8 @@ Node getICBvUdiv(
          * and max is the maximum signed value with getSize(max) = w  */
         Node max = bv::utils::mkMaxSigned(w);
         Node ones = bv::utils::mkOnes(w);
-        Node udiv1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
-        Node udiv2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, max, s);
+        Node udiv1 = nm->mkNode(BITVECTOR_UDIV, ones, s);
+        Node udiv2 = nm->mkNode(BITVECTOR_UDIV, max, s);
         Node sge1 = nm->mkNode(BITVECTOR_SGE, udiv1, t);
         Node sge2 = nm->mkNode(BITVECTOR_SGE, udiv2, t);
         scl = nm->mkNode(OR, sge1, sge2);
@@ -877,9 +878,9 @@ Node getICBvUdiv(
          * and max is the maximum signed value with getSize(max) = w  */
         Node max = bv::utils::mkMaxSigned(w);
         Node ones = bv::utils::mkOnes(w);
-        Node div1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
+        Node div1 = nm->mkNode(BITVECTOR_UDIV, ones, s);
         Node sgt1 = nm->mkNode(BITVECTOR_SGT, div1, t);
-        Node div2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, max, s);
+        Node div2 = nm->mkNode(BITVECTOR_UDIV, max, s);
         Node sgt2 = nm->mkNode(BITVECTOR_SGT, div2, t);
         scl = nm->mkNode(OR, sgt1, sgt2);
       }
@@ -894,11 +895,11 @@ Node getICBvUdiv(
          * z = 0 with getSize(z) = w
          * and min is the minimum signed value with getSize(min) = w  */
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
-        Node div1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, s);
+        Node div1 = nm->mkNode(BITVECTOR_UDIV, mul, s);
         Node o1 = nm->mkNode(EQUAL, div1, t);
         Node min = bv::utils::mkMinSigned(w);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
-        Node div2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
+        Node div2 = nm->mkNode(BITVECTOR_UDIV, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div2, t);
         Node o2 = nm->mkNode(IMPLIES, sle, slt);
         scl = nm->mkNode(OR, o1, o2);
@@ -1180,7 +1181,7 @@ namespace {
 Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 {
   unsigned w;
-  NodeBuilder<> nb(OR);
+  NodeBuilder nb(OR);
   NodeManager* nm;
 
   nm = NodeManager::currentNM();
@@ -1919,7 +1920,7 @@ Node getICBvShl(
          * min is the signed minimum value with getSize(min) = w  */
         Node min = bv::utils::mkMinSigned(w);
         Node shl = nm->mkNode(BITVECTOR_SHL, min, s);
-        Node add = nm->mkNode(BITVECTOR_PLUS, t, min);
+        Node add = nm->mkNode(BITVECTOR_ADD, t, min);
         scl = nm->mkNode(BITVECTOR_ULT, shl, add);
       }
       else
@@ -2000,7 +2001,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   unsigned nchildren = sv_t.getNumChildren();
   unsigned w1 = 0, w2 = 0;
   unsigned w = bv::utils::getSize(t), wx = bv::utils::getSize(x);
-  NodeBuilder<> nbs1(BITVECTOR_CONCAT), nbs2(BITVECTOR_CONCAT);
+  NodeBuilder nbs1(BITVECTOR_CONCAT), nbs2(BITVECTOR_CONCAT);
   Node s1, s2;
   Node t1, t2, tx;
   Node scl, scr;
@@ -2589,4 +2590,4 @@ Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

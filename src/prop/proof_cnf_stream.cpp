@@ -1,34 +1,55 @@
-/*********************                                                        */
-/*! \file proof_cnf_stream.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof-producing CNF stream
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof-producing CNF stream.
+ */
 
 #include "prop/proof_cnf_stream.h"
 
 #include "options/smt_options.h"
 #include "prop/minisat/minisat.h"
 #include "theory/builtin/proof_checker.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace prop {
 
-ProofCnfStream::ProofCnfStream(context::UserContext* u,
+ProofCnfStream::ProofCnfStream(Env& env,
                                CnfStream& cnfStream,
-                               SatProofManager* satPM,
-                               ProofNodeManager* pnm)
-    : d_cnfStream(cnfStream),
+                               SatProofManager* satPM)
+    : EnvObj(env),
+      d_cnfStream(cnfStream),
+      d_inputClauses(userContext()),
+      d_lemmaClauses(userContext()),
       d_satPM(satPM),
-      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
-      d_blocked(u)
+      // Since the ProofCnfStream performs no equality reasoning, there is no
+      // need to automatically add symmetry steps. Note that it is *safer* to
+      // forbid this, since adding symmetry steps when proof nodes are being
+      // updated may inadvertently generate cyclic proofs.
+      //
+      // This can happen for example if the proof cnf stream has a generator for
+      // (= a b), whose proof depends on symmetry applied to (= b a). It does
+      // not have a generator for (= b a). However if asked for a proof of the
+      // fact (= b a) (after having expanded the proof of (= a b)), since it has
+      // no genarotor for (= b a), a proof (= b a) can be generated via symmetry
+      // on the proof of (= a b). As a result the assumption (= b a) would be
+      // assigned a proof with assumption (= b a). This breakes the invariant of
+      // the proof node manager of no cyclic proofs if the ASSUMPTION proof node
+      // of both the assumption (= b a) we are asking the proof for and the
+      // assumption (= b a) in the proof of (= a b) are the same.
+      d_proof(
+          env, nullptr, userContext(), "ProofCnfStream::LazyCDProof", false),
+      d_blocked(userContext()),
+      d_optClausesManager(userContext(), &d_proof, d_optClausesPfs)
 {
 }
 
@@ -40,6 +61,26 @@ void ProofCnfStream::addBlocked(std::shared_ptr<ProofNode> pfn)
 bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn)
 {
   return d_blocked.contains(pfn);
+}
+
+std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getInputClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_inputClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
+}
+
+std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getLemmaClausesProofs()
+{
+  std::vector<std::shared_ptr<ProofNode>> pfs;
+  for (const Node& a : d_lemmaClauses)
+  {
+    pfs.push_back(d_proof.getProofFor(a));
+  }
+  return pfs;
 }
 
 std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
@@ -54,28 +95,43 @@ bool ProofCnfStream::hasProofFor(Node f)
 
 std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 
-void ProofCnfStream::normalizeAndRegister(TNode clauseNode)
+Node ProofCnfStream::normalizeAndRegister(TNode clauseNode)
 {
   Node normClauseNode = d_psb.factorReorderElimDoubleNeg(clauseNode);
-  if (Trace.isOn("cnf") && normClauseNode != clauseNode)
+  if (TraceIsOn("cnf") && normClauseNode != clauseNode)
   {
     Trace("cnf") << push
                  << "ProofCnfStream::normalizeAndRegister: steps to normalized "
                  << normClauseNode << "\n"
                  << pop;
   }
-  d_satPM->registerSatAssumptions({normClauseNode});
+  if (d_input)
+  {
+    d_inputClauses.insert(normClauseNode);
+  }
+  else
+  {
+    d_lemmaClauses.insert(normClauseNode);
+  }
+  if (d_satPM)
+  {
+    d_satPM->registerSatAssumptions({normClauseNode});
+  }
+  return normClauseNode;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node,
                                       bool negated,
                                       bool removable,
+                                      bool input,
                                       ProofGenerator* pg)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
-               << ", removable = " << (removable ? "true" : "false") << ")\n";
-  d_removable = removable;
+               << ", removable = " << (removable ? "true" : "false")
+               << "), level " << userContext()->getLevel() << "\n";
+  d_cnfStream.d_removable = removable;
+  d_input = input;
   if (pg)
   {
     Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
@@ -95,12 +151,14 @@ void ProofCnfStream::convertAndAssert(TNode node,
     d_proof.addStep(step.first, step.second);
   }
   d_psb.clear();
+  d_input = false;
 }
 
 void ProofCnfStream::convertAndAssert(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   switch (node.getKind())
   {
     case kind::AND: convertAndAssertAnd(node, negated); break;
@@ -127,7 +185,7 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         convertAndAssertIff(node, negated);
         break;
       }
-      CVC4_FALLTHROUGH;
+      CVC5_FALLTHROUGH;
     default:
     {
       // negate
@@ -146,21 +204,31 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
             << "ProofCnfStream::convertAndAssert: NOT_NOT_ELIM added norm "
             << nnode << "\n";
       }
-      if (added)
+      if (added && d_satPM)
       {
         // note that we do not need to do the normalization here since this is
         // not a clause and double negation is tracked in a dedicated manner
         // above
         d_satPM->registerSatAssumptions({nnode});
+        if (d_input)
+        {
+          d_inputClauses.insert(nnode);
+        }
+        else
+        {
+          d_lemmaClauses.insert(nnode);
+        }
       }
     }
   }
+  Trace("cnf") << pop;
 }
 
 void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssertAnd(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   Assert(node.getKind() == kind::AND);
   if (!negated)
   {
@@ -169,7 +237,7 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
     for (unsigned i = 0, size = node.getNumChildren(); i < size; ++i)
     {
       // Create a proof step for each n_i
-      Node iNode = nm->mkConst<Rational>(i);
+      Node iNode = nm->mkConstInt(i);
       d_proof.addStep(node[i], PfRule::AND_ELIM, {node}, {iNode});
       Trace("cnf") << "ProofCnfStream::convertAndAssertAnd: AND_ELIM " << i
                    << " added norm " << node[i] << "\n";
@@ -201,12 +269,14 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       normalizeAndRegister(clauseNode);
     }
   }
+  Trace("cnf") << pop;
 }
 
 void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssertOr(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   Assert(node.getKind() == kind::OR);
   if (!negated)
   {
@@ -228,7 +298,7 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     for (unsigned i = 0, size = node.getNumChildren(); i < size; ++i)
     {
       // Create a proof step for each (not n_i)
-      Node iNode = nm->mkConst<Rational>(i);
+      Node iNode = nm->mkConstInt(i);
       d_proof.addStep(
           node[i].notNode(), PfRule::NOT_OR_ELIM, {node.notNode()}, {iNode});
       Trace("cnf") << "ProofCnfStream::convertAndAssertOr: NOT_OR_ELIM " << i
@@ -236,12 +306,14 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
       convertAndAssert(node[i], true);
     }
   }
+  Trace("cnf") << pop;
 }
 
 void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssertXor(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   if (!negated)
   {
     // p XOR q
@@ -313,12 +385,14 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       normalizeAndRegister(clauseNode);
     }
   }
+  Trace("cnf") << pop;
 }
 
 void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssertIff(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   if (!negated)
   {
     // p <=> q
@@ -396,12 +470,14 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       normalizeAndRegister(clauseNode);
     }
   }
+  Trace("cnf") << pop;
 }
 
 void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssertImplies(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   if (!negated)
   {
     // ~p v q
@@ -440,12 +516,14 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
         << "ProofCnfStream::convertAndAssertImplies: NOT_IMPLIES_ELIM2 added "
         << node[1].notNode() << "\n";
   }
+  Trace("cnf") << pop;
 }
 
 void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssertIte(" << node
-               << ", negated = " << (negated ? "true" : "false") << ")\n";
+               << ", negated = " << (negated ? "true" : "false") << ")\n"
+               << push;
   // ITE(p, q, r)
   SatLiteral p = toCNF(node[0], false);
   SatLiteral q = toCNF(node[1], negated);
@@ -511,30 +589,41 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       normalizeAndRegister(clauseNode);
     }
   }
+  Trace("cnf") << pop;
 }
 
-void ProofCnfStream::convertPropagation(theory::TrustNode trn)
+void ProofCnfStream::convertPropagation(TrustNode trn)
 {
   Node proven = trn.getProven();
   Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
                << proven << "\n";
-  Assert(trn.getGenerator());
-  Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
-  Trace("cnf-steps") << proven << " by explainPropagation "
-                     << trn.identifyGenerator() << std::endl;
-  d_proof.addLazyStep(proven,
-                      trn.getGenerator(),
-                      PfRule::ASSUME,
-                      true,
-                      "ProofCnfStream::convertPropagation");
+  // If we are not producing proofs in the theory engine there is no need to
+  // keep track in d_proof of the clausification. We still need however to let
+  // the SAT proof manager know that this clause is an assumption.
+  bool proofLogging = trn.getGenerator() != nullptr;
+  if (proofLogging)
+  {
+    Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
+    Trace("cnf-steps") << proven << " by explainPropagation "
+                       << trn.identifyGenerator() << std::endl;
+    d_proof.addLazyStep(proven,
+                        trn.getGenerator(),
+                        PfRule::ASSUME,
+                        true,
+                        "ProofCnfStream::convertPropagation");
+  }
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
   NodeManager* nm = NodeManager::currentNM();
-  Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
-  Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
-               << PfRule::IMPLIES_ELIM << " rule to conclude "
-               << clauseImpliesElim << "\n";
-  d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  Node clauseImpliesElim;
+  if (proofLogging)
+  {
+    clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+    Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
+                 << PfRule::IMPLIES_ELIM << " rule to conclude "
+                 << clauseImpliesElim << "\n";
+    d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  }
   Node clauseExp;
   // need to eliminate AND
   if (proven[0].getKind() == kind::AND)
@@ -547,27 +636,154 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
       disjunctsRes.push_back(proven[0][i].notNode());
     }
     disjunctsRes.push_back(proven[1]);
-    Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
-    // add proof steps to convert into clause
-    d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
     clauseExp = nm->mkNode(kind::OR, disjunctsRes);
-    d_proof.addStep(clauseExp,
-                    PfRule::RESOLUTION,
-                    {clauseAndNeg, clauseImpliesElim},
-                    {nm->mkConst(true), proven[0]});
+    if (proofLogging)
+    {
+      // add proof steps to convert into clause
+      Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
+      d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+      d_proof.addStep(clauseExp,
+                      PfRule::RESOLUTION,
+                      {clauseAndNeg, clauseImpliesElim},
+                      {nm->mkConst(true), proven[0]});
+    }
   }
   else
   {
-    clauseExp = clauseImpliesElim;
+    clauseExp = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   }
-  normalizeAndRegister(clauseExp);
-  // consume steps
-  const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
-  for (const std::pair<Node, ProofStep>& step : steps)
+  d_currPropagationProcessed = normalizeAndRegister(clauseExp);
+  // consume steps if clausification being recorded. If we are not logging it,
+  // we need to add the clause as a closed step to the proof so that the SAT
+  // proof does not have non-input formulas as assumptions. That clause is the
+  // result of normalizeAndRegister, stored in d_currPropagationProcessed
+  if (proofLogging)
   {
-    d_proof.addStep(step.first, step.second);
+    const std::vector<std::pair<Node, ProofStep>>& steps = d_psb.getSteps();
+    for (const std::pair<Node, ProofStep>& step : steps)
+    {
+      d_proof.addStep(step.first, step.second);
+    }
+    d_psb.clear();
   }
-  d_psb.clear();
+  else
+  {
+    d_proof.addStep(d_currPropagationProcessed,
+                    PfRule::THEORY_LEMMA,
+                    {},
+                    {d_currPropagationProcessed});
+  }
+}
+
+void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
+{
+  Assert(explLevel < (userContext()->getLevel() - 1));
+  Assert(!d_currPropagationProcessed.isNull());
+  Trace("cnf") << "Need to save curr propagation " << d_currPropagationProcessed
+               << "'s proof in level " << explLevel + 1
+               << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  // Save into map the proof of the processed propagation. Note that
+  // propagations must be explained eagerly, since their justification depends
+  // on the theory engine and may be different if we only get its proof when the
+  // SAT solver pops the user context. Not doing this may lead to open proofs.
+  //
+  // It's also necessary to copy the proof node, so we prevent unintended
+  // updates to the saved proof. Not doing this may also lead to open proofs.
+  std::shared_ptr<ProofNode> currPropagationProcPf =
+      d_env.getProofNodeManager()->clone(
+          d_proof.getProofFor(d_currPropagationProcessed));
+  Assert(currPropagationProcPf->getRule() != PfRule::ASSUME);
+  Trace("cnf-debug") << "\t..saved pf {" << currPropagationProcPf << "} "
+                     << *currPropagationProcPf.get() << "\n";
+  d_optClausesPfs[explLevel + 1].push_back(currPropagationProcPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  if (d_satPM)
+  {
+    d_satPM->notifyAssumptionInsertedAtLevel(explLevel,
+                                             d_currPropagationProcessed);
+  }
+  // Reset
+  d_currPropagationProcessed = Node::null();
+}
+
+void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                                 int clLevel)
+{
+  Trace("cnf") << "Need to save clause " << clause << " in level "
+               << clLevel + 1 << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  Node clauseNode = getClauseNode(clause);
+  Trace("cnf") << "Node equivalent: " << clauseNode << "\n";
+  Assert(clLevel < (userContext()->getLevel() - 1));
+  // As above, also justify eagerly.
+  std::shared_ptr<ProofNode> clauseCnfPf =
+      d_env.getProofNodeManager()->clone(d_proof.getProofFor(clauseNode));
+  Assert(clauseCnfPf->getRule() != PfRule::ASSUME);
+  d_optClausesPfs[clLevel + 1].push_back(clauseCnfPf);
+  // Notify SAT proof manager that the propagation (which is a SAT assumption)
+  // had its level optimized
+  if (d_satPM)
+  {
+    d_satPM->notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
+  }
+}
+
+Node ProofCnfStream::getClauseNode(const SatClause& clause)
+{
+  std::vector<Node> clauseNodes;
+  for (size_t i = 0, size = clause.size(); i < size; ++i)
+  {
+    SatLiteral satLit = clause[i];
+    clauseNodes.push_back(d_cnfStream.getNode(satLit));
+  }
+  // order children by node id
+  std::sort(clauseNodes.begin(), clauseNodes.end());
+  return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
+}
+
+void ProofCnfStream::ensureLiteral(TNode n)
+{
+  Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
+  if (d_cnfStream.hasLiteral(n))
+  {
+    d_cnfStream.ensureMappingForLiteral(n);
+    return;
+  }
+  // remove top level negation. We don't need to track this because it's a
+  // literal.
+  n = n.getKind() == kind::NOT ? n[0] : n;
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  {
+    // These are not removable
+    d_cnfStream.d_removable = false;
+    SatLiteral lit = toCNF(n, false);
+    // Store backward-mappings
+    // These may already exist
+    d_cnfStream.d_literalToNodeMap.insert_safe(lit, n);
+    d_cnfStream.d_literalToNodeMap.insert_safe(~lit, n.notNode());
+  }
+  else
+  {
+    d_cnfStream.convertAtom(n);
+  }
+}
+
+bool ProofCnfStream::hasLiteral(TNode n) const
+{
+  return d_cnfStream.hasLiteral(n);
+}
+
+SatLiteral ProofCnfStream::getLiteral(TNode node)
+{
+  return d_cnfStream.getLiteral(node);
+}
+
+void ProofCnfStream::getBooleanVariables(
+    std::vector<TNode>& outputVariables) const
+{
+  d_cnfStream.getBooleanVariables(outputVariables);
 }
 
 SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
@@ -597,7 +813,9 @@ SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
       lit = node[0].getType().isBoolean() ? handleIff(node)
                                           : d_cnfStream.convertAtom(node);
       break;
-    default: { lit = d_cnfStream.convertAtom(node);
+    default:
+    {
+      lit = d_cnfStream.convertAtom(node);
     }
     break;
   }
@@ -610,7 +828,8 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::AND) << "Expecting an AND expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more than 1 child!";
-  Assert(!d_removable) << "Removable clauses cannot contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses cannot contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleAnd(" << node << ")\n";
   // Number of children
   unsigned size = node.getNumChildren();
@@ -637,7 +856,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[i]);
-      Node iNode = nm->mkConst<Rational>(i);
+      Node iNode = nm->mkConstInt(i);
       d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
       Trace("cnf") << "ProofCnfStream::handleAnd: CNF_AND_POS " << i
                    << " added " << clauseNode << "\n";
@@ -673,7 +892,8 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::OR) << "Expecting an OR expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more then 1 child!";
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleOr(" << node << ")\n";
   // Number of children
   unsigned size = node.getNumChildren();
@@ -696,7 +916,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     if (added)
     {
       Node clauseNode = nm->mkNode(kind::OR, node, node[i].notNode());
-      Node iNode = nm->mkConst<Rational>(i);
+      Node iNode = nm->mkConstInt(i);
       d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
       Trace("cnf") << "ProofCnfStream::handleOr: CNF_OR_NEG " << i << " added "
                    << clauseNode << "\n";
@@ -729,7 +949,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::XOR) << "Expecting an XOR expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleXor(" << node << ")\n";
   SatLiteral a = toCNF(node[0]);
   SatLiteral b = toCNF(node[1]);
@@ -846,7 +1067,8 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::IMPLIES) << "Expecting an IMPLIES expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleImplies(" << node << ")\n";
   // Convert the children to cnf
   SatLiteral a = toCNF(node[0]);
@@ -895,7 +1117,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::ITE);
   Assert(node.getNumChildren() == 3);
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "handleIte(" << node[0] << " " << node[1] << " " << node[2]
                << ")\n";
   SatLiteral condLit = toCNF(node[0]);
@@ -978,4 +1201,4 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5::internal

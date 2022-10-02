@@ -1,28 +1,30 @@
-/*********************                                                        */
-/*! \file sequences_stats.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Statistics for the theory of strings/sequences
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Statistics for the theory of strings/sequences.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
-#define CVC4__THEORY__STRINGS__SEQUENCES_STATS_H
+#ifndef CVC5__THEORY__STRINGS__SEQUENCES_STATS_H
+#define CVC5__THEORY__STRINGS__SEQUENCES_STATS_H
 
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -46,27 +48,16 @@ namespace strings {
  *
  * "Conflicts" (2) arise from various kinds of reasoning, listed below,
  * where inferences are one of the possible methods for deriving conflicts.
- *
- * "Lemmas" (3) also arise from various kinds of reasoning, listed below,
- * where inferences are one of the possible methods for deriving lemmas.
  */
 class SequencesStatistics
 {
  public:
-  SequencesStatistics();
-  ~SequencesStatistics();
+  SequencesStatistics(StatisticsRegistry& sr);
   /** Number of calls to run a check where strategy is present */
   IntStat d_checkRuns;
   /** Number of calls to run the strategy */
   IntStat d_strategyRuns;
   //--------------- inferences
-  /** Counts the number of applications of each type of inference */
-  HistogramStat<Inference> d_inferences;
-  /**
-   * Counts the number of applications of each type of inference that were not
-   * processed as a proof step. This is a subset of d_inferences.
-   */
-  HistogramStat<Inference> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
@@ -97,22 +88,10 @@ class SequencesStatistics
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
   //--------------- end of conflicts
-  //--------------- lemmas, partition of calls to OutputChannel::lemma
-  /** Number of lemmas added due to eager preprocessing */
-  IntStat d_lemmasEagerPreproc;
-  /** Number of collect model info splits */
-  IntStat d_lemmasCmiSplit;
-  /** Number of lemmas added due to registering terms */
-  IntStat d_lemmasRegisterTerm;
-  /** Number of lemmas added due to registering atomic terms */
-  IntStat d_lemmasRegisterTermAtomic;
-  /** Number of lemmas added due to inferences */
-  IntStat d_lemmasInfer;
-  //--------------- end of lemmas
 };
 
 }
 }
-}
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__STRINGS__SEQUENCES_STATS_H */
+#endif /* CVC5__THEORY__STRINGS__SEQUENCES_STATS_H */

@@ -1,32 +1,33 @@
-/*********************                                                        */
-/*! \file decision_strategy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of base classes for decision strategies used by theory
- ** solvers for use in the DecisionManager of TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of base classes for decision strategies used by theory
+ * solvers for use in the DecisionManager of TheoryEngine.
+ */
 
 #include "theory/decision_strategy.h"
 
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
-DecisionStrategyFmf::DecisionStrategyFmf(context::Context* satContext,
-                                         Valuation valuation)
-    : d_valuation(valuation),
-      d_has_curr_literal(false, satContext),
-      d_curr_literal(0, satContext)
+DecisionStrategyFmf::DecisionStrategyFmf(Env& env, Valuation valuation)
+    : DecisionStrategy(env),
+      d_valuation(valuation),
+      d_has_curr_literal(false, context()),
+      d_curr_literal(0, context())
 {
 }
 
@@ -113,7 +114,7 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
     Node lit = mkLiteral(d_literals.size());
     if (!lit.isNull())
     {
-      lit = Rewriter::rewrite(lit);
+      lit = rewrite(lit);
     }
     d_literals.push_back(lit);
   }
@@ -126,12 +127,11 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   return ret;
 }
 
-DecisionStrategySingleton::DecisionStrategySingleton(
-    const char* name,
-    Node lit,
-    context::Context* satContext,
-    Valuation valuation)
-    : DecisionStrategyFmf(satContext, valuation), d_name(name), d_literal(lit)
+DecisionStrategySingleton::DecisionStrategySingleton(Env& env,
+                                                     const char* name,
+                                                     Node lit,
+                                                     Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_name(name), d_literal(lit)
 {
 }
 
@@ -147,4 +147,4 @@ Node DecisionStrategySingleton::mkLiteral(unsigned n)
 Node DecisionStrategySingleton::getSingleLiteral() { return d_literal; }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

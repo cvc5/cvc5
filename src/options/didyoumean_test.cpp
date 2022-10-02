@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file didyoumean_test.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-// This is not built as a part of CVC4 and is not built by Makefile.am.
+// This is not built as a part of cvc5 and is not built by Makefile.am.
 // Compile: g++ didyoumean_test.cpp didyoumean.cpp
 // For debug compile with -DDIDYOUMEAN_DEBUG or -DDIDYOUMEAN_DEBUG1 or both
 
@@ -23,7 +24,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace CVC4;
+using namespace cvc5::internal;
 
 set<string> getDebugTags();
 set<string> getOptionStrings();
@@ -162,9 +163,6 @@ set<string> getDebugTags() {
   a.insert("bv-subtheory-inequality");
   a.insert("bv-to-bool");
   a.insert("bva");
-  a.insert("bvminisat");
-  a.insert("bvminisat::explain");
-  a.insert("bvminisat::search");
   a.insert("cegqi");
   a.insert("cegqi-debug");
   a.insert("cegqi-prop-as-dec");
@@ -529,7 +527,6 @@ set<string> getOptionStrings() {
       "dio-repeat",
       "no-dio-repeat",
       "replay-early-close-depth",
-      "replay-failure-penalty",
       "replay-num-err-penalty",
       "replay-reject-cut",
       "replay-lemma-reject-cut",

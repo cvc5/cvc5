@@ -1,0 +1,34 @@
+%------------------------------------------------------------------------------
+% File     : SYN000-0 : TPTP v5.5.0. Released v3.6.0.
+% Domain   : Syntactic
+% Axioms   : A simple include file for CNF
+% Version  : Biased.
+% English  :
+
+% Refs     :
+% Source   : [TPTP]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses     :    3 (   0 non-Horn;   3 unit;   3 RR)
+%            Number of atoms       :    3 (   0 equality)
+%            Maximal clause size   :    1 (   1 average)
+%            Number of predicates  :    3 (   3 propositional; 0-0 arity)
+%            Number of functors    :    0 (   0 constant; --- arity)
+%            Number of variables   :    0 (   0 set.singleton)
+%            Maximal term depth    :    0 (   0 average)
+% SPC      : 
+
+% Comments :
+%------------------------------------------------------------------------------
+%----Some axioms to include
+cnf(ia1,axiom,
+    ia1).
+
+cnf(ia2,axiom,
+    ia2).
+
+cnf(ia3,axiom,
+    ia3).
+
+%------------------------------------------------------------------------------

@@ -1,0 +1,21 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2
+
+(set-logic ALL)
+
+(declare-datatype List ((cons (head Int) (tail List)) (nil)))
+
+(define-fun-rec sum ((x List)) Int (ite ((_ is nil) x) 0 (+ (head x) (sum (tail x)))))
+(define-fun-rec size ((x List)) Int (ite ((_ is nil) x) 0 (+ 1 (size (tail x)))))
+
+(synth-fun f ((x List)) Int
+  ((I Int) (L List))
+  ((I Int  ((+ I I) (sum L) (size L) 0 1))
+   (L List (x))))
+   
+(constraint (= (f (cons 3 (cons 4 (cons 5 nil)))) 15))
+(constraint (= (f (cons 3 (cons (- 4) (cons 5 nil)))) 7))
+(constraint (= (f (cons 5 (cons 5 nil))) 12))
+(constraint (= (f (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 (cons 0 nil))))))) 6))
+(constraint (= (f (cons (- 2) (cons 0 nil))) 0))
+(check-synth)

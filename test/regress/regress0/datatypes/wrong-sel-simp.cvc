@@ -1,6 +1,0 @@
-% EXPECT: not_entailed
-DATATYPE
-  nat = succ(pred : nat) | zero
-END;
-
-QUERY pred(zero) = zero;

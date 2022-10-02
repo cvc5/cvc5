@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # get-authors
-# Copyright (c) 2009-2020  The CVC4 Project
+# Copyright (c) 2009-2021  The cvc5 Project
 #
 # usage: get-authors [ files... ]
 #
@@ -17,7 +17,7 @@ while [ $# -gt 0 ]; do
   then
     header_lines=0
   else
-    header_lines=$(grep "\*\*\/" "$f" -m 1 -n | cut -d ':' -f 1)
+    header_lines=$(grep "^ \*\/" "$f" -m 1 -n | cut -d ':' -f 1)
     if [ -z $header_lines ]; then
       header_lines=$(grep "^##$" "$f" -m 3 -n | tail -n 1 | cut -d ':' -f 1)
       [ -z "$header_lines" ] && header_lines=0;
@@ -71,6 +71,11 @@ while [ $# -gt 0 ]; do
     sed 's/ayveejay/Andrew V. Jones/' | \
     sed 's/FabianWolff/Fabian Wolff/' | \
     sed 's/mudathirmahgoub/Mudathir Mohamed/' | \
+    sed 's/mcjuneho/Michael Chang/' | \
+    sed 's/MikolasJanota/Mikolas Janota/' | \
+    sed 's/Ouyancheng/Yancheng Ou/' | \
+    sed 's/Lachnitt/Hanna Lachnitt/' | \
+    sed 's/vinciusb/Vinícius Braga Freire/' | \
 
     # Determine top three contributors
     sort | uniq -c | sort -rn | head -n3 | \

@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Customized inference manager for the theory of strings
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Customized inference manager for the theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__STRINGS__INFERENCE_MANAGER_H
 
 #include <map>
 #include <vector>
@@ -23,7 +24,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
+#include "proof/proof_node_manager.h"
 #include "theory/ext_theory.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
@@ -35,7 +36,7 @@
 #include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -71,17 +72,17 @@ namespace strings {
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
   friend class InferInfo;
 
  public:
-  InferenceManager(Theory& t,
+  InferenceManager(Env& env,
+                   Theory& t,
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
-                   SequencesStatistics& statistics,
-                   ProofNodeManager* pnm);
+                   SequencesStatistics& statistics);
   ~InferenceManager() {}
 
   /**
@@ -114,7 +115,7 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool sendInternalInference(std::vector<Node>& exp,
                              Node conc,
-                             Inference infer);
+                             InferenceId infer);
 
   /** send inference
    *
@@ -164,13 +165,13 @@ class InferenceManager : public InferenceManagerBuffered
   bool sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& noExplain,
                      Node eq,
-                     Inference infer,
+                     InferenceId infer,
                      bool isRev = false,
                      bool asLemma = false);
   /** same as above, but where noExplain is empty */
   bool sendInference(const std::vector<Node>& exp,
                      Node eq,
-                     Inference infer,
+                     InferenceId infer,
                      bool isRev = false,
                      bool asLemma = false);
 
@@ -200,13 +201,7 @@ class InferenceManager : public InferenceManagerBuffered
    * This method returns true if the split was non-trivial, and false
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
-  bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
-  /**
-   * Set that we are incomplete for the current set of assertions (in other
-   * words, we must answer "unknown" instead of "sat"); this calls the output
-   * channel's setIncomplete method.
-   */
-  void setIncomplete();
+  bool sendSplit(Node a, Node b, InferenceId infer, bool preq = true);
 
   //----------------------------constructing antecedants
   /**
@@ -226,18 +221,11 @@ class InferenceManager : public InferenceManagerBuffered
 
   // ------------------------------------------------- extended theory
   /**
-   * Mark that terms a and b are congruent in the current context.
-   * This makes a call to markCongruent in the extended theory object of
-   * the parent theory if the kind of a (and b) is owned by the extended
-   * theory.
-   */
-  void markCongruent(Node a, Node b);
-  /**
    * Mark that extended function is reduced. If contextDepend is true,
    * then this mark is SAT-context dependent, otherwise it is user-context
    * dependent (see ExtTheory::markReduced).
    */
-  void markReduced(Node n, bool contextDepend = true);
+  void markReduced(Node n, ExtReducedId id, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
   /**
@@ -249,9 +237,9 @@ class InferenceManager : public InferenceManagerBuffered
 
  private:
   /** Called when ii is ready to be processed as a fact */
-  bool processFact(InferInfo& ii);
+  void processFact(InferInfo& ii, ProofGenerator*& pg);
   /** Called when ii is ready to be processed as a lemma */
-  bool processLemma(InferInfo& ii);
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -260,8 +248,15 @@ class InferenceManager : public InferenceManagerBuffered
   ExtTheory& d_extt;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  /** Conversion from inferences to proofs */
+  /** Conversion from inferences to proofs for facts */
   std::unique_ptr<InferProofCons> d_ipc;
+  /**
+   * Conversion from inferences to proofs for lemmas and conflicts. This is
+   * separate from the above proof generator to avoid rare cases where the
+   * conclusion of a lemma is a duplicate of the conclusion of another lemma,
+   * or is a fact in the current equality engine.
+   */
+  std::unique_ptr<InferProofCons> d_ipcl;
   /** Common constants */
   Node d_true;
   Node d_false;
@@ -271,6 +266,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

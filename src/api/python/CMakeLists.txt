@@ -1,70 +1,168 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Makai Mann
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Makai Mann, Mathias Preiner, Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
-if(POLICY CMP0057)
-  # For cmake >= 3.3 this policy changed the behavior of IN_LIST
-  # if the policy exists, we use the NEW behavior
-  cmake_policy(SET CMP0057 NEW)
-endif()
 
-find_package(PythonExtensions REQUIRED)
-find_package(Cython 0.29 REQUIRED)
+# Check that scikit-build is installed
+# Provides CMake files for Python bindings
+check_python_module("skbuild" "scikit-build")
 
-include_directories(${PYTHON_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_LIST_DIR})         # cvc4kinds.pxd
-include_directories(${PROJECT_SOURCE_DIR}/src)
-include_directories(${PROJECT_SOURCE_DIR}/src/include)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-# TEMP: Only needed while expr/kind.h is public in the C++ api
-include_directories("${CMAKE_BINARY_DIR}/src/")
+# setuptools for installing the module
+check_python_module("setuptools")
 
-# Generate cvc4kinds.{pxd,pyx}
-add_custom_target(
-  gen-pycvc4-kinds
-  ALL
+# Find cmake modules distributed with scikit-build
+# They are distributed under <scikit-build directory>/resources/cmake
+execute_process(
   COMMAND
-    "${PYTHON_EXECUTABLE}"
-    "${CMAKE_CURRENT_LIST_DIR}/genkinds.py"
-    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc4kinds"
-  DEPENDS
-    genkinds.py
-  COMMENT
-    "Generate cvc4kinds.{pxd,pyx}"
+    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
+      import os; import skbuild; \
+      cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
+        'resources', 'cmake'); print(cmake_module_path, end='')"
+  OUTPUT_VARIABLE
+    SKBUILD_CMAKE_MODULE_PATH
+  RESULT_VARIABLE
+    RET_SKBUILD_CMAKE_MODULE_PATH
 )
 
-add_cython_target(pycvc4 CXX)
+if (NOT EXISTS ${SKBUILD_CMAKE_MODULE_PATH})
+  message(FATAL_ERROR "Expected CMake module path from
+                       scikit-build at ${SKBUILD_CMAKE_MODULE_PATH}")
+endif()
 
-add_library(pycvc4
+# Add scikit-build cmake files to cmake module path
+# Required for Cython target below
+list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
+
+find_package(PythonExtensions REQUIRED)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
+   CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
+  # On macOS, find_package(PythonLibs ...) does not find the Python include
+  # directory or library when they were installed via homebrew.
+  # find_package(Python ...) is more robust, but only available on newer
+  # versions of CMake. If we are compiling cvc5 on macOS and we have a newer
+  # version of CMake available, we try to use find_package(Python ...) to find
+  # the paths.
+  find_package(Python COMPONENTS Development)
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+  set(PYTHON_LIBRARY "${Python_LIBRARIES}")
+endif()
+
+find_package(Cython 0.29 REQUIRED)
+
+set(CYTHON_FLAGS "-X embedsignature=True")
+
+configure_file(genenums.py.in genenums.py)
+
+# Generate cvc5kinds.{pxd,pxi}
+set(GENERATED_KINDS_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxd"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxi"
+)
+add_custom_command(
+  OUTPUT
+    ${GENERATED_KINDS_FILES}
+  COMMAND
+    "${PYTHON_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
+)
+add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
+
+set(GENERATED_TYPES_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxi"
+)
+add_custom_command(
+  OUTPUT
+    ${GENERATED_TYPES_FILES}
+  COMMAND
+    "${PYTHON_EXECUTABLE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+    --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5types"
+  DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
+    "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
+)
+add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})   # for cvc5kinds.pxi
+add_cython_target(cvc5_python_base CXX)
+
+add_library(cvc5_python_base
             MODULE
-            ${pycvc4})
+            cvc5_python_base)
+add_dependencies(cvc5_python_base cvc5kinds cvc5types)
 
-target_link_libraries(pycvc4 cvc4 ${PYTHON_LIBRARIES})
+target_include_directories(cvc5_python_base
+  PRIVATE
+  ${PYTHON_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/src       # for API headers in src/api/cpp
+  ${CMAKE_BINARY_DIR}/src         # for cvc5_export.h
+)
 
-python_extension_module(pycvc4)
+target_link_libraries(cvc5_python_base cvc5)
+
+# Disable -Werror and other warnings for code generated by Cython.
+set(PY_SRC_FLAGS "")
+check_cxx_compiler_flag("-Werror" HAVE_CXX_FLAGWerror)
+if(HAVE_CXX_FLAGWerror)
+  set(PY_SRC_FLAGS "${PY_SRC_FLAGS} -Wno-error")
+endif()
+check_cxx_compiler_flag("-Wshadow" HAVE_CXX_FLAGWshadow)
+if(HAVE_CXX_FLAGWshadow)
+  set(PY_SRC_FLAGS "${PY_SRC_FLAGS} -Wno-shadow")
+endif()
+check_cxx_compiler_flag("-Wimplicit-fallthrough" HAVE_CXX_FLAGWimplicit_fallthrough)
+if(HAVE_CXX_FLAGWimplicit_fallthrough)
+  set(PY_SRC_FLAGS "${PY_SRC_FLAGS} -Wno-implicit-fallthrough")
+endif()
+# Note: Visibility is reset to default here since otherwise the PyInit_...
+# function will not be exported correctly
+# (https://github.com/cython/cython/issues/3380).
+set_target_properties(cvc5_python_base
+                      PROPERTIES
+                      COMPILE_FLAGS "${PY_SRC_FLAGS}"
+                      CXX_VISIBILITY_PRESET default
+                      VISIBILITY_INLINES_HIDDEN 0
+                      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/cvc5")
+
+python_extension_module(cvc5_python_base)
+
+# Copy the pythonic API to the right place. It does not come with its own
+# installation routine and consists only of a few files that need to go to
+# the right place.
+find_package(CVC5PythonicAPI)
+add_custom_target(
+  cvc5_python_api
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+    "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
+    "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
+  DEPENDS cvc5_python_base CVC5PythonicAPI
+)
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
 configure_file(setup.py.in setup.py)
-set(PYCVC4_MODULE "${CMAKE_CURRENT_BINARY_DIR}/pycvc4")
-file(MAKE_DIRECTORY "${PYCVC4_MODULE}")
-file(WRITE ${PYCVC4_MODULE}/__init__.py
-"import sys
-from .pycvc4 import *
-# fake a submodule for dotted imports, e.g. from pycvc4.kinds import *
-sys.modules['%s.%s'%(__name__, kinds.__name__)] = kinds")
-
-set(PYCVC4_LOC "${PYCVC4_MODULE}/$<TARGET_FILE_NAME:pycvc4>")
-add_custom_command(TARGET pycvc4 POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc4> ${PYCVC4_LOC}
-)
+configure_file(__init__.py.in cvc5/__init__.py)
 
 # figure out if we're in a virtualenv
 execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
@@ -74,12 +172,20 @@ execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   "from __future__ import print_function; import os;
 print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 
-set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
+set(INSTALL_CMD
+    "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
+# otherwise install in site-packages
+# option --single-version-externally-managed prevents it from being
+# an .egg distribution and --record records the list of installed files
 if ("${IN_VIRTUALENV}" STREQUAL "NO")
-  set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
+  set(INSTALL_CMD "${INSTALL_CMD}
+          --prefix=${CMAKE_INSTALL_PREFIX}
+          --single-version-externally-managed
+          --record=cvc5-installed-files.txt")
 endif()
 
 message("Python bindings install command: ${INSTALL_CMD}")
 
-install(CODE "execute_process(COMMAND ${INSTALL_CMD})"  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+install(CODE "execute_process(COMMAND ${INSTALL_CMD})"
+        FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)

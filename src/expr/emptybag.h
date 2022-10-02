@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file emptybag.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief a class for empty bags
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for empty bags.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__EMPTY_BAG_H
-#define CVC4__EMPTY_BAG_H
+#ifndef CVC5__EMPTY_BAG_H
+#define CVC5__EMPTY_BAG_H
 
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TypeNode;
 
-class CVC4_PUBLIC EmptyBag
+class EmptyBag
 {
  public:
   /**
@@ -51,13 +52,13 @@ class CVC4_PUBLIC EmptyBag
   std::unique_ptr<TypeNode> d_type;
 }; /* class EmptyBag */
 
-std::ostream& operator<<(std::ostream& out, const EmptyBag& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptyBag& es);
 
-struct CVC4_PUBLIC EmptyBagHashFunction
+struct EmptyBagHashFunction
 {
   size_t operator()(const EmptyBag& es) const;
 }; /* struct EmptyBagHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__EMPTY_BAG_H */
+#endif /* CVC5__EMPTY_BAG_H */

@@ -1,32 +1,34 @@
-/*********************                                                        */
-/*! \file theory_engine_proof_generator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine proof generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine proof generator.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY_ENGINE_PROOF_GENERATOR_H
-#define CVC4__THEORY_ENGINE_PROOF_GENERATOR_H
+#ifndef CVC5__THEORY_ENGINE_PROOF_GENERATOR_H
+#define CVC5__THEORY_ENGINE_PROOF_GENERATOR_H
 
 #include <memory>
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "theory/trust_node.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_generator.h"
+#include "proof/proof_node_manager.h"
+#include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * A simple proof generator class used by the theory engine. This class
@@ -35,14 +37,13 @@ namespace CVC4 {
  * Notice that this class could be made general purpose. Its main feature is
  * storing lazy proofs for facts in a context-dependent manner.
  */
-class TheoryEngineProofGenerator : public ProofGenerator
+class TheoryEngineProofGenerator : protected EnvObj, public ProofGenerator
 {
-  typedef context::
-      CDHashMap<Node, std::shared_ptr<LazyCDProof>, NodeHashFunction>
-          NodeLazyCDProofMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<LazyCDProof>>
+      NodeLazyCDProofMap;
 
  public:
-  TheoryEngineProofGenerator(ProofNodeManager* pnm, context::UserContext* u);
+  TheoryEngineProofGenerator(Env& env, context::Context* c);
   ~TheoryEngineProofGenerator() {}
   /**
    * Make trust explanation. Called when lpf has a proof of lit from free
@@ -53,9 +54,9 @@ class TheoryEngineProofGenerator : public ProofGenerator
    * explanation already exists, then the previous explanation is taken, which
    * also suffices for proving the implication.
    */
-  theory::TrustNode mkTrustExplain(TNode lit,
-                                   Node exp,
-                                   std::shared_ptr<LazyCDProof> lpf);
+  TrustNode mkTrustExplain(TNode lit,
+                           Node exp,
+                           std::shared_ptr<LazyCDProof> lpf);
   /**
    * Get proof for, which expects implications corresponding to explained
    * propagations (=> exp lit) registered by the above method. This currently
@@ -67,14 +68,12 @@ class TheoryEngineProofGenerator : public ProofGenerator
   std::string identify() const override;
 
  private:
-  /** The proof manager, used for allocating new ProofNode objects */
-  ProofNodeManager* d_pnm;
   /** Map from formulas to lazy CD proofs */
   NodeLazyCDProofMap d_proofs;
   /** The false node */
   Node d_false;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY_ENGINE_PROOF_GENERATOR_H */
+#endif /* CVC5__THEORY_ENGINE_PROOF_GENERATOR_H */

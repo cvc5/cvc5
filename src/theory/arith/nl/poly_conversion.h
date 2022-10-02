@@ -1,60 +1,66 @@
-/*********************                                                        */
-/*! \file poly_conversion.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for converting to and from LibPoly objects.
- **
- ** Utilities for converting to and from LibPoly objects.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for converting to and from LibPoly objects.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
-#define CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
+#ifndef CVC5__THEORY__ARITH__NL__POLY_CONVERSION_H
+#define CVC5__THEORY__ARITH__NL__POLY_CONVERSION_H
 
-#include "util/real_algebraic_number.h"
+#include "cvc5_private.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
-#include <iostream>
+#include <cstddef>
+#include <map>
+#include <utility>
 
 #include "expr/node.h"
-#include "theory/arith/bound_inference.h"
 #include "util/real_algebraic_number.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+class BoundInference;
+
 namespace nl {
 
-/** Bijective mapping between CVC4 variables and poly variables. */
+/** Bijective mapping between cvc5 variables and poly variables. */
 struct VariableMapper
 {
-  /** A mapping from CVC4 variables to poly variables. */
-  std::map<CVC4::Node, poly::Variable> mVarCVCpoly;
-  /** A mapping from poly variables to CVC4 variables. */
-  std::map<poly::Variable, CVC4::Node> mVarpolyCVC;
+  /** A mapping from cvc5 variables to poly variables. */
+  std::map<cvc5::internal::Node, poly::Variable> mVarCVCpoly;
+  /** A mapping from poly variables to cvc5 variables. */
+  std::map<poly::Variable, cvc5::internal::Node> mVarpolyCVC;
 
   /** Retrieves the according poly variable. */
-  poly::Variable operator()(const CVC4::Node& n);
-  /** Retrieves the according CVC4 variable. */
-  CVC4::Node operator()(const poly::Variable& n);
+  poly::Variable operator()(const cvc5::internal::Node& n);
+  /** Retrieves the according cvc5 variable. */
+  cvc5::internal::Node operator()(const poly::Variable& n);
 };
 
-/** Convert a poly univariate polynomial to a CVC4::Node. */
-CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p,
-                              const CVC4::Node& var);
+/** Convert a poly univariate polynomial to a cvc5::internal::Node. */
+cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
+                              const cvc5::internal::Node& var);
 
-/** Convert a CVC4::Node to a poly univariate polynomial. */
-poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
-                                      const CVC4::Node& var);
+/**
+ * Convert a cvc5::internal::Node to a poly univariate polynomial. Is robust to
+ * n being a `Kind::TO_REAL` wrapper node.
+ */
+poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
+                                      const cvc5::internal::Node& var);
 
 /**
  * Constructs a polynomial from the given node.
@@ -65,12 +71,13 @@ poly::UPolynomial as_poly_upolynomial(const CVC4::Node& n,
  * Once the polynomial has been fully constructed, we can oftentimes ignore the
  * denominator (except for its sign, which is always positive, though).
  * This is the case if we are solely interested in the roots of the polynomials
- * (like in the context of CAD). If we need the actual polynomial (for example
+ * (like in the context of coverings). If we need the actual polynomial (for example
  * in the context of ICP) the second overload provides the denominator in the
  * third argument.
+ * The method is robust to n being a `Kind::TO_REAL` wrapper node.
  */
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n, VariableMapper& vm);
-poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n, VariableMapper& vm);
+poly::Polynomial as_poly_polynomial(const cvc5::internal::Node& n,
                                     VariableMapper& vm,
                                     poly::Rational& denominator);
 
@@ -83,7 +90,7 @@ poly::Polynomial as_poly_polynomial(const CVC4::Node& n,
  * multiplications with one or use NONLINEAR_MULT where regular MULT may be
  * sufficient), so it may be sensible to rewrite it afterwards.
  */
-CVC4::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
+cvc5::internal::Node as_cvc_polynomial(const poly::Polynomial& p, VariableMapper& vm);
 
 /**
  * Constructs a constraints (a polynomial and a sign condition) from the given
@@ -95,8 +102,8 @@ std::pair<poly::Polynomial, poly::SignCondition> as_poly_constraint(
 /**
  * Transforms a real algebraic number to a node suitable for putting it into a
  * model. The resulting node can be either a constant (suitable for
- * addCheckModelSubstitution) or a witness term (suitable for
- * addCheckModelWitness).
+ * addSubstitution) or a witness term (suitable for
+ * addWitness).
  */
 Node ran_to_node(const RealAlgebraicNumber& ran, const Node& ran_variable);
 
@@ -160,7 +167,7 @@ poly::IntervalAssignment getBounds(VariableMapper& vm, const BoundInference& bi)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif
 

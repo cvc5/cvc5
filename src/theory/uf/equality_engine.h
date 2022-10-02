@@ -1,57 +1,60 @@
-/*********************                                                        */
-/*! \file equality_engine.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_H
-#define CVC4__THEORY__UF__EQUALITY_ENGINE_H
+#ifndef CVC5__THEORY__UF__EQUALITY_ENGINE_H
+#define CVC5__THEORY__UF__EQUALITY_ENGINE_H
 
 #include <deque>
 #include <queue>
-#include <memory>
 #include <unordered_map>
 #include <vector>
 
-#include "base/output.h"
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
-#include "theory/rewriter.h"
+#include "smt/env_obj.h"
 #include "theory/theory_id.h"
-#include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class Env;
+
 namespace theory {
 namespace eq {
 
 class EqClassesIterator;
 class EqClassIterator;
+class EqProof;
+class ProofEqEngine;
 
 /**
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj {
-
+class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
+{
   friend class EqClassesIterator;
   friend class EqClassIterator;
 
@@ -64,15 +67,23 @@ class EqualityEngine : public context::ContextNotifyObj {
    */
   EqualityEngine* d_masterEqualityEngine;
 
+  /** Proof equality engine */
+  ProofEqEngine* d_proofEqualityEngine;
+
  public:
   /**
    * Initialize the equality engine, given the notification class.
    *
+   * @param env The environment, which is used for rewriting
+   * @param c The context which this equality engine depends, which is typically
+   * although not necessarily same as the SAT context of env.
+   * @param name The name of this equality engine, for statistics
    * @param constantTriggers Whether we treat constants as trigger terms
    * @param anyTermTriggers Whether we use any terms as triggers
    */
-  EqualityEngine(EqualityEngineNotify& notify,
-                 context::Context* context,
+  EqualityEngine(Env& env,
+                 context::Context* c,
+                 EqualityEngineNotify& notify,
                  std::string name,
                  bool constantTriggers,
                  bool anyTermTriggers = true);
@@ -80,7 +91,8 @@ class EqualityEngine : public context::ContextNotifyObj {
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context,
+  EqualityEngine(Env& env,
+                 context::Context* c,
                  std::string name,
                  bool constantsAreTriggers,
                  bool anyTermTriggers = true);
@@ -95,6 +107,13 @@ class EqualityEngine : public context::ContextNotifyObj {
    * of all the terms and equalities from this engine.
    */
   void setMasterEqualityEngine(EqualityEngine* master);
+  /** Set the proof equality engine for this one. */
+  void setProofEqualityEngine(ProofEqEngine* pfee);
+  /** Get the proof equality engine */
+  ProofEqEngine* getProofEqualityEngine();
+
+  /** Print the equivalence classes for debugging */
+  std::string debugPrintEqc() const;
 
   /** Statistics about the equality engine instance */
   struct Statistics
@@ -108,24 +127,18 @@ class EqualityEngine : public context::ContextNotifyObj {
     /** Number of constant terms managed by the system */
     IntStat d_constantTermsCount;
 
-    Statistics(std::string name);
-
-    ~Statistics();
+    Statistics(StatisticsRegistry& sr, const std::string& name);
   };/* struct EqualityEngine::statistics */
 
-private:
-
+ private:
   /** The context we are using */
   context::Context* d_context;
 
   /** If we are done, we don't except any new assertions */
   context::CDO<bool> d_done;
 
-  /** Whether to notify or not (temporarily disabled on equality checks) */
-  bool d_performNotify;
-
   /** The class to notify when a representative changes for a term */
-  EqualityEngineNotify& d_notify;
+  EqualityEngineNotify* d_notify;
 
   /** The map of kinds to be treated as function applications */
   KindMap d_congruenceKinds;
@@ -137,7 +150,7 @@ private:
   KindMap d_congruenceKindsExtOperators;
 
   /** Map from nodes to their ids */
-  std::unordered_map<TNode, EqualityNodeId, TNodeHashFunction> d_nodeIds;
+  std::unordered_map<TNode, EqualityNodeId> d_nodeIds;
 
   /** Map from function applications to their ids */
   typedef std::unordered_map<FunctionApplication, EqualityNodeId, FunctionApplicationHashFunction> ApplicationIdsMap;
@@ -683,22 +696,22 @@ private:
   /**
    * Returns true if this kind is used for congruence closure.
    */
-  bool isFunctionKind(Kind fun) const {
-    return d_congruenceKinds.tst(fun);
-  }
+  bool isFunctionKind(Kind fun) const { return d_congruenceKinds.test(fun); }
 
   /**
    * Returns true if this kind is used for congruence closure + evaluation of constants.
    */
-  bool isInterpretedFunctionKind(Kind fun) const {
-    return d_congruenceKindsInterpreted.tst(fun);
+  bool isInterpretedFunctionKind(Kind fun) const
+  {
+    return d_congruenceKindsInterpreted.test(fun);
   }
 
   /**
    * Returns true if this kind has an operator that is considered external (e.g. not internal).
    */
-  bool isExternalOperatorKind(Kind fun) const {
-    return d_congruenceKindsExtOperators.tst(fun);
+  bool isExternalOperatorKind(Kind fun) const
+  {
+    return d_congruenceKindsExtOperators.test(fun);
   }
 
   /**
@@ -845,6 +858,6 @@ private:
 
 } // Namespace eq
 } // Namespace theory
-} // Namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

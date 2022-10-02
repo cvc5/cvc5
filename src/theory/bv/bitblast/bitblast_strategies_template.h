@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file bitblast_strategies_template.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of bitblasting functions for various operators. 
- **
- ** Implementation of bitblasting functions for various operators. 
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of bitblasting functions for various operators.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
-#define CVC4__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#ifndef CVC5__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
+#define CVC5__THEORY__BV__BITBLAST__BITBLAST_STRATEGIES_TEMPLATE_H
 
 #include <cmath>
 #include <ostream>
@@ -25,9 +24,9 @@
 #include "expr/node.h"
 #include "theory/bv/bitblast/bitblast_utils.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/rewriter.h"
+#include "util/bitvector.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 namespace theory {
 namespace bv {
@@ -41,7 +40,7 @@ namespace bv {
 
 template <class T>
 T UndefinedAtomBBStrategy(TNode node, TBitblaster<T>* bb) {
-  Debug("bitvector") << "TheoryBV::Bitblaster Undefined bitblasting strategy for kind: "
+  Trace("bitvector") << "TheoryBV::Bitblaster Undefined bitblasting strategy for kind: "
                      << node.getKind() << "\n";
   Unreachable(); 
 }
@@ -49,7 +48,7 @@ T UndefinedAtomBBStrategy(TNode node, TBitblaster<T>* bb) {
 
 template <class T>
 T DefaultEqBB(TNode node, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
 
   Assert(node.getKind() == kind::EQUAL);
   std::vector<T> lhs, rhs; 
@@ -69,7 +68,7 @@ T DefaultEqBB(TNode node, TBitblaster<T>* bb) {
 
 template <class T>
 T AdderUltBB(TNode node, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   Assert(node.getKind() == kind::BITVECTOR_ULT);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -92,7 +91,7 @@ T AdderUltBB(TNode node, TBitblaster<T>* bb) {
 
 template <class T>
 T DefaultUltBB(TNode node, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   Assert(node.getKind() == kind::BITVECTOR_ULT);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -106,7 +105,7 @@ T DefaultUltBB(TNode node, TBitblaster<T>* bb) {
 
 template <class T>
 T DefaultUleBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   Assert(node.getKind() == kind::BITVECTOR_ULE);
   std::vector<T> a, b;
   
@@ -120,20 +119,20 @@ T DefaultUleBB(TNode node, TBitblaster<T>* bb){
 
 template <class T>
 T DefaultUgtBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
   Unimplemented(); 
 }
 template <class T>
 T DefaultUgeBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
   Unimplemented(); 
 }
 
 template <class T>
 T DefaultSltBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -146,7 +145,7 @@ T DefaultSltBB(TNode node, TBitblaster<T>* bb){
 
 template <class T>
 T DefaultSleBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -159,14 +158,14 @@ T DefaultSleBB(TNode node, TBitblaster<T>* bb){
  
 template <class T>
 T DefaultSgtBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
   Unimplemented(); 
 }
 
 template <class T>
 T DefaultSgeBB(TNode node, TBitblaster<T>* bb){
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   // should be rewritten 
   Unimplemented(); 
 }
@@ -183,7 +182,7 @@ T DefaultSgeBB(TNode node, TBitblaster<T>* bb){
  */
 template <class T>
 void UndefinedTermBBStrategy(TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Undefined bitblasting strategy for kind: "
+  Trace("bitvector") << "theory::bv:: Undefined bitblasting strategy for kind: "
                      << node.getKind() << "\n";
   Unreachable(); 
 }
@@ -193,15 +192,15 @@ void DefaultVarBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   Assert(bits.size() == 0);
   bb->makeVariable(node, bits);
 
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
-    Debug("bitvector-bb") << "                           with bits  " << toString(bits); 
+  if(TraceIsOn("bitvector-bb")) {
+    Trace("bitvector-bb") << "theory::bv::DefaultVarBB bitblasting  " << node << "\n";
+    Trace("bitvector-bb") << "                           with bits  " << toString(bits); 
   }
 }
 
 template <class T>
 void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultConstBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultConstBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::CONST_BITVECTOR);
   Assert(bits.size() == 0);
 
@@ -214,15 +213,15 @@ void DefaultConstBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
       bits.push_back(mkTrue<T>()); 
     }
   }
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
+  if(TraceIsOn("bitvector-bb")) {
+    Trace("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
   }
 }
 
 
 template <class T>
 void DefaultNotBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultNotBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultNotBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_NOT);
   Assert(bits.size() == 0);
   std::vector<T> bv; 
@@ -232,7 +231,7 @@ void DefaultNotBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultConcatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultConcatBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultConcatBB bitblasting " << node << "\n";
   Assert(bits.size() == 0);
 
   Assert(node.getKind() == kind::BITVECTOR_CONCAT);
@@ -246,14 +245,14 @@ void DefaultConcatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
     }
   }
   Assert(bits.size() == utils::getSize(node));
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
+  if(TraceIsOn("bitvector-bb")) {
+    Trace("bitvector-bb") << "with  bits: " << toString(bits) << "\n"; 
   }
 }
 
 template <class T>
 void DefaultAndBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultAndBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultAndBB bitblasting " << node << "\n";
 
   Assert(node.getKind() == kind::BITVECTOR_AND && bits.size() == 0);
 
@@ -271,7 +270,7 @@ void DefaultAndBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultOrBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultOrBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultOrBB bitblasting " << node << "\n";
 
   Assert(node.getKind() == kind::BITVECTOR_OR && bits.size() == 0);
 
@@ -289,7 +288,7 @@ void DefaultOrBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultXorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultXorBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultXorBB bitblasting " << node << "\n";
 
   Assert(node.getKind() == kind::BITVECTOR_XOR && bits.size() == 0);
 
@@ -307,7 +306,7 @@ void DefaultXorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultXnorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultXnorBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultXnorBB bitblasting " << node << "\n";
 
   Assert(node.getNumChildren() == 2 && node.getKind() == kind::BITVECTOR_XNOR
          && bits.size() == 0);
@@ -324,19 +323,19 @@ void DefaultXnorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultNandBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
 void DefaultNorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
 void DefaultCompBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: DefaultCompBB bitblasting "<< node << "\n";
+  Trace("bitvector") << "theory::bv:: DefaultCompBB bitblasting "<< node << "\n";
 
   Assert(utils::getSize(node) == 1 && bits.size() == 0
          && node.getKind() == kind::BITVECTOR_COMP);
@@ -355,7 +354,7 @@ void DefaultCompBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: DefaultMultBB bitblasting "<< node << "\n";
+  Trace("bitvector") << "theory::bv:: DefaultMultBB bitblasting "<< node << "\n";
   Assert(res.size() == 0 && node.getKind() == kind::BITVECTOR_MULT);
 
   // if (node.getNumChildren() == 2) {
@@ -389,15 +388,17 @@ void DefaultMultBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
     shiftAddMultiplier(res, current, newres);
     res = newres;
   }
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "with bits: " << toString(res)  << "\n";
+  if(TraceIsOn("bitvector-bb")) {
+    Trace("bitvector-bb") << "with bits: " << toString(res)  << "\n";
   }
 }
 
 template <class T>
-void DefaultPlusBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultPlusBB bitblasting " << node << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_PLUS && res.size() == 0);
+void DefaultAddBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
+{
+  Trace("bitvector-bb") << "theory::bv::DefaultAddBB bitblasting " << node
+                        << "\n";
+  Assert(node.getKind() == kind::BITVECTOR_ADD && res.size() == 0);
 
   bb->bbTerm(node[0], res);
 
@@ -414,10 +415,9 @@ void DefaultPlusBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
   Assert(res.size() == utils::getSize(node));
 }
 
-
 template <class T>
 void DefaultSubBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultSubBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultSubBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_SUB && node.getNumChildren() == 2
          && bits.size() == 0);
 
@@ -434,7 +434,7 @@ void DefaultSubBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultNegBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultNegBB bitblasting " << node << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultNegBB bitblasting " << node << "\n";
   Assert(node.getKind() == kind::BITVECTOR_NEG);
 
   std::vector<T> a;
@@ -513,86 +513,77 @@ void uDivModRec(const std::vector<T>& a, const std::vector<T>& b, std::vector<T>
 }
 
 template <class T>
-void DefaultUdivBB(TNode node, std::vector<T>& q, TBitblaster<T>* bb)
+void UdivUremBB(TNode node,
+                std::vector<T>& quot,
+                std::vector<T>& rem,
+                TBitblaster<T>* bb)
 {
-  Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
+  Trace("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UDIV_TOTAL && q.size() == 0);
+  Assert(quot.empty());
+  Assert(rem.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UDIV
+         || node.getKind() == kind::BITVECTOR_UREM);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
   bb->bbTerm(node[1], b);
 
-  std::vector<T> r;
-  uDivModRec(a, b, q, r, utils::getSize(node));
+  uDivModRec(a, b, quot, rem, utils::getSize(node));
   // adding a special case for division by 0
   std::vector<T> iszero;
-  for (unsigned i = 0; i < b.size(); ++i)
+  for (size_t i = 0, size = b.size(); i < size; ++i)
   {
     iszero.push_back(mkIff(b[i], mkFalse<T>()));
   }
   T b_is_0 = mkAnd(iszero);
 
-  for (unsigned i = 0; i < q.size(); ++i)
+  for (size_t i = 0, size = quot.size(); i < size; ++i)
   {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
-    r[i] = mkIte(b_is_0, a[i], r[i]);         // a urem 0 is a
+    quot[i] = mkIte(b_is_0, mkTrue<T>(), quot[i]);  // a udiv 0 is 11..11
+    rem[i] = mkIte(b_is_0, a[i], rem[i]);           // a urem 0 is a
   }
+}
 
-  // cache the remainder in case we need it later
-  Node remainder = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
-  bb->storeBBTerm(remainder, r);
+template <class T>
+void DefaultUdivBB(TNode node, std::vector<T>& quot, TBitblaster<T>* bb)
+{
+  Trace("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
+                        << "\n";
+  Assert(quot.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UDIV);
+
+  std::vector<T> r;
+  UdivUremBB(node, quot, r, bb);
 }
 
 template <class T>
 void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
 {
-  Debug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node
+  Trace("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UREM_TOTAL && rem.size() == 0);
-
-  std::vector<T> a, b;
-  bb->bbTerm(node[0], a);
-  bb->bbTerm(node[1], b);
+  Assert(rem.empty());
+  Assert(node.getKind() == kind::BITVECTOR_UREM);
 
   std::vector<T> q;
-  uDivModRec(a, b, q, rem, utils::getSize(node));
-  // adding a special case for division by 0
-  std::vector<T> iszero;
-  for (unsigned i = 0; i < b.size(); ++i)
-  {
-    iszero.push_back(mkIff(b[i], mkFalse<T>()));
-  }
-  T b_is_0 = mkAnd(iszero);
-
-  for (unsigned i = 0; i < q.size(); ++i)
-  {
-    q[i] = mkIte(b_is_0, mkTrue<T>(), q[i]);  // a udiv 0 is 11..11
-    rem[i] = mkIte(b_is_0, a[i], rem[i]);     // a urem 0 is a
-  }
-
-  // cache the quotient in case we need it later
-  Node quotient = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
-  bb->storeBBTerm(quotient, q);
+  UdivUremBB(node, q, rem, bb);
 }
 
 template <class T>
 void DefaultSdivBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
 void DefaultSremBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
 template <class T>
 void DefaultSmodBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
@@ -600,7 +591,7 @@ void DefaultSmodBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 template <class T>
 void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
 {
-  Debug("bitvector-bb") << "theory::bv::DefaultShlBB bitblasting " << node
+  Trace("bitvector-bb") << "theory::bv::DefaultShlBB bitblasting " << node
                         << "\n";
   Assert(node.getKind() == kind::BITVECTOR_SHL && res.size() == 0);
   std::vector<T> a, b;
@@ -611,11 +602,11 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
-  // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node);
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
+
+  std::vector<T> a_size_bits;
+  DefaultConstBB(a_size, a_size_bits, bb);
+  T b_ult_a_size = uLessThanBB(b, a_size_bits, false);
+
   std::vector<T> prev_res;
   res = a;
   // we only need to look at the bits bellow log2_a_size
@@ -649,16 +640,16 @@ void DefaultShlBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
     res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
   }
 
-  if (Debug.isOn("bitvector-bb"))
+  if (TraceIsOn("bitvector-bb"))
   {
-    Debug("bitvector-bb") << "with bits: " << toString(res) << "\n";
+    Trace("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
 }
 
 template <class T>
 void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
 {
-  Debug("bitvector-bb") << "theory::bv::DefaultLshrBB bitblasting " << node
+  Trace("bitvector-bb") << "theory::bv::DefaultLshrBB bitblasting " << node
                         << "\n";
   Assert(node.getKind() == kind::BITVECTOR_LSHR && res.size() == 0);
   std::vector<T> a, b;
@@ -669,11 +660,11 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
-  // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node);
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
+
+  std::vector<T> a_size_bits;
+  DefaultConstBB(a_size, a_size_bits, bb);
+  T b_ult_a_size = uLessThanBB(b, a_size_bits, false);
+
   res = a;
   std::vector<T> prev_res;
 
@@ -707,16 +698,16 @@ void DefaultLshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
     res[i] = mkIte(b_ult_a_size, prev_res[i], mkFalse<T>());
   }
 
-  if (Debug.isOn("bitvector-bb"))
+  if (TraceIsOn("bitvector-bb"))
   {
-    Debug("bitvector-bb") << "with bits: " << toString(res) << "\n";
+    Trace("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
 }
 
 template <class T>
 void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
 {
-  Debug("bitvector-bb") << "theory::bv::DefaultAshrBB bitblasting " << node
+  Trace("bitvector-bb") << "theory::bv::DefaultAshrBB bitblasting " << node
                         << "\n";
   Assert(node.getKind() == kind::BITVECTOR_ASHR && res.size() == 0);
   std::vector<T> a, b;
@@ -727,11 +718,10 @@ void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
   unsigned size = utils::getSize(node);
   unsigned log2_size = std::ceil(log2((double)size));
   Node a_size = utils::mkConst(size, size);
-  Node b_ult_a_size_node = Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_ULT, node[1], a_size));
-  // ensure that the inequality is bit-blasted
-  bb->bbAtom(b_ult_a_size_node);
-  T b_ult_a_size = bb->getBBAtom(b_ult_a_size_node);
+
+  std::vector<T> a_size_bits;
+  DefaultConstBB(a_size, a_size_bits, bb);
+  T b_ult_a_size = uLessThanBB(b, a_size_bits, false);
 
   res = a;
   T sign_bit = a.back();
@@ -768,15 +758,15 @@ void DefaultAshrBB(TNode node, std::vector<T>& res, TBitblaster<T>* bb)
     res[i] = mkIte(b_ult_a_size, prev_res[i], sign_bit);
   }
 
-  if (Debug.isOn("bitvector-bb"))
+  if (TraceIsOn("bitvector-bb"))
   {
-    Debug("bitvector-bb") << "with bits: " << toString(res) << "\n";
+    Trace("bitvector-bb") << "with bits: " << toString(res) << "\n";
   }
 }
 
 template <class T>
 void DefaultUltbvBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   Assert(node.getKind() == kind::BITVECTOR_ULTBV);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -789,7 +779,7 @@ void DefaultUltbvBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultSltbvBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   Assert(node.getKind() == kind::BITVECTOR_SLTBV);
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -802,7 +792,7 @@ void DefaultSltbvBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
 
 template <class T>
 void DefaultIteBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "Bitblasting node " << node  << "\n";
+  Trace("bitvector-bb") << "Bitblasting node " << node  << "\n";
   Assert(node.getKind() == kind::BITVECTOR_ITE);
   std::vector<T> cond, thenpart, elsepart;
   bb->bbTerm(node[0], cond);
@@ -833,16 +823,16 @@ void DefaultExtractBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
   }
   Assert(bits.size() == high - low + 1);
 
-  if(Debug.isOn("bitvector-bb")) {
-    Debug("bitvector-bb") << "theory::bv::DefaultExtractBB bitblasting " << node << "\n";
-    Debug("bitvector-bb") << "                               with bits " << toString(bits); 
+  if(TraceIsOn("bitvector-bb")) {
+    Trace("bitvector-bb") << "theory::bv::DefaultExtractBB bitblasting " << node << "\n";
+    Trace("bitvector-bb") << "                               with bits " << toString(bits); 
   }
 }
 
 
 template <class T>
 void DefaultRepeatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   // this should be rewritten 
   Unimplemented(); 
@@ -851,7 +841,7 @@ void DefaultRepeatBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 template <class T>
 void DefaultZeroExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* bb) {
 
-  Debug("bitvector-bb") << "theory::bv::DefaultZeroExtendBB bitblasting " << node  << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultZeroExtendBB bitblasting " << node  << "\n";
  
   // this should be rewritten 
   Unimplemented();
@@ -860,7 +850,7 @@ void DefaultZeroExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
 
 template <class T>
 void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultSignExtendBB bitblasting " << node  << "\n";
+  Trace("bitvector-bb") << "theory::bv::DefaultSignExtendBB bitblasting " << node  << "\n";
 
   Assert(node.getKind() == kind::BITVECTOR_SIGN_EXTEND && res_bits.size() == 0);
 
@@ -884,7 +874,7 @@ void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
 
 template <class T>
 void DefaultRotateRightBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
 
   Unimplemented(); 
@@ -892,7 +882,7 @@ void DefaultRotateRightBB (TNode node, std::vector<T>& res, TBitblaster<T>* bb) 
 
 template <class T>
 void DefaultRotateLeftBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector") << "theory::bv:: Unimplemented kind "
+  Trace("bitvector") << "theory::bv:: Unimplemented kind "
                      << node.getKind() << "\n";
   Unimplemented(); 
 }
@@ -900,6 +890,6 @@ void DefaultRotateLeftBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) 
 
 }
 }
-}
+}  // namespace cvc5::internal
 
 #endif

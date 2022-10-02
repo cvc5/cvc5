@@ -1,27 +1,29 @@
-/*********************                                                        */
-/*! \file transition_inference.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implmentation of utility for inferring whether a synthesis conjecture
- ** encodes a transition system.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utility for inferring whether a synthesis conjecture
+ * encodes a transition system.
+ */
 #include "theory/quantifiers/sygus/transition_inference.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -122,7 +124,7 @@ void TransitionInference::getConstantSubstitution(
                         const_var.end(),
                         const_subs.begin(),
                         const_subs.end());
-      sn = Rewriter::rewrite(sn);
+      sn = rewrite(sn);
     }
     else
     {
@@ -175,7 +177,7 @@ void TransitionInference::getConstantSubstitution(
         TNode ts = s;
         for (unsigned k = 0, csize = const_subs.size(); k < csize; k++)
         {
-          const_subs[k] = Rewriter::rewrite(const_subs[k].substitute(v, ts));
+          const_subs[k] = rewrite(const_subs[k].substitute(v, ts));
         }
         Trace("cegqi-inv-debug2")
             << "...substitution : " << v << " -> " << s << std::endl;
@@ -196,6 +198,7 @@ void TransitionInference::process(Node n, Node f)
 void TransitionInference::process(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   d_complete = true;
   d_trivial = true;
   std::vector<Node> n_check;
@@ -255,7 +258,7 @@ void TransitionInference::process(Node n)
     for (unsigned j = 0, dsize = disjuncts.size(); j < dsize; j++)
     {
       Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
-      disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+      disjuncts[j] = rewrite(disjuncts[j].substitute(
           vars.begin(), vars.end(), svars.begin(), svars.end()));
       Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
     }
@@ -266,7 +269,7 @@ void TransitionInference::process(Node n)
       // transition
       Assert(terms.find(true) != terms.end());
       Node next = terms[true];
-      next = Rewriter::rewrite(next.substitute(
+      next = rewrite(next.substitute(
           vars.begin(), vars.end(), svars.begin(), svars.end()));
       Trace("cegqi-inv-debug")
           << "transition next predicate : " << next << std::endl;
@@ -275,7 +278,7 @@ void TransitionInference::process(Node n)
       {
         for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild; j++)
         {
-          Node v = nm->mkSkolem(
+          Node v = sm->mkDummySkolem(
               "ir", next[j].getType(), "template inference rev argument");
           d_prime_vars.push_back(v);
         }
@@ -289,7 +292,7 @@ void TransitionInference::process(Node n)
       for (unsigned j = 0, dsize = disjuncts.size(); j < dsize; j++)
       {
         Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
-        disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+        disjuncts[j] = rewrite(disjuncts[j].substitute(
             rvars.begin(), rvars.end(), rsvars.begin(), rsvars.end()));
         Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
       }
@@ -425,9 +428,11 @@ bool TransitionInference::processDisjunct(
       d_func = op;
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
       NodeManager* nm = NodeManager::currentNM();
+      SkolemManager* sm = nm->getSkolemManager();
       for (const Node& l : lit)
       {
-        Node v = nm->mkSkolem("i", l.getType(), "template inference argument");
+        Node v =
+            sm->mkDummySkolem("i", l.getType(), "template inference argument");
         d_vars.push_back(v);
         Trace("cegqi-inv-debug") << v << " ";
       }
@@ -498,7 +503,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   // check if it satisfies the pre/post condition
   Node cc = fwd ? getPostCondition() : getPreCondition();
   Assert(!cc.isNull());
-  Node ccr = Rewriter::rewrite(cc.substitute(
+  Node ccr = rewrite(cc.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
   if (ccr.isConst())
   {
@@ -514,7 +519,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   Assert(!c.isNull());
 
   Assert(d_vars.size() == dt.d_curr.size());
-  Node cr = Rewriter::rewrite(c.substitute(
+  Node cr = rewrite(c.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
   if (cr.isConst())
   {
@@ -543,7 +548,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
     Assert(it->second.find(pv) != it->second.end());
     Node pvs = it->second[pv];
     Assert(d_vars.size() == dt.d_curr.size());
-    Node pvsr = Rewriter::rewrite(pvs.substitute(
+    Node pvsr = rewrite(pvs.substitute(
         d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
     next.push_back(pvsr);
   }
@@ -584,4 +589,4 @@ Node TransitionInference::constructFormulaTrace(DetTrace& dt) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

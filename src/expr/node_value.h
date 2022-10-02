@@ -1,42 +1,40 @@
-/*********************                                                        */
-/*! \file node_value.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An expression node.
- **
- ** An expression node.
- **
- ** Instances of this class are generally referenced through
- ** cvc4::Node rather than by pointer; cvc4::Node maintains the
- ** reference count on NodeValue instances and
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A node value.
+ *
+ * The actual node implementation.
+ * Instances of this class are generally referenced through cvc5::internal::Node
+ * rather than by pointer. Note that cvc5::internal::Node maintains the
+ * reference count on NodeValue instances.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-// circular dependency
-#include "expr/metakind.h"
-
-#ifndef CVC4__EXPR__NODE_VALUE_H
-#define CVC4__EXPR__NODE_VALUE_H
+#ifndef CVC5__EXPR__NODE_VALUE_H
+#define CVC5__EXPR__NODE_VALUE_H
 
 #include <iterator>
 #include <string>
 
 #include "expr/kind.h"
+#include "expr/metakind.h"
 #include "options/language.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 template <bool ref_count> class NodeTemplate;
 class TypeNode;
-template <unsigned N> class NodeBuilder;
+class NodeBuilder;
 class NodeManager;
 
 namespace expr {
@@ -45,37 +43,36 @@ namespace expr {
 
 namespace kind {
   namespace metakind {
-    template < ::CVC4::Kind k, bool pool >
-    struct NodeValueConstCompare;
 
-    struct NodeValueCompare;
-    struct NodeValueConstPrinter;
+  template <cvc5::internal::Kind k, class T, bool pool>
+  struct NodeValueConstCompare;
 
-    void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
-  }/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
+  struct NodeValueCompare;
+
+  }  // namespace metakind
+  }  // namespace kind
 
 namespace expr {
 
 /**
  * This is a NodeValue.
  */
-class NodeValue
+class CVC5_EXPORT NodeValue
 {
   template <bool>
-  friend class ::CVC4::NodeTemplate;
-  friend class ::CVC4::TypeNode;
-  template <unsigned nchild_thresh>
-  friend class ::CVC4::NodeBuilder;
-  friend class ::CVC4::NodeManager;
+  friend class cvc5::internal::NodeTemplate;
+  friend class cvc5::internal::TypeNode;
+  friend class cvc5::internal::NodeBuilder;
+  friend class cvc5::internal::NodeManager;
 
-  template <Kind k, bool pool>
-  friend struct ::CVC4::kind::metakind::NodeValueConstCompare;
+  template <Kind k, class T, bool pool>
+  friend struct kind::metakind::NodeValueConstCompare;
 
-  friend struct ::CVC4::kind::metakind::NodeValueCompare;
-  friend struct ::CVC4::kind::metakind::NodeValueConstPrinter;
+  friend struct kind::metakind::NodeValueCompare;
 
-  friend void ::CVC4::kind::metakind::deleteNodeValueConstant(NodeValue* nv);
+  friend void kind::metakind::nodeValueConstantToStream(std::ostream& out,
+                                                        const NodeValue* nv);
+  friend void kind::metakind::deleteNodeValueConstant(NodeValue* nv);
 
   friend class RefCountGuard;
 
@@ -94,9 +91,9 @@ class NodeValue
     using value_type = T;
     using difference_type = std::ptrdiff_t;
     using pointer = T*;
-    using reference = T&;
+    using reference = T;
 
-    iterator() : d_i(NULL) {}
+    iterator() : d_i(nullptr) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
     /** Conversion of a TNode iterator to a Node iterator. */
@@ -105,7 +102,7 @@ class NodeValue
       return iterator<NodeTemplate<true> >(d_i);
     }
 
-    inline T operator*() const;
+    T operator*() const { return T(*d_i); }
 
     bool operator==(const iterator& i) const { return d_i == i.d_i; }
 
@@ -186,7 +183,7 @@ class NodeValue
 
   /** If this is a CONST_* Node, extract the constant from it.  */
   template <class T>
-  inline const T& getConst() const;
+  const T& getConst() const;
 
   static inline NodeValue& null()
   {
@@ -231,10 +228,7 @@ class NodeValue
 
   std::string toString() const;
 
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                size_t dag = 1,
-                OutputLanguage = language::output::LANG_AUTO) const;
+  void toStream(std::ostream& out) const;
 
   void printAst(std::ostream& out, int indent = 0) const;
 
@@ -298,13 +292,37 @@ class NodeValue
   /** Private constructor for the null value. */
   NodeValue(int);
 
-  void inc();
-  void dec();
+  void inc()
+  {
+    if (__builtin_expect((d_rc < MAX_RC - 1), true))
+    {
+      ++d_rc;
+    }
+    else if (__builtin_expect((d_rc == MAX_RC - 1), false))
+    {
+      ++d_rc;
+      markRefCountMaxedOut();
+    }
+  }
+
+  void dec()
+  {
+    // FIXME multithreading
+    if (__builtin_expect((d_rc < MAX_RC), true))
+    {
+      --d_rc;
+      if (__builtin_expect((d_rc == 0), false))
+      {
+        markForDeletion();
+      }
+    }
+  }
+
+  void markRefCountMaxedOut();
+  void markForDeletion();
 
   /** Decrement ref counts of children */
   inline void decrRefCounts();
-
-  bool isBeingDeleted() const;
 
   /** Returns true if the reference count is maximized. */
   inline bool HasMaximizedReferenceCount() { return d_rc == MAX_RC; }
@@ -331,7 +349,7 @@ class NodeValue
   /** The ID (0 is reserved for the null value) */
   uint64_t d_id : NBITS_ID;
 
-  /** The expression's reference count.  @see cvc4::Node. */
+  /** The expression's reference count. */
   uint32_t d_rc : NBITS_REFCOUNT;
 
   /** Kind of the expression */
@@ -392,17 +410,7 @@ struct NodeValueIDEquality {
   }
 };
 
-
-inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
-
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
-
-#include "expr/node_manager.h"
-#include "expr/type_node.h"
-
-namespace CVC4 {
-namespace expr {
+std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
 inline NodeValue::NodeValue(int) :
   d_id(0),
@@ -414,37 +422,6 @@ inline NodeValue::NodeValue(int) :
 inline void NodeValue::decrRefCounts() {
   for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
     (*i)->dec();
-  }
-}
-
-inline void NodeValue::inc() {
-  Assert(!isBeingDeleted())
-      << "NodeValue is currently being deleted "
-         "and increment is being called on it. Don't Do That!";
-  // FIXME multithreading
-  if (__builtin_expect((d_rc < MAX_RC - 1), true)) {
-    ++d_rc;
-  } else if (__builtin_expect((d_rc == MAX_RC - 1), false)) {
-    ++d_rc;
-    Assert(NodeManager::currentNM() != NULL)
-        << "No current NodeManager on incrementing of NodeValue: "
-           "maybe a public CVC4 interface function is missing a "
-           "NodeManagerScope ?";
-    NodeManager::currentNM()->markRefCountMaxedOut(this);
-  }
-}
-
-inline void NodeValue::dec() {
-  // FIXME multithreading
-  if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
-    --d_rc;
-    if(__builtin_expect( ( d_rc == 0 ), false )) {
-      Assert(NodeManager::currentNM() != NULL)
-          << "No current NodeManager on destruction of NodeValue: "
-             "maybe a public CVC4 interface function is missing a "
-             "NodeManagerScope ?";
-      NodeManager::currentNM()->markForDeletion(this);
-    }
   }
 }
 
@@ -478,11 +455,6 @@ inline NodeValue::iterator<T> NodeValue::end() const {
   return iterator<T>(d_children + d_nchildren);
 }
 
-inline bool NodeValue::isBeingDeleted() const {
-  return NodeManager::currentNM() != NULL &&
-    NodeManager::currentNM()->isCurrentlyDeleting(this);
-}
-
 inline NodeValue* NodeValue::getOperator() const {
   Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
   return d_children[0];
@@ -497,56 +469,7 @@ inline NodeValue* NodeValue::getChild(int i) const {
   return d_children[i];
 }
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5::internal
 
-#include "expr/node.h"
-#include "expr/type_node.h"
-
-namespace CVC4 {
-namespace expr {
-
-template <typename T>
-inline T NodeValue::iterator<T>::operator*() const {
-  return T(*d_i);
-}
-
-inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv) {
-  nv.toStream(out,
-              Node::setdepth::getDepth(out),
-              Node::dag::getDag(out),
-              Node::setlanguage::getLanguage(out));
-  return out;
-}
-
-}/* CVC4::expr namespace */
-
-#ifdef CVC4_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- */
-static void __attribute__((used)) debugPrintNodeValue(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(true)
-            << Node::setlanguage(language::output::LANG_AST)
-            << *nv << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintNodeValueNoDag(const expr::NodeValue* nv) {
-  Warning() << Node::setdepth(-1)
-            << Node::dag(false)
-            << Node::setlanguage(language::output::LANG_AST)
-            << *nv << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* nv) {
-  nv->printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC4_DEBUG */
-
-}/* CVC4 namespace */
-
-#endif /* CVC4__EXPR__NODE_VALUE_H */
+#endif /* CVC5__EXPR__NODE_VALUE_H */

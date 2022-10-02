@@ -1,28 +1,31 @@
-/*********************                                                        */
-/*! \file cryptominisat.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief SAT Solver.
- **
- ** Implementation of the cryptominisat for cvc4 (bitvectors).
- **/
-
-#ifdef CVC4_USE_CRYPTOMINISAT
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SAT Solver.
+ *
+ * Implementation of the cryptominisat for cvc5 (bit-vectors).
+ */
 
 #include "prop/cryptominisat.h"
 
-#include "base/check.h"
+#ifdef CVC5_USE_CRYPTOMINISAT
 
 #include <cryptominisat5/cryptominisat.h>
 
-namespace CVC4 {
+#include "base/check.h"
+#include "util/resource_manager.h"
+#include "util/statistics_registry.h"
+
+namespace cvc5::internal {
 namespace prop {
 
 using CMSatVar = unsigned;
@@ -37,6 +40,15 @@ CMSat::Lit toInternalLit(SatLiteral lit)
     return CMSat::lit_Undef;
   }
   return CMSat::Lit(lit.getSatVariable(), lit.isNegated());
+}
+
+SatLiteral toSatLiteral(CMSat::Lit lit)
+{
+  if (lit == CMSat::lit_Undef)
+  {
+    return undefSatLiteral;
+  }
+  return SatLiteral(lit.var(), lit.sign());
 }
 
 SatValue toSatLiteralValue(CMSat::lbool res)
@@ -59,12 +71,13 @@ void toInternalClause(SatClause& clause,
 
 }  // helper functions
 
-CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
+CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry& registry,
                                          const std::string& name)
     : d_solver(new CMSat::SATSolver()),
       d_numVariables(0),
       d_okay(true),
-      d_statistics(registry, name)
+      d_statistics(registry, name),
+      d_resmgr(nullptr)
 {
 }
 
@@ -83,14 +96,28 @@ void CryptoMinisatSolver::init()
 
 CryptoMinisatSolver::~CryptoMinisatSolver() {}
 
+void CryptoMinisatSolver::setTimeLimit(ResourceManager* resmgr)
+{
+  d_resmgr = resmgr;
+}
+
+void CryptoMinisatSolver::setMaxTime()
+{
+  if (d_resmgr)
+  {
+    // Set time limit to remaining number of seconds.
+    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
+  }
+}
+
 ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
                                            bool rhs,
                                            bool removable)
 {
-  Debug("sat::cryptominisat") << "Add xor clause " << clause <<" = " << rhs << "\n";
+  Trace("sat::cryptominisat") << "Add xor clause " << clause <<" = " << rhs << "\n";
 
   if (!d_okay) {
-    Debug("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
+    Trace("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
     return ClauseIdError;
   }
 
@@ -109,10 +136,10 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
 }
 
 ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
-  Debug("sat::cryptominisat") << "Add clause " << clause <<"\n";
+  Trace("sat::cryptominisat") << "Add clause " << clause <<"\n";
 
   if (!d_okay) {
-    Debug("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
+    Trace("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
     return ClauseIdError;
   }
 
@@ -159,6 +186,7 @@ void CryptoMinisatSolver::interrupt(){
 SatValue CryptoMinisatSolver::solve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   ++d_statistics.d_statCallsToSolve;
+  setMaxTime();
   return toSatLiteralValue(d_solver->solve());
 }
 
@@ -178,7 +206,17 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
     assumpts.push_back(toInternalLit(lit));
   }
   ++d_statistics.d_statCallsToSolve;
+  setMaxTime();
   return toSatLiteralValue(d_solver->solve(&assumpts));
+}
+
+void CryptoMinisatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& assumptions)
+{
+  for (const CMSat::Lit& lit : d_solver->get_conflict())
+  {
+    assumptions.push_back(toSatLiteral(~lit));
+  }
 }
 
 SatValue CryptoMinisatSolver::value(SatLiteral l){
@@ -198,33 +236,15 @@ unsigned CryptoMinisatSolver::getAssertionLevel() const {
 
 // Satistics for CryptoMinisatSolver
 
-CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry* registry,
-                                            const std::string& prefix) :
-  d_registry(registry),
-  d_statCallsToSolve("theory::bv::"+prefix+"::cryptominisat::calls_to_solve", 0),
-  d_xorClausesAdded("theory::bv::"+prefix+"::cryptominisat::xor_clauses", 0),
-  d_clausesAdded("theory::bv::"+prefix+"::cryptominisat::clauses", 0),
-  d_solveTime("theory::bv::"+prefix+"::cryptominisat::solve_time"),
-  d_registerStats(!prefix.empty())
+CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry& registry,
+                                            const std::string& prefix)
+    : d_statCallsToSolve(registry.registerInt(prefix + "cryptominisat::calls_to_solve")),
+      d_xorClausesAdded(registry.registerInt(prefix + "cryptominisat::xor_clauses")),
+      d_clausesAdded(registry.registerInt(prefix + "cryptominisat::clauses")),
+      d_solveTime(registry.registerTimer(prefix + "cryptominisat::solve_time"))
 {
-  if (!d_registerStats)
-    return;
-
-  d_registry->registerStat(&d_statCallsToSolve);
-  d_registry->registerStat(&d_xorClausesAdded);
-  d_registry->registerStat(&d_clausesAdded);
-  d_registry->registerStat(&d_solveTime);
-}
-
-CryptoMinisatSolver::Statistics::~Statistics() {
-  if (!d_registerStats)
-    return;
-  d_registry->unregisterStat(&d_statCallsToSolve);
-  d_registry->unregisterStat(&d_xorClausesAdded);
-  d_registry->unregisterStat(&d_clausesAdded);
-  d_registry->unregisterStat(&d_solveTime);
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5::internal
 #endif

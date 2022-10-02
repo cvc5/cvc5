@@ -1,32 +1,35 @@
-/*********************                                                        */
-/*! \file engine_output_channel.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine output channel.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine output channel.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
-#define CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#ifndef CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
+#define CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H
 
 #include "expr/node.h"
 #include "theory/output_channel.h"
-#include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "theory/theory_id.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
 namespace theory {
+
+class Theory;
 
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine
@@ -38,30 +41,25 @@ namespace theory {
  */
 class EngineOutputChannel : public theory::OutputChannel
 {
-  friend class TheoryEngine;
+  friend class internal::TheoryEngine;
 
  public:
-  EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory);
+  EngineOutputChannel(StatisticsRegistry& sr,
+                      TheoryEngine* engine,
+                      theory::TheoryId theory);
 
-  void safePoint(ResourceManager::Resource r) override;
+  void safePoint(Resource r) override;
 
   void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
-  theory::LemmaStatus lemma(TNode lemma,
-                            LemmaProperty p = LemmaProperty::NONE) override;
-
-  theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
-
-  void demandRestart() override;
+  void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
   void requirePhase(TNode n, bool phase) override;
 
-  void setIncomplete() override;
+  void setIncomplete(IncompleteId id) override;
 
-  void spendResource(ResourceManager::Resource r) override;
-
-  void handleUserAttribute(const char* attr, theory::Theory* t) override;
+  void spendResource(Resource r) override;
 
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
@@ -76,8 +74,8 @@ class EngineOutputChannel : public theory::OutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as calling OutputChannel::lemma on lem.
    */
-  LemmaStatus trustedLemma(TrustNode plem,
-                           LemmaProperty p = LemmaProperty::NONE) override;
+  void trustedLemma(TrustNode plem,
+                    LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**
@@ -86,12 +84,10 @@ class EngineOutputChannel : public theory::OutputChannel
   class Statistics
   {
    public:
-    Statistics(theory::TheoryId theory);
-    ~Statistics();
-    /** Number of calls to conflict, propagate, lemma, requirePhase,
-     * restartDemands */
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands,
-        trustedConflicts, trustedLemmas;
+    Statistics(StatisticsRegistry& sr, theory::TheoryId theory);
+    /** Number of calls to conflict, propagate, lemma, requirePhase */
+    IntStat conflicts, propagations, lemmas, requirePhase, trustedConflicts,
+        trustedLemmas;
   };
   /** The theory engine we're communicating with. */
   TheoryEngine* d_engine;
@@ -107,6 +103,6 @@ class EngineOutputChannel : public theory::OutputChannel
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ENGINE_OUTPUT_CHANNEL_H */
+#endif /* CVC5__THEORY__ENGINE_OUTPUT_CHANNEL_H */

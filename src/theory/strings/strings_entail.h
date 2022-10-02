@@ -1,28 +1,33 @@
-/*********************                                                        */
-/*! \file strings_entail.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Entailment tests involving strings
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Entailment tests involving strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__STRING_ENTAIL_H
-#define CVC4__THEORY__STRINGS__STRING_ENTAIL_H
+#ifndef CVC5__THEORY__STRINGS__STRING_ENTAIL_H
+#define CVC5__THEORY__STRINGS__STRING_ENTAIL_H
 
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/strings/arith_entail.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+
+class Rewriter;
+
 namespace strings {
 
 class SequencesRewriter;
@@ -35,7 +40,7 @@ class SequencesRewriter;
 class StringsEntail
 {
  public:
-  StringsEntail(SequencesRewriter& rewriter);
+  StringsEntail(Rewriter* r, ArithEntail& aent, SequencesRewriter& rewriter);
 
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -63,7 +68,7 @@ class StringsEntail
   /** can constant contain concat
    * same as above but with n = str.++( l ) instead of l
    */
-  static bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
+  bool canConstantContainConcat(Node c, Node n, int& firstc, int& lastc);
 
   /** strip symbolic length
    *
@@ -105,11 +110,11 @@ class StringsEntail
    *    nr is updated to { "abc", y }
    *    curr is updated to str.len(y)+1
    */
-  static bool stripSymbolicLength(std::vector<Node>& n1,
-                                  std::vector<Node>& nr,
-                                  int dir,
-                                  Node& curr,
-                                  bool strict = false);
+  bool stripSymbolicLength(std::vector<Node>& n1,
+                           std::vector<Node>& nr,
+                           int dir,
+                           Node& curr,
+                           bool strict = false);
   /** component contains
    * This function is used when rewriting str.contains( t1, t2 ), where
    * n1 is the vector form of t1
@@ -158,6 +163,17 @@ class StringsEntail
    *   returns 1,
    *   n1 is updated to { "c", x, "def" },
    *   nb is updated to { y, "ab" }
+   *
+   * Note that when computeRemainder is true, this check is less aggressive.
+   * In particular, the only terms we add to nb and ne are terms from n1 or
+   * substrings of words that appear in n1. If we would require constructing
+   * a (symbolic) substring term, we fail instead. For example:
+   *
+   * componentContains({ y }, { substr(y,0,1) }, {}, false, 1) returns 1,
+   * while componentContains({ y }, { substr(y,0,1) }, {}, true, 1) returns 0;
+   * it does not return 1 updating nb/ne to
+   * { substr(y,0,1) } / { substr(y,1,len(y)-1) }. This is to avoid
+   * non-termination in the rewriter.
    */
   int componentContains(std::vector<Node>& n1,
                         std::vector<Node>& n2,
@@ -221,7 +237,7 @@ class StringsEntail
    * Checks whether string a is entailed to be non-empty. Is equivalent to
    * the call checkArithEntail( len( a ), true ).
    */
-  static bool checkNonEmpty(Node a);
+  bool checkNonEmpty(Node a);
 
   /**
    * Checks whether string has at most/exactly length one. Length one strings
@@ -233,7 +249,7 @@ class StringsEntail
    * at most length one
    * @return True if the string has at most/exactly length one, false otherwise
    */
-  static bool checkLengthOne(Node s, bool strict = false);
+  bool checkLengthOne(Node s, bool strict = false);
 
   /**
    * Checks whether it is always true that `a` is a strict subset of `b` in the
@@ -281,7 +297,7 @@ class StringsEntail
    * getStringOrEmpty( (str.substr "ABC" x y) ) --> (str.substr "ABC" x y)
    * because the function could not compute a simpler
    */
-  static Node getStringOrEmpty(Node n);
+  Node getStringOrEmpty(Node n);
 
   /**
    * Infers a conjunction of equalities that correspond to (str.contains x y)
@@ -297,7 +313,7 @@ class StringsEntail
    * y) if the function can infer that str.len(y) >= str.len(x) but cannot
    * infer that any of the yi must be empty.
    */
-  static Node inferEqsFromContains(Node x, Node y);
+  Node inferEqsFromContains(Node x, Node y);
 
  private:
   /** component contains base
@@ -349,8 +365,8 @@ class StringsEntail
    *               str.substr(y,x,z),
    *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
    *
-   * Since we do not wish to introduce ITE terms in the rewriter, we instead
-   * return false, indicating that we cannot compute the remainder.
+   * Since we do not wish to introduce new (symbolic) terms, we
+   * instead return false, indicating that we cannot compute the remainder.
    */
   bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
@@ -370,6 +386,10 @@ class StringsEntail
   static Node getMultisetApproximation(Node a);
 
  private:
+  /** Pointer to the full rewriter */
+  Rewriter* d_rr;
+  /** The arithmetic entailment module */
+  ArithEntail& d_arithEntail;
   /**
    * Reference to the sequences rewriter that owns this `StringsEntail`
    * instance.
@@ -379,6 +399,6 @@ class StringsEntail
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__STRINGS__STRING_ENTAIL_H */
+#endif /* CVC5__THEORY__STRINGS__STRING_ENTAIL_H */

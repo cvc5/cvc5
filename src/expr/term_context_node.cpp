@@ -1,22 +1,26 @@
-/*********************                                                        */
-/*! \file term_context_node.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Term context node utility.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Term context node utility.
+ */
 
 #include "expr/term_context_node.h"
 
 #include "expr/term_context.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
     : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
@@ -50,7 +54,7 @@ Node TCtxNode::getNodeHash() const { return computeNodeHash(d_node, d_val); }
 Node TCtxNode::computeNodeHash(Node n, uint32_t val)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::SEXPR, n, nm->mkConst(Rational(val)));
+  return nm->mkNode(kind::SEXPR, n, nm->mkConstInt(Rational(val)));
 }
 
 Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
@@ -73,4 +77,4 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   return h[0];
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal

@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file sygus_datatype.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class for constructing SyGuS datatypes.
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for constructing SyGuS datatypes.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__SYGUS_DATATYPE_H
-#define CVC4__EXPR__SYGUS_DATATYPE_H
+#ifndef CVC5__EXPR__SYGUS_DATATYPE_H
+#define CVC5__EXPR__SYGUS_DATATYPE_H
 
 #include <string>
 #include <vector>
@@ -24,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /** Attribute true for variables that represent any constant */
 struct SygusAnyConstAttributeId
@@ -81,7 +82,7 @@ class SygusDatatype
    *
    * It should be the case that argTypes are sygus datatype types (possibly
    * unresolved) that encode the arguments of the builtin operator. That is,
-   * if op is the builtin PLUS operator, then argTypes could contain 2+
+   * if op is the builtin ADD operator, then argTypes could contain 2+
    * sygus datatype types that encode integer.
    */
   void addConstructor(Node op,
@@ -134,6 +135,6 @@ class SygusDatatype
   DType d_dt;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

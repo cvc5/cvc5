@@ -1,0 +1,78 @@
+name: documentation cleanup
+on:
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  docs-cleanup:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5'
+    steps:
+      - name: Install Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-jinja2
+
+      - name: Setup Deploy Key
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_TOKEN }}"
+
+      - name: Clone docs repo
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          git config --global user.email "docbot@cvc5"
+          git config --global user.name "DocBot"
+          git clone git@github.com:cvc5/docs-ci.git target/
+      
+      - name: Remove stale docs
+        run: |
+          cd target
+          for file in `find ./ -maxdepth 1 -name "docs-*"`; do
+            mod=`git log -1 HEAD --pretty="%ai" $file`
+            touch -d "$mod" $file
+          done
+          find ./ -maxdepth 1 -name "docs-*" -mtime +7 -exec git rm -r {} +
+          find ./ -maxdepth 1 -name "docs-*" -xtype l -exec git rm {} +
+          git commit -m "Prune docs" || echo "Nothing to prune"
+
+      - name: Squash old commits
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          cd target
+          first=`git rev-list --max-parents=0 HEAD`
+          cutoff=`date -d "-1 month" +%Y-%m-%d`
+          last=`git log --pretty='%as %H' | awk -v cutoff=$cutoff '$1 < cutoff { print $2 }' | head -n1`
+          if [ -n "$last" ]; then
+            git checkout $last
+            ts=`git log -1 --format=%ct`
+            git reset --soft $first
+            if git diff --cached --exit-code
+            then
+              echo "Nothing to squash"
+            else
+              git commit -m "Squash old history" --date=$ts
+            fi
+            git cherry-pick $last..main
+          fi
+      
+      - name: Push
+        env:
+            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          cd target
+
+          python3 genindex.py
+          git add README.md
+          if git diff --cached --exit-code
+          then
+            echo "Nothing changed"
+          else
+            git commit -m "Update README.md"
+          fi
+
+          git push -f origin HEAD:main

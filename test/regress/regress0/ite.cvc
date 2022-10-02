@@ -1,3 +1,0 @@
-% EXPECT: unsat
-x, y : REAL;
-CHECKSAT (NOT (x = IF TRUE THEN x ELSE y ENDIF));

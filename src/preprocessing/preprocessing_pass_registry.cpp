@@ -1,19 +1,20 @@
-/*********************                                                        */
-/*! \file preprocessing_pass_registry.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andres Noetzli, Yoni Zohar, Justin Xu
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The preprocessing pass registry
- **
- ** This file defines the classes PreprocessingPassRegistry, which keeps track
- ** of the available preprocessing passes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Yoni Zohar, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The preprocessing pass registry
+ *
+ * This file defines the classes PreprocessingPassRegistry, which keeps track
+ * of the available preprocessing passes.
+ */
 
 #include "preprocessing/preprocessing_pass_registry.h"
 
@@ -26,40 +27,42 @@
 #include "preprocessing/passes/ackermann.h"
 #include "preprocessing/passes/apply_substs.h"
 #include "preprocessing/passes/bool_to_bv.h"
-#include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_eager_atoms.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
+#include "preprocessing/passes/foreign_theory_rewrite.h"
 #include "preprocessing/passes/fun_def_fmf.h"
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
+#include "preprocessing/passes/learned_rewrite.h"
 #include "preprocessing/passes/miplib_trick.h"
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/non_clausal_simp.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/strings_eager_pp.h"
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
+#include "preprocessing/passes/theory_rewrite_eq.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 
-using namespace CVC4::preprocessing::passes;
+using namespace cvc5::internal::preprocessing::passes;
 
 PreprocessingPassRegistry& PreprocessingPassRegistry::getInstance()
 {
@@ -123,6 +126,8 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
   registerPassInfo("bv-to-int", callCtor<BVToInt>);
+  registerPassInfo("learned-rewrite", callCtor<LearnedRewrite>);
+  registerPassInfo("foreign-theory-rewrite", callCtor<ForeignTheoryRewrite>);
   registerPassInfo("synth-rr", callCtor<SynthRewRulesPass>);
   registerPassInfo("real-to-int", callCtor<RealToInt>);
   registerPassInfo("sygus-infer", callCtor<SygusInference>);
@@ -131,7 +136,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("sort-inference", callCtor<SortInferencePass>);
   registerPassInfo("sep-skolem-emp", callCtor<SepSkolemEmp>);
   registerPassInfo("rewrite", callCtor<Rewrite>);
-  registerPassInfo("bv-abstraction", callCtor<BvAbstraction>);
   registerPassInfo("bv-eager-atoms", callCtor<BvEagerAtoms>);
   registerPassInfo("pseudo-boolean-processor",
                    callCtor<PseudoBooleanProcessor>);
@@ -144,12 +148,13 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ackermann", callCtor<Ackermann>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
-  registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
+  registerPassInfo("theory-rewrite-eq", callCtor<TheoryRewriteEq>);
+  registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
 }
 
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

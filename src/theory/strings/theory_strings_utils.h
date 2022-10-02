@@ -1,35 +1,34 @@
-/*********************                                                        */
-/*! \file theory_strings_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for theory strings.
- **
- ** Util functions for theory strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for theory strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
-#define CVC4__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
+#ifndef CVC5__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
+#define CVC5__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
 
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 namespace utils {
 
-/** get the cardinality of the alphabet used, based on the options */
-uint32_t getAlphabetCardinality();
+/** get the default cardinality of the alphabet used */
+uint32_t getDefaultAlphabetCardinality();
 
 /**
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
@@ -62,27 +61,6 @@ void getConcat(Node n, std::vector<Node>& c);
 Node mkConcat(const std::vector<Node>& c, TypeNode tn);
 
 /**
- * Returns the rewritten form of the string concatenation of n1 and n2.
- */
-Node mkNConcat(Node n1, Node n2);
-
-/**
- * Returns the rewritten form of the string concatenation of n1, n2 and n3.
- */
-Node mkNConcat(Node n1, Node n2, Node n3);
-
-/**
- * Returns the rewritten form of the concatentation from vector c of
- * (string-like) type tn.
- */
-Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
-
-/**
- * Returns the rewritten form of the length of string term t.
- */
-Node mkNLength(Node t);
-
-/**
  * Returns (pre t n), which is (str.substr t 0 n).
  */
 Node mkPrefix(Node t, Node n);
@@ -91,6 +69,12 @@ Node mkPrefix(Node t, Node n);
  * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
  */
 Node mkSuffix(Node t, Node n);
+
+/**
+ * Make a unit, returns either (str.unit n) or (seq.unit n) depending
+ * on if tn is a string or a sequence.
+ */
+Node mkUnit(TypeNode tn, Node n);
 
 /**
  * Get constant component. Returns the string constant represented by the
@@ -217,9 +201,30 @@ unsigned getLoopMaxOccurrences(TNode node);
 /* Get the minimum occurrences of given regexp loop node. */
 unsigned getLoopMinOccurrences(TNode node);
 
+/**
+ * Make internal quantified formula with bound variable list bvl and body.
+ * Internally, we get a node corresponding to marking a quantified formula as
+ * an "internal" one. This node is provided as the third argument of the
+ * FORALL returned by this method. This ensures that E-matching is not applied
+ * to the quantified formula.
+ */
+Node mkForallInternal(Node bvl, Node body);
+
+/**
+ * Make abstract value for string-like term n whose length is given by len.
+ * This is used for constructing models for strings whose lengths are too large
+ * to represent in memory.
+ */
+Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
+
+/**
+ * Make the formula (and (>= t 0) (< t alphaCard)).
+ */
+Node mkCodeRange(Node t, uint32_t alphaCard);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

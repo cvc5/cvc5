@@ -1,23 +1,23 @@
-/*********************                                                        */
-/*! \file eq_proof.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A proof as produced by the equality engine.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A proof as produced by the equality engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 #include "expr/node.h"
 #include "theory/uf/equality_engine_types.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class CDProof;
 
@@ -88,10 +88,9 @@ class EqProof
    * equalities)
    * @return the node that is the conclusion of the proof as added to p.
    */
-  Node addToProof(
-      CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited,
-      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+  Node addToProof(CDProof* p,
+                  std::unordered_map<Node, Node>& visited,
+                  std::unordered_set<Node>& assumptions) const;
 
   /** Removes all reflexivity steps, i.e. (= t t), from premises. */
   void cleanReflPremises(std::vector<Node>& premises) const;
@@ -173,7 +172,7 @@ class EqProof
       Node conclusion,
       std::vector<Node>& premises,
       CDProof* p,
-      std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+      std::unordered_set<Node>& assumptions) const;
 
   /** Expand coarse-grained transitivity steps for theory disequalities
    *
@@ -347,12 +346,12 @@ class EqProof
       Node conclusion,
       std::vector<std::vector<Node>>& transitivityMatrix,
       CDProof* p,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited,
-      std::unordered_set<Node, NodeHashFunction>& assumptions,
+      std::unordered_map<Node, Node>& visited,
+      std::unordered_set<Node>& assumptions,
       bool isNary) const;
 
 }; /* class EqProof */
 
 }  // Namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5::internal

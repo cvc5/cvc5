@@ -1,41 +1,44 @@
-/*********************                                                        */
-/*! \file arith_ite_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Piotr Trojanek
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include "theory/arith/arith_ite_utils.h"
 
 #include <ostream>
 
 #include "base/output.h"
-#include "options/smt_options.h"
+#include "expr/skolem_manager.h"
+#include "options/base_options.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
 Node ArithIteUtils::applyReduceVariablesInItes(Node n){
-  NodeBuilder<> nb(n.getKind());
+  NodeBuilder nb(n.getKind());
   if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
     nb << (n.getOperator());
   }
@@ -47,7 +50,7 @@ Node ArithIteUtils::applyReduceVariablesInItes(Node n){
 }
 
 Node ArithIteUtils::reduceVariablesInItes(Node n){
-  using namespace CVC4::kind;
+  using namespace cvc5::internal::kind;
   if(d_reduceVar.find(n) != d_reduceVar.end()){
     Node res = d_reduceVar[n];
     return res.isNull() ? n : res;
@@ -56,7 +59,9 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   switch(n.getKind()){
   case ITE:{
     Node c = n[0], t = n[1], e = n[2];
-    if(n.getType().isReal()){
+    TypeNode tn = n.getType();
+    if (tn.isRealOrInt())
+    {
       Node rc = reduceVariablesInItes(c);
       Node rt = reduceVariablesInItes(t);
       Node re = reduceVariablesInItes(e);
@@ -65,23 +70,25 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
       Node ve = d_varParts[e];
       Node vpite = (vt == ve) ? vt : Node::null();
 
+      NodeManager* nm = NodeManager::currentNM();
       if(vpite.isNull()){
         Node rite = rc.iteNode(rt, re);
         // do not apply
         d_reduceVar[n] = rite;
-        d_constants[n] = mkRationalNode(Rational(0));
+        d_constants[n] = nm->mkConstRealOrInt(tn, Rational(0));
         d_varParts[n] = rite; // treat the ite as a variable
         return rite;
       }else{
-        NodeManager* nm = NodeManager::currentNM();
         Node constantite = rc.iteNode(d_constants[t], d_constants[e]);
-        Node sum = nm->mkNode(kind::PLUS, vpite, constantite);
+        Node sum = nm->mkNode(kind::ADD, vpite, constantite);
         d_reduceVar[n] = sum;
         d_constants[n] = constantite;
         d_varParts[n] = vpite;
         return sum;
       }
-    }else{ // non-arith ite
+    }
+    else
+    {  // non-arith ite
       if(!d_contains.containsTermITE(n)){
         // don't bother adding to d_reduceVar
         return n;
@@ -93,37 +100,42 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
     }
   }break;
   default:
-    if(n.getType().isReal() && Polynomial::isMember(n)){
+  {
+    TypeNode tn = n.getType();
+    if (tn.isRealOrInt() && linear::Polynomial::isMember(n))
+    {
       Node newn = Node::null();
       if(!d_contains.containsTermITE(n)){
         newn = n;
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
-        newn = Rewriter::rewrite(newn);
-        Assert(Polynomial::isMember(newn));
+        newn = rewrite(newn);
+        Assert(linear::Polynomial::isMember(newn));
       }else{
         newn = n;
       }
-
-      Polynomial p = Polynomial::parsePolynomial(newn);
+      NodeManager* nm = NodeManager::currentNM();
+      linear::Polynomial p = linear::Polynomial::parsePolynomial(newn);
       if(p.isConstant()){
         d_constants[n] = newn;
-        d_varParts[n] = mkRationalNode(Rational(0));
+        d_varParts[n] = nm->mkConstRealOrInt(tn, Rational(0));
         // don't bother adding to d_reduceVar
         return newn;
       }else if(!p.containsConstant()){
-        d_constants[n] = mkRationalNode(Rational(0));
+        d_constants[n] = nm->mkConstRealOrInt(tn, Rational(0));
         d_varParts[n] = newn;
         d_reduceVar[n] = p.getNode();
         return p.getNode();
       }else{
-        Monomial mc = p.getHead();
+        linear::Monomial mc = p.getHead();
         d_constants[n] = mc.getConstant().getNode();
         d_varParts[n] = p.getTail().getNode();
         d_reduceVar[n] = newn;
         return newn;
       }
-    }else{
+    }
+    else
+    {
       if(!d_contains.containsTermITE(n)){
         return n;
       }
@@ -135,30 +147,28 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
         return n;
       }
     }
+  }
     break;
   }
   Unreachable();
 }
 
 ArithIteUtils::ArithIteUtils(
+    Env& env,
     preprocessing::util::ContainsTermITEVisitor& contains,
-    context::Context* uc,
-    TheoryModel* model)
-    : d_contains(contains),
-      d_subs(NULL),
-      d_model(model),
+    SubstitutionMap& subs)
+    : EnvObj(env),
+      d_contains(contains),
+      d_subs(subs),
       d_one(1),
-      d_subcount(uc, 0),
-      d_skolems(uc),
+      d_subcount(userContext(), 0),
+      d_skolems(userContext()),
       d_implies(),
       d_orBinEqs()
 {
-  d_subs = new SubstitutionMap(uc);
 }
 
 ArithIteUtils::~ArithIteUtils(){
-  delete d_subs;
-  d_subs = NULL;
 }
 
 void ArithIteUtils::clear(){
@@ -171,7 +181,8 @@ const Integer& ArithIteUtils::gcdIte(Node n){
   if(d_gcds.find(n) != d_gcds.end()){
     return d_gcds[n];
   }
-  if(n.getKind() == kind::CONST_RATIONAL){
+  if (n.isConst())
+  {
     const Rational& q = n.getConst<Rational>();
     if(q.isIntegral()){
       d_gcds[n] = q.getNumerator();
@@ -179,7 +190,9 @@ const Integer& ArithIteUtils::gcdIte(Node n){
     }else{
       return d_one;
     }
-  }else if(n.getKind() == kind::ITE && n.getType().isReal()){
+  }
+  else if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     const Integer& tgcd = gcdIte(n[1]);
     if(tgcd.isOne()){
       d_gcds[n] = d_one;
@@ -196,8 +209,9 @@ const Integer& ArithIteUtils::gcdIte(Node n){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   if(n.isConst()){
-    Assert(n.getKind() == kind::CONST_RATIONAL);
-    return mkRationalNode(n.getConst<Rational>() * q);
+    Assert(n.getType().isRealOrInt());
+    return NodeManager::currentNM()->mkConstRealOrInt(
+        n.getType(), n.getConst<Rational>() * q);
   }else{
     Assert(n.getKind() == kind::ITE);
     Assert(n.getType().isInteger());
@@ -210,21 +224,22 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
   Assert(n.getKind() == kind::ITE);
-  Assert(n.getType().isReal());
+  Assert(n.getType().isRealOrInt());
   const Integer& gcd = gcdIte(n);
+  NodeManager* nm = NodeManager::currentNM();
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
     d_reduceGcd[n] = newIte;
     return newIte;
   }else if(gcd.isZero()){
-    Node zeroNode = mkRationalNode(Rational(0));
+    Node zeroNode = nm->mkConstRealOrInt(n.getType(), Rational(0));
     d_reduceGcd[n] = zeroNode;
     return zeroNode;
   }else{
     Rational divBy(Integer(1), gcd);
     Node redite = reduceIteConstantIteByGCD_rec(n, divBy);
-    Node gcdNode = mkRationalNode(Rational(gcd));
-    Node multIte = NodeManager::currentNM()->mkNode(kind::MULT, gcdNode, redite);
+    Node gcdNode = nm->mkConstRealOrInt(n.getType(), Rational(gcd));
+    Node multIte = nm->mkNode(kind::MULT, gcdNode, redite);
     d_reduceGcd[n] = multIte;
     return multIte;
   }
@@ -234,12 +249,13 @@ Node ArithIteUtils::reduceConstantIteByGCD(Node n){
   if(d_reduceGcd.find(n) != d_reduceGcd.end()){
     return d_reduceGcd[n];
   }
-  if(n.getKind() == kind::ITE && n.getType().isReal()){
+  if (n.getKind() == kind::ITE && n.getType().isRealOrInt())
+  {
     return reduceIteConstantIteByGCD(n);
   }
 
   if(n.getNumChildren() > 0){
-    NodeBuilder<> nb(n.getKind());
+    NodeBuilder nb(n.getKind());
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       nb << (n.getOperator());
     }
@@ -268,15 +284,14 @@ unsigned ArithIteUtils::getSubCount() const{
 }
 
 void ArithIteUtils::addSubstitution(TNode f, TNode t){
-  Debug("arith::ite") << "adding " << f << " -> " << t << endl;
+  Trace("arith::ite") << "adding " << f << " -> " << t << endl;
   d_subcount = d_subcount + 1;
-  d_subs->addSubstitution(f, t);
-  d_model->addSubstitution(f, t);
+  d_subs.addSubstitution(f, t);
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
-  AlwaysAssert(!options::incrementalSolving());
-  return d_subs->apply(f);
+  AlwaysAssert(!options().base.incrementalSolving);
+  return d_subs.apply(f);
 }
 
 Node ArithIteUtils::selectForCmp(Node n) const{
@@ -289,7 +304,7 @@ Node ArithIteUtils::selectForCmp(Node n) const{
 }
 
 void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
-  AlwaysAssert(!options::incrementalSolving());
+  AlwaysAssert(!options().base.incrementalSolving);
   for(size_t i=0, N=assertions.size(); i < N; ++i){
     collectAssertions(assertions[i]);
   }
@@ -386,7 +401,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   //Node n = 
   Node n = applySubstitutions(binor);
   if(n != binor){
-    n = Rewriter::rewrite(n);
+    n = rewrite(n);
 
     if(!(n.getKind() == kind::OR &&
 	 n.getNumChildren() == 2 &&
@@ -404,7 +419,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   Assert(l.getKind() == kind::EQUAL);
   Assert(r.getKind() == kind::EQUAL);
 
-  Debug("arith::ite") << "bin or " << n << endl;
+  Trace("arith::ite") << "bin or " << n << endl;
 
   bool lArithEq = l.getKind() == kind::EQUAL && l[0].getType().isInteger();
   bool rArithEq = r.getKind() == kind::EQUAL && r[0].getType().isInteger();
@@ -422,29 +437,30 @@ bool ArithIteUtils::solveBinOr(TNode binor){
     }else if(l[1] == r[1]){
       sel = l[1]; otherL = l[0]; otherR = r[0];
     }
-    Debug("arith::ite") << "selected " << sel << endl;
+    Trace("arith::ite") << "selected " << sel << endl;
     if(sel.isVar() && sel.getKind() != kind::SKOLEM){
 
-      Debug("arith::ite") << "others l:" << otherL << " r " << otherR << endl;
+      Trace("arith::ite") << "others l:" << otherL << " r " << otherR << endl;
       Node useForCmpL = selectForCmp(otherL);
       Node useForCmpR = selectForCmp(otherR);
 
-      Assert(Polynomial::isMember(sel));
-      Assert(Polynomial::isMember(useForCmpL));
-      Assert(Polynomial::isMember(useForCmpR));
-      Polynomial lside = Polynomial::parsePolynomial( useForCmpL );
-      Polynomial rside = Polynomial::parsePolynomial( useForCmpR );
-      Polynomial diff = lside-rside;
+      Assert(linear::Polynomial::isMember(sel));
+      Assert(linear::Polynomial::isMember(useForCmpL));
+      Assert(linear::Polynomial::isMember(useForCmpR));
+      linear::Polynomial lside = linear::Polynomial::parsePolynomial( useForCmpL );
+      linear::Polynomial rside = linear::Polynomial::parsePolynomial( useForCmpR );
+      linear::Polynomial diff = lside-rside;
 
-      Debug("arith::ite") << "diff: " << diff.getNode() << endl;
+      Trace("arith::ite") << "diff: " << diff.getNode() << endl;
       if(diff.isConstant()){
         // a: (sel = otherL) or (sel = otherR), otherL-otherR = c
 
         NodeManager* nm = NodeManager::currentNM();
+        SkolemManager* sm = nm->getSkolemManager();
 
         Node cnd = findIteCnd(binor[0], binor[1]);
 
-        Node sk = nm->mkSkolem("deor", nm->booleanType());
+        Node sk = sm->mkDummySkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
         addSubstitution(sel, ite);
@@ -455,7 +471,6 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   return false;
 }
 
-
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5::internal

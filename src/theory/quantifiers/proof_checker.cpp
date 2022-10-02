@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of quantifiers proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of quantifiers proof checker.
+ */
 
 #include "theory/quantifiers/proof_checker.h"
 
@@ -18,19 +19,21 @@
 #include "expr/skolem_manager.h"
 #include "theory/builtin/proof_checker.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::WITNESS_INTRO, this);
-  pc->registerChecker(PfRule::EXISTS_INTRO, this);
+  pc->registerChecker(PfRule::SKOLEM_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
+  pc->registerChecker(PfRule::ALPHA_EQUIV, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::QUANTIFIERS_PREPROCESS, this, 3);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -38,46 +41,12 @@ Node QuantifiersProofRuleChecker::checkInternal(
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  // compute what was proven
-  if (id == PfRule::EXISTS_INTRO)
+  if (id == PfRule::SKOLEM_INTRO)
   {
-    Assert(children.size() == 1);
+    Assert(children.empty());
     Assert(args.size() == 1);
-    Node p = children[0];
-    Node exists = args[0];
-    if (exists.getKind() != kind::EXISTS || exists[0].getNumChildren() != 1)
-    {
-      return Node::null();
-    }
-    std::unordered_map<Node, Node, NodeHashFunction> subs;
-    if (!expr::match(exists[1], p, subs))
-    {
-      return Node::null();
-    }
-    // substitution must contain only the variable of the existential
-    for (const std::pair<const Node, Node>& s : subs)
-    {
-      if (s.first != exists[0][0])
-      {
-        return Node::null();
-      }
-    }
-    return exists;
-  }
-  else if (id == PfRule::WITNESS_INTRO)
-  {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    if (children[0].getKind() != EXISTS || children[0][0].getNumChildren() != 1)
-    {
-      return Node::null();
-    }
-    std::vector<Node> skolems;
-    sm->mkSkolemize(children[0], skolems, "k");
-    Assert(skolems.size() == 1);
-    Node witness = SkolemManager::getWitnessForm(skolems[0]);
-    Assert(witness.getKind() == WITNESS && witness[0] == children[0][0]);
-    return skolems[0].eqNode(witness);
+    Node t = SkolemManager::getUnpurifiedForm(args[0]);
+    return args[0].eqNode(t);
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -107,15 +76,16 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == PfRule::INSTANTIATE)
   {
     Assert(children.size() == 1);
+    // note we may have more arguments than just the term vector
     if (children[0].getKind() != FORALL
-        || args.size() != children[0][0].getNumChildren())
+        || args.size() < children[0][0].getNumChildren())
     {
       return Node::null();
     }
     Node body = children[0][1];
     std::vector<Node> vars;
     std::vector<Node> subs;
-    for (unsigned i = 0, nargs = args.size(); i < nargs; i++)
+    for (size_t i = 0, nc = children[0][0].getNumChildren(); i < nc; i++)
     {
       vars.push_back(children[0][0][i]);
       subs.push_back(args[i]);
@@ -124,6 +94,47 @@ Node QuantifiersProofRuleChecker::checkInternal(
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
   }
+  else if (id == PfRule::ALPHA_EQUIV)
+  {
+    Assert(children.empty());
+    if (args[0].getKind() != kind::FORALL)
+    {
+      return Node::null();
+    }
+    // arguments must be equalities that are bound variables that are
+    // pairwise unique
+    std::unordered_set<Node> allVars[2];
+    std::vector<Node> vars;
+    std::vector<Node> newVars;
+    for (size_t i = 1, nargs = args.size(); i < nargs; i++)
+    {
+      if (args[i].getKind() != kind::EQUAL)
+      {
+        return Node::null();
+      }
+      for (size_t j = 0; j < 2; j++)
+      {
+        Node v = args[i][j];
+        if (v.getKind() != kind::BOUND_VARIABLE
+            || allVars[j].find(v) != allVars[j].end())
+        {
+          return Node::null();
+        }
+        allVars[j].insert(v);
+      }
+      vars.push_back(args[i][0]);
+      newVars.push_back(args[i][1]);
+    }
+    Node renamedBody = args[0].substitute(
+        vars.begin(), vars.end(), newVars.begin(), newVars.end());
+    return args[0].eqNode(renamedBody);
+  }
+  else if (id == PfRule::QUANTIFIERS_PREPROCESS)
+  {
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
+    return args[0];
+  }
 
   // no rule
   return Node::null();
@@ -131,4 +142,4 @@ Node QuantifiersProofRuleChecker::checkInternal(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

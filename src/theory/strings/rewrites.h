@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file rewrites.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type for rewrites for strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type for rewrites for strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REWRITES_H
-#define CVC4__THEORY__STRINGS__REWRITES_H
+#ifndef CVC5__THEORY__STRINGS__REWRITES_H
+#define CVC5__THEORY__STRINGS__REWRITES_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -72,10 +73,17 @@ enum class Rewrite : uint32_t
   IDOF_PULL_ENDPT,
   IDOF_STRIP_CNST_ENDPTS,
   IDOF_STRIP_SYM_LEN,
+  INDEXOF_RE_EMP_RE,
+  INDEXOF_RE_EVAL,
+  INDEXOF_RE_INVALID_INDEX,
+  INDEXOF_RE_MAX_INDEX,
   ITOS_EVAL,
+  RE_ALL_ELIM,
   RE_AND_EMPTY,
   RE_ANDOR_FLATTEN,
   RE_ANDOR_INC_CONFLICT,
+  RE_INTER_CONST_CONST_CONFLICT,
+  RE_INTER_CONST_RE_CONFLICT,
   RE_CHAR_IN_STR_STAR,
   RE_CONCAT,
   RE_CONCAT_FLATTEN,
@@ -85,7 +93,9 @@ enum class Rewrite : uint32_t
   RE_EMPTY_IN_STR_STAR,
   RE_IN_DIST_CHAR_STAR,
   RE_IN_SIGMA_STAR,
+  RE_IN_CHAR_MODULUS_STAR,
   RE_LOOP,
+  RE_LOOP_NONE,
   RE_LOOP_STAR,
   RE_OR_ALL,
   RE_SIMPLE_CONSUME,
@@ -93,6 +103,7 @@ enum class Rewrite : uint32_t
   RE_STAR_EMPTY_STRING,
   RE_STAR_NESTED_STAR,
   RE_STAR_UNION,
+  RE_STAR_UNION_CHAR,
   REPL_CHAR_NCONTRIB_FIND,
   REPL_DUAL_REPL_ITE,
   REPL_REPL_SHORT_CIRCUIT,
@@ -143,10 +154,13 @@ enum class Rewrite : uint32_t
   SS_STRIP_END_PT,
   SS_STRIP_START_PT,
   UPD_EVAL,
+  UPD_EVAL_SYM,
   UPD_EMPTYSTR,
   UPD_CONST_INDEX_MAX_OOB,
   UPD_CONST_INDEX_NEG,
   UPD_CONST_INDEX_OOB,
+  UPD_REV,
+  UPD_OOB,
   STOI_CONCAT_NONNUM,
   STOI_EVAL,
   STR_CONV_CONST,
@@ -203,6 +217,7 @@ enum class Rewrite : uint32_t
   SUF_PREFIX_ELIM,
   STR_LT_ELIM,
   RE_RANGE_SINGLE,
+  RE_RANGE_EMPTY,
   RE_OPT_ELIM,
   RE_PLUS_ELIM,
   RE_DIFF_ELIM,
@@ -213,7 +228,9 @@ enum class Rewrite : uint32_t
   LEN_SEQ_UNIT,
   CHARAT_ELIM,
   SEQ_UNIT_EVAL,
-  SEQ_NTH_EVAL
+  SEQ_NTH_EVAL,
+  SEQ_NTH_EVAL_OOB,
+  SEQ_NTH_EVAL_SYM
 };
 
 /**
@@ -238,6 +255,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__STRINGS__REWRITES_H */
+#endif /* CVC5__THEORY__STRINGS__REWRITES_H */

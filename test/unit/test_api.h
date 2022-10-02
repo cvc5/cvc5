@@ -1,27 +1,33 @@
-/*********************                                                        */
-/*! \file datatype_api_black.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common header for API unit test.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common header for API unit test.
+ */
 
-#ifndef CVC4__TEST__UNIT__TEST_API_H
-#define CVC4__TEST__UNIT__TEST_API_H
+#ifndef CVC5__TEST__UNIT__TEST_API_H
+#define CVC5__TEST__UNIT__TEST_API_H
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "gtest/gtest.h"
+
+namespace cvc5::internal {
+namespace test {
 
 class TestApi : public ::testing::Test
 {
  protected:
-  CVC4::api::Solver d_solver;
+  cvc5::Solver d_solver;
 };
 
+}  // namespace test
+}  // namespace cvc5::internal
 #endif

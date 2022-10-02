@@ -1,45 +1,46 @@
-/*********************                                                        */
-/*! \file ackermann.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng, Aina Niemetz, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Ackermannization preprocessing pass.
- **
- ** This implements the Ackermannization preprocessing pass, which enables
- ** very limited theory combination support for eager bit-blasting via
- ** Ackermannization. It reduces constraints over the combination of the
- ** theories of fixed-size bit-vectors and uninterpreted functions as
- ** described in
- **   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
- **   Bit-vectors in Satisfiability Modulo Theories.
-￼**   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Ying Sheng, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Ackermannization preprocessing pass.
+ *
+ * This implements the Ackermannization preprocessing pass, which enables
+ * very limited theory combination support for eager bit-blasting via
+ * Ackermannization. It reduces constraints over the combination of the
+ * theories of fixed-size bit-vectors and uninterpreted functions as
+ * described in
+ *   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
+ *   Bit-vectors in Satisfiability Modulo Theories.
+ *   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__ACKERMANN_H
-#define CVC4__PREPROCESSING__PASSES__ACKERMANN_H
+#ifndef CVC5__PREPROCESSING__PASSES__ACKERMANN_H
+#define CVC5__PREPROCESSING__PASSES__ACKERMANN_H
 
 #include <unordered_map>
+
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/logic_info.h"
+#include "theory/substitutions.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
-using FunctionToArgsMap =
-    std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
-using USortToBVSizeMap =
-    std::unordered_map<TypeNode, size_t, TypeNode::HashFunction>;
+using TNodeSet = std::unordered_set<TNode>;
+using FunctionToArgsMap = std::unordered_map<TNode, TNodeSet>;
+using USortToBVSizeMap = std::unordered_map<TypeNode, size_t>;
 
 class Ackermann : public PreprocessingPass
 {
@@ -80,6 +81,6 @@ class Ackermann : public PreprocessingPass
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__PREPROCESSING__PASSES__ACKERMANN_H */
+#endif /* CVC5__PREPROCESSING__PASSES__ACKERMANN_H */

@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file arith_msum.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief arith_msum
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic utilities regarding monomial sums.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__MSUM_H
-#define CVC4__THEORY__ARITH__MSUM_H
+#ifndef CVC5__THEORY__ARITH__MSUM_H
+#define CVC5__THEORY__ARITH__MSUM_H
 
 #include <map>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 /** Arithmetic utilities regarding monomial sums.
@@ -33,7 +34,7 @@ namespace theory {
  *   (b) c is null.
  *
  *   We say Node v is a {monomial variable} (or m-variable) if either:
- *   (a) v.getType().isReal() and v is not a constant, or
+ *   (a) v.getType().isRealOrInt() and v is not a constant, or
  *   (b) v is null.
  *
  *   For m-constant or m-variable t, we write [t] to denote 1 if t.isNull() and
@@ -102,6 +103,12 @@ class ArithMSum
    *
    * Make the Node corresponding to the interpretation of msum, [msum], where:
    *   [msum] = sum_{( v, c ) \in msum } [c]*[v]
+   *
+   * @param msum The monomial sum
+   * @return The node corresponding to the monomial sum
+   *
+   * Note this utility is agnostic to types, it will return the integer 0 if
+   * msum is empty.
    */
   static Node mkNode(const std::map<Node, Node>& msum);
 
@@ -158,6 +165,9 @@ class ArithMSum
    * This function may return false if lit does not contain v,
    * or if lit is an integer equality with a coefficent on v,
    * e.g. 3*v = 7.
+   *
+   * Note this utility is agnostic to types, the returned term may be Int when
+   * v is Real.
    */
   static Node solveEqualityFor(Node lit, Node v);
 
@@ -172,17 +182,11 @@ class ArithMSum
   */
   static bool decompose(Node n, Node v, Node& coeff, Node& rem);
 
-  /** return the rewritten form of (UMINUS t) */
-  static Node negate(Node t);
-
-  /** return the rewritten form of (PLUS t (CONST_RATIONAL i)) */
-  static Node offset(Node t, int i);
-
   /** debug print for a monmoial sum, prints to Trace(c) */
   static void debugPrintMonomialSum(std::map<Node, Node>& msum, const char* c);
 };
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__MSUM_H */
+#endif /* CVC5__THEORY__ARITH__MSUM_H */

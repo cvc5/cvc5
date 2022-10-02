@@ -1,33 +1,18 @@
 id     = "EXPR"
-name   = "Expression package"
-header = "options/expr_options.h"
-
-[[option]]
-  name       = "defaultExprDepth"
-  category   = "regular"
-  long       = "expr-depth=N"
-  type       = "int"
-  default    = "0"
-  predicates = ["setDefaultExprDepthPredicate"]
-  read_only  = true
-  help       = "print exprs to depth N (0 == default, -1 == no limit)"
-
-[[option]]
-  name       = "defaultDagThresh"
-  smt_name   = "dag-thresh"
-  category   = "regular"
-  long       = "dag-thresh=N"
-  type       = "int"
-  default    = "1"
-  predicates = ["setDefaultDagThreshPredicate"]
-  read_only  = true
-  help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
+name   = "Expression"
 
 [[option]]
   name       = "typeChecking"
-  category   = "regular"
+  category   = "expert"
   long       = "type-checking"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
-  read_only  = true
   help       = "type check expressions"
+
+[[option]]
+  name       = "wellFormedChecking"
+  category   = "expert"
+  long       = "wf-checking"
+  type       = "bool"
+  default    = "true"
+  help       = "check that terms passed to API methods are well formed (default false for text interface)"

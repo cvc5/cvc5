@@ -1,0 +1,16 @@
+; COMMAND-LINE: --finite-model-find
+; EXPECT: sat
+(set-logic ALL)
+(set-info :status sat)
+(declare-sort U 0)
+(declare-datatypes ((D 0)) (((cons (x Int) (y U)))))
+(declare-fun d1 () D)
+(declare-fun d2 () D)
+(declare-fun d3 () D)
+(declare-fun d4 () D)
+(assert (distinct d1 d2 d3 d4))
+(assert (forall ((x U) (y U)) (= x y)))
+(declare-fun a () U)
+(declare-fun P (U) Bool)
+(assert (P a))
+(check-sat)

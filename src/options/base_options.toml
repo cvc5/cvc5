@@ -1,155 +1,280 @@
 id     = "BASE"
 name   = "Base"
-header = "options/base_options.h"
-
-[[option]]
-  name       = "binary_name"
-  category   = "undocumented"
-  type       = "std::string"
-
-[[option]]
-  name       = "in"
-  category   = "undocumented"
-  type       = "std::istream*"
-  default    = "&std::cin"
-  includes   = ["<iosfwd>"]
-
-[[option]]
-  name       = "out"
-  category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cout"
-  includes   = ["<iosfwd>"]
 
 [[option]]
   name       = "err"
-  category   = "undocumented"
-  type       = "std::ostream*"
-  default    = "&std::cerr"
-  includes   = ["<iosfwd>"]
+  category   = "expert"
+  long       = "err=erroutput"
+  type       = "ManagedErr"
+  default    = '{}'
+  alias      = ["diagnostic-output-channel"]
+  predicates = ["setErrStream"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Writes to stderr for \"stderr\" or \"--\", stdout for \"stdout\" or the given filename otherwise."
+
+[[option]]
+  name       = "in"
+  category   = "expert"
+  long       = "in=input"
+  type       = "ManagedIn"
+  default    = '{}'
+  includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
+
+[[option]]
+  name       = "out"
+  category   = "expert"
+  long       = "out=output"
+  type       = "ManagedOut"
+  default    = '{}'
+  alias      = ["regular-output-channel"]
+  includes   = ["<iostream>", "options/managed_streams.h"]
+  help       = "Set the error (or diagnostic) output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
 
 [[option]]
   name       = "inputLanguage"
-  smt_name   = "input-language"
+  alias      = ["input-language"]
   category   = "common"
   short      = "L"
   long       = "lang=LANG"
-  type       = "InputLanguage"
-  default    = "language::input::LANG_AUTO"
-  handler    = "stringToInputLanguage"
+  type       = "Language"
+  default    = "Language::LANG_AUTO"
+  handler    = "stringToLanguage"
+  predicates = ["setInputLanguage"]
   includes   = ["options/language.h"]
   help       = "force input language (default is \"auto\"; see --lang help)"
 
 [[option]]
-  name       = "outputLanguage"
-  smt_name   = "output-language"
-  category   = "common"
-  long       = "output-lang=LANG"
-  type       = "OutputLanguage"
-  default    = "language::output::LANG_AUTO"
-  handler    = "stringToOutputLanguage"
-  includes   = ["options/language.h"]
-  help       = "force output language (default is \"auto\"; see --output-lang help)"
-
-[[option]]
-  name       = "languageHelp"
-  category   = "undocumented"
-  type       = "bool"
-
-[[option]]
   name       = "verbosity"
-  smt_name   = "verbosity"
-  category   = "regular"
-  type       = "int"
+  long       = "verbosity=N"
+  category   = "common"
+  type       = "int64_t"
   default    = "0"
   predicates = ["setVerbosity"]
-  help       = "the verbosity level of CVC4"
+  help       = "the verbosity level of cvc5"
 
 [[option]]
   category   = "common"
   short      = "v"
   long       = "verbose"
-  type       = "void"
-  handler    = "increaseVerbosity"
-  read_only  = true
+  type       = "bool"
+  alternate  = false
+  predicates = ["increaseVerbosity"]
   help       = "increase verbosity (may be repeated)"
 
 [[option]]
   category   = "common"
   short      = "q"
   long       = "quiet"
-  type       = "void"
-  handler    = "decreaseVerbosity"
-  read_only  = true
+  type       = "bool"
+  alternate  = false
+  predicates = ["decreaseVerbosity"]
   help       = "decrease verbosity (may be repeated)"
 
 [[option]]
-  name       = "statistics"
-  smt_name   = "statistics"
+  name       = "incrementalSolving"
   category   = "common"
-  long       = "stats"
+  short      = "i"
+  long       = "incremental"
   type       = "bool"
-  predicates = ["statsEnabledBuild"]
-  read_only  = true
+  default    = "true"
+  help       = "enable incremental solving"
+
+[[option]]
+  name       = "statistics"
+  long       = "stats"
+  category   = "common"
+  type       = "bool"
+  default    = "false"
+  predicates = ["setStats"]
   help       = "give statistics on exit"
 
 [[option]]
-  name       = "statsEveryQuery"
-  category   = "regular"
-  long       = "stats-every-query"
+  name       = "statisticsAll"
+  long       = "stats-all"
+  category   = "expert"
   type       = "bool"
   default    = "false"
-  read_only  = true
+  predicates = ["setStatsDetail"]
+  help       = "print unchanged (defaulted) statistics as well"
+
+[[option]]
+  name       = "statisticsInternal"
+  long       = "stats-internal"
+  category   = "expert"
+  type       = "bool"
+  default    = "false"
+  predicates = ["setStatsDetail"]
+  help       = "print internal (non-public) statistics as well"
+
+[[option]]
+  name       = "statisticsEveryQuery"
+  long       = "stats-every-query"
+  category   = "regular"
+  type       = "bool"
+  default    = "false"
+  predicates = ["setStatsDetail"]
   help       = "in incremental mode, print stats after every satisfiability or validity query"
 
 [[option]]
-  name       = "statsHideZeros"
-  category   = "regular"
-  long       = "stats-hide-zeros"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "hide statistics which are zero"
-
-[[option]]
   name       = "parseOnly"
-  category   = "regular"
+  category   = "common"
   long       = "parse-only"
   type       = "bool"
+  default    = "false"
   help       = "exit after parsing input"
 
 [[option]]
   name       = "preprocessOnly"
-  category   = "regular"
+  category   = "common"
   long       = "preprocess-only"
   type       = "bool"
-  read_only  = true
+  default    = "false"
   help       = "exit after preprocessing input"
 
 [[option]]
-  smt_name   = "trace"
   category   = "regular"
   short      = "t"
   long       = "trace=TAG"
   type       = "std::string"
-  handler    = "enableTraceTag"
-  read_only  = true
-  help       = "trace something (e.g. -t pushpop), can repeat"
+  predicates = ["enableTraceTag"]
+  help       = "trace something (e.g. -t pushpop), can repeat and may contain wildcards like (e.g. -t theory::*)"
 
 [[option]]
-  smt_name   = "debug"
-  category   = "regular"
-  short      = "d"
-  long       = "debug=TAG"
+  short      = "o"
+  category   = "common"
+  long       = "output=TAG"
+  type       = "OutputTag"
+  default    = "NONE"
+  predicates = ["enableOutputTag"]
+  help       = "Enable output tag."
+  help_mode  = "Output tags."
+[[option.mode.NONE]]
+  name = "none"
+[[option.mode.INST]]
+  name = "inst"
+  help = "print instantiations during solving"
+  description = "With ``-o inst``, cvc5 prints information about quantifier instantions for individual quantifers."
+  example-file = "regress1/quantifiers/qid-debug-inst.smt2"
+[[option.mode.SYGUS]]
+  name = "sygus"
+  help = "print enumerated terms and candidates generated by the sygus solver"
+  description = "With ``-o sygus``, cvc5 prints information about the internal SyGuS solver including enumerated terms and generated candidates."
+  example-file = "regress0/sygus/print-debug.sy"
+[[option.mode.SYGUS_GRAMMAR]]
+  name = "sygus-grammar"
+  help = "print grammars automatically generated by the sygus solver"
+  description = "With ``-o sygus-grammar``, cvc5 prints the grammar it generates for a function-to-synthesize when no grammar was provided."
+  example-file = "regress0/sygus/print-grammar.sy"
+[[option.mode.SYGUS_SOL_GTERM]]
+  name = "sygus-sol-gterm"
+  help = "print annotations for terms in sygus solutions that indicate the grammar used to generate them"
+  description = "With ``-o sygus-sol-gterm``, cvc5 prints annotations for terms in sygus solutions that indicate the grammar used to generate them."
+  example-file = "regress0/sygus/print-sygus-gterm.sy"
+[[option.mode.TRIGGER]]
+  name = "trigger"
+  help = "print selected triggers for quantified formulas"
+  description = "With ``-o trigger``, cvc5 prints the selected triggers when solving a quantified formula."
+  example-file = "regress1/quantifiers/qid-debug-inst.smt2"
+[[option.mode.RAW_BENCHMARK]]
+  name = "raw-benchmark"
+  help = "print the benchmark back on the output verbatim as it is processed"
+  description = "With ``-o raw-benchmark``, cvc5 prints the benchmark back just as it has been parsed."
+  example-file = "regress0/datatypes/datatype-dump.cvc.smt2"
+[[option.mode.LEARNED_LITS]]
+  name = "learned-lits"
+  help = "print input literals that hold globally"
+  description = "With ``-o learned-lits``, cvc5 prints input literals that it has learned to hold globally."
+  example-file = "regress0/printer/learned-lit-output.smt2"
+[[option.mode.SUBS]]
+  name = "subs"
+  help = "print top-level substitutions learned during preprocessing"
+  description = "With ``-o subs``, cvc5 prints top-level substitutions learned during preprocessing."
+  example-file = "regress0/printer/print_subs.smt2"
+[[option.mode.POST_ASSERTS]]
+  name = "post-asserts"
+  help = "print a benchmark corresponding to the assertions of the input problem after preprocessing"
+  description = "With ``-o post-asserts``, cvc5 prints a benchmark corresponding to the assertions of the input problem after preprocessing."
+  example-file = "regress0/printer/post-asserts-output.smt2"
+[[option.mode.PRE_ASSERTS]]
+  name = "pre-asserts"
+  help = "print a benchmark corresponding to the assertions of the input problem before preprocessing"
+  description = "With ``-o pre-asserts``, cvc5 prints a benchmark corresponding to the assertions of the input problem before preprocessing."
+  example-file = "regress0/printer/pre-asserts-output.smt2"
+[[option.mode.DEEP_RESTART]]
+  name = "deep-restart"
+  help = "print when cvc5 performs a deep restart along with the literals it has learned"
+  description = "With ``-o deep-restart``, cvc5 prints when it performs a deep restart along with the literals it has learned."
+  example-file = "regress0/printer/deep-restart-output.smt2"
+[[option.mode.INCOMPLETE]]
+  name = "incomplete"
+  help = "print reason why cvc5 answers unknown for any given check-sat query"
+  description = "With ``-o incomplete``, cvc5 prints reason for why it answers unknown for any given check-sat query."
+  example-file = "regress0/printer/incomplete.smt2"
+[[option.mode.LEMMAS]]
+  name = "lemmas"
+  help = "print lemmas as they are added to the SAT solver"
+  description = "With ``-o lemmas``, cvc5 prints lemmas as they are added to the SAT solver."
+  example-file = "regress0/printer/print_sat_lemmas.smt2"
+
+# Stores then enabled output tags.
+[[option]]
+  name       = "outputTagHolder"
+  category   = "undocumented"
+  includes   = ["<bitset>"]
+  type       = "std::bitset<static_cast<size_t>(OutputTag::__MAX_VALUE)+1>"
+  default    = '{}'
+
+[[option]]
+  name       = "cumulativeMillisecondLimit"
+  category   = "common"
+  long       = "tlimit=MS"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "set time limit in milliseconds of wall clock time"
+
+[[option]]
+  name       = "perCallMillisecondLimit"
+  category   = "common"
+  long       = "tlimit-per=MS"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "set time limit per query in milliseconds"
+
+[[option]]
+  name       = "cumulativeResourceLimit"
+  category   = "common"
+  long       = "rlimit=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "set resource limit"
+
+[[option]]
+  name       = "perCallResourceLimit"
+  alias      = ["reproducible-resource-limit"]
+  category   = "common"
+  long       = "rlimit-per=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "set resource limit per query"
+
+# --rweight is used to override the default of one particular resource weight.
+# It can be given multiple times to override multiple weights. When options are
+# parsed, the resource manager might now be created yet, and it is not clear
+# how an option handler would access it in a reasonable way. The option handler
+# thus merely puts the data in another option that holds a vector of strings.
+# This other option "resourceWeightHolder" has the sole purpose of storing
+# this data in a way so that the resource manager can access it in its
+# constructor.
+[[option]]
+  category   = "expert"
+  long       = "rweight=VAL=N"
   type       = "std::string"
-  handler    = "enableDebugTag"
-  read_only  = true
-  help       = "debug something (e.g. -d arith), can repeat"
+  predicates = ["setResourceWeight"]
+  help       = "set a single resource weight"
 
 [[option]]
-  name       = "printSuccess"
-  category   = "regular"
-  long       = "print-success"
-  type       = "bool"
-  read_only  = true
-  help       = "print the \"success\" output required of SMT-LIBv2"
+  name       = "resourceWeightHolder"
+  category   = "undocumented"
+  type       = "std::vector<std::string>"
+  default    = '{}'

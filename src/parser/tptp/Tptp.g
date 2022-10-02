@@ -1,19 +1,19 @@
-/* *******************                                                        */
-/*! \file Tptp.g
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Francois Bobot, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Parser for TPTP input language.
- **
- ** Parser for TPTP input language.
- ** cf. http://www.cs.miami.edu/~tptp/cgi-bin/SeeTPTP?Category=Documents&File=SyntaxBNF
- **/
+/* ****************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Francois Bobot, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Parser for TPTP input language.
+ *
+ * cf. http://www.cs.miami.edu/~tptp/cgi-bin/SeeTPTP?Category=Documents&File=SyntaxBNF
+ */
 
 grammar Tptp;
 
@@ -25,19 +25,21 @@ options {
   // defaultErrorHandler = false;
 
   // Only lookahead of <= k requested (disable for LL* parsing)
-  // Note that CVC4's BoundedTokenBuffer requires a fixed k !
+  // Note that cvc5's BoundedTokenBuffer requires a fixed k !
   // If you change this k, change it also in tptp_input.cpp !
   k = 2;
 }/* options */
 
 @header {
-/**
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.
- **/
+/* ****************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ */
 }/* @header */
 
 @lexer::includes {
@@ -56,8 +58,6 @@ options {
  */
 #define ANTLR3_INLINE_INPUT_ASCII
 
-#include "parser/antlr_tracing.h"
-
 }/* @lexer::includes */
 
 @lexer::postinclude {
@@ -65,8 +65,8 @@ options {
 #include "parser/tptp/tptp.h"
 #include "parser/antlr_input.h"
 
-using namespace CVC4;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
@@ -75,9 +75,7 @@ using namespace CVC4::parser;
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
-#undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* @lexer::postinclude */
@@ -86,11 +84,10 @@ using namespace CVC4::parser;
 
 #include <memory>
 
-#include "smt/command.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
-#include "parser/antlr_tracing.h"
 
 }/* @parser::includes */
 
@@ -100,19 +97,14 @@ using namespace CVC4::parser;
 #include <iterator>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
-#include "util/integer.h"
-#include "util/rational.h"
 
-using namespace CVC4;
-using namespace CVC4::parser;
+using namespace cvc5;
+using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
@@ -123,17 +115,17 @@ using namespace CVC4::parser;
 #undef SYM_MAN
 #define SYM_MAN PARSER_STATE->getSymbolManager()
 #undef MK_TERM
-#define MK_TERM SOLVER->mkTerm
+#define MK_TERM(KIND, ...) SOLVER->mkTerm(KIND, {__VA_ARGS__})
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
 
 /**
  * Parses an expression.
- * @return the parsed expression, or the Null CVC4::api::Term if we've reached
+ * @return the parsed expression, or the Null cvc5::Term if we've reached
  * the end of the input
  */
-parseExpr returns [CVC4::parser::tptp::myExpr expr]
+parseExpr returns [cvc5::parser::tptp::myExpr expr]
   : cnfFormula[expr]
   | EOF
   ;
@@ -142,9 +134,9 @@ parseExpr returns [CVC4::parser::tptp::myExpr expr]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [CVC4::Command* cmd = NULL]
+parseCommand returns [cvc5::parser::Command* cmd = NULL]
 @declarations {
-  CVC4::api::Term expr;
+  cvc5::Term expr;
   Tptp::FormulaRole fr;
   std::string name, inclSymbol;
   ParseOp p;
@@ -155,32 +147,32 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     PARSER_STATE->pushScope(); }
     cnfFormula[expr]
   { PARSER_STATE->popScope();
-    std::vector<api::Term> bvl = PARSER_STATE->getFreeVar();
+    std::vector<cvc5::Term> bvl = PARSER_STATE->getFreeVar();
     if(!bvl.empty()) {
-      expr = MK_TERM(api::FORALL,MK_TERM(api::BOUND_VAR_LIST,bvl),expr);
+      expr = MK_TERM(cvc5::FORALL,MK_TERM(cvc5::VARIABLE_LIST,bvl),expr);
     };
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
+      cvc5::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
         SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
-      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ true, true);
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, true);
     }
   | FOF_TOK LPAREN_TOK nameN[name] COMMA_TOK formulaRole[fr] COMMA_TOK
     { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      cvc5::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
         SYM_MAN->setExpressionName(aexpr, name, true);
       }
       // make the command to assert the formula
-      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
+      cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, false);
     }
   | TFF_TOK LPAREN_TOK nameN[name] COMMA_TOK
     ( TYPE_TOK COMMA_TOK tffTypedAtom[cmd]
@@ -188,16 +180,20 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        cvc5::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
           SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
-        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, /* cnf == */ false, true);
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, false);
       }
     ) RPAREN_TOK DOT_TOK
-  | THF_TOK LPAREN_TOK nameN[name] COMMA_TOK
+  | THF_TOK
+    {
+      PARSER_STATE->setHol();
+    }
+    LPAREN_TOK nameN[name] COMMA_TOK
     // Supported THF formulas: either a logic formula or a typing atom (i.e. we
     // ignore subtyping and logic sequents). Also, only TH0
     ( TYPE_TOK COMMA_TOK thfAtomTyping[cmd]
@@ -210,15 +206,14 @@ parseCommand returns [CVC4::Command* cmd = NULL]
           PARSER_STATE->parseError("Top level expression must be a formula");
         }
         expr = p.d_expr;
-        CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
+        cvc5::Term aexpr = PARSER_STATE->getAssertionExpr(fr, expr);
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
           SYM_MAN->setExpressionName(aexpr, name, true);
         }
         // make the command to assert the formula
-        cmd = PARSER_STATE->makeAssertCommand(
-            fr, aexpr, /* cnf == */ false, true);
+        cmd = PARSER_STATE->makeAssertCommand(fr, aexpr, false);
       }
     ) RPAREN_TOK DOT_TOK
   | INCLUDE_TOK LPAREN_TOK unquotedFileName[name]
@@ -243,12 +238,11 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     }
   | EOF
     {
-      CommandSequence* seq = new CommandSequence();
       // assert that all distinct constants are distinct
-      CVC4::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
+      cvc5::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr, false));
+        PARSER_STATE->preemptCommand(new AssertCommand(aexpr));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
@@ -259,19 +253,19 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      seq->addCommand(new SetInfoCommand("filename", filename));
+      PARSER_STATE->preemptCommand(new SetInfoCommand("filename", filename));
       if(PARSER_STATE->hasConjecture()) {
-        seq->addCommand(new QueryCommand(SOLVER->mkFalse()));
+        // note this does not impact how the TPTP status is reported currently
+        PARSER_STATE->preemptCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
       } else {
-        seq->addCommand(new CheckSatCommand());
+        PARSER_STATE->preemptCommand(new CheckSatCommand());
       }
-      PARSER_STATE->preemptCommand(seq);
-      cmd = NULL;
+      cmd = nullptr;
     }
   ;
 
 /* Parse a formula Role */
-formulaRole[CVC4::parser::Tptp::FormulaRole& role]
+formulaRole[cvc5::parser::Tptp::FormulaRole& role]
   : LOWER_WORD
     {
       std::string r = AntlrInput::tokenText($LOWER_WORD);
@@ -299,33 +293,33 @@ formulaRole[CVC4::parser::Tptp::FormulaRole& role]
 /* It can parse a little more than the cnf grammar: false and true can appear.
  * Normally only false can appear and only at top level. */
 
-cnfFormula[CVC4::api::Term& expr]
+cnfFormula[cvc5::Term& expr]
   : LPAREN_TOK cnfDisjunction[expr] RPAREN_TOK
   | cnfDisjunction[expr]
 ;
 
-cnfDisjunction[CVC4::api::Term& expr]
+cnfDisjunction[cvc5::Term& expr]
 @declarations {
-  std::vector<api::Term> args;
+  std::vector<cvc5::Term> args;
 }
   : cnfLiteral[expr] { args.push_back(expr); }
     ( OR_TOK cnfLiteral[expr] { args.push_back(expr); } )*
     { if(args.size() > 1) {
-        expr = MK_TERM(api::OR, args);
+        expr = MK_TERM(cvc5::OR, args);
       } // else its already in the expr
     }
 ;
 
-cnfLiteral[CVC4::api::Term& expr]
+cnfLiteral[cvc5::Term& expr]
   : atomicFormula[expr]
-  | NOT_TOK atomicFormula[expr] { expr = MK_TERM(api::NOT, expr); }
+  | NOT_TOK atomicFormula[expr] { expr = MK_TERM(cvc5::NOT, expr); }
   ;
 
-atomicFormula[CVC4::api::Term& expr]
+atomicFormula[cvc5::Term& expr]
 @declarations {
-  CVC4::api::Term expr2;
+  cvc5::Term expr2;
   std::string name;
-  std::vector<CVC4::api::Term> args;
+  std::vector<cvc5::Term> args;
   bool equal;
   ParseOp p;
 }
@@ -337,11 +331,11 @@ atomicFormula[CVC4::api::Term& expr]
         args.clear();
         args.push_back(expr);
         args.push_back(expr2);
-        ParseOp p1(api::EQUAL);
+        ParseOp p1(cvc5::EQUAL);
         expr = PARSER_STATE->applyParseOp(p1, args);
         if (!equal)
         {
-          expr = MK_TERM(api::NOT, expr);
+          expr = MK_TERM(cvc5::NOT, expr);
         }
       }
     | { // predicate
@@ -359,11 +353,11 @@ atomicFormula[CVC4::api::Term& expr]
        args.clear();
        args.push_back(expr);
        args.push_back(expr2);
-       ParseOp p1(api::EQUAL);
+       ParseOp p1(cvc5::EQUAL);
        expr = PARSER_STATE->applyParseOp(p1, args);
        if (!equal)
        {
-         expr = MK_TERM(api::NOT, expr);
+         expr = MK_TERM(cvc5::NOT, expr);
        }
      }
     )
@@ -373,11 +367,11 @@ atomicFormula[CVC4::api::Term& expr]
       { // equality/disequality between terms
         args.push_back(expr);
         args.push_back(expr2);
-        p.d_kind = api::EQUAL;
+        p.d_kind = cvc5::EQUAL;
         expr = PARSER_STATE->applyParseOp(p, args);
         if (!equal)
         {
-          expr = MK_TERM(api::NOT, expr);
+          expr = MK_TERM(cvc5::NOT, expr);
         }
       }
     )?
@@ -389,11 +383,11 @@ atomicFormula[CVC4::api::Term& expr]
   | definedProp[expr]
   ;
 
-thfAtomicFormula[CVC4::ParseOp& p]
+thfAtomicFormula[cvc5::ParseOp& p]
 @declarations {
-  CVC4::api::Term expr2;
+  cvc5::Term expr2;
   std::string name;
-  std::vector<CVC4::api::Term> args;
+  std::vector<cvc5::Term> args;
   bool equal;
 }
   : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
@@ -410,11 +404,11 @@ thfAtomicFormula[CVC4::ParseOp& p]
         args.clear();
         args.push_back(p.d_expr);
         args.push_back(expr2);
-        ParseOp p1(api::EQUAL);
+        ParseOp p1(cvc5::EQUAL);
         p.d_expr = PARSER_STATE->applyParseOp(p1, args);
         if (!equal)
         {
-          p.d_expr = MK_TERM(api::NOT, p.d_expr);
+          p.d_expr = MK_TERM(cvc5::NOT, p.d_expr);
         }
       }
     )?
@@ -435,287 +429,287 @@ thfAtomicFormula[CVC4::ParseOp& p]
 //%----Using <plain_term> removes a reduce/reduce ambiguity in lex/yacc.
 //%----Note: "defined" means a word starting with one $ and "system" means $$.
 
-definedProp[CVC4::api::Term& expr]
+definedProp[cvc5::Term& expr]
   : TRUE_TOK { expr = SOLVER->mkTrue(); }
   | FALSE_TOK  { expr = SOLVER->mkFalse(); }
   ;
 
-definedPred[CVC4::ParseOp& p]
+definedPred[cvc5::ParseOp& p]
   : '$less'
     {
-      p.d_kind = api::LT;
+      p.d_kind = cvc5::LT;
     }
   | '$lesseq'
     {
-      p.d_kind = api::LEQ;
+      p.d_kind = cvc5::LEQ;
     }
   | '$greater'
     {
-      p.d_kind = api::GT;
+      p.d_kind = cvc5::GT;
     }
   | '$greatereq'
     {
-      p.d_kind = api::GEQ;
+      p.d_kind = cvc5::GEQ;
     }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
-      api::Term qr = MK_TERM(api::TO_REAL, q);
-      api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
-      api::Term rr = MK_TERM(api::TO_REAL, r);
-      api::Term body =
-          MK_TERM(api::AND,
-                  MK_TERM(api::NOT,
-                          MK_TERM(api::EQUAL, r, SOLVER->mkInteger(0))),
-                  MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
-      api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
-      body = MK_TERM(api::EXISTS, bvl, body);
-      api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, lbvl, body);
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
+      cvc5::Term qr = MK_TERM(cvc5::TO_REAL, q);
+      cvc5::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
+      cvc5::Term rr = MK_TERM(cvc5::TO_REAL, r);
+      cvc5::Term body =
+          MK_TERM(cvc5::AND,
+                  MK_TERM(cvc5::NOT,
+                          MK_TERM(cvc5::EQUAL, r, SOLVER->mkInteger(0))),
+                  MK_TERM(cvc5::EQUAL, qr, MK_TERM(cvc5::MULT, n, rr)));
+      cvc5::Term bvl = MK_TERM(cvc5::VARIABLE_LIST, q, r);
+      body = MK_TERM(cvc5::EXISTS, bvl, body);
+      cvc5::Term lbvl = MK_TERM(cvc5::VARIABLE_LIST, n);
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, lbvl, body);
     }
   | '$is_int'
     {
-      p.d_kind = api::IS_INTEGER;
+      p.d_kind = cvc5::IS_INTEGER;
     }
   | '$distinct'
     {
-      p.d_kind = api::DISTINCT;
+      p.d_kind = cvc5::DISTINCT;
     }
   | AND_TOK
     {
-      p.d_kind = api::AND;
+      p.d_kind = cvc5::AND;
     }
   | IMPLIES_TOK
     {
-      p.d_kind = api::IMPLIES;
+      p.d_kind = cvc5::IMPLIES;
     }
   | OR_TOK
     {
-      p.d_kind = api::OR;
+      p.d_kind = cvc5::OR;
     }
   ;
 
-thfDefinedPred[CVC4::ParseOp& p]
+thfDefinedPred[cvc5::ParseOp& p]
   : '$less'
      {
-       p.d_kind = api::LT;
+       p.d_kind = cvc5::LT;
      }
   | '$lesseq'
     {
-      p.d_kind = api::LEQ;
+      p.d_kind = cvc5::LEQ;
     }
   | '$greater'
     {
-      p.d_kind = api::GT;
+      p.d_kind = cvc5::GT;
     }
   | '$greatereq'
     {
-      p.d_kind = api::GEQ;
+      p.d_kind = cvc5::GEQ;
     }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
-      api::Term qr = MK_TERM(api::TO_REAL, q);
-      api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
-      api::Term rr = MK_TERM(api::TO_REAL, r);
-      api::Term body = MK_TERM(
-          api::AND,
-          MK_TERM(api::NOT,
-                  MK_TERM(api::EQUAL, r, SOLVER->mkInteger(0))),
-          MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
-      api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
-      body = MK_TERM(api::EXISTS, bvl, body);
-      api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, lbvl, body);
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
+      cvc5::Term qr = MK_TERM(cvc5::TO_REAL, q);
+      cvc5::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
+      cvc5::Term rr = MK_TERM(cvc5::TO_REAL, r);
+      cvc5::Term body = MK_TERM(
+          cvc5::AND,
+          MK_TERM(cvc5::NOT,
+                  MK_TERM(cvc5::EQUAL, r, SOLVER->mkInteger(0))),
+          MK_TERM(cvc5::EQUAL, qr, MK_TERM(cvc5::MULT, n, rr)));
+      cvc5::Term bvl = MK_TERM(cvc5::VARIABLE_LIST, q, r);
+      body = MK_TERM(cvc5::EXISTS, bvl, body);
+      cvc5::Term lbvl = MK_TERM(cvc5::VARIABLE_LIST, n);
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, lbvl, body);
     }
   | '$is_int'
     {
-      p.d_kind = api::IS_INTEGER;
+      p.d_kind = cvc5::IS_INTEGER;
     }
   | '$distinct'
     {
-      p.d_kind = api::DISTINCT;
+      p.d_kind = cvc5::DISTINCT;
     }
   | LPAREN_TOK
     (
       AND_TOK
       {
-        p.d_kind = api::AND;
+        p.d_kind = cvc5::AND;
       }
     | OR_TOK
       {
-        p.d_kind = api::OR;
+        p.d_kind = cvc5::OR;
       }
     | IMPLIES_TOK
       {
-        p.d_kind = api::IMPLIES;
+        p.d_kind = cvc5::IMPLIES;
       }
     )
     RPAREN_TOK
   ;
 
-definedFun[CVC4::ParseOp& p]
+definedFun[cvc5::ParseOp& p]
 @declarations {
   bool remainder = false;
 }
   : '$uminus'
     {
-      p.d_kind = api::UMINUS;
+      p.d_kind = cvc5::NEG;
     }
   | '$sum'
     {
-      p.d_kind = api::PLUS;
+      p.d_kind = cvc5::ADD;
     }
   | '$difference'
     {
-      p.d_kind = api::MINUS;
+      p.d_kind = cvc5::SUB;
     }
   | '$product'
     {
-      p.d_kind = api::MULT;
+      p.d_kind = cvc5::MULT;
     }
   | '$quotient'
     {
-      p.d_kind = api::DIVISION;
+      p.d_kind = cvc5::DIVISION;
     }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
-      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      api::Term expr = MK_TERM(api::DIVISION, n, d);
-      expr = MK_TERM(api::ITE,
-                     MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
-                     MK_TERM(api::TO_INTEGER, expr),
-                     MK_TERM(api::UMINUS,
-                             MK_TERM(api::TO_INTEGER,
-                                     MK_TERM(api::UMINUS, expr))));
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
+      cvc5::Term formals = MK_TERM(cvc5::VARIABLE_LIST, n, d);
+      cvc5::Term expr = MK_TERM(cvc5::DIVISION, n, d);
+      expr = MK_TERM(cvc5::ITE,
+                     MK_TERM(cvc5::GEQ, d, SOLVER->mkReal(0)),
+                     MK_TERM(cvc5::TO_INTEGER, expr),
+                     MK_TERM(cvc5::NEG,
+                             MK_TERM(cvc5::TO_INTEGER,
+                                     MK_TERM(cvc5::NEG, expr))));
       if (remainder)
       {
         expr = MK_TERM(
-            api::TO_INTEGER,
-            MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
+            cvc5::TO_INTEGER,
+            MK_TERM(cvc5::SUB, n, MK_TERM(cvc5::MULT, expr, d)));
       }
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, formals, expr);
     }
   | ( '$quotient_t' { remainder = false; }
     | '$remainder_t' { remainder = true; }
     )
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
-      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      api::Term expr = MK_TERM(api::DIVISION, n, d);
-      expr = MK_TERM(api::ITE,
-                     MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
-                     MK_TERM(api::TO_INTEGER, expr),
-                     MK_TERM(api::UMINUS,
-                             MK_TERM(api::TO_INTEGER,
-                                     MK_TERM(api::UMINUS, expr))));
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
+      cvc5::Term formals = MK_TERM(cvc5::VARIABLE_LIST, n, d);
+      cvc5::Term expr = MK_TERM(cvc5::DIVISION, n, d);
+      expr = MK_TERM(cvc5::ITE,
+                     MK_TERM(cvc5::GEQ, expr, SOLVER->mkReal(0)),
+                     MK_TERM(cvc5::TO_INTEGER, expr),
+                     MK_TERM(cvc5::NEG,
+                             MK_TERM(cvc5::TO_INTEGER,
+                                     MK_TERM(cvc5::NEG, expr))));
       if (remainder)
       {
         expr = MK_TERM(
-            api::TO_INTEGER,
-            MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
+            cvc5::TO_INTEGER,
+            MK_TERM(cvc5::SUB, n, MK_TERM(cvc5::MULT, expr, d)));
       }
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, formals, expr);
     }
   | ( '$quotient_f' { remainder = false; }
     | '$remainder_f' { remainder = true; }
     )
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
-      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
-      api::Term expr = MK_TERM(api::DIVISION, n, d);
-      expr = MK_TERM(api::TO_INTEGER, expr);
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
+      cvc5::Term formals = MK_TERM(cvc5::VARIABLE_LIST, n, d);
+      cvc5::Term expr = MK_TERM(cvc5::DIVISION, n, d);
+      expr = MK_TERM(cvc5::TO_INTEGER, expr);
       if (remainder)
       {
-        expr = MK_TERM(api::TO_INTEGER,
-                       MK_TERM(api::MINUS, n, MK_TERM(api::MULT, expr, d)));
+        expr = MK_TERM(cvc5::TO_INTEGER,
+                       MK_TERM(cvc5::SUB, n, MK_TERM(cvc5::MULT, expr, d)));
       }
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, formals, expr);
     }
   | '$floor'
     {
-      p.d_kind = api::TO_INTEGER;
+      p.d_kind = cvc5::TO_INTEGER;
     }
   | '$ceiling'
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
-      api::Term expr = MK_TERM(api::UMINUS,
-                          MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n)));
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term formals = MK_TERM(cvc5::VARIABLE_LIST, n);
+      cvc5::Term expr = MK_TERM(cvc5::NEG,
+                          MK_TERM(cvc5::TO_INTEGER, MK_TERM(cvc5::NEG, n)));
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, formals, expr);
     }
   | '$truncate'
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
-      api::Term expr =
-          MK_TERM(api::ITE,
-                  MK_TERM(api::GEQ, n, SOLVER->mkReal(0)),
-                  MK_TERM(api::TO_INTEGER, n),
-                  MK_TERM(api::UMINUS,
-                          MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n))));
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term formals = MK_TERM(cvc5::VARIABLE_LIST, n);
+      cvc5::Term expr =
+          MK_TERM(cvc5::ITE,
+                  MK_TERM(cvc5::GEQ, n, SOLVER->mkReal(0)),
+                  MK_TERM(cvc5::TO_INTEGER, n),
+                  MK_TERM(cvc5::NEG,
+                          MK_TERM(cvc5::TO_INTEGER, MK_TERM(cvc5::NEG, n))));
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, formals, expr);
     }
   | '$round'
     {
-      api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
-      api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
-      api::Term decPart = MK_TERM(api::MINUS, n, MK_TERM(api::TO_INTEGER, n));
-      api::Term expr = MK_TERM(
-          api::ITE,
-          MK_TERM(api::LT, decPart, SOLVER->mkReal(1, 2)),
+      cvc5::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      cvc5::Term formals = MK_TERM(cvc5::VARIABLE_LIST, n);
+      cvc5::Term decPart = MK_TERM(cvc5::SUB, n, MK_TERM(cvc5::TO_INTEGER, n));
+      cvc5::Term expr = MK_TERM(
+          cvc5::ITE,
+          MK_TERM(cvc5::LT, decPart, SOLVER->mkReal(1, 2)),
           // if decPart < 0.5, round down
-          MK_TERM(api::TO_INTEGER, n),
-          MK_TERM(api::ITE,
-                  MK_TERM(api::GT, decPart, SOLVER->mkReal(1, 2)),
+          MK_TERM(cvc5::TO_INTEGER, n),
+          MK_TERM(cvc5::ITE,
+                  MK_TERM(cvc5::GT, decPart, SOLVER->mkReal(1, 2)),
                   // if decPart > 0.5, round up
-                  MK_TERM(api::TO_INTEGER,
-                          MK_TERM(api::PLUS, n, SOLVER->mkReal(1))),
+                  MK_TERM(cvc5::TO_INTEGER,
+                          MK_TERM(cvc5::ADD, n, SOLVER->mkReal(1))),
                   // if decPart == 0.5, round to nearest even integer:
                   // result is: to_int(n/2 + .5) * 2
-                  MK_TERM(api::MULT,
-                          MK_TERM(api::TO_INTEGER,
-                                  MK_TERM(api::PLUS,
-                                          MK_TERM(api::DIVISION,
+                  MK_TERM(cvc5::MULT,
+                          MK_TERM(cvc5::TO_INTEGER,
+                                  MK_TERM(cvc5::ADD,
+                                          MK_TERM(cvc5::DIVISION,
                                                   n,
                                                   SOLVER->mkReal(2)),
                                           SOLVER->mkReal(1, 2))),
                           SOLVER->mkInteger(2))));
-      p.d_kind = api::LAMBDA;
-      p.d_expr = MK_TERM(api::LAMBDA, formals, expr);
+      p.d_kind = cvc5::LAMBDA;
+      p.d_expr = MK_TERM(cvc5::LAMBDA, formals, expr);
       }
   | '$to_int'
     {
-      p.d_kind = api::TO_INTEGER;
+      p.d_kind = cvc5::TO_INTEGER;
     }
   | '$to_rat'
     {
-      p.d_kind = api::TO_REAL;
+      p.d_kind = cvc5::TO_REAL;
     }
   | '$to_real'
     {
-      p.d_kind = api::TO_REAL;
+      p.d_kind = cvc5::TO_REAL;
     }
   ;
 
@@ -727,16 +721,16 @@ equalOp[bool& equal]
   | DISEQUAL_TOK { equal = false; }
   ;
 
-term[CVC4::api::Term& expr]
+term[cvc5::Term& expr]
   : functionTerm[expr]
   | conditionalTerm[expr]
   | simpleTerm[expr]
   | letTerm[expr]
   ;
 
-letTerm[CVC4::api::Term& expr]
+letTerm[cvc5::Term& expr]
 @declarations {
-  CVC4::api::Term lhs, rhs;
+  cvc5::Term lhs, rhs;
 }
   : '$let_ft' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
@@ -755,14 +749,14 @@ letTerm[CVC4::api::Term& expr]
   ;
 
 /* Not an application */
-simpleTerm[CVC4::api::Term& expr]
+simpleTerm[cvc5::Term& expr]
   : variable[expr]
   | NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT { expr = PARSER_STATE->convertStrToUnsorted(AntlrInput::tokenText($DISTINCT_OBJECT)); }
   ;
 
 /* Not an application */
-thfSimpleTerm[CVC4::api::Term& expr]
+thfSimpleTerm[cvc5::Term& expr]
   : NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT
     {
@@ -771,9 +765,9 @@ thfSimpleTerm[CVC4::api::Term& expr]
     }
   ;
 
-functionTerm[CVC4::api::Term& expr]
+functionTerm[cvc5::Term& expr]
 @declarations {
-  std::vector<CVC4::api::Term> args;
+  std::vector<cvc5::Term> args;
   ParseOp p;
 }
   : plainTerm[expr]
@@ -783,18 +777,18 @@ functionTerm[CVC4::api::Term& expr]
     }
   ;
 
-conditionalTerm[CVC4::api::Term& expr]
+conditionalTerm[cvc5::Term& expr]
 @declarations {
-  CVC4::api::Term expr2, expr3;
+  cvc5::Term expr2, expr3;
 }
   : '$ite_t' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK term[expr2] COMMA_TOK term[expr3] RPAREN_TOK
-    { expr = MK_TERM(api::ITE, expr, expr2, expr3); }
+    { expr = MK_TERM(cvc5::ITE, expr, expr2, expr3); }
   ;
 
-plainTerm[CVC4::api::Term& expr]
+plainTerm[cvc5::Term& expr]
 @declarations {
   std::string name;
-  std::vector<api::Term> args;
+  std::vector<cvc5::Term> args;
   ParseOp p;
 }
   : atomicWord[p.d_name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
@@ -804,15 +798,15 @@ plainTerm[CVC4::api::Term& expr]
     }
   ;
 
-arguments[std::vector<CVC4::api::Term>& args]
+arguments[std::vector<cvc5::Term>& args]
 @declarations {
-  CVC4::api::Term expr;
+  cvc5::Term expr;
 }
   :
   term[expr] { args.push_back(expr); } ( COMMA_TOK term[expr] { args.push_back(expr); } )*
   ;
 
-variable[CVC4::api::Term& expr]
+variable[cvc5::Term& expr]
   : UPPER_WORD
     {
       std::string name = AntlrInput::tokenText($UPPER_WORD);
@@ -827,35 +821,35 @@ variable[CVC4::api::Term& expr]
 
 /*******/
 /* FOF */
-fofFormula[CVC4::api::Term& expr] : fofLogicFormula[expr] ;
+fofFormula[cvc5::Term& expr] : fofLogicFormula[expr] ;
 
-fofLogicFormula[CVC4::api::Term& expr]
+fofLogicFormula[cvc5::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< CVC4::api::Term > args;
-  CVC4::api::Term expr2;
+  std::vector< cvc5::Term > args;
+  cvc5::Term expr2;
 }
   : fofUnitaryFormula[expr]
     ( // Non-associative: <=> <~> ~& ~|
       ( fofBinaryNonAssoc[na] fofUnitaryFormula[expr2]
         { switch(na) {
            case tptp::NA_IFF:
-             expr = MK_TERM(api::EQUAL,expr,expr2);
+             expr = MK_TERM(cvc5::EQUAL,expr,expr2);
              break;
            case tptp::NA_REVIFF:
-             expr = MK_TERM(api::XOR,expr,expr2);
+             expr = MK_TERM(cvc5::XOR,expr,expr2);
              break;
            case tptp::NA_IMPLIES:
-             expr = MK_TERM(api::IMPLIES,expr,expr2);
+             expr = MK_TERM(cvc5::IMPLIES,expr,expr2);
              break;
            case tptp::NA_REVIMPLIES:
-             expr = MK_TERM(api::IMPLIES,expr2,expr);
+             expr = MK_TERM(cvc5::IMPLIES,expr2,expr);
              break;
            case tptp::NA_REVOR:
-             expr = MK_TERM(api::NOT,MK_TERM(api::OR,expr,expr2));
+             expr = MK_TERM(cvc5::NOT,MK_TERM(cvc5::OR,expr,expr2));
              break;
            case tptp::NA_REVAND:
-             expr = MK_TERM(api::NOT,MK_TERM(api::AND,expr,expr2));
+             expr = MK_TERM(cvc5::NOT,MK_TERM(cvc5::AND,expr,expr2));
              break;
           }
         }
@@ -863,42 +857,42 @@ fofLogicFormula[CVC4::api::Term& expr]
     | // N-ary and &
       ( { args.push_back(expr); }
         ( AND_TOK fofUnitaryFormula[expr] { args.push_back(expr); } )+
-        { expr = MK_TERM(api::AND, args); }
+        { expr = MK_TERM(cvc5::AND, args); }
       )
     | // N-ary or |
       ( { args.push_back(expr); }
         ( OR_TOK fofUnitaryFormula[expr] { args.push_back(expr); } )+
-        { expr = MK_TERM(api::OR, args); }
+        { expr = MK_TERM(cvc5::OR, args); }
       )
     )?
   ;
 
-fofUnitaryFormula[CVC4::api::Term& expr]
+fofUnitaryFormula[cvc5::Term& expr]
 @declarations {
-  api::Kind kind;
-  std::vector< CVC4::api::Term > bv;
+  cvc5::Kind kind;
+  std::vector< cvc5::Term > bv;
 }
   : atomicFormula[expr]
   | LPAREN_TOK fofLogicFormula[expr] RPAREN_TOK
-  | NOT_TOK fofUnitaryFormula[expr] { expr = MK_TERM(api::NOT,expr); }
+  | NOT_TOK fofUnitaryFormula[expr] { expr = MK_TERM(cvc5::NOT,expr); }
   | // Quantified
     folQuantifier[kind] LBRACK_TOK {PARSER_STATE->pushScope();}
     ( bindvariable[expr] { bv.push_back(expr); }
       ( COMMA_TOK bindvariable[expr] { bv.push_back(expr); } )* ) RBRACK_TOK
     COLON_TOK fofUnitaryFormula[expr]
     { PARSER_STATE->popScope();
-      expr = MK_TERM(kind, MK_TERM(api::BOUND_VAR_LIST, bv), expr);
+      expr = MK_TERM(kind, MK_TERM(cvc5::VARIABLE_LIST, bv), expr);
     }
   ;
 
-bindvariable[CVC4::api::Term& expr]
+bindvariable[cvc5::Term& expr]
   : UPPER_WORD
     { std::string name = AntlrInput::tokenText($UPPER_WORD);
       expr = PARSER_STATE->bindBoundVar(name, PARSER_STATE->d_unsorted);
     }
   ;
 
-fofBinaryNonAssoc[CVC4::parser::tptp::NonAssoc& na]
+fofBinaryNonAssoc[cvc5::parser::tptp::NonAssoc& na]
   : IFF_TOK      { na = tptp::NA_IFF; }
   | REVIFF_TOK   { na = tptp::NA_REVIFF; }
   | REVOR_TOK    { na = tptp::NA_REVOR; }
@@ -907,21 +901,21 @@ fofBinaryNonAssoc[CVC4::parser::tptp::NonAssoc& na]
   | REVIMPLIES_TOK { na = tptp::NA_REVIMPLIES; }
   ;
 
-folQuantifier[CVC4::api::Kind& kind]
-  : FORALL_TOK { kind = api::FORALL; }
-  | EXISTS_TOK { kind = api::EXISTS; }
+folQuantifier[cvc5::Kind& kind]
+  : FORALL_TOK { kind = cvc5::FORALL; }
+  | EXISTS_TOK { kind = cvc5::EXISTS; }
   ;
 
 /*******/
 /* THF */
 
-thfQuantifier[CVC4::api::Kind& kind]
-  : FORALL_TOK { kind = api::FORALL; }
-  | EXISTS_TOK { kind = api::EXISTS; }
-  | LAMBDA_TOK { kind = api::LAMBDA; }
+thfQuantifier[cvc5::Kind& kind]
+  : FORALL_TOK { kind = cvc5::FORALL; }
+  | EXISTS_TOK { kind = cvc5::EXISTS; }
+  | LAMBDA_TOK { kind = cvc5::LAMBDA; }
   | CHOICE_TOK
     {
-        UNSUPPORTED("Choice operator");
+      UNSUPPORTED("Choice operator");
     }
   | DEF_DESC_TOK
     {
@@ -933,11 +927,11 @@ thfQuantifier[CVC4::api::Kind& kind]
     }
   ;
 
-thfAtomTyping[CVC4::Command*& cmd]
+thfAtomTyping[cvc5::parser::Command*& cmd]
 // for now only supports mapping types (i.e. no applied types)
 @declarations {
-  CVC4::api::Term expr;
-  CVC4::api::Sort type;
+  cvc5::Term expr;
+  cvc5::Sort type;
   std::string name;
 }
   : LPAREN_TOK thfAtomTyping[cmd] RPAREN_TOK
@@ -959,7 +953,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         else
         {
           // as yet, it's undeclared
-          api::Sort atype = PARSER_STATE->mkSort(name);
+          cvc5::Sort atype = PARSER_STATE->mkSort(name);
           cmd = new DeclareSortCommand(name, 0, atype);
         }
       }
@@ -991,7 +985,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         else
         {
           // as of yet, it's undeclared
-          CVC4::api::Term freshExpr;
+          cvc5::Term freshExpr;
           if (type.isFunction())
           {
             freshExpr = PARSER_STATE->bindVar(name, type);
@@ -1006,12 +1000,12 @@ thfAtomTyping[CVC4::Command*& cmd]
     )
   ;
 
-thfLogicFormula[CVC4::ParseOp& p]
+thfLogicFormula[cvc5::ParseOp& p]
 @declarations {
   tptp::NonAssoc na;
-  std::vector<CVC4::api::Term> args;
+  std::vector<cvc5::Term> args;
   std::vector<ParseOp> p_args;
-  CVC4::api::Term expr2;
+  cvc5::Term expr2;
   bool equal;
   ParseOp p1;
 }
@@ -1042,10 +1036,10 @@ thfLogicFormula[CVC4::ParseOp& p]
         }
         args.push_back(p.d_expr);
         args.push_back(p1.d_expr);
-        p.d_expr = MK_TERM(api::EQUAL, args);
+        p.d_expr = MK_TERM(cvc5::EQUAL, args);
         if (!equal)
         {
-          p.d_expr = MK_TERM(api::NOT, p.d_expr);
+          p.d_expr = MK_TERM(cvc5::NOT, p.d_expr);
         }
       }
     | // Non-associative: <=> <~> ~& ~|
@@ -1059,24 +1053,24 @@ thfLogicFormula[CVC4::ParseOp& p]
         switch (na)
         {
           case tptp::NA_IFF:
-            p.d_expr = MK_TERM(api::EQUAL, p.d_expr, p1.d_expr);
+            p.d_expr = MK_TERM(cvc5::EQUAL, p.d_expr, p1.d_expr);
             break;
           case tptp::NA_REVIFF:
-            p.d_expr = MK_TERM(api::XOR, p.d_expr, p1.d_expr);
+            p.d_expr = MK_TERM(cvc5::XOR, p.d_expr, p1.d_expr);
             break;
           case tptp::NA_IMPLIES:
-            p.d_expr = MK_TERM(api::IMPLIES, p.d_expr, p1.d_expr);
+            p.d_expr = MK_TERM(cvc5::IMPLIES, p.d_expr, p1.d_expr);
             break;
           case tptp::NA_REVIMPLIES:
-            p.d_expr = MK_TERM(api::IMPLIES, p1.d_expr, p.d_expr);
+            p.d_expr = MK_TERM(cvc5::IMPLIES, p1.d_expr, p.d_expr);
             break;
           case tptp::NA_REVOR:
             p.d_expr =
-                MK_TERM(api::NOT, MK_TERM(api::OR, p.d_expr, p1.d_expr));
+                MK_TERM(cvc5::NOT, MK_TERM(cvc5::OR, p.d_expr, p1.d_expr));
             break;
           case tptp::NA_REVAND:
             p.d_expr =
-                MK_TERM(api::NOT, MK_TERM(api::AND, p.d_expr, p1.d_expr));
+                MK_TERM(cvc5::NOT, MK_TERM(cvc5::AND, p.d_expr, p1.d_expr));
             break;
         }
       }
@@ -1101,7 +1095,7 @@ thfLogicFormula[CVC4::ParseOp& p]
           }
         )+
         {
-          p.d_expr = MK_TERM(api::AND, args);
+          p.d_expr = MK_TERM(cvc5::AND, args);
         }
       )
     | // N-ary or |
@@ -1125,7 +1119,7 @@ thfLogicFormula[CVC4::ParseOp& p]
           }
         )+
         {
-          p.d_expr = MK_TERM(api::OR, args);
+          p.d_expr = MK_TERM(cvc5::OR, args);
         }
       )
     | // N-ary @ |
@@ -1190,14 +1184,14 @@ thfLogicFormula[CVC4::ParseOp& p]
           }
           for (unsigned i = 0, size = args.size(); i < size; ++i)
           {
-            p.d_expr = MK_TERM(api::HO_APPLY, p.d_expr, args[i]);
+            p.d_expr = MK_TERM(cvc5::HO_APPLY, p.d_expr, args[i]);
           }
         }
       }
     )?
   ;
 
-thfTupleForm[std::vector<CVC4::api::Term>& args]
+thfTupleForm[std::vector<cvc5::Term>& args]
 @declarations {
   ParseOp p;
 }
@@ -1220,11 +1214,11 @@ thfTupleForm[std::vector<CVC4::api::Term>& args]
    )+
 ;
 
-thfUnitaryFormula[CVC4::ParseOp& p]
+thfUnitaryFormula[cvc5::ParseOp& p]
 @declarations {
-  api::Kind kind;
-  std::vector< CVC4::api::Term > bv;
-  CVC4::api::Term expr;
+  cvc5::Kind kind;
+  std::vector< cvc5::Term > bv;
+  cvc5::Term expr;
   bool equal;
   ParseOp p1;
 }
@@ -1235,7 +1229,7 @@ thfUnitaryFormula[CVC4::ParseOp& p]
     RPAREN_TOK
   | NOT_TOK
     {
-      p.d_kind = api::NOT;
+      p.d_kind = cvc5::NOT;
     }
     (
      thfUnitaryFormula[p1]
@@ -1244,7 +1238,7 @@ thfUnitaryFormula[CVC4::ParseOp& p]
        {
          PARSER_STATE->parseError("NOT must be applied to a formula");
        }
-       std::vector<api::Term> args{p1.d_expr};
+       std::vector<cvc5::Term> args{p1.d_expr};
        p.d_expr = PARSER_STATE->applyParseOp(p, args);
      }
     )?
@@ -1270,34 +1264,34 @@ thfUnitaryFormula[CVC4::ParseOp& p]
       expr = p1.d_expr;
       PARSER_STATE->popScope();
       // handle lambda case, in which case return type must be flattened and the
-      // auxiliary variables introduced in the proccess must be added no the
+      // auxiliary variables introduced in the process must be added no the
       // variable list
       //
       // see documentation of mkFlatFunctionType for how it's done
       //
       // flatten body via flattening its type
-      std::vector<api::Sort> sorts;
-      std::vector<api::Term> flattenVars;
+      std::vector<cvc5::Sort> sorts;
+      std::vector<cvc5::Term> flattenVars;
       PARSER_STATE->mkFlatFunctionType(sorts, expr.getSort(), flattenVars);
       if (!flattenVars.empty())
       {
         // apply body of lambda to flatten vars
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
-        // add variables to BOUND_VAR_LIST
+        // add variables to VARIABLE_LIST
         bv.insert(bv.end(), flattenVars.begin(), flattenVars.end());
       }
-      p.d_expr = MK_TERM(p.d_kind, MK_TERM(api::BOUND_VAR_LIST, bv), expr);
+      p.d_expr = MK_TERM(p.d_kind, MK_TERM(cvc5::VARIABLE_LIST, bv), expr);
     }
   ;
 
 /*******/
 /* TFF */
-tffFormula[CVC4::api::Term& expr] : tffLogicFormula[expr];
+tffFormula[cvc5::Term& expr] : tffLogicFormula[expr];
 
-tffTypedAtom[CVC4::Command*& cmd]
+tffTypedAtom[cvc5::parser::Command*& cmd]
 @declarations {
-  CVC4::api::Term expr;
-  CVC4::api::Sort type;
+  cvc5::Term expr;
+  cvc5::Sort type;
   std::string name;
 }
   : LPAREN_TOK tffTypedAtom[cmd] RPAREN_TOK
@@ -1311,7 +1305,7 @@ tffTypedAtom[CVC4::Command*& cmd]
           PARSER_STATE->parseError("Symbol `" + name + "' previously declared as a constant; cannot also be a sort");
         } else {
           // as yet, it's undeclared
-          api::Sort atype = PARSER_STATE->mkSort(name);
+          cvc5::Sort atype = PARSER_STATE->mkSort(name);
           cmd = new DeclareSortCommand(name, 0, atype);
         }
       }
@@ -1330,40 +1324,40 @@ tffTypedAtom[CVC4::Command*& cmd]
           }
         } else {
           // as yet, it's undeclared
-          CVC4::api::Term aexpr = PARSER_STATE->bindVar(name, type);
+          cvc5::Term aexpr = PARSER_STATE->bindVar(name, type);
           cmd = new DeclareFunctionCommand(name, aexpr, type);
         }
       }
     )
   ;
 
-tffLogicFormula[CVC4::api::Term& expr]
+tffLogicFormula[cvc5::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< CVC4::api::Term > args;
-  CVC4::api::Term expr2;
+  std::vector< cvc5::Term > args;
+  cvc5::Term expr2;
 }
   : tffUnitaryFormula[expr]
     ( // Non Assoc <=> <~> ~& ~|
       ( fofBinaryNonAssoc[na] tffUnitaryFormula[expr2]
         { switch(na) {
            case tptp::NA_IFF:
-             expr = MK_TERM(api::EQUAL,expr,expr2);
+             expr = MK_TERM(cvc5::EQUAL,expr,expr2);
              break;
            case tptp::NA_REVIFF:
-             expr = MK_TERM(api::XOR,expr,expr2);
+             expr = MK_TERM(cvc5::XOR,expr,expr2);
              break;
            case tptp::NA_IMPLIES:
-             expr = MK_TERM(api::IMPLIES,expr,expr2);
+             expr = MK_TERM(cvc5::IMPLIES,expr,expr2);
              break;
            case tptp::NA_REVIMPLIES:
-             expr = MK_TERM(api::IMPLIES,expr2,expr);
+             expr = MK_TERM(cvc5::IMPLIES,expr2,expr);
              break;
            case tptp::NA_REVOR:
-             expr = MK_TERM(api::NOT,MK_TERM(api::OR,expr,expr2));
+             expr = MK_TERM(cvc5::NOT,MK_TERM(cvc5::OR,expr,expr2));
              break;
            case tptp::NA_REVAND:
-             expr = MK_TERM(api::NOT,MK_TERM(api::AND,expr,expr2));
+             expr = MK_TERM(cvc5::NOT,MK_TERM(cvc5::AND,expr,expr2));
              break;
           }
         }
@@ -1371,35 +1365,35 @@ tffLogicFormula[CVC4::api::Term& expr]
     | // And &
       ( { args.push_back(expr); }
         ( AND_TOK tffUnitaryFormula[expr] { args.push_back(expr); } )+
-        { expr = MK_TERM(api::AND,args); }
+        { expr = MK_TERM(cvc5::AND,args); }
       )
     | // Or |
       ( { args.push_back(expr); }
         ( OR_TOK tffUnitaryFormula[expr] { args.push_back(expr); } )+
-        { expr = MK_TERM(api::OR,args); }
+        { expr = MK_TERM(cvc5::OR,args); }
       )
     )?
   ;
 
-tffUnitaryFormula[CVC4::api::Term& expr]
+tffUnitaryFormula[cvc5::Term& expr]
 @declarations {
-  api::Kind kind;
-  std::vector< CVC4::api::Term > bv;
-  CVC4::api::Term lhs, rhs;
+  cvc5::Kind kind;
+  std::vector< cvc5::Term > bv;
+  cvc5::Term lhs, rhs;
 }
   : atomicFormula[expr]
   | LPAREN_TOK tffLogicFormula[expr] RPAREN_TOK
-  | NOT_TOK tffUnitaryFormula[expr] { expr = MK_TERM(api::NOT,expr); }
+  | NOT_TOK tffUnitaryFormula[expr] { expr = MK_TERM(cvc5::NOT,expr); }
   | // Quantified
     folQuantifier[kind] LBRACK_TOK {PARSER_STATE->pushScope();}
     ( tffbindvariable[expr] { bv.push_back(expr); }
       ( COMMA_TOK tffbindvariable[expr] { bv.push_back(expr); } )* ) RBRACK_TOK
     COLON_TOK tffUnitaryFormula[expr]
     { PARSER_STATE->popScope();
-      expr = MK_TERM(kind, MK_TERM(api::BOUND_VAR_LIST, bv), expr);
+      expr = MK_TERM(kind, MK_TERM(cvc5::VARIABLE_LIST, bv), expr);
     }
   | '$ite_f' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK tffLogicFormula[lhs] COMMA_TOK tffLogicFormula[rhs] RPAREN_TOK
-    { expr = MK_TERM(api::ITE, expr, lhs, rhs); }
+    { expr = MK_TERM(cvc5::ITE, expr, lhs, rhs); }
   | '$let_tf' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
@@ -1416,53 +1410,61 @@ tffUnitaryFormula[CVC4::api::Term& expr]
     RPAREN_TOK
   ;
 
-tffLetTermDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
+tffLetTermDefn[cvc5::Term& lhs, cvc5::Term& rhs]
 @declarations {
-  std::vector<CVC4::api::Term> bvlist;
+  std::vector<cvc5::Term> bvlist;
 }
   : (FORALL_TOK LBRACK_TOK tffVariableList[bvlist] RBRACK_TOK COLON_TOK)*
     tffLetTermBinding[bvlist, lhs, rhs]
   ;
 
-tffLetTermBinding[std::vector<CVC4::api::Term> & bvlist,
-                  CVC4::api::Term& lhs,
-                  CVC4::api::Term& rhs]
+tffLetTermBinding[std::vector<cvc5::Term> & bvlist,
+                  cvc5::Term& lhs,
+                  cvc5::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
   {
     PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
-    std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
-    rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-    lhs = api::Term(SOLVER, lhs.getExpr().getOperator());
+    std::vector<cvc5::Term> lchildren(++lhs.begin(), lhs.end());
+    rhs = MK_TERM(cvc5::LAMBDA, MK_TERM(cvc5::VARIABLE_LIST, lchildren), rhs);
+    // since lhs is always APPLY_UF (otherwise we'd have had a parser error in
+    // checkLetBinding) the function to be replaced is always the first
+    // argument. Note that the way in which lchildren is built above is also
+    // relying on this.
+    lhs = lhs[0];
   }
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
-tffLetFormulaDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
+tffLetFormulaDefn[cvc5::Term& lhs, cvc5::Term& rhs]
 @declarations {
-  std::vector<CVC4::api::Term> bvlist;
+  std::vector<cvc5::Term> bvlist;
 }
   : (FORALL_TOK LBRACK_TOK tffVariableList[bvlist] RBRACK_TOK COLON_TOK)*
     tffLetFormulaBinding[bvlist, lhs, rhs]
   ;
 
-tffLetFormulaBinding[std::vector<CVC4::api::Term> & bvlist,
-                     CVC4::api::Term& lhs,
-                     CVC4::api::Term& rhs]
+tffLetFormulaBinding[std::vector<cvc5::Term> & bvlist,
+                     cvc5::Term& lhs,
+                     cvc5::Term& rhs]
 
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
   {
     PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
-    std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
-    rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-    lhs = api::Term(SOLVER, lhs.getExpr().getOperator());
+    std::vector<cvc5::Term> lchildren(++lhs.begin(), lhs.end());
+    rhs = MK_TERM(cvc5::LAMBDA, MK_TERM(cvc5::VARIABLE_LIST, lchildren), rhs);
+    // since lhs is always APPLY_UF (otherwise we'd have had a parser error in
+    // checkLetBinding) the function to be replaced is always the first
+    // argument. Note that the way in which lchildren is built above is also
+    // relying on this.
+    lhs = lhs[0];
   }
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
-thfBindVariable[CVC4::api::Term& expr]
+thfBindVariable[cvc5::Term& expr]
 @declarations {
   std::string name;
-  CVC4::api::Sort type = PARSER_STATE->d_unsorted;
+  cvc5::Sort type = PARSER_STATE->d_unsorted;
 }
   : UPPER_WORD
     { name = AntlrInput::tokenText($UPPER_WORD); }
@@ -1473,9 +1475,9 @@ thfBindVariable[CVC4::api::Term& expr]
   ;
 
 
-tffbindvariable[CVC4::api::Term& expr]
+tffbindvariable[cvc5::Term& expr]
 @declarations {
-  CVC4::api::Sort type = PARSER_STATE->d_unsorted;
+  cvc5::Sort type = PARSER_STATE->d_unsorted;
 }
   : UPPER_WORD
     ( COLON_TOK parseType[type] )?
@@ -1486,18 +1488,18 @@ tffbindvariable[CVC4::api::Term& expr]
 
 // bvlist is accumulative; it can already contain elements
 // on the way in, which are left undisturbed
-tffVariableList[std::vector<CVC4::api::Term>& bvlist]
+tffVariableList[std::vector<cvc5::Term>& bvlist]
 @declarations {
-  CVC4::api::Term e;
+  cvc5::Term e;
 }
   : tffbindvariable[e] { bvlist.push_back(e); }
     ( COMMA_TOK tffbindvariable[e] { bvlist.push_back(e); } )*
   ;
 
-parseThfType[CVC4::api::Sort& type]
+parseThfType[cvc5::Sort& type]
 // assumes only mapping types (arrows), no tuple type
 @declarations {
-  std::vector<CVC4::api::Sort> sorts;
+  std::vector<cvc5::Sort> sorts;
 }
   : thfType[type] { sorts.push_back(type); }
     (
@@ -1510,24 +1512,24 @@ parseThfType[CVC4::api::Sort& type]
       }
       else
       {
-        api::Sort range = sorts.back();
+        cvc5::Sort range = sorts.back();
         sorts.pop_back();
         type = PARSER_STATE->mkFlatFunctionType(sorts, range);
       }
     }
   ;
 
-thfType[CVC4::api::Sort& type]
+thfType[cvc5::Sort& type]
 // assumes only mapping types (arrows), no tuple type
   : simpleType[type]
     | LPAREN_TOK parseThfType[type] RPAREN_TOK
     | LBRACK_TOK { UNSUPPORTED("Tuple types"); } parseThfType[type] RBRACK_TOK
   ;
 
-parseType[CVC4::api::Sort & type]
+parseType[cvc5::Sort & type]
 @declarations
 {
-  std::vector<CVC4::api::Sort> v;
+  std::vector<cvc5::Sort> v;
 }
   : simpleType[type]
   | ( simpleType[type] { v.push_back(type); }
@@ -1541,7 +1543,7 @@ parseType[CVC4::api::Sort & type]
   ;
 
 // non-function types
-simpleType[CVC4::api::Sort& type]
+simpleType[cvc5::Sort& type]
 @declarations {
   std::string name;
 }
@@ -1621,7 +1623,7 @@ NOT_TOK        : '~';
 FORALL_TOK     : '!';
 EXISTS_TOK     : '?';
 LAMBDA_TOK     : '^';
-WITNESS_TOK     : '@+';
+CHOICE_TOK     : '@+';
 DEF_DESC_TOK   : '@-';
 AND_TOK        : '&';
 IFF_TOK        : '<=>';
@@ -1754,27 +1756,12 @@ NUMBER
       {
         std::string snum = AntlrInput::tokenText($num);
         std::string sden = AntlrInput::tokenText($den);
-        /* compute the numerator */
-        Integer inum(snum + sden);
-        // The sign
-        inum = pos ? inum : -inum;
-        // The exponent
         size_t exp = ($e == NULL ? 0 : AntlrInput::tokenToUnsigned($e));
-        // Decimal part
-        size_t dec = sden.size();
-        /* multiply it by 10 raised to the exponent reduced by the
-         * number of decimal place in den (dec) */
-        Rational r;
-        if(!posE) r = Rational(inum, Integer(10).pow(exp + dec));
-        else if(exp == dec) r = Rational(inum);
-        else if(exp > dec) r = Rational(inum * Integer(10).pow(exp - dec));
-        else r = Rational(inum, Integer(10).pow(dec - exp));
-        std::stringstream ss;
-        ss << r;
-        PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
+        PARSER_STATE->d_tmp_expr = PARSER_STATE->mkDecimal(snum, sden, pos, exp, posE);
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;
+        ss << ( pos ? "" : "-" );
         ss << AntlrInput::tokenText($num) << "/" << AntlrInput::tokenText($den);
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
       }

@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file theory_sets.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Kshitij Bansal
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory.
- **
- ** Sets theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Kshitij Bansal
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_H
-#define CVC4__THEORY__SETS__THEORY_SETS_H
+#ifndef CVC5__THEORY__SETS__THEORY_SETS_H
+#define CVC5__THEORY__SETS__THEORY_SETS_H
 
 #include <memory>
 
+#include "smt/logic_exception.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
@@ -28,7 +29,7 @@
 #include "theory/theory_eq_notify.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -41,17 +42,14 @@ class TheorySets : public Theory
   friend class TheorySetsRels;
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
-  TheorySets(context::Context* c,
-             context::UserContext* u,
-             OutputChannel& out,
-             Valuation valuation,
-             const LogicInfo& logicInfo,
-             ProofNodeManager* pnm);
+  TheorySets(Env& env, OutputChannel& out, Valuation valuation);
   ~TheorySets() override;
 
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** get the proof checker of this theory */
+  ProofRuleChecker* getProofChecker() override;
   /**
    * Returns true if we need an equality engine. If so, we initialize the
    * information regarding how it should be setup. For details, see the
@@ -76,13 +74,22 @@ class TheorySets : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
-  TrustNode expandDefinition(Node n) override;
+  /**
+   * If the sets-ext option is not set and we have an extended operator,
+   * we throw an exception. Additionally, we expand operators like choose
+   * and is_singleton.
+   */
+  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
   void presolve() override;
   bool isEntailed(Node n, bool pol);
 
  private:
+  /**
+   * Overrides to handle a special case of set membership.
+   */
+  void processCarePairArgs(TNode a, TNode b) override;
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public TheoryEqNotifyClass
   {
@@ -94,7 +101,7 @@ class TheorySets : public Theory
     void eqNotifyNewClass(TNode t) override;
     void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-    
+
    private:
     TheorySetsPrivate& d_theory;
   };
@@ -104,14 +111,16 @@ class TheorySets : public Theory
   SolverState d_state;
   /** The inference manager */
   InferenceManager d_im;
+  /** The care pair argument callback, used for theory combination */
+  CarePairArgumentCallback d_cpacb;
   /** The internal theory */
   std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Instance of the above class */
   NotifyClass d_notify;
 }; /* class TheorySets */
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_H */
+#endif /* CVC5__THEORY__SETS__THEORY_SETS_H */

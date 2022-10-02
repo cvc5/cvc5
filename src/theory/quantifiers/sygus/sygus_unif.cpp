@@ -1,48 +1,50 @@
-/*********************                                                        */
-/*! \file sygus_unif.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_unif
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_unif.
+ */
 
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif()
-    : d_qe(nullptr), d_tds(nullptr), d_enableMinimality(false)
+SygusUnif::SygusUnif(Env& env)
+    : EnvObj(env), d_tds(nullptr), d_enableMinimality(false)
 {
 }
+
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initializeCandidate(
-    QuantifiersEngine* qe,
+    TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
-  d_qe = qe;
-  d_tds = qe->getTermDatabaseSygus();
+  d_tds = tds;
   d_candidates.push_back(f);
   // initialize the strategy
-  d_strategy[f].initialize(qe, f, enums);
+  d_strategy.emplace(f, SygusUnifStrategy(d_env));
+  d_strategy.at(f).initialize(tds, f, enums);
 }
 
 Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
@@ -56,7 +58,7 @@ Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
     unsigned ssize = 0;
     if (it == d_termToSize.end())
     {
-      ssize = d_tds->getSygusTermSize(n);
+      ssize = datatypes::utils::getSygusTermSize(n);
       d_termToSize[n] = ssize;
     }
     else
@@ -117,7 +119,7 @@ Node SygusUnif::constructBestStringToConcat(
 
 void SygusUnif::indent(const char* c, int ind)
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     for (int i = 0; i < ind; i++)
     {
@@ -128,7 +130,7 @@ void SygusUnif::indent(const char* c, int ind)
 
 void SygusUnif::print_val(const char* c, std::vector<Node>& vals, bool pol)
 {
-  if (Trace.isOn(c))
+  if (TraceIsOn(c))
   {
     for (unsigned i = 0; i < vals.size(); i++)
     {
@@ -139,6 +141,6 @@ void SygusUnif::print_val(const char* c, std::vector<Node>& vals, bool pol)
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal

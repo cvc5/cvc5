@@ -1,6 +1,0 @@
-% EXPECT: entailed
-a:BOOLEAN;
-b:BOOLEAN;
-ASSERT(a);
-QUERY(a OR b);
-

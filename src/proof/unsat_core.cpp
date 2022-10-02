@@ -1,37 +1,37 @@
-/*********************                                                        */
-/*! \file unsat_core.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Representation of unsat cores
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Representation of unsat cores.
+ */
 
 #include "proof/unsat_core.h"
 
 #include "base/check.h"
-#include "expr/expr_iomanip.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "printer/printer.h"
-#include "smt/smt_engine_scope.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 UnsatCore::UnsatCore(const std::vector<Node>& core)
     : d_useNames(false), d_core(core), d_names()
 {
-  Debug("core") << "UnsatCore size " << d_core.size() << std::endl;
+  Trace("core") << "UnsatCore size " << d_core.size() << std::endl;
 }
 
 UnsatCore::UnsatCore(std::vector<std::string>& names)
     : d_useNames(true), d_core(), d_names(names)
 {
-  Debug("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
+  Trace("core") << "UnsatCore (names) size " << d_names.size() << std::endl;
 }
 
 const std::vector<Node>& UnsatCore::getCore() const { return d_core; }
@@ -49,8 +49,9 @@ UnsatCore::const_iterator UnsatCore::end() const {
 }
 
 void UnsatCore::toStream(std::ostream& out) const {
-  expr::ExprDag::Scope scope(out, false);
-  Printer::getPrinter(options::outputLanguage())->toStream(out, *this);
+  options::ioutils::Scope scope(out);
+  options::ioutils::applyDagThresh(out, 0);
+  Printer::getPrinter(out)->toStream(out, *this);
 }
 
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
@@ -58,4 +59,4 @@ std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal

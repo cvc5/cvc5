@@ -1,37 +1,45 @@
-/*********************                                                        */
-/*! \file sygus_sampler.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_sampler
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_sampler.
+ */
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
+#include "util/rational.h"
 #include "util/sampler.h"
+#include "util/string.h"
 
-namespace CVC4 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusSampler::SygusSampler()
-    : d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+SygusSampler::SygusSampler(Env& env)
+    : EnvObj(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -126,7 +134,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   {
     TypeNode svt = sv.getType();
     // is it equivalent to a previous variable?
-    for (const std::pair<Node, unsigned>& v : var_to_type_id)
+    for (const auto& v : var_to_type_id)
     {
       Node svc = v.first;
       if (svc.getType() == svt)
@@ -178,7 +186,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
                           << vt << std::endl;
   }
   std::map<unsigned, std::map<Node, std::vector<TypeNode> >::iterator> sts;
-  if (options::sygusSampleGrammar())
+  if (options().quantifiers.sygusSampleGrammar)
   {
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
@@ -194,7 +202,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     {
       Node v = d_vars[j];
       Node r;
-      if (options::sygusSampleGrammar())
+      if (options().quantifiers.sygusSampleGrammar)
       {
         // choose a random start sygus type, if possible
         if (sts[j] != d_var_sygus_types.end())
@@ -223,7 +231,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     }
     if (d_samples_trie.add(sample_pt))
     {
-      if (Trace.isOn("sygus-sample"))
+      if (TraceIsOn("sygus-sample"))
       {
         Trace("sygus-sample") << "Sample point #" << i << " : ";
         for (const Node& r : sample_pt)
@@ -318,8 +326,8 @@ bool SygusSampler::isContiguous(Node n)
 
 void SygusSampler::computeFreeVariables(Node n, std::vector<Node>& fvs)
 {
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -354,8 +362,8 @@ bool SygusSampler::checkVariables(Node n, bool checkOrder, bool checkLinear)
   // compute free variables in n for each type
   std::map<unsigned, std::vector<Node> > fvs;
 
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -406,8 +414,8 @@ bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
   computeFreeVariables(a, fvs);
   std::vector<Node> fv_found;
 
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<TNode> visited;
+  std::unordered_set<TNode>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(b);
@@ -468,21 +476,11 @@ Node SygusSampler::evaluate(Node n, unsigned index)
 {
   Assert(index < d_samples.size());
   // do beta-reductions in n first
-  n = Rewriter::rewrite(n);
+  n = d_env.getRewriter()->rewrite(n);
   // use efficient rewrite for substitution + rewrite
-  Node ev = d_eval.eval(n, d_vars, d_samples[index]);
+  Node ev = d_env.evaluate(n, d_vars, d_samples[index], true);
+  Assert(!ev.isNull());
   Trace("sygus-sample-ev") << "Evaluate ( " << n << ", " << index << " ) -> ";
-  if (!ev.isNull())
-  {
-    Trace("sygus-sample-ev") << ev << std::endl;
-    return ev;
-  }
-  Trace("sygus-sample-ev") << "null" << std::endl;
-  Trace("sygus-sample-ev") << "Rewrite -> ";
-  // substitution + rewrite
-  std::vector<Node>& pt = d_samples[index];
-  ev = n.substitute(d_vars.begin(), d_vars.end(), pt.begin(), pt.end());
-  ev = Rewriter::rewrite(ev);
   Trace("sygus-sample-ev") << ev << std::endl;
   return ev;
 }
@@ -517,7 +515,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   {
     unsigned e = tn.getFloatingPointExponentSize();
     unsigned s = tn.getFloatingPointSignificandSize();
-    return nm->mkConst(options::sygusSampleFpUniform()
+    return nm->mkConst(options().quantifiers.sygusSampleFpUniform
                            ? Sampler::pickFpUniform(e, s)
                            : Sampler::pickFpBiased(e, s));
   }
@@ -591,14 +589,14 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       std::vector<Node> sum;
       for (unsigned j = 0, size = vec.size(); j < size; j++)
       {
-        Node digit = nm->mkConst(Rational(vec[j]) * curr);
+        Node digit = nm->mkConstInt(Rational(vec[j]) * curr);
         sum.push_back(digit);
         curr = curr * baser;
       }
       Node ret;
       if (sum.empty())
       {
-        ret = nm->mkConst(Rational(0));
+        ret = nm->mkConstInt(Rational(0));
       }
       else if (sum.size() == 1)
       {
@@ -606,16 +604,17 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       else
       {
-        ret = nm->mkNode(kind::PLUS, sum);
+        ret = nm->mkNode(kind::ADD, sum);
       }
 
       if (Random::getRandom().pickWithProb(0.5))
       {
         // negative
-        ret = nm->mkNode(kind::UMINUS, ret);
+        ret = nm->mkNode(kind::NEG, ret);
       }
-      ret = Rewriter::rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
+      Assert(ret.getType()==tn);
       return ret;
     }
   }
@@ -629,12 +628,9 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       Rational rr = r.getConst<Rational>();
       if (rr.sgn() == 0)
       {
-        return s;
+        return nm->mkConstReal(s.getConst<Rational>());
       }
-      else
-      {
-        return nm->mkConst(sr / rr);
-      }
+      return nm->mkConstReal(sr / rr);
     }
   }
   // default: use type enumerator
@@ -712,7 +708,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
       Node ret = d_tds->mkGeneric(dt, cindex, pre);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
-      ret = Rewriter::rewrite(ret);
+      ret = d_env.getRewriter()->rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
       // A rare case where we generate a non-constant value from constant
       // leaves is (/ n 0).
@@ -775,8 +771,12 @@ void SygusSampler::registerSygusType(TypeNode tn)
   }
 }
 
-void SygusSampler::checkEquivalent(Node bv, Node bvr)
+void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
 {
+  if (bv == bvr)
+  {
+    return;
+  }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
                            << std::endl;
 
@@ -815,30 +815,25 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     }
     if (!ptDisequalConst)
     {
-      Notice() << "Warning: " << bv << " and " << bvr
-               << " evaluate to different (non-constant) values on point:"
-               << std::endl;
-      Notice() << ptOut.str();
+      d_env.verbose(1)
+          << "Warning: " << bv << " and " << bvr
+          << " evaluate to different (non-constant) values on point:"
+          << std::endl;
+      d_env.verbose(1) << ptOut.str();
       return;
     }
     // we have detected unsoundness in the rewriter
-    Options& sopts = smt::currentSmtEngine()->getOptions();
-    std::ostream* out = sopts.getOut();
-    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
+    out << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
-    (*out) << "Terms are not equivalent for : " << std::endl;
-    (*out) << ptOut.str();
+    out << "Terms are not equivalent for : " << std::endl;
+    out << ptOut.str();
     Assert(bve != bvre);
-    (*out) << "where they evaluate to " << bve << " and " << bvre << std::endl;
-
-    if (options::sygusRewVerifyAbort())
-    {
-      AlwaysAssert(false)
-          << "--sygus-rr-verify detected unsoundness in the rewriter!";
-    }
+    out << "where they evaluate to " << bve << " and " << bvre << std::endl;
+    AlwaysAssert(false)
+        << "--sygus-rr-verify detected unsoundness in the rewriter!";
   }
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal

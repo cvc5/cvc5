@@ -1,0 +1,28 @@
+; depends: boolean_programs.plf theory_def.plf
+
+(declare cnf_and_pos (! f1 term (! f2 term (! n mpz (! r (^ (nary_extract f_and f2 n) f1) (holds (or (not f2) (or f1 false))))))))
+; Note that we do not add a null terminator, since f1 is null terminated.
+(declare cnf_and_neg (! f1 term (! f2 term (! r (^ (sc_not_and_rec f2) f1) (holds (or f2 f1))))))
+(declare cnf_or_pos (! f term (holds (or (not f) f))))
+(declare cnf_or_neg (! f1 term (! f2 term (! n mpz (! r (^ (nary_extract f_or f2 n) f1) (holds (or f2 (or (not f1) false))))))))
+
+(declare cnf_implies_pos (! f1 term (! f2 term (holds (or (not (=> f1 f2)) (or (not f1) (or f2 false)))))))
+(declare cnf_implies_neg1 (! f1 term (! f2 term (holds (or (=> f1 f2) (or f1 false))))))
+(declare cnf_implies_neg2 (! f1 term (! f2 term (holds (or (=> f1 f2) (or (not f2) false))))))
+
+(declare cnf_equiv_pos1 (! f1 term (! f2 term (holds (or (not (= f1 f2)) (or (not f1) (or f2 false)))))))
+(declare cnf_equiv_pos2 (! f1 term (! f2 term (holds (or (not (= f1 f2)) (or f1 (or (not f2) false)))))))
+(declare cnf_equiv_neg1 (! f1 term (! f2 term (holds (or (= f1 f2) (or f1 (or f2 false)))))))
+(declare cnf_equiv_neg2 (! f1 term (! f2 term (holds (or (= f1 f2) (or (not f1) (or (not f2) false)))))))
+
+(declare cnf_xor_pos1 (! f1 term (! f2 term (holds (or (not (xor f1 f2)) (or f1 (or f2 false)))))))
+(declare cnf_xor_pos2 (! f1 term (! f2 term (holds (or (not (xor f1 f2)) (or (not f1) (or (not f2) false)))))))
+(declare cnf_xor_neg1 (! f1 term (! f2 term (holds (or (xor f1 f2) (or (not f1) (or f2 false)))))))
+(declare cnf_xor_neg2 (! f1 term (! f2 term (holds (or (xor f1 f2) (or f1 (or (not f2) false)))))))
+
+(declare cnf_ite_pos1 (! c term (! f1 term (! f2 term (holds (or (not (ite c f1 f2)) (or (not c) (or f1 false))))))))
+(declare cnf_ite_pos2 (! c term (! f1 term (! f2 term (holds (or (not (ite c f1 f2)) (or c (or f2 false))))))))
+(declare cnf_ite_pos3 (! c term (! f1 term (! f2 term (holds (or (not (ite c f1 f2)) (or f1 (or f2 false))))))))
+(declare cnf_ite_neg1 (! c term (! f1 term (! f2 term (holds (or (ite c f1 f2) (or (not c) (or (not f1) false))))))))
+(declare cnf_ite_neg2 (! c term (! f1 term (! f2 term (holds (or (ite c f1 f2) (or c (or (not f2) false))))))))
+(declare cnf_ite_neg3 (! c term (! f1 term (! f2 term (holds (or (ite c f1 f2) (or (not f1) (or (not f2) false))))))))

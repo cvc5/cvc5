@@ -1,53 +1,57 @@
-/*********************                                                        */
-/*! \file regexp_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Regular expression solver for the theory of strings.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Regular expression solver for the theory of strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__REGEXP_SOLVER_H
-#define CVC4__THEORY__STRINGS__REGEXP_SOLVER_H
+#ifndef CVC5__THEORY__STRINGS__REGEXP_SOLVER_H
+#define CVC5__THEORY__STRINGS__REGEXP_SOLVER_H
 
 #include <map>
+
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
-#include "theory/strings/skolem_cache.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/sequences_stats.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 #include "util/string.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-class RegExpSolver
+class RegExpSolver : protected EnvObj
 {
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, unsigned, NodeHashFunction> NodeUIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashMap<Node, int> NodeIntMap;
+  typedef context::CDHashMap<Node, unsigned> NodeUIntMap;
+  typedef context::CDHashMap<Node, Node> NodeNodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  RegExpSolver(SolverState& s,
+  RegExpSolver(Env& env,
+               SolverState& s,
                InferenceManager& im,
-               SkolemCache* skc,
+               TermRegistry& tr,
                CoreSolver& cs,
                ExtfSolver& es,
                SequencesStatistics& stats);
@@ -61,7 +65,7 @@ class RegExpSolver
    * for Regular Membership and Length Constraints over Unbounded Strings",
    * FroCoS 2015.
    */
-  void checkMemberships();
+  void checkMemberships(int effort);
 
  private:
   /** check
@@ -74,8 +78,15 @@ class RegExpSolver
    * The argument mems maps representative string terms r to memberships of the
    * form (t in R) or ~(t in R), where t = r currently holds in the equality
    * engine of the theory of strings.
+   *
+   * We check in two phases:
+   * (1) checkInclInter which checks if there are conflicts due to quick
+   * inclusion/intersection testing. This method returns true if a conflict is
+   * discovered.
+   * (2) checkUnfold, which unfolds regular expression memberships as necessary
    */
-  void check(const std::map<Node, std::vector<Node>>& mems);
+  bool checkInclInter(const std::map<Node, std::vector<Node>>& mems);
+  void checkUnfold(const std::map<Node, std::vector<Node>>& mems, int effort);
   /**
    * Check memberships in equivalence class for regular expression
    * inclusion.
@@ -137,7 +148,7 @@ class RegExpSolver
       Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp);
   Node getMembership(Node n, bool isPos, unsigned i);
   unsigned getNumMemberships(Node n, bool isPos);
-  CVC4::String getHeadConst(Node x);
+  cvc5::internal::String getHeadConst(Node x);
   bool deriveRegExp(Node x, Node r, Node atom, std::vector<Node>& ant);
   Node getNormalSymRegExp(Node r, std::vector<Node>& nf_exp);
   // regular expression memberships
@@ -154,6 +165,6 @@ class RegExpSolver
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC5__THEORY__STRINGS__THEORY_STRINGS_H */

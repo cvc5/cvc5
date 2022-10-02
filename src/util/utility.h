@@ -1,57 +1,30 @@
-/*********************                                                        */
-/*! \file utility.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Some standard STL-related utility functions for CVC4
- **
- ** Some standard STL-related utility functions for CVC4.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Some standard STL-related utility functions for cvc5.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__UTILITY_H
-#define CVC4__UTILITY_H
+#ifndef CVC5__UTILITY_H
+#define CVC5__UTILITY_H
 
 #include <algorithm>
 #include <fstream>
-#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
-#include <utility>
 
-namespace CVC4 {
-
-
-/**
- * Like std::equal_to<>, but tests equality between the first element
- * of a pair and an element.
- */
-template <class T, class U>
-struct first_equal_to : std::binary_function<std::pair<T, U>, T, bool> {
-  bool operator()(const std::pair<T, U>& pr, const T& x) const {
-    return pr.first == x;
-  }
-};/* struct first_equal_to<T> */
-
-
-/**
- * Like std::equal_to<>, but tests equality between the second element
- * of a pair and an element.
- */
-template <class T, class U>
-struct second_equal_to : std::binary_function<std::pair<T, U>, U, bool> {
-  bool operator()(const std::pair<T, U>& pr, const U& x) const {
-    return pr.second == x;
-  }
-};/* struct first_equal_to<T> */
-
+namespace cvc5::internal {
 
 /**
  * Using std::find_if(), finds the first iterator in [first,last)
@@ -89,6 +62,31 @@ void container_to_stream(std::ostream& out,
 }
 
 /**
+ * Generates a string representation of std::optional and inserts it into a
+ * stream.
+ *
+ * @param out The stream
+ * @param m The value
+ * @return The stream
+ */
+template <class T>
+std::ostream& operator<<(std::ostream& out, const std::optional<T>& m)
+{
+  out << "{";
+  if (m)
+  {
+    out << "Just ";
+    out << *m;
+  }
+  else
+  {
+    out << "Nothing";
+  }
+  out << "}";
+  return out;
+}
+
+/**
  * Opens a new temporary file with a given filename pattern and returns an
  * fstream to it. The directory that the file is created in is either TMPDIR or
  * /tmp/ if TMPDIR is not set.
@@ -104,6 +102,6 @@ void container_to_stream(std::ostream& out,
  */
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* CVC4__UTILITY_H */
+#endif /* CVC5__UTILITY_H */

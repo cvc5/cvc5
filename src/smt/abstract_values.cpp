@@ -1,29 +1,29 @@
-/*********************                                                        */
-/*! \file abstract_values.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utility for constructing and maintaining abstract values.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for constructing and maintaining abstract values.
+ */
 
 #include "smt/abstract_values.h"
 
+#include "expr/ascription_type.h"
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace smt {
 
-AbstractValues::AbstractValues(NodeManager* nm)
-    : d_nm(nm),
-      d_fakeContext(),
-      d_abstractValueMap(&d_fakeContext),
-      d_abstractValues()
+AbstractValues::AbstractValues()
+    : d_fakeContext(), d_abstractValueMap(&d_fakeContext), d_abstractValues()
 {
 }
 AbstractValues::~AbstractValues() {}
@@ -38,18 +38,18 @@ Node AbstractValues::substituteAbstractValues(TNode n)
 
 Node AbstractValues::mkAbstractValue(TNode n)
 {
-  Assert(options::abstractValues());
   Node& val = d_abstractValues[n];
   if (val.isNull())
   {
-    val = d_nm->mkAbstractValue(n.getType());
+    val = NodeManager::currentNM()->getSkolemManager()->mkDummySkolem(
+        "a",
+        n.getType(),
+        "an abstract value",
+        SkolemManager::SKOLEM_ABSTRACT_VALUE);
     d_abstractValueMap.addSubstitution(val, n);
   }
-  // We are supposed to ascribe types to all abstract values that go out.
-  Node ascription = d_nm->mkConst(AscriptionType(n.getType()));
-  Node retval = d_nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
-  return retval;
+  return val;
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5::internal

@@ -1,46 +1,42 @@
-/*********************                                                        */
-/*! \file smt2.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of SMT2 constants.
- **
- ** Definitions of SMT2 constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 constants.
+ */
 
-#include "cvc4parser_private.h"
+#include "cvc5parser_private.h"
 
-#ifndef CVC4__PARSER__SMT2_H
-#define CVC4__PARSER__SMT2_H
+#ifndef CVC5__PARSER__SMT2_H
+#define CVC5__PARSER__SMT2_H
 
+#include <optional>
 #include <sstream>
 #include <stack>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
-#include "util/abstract_value.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class Command;
-class SExpr;
-
-namespace api {
 class Solver;
-}
 
 namespace parser {
+
+class Command;
 
 class Smt2 : public Parser
 {
@@ -52,24 +48,23 @@ class Smt2 : public Parser
   /** Have we seen a set-logic command yet? */
   bool d_seenSetLogic;
 
-  LogicInfo d_logic;
-  std::unordered_map<std::string, api::Kind> operatorKindMap;
+  internal::LogicInfo d_logic;
+  std::unordered_map<std::string, cvc5::Kind> d_operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
    * BITVECTOR_EXTRACT).
    */
-  std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
-  std::pair<api::Term, std::string> d_lastNamedTerm;
+  std::unordered_map<std::string, cvc5::Kind> d_indexedOpKindMap;
+  std::pair<cvc5::Term, std::string> d_lastNamedTerm;
   /**
    * A list of sygus grammar objects. We keep track of them here to ensure that
    * they don't get deleted before the commands using them get invoked.
    */
-  std::vector<std::unique_ptr<api::Grammar>> d_allocGrammars;
+  std::vector<std::unique_ptr<cvc5::Grammar>> d_allocGrammars;
 
  protected:
-  Smt2(api::Solver* solver,
+  Smt2(cvc5::Solver* solver,
        SymbolManager* sm,
-       Input* input,
        bool strictMode = false,
        bool parseOnly = false);
 
@@ -81,27 +76,40 @@ class Smt2 : public Parser
    */
   void addCoreSymbols();
 
-  void addOperator(api::Kind k, const std::string& name);
+  void addOperator(cvc5::Kind k, const std::string& name);
 
   /**
    * Registers an indexed function symbol.
    *
    * @param tKind The kind of the term that uses the operator kind (e.g.
-   *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
-   *              because that is what we use to create expressions. Eventually
-   *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
+   *              BITVECTOR_EXTRACT). If an indexed function symbol is
+   *              overloaded (e.g., `to_fp`), this argument should
+   *              be`UNDEFINED_KIND`.
    * @param name The name of the symbol (e.g. "extract")
    */
-  void addIndexedOperator(api::Kind tKind,
-                          api::Kind opKind,
-                          const std::string& name);
+  void addIndexedOperator(cvc5::Kind tKind, const std::string& name);
+  /**
+   * Checks whether an indexed operator is enabled. All indexed operators in
+   * the current logic are considered to be enabled. This includes operators
+   * such as `to_fp`, which do not correspond to a single kind.
+   *
+   * @param name The name of the indexed operator.
+   * @return true if the indexed operator is enabled.
+   */
+  bool isIndexedOperatorEnabled(const std::string& name) const;
 
-  api::Kind getOperatorKind(const std::string& name) const;
+  cvc5::Kind getOperatorKind(const std::string& name) const;
 
   bool isOperatorEnabled(const std::string& name) const;
 
-  bool isTheoryEnabled(theory::TheoryId theory) const;
+  /** Parse block models mode */
+  modes::BlockModelsMode getBlockModelsMode(const std::string& mode);
+  /** Parse learned literal type */
+  modes::LearnedLitType getLearnedLitType(const std::string& mode);
+  /** Parse proof component */
+  modes::ProofComponent getProofComponent(const std::string& pc);
+
+  bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 
   /**
    * Checks if higher-order support is enabled.
@@ -109,6 +117,10 @@ class Smt2 : public Parser
    * @return true if higher-order support is enabled, false otherwise
    */
   bool isHoEnabled() const;
+  /**
+   * @return true if cardinality constraints are enabled, false otherwise
+   */
+  bool hasCardinalityConstraints() const;
 
   bool logicIsSet() override;
 
@@ -121,31 +133,23 @@ class Smt2 : public Parser
    * @return The term corresponding to the constant or a parse error if name is
    *         not valid.
    */
-  api::Term mkIndexedConstant(const std::string& name,
-                              const std::vector<uint64_t>& numerals);
+  cvc5::Term mkIndexedConstant(const std::string& name,
+                               const std::vector<uint32_t>& numerals);
 
   /**
-   * Creates an indexed operator term, e.g. (_ extract 5 0).
+   * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
    *
    * @param name The name of the operator (e.g. "extract")
-   * @param numerals The parameters for the operator (e.g. [5, 0])
-   * @return The operator term corresponding to the indexed operator or a parse
+   * @return The kind corresponding to the indexed operator or a parse
    *         error if the name is not valid.
    */
-  api::Op mkIndexedOp(const std::string& name,
-                      const std::vector<uint64_t>& numerals);
-
-  /**
-   * Returns the expression that name should be interpreted as.
-   */
-  api::Term getExpressionForNameAndType(const std::string& name,
-                                        api::Sort t) override;
+  cvc5::Kind getIndexedOpKind(const std::string& name);
 
   /**
    * If we are in a version < 2.6, this updates name to the tester name of cons,
    * e.g. "is-cons".
    */
-  bool getTesterName(api::Term cons, std::string& name) override;
+  bool getTesterName(cvc5::Term cons, std::string& name) override;
 
   /** Make function defined by a define-fun(s)-rec command.
    *
@@ -161,11 +165,11 @@ class Smt2 : public Parser
    * added to flattenVars in this function if the function is given a function
    * range type.
    */
-  api::Term bindDefineFunRec(
+  cvc5::Term bindDefineFunRec(
       const std::string& fname,
-      const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
-      api::Sort t,
-      std::vector<api::Term>& flattenVars);
+      const std::vector<std::pair<std::string, cvc5::Sort>>& sortedVarNames,
+      cvc5::Sort t,
+      std::vector<cvc5::Term>& flattenVars);
 
   /** Push scope for define-fun-rec
    *
@@ -185,14 +189,12 @@ class Smt2 : public Parser
    *     that defined this definition and stores it in bvs.
    */
   void pushDefineFunRecScope(
-      const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
-      api::Term func,
-      const std::vector<api::Term>& flattenVars,
-      std::vector<api::Term>& bvs);
+      const std::vector<std::pair<std::string, cvc5::Sort>>& sortedVarNames,
+      cvc5::Term func,
+      const std::vector<cvc5::Term>& flattenVars,
+      std::vector<cvc5::Term>& bvs);
 
   void reset() override;
-
-  void resetAssertions();
 
   /**
    * Creates a command that adds an invariant constraint.
@@ -211,14 +213,15 @@ class Smt2 : public Parser
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
    * @param fromCommand should be set to true if the request originates from a
    *                    set-logic command and false otherwise
-   * @return the command corresponding to setting the logic
+   * @return the command corresponding to setting the logic (if fromCommand
+   * is true), and nullptr otherwise.
    */
   Command* setLogic(std::string name, bool fromCommand = true);
 
   /**
    * Get the logic.
    */
-  const LogicInfo& getLogic() const { return d_logic; }
+  const internal::LogicInfo& getLogic() const { return d_logic; }
 
   /**
    * Create a Sygus grammar.
@@ -226,40 +229,11 @@ class Smt2 : public Parser
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return a pointer to the grammar
    */
-  api::Grammar* mkGrammar(const std::vector<api::Term>& boundVars,
-                          const std::vector<api::Term>& ntSymbols);
+  cvc5::Grammar* mkGrammar(const std::vector<cvc5::Term>& boundVars,
+                           const std::vector<cvc5::Term>& ntSymbols);
 
-  bool v2_0() const
-  {
-    return getLanguage() == language::input::LANG_SMTLIB_V2_0;
-  }
-  /**
-   * Are we using smtlib 2.5 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.5.
-   */
-  bool v2_5(bool exact = false) const
-  {
-    return language::isInputLang_smt2_5(getLanguage(), exact);
-  }
-  /**
-   * Are we using smtlib 2.6 or above? If exact=true, then this method returns
-   * false if the input language is not exactly SMT-LIB 2.6.
-   */
-  bool v2_6(bool exact = false) const
-  {
-    return language::isInputLang_smt2_6(getLanguage(), exact);
-  }
   /** Are we using a sygus language? */
   bool sygus() const;
-  /** Are we using the sygus version 2.0 format? */
-  bool sygus_v2() const;
-
-  /**
-   * Returns true if the language that we are parsing (SMT-LIB version >=2.5
-   * and SyGuS) treats duplicate double quotes ("") as an escape sequence
-   * denoting a single double quote (").
-   */
-  bool escapeDupDblQuote() const { return v2_5() || sygus(); }
 
   void checkThatLogicIsSet();
 
@@ -295,27 +269,28 @@ class Smt2 : public Parser
 
   void includeFile(const std::string& filename);
 
-  void setLastNamedTerm(api::Term e, std::string name)
+  void setLastNamedTerm(cvc5::Term e, std::string name)
   {
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
   void clearLastNamedTerm()
   {
-    d_lastNamedTerm = std::make_pair(api::Term(), "");
+    d_lastNamedTerm = std::make_pair(cvc5::Term(), "");
   }
 
-  std::pair<api::Term, std::string> lastNamedTerm() { return d_lastNamedTerm; }
+  std::pair<cvc5::Term, std::string> lastNamedTerm() { return d_lastNamedTerm; }
 
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
 
-  /** Make abstract value
+  /**
+   * Make real or int from numeral string.
    *
-   * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isAbstractValue(name) is true.
+   * In particular, if arithmetic is enabled, but integers are disabled, then
+   * we construct a real. Otherwise, we construct an integer.
    */
-  api::Term mkAbstractValue(const std::string& name);
+  cvc5::Term mkRealOrIntFromNumeral(const std::string& str);
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -343,7 +318,7 @@ class Smt2 : public Parser
    * Notify that expression expr was given name std::string via a :named
    * attribute.
    */
-  void notifyNamedExpression(api::Term& expr, std::string name);
+  void notifyNamedExpression(cvc5::Term& expr, std::string name);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)
@@ -369,7 +344,7 @@ class Smt2 : public Parser
    * - If p's expression field is set, then we leave p unchanged, check if
    * that expression has the given type and throw a parse error otherwise.
    */
-  void parseOpApplyTypeAscription(ParseOp& p, api::Sort type);
+  void parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
    *
@@ -379,7 +354,7 @@ class Smt2 : public Parser
    * of this class.
    * In other cases, a parse error is thrown.
    */
-  api::Term parseOpToExpr(ParseOp& p);
+  cvc5::Term parseOpToExpr(ParseOp& p);
   /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.
@@ -407,13 +382,27 @@ class Smt2 : public Parser
    * selector expression based on the type of args[0].
    * - If the overall kind of the expression is chainable, we may convert it
    * to a left- or right-associative chain.
-   * - If the overall kind is MINUS and args has size 1, then we return an
-   * application of UMINUS.
+   * - If the overall kind is SUB and args has size 1, then we return an
+   * application of NEG.
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */
-  api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
+  cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
   //------------------------- end processing parse operators
+
+  /**
+   * Handles a push command.
+   *
+   * @return An instance of `PushCommand`
+   */
+  std::unique_ptr<Command> handlePush(std::optional<uint32_t> nscopes);
+  /**
+   * Handles a pop command.
+   *
+   * @return An instance of `PopCommand`
+   */
+  std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
+
  private:
 
   void addArithmeticOperators();
@@ -432,8 +421,6 @@ class Smt2 : public Parser
 
   void addSepOperators();
 
-  InputLanguage getLanguage() const;
-
   /**
    * Utility function to create a conjunction of expressions.
    *
@@ -441,10 +428,14 @@ class Smt2 : public Parser
    * @return True if `es` is empty, `e` if `es` consists of a single element
    *         `e`, the conjunction of expressions otherwise.
    */
-  api::Term mkAnd(const std::vector<api::Term>& es);
+  cvc5::Term mkAnd(const std::vector<cvc5::Term>& es) const;
+  /**
+   * Is term t a constant integer?
+   */
+  static bool isConstInt(const cvc5::Term& t);
 }; /* class Smt2 */
 
 }  // namespace parser
-}  // namespace CVC4
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__SMT2_H */
+#endif /* CVC5__PARSER__SMT2_H */

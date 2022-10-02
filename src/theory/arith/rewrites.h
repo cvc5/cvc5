@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file rewrites.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type for rewrites for arithmetic.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type for rewrites for arithmetic.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__REWRITES_H
-#define CVC4__THEORY__ARITH__REWRITES_H
+#ifndef CVC5__THEORY__ARITH__REWRITES_H
+#define CVC5__THEORY__ARITH__REWRITES_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -49,10 +50,18 @@ enum class Rewrite : uint32_t
   // (mod (mod x c) c) --> (mod x c)
   MOD_OVER_MOD,
   // (mod (op ... (mod x c) ...) c) ---> (mod (op ... x ...) c) where
-  // op is one of { NONLINEAR_MULT, MULT, PLUS }.
+  // op is one of { NONLINEAR_MULT, MULT, ADD }.
   MOD_CHILD_MOD,
   // (div (mod x c) c) --> 0
-  DIV_OVER_MOD
+  DIV_OVER_MOD,
+  // (to_int c) --> floor(c), (is_int c) --> true iff c is int
+  INT_EXT_CONST,
+  // (to_int t) --> t, (is_int t) ---> true if t is int
+  INT_EXT_INT,
+  // (to_int real.pi) --> 3, (is_int real.pi) ---> false
+  INT_EXT_PI,
+  // (to_int (to_real x)) --> (to_int x), (is_int (to_real x)) --> (is_int x)
+  INT_EXT_TO_REAL
 };
 
 /**
@@ -77,6 +86,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__REWRITES_H */
+#endif /* CVC5__THEORY__ARITH__REWRITES_H */

@@ -1,0 +1,10 @@
+; COMMAND-LINE: --quiet
+(set-logic ALL)
+(set-info :status sat)
+(declare-fun A () (Bag Int))
+(declare-fun a () Int)
+(assert (not (= A (as bag.empty (Bag Int)))))
+(assert (= (bag.choose A) 10))
+(assert (= a (bag.choose A)))
+(assert (exists ((x Int)) (and (= x (bag.choose A)) (= x a))))
+(check-sat)

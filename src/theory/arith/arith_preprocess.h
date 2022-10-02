@@ -1,31 +1,38 @@
-/*********************                                                        */
-/*! \file arith_preprocess.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arithmetic preprocess
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic preprocess.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
-#define CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
+#ifndef CVC5__THEORY__ARITH__ARITH_PREPROCESS_H
+#define CVC5__THEORY__ARITH__ARITH_PREPROCESS_H
 
 #include "context/cdhashmap.h"
-#include "theory/arith/arith_state.h"
-#include "theory/arith/inference_manager.h"
+#include "smt/env_obj.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+
+class SkolemLemma;
+
 namespace arith {
+
+class ArithState;
+class InferenceManager;
+class OperatorElim;
 
 /**
  * This module can be used for (on demand) elimination of extended arithmetic
@@ -34,20 +41,28 @@ namespace arith {
  * extends that utility with the ability to generate lemmas on demand via
  * the provided inference manager.
  */
-class ArithPreprocess
+class ArithPreprocess : protected EnvObj
 {
  public:
-  ArithPreprocess(ArithState& state,
+  ArithPreprocess(Env& env,
+                  ArithState& state,
                   InferenceManager& im,
                   ProofNodeManager* pnm,
-                  const LogicInfo& info);
+                  OperatorElim& oe);
   ~ArithPreprocess() {}
   /**
    * Call eliminate operators on formula n, return the resulting trust node,
    * which is of TrustNodeKind REWRITE and whose node is the result of
    * eliminating extended operators from n.
+   *
+   * @param n The node to eliminate operators from
+   * @param partialOnly Whether we are eliminating partial operators only.
+   * @return the trust node proving (= n nr) where nr is the return of
+   * eliminating operators in n, or the null trust node if n was unchanged.
    */
-  TrustNode eliminate(TNode n);
+  TrustNode eliminate(TNode n,
+                      std::vector<SkolemLemma>& lems,
+                      bool partialOnly = false);
   /**
    * Reduce assertion. This sends a lemma via the inference manager if atom
    * contains any extended operators. When applicable, the lemma is of the form:
@@ -68,13 +83,13 @@ class ArithPreprocess
   /** Reference to the inference manager */
   InferenceManager& d_im;
   /** The operator elimination utility */
-  OperatorElim d_opElim;
+  OperatorElim& d_opElim;
   /** The set of assertions that were reduced */
-  context::CDHashMap<Node, bool, NodeHashFunction> d_reduced;
+  context::CDHashMap<Node, bool> d_reduced;
 };
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

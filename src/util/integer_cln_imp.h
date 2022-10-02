@@ -1,44 +1,44 @@
-/*********************                                                        */
-/*! \file integer_cln_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Gereon Kremer, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A multiprecision integer constant; wraps a CLN multiprecision
- ** integer.
- **
- ** A multiprecision integer constant; wraps a CLN multiprecision integer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A multiprecision integer constant; wraps a CLN multiprecision integer.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__INTEGER_H
-#define CVC4__INTEGER_H
+#ifndef CVC5__INTEGER_H
+#define CVC5__INTEGER_H
 
-#include <cln/input.h>
 #include <cln/integer.h>
-#include <cln/integer_io.h>
-#include <cln/modinteger.h>
 
-#include <iostream>
+#include <iosfwd>
 #include <limits>
-#include <sstream>
 #include <string>
 
 #include "base/exception.h"
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 
-namespace CVC4 {
+namespace cln
+{
+  struct cl_read_flags;
+}
+
+namespace cvc5::internal {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC5_EXPORT Integer
 {
-  friend class CVC4::Rational;
+  friend class cvc5::internal::Rational;
 
  public:
   /**
@@ -74,10 +74,10 @@ class CVC4_PUBLIC Integer
   Integer(signed long int z) : d_value(z) {}
   Integer(unsigned long int z) : d_value(z) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Integer(int64_t z) : d_value(static_cast<long>(z)) {}
   Integer(uint64_t z) : d_value(static_cast<unsigned long>(z)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /** Destructor. */
   ~Integer() {}
@@ -131,11 +131,8 @@ class CVC4_PUBLIC Integer
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /**
    * Returns the integer with the binary representation of 'size' bits
@@ -277,17 +274,17 @@ class CVC4_PUBLIC Integer
   /** Return the unsigned int representation of this Integer. */
   unsigned int getUnsignedInt() const;
 
-  /** Return true if this Integer fits into a signed long. */
-  bool fitsSignedLong() const;
-
-  /** Return true if this Integer fits into an unsigned long. */
-  bool fitsUnsignedLong() const;
-
   /** Return the signed long representation of this Integer. */
   long getLong() const;
 
   /** Return the unsigned long representation of this Integer. */
   unsigned long getUnsignedLong() const;
+
+  /** Return the int64_t representation of this Integer. */
+  int64_t getSigned64() const;
+
+  /** Return the uint64_t representation of this Integer. */
+  uint64_t getUnsigned64() const;
 
   /**
    * Computes the hash of the node from the first word of the
@@ -314,6 +311,14 @@ class CVC4_PUBLIC Integer
    * If x == 0, returns 1.
    */
   size_t length() const;
+
+  /**
+   * Returns whether `x` is probably a prime.
+   *
+   * A false result is always accurate, but a true result may be inaccurate
+   * with small (approximately 2^{-60}) probability.
+   */
+  bool isProbablePrime() const;
 
   /*   cl_I xgcd (const cl_I& a, const cl_I& b, cl_I* u, cl_I* v) */
   /* This function ("extended gcd") returns the greatest common divisor g of a
@@ -382,11 +387,11 @@ class CVC4_PUBLIC Integer
 
 struct IntegerHashFunction
 {
-  size_t operator()(const CVC4::Integer& i) const { return i.hash(); }
+  size_t operator()(const cvc5::internal::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__INTEGER_H */
+#endif /* CVC5__INTEGER_H */

@@ -1,29 +1,26 @@
-/*********************                                                        */
-/*! \file context.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context class and context manager.
- **
- ** Context class and context manager.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Clark Barrett, Morgan Deters, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context class and context manager.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5parser_public.h"
 
-#ifndef CVC4__CONTEXT__CONTEXT_H
-#define CVC4__CONTEXT__CONTEXT_H
+#ifndef CVC5__CONTEXT__CONTEXT_H
+#define CVC5__CONTEXT__CONTEXT_H
 
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 #include <memory>
-#include <new>
 #include <typeinfo>
 #include <vector>
 
@@ -31,9 +28,7 @@
 #include "base/output.h"
 #include "context/context_mm.h"
 
-
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
 class Context;
 class Scope;
@@ -67,8 +62,8 @@ std::ostream& operator<<(std::ostream&, const Scope&);
  * ContextMemoryManager.  A copy is stored in each Scope object for quick
  * access.
  */
-class Context {
-
+class CVC5_EXPORT Context
+{
   /**
    * Pointer to the ContextMemoryManager for this Context.
    */
@@ -197,8 +192,7 @@ public:
    */
   void addNotifyObjPost(ContextNotifyObj* pCNO);
 
-};/* class Context */
-
+}; /* class Context */
 
 /**
  * A UserContext is different from a Context only because it's used for
@@ -261,7 +255,7 @@ class Scope {
    *
    * This is either nullptr or list owned by this scope.
    */
-  std::unique_ptr<std::vector<ContextObj*>> d_garbage;
+  std::vector<ContextObj*> d_garbage;
 
   friend std::ostream& operator<<(std::ostream&, const Scope&);
 
@@ -318,7 +312,6 @@ class Scope {
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM)
   {
-    Trace("context_mm") << "Scope::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -427,7 +420,8 @@ class Scope {
  *    argument as the special constructor in this class (and pass it
  *    on to all ContextObj instances).
  */
-class ContextObj {
+class CVC5_EXPORT ContextObj
+{
   /**
    * Pointer to Scope in which this object was last modified.
    */
@@ -581,7 +575,6 @@ class ContextObj {
    * to be done using the restore method.
    */
   static void* operator new(size_t size, ContextMemoryManager* pCMM) {
-    Trace("context_mm") << "Context::new " << size << " in " << pCMM << std::endl;
     return pCMM->newData(size);
   }
 
@@ -644,7 +637,6 @@ class ContextObj {
    * ContextMemoryManager as an argument.
    */
   void deleteSelf() {
-    Debug("context") << "deleteSelf(" << this << ") " << typeid(*this).name() << std::endl;
     this->~ContextObj();
     ::operator delete(this);
   }
@@ -655,7 +647,7 @@ class ContextObj {
    */
   void enqueueToGarbageCollect();
 
-};/* class ContextObj */
+}; /* class ContextObj */
 
 /**
  * For more flexible context-dependent behavior than that provided by
@@ -742,7 +734,6 @@ inline void Scope::addToChain(ContextObj* pContextObj)
   d_pContextObjList = pContextObj;
 }
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace cvc5::context
 
-#endif /* CVC4__CONTEXT__CONTEXT_H */
+#endif /* CVC5__CONTEXT__CONTEXT_H */

@@ -1,6 +1,0 @@
-% EXPECT: entailed
-% Simple test for left associativity of XOR
-
-A, B, C: BOOLEAN;
-
-QUERY (A XOR B XOR C) <=> ((A XOR B) XOR C);

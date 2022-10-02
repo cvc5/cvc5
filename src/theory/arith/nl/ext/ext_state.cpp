@@ -1,39 +1,49 @@
-/*********************                                                        */
-/*! \file shared_check_data.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common data shared by multiple checks
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common data shared by multiple checks.
+ */
 
 #include "theory/arith/nl/ext/ext_state.h"
 
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/monomial.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-ExtState::ExtState(InferenceManager& im, NlModel& model, context::Context* c)
-    : d_im(im), d_model(model)
+ExtState::ExtState(Env& env, InferenceManager& im, NlModel& model)
+    : EnvObj(env), d_im(im), d_model(model)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_true = NodeManager::currentNM()->mkConst(true);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
+  if (env.isTheoryProofProducing())
+  {
+    d_proof.reset(new CDProofSet<CDProof>(env, env.getUserContext(), "nl-ext"));
+  }
 }
 
 void ExtState::init(const std::vector<Node>& xts)
@@ -89,7 +99,15 @@ void ExtState::init(const std::vector<Node>& xts)
   Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
 }
 
+bool ExtState::isProofEnabled() const { return d_proof.get() != nullptr; }
+
+CDProof* ExtState::getProof()
+{
+  Assert(isProofEnabled());
+  return d_proof->allocateProof(d_env.getUserContext());
+}
+
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

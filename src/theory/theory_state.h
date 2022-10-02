@@ -1,50 +1,52 @@
-/*********************                                                        */
-/*! \file theory_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A theory state for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A theory state for Theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_STATE_H
-#define CVC4__THEORY__THEORY_STATE_H
+#ifndef CVC5__THEORY__THEORY_STATE_H
+#define CVC5__THEORY__THEORY_STATE_H
 
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "smt/env.h"
+#include "smt/env_obj.h"
 #include "theory/valuation.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 namespace eq {
 class EqualityEngine;
 }
 
-class TheoryState
+class TheoryState : protected EnvObj
 {
  public:
-  TheoryState(context::Context* c, context::UserContext* u, Valuation val);
+  TheoryState(Env& env,
+              Valuation val);
   virtual ~TheoryState() {}
   /**
    * Set equality engine, where ee is a pointer to the official equality engine
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  /** Get the SAT context */
-  context::Context* getSatContext() const;
-  /** Get the user context */
-  context::UserContext* getUserContext() const;
   //-------------------------------------- equality information
   /** Is t registered as a term in the equality engine of this class? */
-  virtual bool hasTerm(TNode a) const;
+  virtual bool hasTerm(TNode t) const;
+  /** Add term t to the equality engine if it is not registered */
+  virtual void addTerm(TNode t);
   /**
    * Get the representative of t in the equality engine of this class, or t
    * itself if it is not registered as a term.
@@ -60,6 +62,8 @@ class TheoryState
    * returns true if the representative of a and b are distinct constants.
    */
   virtual bool areDisequal(TNode a, TNode b) const;
+  /** get list of members in the equivalence class of a */
+  virtual void getEquivalenceClass(Node a, std::vector<Node>& eqc) const;
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
   //-------------------------------------- end equality information
@@ -79,15 +83,30 @@ class TheoryState
    * check.
    */
   TheoryModel* getModel();
+  /**
+   * Returns a pointer to the sort inference module, which lives in TheoryEngine
+   * and is non-null when options::sortInference is true.
+   */
+  SortInference* getSortInference();
 
   /** Returns true if n has a current SAT assignment and stores it in value. */
   virtual bool hasSatValue(TNode n, bool& value) const;
 
+  //------------------------------------------- access methods for assertions
+  /**
+   * The following methods are intended only to be used in limited use cases,
+   * for cases where a theory (e.g. quantifiers) requires knowing about the
+   * assertions from other theories.
+   */
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
+
+  /** Get the underlying valuation class */
+  Valuation& getValuation();
+
  protected:
-  /** Pointer to the SAT context object used by the theory. */
-  context::Context* d_context;
-  /** Pointer to the user context object used by the theory. */
-  context::UserContext* d_ucontext;
   /**
    * The valuation proxy for the Theory to communicate back with the
    * theory engine (and other theories).
@@ -100,6 +119,6 @@ class TheoryState
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__SOLVER_STATE_H */
+#endif /* CVC5__THEORY__SOLVER_STATE_H */

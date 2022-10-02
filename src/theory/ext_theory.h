@@ -1,49 +1,101 @@
-/*********************                                                        */
-/*! \file ext_theory.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Extended theory interface.
- **
- ** This implements a generic module, used by theory solvers, for performing
- ** "context-dependent simplification", as described in Reynolds et al
- ** "Designing Theory Solvers with Extensions", FroCoS 2017.
- **
- ** At a high level, this technique implements a generic inference scheme based
- ** on the combination of SAT-context-dependent equality reasoning and
- ** SAT-context-indepedent rewriting.
- **
- ** As a simple example, say
- ** (1) TheoryStrings tells us that the following facts hold in the SAT context:
- **     x = "A" ^ str.contains( str.++( x, z ), "B" ) = true.
- ** (2) The Rewriter tells us that:
- **     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ).
- ** From this, this class may infer that the following lemma is T-valid:
- **   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extended theory interface.
+ *
+ * This implements a generic module, used by theory solvers, for performing
+ * "context-dependent simplification", as described in Reynolds et al
+ * "Designing Theory Solvers with Extensions", FroCoS 2017.
+ *
+ * At a high level, this technique implements a generic inference scheme based
+ * on the combination of SAT-context-dependent equality reasoning and
+ * SAT-context-indepedent rewriting.
+ *
+ * As a simple example, say
+ * (1) TheoryStrings tells us that the following facts hold in the SAT context:
+ *     x = "A" ^ str.contains( str.++( x, z ), "B" ) = true.
+ * (2) The Rewriter tells us that:
+ *     str.contains( str.++( "A", z ), "B" ) ----> str.contains( z, "B" ).
+ * From this, this class may infer that the following lemma is T-valid:
+ *   x = "A" ^ str.contains( str.++( x, z ), "B" ) => str.contains( z, "B" )
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__EXT_THEORY_H
-#define CVC4__THEORY__EXT_THEORY_H
+#ifndef CVC5__THEORY__EXT_THEORY_H
+#define CVC5__THEORY__EXT_THEORY_H
 
 #include <map>
-#include <set>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "smt/env_obj.h"
+#include "theory/theory_inference_manager.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+
+class OutputChannel;
+
+/** Reasons for why a term was marked reduced */
+enum class ExtReducedId
+{
+  UNKNOWN,
+  // the extended function substitutes+rewrites to a constant
+  SR_CONST,
+  // the extended function was reduced by the callback
+  REDUCTION,
+  // the extended function substitutes+rewrites to zero
+  ARITH_SR_ZERO,
+  // the extended function substitutes+rewrites to a linear (non-zero) term
+  ARITH_SR_LINEAR,
+  // an extended string function substitutes+rewrites to a constant
+  STRINGS_SR_CONST,
+  // a negative str.contains was reduced to a disequality
+  STRINGS_NEG_CTN_DEQ,
+  // a positive str.contains was reduced to an equality
+  STRINGS_POS_CTN,
+  // a str.contains was subsumed by another based on a decomposition
+  STRINGS_CTN_DECOMPOSE,
+  // reduced via an intersection inference
+  STRINGS_REGEXP_INTER,
+  // subsumed due to intersection reasoning
+  STRINGS_REGEXP_INTER_SUBSUME,
+  // subsumed due to RE inclusion reasoning for positive memberships
+  STRINGS_REGEXP_INCLUDE,
+  // subsumed due to RE inclusion reasoning for negative memberships
+  STRINGS_REGEXP_INCLUDE_NEG,
+  // reduction for seq.nth over seq.rev
+  STRINGS_NTH_REV,
+};
+/**
+ * Converts an ext reduced identifier to a string.
+ *
+ * @param id The ext reduced identifier
+ * @return The name of the ext reduced identifier
+ */
+const char* toString(ExtReducedId id);
+
+/**
+ * Writes an ext reduced identifier to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The ext reduced identifier to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, ExtReducedId id);
 
 /**
  * A callback class for ExtTheory below. This class is responsible for
@@ -77,12 +129,12 @@ class ExtTheoryCallback
    * @param n The term to reduce
    * @param on The original form of n, before substitution
    * @param exp The explanation of on = n
+   * @param id If this method returns true, then id is updated to the reason
+   * why n was reduced.
    * @return true if n is reduced.
    */
-  virtual bool isExtfReduced(int effort,
-                             Node n,
-                             Node on,
-                             std::vector<Node>& exp);
+  virtual bool isExtfReduced(
+      int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id);
 
   /**
    * Get reduction for node n.
@@ -114,21 +166,18 @@ class ExtTheoryCallback
  * underlying theory for a "derivable substitution", whereby extended functions
  * may be reducable.
  */
-class ExtTheory
+class ExtTheory : protected EnvObj
 {
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  using NodeBoolMap = context::CDHashMap<Node, bool>;
+  using NodeExtReducedIdMap = context::CDHashMap<Node, ExtReducedId>;
+  using NodeSet = context::CDHashSet<Node>;
 
  public:
   /** constructor
    *
    * If cacheEnabled is false, we do not cache results of getSubstitutedTerm.
    */
-  ExtTheory(ExtTheoryCallback& p,
-            context::Context* c,
-            context::UserContext* u,
-            OutputChannel& out,
-            bool cacheEnabled = false);
+  ExtTheory(Env& env, ExtTheoryCallback& p, TheoryInferenceManager& im);
   virtual ~ExtTheory() {}
   /** Tells this class to treat terms with Kind k as extended functions */
   void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
@@ -144,19 +193,12 @@ class ExtTheory
    * that is, if addFunctionKind( n.getKind() ) was called.
    */
   void registerTerm(Node n);
-  /** register all subterms of n with this class */
-  void registerTermRec(Node n);
   /** set n as reduced/inactive
    *
    * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, bool satDep = true);
-  /**
-   * Mark that a and b are congruent terms. This sets b inactive, and sets a to
-   * inactive if b was inactive.
-   */
-  void markCongruent(Node a, Node b);
+  void markReduced(Node n, ExtReducedId rid, bool satDep = true);
   /** getSubstitutedTerms
    *
    *  input : effort, terms
@@ -164,27 +206,17 @@ class ExtTheory
    *
    * For each i, sterms[i] = term[i] * sigma for some "derivable substitution"
    * sigma. We obtain derivable substitutions and their explanations via calls
-   * to the underlying theory's Theory::getCurrentSubstitution method. This
-   * also
-   *
-   * If useCache is true, we cache the result in d_gst_cache. This is a context
-   * independent cache that can be cleared using clearCache() below.
+   * to the underlying theory's Theory::getCurrentSubstitution method.
    */
   void getSubstitutedTerms(int effort,
                            const std::vector<Node>& terms,
                            std::vector<Node>& sterms,
-                           std::vector<std::vector<Node> >& exp,
-                           bool useCache = false);
+                           std::vector<std::vector<Node> >& exp);
   /**
    * Same as above, but for a single term. We return the substituted form of
    * term and add its explanation to exp.
    */
-  Node getSubstitutedTerm(int effort,
-                          Node term,
-                          std::vector<Node>& exp,
-                          bool useCache = false);
-  /** clear the cache for getSubstitutedTerm */
-  void clearCache();
+  Node getSubstitutedTerm(int effort, Node term, std::vector<Node>& exp);
   /** doInferences
    *
    * This function performs "context-dependent simplification". The method takes
@@ -233,6 +265,11 @@ class ExtTheory
   bool hasActiveTerm() const;
   /** is n an active extended function term? */
   bool isActive(Node n) const;
+  /**
+   * Same as above, but rid is updated to the reason if this method returns
+   * false.
+   */
+  bool isActive(Node n, ExtReducedId& rid) const;
   /** get the set of active terms from d_ext_func_terms */
   std::vector<Node> getActive() const;
   /** get the set of active terms from d_ext_func_terms of kind k */
@@ -243,6 +280,11 @@ class ExtTheory
   static std::vector<Node> collectVars(Node n);
   /** is n context dependent inactive? */
   bool isContextIndependentInactive(Node n) const;
+  /**
+   * Same as above, but rid is updated to the reason if this method returns
+   * true.
+   */
+  bool isContextIndependentInactive(Node n, ExtReducedId& rid) const;
   /** do inferences internal */
   bool doInferencesInternal(int effort,
                             const std::vector<Node>& terms,
@@ -250,21 +292,23 @@ class ExtTheory
                             bool batch,
                             bool isRed);
   /** send lemma on the output channel */
-  bool sendLemma(Node lem, bool preprocess = false);
+  bool sendLemma(Node lem, InferenceId id, bool preprocess = false);
   /** reference to the callback */
   ExtTheoryCallback& d_parent;
-  /** Reference to the output channel we are using */
-  OutputChannel& d_out;
+  /** inference manager used to send lemmas */
+  TheoryInferenceManager& d_im;
   /** the true node */
   Node d_true;
   /** extended function terms, map to whether they are active */
   NodeBoolMap d_ext_func_terms;
+  /** mapping to why extended function terms are inactive */
+  NodeExtReducedIdMap d_extfExtReducedIdMap;
   /**
    * The set of terms from d_ext_func_terms that are SAT-context-independent
    * inactive. For instance, a term t is SAT-context-independent inactive if
    * a reduction lemma of the form t = t' was added in this user-context level.
    */
-  NodeSet d_ci_inactive;
+  NodeExtReducedIdMap d_ci_inactive;
   /**
    * Watched term for checking if any non-reduced extended functions exist.
    * This is an arbitrary active member of d_ext_func_terms.
@@ -284,25 +328,9 @@ class ExtTheory
   // cache of all lemmas sent
   NodeSet d_lemmas;
   NodeSet d_pp_lemmas;
-  /** whether we enable caching for getSubstitutedTerm */
-  bool d_cacheEnabled;
-  /** Substituted term info */
-  class SubsTermInfo
-  {
-   public:
-    /** the substituted term */
-    Node d_sterm;
-    /** an explanation */
-    std::vector<Node> d_exp;
-  };
-  /**
-   * This maps an (effort, term) to the information above. It is used as a
-   * cache for getSubstitutedTerm when d_cacheEnabled is true.
-   */
-  std::map<int, std::map<Node, SubsTermInfo> > d_gst_cache;
 };
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__EXT_THEORY_H */
+#endif /* CVC5__THEORY__EXT_THEORY_H */

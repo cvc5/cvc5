@@ -20,8 +20,22 @@ DerivePointerAlignment: false
 ---
 Language: Java
 BasedOnStyle:  Google
-ColumnLimit: 80
+AllowShortCaseLabelsOnASingleLine: true
 BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: NonAssignment
+BreakAfterJavaFieldAnnotations: true
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterObjCDeclaration: true
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+BreakBeforeBraces: Custom
+DerivePointerAlignment: false
 ...

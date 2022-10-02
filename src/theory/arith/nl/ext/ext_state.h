@@ -1,38 +1,56 @@
-/*********************                                                        */
-/*! \file shared_check_data.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Common data shared by multiple checks
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Common data shared by multiple checks.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
-#define CVC4__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
+#define CVC5__THEORY__ARITH__NL__EXT__SHARED_CHECK_DATA_H
 
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof.h"
-#include "theory/arith/inference_manager.h"
+#include "proof/proof_set.h"
+#include "smt/env.h"
 #include "theory/arith/nl/ext/monomial.h"
-#include "theory/arith/nl/nl_model.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class CDProof;
+
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
 
-struct ExtState
+class NlModel;
+
+class ExtState : protected EnvObj
 {
-  ExtState(InferenceManager& im, NlModel& model, context::Context* c);
+ public:
+  ExtState(Env& env, InferenceManager& im, NlModel& model);
 
   void init(const std::vector<Node>& xts);
+
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
+  CDProof* getProof();
 
   Node d_false;
   Node d_true;
@@ -44,6 +62,10 @@ struct ExtState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
 
   // information about monomials
   std::vector<Node> d_ms;
@@ -56,12 +78,12 @@ struct ExtState
   // ( x*y, x*z, y ) for each pair of monomials ( x*y, x*z ) with common factors
   std::map<Node, std::map<Node, Node> > d_mono_diff;
   /** the set of monomials we should apply tangent planes to */
-  std::unordered_set<Node, NodeHashFunction> d_tplane_refine;
+  std::unordered_set<Node> d_tplane_refine;
 };
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

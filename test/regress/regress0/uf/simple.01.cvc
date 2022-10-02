@@ -1,7 +1,0 @@
-% EXPECT: entailed
-A: TYPE;
-B: TYPE;
-x, y: A;
-f: A -> B;
-QUERY (x = y => f(x) = f(y));
-

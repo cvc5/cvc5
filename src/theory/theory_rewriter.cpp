@@ -1,23 +1,36 @@
-/*********************                                                        */
-/*! \file theory_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The TheoryRewriter class
- **
- ** The TheoryRewriter class is the interface that theory rewriters implement.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The TheoryRewriter class.
+ *
+ * The interface that theory rewriters implement.
+ */
 
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
+{
+  switch (rs)
+  {
+    case RewriteStatus::REWRITE_DONE:       return os << "DONE";
+    case RewriteStatus::REWRITE_AGAIN:      return os << "AGAIN";
+    case RewriteStatus::REWRITE_AGAIN_FULL: return os << "AGAIN_FULL";
+  }
+  Unreachable();
+  return os;
+}
 
 TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
                                            Node n,
@@ -59,5 +72,11 @@ TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
   return TrustNode::null();
 }
 
+TrustNode TheoryRewriter::expandDefinition(Node node)
+{
+  // no expansion
+  return TrustNode::null();
+}
+
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

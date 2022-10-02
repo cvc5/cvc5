@@ -1,31 +1,27 @@
-/*********************                                                        */
-/*! \file model_manager_distributed.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Management of a distributed approach for model generation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Management of a distributed approach for model generation.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
-#define CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
-
-#include <memory>
+#ifndef CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H
+#define CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 
-namespace CVC4 {
-
-class TheoryEngine;
-
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -42,7 +38,7 @@ namespace theory {
 class ModelManagerDistributed : public ModelManager
 {
  public:
-  ModelManagerDistributed(TheoryEngine& te, EqEngineManager& eem);
+  ModelManagerDistributed(Env& env, TheoryEngine& te, EqEngineManager& eem);
   ~ModelManagerDistributed();
 
   /** Prepare the model, as described above. */
@@ -58,6 +54,6 @@ class ModelManagerDistributed : public ModelManager
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__MODEL_MANAGER_DISTRIBUTED__H */

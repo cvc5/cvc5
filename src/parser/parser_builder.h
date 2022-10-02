@@ -1,72 +1,52 @@
-/*********************                                                        */
-/*! \file parser_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A builder for parsers.
- **
- ** A builder for parsers.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Christopher L. Conway, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A builder for parsers.
+ */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_BUILDER_H
-#define CVC4__PARSER__PARSER_BUILDER_H
+#ifndef CVC5__PARSER__PARSER_BUILDER_H
+#define CVC5__PARSER__PARSER_BUILDER_H
 
 #include <string>
 
+#include "cvc5_export.h"
 #include "options/language.h"
 #include "parser/input.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-namespace api {
 class Solver;
-}
 
 class Options;
-class SymbolManager;
 
 namespace parser {
 
 class Parser;
+class SymbolManager;
 
 /**
  * A builder for input language parsers. <code>build()</code> can be
  * called any number of times on an instance and will generate a fresh
  * parser each time.
  */
-class CVC4_PUBLIC ParserBuilder {
-  enum InputType {
-    FILE_INPUT,
-    LINE_BUFFERED_STREAM_INPUT,
-    STREAM_INPUT,
-    STRING_INPUT
-  };
-
-  /** The input type. */
-  InputType d_inputType;
-
+class CVC5_EXPORT ParserBuilder
+{
   /** The input language */
-  InputLanguage d_lang;
-
-  /** The file name (may not exist) */
-  std::string d_filename;
-
-  /** The string input, if any. */
-  std::string d_stringInput;
-
-  /** The stream input, if any. */
-  std::istream* d_streamInput;
+  std::string d_lang;
 
   /** The API Solver object. */
-  api::Solver* d_solver;
+  cvc5::Solver* d_solver;
 
   /** The symbol manager */
   SymbolManager* d_symman;
@@ -80,9 +60,6 @@ class CVC4_PUBLIC ParserBuilder {
   /** Should we allow include-file commands? */
   bool d_canIncludeFile;
 
-  /** Should we memory-map a file input? */
-  bool d_mmap;
-
   /** Are we parsing only? */
   bool d_parseOnly;
 
@@ -93,20 +70,11 @@ class CVC4_PUBLIC ParserBuilder {
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(api::Solver* solver,
-            SymbolManager* sm,
-            const std::string& filename);
+  void init(cvc5::Solver* solver, SymbolManager* sm);
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver,
-                SymbolManager* sm,
-                const std::string& filename);
-
-  ParserBuilder(api::Solver* solver,
-                SymbolManager* sm,
-                const std::string& filename,
-                const Options& options);
+  ParserBuilder(cvc5::Solver* solver, SymbolManager* sm, bool useOptions);
 
   /** Build the parser, using the current settings. */
   Parser* build();
@@ -114,34 +82,12 @@ class CVC4_PUBLIC ParserBuilder {
   /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);
 
-  /** Set the Solver to use with the parser. */
-  ParserBuilder& withSolver(api::Solver* solver);
-
-  /** Set the parser to read a file for its input. (Default) */
-  ParserBuilder& withFileInput();
-
-  /**
-   * Set the filename for use by the parser. If file input is used,
-   * this file will be opened and read by the parser. Otherwise, the
-   * filename string (possibly a non-existent path) will only be used
-   * in error messages.
-   */
-  ParserBuilder& withFilename(const std::string& filename);
-
   /**
    * Set the input language to be used by the parser.
    *
    * (Default: LANG_AUTO)
    */
-  ParserBuilder& withInputLanguage(InputLanguage lang);
-
-  /**
-   * Should the parser memory-map its input? This is only relevant if
-   * the parser will have a file input.
-   *
-   * (Default: no)
-   */
-  ParserBuilder& withMmap(bool flag = true);
+  ParserBuilder& withInputLanguage(const std::string& lang);
 
   /**
    * Are we only parsing, or doing something with the resulting
@@ -151,13 +97,13 @@ class CVC4_PUBLIC ParserBuilder {
    * parse would otherwise be an incorrect parse tree and the error
    * would go undetected.  This is specifically for circumstances
    * where the parser is ahead of the functionality present elsewhere
-   * in CVC4 (such as quantifiers, subtypes, records, etc. in the CVC
+   * in cvc5 (such as quantifiers, subtypes, records, etc. in the CVC
    * language parser).
    */
   ParserBuilder& withParseOnly(bool flag = true);
 
-  /** Derive settings from the given options. */
-  ParserBuilder& withOptions(const Options& options);
+  /** Derive settings from the solver's options. */
+  ParserBuilder& withOptions();
 
   /**
    * Should the parser use strict mode?
@@ -173,20 +119,11 @@ class CVC4_PUBLIC ParserBuilder {
    */
   ParserBuilder& withIncludeFile(bool flag = true);
 
-  /** Set the parser to use the given stream for its input. */
-  ParserBuilder& withStreamInput(std::istream& input);
-
-  /** Set the parser to use the given stream for its input. */
-  ParserBuilder& withLineBufferedStreamInput(std::istream& input);
-
-  /** Set the parser to use the given string for its input. */
-  ParserBuilder& withStringInput(const std::string& input);
-
   /** Set the parser to use the given logic string. */
   ParserBuilder& withForcedLogic(const std::string& logic);
-};/* class ParserBuilder */
+}; /* class ParserBuilder */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_BUILDER_H */
+#endif /* CVC5__PARSER__PARSER_BUILDER_H */

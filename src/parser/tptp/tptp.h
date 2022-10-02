@@ -1,44 +1,39 @@
-/*********************                                                        */
-/*! \file tptp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Francois Bobot, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Definitions of TPTP constants.
- **
- ** Definitions of TPTP constants.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Francois Bobot, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definition of TPTP parser.
+ */
 
-#include "parser/antlr_input.h" // Needs to go first.
+#include "cvc5parser_private.h"
+#include "parser/antlr_input.h"  // Needs to go first.
 
-#include "cvc4parser_private.h"
+#ifndef CVC5__PARSER__TPTP_H
+#define CVC5__PARSER__TPTP_H
 
-#ifndef CVC4__PARSER__TPTP_H
-#define CVC4__PARSER__TPTP_H
-
-#include <cassert>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "api/cvc4cpp.h"
+#include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "util/hash.h"
 
-namespace CVC4 {
+namespace cvc5 {
 
-class Command;
-
-namespace api {
 class Solver;
-}
 
 namespace parser {
+
+class Command;
 
 class Tptp : public Parser {
  private:
@@ -50,22 +45,25 @@ class Tptp : public Parser {
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
 
+  bool hol() const;
+  void setHol();
+
   void forceLogic(const std::string& logic) override;
 
-  void addFreeVar(api::Term var);
-  std::vector<api::Term> getFreeVar();
+  void addFreeVar(cvc5::Term var);
+  std::vector<cvc5::Term> getFreeVar();
 
-  api::Term convertRatToUnsorted(api::Term expr);
+  cvc5::Term convertRatToUnsorted(cvc5::Term expr);
   /**
    * Returns a free constant corresponding to the string str. We ensure that
    * these constants are one-to-one with str. We assert that all these free
    * constants are pairwise distinct before issuing satisfiability queries.
    */
-  api::Term convertStrToUnsorted(std::string str);
+  cvc5::Term convertStrToUnsorted(std::string str);
 
   // CNF and FOF are unsorted so we define this common type.
-  // This is also the api::Sort of $i in TFF.
-  api::Sort d_unsorted;
+  // This is also the cvc5::Sort of $i in TFF.
+  cvc5::Sort d_unsorted;
 
   enum Theory {
     THEORY_CORE,
@@ -91,9 +89,8 @@ class Tptp : public Parser {
   bool hasConjecture() const { return d_hasConjecture; }
 
  protected:
-  Tptp(api::Solver* solver,
+  Tptp(cvc5::Solver* solver,
        SymbolManager* sm,
-       Input* input,
        bool strictMode = false,
        bool parseOnly = false);
 
@@ -112,14 +109,14 @@ class Tptp : public Parser {
    * expression
    *  (lambda x1:t1,...,xn:tn . (k x1 ... xn)) : t
    */
-  api::Term mkLambdaWrapper(api::Kind k, api::Sort argType);
+  cvc5::Term mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType);
 
   /** get assertion expression, based on the formula role.
   * expr should have Boolean type.
   * This returns the expression that should be asserted, given the formula role fr.
   * For example, if the role is "conjecture", then the return value is the negation of expr.
   */
-  api::Term getAssertionExpr(FormulaRole fr, api::Term expr);
+  cvc5::Term getAssertionExpr(FormulaRole fr, cvc5::Term expr);
 
   /** get assertion for distinct constants
    *
@@ -127,7 +124,7 @@ class Tptp : public Parser {
    * are the distinct constants introduced by this parser (see
    * convertStrToUnsorted) if n>1, or null otherwise.
    */
-  api::Term getAssertionDistinctConstants();
+  cvc5::Term getAssertionDistinctConstants();
 
   /** returns the appropriate AssertCommand, given a role, expression expr to
    * assert, and information about the assertion. The assertion expr is
@@ -135,23 +132,20 @@ class Tptp : public Parser {
    * getAssertionExpr above). This may set a flag in the parser to mark
    * that we have asserted a conjecture.
    */
-  Command* makeAssertCommand(FormulaRole fr,
-                             api::Term expr,
-                             bool cnf,
-                             bool inUnsatCore);
+  Command* makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */
-  api::Term d_tmp_expr;
+  cvc5::Term d_tmp_expr;
 
   /** Push a new stream in the lexer. When EOF is reached the previous stream
       is reused */
   void includeFile(std::string fileName);
 
   /** Check a TPTP let binding for well-formedness. */
-  void checkLetBinding(const std::vector<api::Term>& bvlist,
-                       api::Term lhs,
-                       api::Term rhs,
+  void checkLetBinding(const std::vector<cvc5::Term>& bvlist,
+                       cvc5::Term lhs,
+                       cvc5::Term rhs,
                        bool formula);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
@@ -159,7 +153,7 @@ class Tptp : public Parser {
    * There are three cases in TPTP: either p already has an expression, in which
    * case this function just returns it, or p has just a name or a builtin kind.
    */
-  api::Term parseOpToExpr(ParseOp& p);
+  cvc5::Term parseOpToExpr(ParseOp& p);
   /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.
@@ -176,21 +170,41 @@ class Tptp : public Parser {
    * been previously declared, which leads to a more convoluted processing than
    * what is necessary in parsing SMT-LIB.
    */
-  api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
+  cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
+  /**
+   * Make decimal, returns a real corresponding to string ( snum "." sden ),
+   * negated if pos is false, having exponent exp, negated exponent if posE is
+   * false.
+   */
+  cvc5::Term mkDecimal(
+      std::string& snum, std::string& sden, bool pos, size_t exp, bool posE);
 
  private:
   void addArithmeticOperators();
+  /** is the name declared, if so, return the term for that name */
+  cvc5::Term isTptpDeclared(const std::string& name);
+  /**
+   * Make APPLY_UF from arguments, which ensures that subyping is not used.
+   */
+  Term makeApplyUf(std::vector<Term>& args);
 
   // In CNF variable are implicitly binded
   // d_freevar collect them
-  std::vector<api::Term> d_freeVar;
-  api::Term d_rtu_op;
-  api::Term d_stu_op;
-  api::Term d_utr_op;
-  api::Term d_uts_op;
+  std::vector<cvc5::Term> d_freeVar;
+  cvc5::Term d_rtu_op;
+  cvc5::Term d_stu_op;
+  cvc5::Term d_utr_op;
+  cvc5::Term d_uts_op;
   // The set of expression that already have a bridge
-  std::unordered_set<api::Term, api::TermHashFunction> d_r_converted;
-  std::unordered_map<std::string, api::Term> d_distinct_objects;
+  std::unordered_set<cvc5::Term> d_r_converted;
+  std::unordered_map<std::string, cvc5::Term> d_distinct_objects;
+  /**
+   * TPTP automatically declares symbols as they are parsed inline. This
+   * requires using an auxiliary symbol table for such symbols. This must be
+   * independent of the main symbol table which is aware of quantifier
+   * scopes.
+   */
+  std::unordered_map<std::string, cvc5::Term> d_auxSymbolTable;
 
   std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 
@@ -199,13 +213,14 @@ class Tptp : public Parser {
   std::string d_tptpDir;
 
   // the null expression
-  api::Term d_nullExpr;
+  cvc5::Term d_nullExpr;
 
   // hack to make output SZS ontology-compliant
   bool d_hasConjecture;
 
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
+  bool d_hol;  // in a thf formula
 };/* class Tptp */
 
 
@@ -214,12 +229,12 @@ namespace tptp {
  * Just exists to provide the uintptr_t constructor that ANTLR
  * requires.
  */
-struct myExpr : public CVC4::api::Term
+struct myExpr : public cvc5::Term
 {
-  myExpr() : CVC4::api::Term() {}
-  myExpr(void*) : CVC4::api::Term() {}
-  myExpr(const CVC4::api::Term& e) : CVC4::api::Term(e) {}
-  myExpr(const myExpr& e) : CVC4::api::Term(e) {}
+  myExpr() : cvc5::Term() {}
+  myExpr(void*) : cvc5::Term() {}
+  myExpr(const cvc5::Term& e) : cvc5::Term(e) {}
+  myExpr(const myExpr& e) : cvc5::Term(e) {}
 }; /* struct myExpr*/
 
 enum NonAssoc {
@@ -231,10 +246,9 @@ enum NonAssoc {
   NA_REVAND,
 };
 
-}/* CVC4::parser::tptp namespace */
+}  // namespace tptp
 
+}  // namespace parser
+}  // namespace cvc5
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC5__PARSER__TPTP_INPUT_H */

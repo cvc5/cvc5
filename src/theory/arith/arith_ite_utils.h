@@ -1,34 +1,37 @@
-/*********************                                                        */
-/*! \file arith_ite_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 // Pass 1: label the ite as (constant) or (+ constant variable)
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
-#define CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
+#ifndef CVC5__THEORY__ARITH__ARITH_ITE_UTILS_H
+#define CVC5__THEORY__ARITH__ARITH_ITE_UTILS_H
 
 #include <unordered_map>
 
-#include "expr/node.h"
-#include "context/cdo.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdo.h"
+#include "expr/node.h"
+#include "smt/env_obj.h"
+#include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace util {
 class ContainsTermITEVisitor;
@@ -38,16 +41,15 @@ class ContainsTermITEVisitor;
 namespace theory {
 
 class SubstitutionMap;
-class TheoryModel;
 
 namespace arith {
 
-class ArithIteUtils {
+class ArithIteUtils : protected EnvObj
+{
   preprocessing::util::ContainsTermITEVisitor& d_contains;
-  SubstitutionMap* d_subs;
-  TheoryModel* d_model;
+  SubstitutionMap& d_subs;
 
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
+  typedef std::unordered_map<Node, Node> NodeMap;
   // cache for reduce vars
   NodeMap d_reduceVar; // if reduceVars[n].isNull(), treat reduceVars[n] == n
 
@@ -57,13 +59,13 @@ class ArithIteUtils {
 
 
   NodeMap d_reduceGcd;
-  typedef std::unordered_map<Node, Integer, NodeHashFunction> NodeIntegerMap;
+  typedef std::unordered_map<Node, Integer> NodeIntegerMap;
   NodeIntegerMap d_gcds;
 
   Integer d_one;
 
-  context::CDO<unsigned> d_subcount;
-  typedef context::CDInsertHashMap<Node, Node, NodeHashFunction> CDNodeMap;
+  context::CDO<uint64_t> d_subcount;
+  typedef context::CDInsertHashMap<Node, Node> CDNodeMap;
   CDNodeMap d_skolems;
 
   typedef std::map<Node, std::set<Node> > ImpMap;
@@ -72,9 +74,9 @@ class ArithIteUtils {
   std::vector<Node> d_orBinEqs;
 
 public:
- ArithIteUtils(preprocessing::util::ContainsTermITEVisitor& contains,
-               context::Context* userContext,
-               TheoryModel* model);
+ ArithIteUtils(Env& env,
+               preprocessing::util::ContainsTermITEVisitor& contains,
+               SubstitutionMap& subs);
  ~ArithIteUtils();
 
  //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
@@ -109,8 +111,8 @@ private:
 
 }; /* class ArithIteUtils */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_ITE_UTILS_H */

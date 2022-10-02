@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An enumerator for datatypes
- **
- ** An enumerator for datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An enumerator for datatypes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 
 #include "expr/dtype.h"
 #include "expr/kind.h"
@@ -25,7 +24,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -64,7 +63,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   bool hasCyclesDt(const DType& dt)
   {
-    return dt.isRecursiveSingleton(d_type) || !dt.isFinite(d_type);
+    return dt.isRecursiveSingleton(d_type)
+           || dt.getCardinalityClass(d_type) == CardinalityClass::INFINITE;
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){
@@ -141,7 +141,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   Node operator*() override
   {
-    Debug("dt-enum-debug") << ": get term " << this << std::endl;
+    Trace("dt-enum-debug") << ": get term " << this << std::endl;
     if (d_zeroTermActive)
     {
       return d_zeroTerm;
@@ -162,8 +162,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
 };/* DatatypesEnumerator */
 
-}/* CVC4::theory::datatypes namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H */

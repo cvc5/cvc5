@@ -1,0 +1,11 @@
+; REQUIRES: no-competition
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --no-sygus-repair-const --strict-parsing
+; ERROR-SCRUBBER: grep -o "Symbol 'div' not declared as a variable"
+; EXPECT-ERROR: Symbol 'div' not declared as a variable
+; EXIT: 1
+(set-logic LIA)
+(declare-var n Int)
+
+(synth-fun f ((n Int)) Int)
+(constraint (= (div n n) 1))
+(check-synth)

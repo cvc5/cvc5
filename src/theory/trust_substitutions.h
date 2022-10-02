@@ -1,46 +1,50 @@
-/*********************                                                        */
-/*! \file trust_substitutions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Trust substitutions
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Trust substitutions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__TRUST_SUBSTITUTIONS_H
-#define CVC4__THEORY__TRUST_SUBSTITUTIONS_H
+#ifndef CVC5__THEORY__TRUST_SUBSTITUTIONS_H
+#define CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 
+#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_set.h"
-#include "expr/term_conversion_proof_generator.h"
-#include "theory/eager_proof_generator.h"
+#include "proof/conv_proof_generator.h"
+#include "proof/eager_proof_generator.h"
+#include "proof/lazy_proof.h"
+#include "proof/proof_node_manager.h"
+#include "proof/proof_set.h"
+#include "proof/theory_proof_step_buffer.h"
+#include "proof/trust_node.h"
 #include "theory/substitutions.h"
-#include "theory/theory_proof_step_buffer.h"
-#include "theory/trust_node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
  * A layer on top of SubstitutionMap that tracks proofs.
  */
-class TrustSubstitutionMap
+class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
 {
+  using NodeUIntMap = context::CDHashMap<Node, size_t>;
+
  public:
-  TrustSubstitutionMap(context::Context* c,
-                       ProofNodeManager* pnm,
+  TrustSubstitutionMap(Env& env,
+                       context::Context* c,
                        std::string name = "TrustSubstitutionMap",
-                       PfRule trustId = PfRule::TRUST_SUBS_MAP,
+                       PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
@@ -56,6 +60,7 @@ class TrustSubstitutionMap
   void addSubstitution(TNode x,
                        TNode t,
                        PfRule id,
+                       const std::vector<Node>& children,
                        const std::vector<Node>& args);
   /**
    * Add substitution x -> t, which was derived from the proven field of
@@ -80,26 +85,29 @@ class TrustSubstitutionMap
   /**
    * Apply substitutions in this class to node n. Returns a trust node
    * proving n = n*sigma, where the proof generator is provided by this class
-   * (when proofs are enabled).
+   * (when proofs are enabled). If a non-null rewriter is provided, the result
+   * of the substitution is rewritten.
    */
-  TrustNode apply(Node n, bool doRewrite = true);
+  TrustNode applyTrusted(Node n, Rewriter* r = nullptr);
+  /** Same as above, without proofs */
+  Node apply(Node n, Rewriter* r = nullptr);
+
+  /** Get the proof for formula f */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Identify */
+  std::string identify() const override;
 
  private:
   /** Are proofs enabled? */
   bool isProofEnabled() const;
   /**
-   * Get current substitution. This returns a node of the form:
-   *   (and (= x1 t1) ... (= xn tn))
-   * where (x1, t1) ... (xn, tn) have been registered via addSubstitution above.
-   * Moreover, it ensures that d_subsPg has a proof of the returned value.
+   * Get the substitution up to index
    */
-  Node getCurrentSubstitution();
+  Node getSubstitution(size_t index);
   /** The context used here */
   context::Context* d_ctx;
   /** The substitution map */
   SubstitutionMap d_subs;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** A context-dependent list of trust nodes */
   context::CDList<TrustNode> d_tsubs;
   /** Theory proof step buffer */
@@ -111,16 +119,7 @@ class TrustSubstitutionMap
   /**
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
-  CDProofSet<LazyCDProof> d_helperPf;
-  /**
-   * The formula corresponding to the current substitution. This is of the form
-   *   (and (= x1 t1) ... (= xn tn))
-   * when the substitution map contains { x1 -> t1, ... xn -> tn }. This field
-   * is updated on demand. When this class applies a substitution to a node,
-   * this formula is computed and recorded as the premise of a
-   * MACRO_SR_EQ_INTRO step.
-   */
-  context::CDO<Node> d_currentSubs;
+  std::unique_ptr<CDProofSet<LazyCDProof>> d_helperPf;
   /** Name for debugging */
   std::string d_name;
   /**
@@ -130,9 +129,24 @@ class TrustSubstitutionMap
   PfRule d_trustId;
   /** The method id for which form of substitution to apply */
   MethodId d_ids;
+  /**
+   * Map from solved equalities to the size of d_tsubs at the time they
+   * were concluded. Notice this is required so that we can reconstruct
+   * proofs for substitutions after they have become invalidated by later
+   * calls to addSubstitution. For example, if we call:
+   *   addSubstitution x -> y
+   *   addSubstitution z -> w
+   *   apply f(x), returns f(y)
+   *   addSubstitution y -> w
+   * We map (= (f x) (f y)) to index 2, since we only should apply the first
+   * two substitutions but not the third when asked to prove this equality.
+   */
+  NodeUIntMap d_eqtIndex;
+  /** Debugging, catches potential for infinite loops */
+  std::unordered_set<Node> d_proving;
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__TRUST_SUBSTITUTIONS_H */
+#endif /* CVC5__THEORY__TRUST_SUBSTITUTIONS_H */

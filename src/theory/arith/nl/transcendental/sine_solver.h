@@ -1,31 +1,28 @@
-/*********************                                                        */
-/*! \file sine_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Solving for handling exponential function.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Solving for handling exponential function.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
 
 #include <map>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -43,15 +40,29 @@ namespace transcendental {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class SineSolver
+class SineSolver : protected EnvObj
 {
  public:
-  SineSolver(TranscendentalState* tstate);
+  SineSolver(Env& env, TranscendentalState* tstate);
   ~SineSolver();
 
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  /** do reductions
+   *
+   * This method determines any applications of sin(x) that can be reasoned
+   * about "precisely", either via symmetry:
+   *   x = -y => sin(x) = -sin(y)
+   * or via boundary points, e.g.:
+   *   x = pi/2 => sin(x) = 1
+   * Each application of sin(x) for which a reduction of the latter form exists
+   * is removed from the range of d_funcMap in the transcendental state, and
+   * thus will not be considered for other lemma schemas.
+   */
+  void doReductions();
+  /**
+   * Introduces new_a as purified version of a which is also shifted to the main
+   * phase (from -pi to pi). new_a[0] is the new skolem used for purification.
+   */
+  void doPhaseShift(TNode a, TNode new_a);
 
   /**
    * check initial refine
@@ -85,7 +96,8 @@ class SineSolver
   void checkMonotonic();
 
   /** Sent tangent lemma around c for e */
-  void doTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
+  void doTangentLemma(
+      TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d);
 
   /** Sent secant lemmas around c for e */
   void doSecantLemmas(TNode e,
@@ -95,6 +107,20 @@ class SineSolver
                       unsigned d,
                       unsigned actual_d,
                       int region);
+
+  /**
+   * Does n of the form sin(x) have an exact model value? This is true if
+   * the model value of x is in the domain of d_mpointsSine.
+   */
+  bool hasExactModelValue(TNode n) const;
+
+  /**
+   * Make the lemma for the phase shift of arguments to SINE x and y, where
+   * s is the (integral) shift. The lemma conceptually says that y is
+   * in the bounds [-pi, pi] and y is offset from x by an integral factor of
+   * 2*pi.
+   */
+  static Node getPhaseShiftLemma(const Node& x, const Node& y, const Node& s);
 
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,
@@ -110,16 +136,14 @@ class SineSolver
    * is invalid, or there is no lower bound for the
    * region.
    */
-  Node regionToLowerBound(int region)
+  Node regionToLowerBound(int region) const
   {
-    switch (region)
+    if (region >= 1 && region <= 4)
     {
-      case 1: return d_data->d_pi_2;
-      case 2: return d_data->d_zero;
-      case 3: return d_data->d_pi_neg_2;
-      case 4: return d_data->d_pi_neg;
-      default: return Node();
+      size_t index = static_cast<size_t>(region);
+      return d_mpoints[index];
     }
+    return Node();
   }
 
   /** region to upper bound
@@ -130,19 +154,17 @@ class SineSolver
    * is invalid, or there is no upper bound for the
    * region.
    */
-  Node regionToUpperBound(int region)
+  Node regionToUpperBound(int region) const
   {
-    switch (region)
+    if (region >= 1 && region <= 4)
     {
-      case 1: return d_data->d_pi;
-      case 2: return d_data->d_pi_2;
-      case 3: return d_data->d_zero;
-      case 4: return d_data->d_pi_neg_2;
-      default: return Node();
+      size_t index = static_cast<size_t>(region - 1);
+      return d_mpoints[index];
     }
+    return Node();
   }
 
-  int regionToMonotonicityDir(int region)
+  int regionToMonotonicityDir(int region) const
   {
     switch (region)
     {
@@ -153,7 +175,7 @@ class SineSolver
       default: return 0;
     }
   }
-  Convexity regionToConvexity(int region)
+  Convexity regionToConvexity(int region) const
   {
     switch (region)
     {
@@ -171,12 +193,19 @@ class SineSolver
   /** The transcendental functions we have done initial refinements on */
   std::map<Node, bool> d_tf_initial_refine;
 
+  /** PI, -PI */
+  Node d_pi;
+  Node d_neg_pi;
+  /** the boundary points */
+  std::vector<Node> d_mpoints;
+  /** mapping from values c to known points for sin(c) */
+  std::map<Node, Node> d_mpointsSine;
 }; /* class SineSolver */
 
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

@@ -1,30 +1,41 @@
-/*********************                                                        */
-/*! \file tangent_plane_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of tangent_plane check
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of tangent_plane check.
+ */
 
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/rewriter.h"
+#include "util/rational.h"
 
-namespace CVC4 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-TangentPlaneCheck::TangentPlaneCheck(ExtState* data) : d_data(data) {}
+TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data)
+{
+}
 
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
@@ -53,7 +64,8 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
     for (unsigned j = 0; j < it->second.size(); j++)
     {
       Node tc = it->second[j];
-      if (tc != d_data->d_one)
+      Node one = mkOne(tc.getType());
+      if (tc != one)
       {
         Node tc_diff = d_data->d_mdb.getContainsDiffNl(tc, t);
         Assert(!tc_diff.isNull());
@@ -85,7 +97,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               {
                 Node do_extend = nm->mkNode(
                     (p == 1 || p == 3) ? Kind::GT : Kind::LT, curr_v, pt_v);
-                do_extend = Rewriter::rewrite(do_extend);
+                do_extend = rewrite(do_extend);
                 if (do_extend == d_data->d_true)
                 {
                   for (unsigned q = 0; q < 2; q++)
@@ -109,8 +121,8 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             Node b_v = pts[1][p];
 
             // tangent plane
-            Node tplane = nm->mkNode(Kind::MINUS,
-                                     nm->mkNode(Kind::PLUS,
+            Node tplane = nm->mkNode(Kind::SUB,
+                                     nm->mkNode(Kind::ADD,
                                                 nm->mkNode(Kind::MULT, b_v, a),
                                                 nm->mkNode(Kind::MULT, a_v, b)),
                                      nm->mkNode(Kind::MULT, a_v, b_v));
@@ -132,8 +144,24 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                           Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
-              d_data->d_im.addPendingArithLemma(
-                  tlem, InferenceId::NL_TANGENT_PLANE, nullptr, asWaitingLemmas);
+              CDProof* proof = nullptr;
+              if (d_data->isProofEnabled())
+              {
+                proof = d_data->getProof();
+                proof->addStep(tlem,
+                               PfRule::ARITH_MULT_TANGENT,
+                               {},
+                               {t,
+                                a,
+                                b,
+                                a_v,
+                                b_v,
+                                nm->mkConstReal(Rational(d == 0 ? -1 : 1))});
+              }
+              d_data->d_im.addPendingLemma(tlem,
+                                           InferenceId::ARITH_NL_TANGENT_PLANE,
+                                           proof,
+                                           asWaitingLemmas);
             }
           }
         }
@@ -145,4 +173,4 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

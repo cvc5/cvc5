@@ -1,22 +1,22 @@
-/*********************                                                        */
-/*! \file sygus_process_conj.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Techniqures for static preprocessing and analysis of
- ** sygus conjectures.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Techniqures for static preprocessing and analysis of sygus conjectures.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
 
 #include <map>
 #include <unordered_map>
@@ -25,12 +25,10 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /** This file contains techniques that compute
@@ -122,10 +120,10 @@ class SynthConjectureProcessArg
 * It maintains information about each of the function to
 * synthesize's arguments.
 */
-struct SynthConjectureProcessFun
+struct SynthConjectureProcessFun : protected EnvObj
 {
  public:
-  SynthConjectureProcessFun() {}
+  SynthConjectureProcessFun(Env& env);
   ~SynthConjectureProcessFun() {}
   /** initialize this class for function f */
   void init(Node f);
@@ -147,10 +145,8 @@ struct SynthConjectureProcessFun
       std::vector<Node>& ns,
       std::vector<Node>& ks,
       Node nf,
-      std::unordered_set<Node, NodeHashFunction>& synth_fv,
-      std::unordered_map<Node,
-                         std::unordered_set<Node, NodeHashFunction>,
-                         NodeHashFunction>& free_vars);
+      std::unordered_set<Node>& synth_fv,
+      std::unordered_map<Node, std::unordered_set<Node>>& free_vars);
   /** is the i^th argument of the function-to-synthesize of this class relevant?
    */
   bool isArgRelevant(unsigned i);
@@ -172,7 +168,7 @@ struct SynthConjectureProcessFun
   /** map from d_arg_vars to the argument #
    * they represent.
    */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_arg_var_num;
+  std::unordered_map<Node, unsigned> d_arg_var_num;
   /** check match
    * This function returns true iff we can infer:
    *   cn * { x -> n_arg_map[d_arg_var_num[x]] | x in d_arg_vars } = n
@@ -220,10 +216,8 @@ struct SynthConjectureProcessFun
    */
   Node inferDefinition(
       Node n,
-      std::unordered_map<Node, unsigned, NodeHashFunction>& term_to_arg_carry,
-      std::unordered_map<Node,
-                         std::unordered_set<Node, NodeHashFunction>,
-                         NodeHashFunction>& free_vars);
+      std::unordered_map<Node, unsigned>& term_to_arg_carry,
+      std::unordered_map<Node, std::unordered_set<Node>>& free_vars);
   /** Assign relevant definition
    *
    * If def is non-null,
@@ -273,10 +267,10 @@ struct SynthConjectureProcessFun
  * sygus to SynthConjectureProcess::getSymmetryBreakingPredicate(...), which are
  * used for pruning search space based on conjecture-specific analysis.
  */
-class SynthConjectureProcess
+class SynthConjectureProcess : protected EnvObj
 {
  public:
-  SynthConjectureProcess(QuantifiersEngine* qe);
+  SynthConjectureProcess(Env& env);
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
    * Returns a formula that is equivalent to q.
@@ -325,9 +319,7 @@ class SynthConjectureProcess
    * is the set of (inner) universal variables in the synthesis
    * conjecture.
    */
-  void processConjunct(Node n,
-                       Node f,
-                       std::unordered_set<Node, NodeHashFunction>& synth_fv);
+  void processConjunct(Node n, Node f, std::unordered_set<Node>& synth_fv);
   /** flatten
    *
    * Flattens all applications of f in term n.
@@ -340,18 +332,16 @@ class SynthConjectureProcess
    */
   Node flatten(Node n,
                Node f,
-               std::unordered_set<Node, NodeHashFunction>& synth_fv,
-               std::unordered_map<Node, Node, NodeHashFunction>& defs);
+               std::unordered_set<Node>& synth_fv,
+               std::unordered_map<Node, Node>& defs);
   /** get free variables
    * Constructs a map of all free variables that occur in n
    * from synth_fv and stores them in the map free_vars.
    */
   void getFreeVariables(
       Node n,
-      std::unordered_set<Node, NodeHashFunction>& synth_fv,
-      std::unordered_map<Node,
-                         std::unordered_set<Node, NodeHashFunction>,
-                         NodeHashFunction>& free_vars);
+      std::unordered_set<Node>& synth_fv,
+      std::unordered_map<Node, std::unordered_set<Node>>& free_vars);
   /** for each synth-fun, information that is specific to this conjecture */
   std::map<Node, SynthConjectureProcessFun> d_sf_info;
 
@@ -359,8 +349,8 @@ class SynthConjectureProcess
   void getComponentVector(Kind k, Node n, std::vector<Node>& args);
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
 #endif

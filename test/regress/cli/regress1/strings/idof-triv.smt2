@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :strings-exp true)
+(declare-fun string () String)
+;(assert (= string "::")) 
+(assert (> (str.indexof string ":" 0) 0))
+(check-sat)

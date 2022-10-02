@@ -1,40 +1,33 @@
-/*********************                                                        */
-/*! \file poly_util.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for working with LibPoly.
- **
- ** Utilities for working with LibPoly.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for working with LibPoly.
+ */
 
 #include "poly_util.h"
 
-#ifdef CVC4_POLY_IMP
+#ifdef CVC5_POLY_IMP
 
 #include <poly/polyxx.h>
 
 #include <map>
+#include <sstream>
 
 #include "base/check.h"
-#include "maybe.h"
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace poly_utils {
 
 namespace {
@@ -57,10 +50,10 @@ To cast_by_string(const From& f)
 Integer toInteger(const poly::Integer& i)
 {
   const mpz_class& gi = *poly::detail::cast_to_gmp(&i);
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return Integer(gi);
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   if (std::numeric_limits<long>::min() <= gi
       && gi <= std::numeric_limits<long>::max())
   {
@@ -75,10 +68,10 @@ Integer toInteger(const poly::Integer& i)
 Rational toRational(const poly::Integer& i) { return Rational(toInteger(i)); }
 Rational toRational(const poly::Rational& r)
 {
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return Rational(*poly::detail::cast_to_gmp(&r));
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   return Rational(toInteger(numerator(r)), toInteger(denominator(r)));
 #endif
 }
@@ -131,10 +124,10 @@ Rational toRationalBelow(const poly::Value& v)
 
 poly::Integer toInteger(const Integer& i)
 {
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return poly::Integer(i.getValue());
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   if (std::numeric_limits<long>::min() <= i.getValue()
       && i.getValue() <= std::numeric_limits<long>::max())
   {
@@ -154,16 +147,16 @@ std::vector<poly::Integer> toInteger(const std::vector<Integer>& vi)
 }
 poly::Rational toRational(const Rational& r)
 {
-#ifdef CVC4_GMP_IMP
+#ifdef CVC5_GMP_IMP
   return poly::Rational(r.getValue());
 #endif
-#ifdef CVC4_CLN_IMP
+#ifdef CVC5_CLN_IMP
   return poly::Rational(toInteger(r.getNumerator()),
                         toInteger(r.getDenominator()));
 #endif
 }
 
-Maybe<poly::DyadicRational> toDyadicRational(const Rational& r)
+std::optional<poly::DyadicRational> toDyadicRational(const Rational& r)
 {
   Integer den = r.getDenominator();
   if (den.isOne())
@@ -176,10 +169,10 @@ Maybe<poly::DyadicRational> toDyadicRational(const Rational& r)
     // It's a dyadic rational.
     return div_2exp(poly::DyadicRational(toInteger(r.getNumerator())), exp - 1);
   }
-  return Maybe<poly::DyadicRational>();
+  return std::optional<poly::DyadicRational>();
 }
 
-Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
+std::optional<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
 {
   poly::Integer den = denominator(r);
   if (den == poly::Integer(1))
@@ -193,7 +186,7 @@ Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
     // It's a dyadic rational.
     return div_2exp(poly::DyadicRational(numerator(r)), size);
   }
-  return Maybe<poly::DyadicRational>();
+  return std::optional<poly::DyadicRational>();
 }
 
 poly::Rational approximateToDyadic(const poly::Rational& r,
@@ -218,8 +211,8 @@ poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
                                               const Rational& lower,
                                               const Rational& upper)
 {
-  Maybe<poly::DyadicRational> ml = toDyadicRational(lower);
-  Maybe<poly::DyadicRational> mu = toDyadicRational(upper);
+  std::optional<poly::DyadicRational> ml = toDyadicRational(lower);
+  std::optional<poly::DyadicRational> mu = toDyadicRational(upper);
   if (ml && mu)
   {
     return poly::AlgebraicNumber(std::move(p),
@@ -360,6 +353,6 @@ void getVariableInformation(VariableInformation& vi,
 }
 
 }  // namespace poly_utils
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

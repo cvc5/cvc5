@@ -1,10 +1,8 @@
 id     = "THEORY"
-name   = "Theory layer"
-header = "options/theory_options.h"
+name   = "Theory Layer"
 
 [[option]]
   name       = "theoryOfMode"
-  smt_name   = "theoryof-mode"
   category   = "expert"
   long       = "theoryof-mode=MODE"
   type       = "TheoryOfMode"
@@ -20,7 +18,7 @@ header = "options/theory_options.h"
 
 [[option]]
   name       = "assignFunctionValues"
-  category   = "regular"
+  category   = "expert"
   long       = "assign-function-values"
   type       = "bool"
   default    = "true"
@@ -28,16 +26,15 @@ header = "options/theory_options.h"
 
 [[option]]
   name       = "condenseFunctionValues"
-  category   = "regular"
+  category   = "expert"
   long       = "condense-function-values"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "condense values for functions in models rather than explicitly representing them"
 
 [[option]]
   name       = "relevanceFilter"
-  category   = "regular"
+  category   = "expert"
   long       = "relevance-filter"
   type       = "bool"
   default    = "false"
@@ -54,6 +51,9 @@ header = "options/theory_options.h"
 [[option.mode.DISTRIBUTED]]
   name = "distributed"
   help = "Each theory maintains its own equality engine."
+[[option.mode.CENTRAL]]
+  name = "central"
+  help = "All applicable theories use the central equality engine."
 
 [[option]]
   name       = "tcMode"

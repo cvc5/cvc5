@@ -1,32 +1,38 @@
-/*********************                                                        */
-/*! \file prop_proof_manager
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the proof manager for the PropPfManager
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Gereon Kremer, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the proof manager for the PropPfManager.
+ */
 
 #include "prop/prop_proof_manager.h"
 
-#include "expr/proof_node_algorithm.h"
+#include "proof/proof_ensure_closed.h"
+#include "proof/proof_node_algorithm.h"
+#include "prop/prop_proof_manager.h"
+#include "prop/sat_solver.h"
+#include "smt/env.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace prop {
 
-PropPfManager::PropPfManager(context::UserContext* userContext,
-                             ProofNodeManager* pnm,
-                             SatProofManager* satPM,
+PropPfManager::PropPfManager(Env& env,
+                             context::UserContext* userContext,
+                             CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
-    : d_pnm(pnm),
-      d_pfpp(new ProofPostproccess(pnm, cnfProof)),
-      d_satPM(satPM),
-      d_assertions(userContext)
+    : EnvObj(env),
+      d_pfpp(new ProofPostprocess(env, cnfProof)),
+      d_satSolver(satSolver),
+      d_assertions(userContext),
+      d_proofCnfStream(cnfProof)
 {
   // add trivial assumption. This is so that we can check the that the prop
   // engine's proof is closed, as the SAT solver's refutation proof may use True
@@ -42,32 +48,62 @@ void PropPfManager::registerAssertion(Node assertion)
   d_assertions.push_back(assertion);
 }
 
-void PropPfManager::checkProof(context::CDList<Node>* assertions)
+void PropPfManager::checkProof(const context::CDList<Node>& assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
   // add given assertions d_assertions
-  for (const Node& assertion : *assertions)
+  for (const Node& assertion : assertions)
   {
     d_assertions.push_back(assertion);
   }
   std::vector<Node> avec{d_assertions.begin(), d_assertions.end()};
-  pfnEnsureClosedWrt(
-      conflictProof.get(), avec, "sat-proof", "PropPfManager::checkProof");
+  pfnEnsureClosedWrt(options(),
+                     conflictProof.get(),
+                     avec,
+                     "sat-proof",
+                     "PropPfManager::checkProof");
 }
 
-std::shared_ptr<ProofNode> PropPfManager::getProof()
+std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
+    modes::ProofComponent pc)
+{
+  Trace("sat-proof") << "PropPfManager::getProofLeaves: Getting " << pc
+                     << " component proofs\n";
+  std::vector<Node> fassumps;
+  Assert(pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+         || pc == modes::PROOF_COMPONENT_PREPROCESS);
+  std::vector<std::shared_ptr<ProofNode>> pfs =
+      pc == modes::PROOF_COMPONENT_THEORY_LEMMAS
+          ? d_proofCnfStream->getLemmaClausesProofs()
+          : d_proofCnfStream->getInputClausesProofs();
+  std::shared_ptr<ProofNode> satPf = getProof(false);
+  std::vector<Node> satLeaves;
+  expr::getFreeAssumptions(satPf.get(), satLeaves);
+  std::vector<std::shared_ptr<ProofNode>> usedPfs;
+  for (const std::shared_ptr<ProofNode>& pf : pfs)
+  {
+    Node proven = pf->getResult();
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    {
+      usedPfs.push_back(pf);
+    }
+  }
+  return usedPfs;
+}
+
+std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
 {
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(conflictProof.get(), fassumps);
@@ -82,9 +118,13 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     Trace("sat-proof")
         << "PropPfManager::getProof: Connecting with CNF proof\n";
   }
+  if (!connectCnf)
+  {
+    return conflictProof;
+  }
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
-  if (Trace.isOn("sat-proof"))
+  if (TraceIsOn("sat-proof"))
   {
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(conflictProof.get(), fassumps);
@@ -106,4 +146,4 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
 }
 
 }  // namespace prop
-}  // namespace CVC4
+}  // namespace cvc5::internal

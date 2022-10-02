@@ -1,29 +1,31 @@
-/*********************                                                        */
-/*! \file global_negate.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of global_negate
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Yoni Zohar, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of global_negate.
+ */
 
 #include "preprocessing/passes/global_negate.h"
 
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -35,7 +37,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   // collect free variables in all assertions
   std::vector<Node> free_vars;
   std::vector<TNode> visit;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode> visited;
   for (const Node& as : assertions)
   {
     Trace("cegqi-gn") << "  " << as << std::endl;
@@ -92,7 +94,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   }
 
   Trace("cegqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
-  body = Rewriter::rewrite(body);
+  body = rewrite(body);
   Trace("cegqi-gn") << "...got (post-rewrite) : " << body << std::endl;
   return body;
 }
@@ -123,4 +125,4 @@ PreprocessingPassResult GlobalNegate::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

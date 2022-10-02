@@ -1,25 +1,27 @@
-/*********************                                                        */
-/*! \file sygus_stats.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A shared statistics class for sygus.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A shared statistics class for sygus.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_STATS_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_STATS_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_STATS_H
 
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -29,14 +31,7 @@ namespace quantifiers {
 class SygusStatistics
 {
  public:
-  SygusStatistics();
-  ~SygusStatistics();
-  /** Number of counterexample lemmas */
-  IntStat d_cegqi_lemmas_ce;
-  /** Number of refinement lemmas */
-  IntStat d_cegqi_lemmas_refine;
-  /** Number of single invocation lemmas */
-  IntStat d_cegqi_si_lemmas;
+  SygusStatistics(StatisticsRegistry& sr);
   /** Number of solutions printed (could be >1 for --sygus-stream) */
   IntStat d_solutions;
   /** Number of solutions filtered */
@@ -53,6 +48,6 @@ class SygusStatistics
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5::internal
 
 #endif

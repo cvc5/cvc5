@@ -1,35 +1,38 @@
-/*********************                                                        */
-/*! \file witness_form.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for managing witness form conversion in proofs
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for managing witness form conversion in proofs.
+ */
 
 #include "smt/witness_form.h"
 
 #include "expr/skolem_manager.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace smt {
 
-WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
-    : d_tcpg(pnm,
+WitnessFormGenerator::WitnessFormGenerator(Env& env)
+    : d_rewriter(env.getRewriter()),
+      d_tcpg(env,
              nullptr,
              TConvPolicy::FIXPOINT,
              TConvCachePolicy::NEVER,
              "WfGenerator::TConvProofGenerator",
              nullptr,
              true),
-      d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof"),
-      d_pskPf(pnm, nullptr, "WfGenerator::PurifySkolemProof")
+      d_wintroPf(env, nullptr, nullptr, "WfGenerator::LazyCDProof"),
+      d_pskPf(env, nullptr, "WfGenerator::PurifySkolemProof")
 {
 }
 
@@ -59,15 +62,13 @@ std::string WitnessFormGenerator::identify() const
 
 Node WitnessFormGenerator::convertToWitnessForm(Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* skm = nm->getSkolemManager();
-  Node tw = SkolemManager::getWitnessForm(t);
+  Node tw = SkolemManager::getOriginalForm(t);
   if (t == tw)
   {
     // trivial case
     return tw;
   }
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::unordered_set<Node>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   TNode curw;
@@ -80,50 +81,28 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     if (it == d_visited.end())
     {
       d_visited.insert(cur);
-      curw = SkolemManager::getWitnessForm(cur);
-      // if its witness form is different
+      curw = SkolemManager::getOriginalForm(cur);
+      // if its original form is different
       if (cur != curw)
       {
         if (cur.isVar())
         {
+          curw = SkolemManager::getUnpurifiedForm(cur);
           Node eq = cur.eqNode(curw);
-          // equality between a variable and its witness form
+          // equality between a variable and its unpurified form
           d_eqs.insert(eq);
-          Assert(curw.getKind() == kind::WITNESS);
-          Node skBody = SkolemManager::getSkolemForm(curw[1]);
-          Node exists = nm->mkNode(kind::EXISTS, curw[0], skBody);
-          ProofGenerator* pg = skm->getProofGenerator(exists);
-          if (pg == nullptr)
-          {
-            // it may be a purification skolem
-            pg = convertExistsInternal(exists);
-            if (pg == nullptr)
-            {
-              // if no proof generator is provided, we justify the existential
-              // using the WITNESS_AXIOM trusted rule by providing it to the
-              // call to addLazyStep below.
-              Trace("witness-form")
-                  << "WitnessFormGenerator: No proof generator for " << exists
-                  << std::endl;
-            }
-          }
-          // --------------------------- from pg
-          // (exists ((x T)) (P x))
-          // --------------------------- WITNESS_INTRO
-          // k = (witness ((x T)) (P x))
-          d_wintroPf.addLazyStep(
-              exists,
-              pg,
-              PfRule::WITNESS_AXIOM,
-              true,
-              "WitnessFormGenerator::convertToWitnessForm:witness_axiom");
-          d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
-          d_tcpg.addRewriteStep(cur, curw, &d_wintroPf, PfRule::ASSUME, true);
+          // ------- SKOLEM_INTRO
+          // k = t
+          d_wintroPf.addStep(eq, PfRule::SKOLEM_INTRO, {}, {cur});
+          d_tcpg.addRewriteStep(
+              cur, curw, &d_wintroPf, true, PfRule::ASSUME, true);
+          // recursively transform
+          visit.push_back(curw);
         }
         else
         {
-          // A term whose witness form is different from itself, recurse.
-          // It should be the case that cur has children, since the witness
+          // A term whose original form is different from itself, recurse.
+          // It should be the case that cur has children, since the original
           // form of constants are themselves.
           Assert(cur.getNumChildren() > 0);
           if (cur.hasOperator())
@@ -140,43 +119,19 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
 
 bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
 {
-  return theory::Rewriter::rewrite(t) != theory::Rewriter::rewrite(s);
+  return d_rewriter->rewrite(t) != d_rewriter->rewrite(s);
 }
 
 bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
 {
-  Node tr = theory::Rewriter::rewrite(t);
+  Node tr = d_rewriter->rewrite(t);
   return !tr.isConst() || !tr.getConst<bool>();
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-WitnessFormGenerator::getWitnessFormEqs() const
+const std::unordered_set<Node>& WitnessFormGenerator::getWitnessFormEqs() const
 {
   return d_eqs;
 }
 
-ProofGenerator* WitnessFormGenerator::convertExistsInternal(Node exists)
-{
-  Assert(exists.getKind() == kind::EXISTS);
-  if (exists[0].getNumChildren() == 1 && exists[1].getKind() == kind::EQUAL
-      && exists[1][0] == exists[0][0])
-  {
-    Node tpurified = exists[1][1];
-    Trace("witness-form") << "convertExistsInternal: infer purification "
-                          << exists << " for " << tpurified << std::endl;
-    // ------ REFL
-    // t = t
-    // ---------------- EXISTS_INTRO
-    // exists x. x = t
-    // The concluded existential is then used to construct the witness term
-    // via witness intro.
-    Node teq = tpurified.eqNode(tpurified);
-    d_pskPf.addStep(teq, PfRule::REFL, {}, {tpurified});
-    d_pskPf.addStep(exists, PfRule::EXISTS_INTRO, {teq}, {exists});
-    return &d_pskPf;
-  }
-  return nullptr;
-}
-
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5::internal

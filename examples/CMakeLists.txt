@@ -1,25 +1,30 @@
-#####################
-## CMakeLists.txt
-## Top contributors (to current version):
-##   Aina Niemetz, Mathias Preiner, Andres Noetzli
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
+###############################################################################
+# Top contributors (to current version):
+#   Aina Niemetz, Mudathir Mohamed, Mathias Preiner
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The build system configuration.
 ##
+
 cmake_minimum_required(VERSION 3.4)
 
-project(cvc4-examples)
+project(cvc5-examples)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 enable_testing()
 
-# Find CVC4 package. If CVC4 is not installed into the default system location
+# Find cvc5 package. If cvc5 is not installed into the default system location
 # use `cmake .. -DCMAKE_PREFIX_PATH=path/to/lib/cmake` to specify the location
-# of CVC4Config.cmake.
-find_package(CVC4)
+# of cvc5Config.cmake.
+find_package(cvc5)
 
 # Some of the examples require boost. Enable these examples if boost is
 # installed.
@@ -36,7 +41,7 @@ set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin)
 #               empty string) for the examples root directory (this)
 # > ARGN: Any additional arguments passed to the macro are interpreted as
 #         as arguments to the test executable.
-macro(cvc4_add_example name src_files output_dir)
+macro(cvc5_add_example name src_files output_dir)
   # The build target is created without the path prefix (not supported),
   # e.g., for '<output_dir>/myexample.cpp'
   #   we create build target 'myexample'
@@ -49,7 +54,7 @@ macro(cvc4_add_example name src_files output_dir)
   endif()
 
   add_executable(${name} ${src_files_list})
-  target_link_libraries(${name} CVC4::cvc4 CVC4::cvc4parser)
+  target_link_libraries(${name} cvc5::cvc5 cvc5::cvc5parser)
 
   # The test target is prefixed with the path,
   # e.g., for '<output_dir>/myexample.cpp'
@@ -66,41 +71,38 @@ macro(cvc4_add_example name src_files output_dir)
   add_test(${example_test} ${example_bin_dir}/${name} ${ARGN})
 endmacro()
 
-cvc4_add_example(simple_vc_cxx "" "")
-cvc4_add_example(simple_vc_quant_cxx "" "")
-# TODO(project issue $206): Port example to new API
-# cvc4_add_example(translator "" ""
-#     # argument to binary (for testing)
-#     ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
+cvc5_add_example(simple_vc_cxx "" "")
+cvc5_add_example(simple_vc_quant_cxx "" "")
 
-add_subdirectory(api)
-# TODO(project issue $206): Port example to new API
-# add_subdirectory(hashsmt)
-# add_subdirectory(nra-translate)
-# add_subdirectory(sets-translate)
+add_subdirectory(api/cpp)
 
-if(TARGET CVC4::cvc4jar)
+if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
   include(UseJava)
 
-  ## disabled until bindings for the new API are in place (issue #2284)
-  # get_target_property(CVC4_JAR CVC4::cvc4jar JAR_FILE)
-  #
-  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
-  #
-  # add_test(
-  #   NAME java/SimpleVC
-  #   COMMAND
-  #     ${Java_JAVA_EXECUTABLE}
-  #       -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
-  #       -Djava.library.path=${CVC4_JNI_PATH}
-  #       SimpleVC
-  # )
+  # get directory build/install/lib where libcvc5jni.so is installed
+  get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
+  get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
+  message(STATUS "CVC5_JNI_PATH: ${CVC5_JNI_PATH}")
 
+
+  get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
+  message(STATUS "cvc5jar: ${CVC5_JAR}")
+
+  add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
+  add_test(
+    NAME java/SimpleVC
+    COMMAND
+      ${Java_JAVA_EXECUTABLE}
+        -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
+        -Djava.library.path=${CVC5_JNI_PATH}
+        SimpleVC
+  )
   add_subdirectory(api/java)
 endif()
 
-if(CVC4_BINDINGS_PYTHON)
+if(CVC5_BINDINGS_PYTHON)
+  message(STATUS "with Python examples")
   # If legacy Python API has been built
   add_subdirectory(api/python)
 endif()

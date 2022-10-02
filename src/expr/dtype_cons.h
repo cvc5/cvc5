@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file dtype_cons.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class representing a datatype definition
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class representing a datatype definition.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__DTYPE_CONS_H
-#define CVC4__EXPR__DTYPE_CONS_H
+#ifndef CVC5__EXPR__DTYPE_CONS_H
+#define CVC5__EXPR__DTYPE_CONS_H
 
 #include <map>
 #include <string>
@@ -23,8 +24,9 @@
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "util/cardinality_class.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * The Node-level representation of a constructor for a datatype, which
@@ -55,7 +57,7 @@ class DTypeConstructor
    * to this constructor.  Selector names need not be unique;
    * they are for convenience and pretty-printing only.
    */
-  void addArg(std::string selectorName, TypeNode selectorType);
+  void addArg(std::string selectorName, TypeNode rangeType);
   /**
    * Add an argument, given a pointer to a selector object.
    */
@@ -83,6 +85,12 @@ class DTypeConstructor
    * DType must be resolved.
    */
   Node getConstructor() const;
+  /**
+   * Get the specialized constructor term of this constructor, which is
+   * the constructor wrapped in a APPLY_TYPE_ASCRIPTION. This is required
+   * for constructing applications of constructors for parametric datatypes.
+   */
+  Node getInstantiatedConstructor(TypeNode returnType) const;
 
   /**
    * Get the tester operator of this constructor.  The
@@ -137,7 +145,7 @@ class DTypeConstructor
    * "cons" constructor type for lists of int---namely,
    * "int -> list[int] -> list[int]".
    */
-  TypeNode getSpecializedConstructorType(TypeNode returnType) const;
+  TypeNode getInstantiatedConstructorType(TypeNode returnType) const;
 
   /**
    * Return the cardinality of this constructor (the product of the
@@ -146,18 +154,15 @@ class DTypeConstructor
   Cardinality getCardinality(TypeNode t) const;
 
   /**
-   * Return true iff this constructor is finite (it is nullary or
-   * each of its argument types are finite).  This function can
-   * only be called for resolved constructors.
+   * Return the cardinality class, which indicates if the type has cardinality
+   * one, is finite or infinite, possibly dependent on uninterpreted sorts being
+   * finite.
+   *
+   * Note that the cardinality of a constructor is equivalent to asking how
+   * many applications of this constructor exist.
    */
-  bool isFinite(TypeNode t) const;
-  /**
-   * Return true iff this constructor is finite (it is nullary or
-   * each of its argument types are finite) under assumption
-   * uninterpreted sorts are finite.  This function can
-   * only be called for resolved constructors.
-   */
-  bool isInterpretedFinite(TypeNode t) const;
+  CardinalityClass getCardinalityClass(TypeNode t) const;
+
   /**
    * Has finite external argument type. This returns true if this constructor
    * has an argument type that is not a datatype and is interpreted as a
@@ -183,13 +188,12 @@ class DTypeConstructor
 
   /** get selector internal
    *
-   * This gets the selector for the index^th argument
-   * of this constructor. The type dtt is the datatype
-   * type whose datatype is the owner of this constructor,
-   * where this type may be an instantiated parametric datatype.
-   *
-   * If shared selectors are enabled,
-   * this returns a shared (constructor-agnotic) selector, which
+   * This gets the (unshared) selector for the index^th argument
+   * of this constructor.
+   */
+  Node getSelector(size_t index) const;
+  /**
+   * This returns a shared (constructor-agnotic) selector, which
    * in the terminology of "DTypes with Shared Selectors", is:
    *   sel_{dtt}^{T,atos(T,C,index)}
    * where C is this constructor, and T is the type
@@ -198,7 +202,7 @@ class DTypeConstructor
    * type T of constructor term t if one exists, or is
    * unconstrained otherwise.
    */
-  Node getSelectorInternal(TypeNode dtt, size_t index) const;
+  Node getSharedSelector(TypeNode dtt, size_t index) const;
 
   /** get selector index internal
    *
@@ -236,17 +240,6 @@ class DTypeConstructor
   void toStream(std::ostream& out) const;
 
  private:
-  /** Constructor cardinality type */
-  enum class CardinalityType
-  {
-    // the constructor is finite
-    FINITE,
-    // the constructor is interpreted-finite (finite under the assumption that
-    // uninterpreted sorts are finite)
-    INTERPRETED_FINITE,
-    // the constructor is infinte
-    INFINITE
-  };
   /** resolve
    *
    * This resolves (initializes) the constructor. For details
@@ -310,7 +303,7 @@ class DTypeConstructor
    * type t, and a Boolean indicating whether the constructor has any arguments
    * that have finite external type.
    */
-  std::pair<CardinalityType, bool> computeCardinalityInfo(TypeNode t) const;
+  std::pair<CardinalityClass, bool> computeCardinalityInfo(TypeNode t) const;
   /** compute shared selectors
    * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */
@@ -350,7 +343,7 @@ class DTypeConstructor
    */
   mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;
   /**  A cache for computeCardinalityInfo. */
-  mutable std::map<TypeNode, std::pair<CardinalityType, bool> > d_cardInfo;
+  mutable std::map<TypeNode, std::pair<CardinalityClass, bool> > d_cardInfo;
 }; /* class DTypeConstructor */
 
 /**
@@ -371,6 +364,6 @@ struct DTypeConstructorHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

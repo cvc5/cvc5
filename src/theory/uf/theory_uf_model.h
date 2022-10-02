@@ -1,26 +1,33 @@
-/*********************                                                        */
-/*! \file theory_uf_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model for Theory UF
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model for Theory UF.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY_UF_MODEL_H
-#define CVC4__THEORY_UF_MODEL_H
+#ifndef CVC5__THEORY_UF_MODEL_H
+#define CVC5__THEORY_UF_MODEL_H
 
-#include "theory/theory_model.h"
+#include <vector>
 
-namespace CVC4 {
+#include "expr/node.h"
+
+namespace cvc5::internal {
 namespace theory {
+
+class TheoryModel;
+class Rewriter;
+
 namespace uf {
 
 class UfModelTreeNode
@@ -39,7 +46,9 @@ public:
   /** setValue function */
   void setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex );
   /** getFunctionValue */
-  Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue, bool simplify = true );
+  Node getFunctionValue(const std::vector<Node>& args,
+                        int index,
+                        Node argDefaultValue);
   /** update function */
   void update( TheoryModel* m );
   /** simplify function */
@@ -86,11 +95,12 @@ public:
     d_tree.setValue( m, Node::null(), v, d_index_order, false, 0 );
   }
   /** getFunctionValue
-    *   Returns a representation of this function.
-    */
-  Node getFunctionValue( std::vector< Node >& args, bool simplify = true );
+   * Returns a representation of this function. The body of the function is
+   * rewritten if r is non-null.
+   */
+  Node getFunctionValue(const std::vector<Node>& args, Rewriter* r);
   /** getFunctionValue for args with set prefix */
-  Node getFunctionValue( const char* argPrefix, bool simplify = true );
+  Node getFunctionValue(const std::string& argPrefix, Rewriter* r);
   /** update
     *   This will update all values in the tree to be representatives in m.
     */
@@ -109,6 +119,6 @@ public:
 
 }
 }
-}
+}  // namespace cvc5::internal
 
 #endif

@@ -1,4 +1,0 @@
-a, b, c : BOOLEAN;
-
-% EXPECT: entailed
-QUERY NOT (a AND b) <=> NOT a OR NOT b;

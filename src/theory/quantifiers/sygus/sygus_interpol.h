@@ -1,33 +1,38 @@
-/*********************                                                        */
-/*! \file sygus_interpol.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Ying Sheng
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus interpolation utility, which transforms an input of axioms and
- ** conjecture into an interpolation problem, and solve it.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Ying Sheng, Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus interpolation utility, which transforms an input of axioms and
+ * conjecture into an interpolation problem, and solve it.
+ */
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
 
 #include <string>
 #include <vector>
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "smt/smt_engine.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class Env;
+class SolverEngine;
+
 namespace theory {
 namespace quantifiers {
 /**
- * This is an utility for the SMT-LIB command (get-interpol <term>).
+ * This is an utility for the SMT-LIB command (get-interpolant <term>).
  * The utility turns a set of quantifier-free assertions into a sygus
  * conjecture that encodes an interpolation problem, and then solve the
  * interpolation problem by synthesizing it. In detail, if our input formula is
@@ -42,8 +47,9 @@ namespace quantifiers {
  * we just need to synthesis A( x ).
  *
  * This class uses a fresh copy of the SMT engine which is used for solving the
- * interpolation problem. In particular, consider the input: (assert A)
- *   (get-interpol s B)
+ * interpolation problem. In particular, consider the input:
+ *   (assert A)
+ *   (get-interpolant s B)
  * In the copy of the SMT engine where these commands are issued, we maintain
  * A in the assertion stack. In solving the interpolation problem, we will
  * need to call a SMT engine solver with a different assertion stack, which is
@@ -55,10 +61,10 @@ namespace quantifiers {
  * of the SMT engine can be further queried for information regarding further
  * solutions.
  */
-class SygusInterpol
+class SygusInterpol : protected EnvObj
 {
  public:
-  SygusInterpol();
+  SygusInterpol(Env& env);
 
   /**
    * Returns the sygus conjecture in interpol corresponding to the interpolation
@@ -78,6 +84,16 @@ class SygusInterpol
                           const Node& conj,
                           const TypeNode& itpGType,
                           Node& interpol);
+
+  /**
+   * Internal call for getting next interpolant. This can only be called after a
+   * successful call to solveInterpolation. It solves the interpolation problem
+   * constructed already and returns true if an interpolant was found, and sets
+   * interpol to the interpolant.
+   *
+   * @interpol the solution to the sygus conjecture.
+   */
+  bool solveInterpolationNext(Node& interpol);
 
  private:
   /**
@@ -111,7 +127,7 @@ class SygusInterpol
    * Get include_cons for mkSygusDefaultType.
    * mkSygusDefaultType() is a function to make default grammar. It has an
    * arguemnt include_cons, which will restrict what operators we want in the
-   * grammar. The return value depends on options::produceInterpols(). In
+   * grammar. The return value depends on the produceInterpols option. In
    * ASSUMPTIONS option, it will return the operators from axioms. In CONJECTURE
    * option, it will return the operators from conj. In SHARED option, it will
    * return the oprators shared by axioms and conj. In ALL option, it will
@@ -121,16 +137,15 @@ class SygusInterpol
    * @param conj input argument
    * @param result the return value
    */
-  void getIncludeCons(
-      const std::vector<Node>& axioms,
-      const Node& conj,
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result);
+  void getIncludeCons(const std::vector<Node>& axioms,
+                      const Node& conj,
+                      std::map<TypeNode, std::unordered_set<Node>>& result);
 
   /**
    * Set up the grammar for the interpol-to-synthesis.
    *
    * The user-defined grammar will be encoded by itpGType. The options for
-   * grammar is given by options::produceInterpols(). In DEFAULT option, it will
+   * grammar is given by the produceInterpols option. In DEFAULT option, it will
    * set up the grammar from itpGType. And if itpGType is null, it will set up
    * the default grammar, which is built according to a policy handled by
    * getIncludeCons().
@@ -170,8 +185,7 @@ class SygusInterpol
    * @param interpol the solution to the sygus conjecture.
    * @param itp the interpolation predicate.
    */
-  bool findInterpol(SmtEngine* subsolver, Node& interpol, Node itp);
-
+  bool findInterpol(SolverEngine* subsolver, Node& interpol, Node itp);
   /**
    * symbols from axioms and conjecture.
    */
@@ -179,7 +193,7 @@ class SygusInterpol
   /**
    * unordered set for shared symbols between axioms and conjecture.
    */
-  std::unordered_set<Node, NodeHashFunction> d_symSetShared;
+  std::unordered_set<Node> d_symSetShared;
   /**
    * free variables created from d_syms.
    */
@@ -209,10 +223,17 @@ class SygusInterpol
    * the sygus conjecture to synthesis for interpolation problem
    */
   Node d_sygusConj;
+  /**
+   * The predicate for interpolation in the subsolver, which we pass to
+   * findInterpol above when the solving is successful.
+   */
+  Node d_itp;
+  /** The subsolver to initialize */
+  std::unique_ptr<SolverEngine> d_subSolver;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H */

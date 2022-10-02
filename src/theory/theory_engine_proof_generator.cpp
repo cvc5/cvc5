@@ -1,45 +1,51 @@
-/*********************                                                        */
-/*! \file theory_engine_proof_generator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory engine proof generator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory engine proof generator.
+ */
 
 #include "theory/theory_engine_proof_generator.h"
 
-using namespace CVC4::kind;
+#include <sstream>
 
-namespace CVC4 {
+#include "proof/proof_node.h"
+#include "smt/env.h"
 
-TheoryEngineProofGenerator::TheoryEngineProofGenerator(ProofNodeManager* pnm,
-                                                       context::UserContext* u)
-    : d_pnm(pnm), d_proofs(u)
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
+
+TheoryEngineProofGenerator::TheoryEngineProofGenerator(Env& env,
+                                                       context::Context* c)
+    : EnvObj(env), d_proofs(c)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
+TrustNode TheoryEngineProofGenerator::mkTrustExplain(
     TNode lit, Node exp, std::shared_ptr<LazyCDProof> lpf)
 {
   Node p;
-  theory::TrustNode trn;
+  TrustNode trn;
   if (lit == d_false)
   {
     // propagation of false is a conflict
-    trn = theory::TrustNode::mkTrustConflict(exp, this);
+    trn = TrustNode::mkTrustConflict(exp, this);
     p = trn.getProven();
     Assert(p.getKind() == NOT);
   }
   else
   {
-    trn = theory::TrustNode::mkTrustPropExp(lit, exp, this);
+    trn = TrustNode::mkTrustPropExp(lit, exp, this);
     p = trn.getProven();
     Assert(p.getKind() == IMPLIES && p.getNumChildren() == 2);
   }
@@ -102,7 +108,8 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   std::shared_ptr<ProofNode> pfb = lcp->getProofFor(conclusion);
   Trace("tepg-debug") << "...mkScope" << std::endl;
   // call the scope method of proof node manager
-  std::shared_ptr<ProofNode> pf = d_pnm->mkScope(pfb, scopeAssumps);
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  std::shared_ptr<ProofNode> pf = pnm->mkScope(pfb, scopeAssumps);
 
   if (pf->getResult() != f)
   {
@@ -124,4 +131,4 @@ std::string TheoryEngineProofGenerator::identify() const
   return "TheoryEngineProofGenerator";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal

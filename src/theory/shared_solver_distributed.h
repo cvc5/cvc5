@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file shared_solver_distributed.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Shared solver in the distributed architecture.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Shared solver in the distributed architecture.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SHARED_SOLVER_DISTRIBUTED__H
-#define CVC4__THEORY__SHARED_SOLVER_DISTRIBUTED__H
+#ifndef CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H
+#define CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H
 
 #include "expr/node.h"
 #include "theory/shared_solver.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 /**
@@ -30,7 +31,7 @@ namespace theory {
 class SharedSolverDistributed : public SharedSolver
 {
  public:
-  SharedSolverDistributed(TheoryEngine& te, ProofNodeManager* pnm);
+  SharedSolverDistributed(Env& env, TheoryEngine& te);
   virtual ~SharedSolverDistributed() {}
   //------------------------------------- initialization
   /**
@@ -41,10 +42,8 @@ class SharedSolverDistributed : public SharedSolver
   /** Set equality engine in the shared terms database */
   void setEqualityEngine(eq::EqualityEngine* ee) override;
   //------------------------------------- end initialization
-  /** Assert equality to the shared terms database. */
-  void assertSharedEquality(TNode equality,
-                            bool polarity,
-                            TNode reason) override;
+  /** Assert n to the shared terms database. */
+  void assertShared(TNode n, bool polarity, TNode reason) override;
   /**
    * Get equality status based on the equality engine of shared terms database
    */
@@ -59,6 +58,6 @@ class SharedSolverDistributed : public SharedSolver
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__SHARED_SOLVER_DISTRIBUTED__H */
+#endif /* CVC5__THEORY__SHARED_SOLVER_DISTRIBUTED__H */

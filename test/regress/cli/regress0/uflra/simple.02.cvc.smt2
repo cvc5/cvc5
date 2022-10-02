@@ -1,0 +1,10 @@
+; EXPECT: unsat
+(set-logic ALL)
+(set-option :incremental false)
+(declare-fun x () Real)
+(declare-fun y () Real)
+(declare-fun f (Real) Real)
+(assert (<= x y))
+(assert (<= y x))
+(assert (not (= (f x) (f y))))
+(check-sat)

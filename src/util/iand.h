@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file iand.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The integer AND operator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The integer AND operator.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__IAND_H
-#define CVC4__IAND_H
+#ifndef CVC5__IAND_H
+#define CVC5__IAND_H
 
 #include <iosfwd>
 
 #include "base/exception.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-struct CVC4_PUBLIC IntAnd
+struct IntAnd
 {
   unsigned d_size;
   IntAnd(unsigned size) : d_size(size) {}
@@ -32,15 +33,15 @@ struct CVC4_PUBLIC IntAnd
 }; /* struct IntAnd */
 
 /* -----------------------------------------------------------------------
- ** Output stream
+ * Output stream
  * ----------------------------------------------------------------------- */
 
-inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia);
 inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
 {
-  return os << "[" << ia.d_size << "]";
+  return os << "(_ iand " << ia.d_size << ")";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__IAND_H */
+#endif /* CVC5__IAND_H */

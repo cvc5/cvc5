@@ -1,10 +1,9 @@
 id     = "ARRAYS"
-name   = "Arrays theory"
-header = "options/arrays_options.h"
+name   = "Arrays Theory"
 
 [[option]]
   name       = "arraysOptimizeLinear"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-optimize-linear"
   type       = "bool"
   default    = "true"
@@ -12,19 +11,11 @@ header = "options/arrays_options.h"
 
 [[option]]
   name       = "arraysWeakEquivalence"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-weak-equiv"
   type       = "bool"
   default    = "false"
   help       = "use algorithm from Christ/Hoenicke (SMT 2014)"
-
-[[option]]
-  name       = "arraysModelBased"
-  category   = "regular"
-  long       = "arrays-model-based"
-  type       = "bool"
-  default    = "false"
-  help       = "turn on model-based array solver"
 
 [[option]]
   name       = "arraysEagerIndexSplitting"
@@ -36,23 +27,15 @@ header = "options/arrays_options.h"
 
 [[option]]
   name       = "arraysEagerLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-eager-lemmas"
   type       = "bool"
   default    = "false"
   help       = "turn on eager lemma generation for arrays"
 
 [[option]]
-  name       = "arraysConfig"
-  category   = "regular"
-  long       = "arrays-config=N"
-  type       = "int"
-  default    = "0"
-  help       = "set different array option configurations - for developers only"
-
-[[option]]
   name       = "arraysReduceSharing"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-reduce-sharing"
   type       = "bool"
   default    = "false"
@@ -60,15 +43,15 @@ header = "options/arrays_options.h"
 
 [[option]]
   name       = "arraysPropagate"
-  category   = "regular"
+  category   = "expert"
   long       = "arrays-prop=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "2"
   help       = "propagation effort for arrays: 0 is none, 1 is some, 2 is full"
 
 [[option]]
   name       = "arraysExp"
-  category   = "experimental"
+  category   = "expert"
   long       = "arrays-exp"
   type       = "bool"
   default    = "false"

@@ -1,32 +1,31 @@
-/*********************                                                        */
-/*! \file bitvector.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A fixed-size bit-vector.
- **
- ** A fixed-size bit-vector, implemented as a wrapper around Integer.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Andres Noetzli, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A fixed-size bit-vector, implemented as a wrapper around Integer.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__BITVECTOR_H
-#define CVC4__BITVECTOR_H
+#ifndef CVC5__BITVECTOR_H
+#define CVC5__BITVECTOR_H
 
 #include <iosfwd>
+#include <iostream>
 
-#include "base/exception.h"
 #include "util/integer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-class CVC4_PUBLIC BitVector
+class BitVector
 {
  public:
   BitVector(unsigned size, const Integer& val)
@@ -76,19 +75,10 @@ class CVC4_PUBLIC BitVector
    *            bit-vector (4 * size of the given value string)
    *
    * @param num The value of the bit-vector in string representation.
+   *            This cannot be a negative value.
    * @param base The base of the string representation.
    */
-  BitVector(const std::string& num, unsigned base = 2)
-  {
-    CheckArgument(base == 2 || base == 10 || base == 16, base);
-    d_value = Integer(num, base);
-    switch (base)
-    {
-      case 10: d_size = d_value.length(); break;
-      case 16: d_size = num.size() * 4; break;
-      default: d_size = num.size();
-    }
-  }
+  BitVector(const std::string& num, uint32_t base = 2);
 
   ~BitVector() {}
 
@@ -117,11 +107,13 @@ class CVC4_PUBLIC BitVector
 
   /**
    * Set bit at index 'i' to given value.
+   * Returns a reference to this bit-vector to allow for chaining.
+   *
    * value: True to set bit to 1, and false to set it to 0.
    *
    * Note: Least significant bit is at index 0.
    */
-  BitVector setBit(uint32_t i, bool value) const;
+  BitVector& setBit(uint32_t i, bool value);
 
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
@@ -141,27 +133,7 @@ class CVC4_PUBLIC BitVector
   /* Return the bit range from index 'high' to index 'low'. */
   BitVector extract(unsigned high, unsigned low) const;
 
-  /* (Dis)Equality --------------------------------------------------------- */
-
-  /* Return true if this is equal to 'y'. */
-  bool operator==(const BitVector& y) const;
-
-  /* Return true if this is not equal to 'y'. */
-  bool operator!=(const BitVector& y) const;
-
   /* Unsigned Inequality --------------------------------------------------- */
-
-  /* Return true if this is unsigned less than bit-vector 'y'. */
-  bool operator<(const BitVector& y) const;
-
-  /* Return true if this is unsigned less than or equal to bit-vector 'y'. */
-  bool operator<=(const BitVector& y) const;
-
-  /* Return true if this is unsigned greater than bit-vector 'y'. */
-  bool operator>(const BitVector& y) const;
-
-  /* Return true if this is unsigned greater than or equal to bit-vector 'y'. */
-  bool operator>=(const BitVector& y) const;
 
   /* Return true if this is unsigned less than bit-vector 'y'.
    * This function is a synonym for operator < but performs additional
@@ -181,33 +153,7 @@ class CVC4_PUBLIC BitVector
   /* Return true if this is signed less than or equal to bit-vector 'y'. */
   bool signedLessThanEq(const BitVector& y) const;
 
-  /* Bit-wise operations --------------------------------------------------- */
-
-  /* Return a bit-vector representing the bit-wise xor (this ^ y). */
-  BitVector operator^(const BitVector& y) const;
-
-  /* Return a bit-vector representing the bit-wise or (this | y). */
-  BitVector operator|(const BitVector& y) const;
-
-  /* Return a bit-vector representing the bit-wise and (this & y). */
-  BitVector operator&(const BitVector& y) const;
-
-  /* Return a bit-vector representing the bit-wise not of this. */
-  BitVector operator~() const;
-
   /* Arithmetic operations ------------------------------------------------- */
-
-  /* Return a bit-vector representing the addition (this + y). */
-  BitVector operator+(const BitVector& y) const;
-
-  /* Return a bit-vector representing the subtraction (this - y). */
-  BitVector operator-(const BitVector& y) const;
-
-  /* Return a bit-vector representing the negation of this. */
-  BitVector operator-() const;
-
-  /* Return a bit-vector representing the multiplication (this * y). */
-  BitVector operator*(const BitVector& y) const;
 
   /* Total division function.
    * Returns a bit-vector representing 2^d_size-1 (signed: -1) when the
@@ -272,8 +218,92 @@ class CVC4_PUBLIC BitVector
 
 }; /* class BitVector */
 
+/* (Dis)Equality --------------------------------------------------------- */
+
+/**
+ * @return True if bit-vector `a` is equal to bit-vector `b`.
+ */
+bool operator==(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is not equal to bit-vector `b`.
+ */
+bool operator!=(const BitVector& a, const BitVector& b);
+
+/* Unsigned Inequality --------------------------------------------------- */
+
+/**
+ * @return True if bit-vector `a` is unsigned less than bit-vector `b`.
+ */
+bool operator<(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is unsigned less than or equal to
+ *         bit-vector 'b'.
+ */
+bool operator<=(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is unsigned greater than bit-vector 'b'.
+ */
+bool operator>(const BitVector& a, const BitVector& b);
+
+/**
+ * @return True if bit-vector `a` is unsigned greater than or equal to
+ *         bit-vector 'b'.
+ */
+bool operator>=(const BitVector& a, const BitVector& b);
+
+/* Bit-wise operations --------------------------------------------------- */
+
+/**
+ * @return A bit-vector representing the bit-wise xor of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator^(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the bit-wise or of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator|(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the bit-wise and of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator&(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the bit-wise not of bit-vector `a`.
+ */
+BitVector operator~(const BitVector& a);
+
+/* Arithmetic operations ------------------------------------------------- */
+
+/**
+ * @return A bit-vector representing the addition of bit-vectors `a` and `b`.
+ */
+BitVector operator+(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the subtraction of bit-vectors `a` and `b`.
+ */
+BitVector operator-(const BitVector& a, const BitVector& b);
+
+/**
+ * @return A bit-vector representing the negation of bit-vector `a`.
+ */
+BitVector operator-(const BitVector& a);
+
+/**
+ * @return A bit-vector representing the multiplication of bit-vectors `a`
+ *         and `b`.
+ */
+BitVector operator*(const BitVector& a, const BitVector& b);
+
 /* -----------------------------------------------------------------------
- ** BitVector structs
+ * BitVector structs
  * ----------------------------------------------------------------------- */
 
 /**
@@ -281,7 +311,7 @@ class CVC4_PUBLIC BitVector
  * operation maps bit-vectors to bit-vector of size <code>high - low + 1</code>
  * by taking the bits at indices <code>high ... low</code>
  */
-struct CVC4_PUBLIC BitVectorExtract
+struct BitVectorExtract
 {
   /** The high bit of the range for this extract */
   unsigned d_high;
@@ -299,7 +329,7 @@ struct CVC4_PUBLIC BitVectorExtract
 /**
  * The structure representing the extraction of one Boolean bit.
  */
-struct CVC4_PUBLIC BitVectorBitOf
+struct BitVectorBitOf
 {
   /** The index of the bit */
   unsigned d_bitIndex;
@@ -311,21 +341,21 @@ struct CVC4_PUBLIC BitVectorBitOf
   }
 }; /* struct BitVectorBitOf */
 
-struct CVC4_PUBLIC BitVectorSize
+struct BitVectorSize
 {
   unsigned d_size;
   BitVectorSize(unsigned size) : d_size(size) {}
   operator unsigned() const { return d_size; }
 }; /* struct BitVectorSize */
 
-struct CVC4_PUBLIC BitVectorRepeat
+struct BitVectorRepeat
 {
   unsigned d_repeatAmount;
   BitVectorRepeat(unsigned repeatAmount) : d_repeatAmount(repeatAmount) {}
   operator unsigned() const { return d_repeatAmount; }
 }; /* struct BitVectorRepeat */
 
-struct CVC4_PUBLIC BitVectorZeroExtend
+struct BitVectorZeroExtend
 {
   unsigned d_zeroExtendAmount;
   BitVectorZeroExtend(unsigned zeroExtendAmount)
@@ -335,7 +365,7 @@ struct CVC4_PUBLIC BitVectorZeroExtend
   operator unsigned() const { return d_zeroExtendAmount; }
 }; /* struct BitVectorZeroExtend */
 
-struct CVC4_PUBLIC BitVectorSignExtend
+struct BitVectorSignExtend
 {
   unsigned d_signExtendAmount;
   BitVectorSignExtend(unsigned signExtendAmount)
@@ -345,7 +375,7 @@ struct CVC4_PUBLIC BitVectorSignExtend
   operator unsigned() const { return d_signExtendAmount; }
 }; /* struct BitVectorSignExtend */
 
-struct CVC4_PUBLIC BitVectorRotateLeft
+struct BitVectorRotateLeft
 {
   unsigned d_rotateLeftAmount;
   BitVectorRotateLeft(unsigned rotateLeftAmount)
@@ -355,7 +385,7 @@ struct CVC4_PUBLIC BitVectorRotateLeft
   operator unsigned() const { return d_rotateLeftAmount; }
 }; /* struct BitVectorRotateLeft */
 
-struct CVC4_PUBLIC BitVectorRotateRight
+struct BitVectorRotateRight
 {
   unsigned d_rotateRightAmount;
   BitVectorRotateRight(unsigned rotateRightAmount)
@@ -365,7 +395,7 @@ struct CVC4_PUBLIC BitVectorRotateRight
   operator unsigned() const { return d_rotateRightAmount; }
 }; /* struct BitVectorRotateRight */
 
-struct CVC4_PUBLIC IntToBitVector
+struct IntToBitVector
 {
   unsigned d_size;
   IntToBitVector(unsigned size) : d_size(size) {}
@@ -373,13 +403,13 @@ struct CVC4_PUBLIC IntToBitVector
 }; /* struct IntToBitVector */
 
 /* -----------------------------------------------------------------------
- ** Hash Function structs
+ * Hash Function structs
  * ----------------------------------------------------------------------- */
 
 /*
  * Hash function for the BitVector constants.
  */
-struct CVC4_PUBLIC BitVectorHashFunction
+struct BitVectorHashFunction
 {
   inline size_t operator()(const BitVector& bv) const { return bv.hash(); }
 }; /* struct BitVectorHashFunction */
@@ -387,7 +417,7 @@ struct CVC4_PUBLIC BitVectorHashFunction
 /**
  * Hash function for the BitVectorExtract objects.
  */
-struct CVC4_PUBLIC BitVectorExtractHashFunction
+struct BitVectorExtractHashFunction
 {
   size_t operator()(const BitVectorExtract& extract) const
   {
@@ -400,49 +430,45 @@ struct CVC4_PUBLIC BitVectorExtractHashFunction
 /**
  * Hash function for the BitVectorBitOf objects.
  */
-struct CVC4_PUBLIC BitVectorBitOfHashFunction
+struct BitVectorBitOfHashFunction
 {
   size_t operator()(const BitVectorBitOf& b) const { return b.d_bitIndex; }
 }; /* struct BitVectorBitOfHashFunction */
 
 template <typename T>
-struct CVC4_PUBLIC UnsignedHashFunction
+struct UnsignedHashFunction
 {
   inline size_t operator()(const T& x) const { return (size_t)x; }
 }; /* struct UnsignedHashFunction */
 
 /* -----------------------------------------------------------------------
- ** Output stream
+ * Output stream
  * ----------------------------------------------------------------------- */
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const BitVector& bv) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const BitVector& bv);
 inline std::ostream& operator<<(std::ostream& os, const BitVector& bv)
 {
   return os << bv.toString();
 }
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const BitVectorExtract& bv) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const BitVectorExtract& bv);
 inline std::ostream& operator<<(std::ostream& os, const BitVectorExtract& bv)
 {
   return os << "[" << bv.d_high << ":" << bv.d_low << "]";
 }
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const BitVectorBitOf& bv) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const BitVectorBitOf& bv);
 inline std::ostream& operator<<(std::ostream& os, const BitVectorBitOf& bv)
 {
   return os << "[" << bv.d_bitIndex << "]";
 }
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const IntToBitVector& bv) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const IntToBitVector& bv);
 inline std::ostream& operator<<(std::ostream& os, const IntToBitVector& bv)
 {
   return os << "[" << bv.d_size << "]";
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__BITVECTOR_H */
+#endif /* CVC5__BITVECTOR_H */

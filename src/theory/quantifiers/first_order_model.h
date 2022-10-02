@@ -1,62 +1,85 @@
-/*********************                                                        */
-/*! \file first_order_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model extended classes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Clark Barrett
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model extended classes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__FIRST_ORDER_MODEL_H
-#define CVC4__FIRST_ORDER_MODEL_H
+#ifndef CVC5__FIRST_ORDER_MODEL_H
+#define CVC5__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
-#include "expr/attribute.h"
+#include "smt/env_obj.h"
+#include "theory/quantifiers/equality_query.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
-class QuantifiersEngine;
-
-struct ModelBasisAttributeId
-{
-};
-typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
-//                     0 : term has no direct child with model basis attribute.
-struct ModelBasisArgAttributeId
-{
-};
-typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
-    ModelBasisArgAttribute;
+class TheoryModel;
+class RepSet;
 
 namespace quantifiers {
 
-class TermDb;
-
-namespace fmcheck {
-  class FirstOrderModelFmc;
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-
-struct IsStarAttributeId {};
-typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
+class QuantifiersState;
+class TermRegistry;
+class QuantifiersRegistry;
 
 // TODO (#1301) : document and refactor this class
-class FirstOrderModel : public TheoryModel
+class FirstOrderModel : protected EnvObj
 {
  public:
-  FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
+  FirstOrderModel(Env& env,
+                  QuantifiersState& qs,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr);
+  virtual ~FirstOrderModel() {}
 
-  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
+  /** finish init */
+  void finishInit(TheoryModel* m);
+  //---------------------------------- access functions for underlying model
+  /** Get value in the underlying theory model */
+  Node getValue(TNode n) const;
+  /** does the equality engine of this model have term a? */
+  bool hasTerm(TNode a);
+  /** get the representative of a in the equality engine of this model */
+  Node getRepresentative(TNode a);
+  /** are a and b equal in the equality engine of this model? */
+  bool areEqual(TNode a, TNode b);
+  /** are a and b disequal in the equality engine of this model? */
+  bool areDisequal(TNode a, TNode b);
+  /** get the equality engine for this model */
+  eq::EqualityEngine* getEqualityEngine();
+  /** get the representative set object */
+  const RepSet* getRepSet() const;
+  /** get the representative set object */
+  RepSet* getRepSetPtr();
+  /** get the entire theory model */
+  TheoryModel* getTheoryModel();
+  //---------------------------------- end access functions for underlying model
+  /** get internal representative
+   *
+   * Choose a term that is equivalent to a in the current context that is the
+   * best term for instantiating the index^th variable of quantified formula q.
+   * If no legal term can be found, we return null. This can occur if:
+   * - a's type is not the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
+  Node getInternalRepresentative(Node a, Node q, size_t index);
+
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -127,10 +150,22 @@ class FirstOrderModel : public TheoryModel
    * has all representatives of type tn.
    */
   bool initializeRepresentativesForType(TypeNode tn);
+  /**
+   * Has the term been marked as a model basis term?
+   */
+  static bool isModelBasis(TNode n);
+  /** Get the equality query */
+  EqualityQuery* getEqualityQuery();
 
  protected:
-  /** quant engine */
-  QuantifiersEngine* d_qe;
+  /** Pointer to the underyling theory model */
+  TheoryModel* d_model;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
+  /** equality query class */
+  EqualityQuery d_eq_query;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 
@@ -182,37 +217,8 @@ class FirstOrderModel : public TheoryModel
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
-namespace fmcheck {
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-class Def;
-
-class FirstOrderModelFmc : public FirstOrderModel
-{
-  friend class FullModelChecker;
-
- private:
-  /** models for UF */
-  std::map<Node, Def * > d_models;
-  std::map<TypeNode, Node > d_type_star;
-  /** get current model value */
-  void processInitializeModelForTerm(Node n) override;
-
- public:
-  FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelFmc() override;
-  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
-  // initialize the model
-  void processInitialize(bool ispre) override;
-  Node getFunctionValue(Node op, const char* argPrefix );
-
-  bool isStar(Node n);
-  Node getStar(TypeNode tn);
-};/* class FirstOrderModelFmc */
-
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC5__FIRST_ORDER_MODEL_H */

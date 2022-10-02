@@ -1,14 +1,12 @@
 id     = "ARITH"
-name   = "Arithmetic theory"
-header = "options/arith_options.h"
+name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithUnateLemmaMode"
-  category   = "regular"
+  category   = "expert"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
   default    = "ALL"
-  read_only  = true
   help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
   help_mode  = "Unate lemmas are generated before SAT search begins using the relationship of constant terms and polynomials."
 [[option.mode.ALL]]
@@ -22,14 +20,14 @@ header = "options/arith_options.h"
   help  = "Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d."
 [[option.mode.NO]]
   name = "none"
+  help  = "Do not add unate lemmas."
 
 [[option]]
   name       = "arithPropagationMode"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-prop=MODE"
   type       = "ArithPropagationMode"
   default    = "BOTH_PROP"
-  read_only  = true
   help       = "turns on arithmetic propagation (default is 'old', see --arith-prop=help)"
   help_mode  = "This decides on kind of propagation arithmetic attempts to do during the search."
 [[option.mode.NO_PROP]]
@@ -52,9 +50,9 @@ header = "options/arith_options.h"
 # defaults.
 [[option]]
   name       = "arithHeuristicPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "heuristic-pivots=N"
-  type       = "int16_t"
+  type       = "int64_t"
   default    = "0"
   help       = "the number of times to apply the heuristic pivot rule; if N < 0, this defaults to the number of variables; if this is unset, this is tuned by the logic selection"
 
@@ -67,17 +65,16 @@ header = "options/arith_options.h"
   name       = "arithStandardCheckVarOrderPivots"
   category   = "expert"
   long       = "standard-effort-variable-order-pivots=N"
-  type       = "int16_t"
+  type       = "int64_t"
   default    = "-1"
   help       = "limits the number of pivots in a single invocation of check() at a non-full effort level using Bland's pivot rule"
 
 [[option]]
   name       = "arithErrorSelectionRule"
-  category   = "regular"
+  category   = "expert"
   long       = "error-selection-rule=RULE"
   type       = "ErrorSelectionRule"
   default    = "MINIMUM_AMOUNT"
-  read_only  = true
   help       = "change the pivot rule for the basic variable (default is 'min', see --pivot-rule help)"
   help_mode  = "This decides on the rule used by simplex during heuristic rounds for deciding the next basic variable to select."
 [[option.mode.MINIMUM_AMOUNT]]
@@ -95,11 +92,10 @@ header = "options/arith_options.h"
 # The number of pivots before simplex rechecks every basic variable for a conflict
 [[option]]
   name       = "arithSimplexCheckPeriod"
-  category   = "regular"
+  category   = "expert"
   long       = "simplex-check-period=N"
-  type       = "uint16_t"
+  type       = "uint64_t"
   default    = "200"
-  read_only  = true
   help       = "the number of pivots to do in simplex before rechecking for a conflict on all variables"
 
 # This is the pivots per basic variable that can be done using heuristic choices
@@ -108,28 +104,26 @@ header = "options/arith_options.h"
 # defaults.
 [[option]]
   name       = "arithPivotThreshold"
-  category   = "regular"
+  category   = "expert"
   long       = "pivot-threshold=N"
-  type       = "uint16_t"
+  type       = "uint64_t"
   default    = "2"
   help       = "sets the number of pivots using --pivot-rule per basic variable per simplex instance before using variable order"
 
 [[option]]
   name       = "arithPropagateMaxLength"
-  category   = "regular"
+  category   = "expert"
   long       = "prop-row-length=N"
-  type       = "uint16_t"
+  type       = "uint64_t"
   default    = "16"
-  read_only  = true
   help       = "sets the maximum row length to be used in propagation"
 
 [[option]]
   name       = "arithDioSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "dio-solver"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "turns on Linear Diophantine Equation solver (Griggio, JSAT 2012)"
 
 # Whether to split (= x y) into (and (<= x y) (>= x y)) in
@@ -144,8 +138,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "arithMLTrick"
-  smt_name   = "miplib-trick"
-  category   = "regular"
+  category   = "expert"
   long       = "miplib-trick"
   type       = "bool"
   default    = "false"
@@ -153,17 +146,15 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "arithMLTrickSubstitutions"
-  smt_name   = "miplib-trick-subs"
-  category   = "regular"
+  category   = "expert"
   long       = "miplib-trick-subs=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "1"
-  read_only  = true
   help       = "do substitution for miplib 'tmp' vars if defined in <= N eliminated vars"
 
 [[option]]
   name       = "doCutAllBounded"
-  category   = "regular"
+  category   = "expert"
   long       = "cut-all-bounded"
   type       = "bool"
   default    = "false"
@@ -171,25 +162,23 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "maxCutsInContext"
-  category   = "regular"
+  category   = "expert"
   long       = "maxCutsInContext=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "65535"
-  read_only  = true
   help       = "maximum cuts in a given context before signalling a restart"
 
 [[option]]
   name       = "revertArithModels"
-  category   = "regular"
+  category   = "expert"
   long       = "revert-arith-models-on-unsat"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "revert the arithmetic model to a known safe model on unsat if one is cached"
 
 [[option]]
   name       = "havePenalties"
-  category   = "regular"
+  category   = "expert"
   long       = "fc-penalties"
   type       = "bool"
   default    = "false"
@@ -197,7 +186,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "useFC"
-  category   = "regular"
+  category   = "expert"
   long       = "use-fcsimplex"
   type       = "bool"
   default    = "false"
@@ -205,7 +194,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "useSOI"
-  category   = "regular"
+  category   = "expert"
   long       = "use-soi"
   type       = "bool"
   default    = "false"
@@ -213,7 +202,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "restrictedPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "restrict-pivots"
   type       = "bool"
   default    = "true"
@@ -221,7 +210,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "collectPivots"
-  category   = "regular"
+  category   = "expert"
   long       = "collect-pivot-stats"
   type       = "bool"
   default    = "false"
@@ -229,7 +218,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "useApprox"
-  category   = "regular"
+  category   = "expert"
   long       = "use-approx"
   type       = "bool"
   default    = "false"
@@ -237,15 +226,15 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "maxApproxDepth"
-  category   = "regular"
+  category   = "expert"
   long       = "approx-branch-depth=N"
-  type       = "int16_t"
+  type       = "int64_t"
   default    = "200"
   help       = "maximum branch depth the approximate solver is allowed to take"
 
 [[option]]
   name       = "exportDioDecompositions"
-  category   = "regular"
+  category   = "expert"
   long       = "dio-decomps"
   type       = "bool"
   default    = "false"
@@ -253,7 +242,7 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "newProp"
-  category   = "regular"
+  category   = "expert"
   long       = "new-prop"
   type       = "bool"
   default    = "true"
@@ -261,15 +250,15 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "arithPropAsLemmaLength"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-prop-clauses=N"
-  type       = "uint16_t"
+  type       = "uint64_t"
   default    = "8"
   help       = "rows shorter than this are propagated as clauses"
 
 [[option]]
   name       = "soiQuickExplain"
-  category   = "regular"
+  category   = "expert"
   long       = "soi-qe"
   type       = "bool"
   default    = "false"
@@ -277,151 +266,87 @@ header = "options/arith_options.h"
 
 [[option]]
   name       = "trySolveIntStandardEffort"
-  category   = "regular"
+  category   = "expert"
   long       = "se-solve-int"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to use the approximate solve integer method on standard effort"
 
 [[option]]
   name       = "replayFailureLemma"
-  category   = "regular"
+  category   = "expert"
   long       = "lemmas-on-replay-failure"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "attempt to use external lemmas if approximate solve integer failed"
 
 [[option]]
   name       = "dioSolverTurns"
-  category   = "regular"
+  category   = "expert"
   long       = "dio-turns=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "10"
-  read_only  = true
   help       = "turns in a row dio solver cutting gets"
 
 [[option]]
   name       = "rrTurns"
-  category   = "regular"
+  category   = "expert"
   long       = "rr-turns=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "3"
-  read_only  = true
   help       = "round robin turn"
 
 [[option]]
-  name       = "dioRepeat"
-  category   = "regular"
-  long       = "dio-repeat"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "handle dio solver constraints in mass or one at a time"
-
-[[option]]
   name       = "replayEarlyCloseDepths"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-early-close-depth=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "1"
-  read_only  = true
   help       = "multiples of the depths to try to close the approx log eagerly"
 
 [[option]]
-  name       = "replayFailurePenalty"
-  category   = "regular"
-  long       = "replay-failure-penalty=N"
-  type       = "int"
-  default    = "100"
-  read_only  = true
-  help       = "number of solve integer attempts to skips after a numeric failure"
-
-[[option]]
   name       = "replayNumericFailurePenalty"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-num-err-penalty=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "4194304"
-  read_only  = true
   help       = "number of solve integer attempts to skips after a numeric failure"
 
 [[option]]
   name       = "replayRejectCutSize"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-reject-cut=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "25500"
-  read_only  = true
   help       = "maximum complexity of any coefficient while replaying cuts"
 
 [[option]]
   name       = "lemmaRejectCutSize"
-  category   = "regular"
+  category   = "expert"
   long       = "replay-lemma-reject-cut=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "25500"
-  read_only  = true
   help       = "maximum complexity of any coefficient while outputting replaying cut lemmas"
 
 [[option]]
-  name       = "soiApproxMajorFailure"
-  category   = "regular"
-  long       = "replay-soi-major-threshold=T"
-  type       = "double"
-  default    = ".01"
-  read_only  = true
-  help       = "threshold for a major tolerance failure by the approximate solver"
-
-[[option]]
-  name       = "soiApproxMajorFailurePen"
-  category   = "regular"
-  long       = "replay-soi-major-threshold-pen=N"
-  type       = "int"
-  default    = "50"
-  read_only  = true
-  help       = "threshold for a major tolerance failure by the approximate solver"
-
-[[option]]
-  name       = "soiApproxMinorFailure"
-  category   = "regular"
-  long       = "replay-soi-minor-threshold=T"
-  type       = "double"
-  default    = ".0001"
-  read_only  = true
-  help       = "threshold for a minor tolerance failure by the approximate solver"
-
-[[option]]
-  name       = "soiApproxMinorFailurePen"
-  category   = "regular"
-  long       = "replay-soi-minor-threshold-pen=N"
-  type       = "int"
-  default    = "10"
-  read_only  = true
-  help       = "threshold for a minor tolerance failure by the approximate solver"
-
-[[option]]
   name       = "ppAssertMaxSubSize"
-  category   = "regular"
+  category   = "expert"
   long       = "pp-assert-max-sub-size=N"
-  type       = "unsigned"
+  type       = "uint64_t"
   default    = "2"
-  read_only  = true
   help       = "threshold for substituting an equality in ppAssert"
 
 [[option]]
   name       = "arithNoPartialFun"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-no-partial-fun"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do not use partial function semantics for arithmetic (not SMT LIB compliant)"
 
 [[option]]
   name       = "pbRewrites"
-  category   = "regular"
+  category   = "expert"
   long       = "pb-rewrites"
   type       = "bool"
   default    = "false"
@@ -430,18 +355,35 @@ header = "options/arith_options.h"
 [[option]]
   name       = "nlExt"
   category   = "regular"
-  long       = "nl-ext"
-  type       = "bool"
-  default    = "true"
+  long       = "nl-ext=MODE"
+  type       = "NlExtMode"
+  default    = "FULL"
   help       = "incremental linearization approach to non-linear"
+  help_mode  = "Modes for the non-linear linearization"
+[[option.mode.NONE]]
+  name = "none"
+  help = "Disable linearization approach"
+[[option.mode.LIGHT]]
+  name = "light"
+  help = "Only use a few light-weight lemma schemes"
+[[option.mode.FULL]]
+  name = "full"
+  help = "Use all lemma schemes"
+
+[[option]]
+  name       = "nlRlvAssertBounds"
+  category   = "expert"
+  long       = "nl-rlv-assert-bounds"
+  type       = "bool"
+  default    = "false"
+  help       = "use bound inference utility to prune when an assertion is entailed by another"
 
 [[option]]
   name       = "nlExtResBound"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-rbound"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "use resolution-style inference for inferring new bounds in non-linear incremental linearization solver"
 
 [[option]]
@@ -450,7 +392,6 @@ header = "options/arith_options.h"
   long       = "nl-ext-factor"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
@@ -458,7 +399,7 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "nl-ext-tplanes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
@@ -475,16 +416,14 @@ header = "options/arith_options.h"
   long       = "nl-ext-tf-tplanes"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtEntailConflicts"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-ent-conf"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "check for entailed conflicts in non-linear solver"
 
 [[option]]
@@ -493,52 +432,48 @@ header = "options/arith_options.h"
   long       = "nl-ext-rewrite"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do context-dependent simplification based on rewrites in non-linear solver"
 
 [[option]]
   name       = "nlExtPurify"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-purify"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "purify non-linear terms at preprocess"
 
 [[option]]
   name       = "nlExtSplitZero"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-split-zero"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "initial splits on zero for all variables"
 
 [[option]]
   name       = "nlExtTfTaylorDegree"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-tf-taylor-deg=N"
-  type       = "int16_t"
+  type       = "int64_t"
   default    = "4"
   help       = "initial degree of polynomials for Taylor approximation"
 
 [[option]]
   name       = "nlExtIncPrecision"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-ext-inc-prec"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
 
 [[option]]
   name       = "nlRlvMode"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-rlv=MODE"
   type       = "NlRlvMode"
   default    = "NONE"
-  help       = "choose mode for using relevance of assertoins in non-linear arithmetic"
-  help_mode  = "Modes for using relevance of assertoins in non-linear arithmetic."
+  help       = "choose mode for using relevance of assertions in non-linear arithmetic"
+  help_mode  = "Modes for using relevance of assertions in non-linear arithmetic."
 [[option.mode.NONE]]
   name = "none"
   help = "Do not use relevance."
@@ -555,30 +490,111 @@ header = "options/arith_options.h"
   long       = "arith-brab"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "whether to use simple rounding, similar to a unit-cube test, for integers"
 
 [[option]]
-  name       = "nlCad"
+  name       = "nlCov"
   category   = "regular"
-  long       = "nl-cad"
+  long       = "nl-cov"
   type       = "bool"
   default    = "false"
-  help       = "whether to use the cylindrical algebraic decomposition solver for non-linear arithmetic"
+  help       = "whether to use the cylindrical algebraic coverings solver for non-linear arithmetic"
 
 [[option]]
-  name       = "nlCadUseInitial"
-  category   = "regular"
-  long       = "nl-cad-initial"
+  name       = "nlCovForce"
+  category   = "expert"
+  long       = "nl-cov-force"
   type       = "bool"
   default    = "false"
-  help       = "whether to use the linear model as initial guess for the cylindrical algebraic decomposition solver"
+  help       = "forces using the cylindrical algebraic coverings solver, even in cases where it is possibly not safe to do so"
+
+[[option]]
+  name       = "nlCovVarElim"
+  category   = "expert"
+  long       = "nl-cov-var-elim"
+  type       = "bool"
+  default    = "true"
+  help       = "whether to eliminate variables using equalities before going into the cylindrical algebraic coverings solver. It can not be used when producing proofs right now."
+
+[[option]]
+  name       = "nlCovPrune"
+  category   = "expert"
+  long       = "nl-cov-prune"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to prune intervals more agressively"
+
+[[option]]
+  name       = "nlCovLinearModel"
+  category   = "regular"
+  long       = "nl-cov-linear-model=MODE"
+  type       = "nlCovLinearModelMode"
+  default    = "NONE"
+  help       = "whether to use the linear model as initial guess for the cylindrical algebraic coverings solver"
+  help_mode  = "Modes for the usage of the linear model in non-linear arithmetic."
+[[option.mode.NONE]]
+  name       = "none"
+  help       = "Do not use linear model to seed nonlinear model"
+[[option.mode.INITIAL]]
+  name       = "initial"
+  help       = "Use linear model to seed nonlinear model initially, discard it when it does not work"
+[[option.mode.PERSISTENT]]
+  name       = "persistent"
+  help       = "Use linear model to seed nonlinear model whenever possible"
+
+[[option]]
+  name       = "nlCovProjection"
+  category   = "expert"
+  long       = "nl-cov-proj=MODE"
+  type       = "nlCovProjectionMode"
+  default    = "MCCALLUM"
+  help       = "choose the Coverings projection operator"
+  help_mode  = "Modes for the Coverings projection operator in non-linear arithmetic."
+[[option.mode.MCCALLUM]]
+  name = "mccallum"
+  help = "McCallum's projection operator."
+[[option.mode.LAZARD]]
+  name = "lazard"
+  help = "Lazard's projection operator."
+[[option.mode.LAZARDMOD]]
+  name = "lazard-mod"
+  help = "A modification of Lazard's projection operator."
+
+[[option]]
+  name       = "nlCovLifting"
+  category   = "expert"
+  long       = "nl-cov-lift=MODE"
+  type       = "nlCovLiftingMode"
+  default    = "REGULAR"
+  help       = "choose the Coverings lifting mode"
+  help_mode  = "Modes for the Coverings lifting in non-linear arithmetic."
+[[option.mode.REGULAR]]
+  name = "regular"
+  help = "Regular lifting."
+[[option.mode.LAZARD]]
+  name = "lazard"
+  help = "Lazard's lifting scheme."
 
 [[option]]
   name       = "nlICP"
-  category   = "regular"
+  category   = "expert"
   long       = "nl-icp"
   type       = "bool"
   default    = "false"
   help       = "whether to use ICP-style propagations for non-linear arithmetic"
 
+[[option]]
+  name       = "arithEqSolver"
+  category   = "expert"
+  long       = "arith-eq-solver"
+  type       = "bool"
+  default    = "false"
+  help       = "whether to use the equality solver in the theory of arithmetic"
+
+[[option]]
+  name       = "arithStaticLearning"
+  category   = "regular"
+  long       = "arith-static-learning"
+  type       = "bool"
+  default    = "true"
+  help       = "do arithmetic static learning for ite terms based on bounds when static learning is enabled"

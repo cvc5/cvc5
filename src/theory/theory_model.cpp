@@ -1,43 +1,47 @@
-/*********************                                                        */
-/*! \file theory_model.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of model class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Clark Barrett, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of model class.
+ */
 #include "theory/theory_model.h"
 
+#include "expr/attribute.h"
+#include "expr/cardinality_constraint.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_engine.h"
+#include "smt/env.h"
+#include "theory/trust_substitutions.h"
+#include "theory/uf/function_const.h"
+#include "util/rational.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::internal::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
-TheoryModel::TheoryModel(context::Context* c,
-                         std::string name,
-                         bool enableFuncModels)
-    : d_name(name),
-      d_substitutions(c, false),
+TheoryModel::TheoryModel(Env& env, std::string name, bool enableFuncModels)
+    : EnvObj(env),
+      d_name(name),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
   // must use function models when ufHo is enabled
-  Assert(d_enableFuncModels || !options::ufHo());
+  Assert(d_enableFuncModels || !logicInfo().isHigherOrder());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
@@ -49,13 +53,15 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
   Assert(ee != nullptr);
   d_equalityEngine = ee;
   // The kinds we are treating as function application in congruence
-  d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
+  d_equalityEngine->addFunctionKind(
+      kind::APPLY_UF, false, logicInfo().isHigherOrder());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
   d_equalityEngine->addFunctionKind(kind::SELECT);
   // d_equalityEngine->addFunctionKind(kind::STORE);
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
-  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
+  d_equalityEngine->addFunctionKind(kind::SEQ_NTH);
   // do not interpret APPLY_UF if we are not assigning function values
   if (!d_enableFuncModels)
   {
@@ -71,11 +77,8 @@ void TheoryModel::finishInit(eq::EqualityEngine* ee)
 
 void TheoryModel::reset(){
   d_modelCache.clear();
-  d_comment_str.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
-  d_approximations.clear();
-  d_approx_list.clear();
   d_reps.clear();
   d_assignExcSet.clear();
   d_aesMaster.clear();
@@ -86,11 +89,6 @@ void TheoryModel::reset(){
   d_uf_models.clear();
   d_using_model_core = false;
   d_model_core.clear();
-}
-
-void TheoryModel::getComments(std::ostream& out) const {
-  Trace("model-builder") << "get comments..." << std::endl;
-  out << d_comment_str.str();
 }
 
 void TheoryModel::setHeapModel( Node h, Node neq ) { 
@@ -109,24 +107,20 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
   return true;
 }
 
-bool TheoryModel::hasApproximations() const { return !d_approx_list.empty(); }
-
-std::vector<std::pair<Node, Node> > TheoryModel::getApproximations() const
-{
-  return d_approx_list;
-}
-
 std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 {
   // must be an uninterpreted sort
-  Assert(tn.isSort());
+  Assert(tn.isUninterpretedSort());
   std::vector<Node> elements;
   const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
   if (type_refs == nullptr || type_refs->empty())
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(tn.mkGroundTerm());
+    // We use mkGroundValue here, since domain elements must all be
+    // of UNINTERPRETED_SORT_VALUE kind.
+    NodeManager* nm = NodeManager::currentNM();
+    elements.push_back(nm->mkGroundValue(tn));
     return elements;
   }
   return *type_refs;
@@ -135,17 +129,38 @@ std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
 Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
-  Node nn = d_substitutions.apply(n);
-  Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
+  Node nn = d_env.getTopLevelSubstitutions().apply(n);
+  nn = rewrite(nn);
+  Trace("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
   nn = getModelValue(nn);
-  if (nn.isNull()) return nn;
-  if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
-    //normalize
-    nn = Rewriter::rewrite(nn);
+  if (nn.isNull())
+  {
+    return nn;
   }
-  Debug("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
+  if (nn.getKind() == kind::FUNCTION_ARRAY_CONST)
+  {
+    // return the lambda instead
+    nn = uf::FunctionConst::toLambda(nn);
+  }
+  if (nn.getKind() == kind::LAMBDA)
+  {
+    if (options().theory.condenseFunctionValues)
+    {
+      // normalize the body. Do not normalize the entire node, which
+      // involves array normalization.
+      NodeManager* nm = NodeManager::currentNM();
+      nn = nm->mkNode(kind::LAMBDA, nn[0], rewrite(nn[1]));
+    }
+  }
+  else
+  {
+    //normalize
+    nn = rewrite(nn);
+  }
+  Trace("model-getvalue") << "[model-getvalue] getValue( " << n << " ): " << std::endl
                           << "[model-getvalue] returning " << nn << std::endl;
+  Assert(nn.getType() == n.getType());
   return nn;
 }
 
@@ -162,32 +177,32 @@ bool TheoryModel::isModelCoreSymbol(Node s) const
 Cardinality TheoryModel::getCardinality(TypeNode tn) const
 {
   //for now, we only handle cardinalities for uninterpreted sorts
-  if (!tn.isSort())
+  if (!tn.isUninterpretedSort())
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get cardinality other sort, unknown." << std::endl;
     return Cardinality( CardinalityUnknown() );
   }
   if (d_rep_set.hasType(tn))
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get cardinality sort, #rep : "
         << d_rep_set.getNumRepresentatives(tn) << std::endl;
     return Cardinality(d_rep_set.getNumRepresentatives(tn));
   }
-  Debug("model-getvalue-debug")
+  Trace("model-getvalue-debug")
       << "Get cardinality sort, unconstrained, return 1." << std::endl;
   return Cardinality(1);
 }
 
 Node TheoryModel::getModelValue(TNode n) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
+  std::unordered_map<Node, Node>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
     return (*it).second;
   }
-  Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
-  Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
+  Trace("model-getvalue-debug") << "Get model value " << n << " ... ";
+  Trace("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
   Kind nk = n.getKind();
   if (n.isConst() || nk == BOUND_VARIABLE)
   {
@@ -198,18 +213,21 @@ Node TheoryModel::getModelValue(TNode n) const
   Node ret = n;
   NodeManager* nm = NodeManager::currentNM();
 
-  // if it is an evaluated kind, compute model values for children and evaluate
-  if (n.getNumChildren() > 0
-      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
-      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
+  // If it has children, evaluate them. We do this even if n is an unevaluatable
+  // or semi-unevaluatable operator. Notice this includes quantified
+  // formulas. It may not be possible in general to evaluate bodies of
+  // quantified formulas, because they have free variables. Regardless, we
+  // may often be able to evaluate the body of a quantified formula to true,
+  // e.g. forall x. P(x) where P = lambda x. true.
+  if (n.getNumChildren() > 0)
   {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
     std::vector<Node> children;
     if (n.getKind() == APPLY_UF)
     {
       Node op = getModelValue(n.getOperator());
-      Debug("model-getvalue-debug") << "  operator : " << op << std::endl;
+      Trace("model-getvalue-debug") << "  operator : " << op << std::endl;
       children.push_back(op);
     }
     else if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -217,53 +235,55 @@ Node TheoryModel::getModelValue(TNode n) const
       children.push_back(n.getOperator());
     }
     // evaluate the children
-    for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; ++i)
     {
-      ret = getModelValue(n[i]);
-      Debug("model-getvalue-debug")
+      if (n.isClosure() && i==0)
+      {
+        // do not evaluate bound variable lists
+        ret = n[0];
+      }
+      else
+      {
+        ret = getModelValue(n[i]);
+      }
+      Trace("model-getvalue-debug")
           << "  " << n << "[" << i << "] is " << ret << std::endl;
       children.push_back(ret);
     }
     ret = nm->mkNode(n.getKind(), children);
-    Debug("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
-    ret = Rewriter::rewrite(ret);
-    Debug("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
+    Trace("model-getvalue-debug") << "ret (pre-rewrite): " << ret << std::endl;
+    ret = rewrite(ret);
+    Trace("model-getvalue-debug") << "ret (post-rewrite): " << ret << std::endl;
     // special cases
     if (ret.getKind() == kind::CARDINALITY_CONSTRAINT)
     {
-      Debug("model-getvalue-debug")
-          << "get cardinality constraint " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(getCardinality(ret[0].getType()).getFiniteCardinality()
-                        <= ret[1].getConst<Rational>().getNumerator());
+      const CardinalityConstraint& cc =
+          ret.getOperator().getConst<CardinalityConstraint>();
+      Trace("model-getvalue-debug")
+          << "get cardinality constraint " << cc.getType() << std::endl;
+      ret = nm->mkConst(getCardinality(cc.getType()).getFiniteCardinality()
+                        <= cc.getUpperBound());
     }
-    else if (ret.getKind() == kind::CARDINALITY_VALUE)
+    // if the value was constant, we return it. If it was non-constant,
+    // we only return it if we are an evaluated kind. This can occur if the
+    // children of n failed to evaluate.
+    if (ret.isConst() || (
+     d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end()))
     {
-      Debug("model-getvalue-debug")
-          << "get cardinality value " << ret[0].getType() << std::endl;
-      ret = nm->mkConst(
-          Rational(getCardinality(ret[0].getType()).getFiniteCardinality()));
+      d_modelCache[n] = ret;
+      return ret;
     }
-    d_modelCache[n] = ret;
-    return ret;
-  }
-  // it might be approximate
-  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
-  if (ita != d_approximations.end())
-  {
-    // If the value of n is approximate based on predicate P(n), we return
-    // witness z. P(z).
-    Node v = nm->mkBoundVar(n.getType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
-    d_modelCache[n] = answer;
-    return answer;
+    // Note that we discard the evaluation of the arguments here
+    Trace("model-getvalue-debug") << "Failed to evaluate " << ret << std::endl;
   }
   // must rewrite the term at this point
-  ret = Rewriter::rewrite(n);
+  ret = rewrite(n);
+  Trace("model-getvalue-debug")
+      << "Look up " << ret << " in equality engine" << std::endl;
   // return the representative of the term in the equality engine, if it exists
   TypeNode t = ret.getType();
-  bool eeHasTerm;
-  if (!options::ufHo() && (t.isFunction() || t.isPredicate()))
+  if (!logicInfo().isHigherOrder() && (t.isFunction() || t.isPredicate()))
   {
     // functions are in the equality engine, but *not* as first-class members
     // when higher-order is disabled. In this case, we cannot query
@@ -271,15 +291,10 @@ Node TheoryModel::getModelValue(TNode n) const
     // to the equality engine despite hasTerm returning true. However, they are
     // first class members when higher-order is enabled. Hence, the special
     // case here.
-    eeHasTerm = false;
   }
-  else
+  else if (d_equalityEngine->hasTerm(ret))
   {
-    eeHasTerm = d_equalityEngine->hasTerm(ret);
-  }
-  if (eeHasTerm)
-  {
-    Debug("model-getvalue-debug")
+    Trace("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
     ret = d_equalityEngine->getRepresentative(ret);
     Assert(d_reps.find(ret) != d_reps.end());
@@ -330,7 +345,7 @@ Node TheoryModel::getModelValue(TNode n) const
     {
       // this is the class for regular expressions
       // we simply invoke the rewriter on them
-      ret = Rewriter::rewrite(ret);
+      ret = rewrite(ret);
     }
     else
     {
@@ -344,26 +359,6 @@ Node TheoryModel::getModelValue(TNode n) const
 
   d_modelCache[n] = n;
   return n;
-}
-
-/** add substitution */
-void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
-  if( !d_substitutions.hasSubstitution( x ) ){
-    Debug("model") << "Add substitution in model " << x << " -> " << t << std::endl;
-    d_substitutions.addSubstitution( x, t, invalidateCache );
-  } else {
-#ifdef CVC4_ASSERTIONS
-    Node oldX = d_substitutions.getSubstitution(x);
-    // check that either the old substitution is the same, or it now maps to the new substitution
-    if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
-      InternalError()
-          << "Two incompatible substitutions added to TheoryModel:\n"
-          << "the term:    " << x << "\n"
-          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
-          << "new mapping: " << d_substitutions.apply(t);
-    }
-#endif /* CVC4_ASSERTIONS */
-  }
 }
 
 /** add term */
@@ -450,25 +445,30 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
     bool first = true;
     Node rep;
     for (; !eqc_i.isFinished(); ++eqc_i) {
-      if (termSet != NULL && termSet->find(*eqc_i) == termSet->end()) {
-        Trace("model-builder-debug") << "...skip node " << (*eqc_i) << " in eqc " << eqc << std::endl;
+      Node n = *eqc_i;
+      // notice that constants are always relevant
+      if (termSet != nullptr && termSet->find(n) == termSet->end()
+          && !n.isConst())
+      {
+        Trace("model-builder-debug")
+            << "...skip node " << n << " in eqc " << eqc << std::endl;
         continue;
       }
       if (predicate) {
         if (predTrue || predFalse)
         {
-          if (!assertPredicate(*eqc_i, predTrue))
+          if (!assertPredicate(n, predTrue))
           {
             return false;
           }
         }
         else {
           if (first) {
-            rep = (*eqc_i);
+            rep = n;
             first = false;
           }
           else {
-            Node eq = (*eqc_i).eqNode(rep);
+            Node eq = (n).eqNode(rep);
             Trace("model-builder-assertions")
                 << "(assert " << eq << ");" << std::endl;
             d_equalityEngine->assertEquality(eq, true, Node::null());
@@ -480,7 +480,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         }
       } else {
         if (first) {
-          rep = (*eqc_i);
+          rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
           if (rep.getType().isFirstClass())
           {
@@ -490,7 +490,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
           first = false;
         }
         else {
-          if (!assertEquality(*eqc_i, rep, true))
+          if (!assertEquality(n, rep, true))
           {
             return false;
           }
@@ -572,23 +572,7 @@ bool TheoryModel::hasAssignmentExclusionSets() const
   return !d_assignExcSet.empty();
 }
 
-void TheoryModel::recordApproximation(TNode n, TNode pred)
-{
-  Trace("model-builder-debug")
-      << "Record approximation : " << n << " satisfies the predicate " << pred
-      << std::endl;
-  Assert(d_approximations.find(n) == d_approximations.end());
-  Assert(pred.getType().isBoolean());
-  d_approximations[n] = pred;
-  d_approx_list.push_back(std::pair<Node, Node>(n, pred));
-  // model cache is invalid
-  d_modelCache.clear();
-}
-void TheoryModel::recordApproximation(TNode n, TNode pred, Node witness)
-{
-  Node predDisj = NodeManager::currentNM()->mkNode(OR, n.eqNode(witness), pred);
-  recordApproximation(n, predDisj);
-}
+bool TheoryModel::isUsingModelCore() const { return d_using_model_core; }
 void TheoryModel::setUsingModelCore()
 {
   d_using_model_core = true;
@@ -655,6 +639,18 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
   }
 }
 
+bool TheoryModel::hasUfTerms(Node f) const
+{
+  return d_uf_terms.find(f) != d_uf_terms.end();
+}
+
+const std::vector<Node>& TheoryModel::getUfTerms(Node f) const
+{
+  const auto it = d_uf_terms.find(f);
+  Assert(it != d_uf_terms.end());
+  return it->second;
+}
+
 bool TheoryModel::areFunctionValuesEnabled() const
 {
   return d_enableFuncModels;
@@ -664,12 +660,15 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
   Assert(d_uf_models.find(f) == d_uf_models.end());
 
-  if( options::ufHo() ){
-    //we must rewrite the function value since the definition needs to be a constant value
-    f_def = Rewriter::rewrite( f_def );
+  if (logicInfo().isHigherOrder())
+  {
+    // we must rewrite the function value since the definition needs to be a
+    // constant value. This does not need to be the case if we are assigning a
+    // lambda to the equivalence class in isolation, so we do not assert that
+    // f_def is constant here.
+    f_def = rewrite(f_def);
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
   }
  
   // d_uf_models only stores models for variables
@@ -677,7 +676,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     d_uf_models[f] = f_def;
   }
 
-  if (options::ufHo() && d_equalityEngine->hasTerm(f))
+  if (logicInfo().isHigherOrder() && d_equalityEngine->hasTerm(f))
   {
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
     // assign to representative if higher-order
@@ -690,7 +689,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     while( !eqc_i.isFinished() ) {
       Node n = *eqc_i;
       // if an unassigned variable function
-      if( n.isVar() && d_uf_terms.find( n )!=d_uf_terms.end() && !hasAssignedFunctionDefinition( n ) ){
+      if (n.isVar() && !hasAssignedFunctionDefinition(n))
+      {
         d_uf_models[n] = f_def;
         Trace("model-builder") << "  Assigning function (" << n << ") to function definition of " << f << std::endl;
       }
@@ -698,6 +698,11 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     }
     Trace("model-builder-debug") << "  ...finished." << std::endl;
   }
+}
+
+bool TheoryModel::hasAssignedFunctionDefinition(Node f) const
+{
+  return d_uf_models.find(f) != d_uf_models.end();
 }
 
 std::vector< Node > TheoryModel::getFunctionsToAssign() {
@@ -708,9 +713,17 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
     Assert(!n.isNull());
+    // lambdas do not need assignments
+    if (n.getKind() == LAMBDA)
+    {
+      continue;
+    }
+    // should not have been solved for in a substitution
+    Assert(d_env.getTopLevelSubstitutions().apply(n) == n);
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
-      if( options::ufHo() ){
+      if (logicInfo().isHigherOrder())
+      {
         // if in higher-order mode, assign function definitions modulo equality
         Node r = getRepresentative( n );
         std::map< Node, Node >::iterator itf = func_to_rep.find( r );
@@ -744,5 +757,143 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
 
 const std::string& TheoryModel::getName() const { return d_name; }
 
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+std::string TheoryModel::debugPrintModelEqc() const
+{
+  std::stringstream ss;
+  ss << "--- Equivalence classes:" << std::endl;
+  ss << d_equalityEngine->debugPrintEqc() << std::endl;
+  ss << "--- Representative map: " << std::endl;
+  for (const std::pair<const Node, Node>& r : d_reps)
+  {
+    ss << r.first << " -> " << r.second << std::endl;
+  }
+  ss << "---" << std::endl;
+  return ss.str();
+}
+
+struct IsModelValueTag
+{
+};
+struct IsModelValueComputedTag
+{
+};
+/** Attribute true for expressions that are quasi-values */
+using IsModelValueAttr = expr::Attribute<IsModelValueTag, bool>;
+using IsModelValueComputedAttr = expr::Attribute<IsModelValueComputedTag, bool>;
+
+bool TheoryModel::isBaseModelValue(TNode n) const
+{
+  if (n.isConst())
+  {
+    return true;
+  }
+  Kind k = n.getKind();
+  if (k == kind::REAL_ALGEBRAIC_NUMBER || k == kind::LAMBDA
+      || k == kind::WITNESS)
+  {
+    // we are a value if we are one of the above kinds
+    return true;
+  }
+  return false;
+}
+
+bool TheoryModel::isValue(TNode n) const
+{
+  IsModelValueAttr imva;
+  IsModelValueComputedAttr imvca;
+  // The list of nodes we are processing, and the current child index of that
+  // node we are inspecting. This vector always specifies a single path in the
+  // original term n. Notice this index accounts for operators, where the
+  // operator of a term is treated as the first child, and subsequently all
+  // other children are shifted up by one.
+  std::vector<std::pair<TNode, size_t>> visit;
+  // the last computed value of whether a node was a value
+  bool currentReturn = false;
+  visit.emplace_back(n, 0);
+  std::pair<TNode, size_t> v;
+  while (!visit.empty())
+  {
+    v = visit.back();
+    TNode cur = v.first;
+    bool finishedComputing = false;
+    // if we just pushed to the stack, do initial checks
+    if (v.second == 0)
+    {
+      if (cur.getAttribute(imvca))
+      {
+        // already cached
+        visit.pop_back();
+        currentReturn = cur.getAttribute(imva);
+        continue;
+      }
+      if (isBaseModelValue(cur))
+      {
+        finishedComputing = true;
+        currentReturn = true;
+      }
+      else if (cur.getNumChildren() == 0)
+      {
+        // PI is a (non-base) value. We require it as a special case here
+        // since nullary operators are represented internal as variables.
+        // All other non-constant terms with zero children are not values.
+        finishedComputing = true;
+        currentReturn = (cur.getKind() == kind::PI);
+      }
+      else if (rewrite(cur) != cur)
+      {
+        // non-rewritten terms are never model values
+        finishedComputing = true;
+        currentReturn = false;
+      }
+    }
+    else if (!currentReturn)
+    {
+      // if the last child was not a value, we are not a value
+      finishedComputing = true;
+    }
+    if (!finishedComputing)
+    {
+      // The only non-constant operators we consider are APPLY_UF and
+      // APPLY_SELECTOR. All other operators are either builtin, or should be
+      // considered constants, e.g. constructors.
+      Kind k = cur.getKind();
+      bool hasOperator = k == kind::APPLY_UF || k == kind::APPLY_SELECTOR;
+      size_t nextChildIndex = v.second;
+      if (hasOperator && nextChildIndex > 0)
+      {
+        // if have an operator, we shift the child index we are looking at
+        nextChildIndex--;
+      }
+      if (nextChildIndex == cur.getNumChildren())
+      {
+        // finished, we are a value
+        currentReturn = true;
+      }
+      else
+      {
+        visit.back().second++;
+        if (hasOperator && v.second == 0)
+        {
+          // if we have an operator, process it as the first child
+          visit.emplace_back(cur.getOperator(), 0);
+        }
+        else
+        {
+          Assert(nextChildIndex < cur.getNumChildren());
+          // process the next child, which may be shifted from v.second to
+          // account for the operator
+          visit.emplace_back(cur[nextChildIndex], 0);
+        }
+        continue;
+      }
+    }
+    visit.pop_back();
+    cur.setAttribute(imva, currentReturn);
+    cur.setAttribute(imvca, true);
+  }
+  Assert(n.getAttribute(imvca));
+  return currentReturn;
+}
+
+}  // namespace theory
+}  // namespace cvc5::internal

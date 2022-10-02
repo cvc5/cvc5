@@ -1,33 +1,34 @@
-/*********************                                                        */
-/*! \file floatingpoint_size.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Aina Niemetz, Martin Brain, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The class representing a floating-point format.
- **/
-#include "cvc4_public.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Aina Niemetz, Martin Brain, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The class representing a floating-point format.
+ */
+#include "cvc5_public.h"
 
-#ifndef CVC4__FLOATINGPOINT_SIZE_H
-#define CVC4__FLOATINGPOINT_SIZE_H
+#ifndef CVC5__FLOATINGPOINT_SIZE_H
+#define CVC5__FLOATINGPOINT_SIZE_H
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 // Inline these!
-inline bool CVC4_PUBLIC validExponentSize(uint32_t e) { return e >= 2; }
-inline bool CVC4_PUBLIC validSignificandSize(uint32_t s) { return s >= 2; }
+inline bool validExponentSize(uint32_t e) { return e >= 2; }
+inline bool validSignificandSize(uint32_t s) { return s >= 2; }
 
 /**
  * Floating point sorts are parameterised by two constants > 1 giving the
  * width (in bits) of the exponent and significand (including the hidden bit).
  * So, IEEE-754 single precision, a.k.a. float, is described as 8 24.
  */
-class CVC4_PUBLIC FloatingPointSize
+class FloatingPointSize
 {
  public:
   /** Constructors. */
@@ -79,7 +80,7 @@ class CVC4_PUBLIC FloatingPointSize
 /**
  * Hash function for floating point formats.
  */
-struct CVC4_PUBLIC FloatingPointSizeHashFunction
+struct FloatingPointSizeHashFunction
 {
   static inline size_t ROLL(size_t X, size_t N)
   {
@@ -92,6 +93,6 @@ struct CVC4_PUBLIC FloatingPointSizeHashFunction
                   | t.significandWidth());
   }
 }; /* struct FloatingPointSizeHashFunction */
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

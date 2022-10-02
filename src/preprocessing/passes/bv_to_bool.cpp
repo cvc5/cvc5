@@ -1,19 +1,19 @@
-/*********************                                                        */
-/*! \file bv_to_bool.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Liana Hadarean, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- **
- ** Preprocessing pass that lifts bit-vectors of size 1 to booleans.
- ** Implemented recursively.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Liana Hadarean, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Preprocessing pass that lifts bit-vectors of size 1 to booleans.
+ *
+ * Implemented recursively.
+ */
 
 #include "preprocessing/passes/bv_to_bool.h"
 
@@ -23,16 +23,18 @@
 
 #include "expr/node.h"
 #include "expr/node_visitor.h"
-#include "smt/smt_statistics_registry.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace CVC4::theory;
+using namespace cvc5::internal::theory;
 
 BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-bool"),
@@ -40,17 +42,17 @@ BVToBool::BVToBool(PreprocessingPassContext* preprocContext)
       d_boolCache(),
       d_one(bv::utils::mkOne(1)),
       d_zero(bv::utils::mkZero(1)),
-      d_statistics(){};
+      d_statistics(statisticsRegistry()){};
 
 PreprocessingPassResult BVToBool::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_preprocContext->spendResource(Resource::PreprocessStep);
   std::vector<Node> new_assertions;
   liftBvToBool(assertionsToPreprocess->ref(), new_assertions);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));
+    assertionsToPreprocess->replace(i, rewrite(new_assertions[i]));
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -112,10 +114,8 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
   Kind kind = node.getKind();
 
   if (kind == kind::CONST_BITVECTOR || kind == kind::ITE
-      || kind == kind::BITVECTOR_AND
-      || kind == kind::BITVECTOR_OR
-      || kind == kind::BITVECTOR_NOT
-      || kind == kind::BITVECTOR_XOR
+      || kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
+      || kind == kind::BITVECTOR_NOT || kind == kind::BITVECTOR_XOR
       || kind == kind::BITVECTOR_COMP)
   {
     return true;
@@ -132,7 +132,7 @@ Node BVToBool::convertBvAtom(TNode node)
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
   Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
-  Debug("bv-to-bool") << "BVToBool::convertBvAtom " << node << " => " << result
+  Trace("bv-to-bool") << "BVToBool::convertBvAtom " << node << " => " << result
                       << "\n";
 
   ++(d_statistics.d_numAtomsLifted);
@@ -153,7 +153,7 @@ Node BVToBool::convertBvTerm(TNode node)
     ++(d_statistics.d_numTermsForcedLifted);
     Node result = nm->mkNode(kind::EQUAL, node, d_one);
     addToBoolCache(node, result);
-    Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
+    Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
     return result;
   }
@@ -163,7 +163,7 @@ Node BVToBool::convertBvTerm(TNode node)
     Assert(node.getKind() == kind::CONST_BITVECTOR);
     Node result = node == d_one ? bv::utils::mkTrue() : bv::utils::mkFalse();
     // addToCache(node, result);
-    Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
+    Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
     return result;
   }
@@ -178,7 +178,7 @@ Node BVToBool::convertBvTerm(TNode node)
     Node false_branch = convertBvTerm(node[2]);
     Node result = nm->mkNode(kind::ITE, cond, true_branch, false_branch);
     addToBoolCache(node, result);
-    Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
+    Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
     return result;
   }
@@ -195,7 +195,7 @@ Node BVToBool::convertBvTerm(TNode node)
       Node converted = convertBvTerm(node[i]);
       result = nm->mkNode(kind::XOR, result, converted);
     }
-    Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
+    Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
     return result;
   }
@@ -204,7 +204,7 @@ Node BVToBool::convertBvTerm(TNode node)
   {
     Node result = nm->mkNode(kind::EQUAL, node[0], node[1]);
     addToBoolCache(node, result);
-    Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
+    Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
                         << result << "\n";
     return result;
   }
@@ -217,7 +217,7 @@ Node BVToBool::convertBvTerm(TNode node)
     default: Unhandled();
   }
 
-  NodeBuilder<> builder(new_kind);
+  NodeBuilder builder(new_kind);
   for (unsigned i = 0; i < node.getNumChildren(); ++i)
   {
     builder << convertBvTerm(node[i]);
@@ -225,7 +225,7 @@ Node BVToBool::convertBvTerm(TNode node)
 
   Node result = builder;
   addToBoolCache(node, result);
-  Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => " << result
+  Trace("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => " << result
                       << "\n";
   return result;
 }
@@ -251,7 +251,7 @@ Node BVToBool::liftNode(TNode current)
     }
     else
     {
-      NodeBuilder<> builder(current.getKind());
+      NodeBuilder builder(current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -269,7 +269,7 @@ Node BVToBool::liftNode(TNode current)
   }
   Assert(result != Node());
   Assert(result.getType() == current.getType());
-  Debug("bv-to-bool") << "BVToBool::liftNode " << current << " => \n"
+  Trace("bv-to-bool") << "BVToBool::liftNode " << current << " => \n"
                       << result << "\n";
   return result;
 }
@@ -280,31 +280,22 @@ void BVToBool::liftBvToBool(const std::vector<Node>& assertions,
   for (unsigned i = 0; i < assertions.size(); ++i)
   {
     Node new_assertion = liftNode(assertions[i]);
-    new_assertions.push_back(Rewriter::rewrite(new_assertion));
+    new_assertions.push_back(rewrite(new_assertion));
     Trace("bv-to-bool") << "  " << assertions[i] << " => " << new_assertions[i]
                         << "\n";
   }
 }
 
-BVToBool::Statistics::Statistics()
-    : d_numTermsLifted("preprocessing::passes::BVToBool::NumTermsLifted", 0),
-      d_numAtomsLifted("preprocessing::passes::BVToBool::NumAtomsLifted", 0),
-      d_numTermsForcedLifted(
-          "preprocessing::passes::BVToBool::NumTermsForcedLifted", 0)
+BVToBool::Statistics::Statistics(StatisticsRegistry& reg)
+    : d_numTermsLifted(
+        reg.registerInt("preprocessing::passes::BVToBool::NumTermsLifted")),
+      d_numAtomsLifted(
+          reg.registerInt("preprocessing::passes::BVToBool::NumAtomsLifted")),
+      d_numTermsForcedLifted(reg.registerInt(
+          "preprocessing::passes::BVToBool::NumTermsForcedLifted"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numTermsLifted);
-  smtStatisticsRegistry()->registerStat(&d_numAtomsLifted);
-  smtStatisticsRegistry()->registerStat(&d_numTermsForcedLifted);
 }
 
-BVToBool::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numTermsLifted);
-  smtStatisticsRegistry()->unregisterStat(&d_numAtomsLifted);
-  smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLifted);
-}
-
-
-}  // passes
-}  // Preprocessing
-}  // CVC4
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace cvc5::internal

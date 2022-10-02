@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file theory_sets_private.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sets theory implementation.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
-#define CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#ifndef CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#define CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
+#include "smt/env_obj.h"
+#include "theory/care_pair_argument_callback.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
@@ -31,16 +32,17 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
 /** Internal classes, forward declared here */
 class TheorySets;
 
-class TheorySetsPrivate {
-  typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+class TheorySetsPrivate : protected EnvObj
+{
+  typedef context::CDHashMap<Node, bool> NodeBoolMap;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   void eqNotifyNewClass(TNode t);
@@ -48,8 +50,6 @@ class TheorySetsPrivate {
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  private:
-  /** Are a and b trigger terms in the equality engine that may be disequal? */
-  bool areCareDisequal(Node a, Node b);
   /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
@@ -63,18 +63,215 @@ class TheorySetsPrivate {
   void fullEffortReset();
   /**
    * This implements an inference schema based on the "downwards closure" of
-   * set membership. This roughly corresponds to the rules UNION DOWN I and II,
-   * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
-   * difference.
+   * set membership. This roughly corresponds to the rules SET_UNION DOWN I and
+   * II, INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for
+   * set difference.
    */
   void checkDownwardsClosure();
   /**
    * This implements an inference schema based on the "upwards closure" of
-   * set membership. This roughly corresponds to the rules UNION UP, INTER
+   * set membership. This roughly corresponds to the rules SET_UNION UP, INTER
    * UP I and II from Bansal et al IJCAR 2016, as well as rules for set
    * difference.
    */
   void checkUpwardsClosure();
+
+  /**
+   * Apply the following rule for filter terms (set.filter p A):
+   * (=>
+   *   (and (set.member x B) (= A B))
+   *   (or
+   *    (and (p x) (set.member x (set.filter p A)))
+   *    (and (not (p x)) (not (set.member x (set.filter p A))))
+   *   )
+   * )
+   */
+  void checkFilterUp();
+  /**
+   * Apply the following rule for filter terms (set.filter p A):
+   * (=>
+   *   (bag.member x (set.filter p A))
+   *   (and
+   *    (p x)
+   *    (set.member x A)
+   *   )
+   * )
+   */
+  void checkFilterDown();
+
+  /**
+   * Apply the following rule for map terms (set.map f A):
+   * Positive member rule:
+   * (=>
+   *   (set.member x A)
+   *   (set.member (f x) (set.map f A)
+   * )
+   */
+  void checkMapUp();
+  /**
+   * Apply the following rules for map terms (set.map f A) where A has type
+   * (Set T):
+   * - General case:
+   *   (=>
+   *     (set.member y (set.map f A))
+   *     (and
+   *       (= (f x) y)
+   *       (set.member x A)
+   *     )
+   *   )
+   *   where x is a fresh skolem
+   * - Special case where we can avoid skolems
+   *   (=>
+   *     (set.member (f x) (set.map f A))
+   *     (set.member x A)
+   *   )
+   */
+  void checkMapDown();
+  void checkGroups();
+  void checkGroup(Node n);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type T
+   * @return an inference that represents:
+   * (=>
+   *  (= A (as set.empty T))
+   *  (= skolem (set.singleton (as set.empty T)))
+   * )
+   */
+  void groupNotEmpty(Node n);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param e an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (set.member x A)
+   *   (and
+   *     (set.member (part x) skolem)
+   *     (set.member x (part x))
+   *     (not (set.member (as set.empty (Relation T)) skolem))
+   *   )
+   * )
+   *
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A)
+   */
+  void groupUp1(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param e an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (not (set.member x A))
+   *   (= (part x) (as set.empty (Relation T)))
+   * )
+   *
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A)
+   */
+  void groupUp2(Node n, Node x, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T)
+   * @param x an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (set.member x B)
+   *   )
+   *   (and
+   *     (set.member x A)
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A).
+   */
+  void groupDown(Node n, Node B, Node x, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T) and B is not of the form (part x)
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (not (= A (as set.empty (Relation T)))
+   *   )
+   *   (and
+   *     (= B (part k_{n, B}))
+   *     (set.member k_{n,B} B)
+   *     (set.member k_{n,B} A)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A), and
+   * k_{n, B} is a fresh skolem of type T.
+   */
+  void groupPartMember(Node n, Node B, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (set.member x B)
+   *     (set.member y B)
+   *     (distinct x y)
+   *   )
+   *   (and
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *     (= (part x) (part y))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A).
+   */
+  void groupSameProjection(Node n, Node B, Node x, Node y, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @param B an element of type (Relation T)
+   * @param x an element of type T
+   * @param y an element of type T
+   * @param part a skolem function of type T -> (Relation T) created uniquely
+   * for n by defineSkolemPartFunction function below
+   * @return an inference that represents:
+   * (=>
+   *   (and
+   *     (set.member B skolem)
+   *     (set.member x B)
+   *     (set.member y A)
+   *     (distinct x y)
+   *     (= ((_ tuple.project n1 ... nk) x)
+   *        ((_ tuple.project n1 ... nk) y))
+   *   )
+   *   (and
+   *     (set.member y B)
+   *     (= (part x) (part y))
+   *     (= (part x) B)
+   *   )
+   * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A).
+   */
+  void groupSamePart(Node n, Node B, Node x, Node y, Node part);
+  /**
+   * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
+   * @return a function of type T -> (Relation T) that maps elements T to a
+   * part in the partition
+   */
+  Node defineSkolemPartFunction(Node n);
+  /**
+   * generate skolem variable for node n and add pending lemma for the equality
+   */
+  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
   /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
@@ -85,12 +282,6 @@ class TheorySetsPrivate {
    * in the current context.
    */
   void checkReduceComprehensions();
-
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
-                    unsigned arity,
-                    unsigned depth,
-                    unsigned& n_pairs);
 
   Node d_true;
   Node d_false;
@@ -106,10 +297,10 @@ class TheorySetsPrivate {
   class EqcInfo
   {
   public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    // singleton or emptyset equal to this eqc
-    context::CDO< Node > d_singleton;
+   EqcInfo(context::Context* c);
+   ~EqcInfo() {}
+   // singleton or emptyset equal to this eqc
+   context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -122,9 +313,9 @@ class TheorySetsPrivate {
    * is incomplete for some reason (for instance, if we combine cardinality
    * with a relation or extended function kind).
    */
-  bool d_full_check_incomplete;
-  std::map< Node, TypeNode > d_most_common_type;
-  std::map< Node, Node > d_most_common_type_term;
+  bool d_fullCheckIncomplete;
+  /** The reason we set the above flag to true */
+  IncompleteId d_fullCheckIncompleteId;
 
  public:
 
@@ -132,10 +323,12 @@ class TheorySetsPrivate {
    * Constructs a new instance of TheorySetsPrivate w.r.t. the provided
    * contexts.
    */
-  TheorySetsPrivate(TheorySets& external,
+  TheorySetsPrivate(Env& env,
+                    TheorySets& external,
                     SolverState& state,
                     InferenceManager& im,
-                    SkolemCache& skc);
+                    SkolemCache& skc,
+                    CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();
 
@@ -158,7 +351,6 @@ class TheorySetsPrivate {
   //--------------------------------- end standard check
 
   /** Collect model values in m based on the relevant terms given by termSet */
-  void addSharedTerm(TNode);
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
@@ -167,41 +359,25 @@ class TheorySetsPrivate {
 
   void preRegisterTerm(TNode node);
 
-  /** expandDefinition
-   * If the sets-ext option is not set and we have an extended operator, 
-   * we throw an exception. This function is a no-op otherwise.
-   *
-   * TheorySets uses expandDefinition as an entry point to see if the input
-   * contains extended operators.
-   *
-   * We need to be notified when a universe set occurs in our input,
-   * before preprocessing and simplification takes place. Otherwise the models
-   * may be inaccurate when setsExt is false, here is an example:
-   *
-   * x,y : (Set Int)
-   * x = (as univset (Set Int));
-   * 0 in y;
-   * check-sat;
-   *
-   * If setsExt is enabled, the model value of (as univset (Set Int)) is always accurate.
-   *
-   * If setsExt is not enabled, the following can happen for the above example:
-   * x = (as univset (Set Int)) is made into a model substitution during 
-   * simplification. This means (as univset (Set Int)) is not a term in any assertion, 
-   * and hence we do not throw an exception, nor do we infer that 0 is a member of 
-   * (as univset (Set Int)). We instead report a model where x = {}. The correct behavior 
-   * is to throw an exception that says universe set is not supported when setsExt disabled.
-   * Hence we check for the existence of universe set before simplification here.
-   *
-   * Another option to fix this is to make TheoryModel::getValue more general
-   * so that it makes theory-specific calls to evaluate interpreted symbols.
-   */
-  TrustNode expandDefinition(Node n);
+  /** ppRewrite, which expands choose and is_singleton.  */
+  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
 
   void presolve();
 
   /** get the valuation */
   Valuation& getValuation();
+  /** Is formula n entailed to have polarity pol in the current context? */
+  bool isEntailed(Node n, bool pol);
+
+  /**
+   * Adds inferences for splitting on arguments of a and b that are not
+   * equal nor disequal and are sets.
+   */
+  void processCarePairArgs(TNode a, TNode b);
+
+  /** returns whether the given kind is a higher order kind for sets. */
+  bool isHigherOrderKind(Kind k);
+
  private:
   TheorySets& d_external;
   /** The state of the sets solver at full effort */
@@ -218,21 +394,14 @@ class TheorySetsPrivate {
 
   bool isCareArg( Node n, unsigned a );
 
- public:
-  /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
-
- private:
-  /** get choose function
-   *
-   * Returns the existing uninterpreted function for the choose operator for the
-   * given set type, or creates a new one if it does not exist.
-   */
-  Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node);
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
+  /** ensure that the set type is over first class type, throw logic exception
+   * if not */
+  void ensureFirstClassSetType(TypeNode tn) const;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
@@ -250,20 +419,25 @@ class TheorySetsPrivate {
    */
   bool d_card_enabled;
 
+  /** are higher order set operators enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * higher order constraints is asserted to this theory.
+   */
+  bool d_higher_order_kinds_enabled;
+
   /** The theory rewriter for this theory. */
   TheorySetsRewriter d_rewriter;
-
-  /** a map that stores the choose functions for set types */
-  std::map<TypeNode, Node> d_chooseFunctions;
 
   /** a map that maps each set to an existential quantifier generated for
    * operator is_singleton */
   std::map<Node, Node> d_isSingletonNodes;
-};/* class TheorySetsPrivate */
+  /** Reference to care pair argument callback, used for theory combination */
+  CarePairArgumentCallback& d_cpacb;
+}; /* class TheorySetsPrivate */
 
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5::internal
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */
+#endif /* CVC5__THEORY__SETS__THEORY_SETS_PRIVATE_H */

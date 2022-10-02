@@ -1,24 +1,26 @@
-/*********************                                                        */
-/*! \file eq_proof.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a proof as produced by the equality engine.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a proof as produced by the equality engine.
+ */
 
 #include "theory/uf/eq_proof.h"
 
-#include "expr/proof.h"
+#include "base/configuration.h"
 #include "options/uf_options.h"
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -26,7 +28,7 @@ void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
-  Debug(c) << ss.str();
+  Trace(c) << ss.str();
 }
 
 void EqProof::debug_print(std::ostream& os, unsigned tb) const
@@ -89,8 +91,8 @@ void EqProof::cleanReflPremises(std::vector<Node>& premises) const
   if (newPremises.size() != size)
   {
     Trace("eqproof-conv") << "EqProof::cleanReflPremises: removed "
-                          << (newPremises.size() >= size
-                                  ? newPremises.size() - size
+                          << (size >= newPremises.size()
+                                  ? size - newPremises.size()
                                   : 0)
                           << " refl premises from " << premises << "\n";
     premises.clear();
@@ -104,7 +106,7 @@ bool EqProof::expandTransitivityForDisequalities(
     Node conclusion,
     std::vector<Node>& premises,
     CDProof* p,
-    std::unordered_set<Node, NodeHashFunction>& assumptions) const
+    std::unordered_set<Node>& assumptions) const
 {
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForDisequalities: check if need "
@@ -136,6 +138,8 @@ bool EqProof::expandTransitivityForDisequalities(
   // if no equality of the searched form, nothing to do
   if (offending == size)
   {
+    Trace("eqproof-conv")
+        << "EqProof::expandTransitivityForDisequalities: no need.\n";
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -682,8 +686,8 @@ void EqProof::reduceNestedCongruence(
     Node conclusion,
     std::vector<std::vector<Node>>& transitivityMatrix,
     CDProof* p,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    std::unordered_set<Node, NodeHashFunction>& assumptions,
+    std::unordered_map<Node, Node>& visited,
+    std::unordered_set<Node>& assumptions,
     bool isNary) const
 {
   Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: building for " << i
@@ -701,8 +705,10 @@ void EqProof::reduceNestedCongruence(
         << transitivityMatrix[i].back() << "\n";
     // if i == 0, first child must be REFL step, standing for (= f f), which can
     // be ignored in a first-order calculus
-    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
-           || options::ufHo());
+    // Notice if higher-order is disabled, the following holds:
+    //   i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
+    // We don't have access to whether we are higher-order in this context,
+    // so the above cannot be an assertion.
     // recurse
     if (i > 1)
     {
@@ -783,8 +789,8 @@ void EqProof::reduceNestedCongruence(
 
 Node EqProof::addToProof(CDProof* p) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  std::unordered_set<Node, NodeHashFunction> assumptions;
+  std::unordered_map<Node, Node> cache;
+  std::unordered_set<Node> assumptions;
   Node conclusion = addToProof(p, cache, assumptions);
   Trace("eqproof-conv") << "EqProof::addToProof: root of proof: " << conclusion
                         << "\n";
@@ -838,13 +844,11 @@ Node EqProof::addToProof(CDProof* p) const
   return newConclusion;
 }
 
-Node EqProof::addToProof(
-    CDProof* p,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    std::unordered_set<Node, NodeHashFunction>& assumptions) const
+Node EqProof::addToProof(CDProof* p,
+                         std::unordered_map<Node, Node>& visited,
+                         std::unordered_set<Node>& assumptions) const
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::const_iterator it =
-      visited.find(d_node);
+  std::unordered_map<Node, Node>::const_iterator it = visited.find(d_node);
   if (it != visited.end())
   {
     Trace("eqproof-conv") << "EqProof::addToProof: already processed " << d_node
@@ -965,6 +969,7 @@ Node EqProof::addToProof(
   if (d_id == MERGED_THROUGH_REFLEXIVITY
       || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
+    Trace("eqproof-conv") << "EqProof::addToProof: refl step\n";
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]});
@@ -974,12 +979,27 @@ Node EqProof::addToProof(
   // Equalities due to theory reasoning
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
-    Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
-           && d_node[1].isConst())
+    Assert(!d_node.isNull()
+           && ((d_node.getKind() == kind::EQUAL && d_node[1].isConst())
+               || (d_node.getKind() == kind::NOT
+                   && d_node[0].getKind() == kind::EQUAL
+                   && d_node[0][0].isConst() && d_node[0][1].isConst())))
         << ". Conclusion " << d_node << " from " << d_id
-        << " was expected to be (= (f t1 ... tn) c)\n";
+        << " was expected to be (= (f t1 ... tn) c) or (not (= c1 c2))\n";
     Assert(!assumptions.count(d_node))
         << "Conclusion " << d_node << " from " << d_id << " is an assumption\n";
+    // The step has the form (not (= c1 c2)). We conclude it via
+    // MACRO_SR_PRED_INTRO and turn it into an equality with false, so that the
+    // rest of the reconstruction works
+    if (d_children.empty())
+    {
+      Node conclusion =
+          d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+      p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, {}, {d_node});
+      p->addStep(conclusion, PfRule::FALSE_INTRO, {d_node}, {});
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // The step has the form
     //  [(= t1 c1)] ... [(= tn cn)]
     //  ------------------------
@@ -1049,6 +1069,13 @@ Node EqProof::addToProof(
     }
     // build constant application (f c1 ... cn) and equality (= (f c1 ... cn) c)
     Kind k = d_node[0].getKind();
+    std::vector<Node> cargs;
+    cargs.push_back(ProofRuleChecker::mkKindNode(k));
+    if (d_node[0].getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      constChildren.insert(constChildren.begin(), d_node[0].getOperator());
+      cargs.push_back(d_node[0].getOperator());
+    }
     Node constApp = NodeManager::currentNM()->mkNode(k, constChildren);
     Node constEquality = constApp.eqNode(d_node[1]);
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
@@ -1060,11 +1087,7 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::CONG
                           << " step for " << congConclusion << " from "
                           << subChildren << "\n";
-    p->addStep(congConclusion,
-               PfRule::CONG,
-               {subChildren},
-               {ProofRuleChecker::mkKindNode(k)},
-               true);
+    p->addStep(congConclusion, PfRule::CONG, {subChildren}, cargs, true);
     Trace("eqproof-conv") << "EqProof::addToProof: adding  " << PfRule::TRANS
                           << " step for original conclusion " << d_node << "\n";
     std::vector<Node> transitivityChildren{congConclusion, constEquality};
@@ -1165,7 +1188,9 @@ Node EqProof::addToProof(
         }
       }
     }
-    Assert(p->hasStep(conclusion));
+    Assert(p->hasStep(conclusion) || assumptions.count(conclusion))
+        << "Conclusion " << conclusion
+        << " does not have a step in the proof neither it's an assumption.\n";
     visited[d_node] = conclusion;
     return conclusion;
   }
@@ -1180,7 +1205,7 @@ Node EqProof::addToProof(
   // use (= t1 t2) as a premise and rely on a symmetry step to justify it.
   unsigned arity = d_node[0].getNumChildren();
   Kind k = d_node[0].getKind();
-  bool isNary = ExprManager::isNAryKind(k);
+  bool isNary = NodeManager::isNAryKind(k);
 
   // N-ary operators are fun. The following proof is a valid EqProof
   //
@@ -1309,7 +1334,7 @@ Node EqProof::addToProof(
           << "EqProof::addToProof: New conclusion " << conclusion << "\n";
     }
   }
-  if (Trace.isOn("eqproof-conv"))
+  if (TraceIsOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong of " << conclusion
@@ -1321,24 +1346,30 @@ Node EqProof::addToProof(
     }
   }
   std::vector<Node> children(arity + 1);
-  // Check if there is a justification for equality between functions (HO case)
-  if (!transitivityChildren[0].empty())
-  {
-    Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
-                                   "allowed for uninterpreted functions.\n";
-
-    children[0] =
-        conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
-    Assert(transitivityChildren[0].size() == 1
-           && CDProof::isSame(children[0], transitivityChildren[0][0]))
-        << "Justification of operators equality is wrong: "
-        << transitivityChildren[0] << "\n";
-  }
-  // Proccess transitivity matrix to (possibly) generate transitivity steps for
+  // Process transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
-  for (unsigned i = 1; i <= arity; ++i)
+  for (unsigned i = 0; i <= arity; ++i)
   {
-    Node transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
+    Node transConclusion;
+    // We special case the operator case because there is only ever the need to
+    // do something when in some HO case
+    if (i == 0)
+    {
+      // no justification for equality between functions, skip
+      if (transitivityChildren[0].empty())
+      {
+        continue;
+      }
+      // HO case
+      Assert(k == kind::APPLY_UF) << "Congruence with different functions only "
+                                     "allowed for uninterpreted functions.\n";
+      transConclusion =
+          conclusion[0].getOperator().eqNode(conclusion[1].getOperator());
+    }
+    else
+    {
+      transConclusion = conclusion[0][i - 1].eqNode(conclusion[1][i - 1]);
+    }
     children[i] = transConclusion;
     Assert(!transitivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i
@@ -1421,7 +1452,7 @@ Node EqProof::addToProof(
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is
   // flattened into the original conclusion (= (f t1 t2 t3 t4) (f t5 t6 t7)) via
   // rewriting
-  if (conclusion != d_node)
+  if (!CDProof::isSame(conclusion, d_node))
   {
     Trace("eqproof-conv") << "EqProof::addToProof: add "
                           << PfRule::MACRO_SR_PRED_TRANSFORM
@@ -1436,4 +1467,4 @@ Node EqProof::addToProof(
 
 }  // namespace eq
 }  // Namespace theory
-}  // Namespace CVC4
+}  // namespace cvc5::internal

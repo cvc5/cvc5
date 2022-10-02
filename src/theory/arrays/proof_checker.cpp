@@ -1,23 +1,26 @@
-/*********************                                                        */
-/*! \file proof_checker.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of arrays proof checker
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of arrays proof checker.
+ */
 
 #include "theory/arrays/proof_checker.h"
+
 #include "expr/skolem_manager.h"
 #include "theory/arrays/skolem_cache.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -27,8 +30,7 @@ void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_CONTRA, this);
   pc->registerChecker(PfRule::ARRAYS_READ_OVER_WRITE_1, this);
   pc->registerChecker(PfRule::ARRAYS_EXT, this);
-  // trusted rules
-  pc->registerTrustedChecker(PfRule::ARRAYS_TRUST, this, 2);
+  pc->registerChecker(PfRule::ARRAYS_EQ_RANGE_EXPAND, this);
 }
 
 Node ArraysProofRuleChecker::checkInternal(PfRule id,
@@ -102,12 +104,10 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
     Node bs = nm->mkNode(kind::SELECT, b, k);
     return as.eqNode(bs).notNode();
   }
-  if (id == PfRule::ARRAYS_TRUST)
+  if (id == PfRule::ARRAYS_EQ_RANGE_EXPAND)
   {
-    // "trusted" rules
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
+    Node expandedEqRange = TheoryArraysRewriter::expandEqRange(args[0]);
+    return args[0].eqNode(expandedEqRange);
   }
   // no rule
   return Node::null();
@@ -115,4 +115,4 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

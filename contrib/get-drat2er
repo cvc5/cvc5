@@ -16,5 +16,5 @@ cmake .. -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR"
 make install -j$(nproc)
 
 echo
-echo ===================== Now configure CVC4 with =====================
+echo ===================== Now configure cvc5 with =====================
 echo ./configure.sh --drat2er

@@ -1,27 +1,30 @@
-/*********************                                                        */
-/*! \file sygus_eval_unfold.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_eval_unfold
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_eval_unfold
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H
 
 #include <map>
+
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -36,10 +39,10 @@ class TermDbSygus;
  * unfold" applications of eval based on the model values of evaluation heads
  * in refinement lemmas.
  */
-class SygusEvalUnfold
+class SygusEvalUnfold : protected EnvObj
 {
  public:
-  SygusEvalUnfold(TermDbSygus* tds);
+  SygusEvalUnfold(Env& env, TermDbSygus* tds);
   ~SygusEvalUnfold() {}
   /** register evaluation term
    *
@@ -67,7 +70,8 @@ class SygusEvalUnfold
    * function, i.e. op is a builtin operator encoded by constructor C_op.
    *
    * We decide which kind of lemma to send ([A] or [B]) based on the symbol
-   * C_op. If op is an ITE, or if C_op is a Boolean operator, then we add [B].
+   * C_op and the mode of sygus-eval-unfold. By default, if op is an ITE, or if
+   * C_op is a Boolean operator, then we add [B].
    * Otherwise, we add [A]. The intuition of why [B] is better than [A] for the
    * former is that evaluation unfolding can lead to useful conflict analysis.
    *
@@ -121,17 +125,12 @@ class SygusEvalUnfold
               std::vector<Node>& exp,
               bool track_exp = true,
               bool doRec = false);
-  /**
-   * Same as above, but without explanation tracking. This is used for concrete
-   * evaluation heads
-   */
-  Node unfold(Node en);
 
  private:
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** the set of evaluation terms we have already processed */
-  std::unordered_set<Node, NodeHashFunction> d_eval_processed;
+  std::unordered_set<Node> d_eval_processed;
   /** map from evaluation heads to evaluation function applications */
   std::map<Node, std::vector<Node> > d_evals;
   /**
@@ -149,11 +148,11 @@ class SygusEvalUnfold
    * This maps anchor terms to the set of shared selector chains with
    * them as an anchor, for example x may map to { x, x.1, x.2, x.1.1 }.
    */
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_subterms;
+  std::map<Node, std::unordered_set<Node> > d_subterms;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_EVAL_UNFOLD_H */

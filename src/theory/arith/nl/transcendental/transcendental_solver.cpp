@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file transcendental_solver.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of solver for handling transcendental functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of solver for handling transcendental functions.
+ */
 
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 
@@ -21,42 +22,85 @@
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_state.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
-    : d_tstate(im, m), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(Env& env,
+                                           ArithState& state,
+                                           InferenceManager& im,
+                                           NlModel& m)
+    : EnvObj(env),
+      d_astate(state),
+      d_tstate(env, im, m),
+      d_expSlv(env, &d_tstate),
+      d_sineSlv(env, &d_tstate)
 {
-  d_taylor_degree = options::nlExtTfTaylorDegree();
+  d_taylor_degree = options().arith.nlExtTfTaylorDegree;
 }
 
 TranscendentalSolver::~TranscendentalSolver() {}
 
-void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
-                                        const std::vector<Node>& false_asserts,
-                                        const std::vector<Node>& xts)
+void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 {
-  d_tstate.init(assertions, false_asserts, xts);
+  std::vector<Node> needsMaster;
+  d_tstate.init(xts, needsMaster);
+
+  if (d_tstate.d_im.hasUsed())
+  {
+    return;
+  }
+
+  // apply reduction reasoning, e.g. x = pi/2 => sin(x) = 1
+  d_sineSlv.doReductions();
+
+  if (d_tstate.d_im.hasUsed()) {
+    return;
+  }
+
+  for (const Node& a : needsMaster)
+  {
+    Kind k = a.getKind();
+    Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
+    Node new_a = d_tstate.getPurifiedForm(a);
+    // Check if the transcental function application is equal to its purified
+    // form, if so, we already processed the lemma. In rare cases, note that
+    // we may require sending a lemma here even if the purified form above had
+    // already been allocated, e.g. in the case that the purification lemma
+    // below was dropped.
+    if (d_astate.areEqual(a, new_a))
+    {
+      // already processed
+      continue;
+    }
+    switch (k)
+    {
+      case Kind::SINE: d_sineSlv.doPhaseShift(a, new_a); break;
+      case Kind::EXPONENTIAL: d_expSlv.doPurification(a, new_a); break;
+      default: AlwaysAssert(false) << "Unexpected Kind " << k;
+    }
+  }
 }
 
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
     std::vector<Node>& assertions)
 {
-  std::vector<Node> pvars;
-  std::vector<Node> psubs;
-  for (const std::pair<const Node, Node>& tb : d_tstate.d_trMaster)
+  ArithSubs subs;
+  for (const auto& sub : d_tstate.d_trPurify)
   {
-    pvars.push_back(tb.first);
-    psubs.push_back(tb.second);
+    subs.addArith(sub.first, sub.second);
   }
 
   // initialize representation of assertions
@@ -65,10 +109,10 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
 
   {
     Node pa = a;
-    if (!pvars.empty())
+    if (!subs.empty())
     {
-      pa = arithSubstitute(pa, pvars, psubs);
-      pa = Rewriter::rewrite(pa);
+      pa = subs.applyArith(pa);
+      pa = rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
     {
@@ -102,21 +146,8 @@ bool TranscendentalSolver::preprocessAssertionsCheckModel(
       }
       if (!bounds.first.isNull() && !bounds.second.isNull())
       {
-        // for each function in the congruence classe
-        for (const Node& ctf : d_tstate.d_funcCongClass[tf])
-        {
-          // each term in congruence classes should be master terms
-          Assert(d_tstate.d_trSlaves.find(ctf) != d_tstate.d_trSlaves.end());
-          // we set the bounds for each slave of tf
-          for (const Node& stf : d_tstate.d_trSlaves[ctf])
-          {
-            Trace("nl-ext-cm")
-                << "...bound for " << stf << " : [" << bounds.first << ", "
-                << bounds.second << "]" << std::endl;
-            success = d_tstate.d_model.addCheckModelBound(
-                stf, bounds.first, bounds.second);
-          }
-        }
+        success = d_tstate.addModelBoundForPurifyTerm(
+            tf, bounds.first, bounds.second);
       }
       else
       {
@@ -149,7 +180,14 @@ void TranscendentalSolver::processSideEffect(const NlLemma& se)
     Node tf = std::get<0>(sp);
     unsigned d = std::get<1>(sp);
     Node c = std::get<2>(sp);
-    d_tstate.d_secant_points[tf][d].push_back(c);
+    // we have a CDList within the maps, creating it requires some care
+    auto& secant_points = d_tstate.d_secant_points[tf];
+    auto it = secant_points.find(d);
+    if (it == secant_points.end())
+    {
+      it = secant_points.emplace(d, userContext()).first;
+    }
+    it->second.push_back(c);
   }
 }
 
@@ -167,8 +205,15 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
 
 void TranscendentalSolver::checkTranscendentalTangentPlanes()
 {
-  Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
-                  << std::endl;
+  if (TraceIsOn("nl-ext"))
+  {
+    if (!d_tstate.d_funcMap.empty())
+    {
+      Trace("nl-ext")
+          << "Get tangent plane lemmas for transcendental functions..."
+          << std::endl;
+    }
+  }
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
   for (const std::pair<const Kind, std::vector<Node> >& tfs :
@@ -216,11 +261,12 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  // this should only be run on master applications
-  Assert(d_tstate.d_trSlaves.find(tf) != d_tstate.d_trSlaves.end());
+  // this should only be run on purified applications
+  Assert(d_tstate.isPurified(tf));
 
   // Figure 3 : c
   Node c = d_tstate.d_model.computeAbstractModelValue(tf[0]);
+  Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)
   {
@@ -232,13 +278,13 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // Figure 3: P_l, P_u
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
-  std::vector<Node> pbounds;
-  unsigned actual_d =
+  TaylorGenerator::ApproximationBounds pbounds;
+  std::uint64_t actual_d =
       d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
-  poly_approx_bounds[0][1] = pbounds[0];
-  poly_approx_bounds[0][-1] = pbounds[1];
-  poly_approx_bounds[1][1] = pbounds[2];
-  poly_approx_bounds[1][-1] = pbounds[3];
+  poly_approx_bounds[0][1] = pbounds.d_lower;
+  poly_approx_bounds[0][-1] = pbounds.d_lower;
+  poly_approx_bounds[1][1] = pbounds.d_upperPos;
+  poly_approx_bounds[1][-1] = pbounds.d_upperNeg;
 
   // Figure 3 : v
   Node v = d_tstate.d_model.computeAbstractModelValue(tf);
@@ -251,12 +297,16 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
 
   // compute the concavity
   int region = -1;
-  std::unordered_map<Node, int, NodeHashFunction>::iterator itr =
-      d_tstate.d_tf_region.find(tf);
+  std::unordered_map<Node, int>::iterator itr = d_tstate.d_tf_region.find(tf);
   if (itr != d_tstate.d_tf_region.end())
   {
     region = itr->second;
     Trace("nl-ext-tftp-debug") << "  region is : " << region << std::endl;
+  }
+  if (region == -1)
+  {
+    // the region cannot be assigned, return false without lemma
+    return false;
   }
   // Figure 3 : conc
   int concavity = regionToConcavity(k, itr->second);
@@ -288,17 +338,17 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     Node v_pab = r == 0 ? mvb.first : mvb.second;
     if (!v_pab.isNull())
     {
-      Trace("nl-ext-tftp-debug2")
-          << "...model value of " << pab << " is " << v_pab << std::endl;
+      Trace("nl-trans") << "...model value of " << pab << " is " << v_pab
+                        << std::endl;
 
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
-      Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
-      Node compr = Rewriter::rewrite(comp);
-      Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
+      Trace("nl-trans") << "...compare : " << comp << std::endl;
+      Node compr = rewrite(comp);
+      Trace("nl-trans") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
-        poly_approx_c = Rewriter::rewrite(v_pab);
+        poly_approx_c = rewrite(v_pab);
         // beyond the bounds
         if (r == 0)
         {
@@ -312,7 +362,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
           is_tangent = concavity == -1;
           is_secant = concavity == 1;
         }
-        if (Trace.isOn("nl-ext-tftp"))
+        if (TraceIsOn("nl-ext-tftp"))
         {
           Trace("nl-ext-tftp") << "*** Outside boundary point (";
           Trace("nl-ext-tftp") << (r == 0 ? "low" : "high") << ") ";
@@ -339,8 +389,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // Figure 3: P( c )
   if (is_tangent || is_secant)
   {
-    Trace("nl-ext-tftp-debug2")
-        << "...poly approximation at c is " << poly_approx_c << std::endl;
+    Trace("nl-trans") << "...poly approximation at c is " << poly_approx_c
+                      << std::endl;
   }
   else
   {
@@ -352,11 +402,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == Kind::EXPONENTIAL)
     {
-      d_expSlv.doTangentLemma(tf, c, poly_approx_c);
+      d_expSlv.doTangentLemma(tf, c, poly_approx_c, d);
     }
     else if (k == Kind::SINE)
     {
-      d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region);
+      d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region, d);
     }
   }
   else if (is_secant)
@@ -397,8 +447,69 @@ int TranscendentalSolver::regionToConcavity(Kind k, int region)
   return 0;
 }
 
+void TranscendentalSolver::postProcessModel(std::map<Node, Node>& arithModel,
+                                            const std::set<Node>& termSet)
+{
+  Trace("nl-ext") << "TranscendentalSolver::postProcessModel" << std::endl;
+  // map from equivalence classes to a transcendental function application,
+  // if it exists.
+  std::unordered_map<Node, Node> trReps;
+  for (const Node& n : termSet)
+  {
+    Kind k = n.getKind();
+    if (!isTranscendentalKind(n.getKind()))
+    {
+      continue;
+    }
+    // it might have an exact value, in which case there is nothing to do
+    if (k == SINE && d_sineSlv.hasExactModelValue(n))
+    {
+      continue;
+    }
+    Node r = d_astate.getRepresentative(n);
+    trReps[r] = n;
+  }
+  if (trReps.empty())
+  {
+    Trace("nl-ext") << "...no transcendental functions" << std::endl;
+    return;
+  }
+  std::unordered_map<Node, Node>::iterator it;
+  for (auto& am : arithModel)
+  {
+    // skip integer variables
+    if (am.first.getType().isInteger())
+    {
+      Trace("nl-ext") << "...keep model value for integer " << am.first
+                      << std::endl;
+      continue;
+    }
+    // cannot erase values for purification arguments
+    if (d_tstate.d_trPurifyVars.find(am.first) != d_tstate.d_trPurifyVars.end())
+    {
+      Trace("nl-ext") << "...keep model value for purification variable "
+                      << am.first << std::endl;
+      continue;
+    }
+    Node r = d_astate.getRepresentative(am.first);
+    it = trReps.find(r);
+    // if it is in the same equivalence class as a trancendental function
+    // application, we replace its value in the model with that application
+    if (it != trReps.end())
+    {
+      Trace("nl-ext") << "...abstract value for " << am.first << " to "
+                      << it->second << std::endl;
+      am.second = it->second;
+    }
+    else
+    {
+      Trace("nl-ext") << "...keep model value for " << am.first << std::endl;
+    }
+  }
+}
+
 }  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

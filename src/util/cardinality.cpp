@@ -1,24 +1,29 @@
-/*********************                                                        */
-/*! \file cardinality.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Representation of cardinality
- **
- ** Implementation of a simple class to represent a cardinality.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Representation of cardinality.
+ *
+ * Implementation of a simple class to represent a cardinality.
+ */
 
 #include "util/cardinality.h"
 
-#include "base/check.h"
+#include <ostream>
+#include <sstream>
 
-namespace CVC4 {
+#include "base/check.h"
+#include "base/exception.h"
+
+namespace cvc5::internal {
 
 const Integer Cardinality::s_unknownCard(0);
 const Integer Cardinality::s_intCard(-1);
@@ -31,36 +36,32 @@ const Cardinality Cardinality::REALS(CardinalityBeth(1));
 const Cardinality Cardinality::UNKNOWN_CARD((CardinalityUnknown()));
 
 CardinalityBeth::CardinalityBeth(const Integer& beth) : d_index(beth) {
-  PrettyCheckArgument(beth >= 0, beth,
-                      "Beth index must be a nonnegative integer, not %s.",
-                      beth.toString().c_str());
+  Assert(beth >= 0) << "Beth index must be a nonnegative integer, not "
+                    << beth.toString().c_str();
 }
 
 Cardinality::Cardinality(long card) : d_card(card) {
-  PrettyCheckArgument(card >= 0, card,
-                      "Cardinality must be a nonnegative integer, not %ld.",
-                      card);
+  Assert(card >= 0) << "Cardinality must be a nonnegative integer, not "
+                    << card;
   d_card += 1;
 }
 
 Cardinality::Cardinality(const Integer& card) : d_card(card) {
-  PrettyCheckArgument(card >= 0, card,
-                      "Cardinality must be a nonnegative integer, not %s.",
-                      card.toString().c_str());
+  Assert(card >= 0) << "Cardinality must be a nonnegative integer, not "
+                    << card.toString().c_str();
   d_card += 1;
 }
 
 Integer Cardinality::getFiniteCardinality() const {
-  PrettyCheckArgument(isFinite(), *this, "This cardinality is not finite.");
-  PrettyCheckArgument(
-      !isLargeFinite(), *this,
-      "This cardinality is finite, but too large to represent.");
+  Assert(isFinite()) << "This cardinality is not finite.";
+  Assert(!isLargeFinite())
+      << "This cardinality is finite, but too large to represent.";
   return d_card - 1;
 }
 
 Integer Cardinality::getBethNumber() const {
-  PrettyCheckArgument(!isFinite() && !isUnknown(), *this,
-                      "This cardinality is not infinite (or is unknown).");
+  Assert(!isFinite() && !isUnknown())
+      << "This cardinality is not infinite (or is unknown).";
   return -d_card - 1;
 }
 
@@ -259,4 +260,4 @@ std::ostream& operator<<(std::ostream& out, const Cardinality& c) {
   return out;
 }
 
-} /* CVC4 namespace */
+}  // namespace cvc5::internal

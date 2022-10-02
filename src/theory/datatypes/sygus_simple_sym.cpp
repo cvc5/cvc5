@@ -1,30 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_simple_sym.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of simple symmetry breaking for sygus
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of simple symmetry breaking for sygus.
+ */
 
 #include "theory/datatypes/sygus_simple_sym.h"
 
-#include "theory/quantifiers_engine.h"
+#include "expr/dtype_cons.h"
+#include "theory/quantifiers/term_util.h"
+#include "util/rational.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
-    : d_tds(qe->getTermDatabaseSygus()), d_tutil(qe->getTermUtil())
+SygusSimpleSymBreak::SygusSimpleSymBreak(quantifiers::TermDbSygus* tds)
+    : d_tds(tds)
 {
 }
 
@@ -35,13 +38,13 @@ SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
  *
  * As a simple example, consider the trie:
  * root:
- *   d_req_kind = PLUS
+ *   d_req_kind = ADD
  *   d_children[0]:
  *     d_req_type = A
  *   d_children[1]:
  *     d_req_type = A
  * This trie is satisfied by sygus types that have a constructor whose builtin
- * kind is PLUS and whose argument types are both A.
+ * kind is ADD and whose argument types are both A.
  */
 class ReqTrie
 {
@@ -197,7 +200,7 @@ bool SygusSimpleSymBreak::considerArgKind(
   Assert(rt.empty());
 
   // construct rt by cases
-  if (pk == NOT || pk == BITVECTOR_NOT || pk == UMINUS || pk == BITVECTOR_NEG)
+  if (pk == NOT || pk == BITVECTOR_NOT || pk == NEG || pk == BITVECTOR_NEG)
   {
     // negation normal form
     if (pk == k)
@@ -239,10 +242,10 @@ bool SygusSimpleSymBreak::considerArgKind(
         {
           //  (not (~ x y)) ----->  (~ (+ y 1) x)
           rt.d_req_kind = k;
-          rt.d_children[0].d_req_kind = PLUS;
+          rt.d_children[0].d_req_kind = ADD;
           rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[0].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConst(Rational(1));
+              NodeManager::currentNM()->mkConstInt(Rational(1));
           rt.d_children[1].d_req_type = dt[c].getArgType(0);
         }
         else if (k == LT || k == GEQ)
@@ -250,10 +253,10 @@ bool SygusSimpleSymBreak::considerArgKind(
           //  (not (~ x y)) ----->  (~ y (+ x 1))
           rt.d_req_kind = k;
           rt.d_children[0].d_req_type = dt[c].getArgType(1);
-          rt.d_children[1].d_req_kind = PLUS;
+          rt.d_children[1].d_req_kind = ADD;
           rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
           rt.d_children[1].d_children[1].d_req_const =
-              NodeManager::currentNM()->mkConst(Rational(1));
+              NodeManager::currentNM()->mkConstInt(Rational(1));
         }
       }
       else if (pk == BITVECTOR_NOT)
@@ -277,19 +280,19 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_req_kind = BITVECTOR_XNOR;
         }
       }
-      else if (pk == UMINUS)
+      else if (pk == NEG)
       {
-        if (k == PLUS)
+        if (k == ADD)
         {
-          rt.d_req_kind = PLUS;
-          reqk = UMINUS;
+          rt.d_req_kind = ADD;
+          reqk = NEG;
         }
       }
       else if (pk == BITVECTOR_NEG)
       {
-        if (k == PLUS)
+        if (k == ADD)
         {
-          rt.d_req_kind = PLUS;
+          rt.d_req_kind = ADD;
           reqk = BITVECTOR_NEG;
         }
       }
@@ -324,25 +327,25 @@ bool SygusSimpleSymBreak::considerArgKind(
       }
     }
   }
-  else if (k == MINUS || k == BITVECTOR_SUB)
+  else if (k == SUB || k == BITVECTOR_SUB)
   {
-    if (pk == EQUAL || pk == MINUS || pk == BITVECTOR_SUB || pk == LEQ
-        || pk == LT || pk == GEQ || pk == GT)
+    if (pk == EQUAL || pk == SUB || pk == BITVECTOR_SUB || pk == LEQ || pk == LT
+        || pk == GEQ || pk == GT)
     {
       int oarg = arg == 0 ? 1 : 0;
       //  (~ x (- y z))  ---->  (~ (+ x z) y)
       //  (~ (- y z) x)  ---->  (~ y (+ x z))
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
-      rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_PLUS;
+      rt.d_children[oarg].d_req_kind = k == SUB ? ADD : BITVECTOR_ADD;
       rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
       rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
-    else if (pk == PLUS || pk == BITVECTOR_PLUS)
+    else if (pk == ADD || pk == BITVECTOR_ADD)
     {
       //  (+ x (- y z))  -----> (- (+ x y) z)
       //  (+ (- y z) x)  -----> (- (+ x y) z)
-      rt.d_req_kind = pk == PLUS ? MINUS : BITVECTOR_SUB;
+      rt.d_req_kind = pk == ADD ? SUB : BITVECTOR_SUB;
       int oarg = arg == 0 ? 1 : 0;
       rt.d_children[0].d_req_kind = pk;
       rt.d_children[0].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
@@ -430,7 +433,7 @@ bool SygusSimpleSymBreak::considerConst(
   {
     Kind ok;
     int offset;
-    if (d_tutil->hasOffsetArg(pk, arg, offset, ok))
+    if (quantifiers::TermUtil::hasOffsetArg(pk, arg, offset, ok))
     {
       Trace("sygus-sb-simple-debug")
           << pk << " has offset arg " << ok << " " << offset << std::endl;
@@ -443,7 +446,8 @@ bool SygusSimpleSymBreak::considerConst(
         if (d_tds->isTypeMatch(pdt[ok_arg], pdt[arg]))
         {
           int status;
-          Node co = d_tutil->getTypeValueOffset(c.getType(), c, offset, status);
+          Node co = quantifiers::TermUtil::mkTypeValueOffset(
+              c.getType(), c, offset, status);
           Trace("sygus-sb-simple-debug")
               << c << " with offset " << offset << " is " << co
               << ", status=" << status << std::endl;
@@ -476,7 +480,7 @@ bool SygusSimpleSymBreak::considerConst(
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk
                           << ", arg = " << arg << "?" << std::endl;
-  if (d_tutil->isIdempotentArg(c, pk, arg))
+  if (quantifiers::TermUtil::isIdempotentArg(c, pk, arg))
   {
     if (pdt[pc].getNumArgs() == 2)
     {
@@ -493,7 +497,7 @@ bool SygusSimpleSymBreak::considerConst(
   }
   else
   {
-    Node sc = d_tutil->isSingularArg(c, pk, arg);
+    Node sc = quantifiers::TermUtil::isSingularArg(c, pk, arg);
     if (!sc.isNull())
     {
       if (pti.hasConst(sc))
@@ -509,9 +513,9 @@ bool SygusSimpleSymBreak::considerConst(
   {
     ReqTrie rt;
     Assert(rt.empty());
-    Node max_c = d_tutil->getTypeMaxValue(c.getType());
-    Node zero_c = d_tutil->getTypeValue(c.getType(), 0);
-    Node one_c = d_tutil->getTypeValue(c.getType(), 1);
+    Node max_c = quantifiers::TermUtil::mkTypeMaxValue(c.getType());
+    Node zero_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 0);
+    Node one_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 1);
     if (pk == XOR || pk == BITVECTOR_XOR)
     {
       if (c == max_c)
@@ -582,4 +586,4 @@ int SygusSimpleSymBreak::getFirstArgOccurrence(const DTypeConstructor& c,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

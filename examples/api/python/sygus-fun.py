@@ -1,29 +1,30 @@
 #!/usr/bin/env python
-#####################
-## sygus-fun.py
-## Top contributors (to current version):
-##   Yoni Zohar, Andres Noetzli
-## Copyright (c) 2009-2018 by the authors listed in the file AUTHkinds.OrS
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## sygus solver through the Python API. This is a direct
-## translation of sygus-fun.cpp.
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar, Aina Niemetz, Andrew Reynolds
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5 sygus solver
+# through the Python API. This is a direct translation of sygus-fun.cpp.
 ##
 
 import copy
-import pycvc4
-from pycvc4 import kinds
+import cvc5
+import utils
+from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = cvc5.Solver()
 
   # required options
-  slv.setOption("lang", "sygus2")
+  slv.setOption("sygus", "true")
   slv.setOption("incremental", "false")
 
   # set the logic
@@ -44,16 +45,16 @@ if __name__ == "__main__":
   zero = slv.mkInteger(0)
   one = slv.mkInteger(1)
 
-  plus = slv.mkTerm(kinds.Plus, start, start)
-  minus = slv.mkTerm(kinds.Minus, start, start)
-  ite = slv.mkTerm(kinds.Ite, start_bool, start, start)
+  plus = slv.mkTerm(Kind.ADD, start, start)
+  minus = slv.mkTerm(Kind.SUB, start, start)
+  ite = slv.mkTerm(Kind.ITE, start_bool, start, start)
 
-  And = slv.mkTerm(kinds.And, start_bool, start_bool)
-  Not = slv.mkTerm(kinds.Not, start_bool)
-  leq = slv.mkTerm(kinds.Leq, start, start)
+  And = slv.mkTerm(Kind.AND, start_bool, start_bool)
+  Not = slv.mkTerm(Kind.NOT, start_bool)
+  leq = slv.mkTerm(Kind.LEQ, start, start)
 
   # create the grammar object
-  g = slv.mkSygusGrammar([x, y], [start, start_bool])
+  g = slv.mkGrammar([x, y], [start, start_bool])
 
   # bind each non-terminal to its rules
   g.addRules(start, {zero, one, x, y, plus, minus, ite})
@@ -65,33 +66,37 @@ if __name__ == "__main__":
   min = slv.synthFun("min", [x, y], integer)
 
   # declare universal variables.
-  varX = slv.mkSygusVar(integer, "x")
-  varY = slv.mkSygusVar(integer, "y")
+  varX = slv.declareSygusVar("x", integer)
+  varY = slv.declareSygusVar("y", integer)
 
-  max_x_y = slv.mkTerm(kinds.ApplyUf, max, varX, varY)
-  min_x_y = slv.mkTerm(kinds.ApplyUf, min, varX, varY)
+  max_x_y = slv.mkTerm(Kind.APPLY_UF, max, varX, varY)
+  min_x_y = slv.mkTerm(Kind.APPLY_UF, min, varX, varY)
 
   # add semantic constraints
   # (constraint (>= (max x y) x))
-  slv.addSygusConstraint(slv.mkTerm(kinds.Geq, max_x_y, varX))
+  slv.addSygusConstraint(slv.mkTerm(Kind.GEQ, max_x_y, varX))
 
   # (constraint (>= (max x y) y))
-  slv.addSygusConstraint(slv.mkTerm(kinds.Geq, max_x_y, varY))
+  slv.addSygusConstraint(slv.mkTerm(Kind.GEQ, max_x_y, varY))
 
   # (constraint (or (= x (max x y))
   #                 (= y (max x y))))
   slv.addSygusConstraint(slv.mkTerm(
-      kinds.Or, slv.mkTerm(kinds.Equal, max_x_y, varX), slv.mkTerm(kinds.Equal, max_x_y, varY)))
+      Kind.OR,
+      slv.mkTerm(Kind.EQUAL, max_x_y, varX),
+      slv.mkTerm(Kind.EQUAL, max_x_y, varY)))
 
   # (constraint (= (+ (max x y) (min x y))
   #                (+ x y)))
   slv.addSygusConstraint(slv.mkTerm(
-      kinds.Equal, slv.mkTerm(kinds.Plus, max_x_y, min_x_y), slv.mkTerm(kinds.Plus, varX, varY)))
+      Kind.EQUAL,
+      slv.mkTerm(Kind.ADD, max_x_y, min_x_y),
+      slv.mkTerm(Kind.ADD, varX, varY)))
 
   # print solutions if available
-  if (slv.checkSynth().isUnsat()):
+  if (slv.checkSynth().hasSolution()):
     # Output should be equivalent to:
     # (define-fun max ((x Int) (y Int)) Int (ite (<= x y) y x))
     # (define-fun min ((x Int) (y Int)) Int (ite (<= x y) x y))
-    slv.printSynthSolution()
-
+    terms = [max, min]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))

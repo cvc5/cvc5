@@ -1,16 +1,17 @@
-/*********************                                                        */
-/*! \file ascription_type.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A class representing a type ascription
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class representing a type ascription.
+ */
 
 #include "expr/ascription_type.h"
 
@@ -18,7 +19,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 AscriptionType::AscriptionType(TypeNode t) : d_type(new TypeNode(t)) {}
 
@@ -46,7 +47,7 @@ bool AscriptionType::operator!=(const AscriptionType& other) const
 
 size_t AscriptionTypeHashFunction::operator()(const AscriptionType& at) const
 {
-  return TypeNodeHashFunction()(at.getType());
+  return std::hash<TypeNode>()(at.getType());
 }
 
 std::ostream& operator<<(std::ostream& out, AscriptionType at)
@@ -55,4 +56,4 @@ std::ostream& operator<<(std::ostream& out, AscriptionType at)
   return out;
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal

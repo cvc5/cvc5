@@ -1,0 +1,16 @@
+(set-logic NRA)
+(set-info :status sat)
+(declare-fun a () Real)
+(declare-fun j () Real)
+(declare-fun k () Real)
+(declare-fun h () Real)
+(assert (< 0 k))
+(assert (= 1 (* k j)))
+(assert
+    (or
+        (= h 0)
+        (= 0.0 (* a k))
+    )
+)
+(assert (distinct a h))
+(check-sat)

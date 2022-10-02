@@ -1,33 +1,29 @@
-/*********************                                                        */
-/*! \file theory_bv_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Liana Hadarean, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Liana Hadarean, Andres Noetzli, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory BV rewriter.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_REWRITER_H
-#define CVC4__THEORY__BV__THEORY_BV_REWRITER_H
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITER_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITER_H
 
 #include "theory/theory_rewriter.h"
-#include "util/statistics_registry.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
-struct AllRewriteRules;
 typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
 class TheoryBVRewriter : public TheoryRewriter
@@ -47,6 +43,8 @@ class TheoryBVRewriter : public TheoryRewriter
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
+
+  TrustNode expandDefinition(Node node) override;
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
@@ -75,7 +73,7 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteNor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteComp(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteMult(TNode node, bool prerewrite = false);
-  static RewriteResponse RewritePlus(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteAdd(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSub(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteNeg(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUdiv(TNode node, bool prerewrite = false);
@@ -96,6 +94,9 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUmulo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSmulo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
 
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteIntToBV(TNode node, bool prerewrite = false);
@@ -105,8 +106,8 @@ class TheoryBVRewriter : public TheoryRewriter
   RewriteFunction d_rewriteTable[kind::LAST_KIND];
 }; /* class TheoryBVRewriter */
 
-}/* CVC4::theory::bv namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_REWRITER_H */
+#endif /* CVC5__THEORY__BV__THEORY_BV_REWRITER_H */

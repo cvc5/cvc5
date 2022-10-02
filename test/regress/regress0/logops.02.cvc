@@ -1,3 +1,0 @@
-a, b, c: BOOLEAN;
-% EXPECT: not_entailed
-QUERY NOT c AND b;

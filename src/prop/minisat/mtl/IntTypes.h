@@ -30,12 +30,20 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #else
 
-#   include <stdint.h>
-#   include <inttypes.h>
+// In contrast to the original MiniSat source code, we are including the
+// cstdint/cinttypes/climits headers instead of stdint.h/inttypes.h/limits.h
+// here. This ensures that the macros in cinttypes/inttypes.h such as PRIi64
+// are actually defined. The C99 standard suggested that those macros are only
+// defined for C++ code when __STDC_FORMAT_MACROS is defined. This was never
+// adopted by a C++ standard (https://en.cppreference.com/w/cpp/types/integer).
+// However, certain versions of mingw-w64 seem to require it with inttypes.h
+// but not cinttypes.
+#   include <cstdint>
+#   include <cinttypes>
 
 #endif
 
-#include <limits.h>
+#include <climits>
 
 //=================================================================================================
 

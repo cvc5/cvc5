@@ -1,41 +1,20 @@
 id     = "UF"
-name   = "Uninterpreted functions theory"
-header = "options/uf_options.h"
+name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  smt_name   = "uf-symmetry-breaker"
-  category   = "regular"
+  category   = "expert"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "ufssTotalityLimited"
-  category   = "regular"
-  long       = "uf-ss-totality-limited=N"
-  type       = "int"
-  default    = "-1"
-  read_only  = true
-  help       = "apply totality axioms, but only up to cardinality N (-1 == do not apply totality axioms, default)"
-
-[[option]]
-  name       = "ufssTotalitySymBreak"
-  category   = "regular"
-  long       = "uf-ss-totality-sym-break"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "apply symmetry breaking for totality axioms"
-
-[[option]]
   name       = "ufssAbortCardinality"
   category   = "regular"
   long       = "uf-ss-abort-card=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "-1"
-  read_only  = true
   help       = "tells the uf with cardinality to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
 
 [[option]]
@@ -44,7 +23,6 @@ header = "options/uf_options.h"
   long       = "uf-ss=MODE"
   type       = "UfssMode"
   default    = "FULL"
-  read_only  = true
   help       = "mode of operation for uf with cardinality solver."
   help_mode  = "UF with cardinality options currently supported by the --uf-ss option when combined with finite model finding."
 [[option.mode.FULL]]
@@ -63,29 +41,36 @@ header = "options/uf_options.h"
   long       = "uf-ss-fair"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use fair strategy for finite model finding multiple sorts"
 
 [[option]]
   name       = "ufssFairnessMonotone"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ss-fair-monotone"
   type       = "bool"
   default    = "false"
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
-  name       = "ufHo"
-  category   = "regular"
-  long       = "uf-ho"
-  type       = "bool"
-  default    = "false"
-  help       = "enable support for higher-order reasoning"
-
-[[option]]
   name       = "ufHoExt"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
   help       = "apply extensionality on function symbols"
+
+[[option]]
+  name       = "ufHoLazyLambdaLift"
+  category   = "regular"
+  long       = "uf-lazy-ll"
+  type       = "bool"
+  default    = "false"
+  help       = "do lambda lifting lazily"
+
+[[option]]
+  name       = "eagerArithBvConv"
+  category   = "expert"
+  long       = "eager-arith-bv-conv"
+  type       = "bool"
+  default    = "false"
+  help       = "eagerly expand bit-vector to arithmetic conversions during preprocessing"

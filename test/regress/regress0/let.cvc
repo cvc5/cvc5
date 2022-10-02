@@ -1,7 +1,0 @@
-% EXPECT: entailed
-U: TYPE;
-a: U;
-b: U;
-f: U -> U;
-QUERY LET v_0 = (a = b)
-IN NOT (v_0 AND NOT v_0);

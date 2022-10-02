@@ -1,18 +1,17 @@
-/*********************                                                        */
-/*! \file theory_sets_rels.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sets theory implementation.
- **
- ** Extension to Sets theory.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Paul Meng, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extension to Sets theory.
+ */
 
 #ifndef SRC_THEORY_SETS_THEORY_SETS_RELS_H_
 #define SRC_THEORY_SETS_THEORY_SETS_RELS_H_
@@ -21,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "smt/env_obj.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/sets/solver_state.h"
@@ -28,7 +28,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -52,37 +52,39 @@ public:
  * This class implements inference schemes described in Meng et al. CADE 2017
  * for handling quantifier-free constraints in the theory of relations.
  *
- * In CVC4, relations are represented as sets of tuples. The theory of
- * relations includes constraints over operators, e.g. TRANSPOSE, JOIN and so
- * on, which apply to sets of tuples.
+ * In cvc5, relations are represented as sets of tuples. The theory of
+ * relations includes constraints over operators, e.g. RELATION_TRANSPOSE,
+ * RELATION_JOIN and so on, which apply to sets of tuples.
  *
  * Since relations are a special case of sets, this class is implemented as an
  * extension of the theory of sets. That is, it shares many components of the
  * TheorySets object which owns it.
  */
-class TheorySetsRels {
+class TheorySetsRels : protected EnvObj
+{
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashSet< Node, NodeHashFunction >            NodeSet;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
+  typedef context::CDHashSet<Node> NodeSet;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
-public:
- TheorySetsRels(SolverState& s,
-                InferenceManager& im,
-                SkolemCache& skc,
-                TermRegistry& treg);
+ public:
+  TheorySetsRels(Env& env,
+                 SolverState& s,
+                 InferenceManager& im,
+                 SkolemCache& skc,
+                 TermRegistry& treg);
 
- ~TheorySetsRels();
- /**
-  * Invoke the check method with effort level e. At a high level, this class
-  * will make calls to TheorySetsPrivate::processInference to assert facts,
-  * lemmas, and conflicts. If this class makes no such call, then the current
-  * set of assertions is satisfiable with respect to relations.
-  */
- void check(Theory::Effort e);
- /** Is kind k a kind that belongs to the relation theory? */
- static bool isRelationKind(Kind k);
+  ~TheorySetsRels();
+  /**
+   * Invoke the check method with effort level e. At a high level, this class
+   * will make calls to TheorySetsPrivate::processInference to assert facts,
+   * lemmas, and conflicts. If this class makes no such call, then the current
+   * set of assertions is satisfiable with respect to relations.
+   */
+  void check(Theory::Effort e);
+  /** Is kind k a kind that belongs to the relation theory? */
+  static bool isRelationKind(Kind k);
 
-private:
+ private:
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
@@ -95,17 +97,14 @@ private:
   SkolemCache& d_skCache;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** A list of pending inferences to process */
-  std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
 
-
-  std::unordered_set< Node, NodeHashFunction >       d_rel_nodes;
+  std::unordered_set<Node> d_rel_nodes;
   std::map< Node, std::vector<Node> >           d_tuple_reps;
   std::map< Node, TupleTrie >                   d_membership_trie;
 
   /** Symbolic tuple variables that has been reduced to concrete ones */
-  std::unordered_set< Node, NodeHashFunction >       d_symbolic_tuples;
+  std::unordered_set<Node> d_symbolic_tuples;
 
   /** Mapping between relation and its member representatives */
   std::map< Node, std::vector< Node > >           d_rReps_memberReps_cache;
@@ -114,11 +113,11 @@ private:
   std::map< Node, std::vector< Node > >           d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations involving relational operators */
-  std::map< Node, std::map<kind::Kind_t, std::vector<Node> > >                  d_terms_cache;
+  std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
 
   /** Mapping between transitive closure relation TC(r) and its TC graph constructed based on the members of r*/
-  std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
-  std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
+  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
+  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
 
  private:
@@ -127,12 +126,9 @@ private:
    * Called when we have inferred fact from explanation reason, where the
    * latter should be a conjunction of facts that hold in the current context.
    *
-   * The argument c is used for debugging, to give the name of the inference
-   * rule being used.
-   *
    * This method adds the node (=> reason exp) to the pending vector d_pending.
    */
-  void sendInfer(Node fact, Node reason, const char* c);
+  void sendInfer(Node fact, InferenceId id, Node reason);
   /**
    * This method flushes the inferences in the pending vector d_pending to
    * theory of sets, which may process them as lemmas or as facts to assert to
@@ -143,10 +139,8 @@ private:
    *
    * A wrapper around d_im.assertInference that ensures that we do not send
    * inferences with explanations that are not entailed.
-   *
-   * Argument c is used for debugging, typically the name of the inference.
    */
-  void processInference(Node conc, Node exp, const char* c);
+  void processInference(Node conc, InferenceId id, Node exp);
 
   /** Methods used in full effort */
   void check();
@@ -160,9 +154,16 @@ private:
   void applyTCRule( Node mem, Node rel, Node rel_rep, Node exp);
   void buildTCGraphForRel( Node tc_rel );
   void doTCInference();
-  void doTCInference( std::map< Node, std::unordered_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel );
-  void doTCInference(Node tc_rel, std::vector< Node > reasons, std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph,
-                       std::map< Node, Node >& rel_tc_graph_exps, Node start_node_rep, Node cur_node_rep, std::unordered_set< Node, NodeHashFunction >& seen );
+  void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+                     std::map<Node, Node> rel_tc_graph_exps,
+                     Node tc_rel);
+  void doTCInference(Node tc_rel,
+                     std::vector<Node> reasons,
+                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, Node>& rel_tc_graph_exps,
+                     Node start_node_rep,
+                     Node cur_node_rep,
+                     std::unordered_set<Node>& seen);
 
   void composeMembersForRels( Node );
   void computeMembersForBinOpRel( Node );
@@ -171,12 +172,15 @@ private:
   void computeMembersForJoinImageTerm( Node );
 
   bool isTCReachable( Node mem_rep, Node tc_rel );
-  void isTCReachable( Node start, Node dest, std::unordered_set<Node, NodeHashFunction>& hasSeen,
-                    std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
+  void isTCReachable(Node start,
+                     Node dest,
+                     std::unordered_set<Node>& hasSeen,
+                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     bool& isReachable);
 
   /** Helper functions */
   bool hasTerm( Node a );
-  void makeSharedTerm(Node, TypeNode t);
+  void makeSharedTerm(Node a);
   void reduceTupleVar( Node );
   bool hasMember( Node, Node );
   void computeTupleReps( Node );
@@ -188,11 +192,8 @@ private:
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
 };
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
-
+}  // namespace sets
+}  // namespace theory
+}  // namespace cvc5::internal
 
 #endif /* SRC_THEORY_SETS_THEORY_SETS_RELS_H_ */

@@ -1,31 +1,35 @@
-/*********************                                                        */
-/*! \file dynamic_rewrite.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of dynamic_rewriter
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of dynamic_rewriter.
+ */
 
 #include "theory/quantifiers/dynamic_rewrite.h"
 
+#include "expr/skolem_manager.h"
+#include "smt/env.h"
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-DynamicRewriter::DynamicRewriter(const std::string& name,
-                                 context::UserContext* u)
-    : d_equalityEngine(u, "DynamicRewriter::" + name, true), d_rewrites(u)
+DynamicRewriter::DynamicRewriter(Env& env,
+                                 context::Context* c,
+                                 const std::string& name)
+    : d_equalityEngine(env, c, "DynamicRewriter::" + name, true), d_rewrites(c)
 {
   d_equalityEngine.addFunctionKind(kind::APPLY_UF);
 }
@@ -144,6 +148,8 @@ Node DynamicRewriter::toExternal(Node ai)
 
 Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> ctypes;
   for (const Node& cn : n)
   {
@@ -173,14 +179,13 @@ Node DynamicRewriter::OpInternalSymTrie::getSymbol(Node n)
   }
   else
   {
-    utype = NodeManager::currentNM()->mkFunctionType(ctypes);
+    utype = nm->mkFunctionType(ctypes);
   }
-  Node f = NodeManager::currentNM()->mkSkolem(
-      "ufd", utype, "internal op for dynamic_rewriter");
+  Node f = sm->mkDummySkolem("ufd", utype, "internal op for dynamic_rewriter");
   curr->d_sym = f;
   return f;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal

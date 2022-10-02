@@ -13,22 +13,20 @@
  **
  **/
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__CONTEXT__DEFAULT_CLEAN_UP_H
-#define CVC4__CONTEXT__DEFAULT_CLEAN_UP_H
+#ifndef CVC5__CONTEXT__DEFAULT_CLEAN_UP_H
+#define CVC5__CONTEXT__DEFAULT_CLEAN_UP_H
 
-namespace CVC4 {
-namespace context {
+namespace cvc5::context {
 
 template <class T>
 class DefaultCleanUp
 {
  public:
-  void operator()(typename std::vector<T>::reference CVC4_UNUSED) const {}
+  void operator()(typename std::vector<T>::reference) const {}
 };
 
-}  // namespace context
-}  // namespace CVC4
+}  // namespace cvc5 
 
-#endif /* __CVC4__CONTEXT__DEFAULT_CLEAN_UP_H */
+#endif /* CVC5__CONTEXT__DEFAULT_CLEAN_UP_H */

@@ -1,38 +1,40 @@
-/*********************                                                        */
-/*! \file fun_def_evaluator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Techniques for evaluating terms with recursively defined functions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Techniques for evaluating terms with recursively defined functions.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__QUANTIFIERS_FUN_DEF_EVALUATOR_H
-#define CVC4__QUANTIFIERS_FUN_DEF_EVALUATOR_H
+#ifndef CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
+#define CVC5__QUANTIFIERS_FUN_DEF_EVALUATOR_H
 
 #include <map>
 #include <vector>
-#include "expr/node.h"
-#include "theory/evaluator.h"
 
-namespace CVC4 {
+#include "expr/node.h"
+#include "smt/env_obj.h"
+
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 /**
  * Techniques for evaluating recursively defined functions.
  */
-class FunDefEvaluator
+class FunDefEvaluator : protected EnvObj
 {
  public:
-  FunDefEvaluator();
+  FunDefEvaluator(Env& env);
   ~FunDefEvaluator() {}
   /**
    * Assert definition of a (recursive) function definition given by quantified
@@ -44,7 +46,7 @@ class FunDefEvaluator
    * class. If n cannot be simplified to a constant, then this method returns
    * null.
    */
-  Node evaluate(Node n) const;
+  Node evaluateDefinitions(Node n) const;
   /**
    * Has a call to assertDefinition been made? If this returns false, then
    * the evaluate method is the same as calling the rewriter, and returning
@@ -52,11 +54,18 @@ class FunDefEvaluator
    */
   bool hasDefinitions() const;
 
+  /** Get definitions */
+  const std::vector<Node>& getDefinitions() const;
+  /** Get definition for function symbol f, if it is cached by this class */
+  Node getDefinitionFor(Node f) const;
+
  private:
   /** information cached per function definition */
   class FunDefInfo
   {
    public:
+    /** the quantified formula */
+    Node d_quant;
     /** the body */
     Node d_body;
     /** the formal argument list */
@@ -64,12 +73,12 @@ class FunDefEvaluator
   };
   /** maps functions to the above information */
   std::map<Node, FunDefInfo> d_funDefMap;
-  /** evaluator utility */
-  Evaluator d_eval;
+  /** list of all definitions */
+  std::vector<Node> d_funDefs;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

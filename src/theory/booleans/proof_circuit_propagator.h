@@ -1,30 +1,33 @@
-/*********************                                                        */
-/*! \file proof_circuit_propagator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proofs for the non-clausal circuit propagator.
- **
- ** Proofs for the non-clausal circuit propagator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proofs for the non-clausal circuit propagator.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
-#define CVC4__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#ifndef CVC5__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
+#define CVC5__THEORY__BOOLEANS__PROOF_CIRCUIT_PROPAGATOR_H
 
 #include <memory>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "proof/proof_rule.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class ProofNode;
+class ProofNodeManager;
+
 namespace theory {
 namespace booleans {
 
@@ -208,6 +211,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

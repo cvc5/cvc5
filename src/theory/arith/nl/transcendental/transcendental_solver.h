@@ -1,37 +1,40 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Solving for handling transcendental functions.
+ */
 
-/*********************                                                        */
-/*! \file transcendental_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Solving for handling transcendental functions.
- **/
+#ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
+#define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
 
-#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
-#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
-
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+class ArithState;
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 /** Transcendental solver class
@@ -46,10 +49,13 @@ namespace transcendental {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class TranscendentalSolver
+class TranscendentalSolver : protected EnvObj
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m);
+  TranscendentalSolver(Env& env,
+                       ArithState& state,
+                       InferenceManager& im,
+                       NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call
@@ -63,9 +69,7 @@ class TranscendentalSolver
    * This call may add lemmas to lems based on registering term
    * information (for example, purification of sine terms).
    */
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  void initLastCall(const std::vector<Node>& xts);
   /** increment taylor degree */
   void incrementTaylorDegree();
   /** get taylor degree */
@@ -148,6 +152,21 @@ class TranscendentalSolver
    */
   void checkTranscendentalTangentPlanes();
 
+  /**
+   * Post-process model. This ensures that for all terms t in the domain of
+   * arithModel, if t is in the same equivalence class as a transcendental
+   * function application, then arithModel[t] maps to one such application.
+   *
+   * This is to ensure that the linear model is ignored for such terms,
+   * as their values cannot be properly represented in the model.
+   *
+   * It is important to map such terms t to a transcendental function
+   * application, or otherwise they would be unconstrained, leading to
+   * spurious models.
+   */
+  void postProcessModel(std::map<Node, Node>& arithModel,
+                        const std::set<Node>& termSet);
+
  private:
   /** check transcendental function refinement for tf
    *
@@ -178,14 +197,16 @@ class TranscendentalSolver
    */
   int regionToConcavity(Kind k, int region);
 
+  /** A reference to the arithmetic state object */
+  ArithState& d_astate;
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
    * all transcendental functions is 2*d_taylor_degree. This value is set
-   * initially to options::nlExtTfTaylorDegree() and may be incremented
-   * if the option options::nlExtTfIncPrecision() is enabled.
+   * initially to the nlExtTfTaylorDegree option and may be incremented
+   * if the option nlExtTfIncPrecision is enabled.
    */
-  unsigned d_taylor_degree;
+  uint64_t d_taylor_degree;
 
   /** Common state for transcendental solver */
   transcendental::TranscendentalState d_tstate;
@@ -199,6 +220,6 @@ class TranscendentalSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */
+#endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

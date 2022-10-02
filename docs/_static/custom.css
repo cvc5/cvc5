@@ -1,0 +1,109 @@
+.wy-nav-content {
+  background: #fcfffa;
+}
+
+code {
+    border: 0px !important;
+}
+
+code.xref {
+    color: unset !important;
+}
+
+.rst-content code {
+    padding: 1px !important;
+    background: unset !important;
+}
+
+.wy-side-nav-search {
+  background-color: #0099e6;
+}
+
+.wy-breadcrumbs a {
+  color: #739900;
+}
+
+.wy-breadcrumbs a:hover, a:focus {
+  color: #0099e6;
+}
+
+.wy-side-nav-search input[type="text"] {
+  border-color: #0077b3;
+}
+
+.wy-menu-vertical a {
+  color: #4dc3ff;
+}
+
+.wy-menu-vertical a:visited {
+  color: #4dc3ff;
+}
+
+.wy-menu-vertical a:hover, a:focus {
+  color: #ace600;
+}
+
+a {
+  color: #0099e6;
+}
+
+a:visited {
+  color: #0099e6;
+}
+
+a:hover, a:focus {
+  color: #739900;
+}
+
+.wy-nav-top {
+  color: #ace600;
+  background-color: #0099e6;
+}
+
+.wy-nav-top a {
+  color: #ace600;
+}
+
+.wy-side-nav-search > a {
+  color: #ace600;
+}
+
+.wy-side-nav-search > a:hover, > a:focus, > a:visited {
+  color: #ace600;
+}
+
+.highlight .o {
+  color: #ac7339;
+}
+
+.highlight .k {
+  color: #2980b9;
+}
+
+.highlight .m {
+  color: #ba2121;
+}
+
+/* Removes margin of code blocks within tabs */
+.sphinx-tabs-panel div[class^="highlight"] {
+  margin: 1px 0 0 0;
+}
+
+/* Adds a space between icon and content for fa icons */
+.icon-margin.fa::before {
+  margin-right: 0.25em;
+}
+
+#c-api-class-hierarchy code {
+  font-size: 100%;
+  font-weight: normal;
+  font-family: "Lato","proxima-nova","Helvetica Neue","Arial","sans-serif";
+}
+
+.hide-toctree {
+  display: none;
+}
+
+.expert-option {
+  opacity: 0.7;
+}

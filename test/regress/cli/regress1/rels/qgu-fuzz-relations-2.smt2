@@ -1,0 +1,8 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-fun a () (Relation Int Int))
+(declare-fun b () (Relation Int Int))
+(declare-fun c () Int)
+(declare-fun d () (Tuple Int Int))
+(assert (and (= a (set.singleton (tuple (+ c 1) 1))) (= (rel.tclosure b) (rel.join a a))))
+(check-sat)

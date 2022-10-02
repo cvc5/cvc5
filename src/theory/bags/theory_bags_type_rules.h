@@ -1,314 +1,243 @@
-/*********************                                                        */
-/*! \file theory_bags_type_rules.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bags theory type rules.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bags theory type rules.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H
-#define CVC4__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H
+#ifndef CVC5__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H
+#define CVC5__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H
 
-#include "theory/bags/normal_form.h"
+#include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class NodeManager;
+class TypeNode;
+
 namespace theory {
 namespace bags {
 
+/**
+ * Type rule for binary operators (bag.union_max, bag.union_disjoint,
+ * bag.inter_min bag.difference_subtract, bag.difference_remove) to check
+ * if the two arguments are bags of the same sort.
+ */
 struct BinaryOperatorTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::UNION_MAX || n.getKind() == kind::UNION_DISJOINT
-           || n.getKind() == kind::INTERSECTION_MIN
-           || n.getKind() == kind::DIFFERENCE_SUBTRACT
-           || n.getKind() == kind::DIFFERENCE_REMOVE);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "operator expects a bag, first argument is not");
-      }
-      TypeNode secondBagType = n[1].getType(check);
-      if (secondBagType != bagType)
-      {
-        std::stringstream ss;
-        ss << "Operator " << n.getKind()
-           << " expects two bags of the same type. Found types '" << bagType
-           << "' and '" << secondBagType << "'.";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
-    return bagType;
-  }
-
-  static bool computeIsConst(NodeManager* nodeManager, TNode n)
-  {
-    // only UNION_DISJOINT has a const rule in kinds.
-    // Other binary operators do not have const rules in kinds
-    Assert(n.getKind() == kind::UNION_DISJOINT);
-    return NormalForm::isConstant(n);
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 }; /* struct BinaryOperatorTypeRule */
 
+/**
+ * Type rule for binary operator bag.subbag to check if the two arguments are
+ * bags of the same sort.
+ */
 struct SubBagTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::SUBBAG);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(n, "SUBBAG operating on non-bag");
-      }
-      TypeNode secondBagType = n[1].getType(check);
-      if (secondBagType != bagType)
-      {
-        if (!bagType.isComparableTo(secondBagType))
-        {
-          throw TypeCheckingExceptionPrivate(
-              n, "SUBBAG operating on bags of different types");
-        }
-      }
-    }
-    return nodeManager->booleanType();
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct SubBagTypeRule */
 
+/**
+ * Type rule for binary operator bag.count to check the sort of the first
+ * argument matches the element sort of the given bag.
+ */
 struct CountTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_COUNT);
-    TypeNode bagType = n[1].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "checking for membership in a non-bag");
-      }
-      TypeNode elementType = n[0].getType(check);
-      // e.g. (count 1 (mkBag (mkBag_op Real) 1.0 3))) is 3 whereas
-      // (count 1.0 (mkBag (mkBag_op Int) 1 3))) throws a typing error
-      if (!elementType.isSubtypeOf(bagType.getBagElementType()))
-      {
-        std::stringstream ss;
-        ss << "member operating on bags of different types:\n"
-           << "child type:  " << elementType << "\n"
-           << "not subtype: " << bagType.getBagElementType() << "\n"
-           << "in term : " << n;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
-    return nodeManager->integerType();
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct CountTypeRule */
 
+/**
+ * Type rule for binary operator bag.member to check the sort of the first
+ * argument matches the element sort of the given bag.
+ */
+struct MemberTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
+ * Type rule for bag.duplicate_removal to check the argument is of a bag.
+ */
 struct DuplicateRemovalTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::DUPLICATE_REMOVAL);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        std::stringstream ss;
-        ss << "Applying DUPLICATE_REMOVAL on a non-bag argument in term " << n;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
-    return bagType;
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct DuplicateRemovalTypeRule */
 
-struct MkBagTypeRule
+/**
+ * Type rule for (bag op e) operator to check the sort of e matches the sort
+ * stored in op.
+ */
+struct BagMakeTypeRule
 {
-  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::MK_BAG && n.hasOperator()
-           && n.getOperator().getKind() == kind::MK_BAG_OP);
-    MakeBagOp op = n.getOperator().getConst<MakeBagOp>();
-    TypeNode expectedElementType = op.getType();
-    if (check)
-    {
-      if (n.getNumChildren() != 2)
-      {
-        std::stringstream ss;
-        ss << "operands in term " << n << " are " << n.getNumChildren()
-           << ", but MK_BAG expects 2 operands.";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-      TypeNode type1 = n[1].getType(check);
-      if (!type1.isInteger())
-      {
-        std::stringstream ss;
-        ss << "MK_BAG expects an integer for " << n[1] << ". Found" << type1;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
+  static TypeNode computeType(NodeManager* nm, TNode n, bool check);
+  static bool computeIsConst(NodeManager* nodeManager, TNode n);
+}; /* struct BagMakeTypeRule */
 
-      TypeNode actualElementType = n[0].getType(check);
-      // the type of the element should be a subtype of the type of the operator
-      // e.g. (mkBag (mkBag_op Real) 1 1) where 1 is an Int
-      if (!actualElementType.isSubtypeOf(expectedElementType))
-      {
-        std::stringstream ss;
-        ss << "The type '" << actualElementType
-           << "' of the element is not a subtype of '" << expectedElementType
-           << "' in term : " << n;
-        throw TypeCheckingExceptionPrivate(n, ss.str());
-      }
-    }
-
-    return nm->mkBagType(expectedElementType);
-  }
-
-  static bool computeIsConst(NodeManager* nodeManager, TNode n)
-  {
-    Assert(n.getKind() == kind::MK_BAG);
-    // for a bag to be a constant, both the element and its multiplicity should
-    // be constants, and the multiplicity should be > 0.
-    return n[0].isConst() && n[1].isConst()
-           && n[1].getConst<Rational>().sgn() == 1;
-  }
-}; /* struct MkBagTypeRule */
-
+/**
+ * Type rule for (bag.is_singleton B) to check the argument B is a bag.
+ */
 struct IsSingletonTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_IS_SINGLETON);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "BAG_IS_SINGLETON operator expects a bag, a non-bag is found");
-      }
-    }
-    return nodeManager->booleanType();
-  }
-}; /* struct IsMkBagTypeRule */
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct IsSingletonTypeRule */
 
+/**
+ * Type rule for (as bag.empty (Bag T)) where T is a type
+ */
 struct EmptyBagTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::EMPTYBAG);
-    EmptyBag emptyBag = n.getConst<EmptyBag>();
-    return emptyBag.getType();
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct EmptyBagTypeRule */
 
+/**
+ * Type rule for (bag.card B) to check the argument B is a bag.
+ */
 struct CardTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_CARD);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "cardinality operates on a bag, non-bag object found");
-      }
-    }
-    return nodeManager->integerType();
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct CardTypeRule */
 
+/**
+ * Type rule for (bag.choose B) to check the argument B is a bag.
+ */
 struct ChooseTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_CHOOSE);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "CHOOSE operator expects a bag, a non-bag is found");
-      }
-    }
-    return bagType.getBagElementType();
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct ChooseTypeRule */
 
+/**
+ * Type rule for (bag.from_set ..) to check the argument is of a set.
+ */
 struct FromSetTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_FROM_SET);
-    TypeNode setType = n[0].getType(check);
-    if (check)
-    {
-      if (!setType.isSet())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "bag.from_set operator expects a set, a non-set is found");
-      }
-    }
-    TypeNode elementType = setType.getSetElementType();
-    TypeNode bagType = nodeManager->mkBagType(elementType);
-    return bagType;
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct FromSetTypeRule */
 
+/**
+ * Type rule for (bag.to_set ..) to check the argument is of a bag.
+ */
 struct ToSetTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
-  {
-    Assert(n.getKind() == kind::BAG_TO_SET);
-    TypeNode bagType = n[0].getType(check);
-    if (check)
-    {
-      if (!bagType.isBag())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "bag.to_set operator expects a bag, a non-bag is found");
-      }
-    }
-    TypeNode elementType = bagType.getBagElementType();
-    TypeNode setType = nodeManager->mkSetType(elementType);
-    return setType;
-  }
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct ToSetTypeRule */
+
+/**
+ * Type rule for (bag.map f B) to make sure f is a unary function of type
+ * (-> T1 T2) where B is a bag of type (Bag T1)
+ */
+struct BagMapTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagMapTypeRule */
+
+/**
+ * Type rule for (bag.filter p B) to make sure p is a unary predicate of type
+ * (-> T Bool) where B is a bag of type (Bag T)
+ */
+struct BagFilterTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFilterTypeRule */
+
+/**
+ * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
+ * (-> T1 T2 T2), t of type T2, and A is a bag of type (Bag T1)
+ */
+struct BagFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (bag.partition r A) to make sure r is a binary operation of
+ * type
+ * (-> T1 T1 Bool), and A is a bag of type (Bag T1)
+ */
+struct BagPartitionTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (table.product A B) to make sure A,B are bags of tuples,
+ * and get the type of the cross product
+ */
+struct TableProductTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Table project is indexed by a list of indices (n_1, ..., n_m). It ensures
+ * that the argument is a bag of tuples whose arity k is greater than each n_i
+ * for i = 1, ..., m. If the argument is of type (Table T_1 ... T_k), then
+ * the returned type is (Table T_{n_1} ... T_{n_m}).
+ */
+struct TableProjectTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableProjectTypeRule */
+
+/**
+ * Table aggregate operator is indexed by a list of indices (n_1, ..., n_k).
+ * It ensures that it has 3 arguments:
+ * - A combining function of type (-> (Tuple T_1 ... T_j) T T)
+ * - Initial value of type T
+ * - A table of type (Table T_1 ... T_j) where 0 <= n_1, ..., n_k < j
+ * the returned type is (Bag T).
+ */
+struct TableAggregateTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableAggregateTypeRule */
+
+/**
+ * Table join operator is indexed by a list of indices (m_1, m_k, n_1, ...,
+ * n_k). It ensures that it has 2 arguments:
+ * - A table of type (Table X_1 ... X_i)
+ * - A table of type (Table Y_1 ... Y_j)
+ * such that indices has constraints 0 <= m_1, ..., mk, n_1, ..., n_k <=
+ * min(i,j) and types has constraints X_{m_1} = Y_{n_1}, ..., X_{m_k} = Y_{n_k}.
+ * The returned type is (Table X_1 ... X_i Y_1 ... Y_j)
+ */
+struct TableJoinTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableJoinTypeRule */
+
+/**
+ * Table group operator is indexed by a list of indices (n_1, ..., n_k). It
+ * ensures that the argument is a table whose arity is greater than each n_i for
+ * i = 1, ..., k. If the passed table is of type T, then the returned type is
+ * (Bag T), i.e., bag of tables.
+ */
+struct TableGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableGroupTypeRule */
 
 struct BagsProperties
 {
-  static Cardinality computeCardinality(TypeNode type)
-  {
-    return Cardinality::INTEGERS;
-  }
+  static Cardinality computeCardinality(TypeNode type);
 
-  static bool isWellFounded(TypeNode type) { return type[0].isWellFounded(); }
+  static bool isWellFounded(TypeNode type);
 
-  static Node mkGroundTerm(TypeNode type)
-  {
-    Assert(type.isBag());
-    return NodeManager::currentNM()->mkConst(EmptyBag(type));
-  }
+  static Node mkGroundTerm(TypeNode type);
 }; /* struct BagsProperties */
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H */
+#endif /* CVC5__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H */

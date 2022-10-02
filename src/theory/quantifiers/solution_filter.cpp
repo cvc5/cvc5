@@ -1,32 +1,41 @@
-/*********************                                                        */
-/*! \file solution_filter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Utilities for filtering solutions.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utilities for filtering solutions.
+ */
 
 #include "theory/quantifiers/solution_filter.h"
 
 #include <fstream>
+
+#include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/env.h"
+#include "smt/logic_exception.h"
+#include "smt/set_defaults.h"
 #include "util/random.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SolutionFilterStrength::SolutionFilterStrength() : d_isStrong(true) {}
+SolutionFilterStrength::SolutionFilterStrength(Env& env)
+    : ExprMiner(env), d_isStrong(true)
+{
+  d_subOptions.copyValues(options());
+  smt::SetDefaults::disableChecking(d_subOptions);
+}
 void SolutionFilterStrength::initialize(const std::vector<Node>& vars,
                                         SygusSampler* ss)
 {
@@ -43,7 +52,10 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   if (!n.getType().isBoolean())
   {
     // currently, should not register non-Boolean terms here
-    Assert(false);
+    std::stringstream ss;
+    ss << "SyGuS solution filtering requires the grammar to "
+          "generate Boolean terms only";
+    throw LogicException(ss.str());
     return true;
   }
   Node basen = d_isStrong ? n : n.negate();
@@ -61,9 +73,10 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
         << "  implies: check subsumed (strong=" << d_isStrong << ") " << imp
         << "..." << std::endl;
     // check the satisfiability query
-    Result r = doCheck(imp);
+    SubsolverSetupInfo ssi(d_env, d_subOptions);
+    Result r = doCheck(imp, ssi);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    if (r.getStatus() == Result::UNSAT)
     {
       // it is subsumed by the current, discard this
       return false;
@@ -71,7 +84,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   }
   // check which solutions would have been filtered if the current had come
   // first
-  if (options::sygusFilterSolRevSubsume())
+  if (options().quantifiers.sygusFilterSolRevSubsume)
   {
     std::vector<Node> nsubsume;
     for (const Node& s : d_curr_sols)
@@ -80,16 +93,17 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       Trace("sygus-sol-implied")
           << "  implies: check subsuming " << imp << "..." << std::endl;
       // check the satisfiability query
-      Result r = doCheck(imp);
+      SubsolverSetupInfo ssi(d_env, d_subOptions);
+      Result r = doCheck(imp, ssi);
       Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         nsubsume.push_back(s);
       }
       else
       {
-        Options& opts = smt::currentSmtEngine()->getOptions();
-        std::ostream* smtOut = opts.getOut();
+        const Options& opts = d_env.getOptions();
+        std::ostream* smtOut = opts.base.out;
         (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
                   << std::endl;
       }
@@ -103,4 +117,4 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

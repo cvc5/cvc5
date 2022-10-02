@@ -1,36 +1,44 @@
-/*********************                                                        */
-/*! \file nl_model.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model object for the non-linear extension class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model object for the non-linear extension class.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#ifndef CVC5__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC5__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>
 #include <vector>
 
-#include "context/cdo.h"
-#include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/theory_model.h"
+#include "smt/env_obj.h"
+#include "theory/arith/arith_subs.h"
 
-namespace CVC4 {
+namespace cvc5::context {
+class Context;
+}
+
+namespace cvc5::internal {
+
 namespace theory {
+
+class TheoryModel;
+
 namespace arith {
 namespace nl {
 
+class NlLemma;
 class NonlinearExtension;
 
 /** Non-linear model finder
@@ -41,19 +49,19 @@ class NonlinearExtension;
  * model in the case it can determine that a model exists. These include
  * techniques based on solving (quadratic) equations and bound analysis.
  */
-class NlModel
+class NlModel : protected EnvObj
 {
   friend class NonlinearExtension;
 
  public:
-  NlModel(context::Context* c);
+  NlModel(Env& env);
   ~NlModel();
   /**
    * This method is called once at the beginning of a last call effort check,
    * where m is the model of the theory of arithmetic. This method resets the
    * cache of computed model values.
    */
-  void reset(TheoryModel* m, std::map<Node, Node>& arithModel);
+  void reset(TheoryModel* m, const std::map<Node, Node>& arithModel);
   /**
    * This method is called when the non-linear arithmetic solver restarts
    * its computation of lemmas and models during a last call effort check.
@@ -81,9 +89,9 @@ class NlModel
    * whereas:
    *   computeModelValue( a*b, false ) = 5
    */
-  Node computeConcreteModelValue(Node n);
-  Node computeAbstractModelValue(Node n);
-  Node computeModelValue(Node n, bool isConcrete);
+  Node computeConcreteModelValue(TNode n);
+  Node computeAbstractModelValue(TNode n);
+  Node computeModelValue(TNode n, bool isConcrete);
 
   /**
    * Compare arithmetic terms i and j based an ordering.
@@ -95,10 +103,10 @@ class NlModel
    * otherwise, we consider their abstract model values. For definitions of
    * concrete vs abstract model values, see NlModel::computeModelValue.
    *
-   * If isAbsolute is true, we compare the absolute value of thee above
+   * If isAbsolute is true, we compare the absolute value of the above
    * values.
    */
-  int compare(Node i, Node j, bool isConcrete, bool isAbsolute);
+  int compare(TNode i, TNode j, bool isConcrete, bool isAbsolute);
   /**
    * Compare arithmetic terms i and j based an ordering.
    *
@@ -107,38 +115,24 @@ class NlModel
    *
    * If isAbsolute is true, we compare the absolute value of i and j
    */
-  int compareValue(Node i, Node j, bool isAbsolute) const;
+  int compareValue(TNode i, TNode j, bool isAbsolute) const;
 
   //------------------------------ recording model substitutions and bounds
   /**
    * Adds the model substitution v -> s. This applies the substitution
-   * { v -> s } to each term in d_check_model_subs and adds v,s to
-   * d_check_model_vars and d_check_model_subs respectively.
+   * { v -> s } to each term in d_substitutions and then adds v,s to
+   * d_substitutions.
    * If this method returns false, then the substitution v -> s is inconsistent
    * with the current substitution and bounds.
    */
-  bool addCheckModelSubstitution(TNode v, TNode s);
+  bool addSubstitution(TNode v, TNode s);
   /**
    * Adds the bound x -> < l, u > to the map above, and records the
    * approximation ( x, l <= x <= u ) in the model. This method returns false
    * if the bound is inconsistent with the current model substitution or
    * bounds.
    */
-  bool addCheckModelBound(TNode v, TNode l, TNode u);
-  /**
-   * Adds a model witness v -> w to the underlying theory model.
-   * The witness should only contain a single variable v and evaluate to true
-   * for exactly one value of v. The variable v is then (implicitly,
-   * declaratively) assigned to this single value that satisfies the witness w.
-   */
-  bool addCheckModelWitness(TNode v, TNode w);
-  /**
-   * Have we assigned v in the current checkModel(...) call?
-   *
-   * This method returns true if variable v is in the domain of
-   * d_check_model_bounds or if it occurs in d_check_model_vars.
-   */
-  bool hasCheckModelAssignment(Node v) const;
+  bool addBound(TNode v, TNode l, TNode u);
   /**
    * Checks the current model based on solving for equalities, and using error
    * bounds on the Taylor approximation.
@@ -178,34 +172,61 @@ class NlModel
    * call to checkModel above.
    *
    * The mapping arithModel is updated by this method to map arithmetic terms v
-   * to their (exact) value that was computed during checkModel; the mapping
-   * approximations is updated to store approximate values in the form of a
-   * pair (P, w), where P is a predicate that describes the possible values of
-   * v and w is a witness point that satisfies this predicate; the mapping
-   * witnesses is filled with witness terms that are satisfied by a single
-   * value.
+   * to their (exact) value that was computed during checkModel.
    */
-  void getModelValueRepair(
-      std::map<Node, Node>& arithModel,
-      std::map<Node, std::pair<Node, Node>>& approximations,
-      std::map<Node, Node>& witnesses);
+  void getModelValueRepair(std::map<Node, Node>& arithModel);
+
+  /** Return the substituted form of s */
+  Node getSubstitutedForm(TNode s) const;
 
  private:
+  /** Cache for concrete model values */
+  std::map<Node, Node> d_concreteModelCache;
+  /** Cache for abstract model values */
+  std::map<Node, Node> d_abstractModelCache;
+
   /** The current model */
   TheoryModel* d_model;
+
+  /**
+   * The values that the arithmetic theory solver assigned in the model. This
+   * corresponds to the set of equalities that linear solver (via TheoryArith)
+   * is currently sending to TheoryModel during collectModelValues, plus
+   * additional entries x -> 0 for variables that were unassigned by the linear
+   * solver.
+   */
+  std::map<Node, Node> d_arithVal;
+
+  /**
+   * A substitution from variables that appear in assertions to a solved form
+   * term.
+   */
+  ArithSubs d_substitutions;
+
   /** Get the model value of n from the model object above */
-  Node getValueInternal(Node n);
-  /** Does the equality engine of the model have term n? */
-  bool hasTerm(Node n) const;
-  /** Get the representative of n in the model */
-  Node getRepresentative(Node n) const;
+  Node getValueInternal(TNode n);
+
+  /**
+   * Have we assigned v in the current checkModel(...) call?
+   *
+   * This method returns true if variable v is in the domain of
+   * d_check_model_bounds or if it occurs in d_substitutions.
+   */
+  bool hasAssignment(Node v) const;
+
+  /**
+   * Checks whether we have a linear model value for v, i.e. whether v is
+   * contained in d_arithVal. If so, we also store the value that v is mapped
+   * to in val.
+   */
+  bool hasLinearModelValue(TNode v, Node& val) const;
 
   //---------------------------check model
   /**
    * This method is used during checkModel(...). It takes as input an
    * equality eq. If it returns true, then eq is correct-by-construction based
    * on the information stored in our model representation (see
-   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
+   * d_substitutions, d_check_model_bounds), and eq
    * is added to d_check_model_solved. The equality eq may involve any
    * number of variables, and monomials of arbitrary degree. If this method
    * returns false, then we did not show that the equality was true in the
@@ -242,16 +263,6 @@ class NlModel
   bool simpleCheckModelLit(Node lit);
   bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
   //---------------------------end check model
-  /**
-   * This approximates the square root of positive constant c. If this method
-   * returns true, then l and u are updated to constants such that
-   *   l <= sqrt( c ) <= u
-   * The argument iter is the number of iterations in the binary search to
-   * perform. By default, this is set to 15, which is usually enough to be
-   * precise in the majority of simple cases, whereas not prohibitively
-   * expensive to compute.
-   */
-  bool getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter = 15) const;
 
   /** commonly used terms */
   Node d_zero;
@@ -260,29 +271,6 @@ class NlModel
   Node d_true;
   Node d_false;
   Node d_null;
-  /**
-   * The values that the arithmetic theory solver assigned in the model. This
-   * corresponds to the set of equalities that linear solver (via TheoryArith)
-   * is currently sending to TheoryModel during collectModelValues, plus
-   * additional entries x -> 0 for variables that were unassigned by the linear
-   * solver.
-   */
-  std::map<Node, Node> d_arithVal;
-  /**
-   * cache of model values
-   *
-   * Stores the the concrete/abstract model values. This is a cache of the
-   * computeModelValue method.
-   */
-  std::map<Node, Node> d_mv[2];
-  /**
-   * A substitution from variables that appear in assertions to a solved form
-   * term. These vectors are ordered in the form:
-   *   x_1 -> t_1 ... x_n -> t_n
-   * where x_i is not in the free variables of t_j for j>=i.
-   */
-  std::vector<Node> d_check_model_vars;
-  std::vector<Node> d_check_model_subs;
   /**
    * lower and upper bounds for check model
    *
@@ -298,14 +286,6 @@ class NlModel
    */
   std::map<Node, std::pair<Node, Node>> d_check_model_bounds;
   /**
-   * witnesses for check model
-   *
-   * Stores witnesses for vatiables that define implicit variable assignments.
-   * For some variable v, we map to a formulas that is true for exactly one
-   * value of v.
-   */
-  std::map<Node, Node> d_check_model_witnesses;
-  /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:
    * (1) Equalities x = t, which we turned into a model substitution x -> t,
@@ -316,7 +296,7 @@ class NlModel
    * These literals are exempt from check-model, since they are satisfied by
    * definition of our model construction.
    */
-  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
+  std::unordered_map<Node, Node> d_check_model_solved;
   /** did we use an approximation on this call to last-call effort? */
   bool d_used_approx;
 }; /* class NlModel */
@@ -324,6 +304,6 @@ class NlModel
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

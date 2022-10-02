@@ -1,27 +1,29 @@
-/*********************                                                        */
-/*! \file sygus_invariance.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of techniques for sygus invariance tests.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of techniques for sygus invariance tests.
+ */
 
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -47,19 +49,14 @@ void EvalSygusInvarianceTest::init(Node conj, Node var, Node res)
   d_result = res;
 }
 
-Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n)
-{
-  return tds->evaluateWithUnfolding(n, d_visited);
-}
-
 bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TNode tnvn = nvn;
-  std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+  std::unordered_map<TNode, TNode> cache;
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
-    Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs);
+    Node conj_subs_unfold = tds->rewriteNode(conj_subs);
     Trace("sygus-cref-eval2-debug")
         << "  ...check unfolding : " << conj_subs_unfold << std::endl;
     Trace("sygus-cref-eval2-debug")
@@ -109,7 +106,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TypeNode tn = nvn.getType();
   Node nbv = tds->sygusToBuiltin(nvn, tn);
-  Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+  Node nbvr = d_rewriter->extendedRewrite(nbv);
   Trace("sygus-sb-mexp-debug") << "  min-exp check : " << nbv << " -> " << nbvr
                                << std::endl;
   bool exc_arg = false;
@@ -179,7 +176,7 @@ bool DivByZeroSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 {
   TypeNode tn = nvn.getType();
   Node nbv = tds->sygusToBuiltin(nvn, tn);
-  Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+  Node nbvr = d_rewriter->extendedRewrite(nbv);
   if (tds->involvesDivByZero(nbvr))
   {
     Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
@@ -210,7 +207,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
   {
     TypeNode tn = nvn.getType();
     Node nbv = tds->sygusToBuiltin(nvn, tn);
-    Node nbvr = tds->getExtRewriter()->extendedRewrite(nbv);
+    Node nbvr = d_rewriter->extendedRewrite(nbv);
     // if for any of the examples, it is not contained, then we can exclude
     for (unsigned i = 0; i < d_neg_con_indices.size(); i++)
     {
@@ -219,9 +216,9 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =
-          NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, out, nbvre);
+          NodeManager::currentNM()->mkNode(kind::STRING_CONTAINS, out, nbvre);
       Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
-      Node contr = Rewriter::rewrite(cont);
+      Node contr = d_rewriter->extendedRewrite(cont);
       if (!contr.isConst())
       {
         if (d_isUniversal)
@@ -231,7 +228,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
       }
       else if (contr.getConst<bool>() == d_isUniversal)
       {
-        if (Trace.isOn("sygus-pbe-cterm"))
+        if (TraceIsOn("sygus-pbe-cterm"))
         {
           Trace("sygus-pbe-cterm")
               << "PBE-cterm : enumerator : do not consider ";
@@ -258,6 +255,6 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
   return d_isUniversal;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal

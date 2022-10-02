@@ -1,0 +1,210 @@
+#!/usr/bin/env python
+###############################################################################
+# Top contributors (to current version):
+#   Mudathir Mohamed, Andres Noetzli, Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+##
+"""
+This script reads cvc5/src/api/cpp/cvc5_kind.h and generates
+cvc5/Kind.java file which declares all cvc5 kinds.
+"""
+
+import argparse
+import os
+import sys
+import re
+import textwrap
+
+# get access to cvc5/src/api/parseenums.py
+SOURCE_DIR = '${CMAKE_SOURCE_DIR}/src'
+sys.path.insert(0, os.path.abspath(f'{SOURCE_DIR}/api'))
+
+from parseenums import *
+
+#################### Default Filenames ################
+DEFAULT_PREFIX = 'Kind'
+
+# Code Blocks
+
+ENUM_JAVA_TOP = \
+    r"""package io.github.{namespace};
+
+import io.github.cvc5.CVC5ApiException;
+import java.util.HashMap;
+import java.util.Map;
+
+public enum {name}
+{{
+"""
+
+ENUM_JAVA_BOTTOM = \
+    r""";
+
+  /* the int value of the {name} */
+  private int value;
+  private static int minValue = 0;
+  private static int maxValue = 0;
+  private static Map<Integer, {name}> enumMap = new HashMap<>();
+
+  private {name}(int value)
+  {{
+    this.value = value;
+  }}
+
+  static
+  {{
+    boolean firstValue = true;
+    for ({name} enumerator : {name}.values())
+    {{
+      int value = enumerator.getValue();
+      if (firstValue)
+      {{
+        minValue = value;
+        maxValue = value;
+        firstValue = false;
+      }}
+      minValue = Math.min(minValue, value);
+      maxValue = Math.max(maxValue, value);
+      enumMap.put(value, enumerator);
+    }}
+  }}
+
+  public static {name} fromInt(int value) throws CVC5ApiException
+  {{
+    if (value < minValue || value > maxValue)
+    {{
+      throw new CVC5ApiException("{name} value " + value + " is outside the valid range ["
+          + minValue + "," + maxValue + "]");
+    }}
+    return enumMap.get(value);
+  }}
+
+  public int getValue()
+  {{
+    return value;
+  }}
+}}
+"""
+
+# mapping from c++ patterns to java
+CPP_JAVA_MAPPING = \
+    {
+        r"\bbool\b": "boolean",
+        r"\bconst\b ?": "",
+        r"\bint32_t\b": "int",
+        r"\bint64_t\b": "long",
+        r"\buint32_t\b": "int",
+        r"\buint64_t\b": "long",
+        r"\bunsigned char\b": "byte",
+        r"cvc5::": "cvc5.",
+        r"Term::Term\(\)": "{@link Solver#getNullTerm()}",
+        r"([a-zA-Z]*)::(.*?\))": r"{@link \1#\2}",
+        r"std::vector<int>": "int[]",
+        r"std::vector<Term>": "Term[]",
+        r"std::string": "String",
+        r".. note::": "@api.note",
+        r".. warning::": "@api.note",
+        r"&": "",
+        r"::": ".",
+        r">": "&gt;",
+        r"<": "&lt;",
+        r"@note": "@api.note",
+        r"\\rst": "",
+        r"\\endrst": "",
+        r"``(.*?)``": r"{@code \1}",
+        r":cpp:[a-z]*:`(.*?)`": r"\1",
+        r":math:`(.*?)`": r"{@code \1}",
+        r"({@code.*)&gt;": r"\1>",
+    }
+
+def format_list(comment):
+    lines = []
+    ul_open = 0
+    for line in comment.split('\n'):
+        l = line[4:]
+        if l.strip().startswith('- Arity') or l.strip().startswith('- Create'):
+            if ul_open > 0:
+                if ul_open == 2:
+                    lines.append('   * </ul></li>')
+                    ul_open -= 1
+                lines.append('   * </ul>')
+                ul_open -= 1
+            ul_open += 2
+            lines.append('   * <ul>')
+            lines.append('   * <li>{}'.format(l.strip()[2:]))
+            lines.append('   * <ul>')
+        elif l.strip().startswith('- '):
+            if not ul_open:
+                lines.append('   * <ul>')
+                ul_open += 1
+            lines.append('   * <li>{}</li>'.format(l.strip()[2:]))
+        elif ul_open > 0 and l.strip() and not l.strip().startswith('- '):
+            if ul_open == 2:
+                lines.append('   * </ul></li>')
+                ul_open -= 1
+            lines.append('   * </ul>')
+            lines.append(line)
+            ul_open -= 1
+        else:
+            lines.append(line)
+    return '\n'.join(lines)
+
+# convert from c++ doc to java doc
+def format_comment(comment):
+    for pattern, replacement in CPP_JAVA_MAPPING.items():
+        comment = re.sub(pattern, replacement, comment)
+    comment = """  /**\n{}\n   */""".format(
+            textwrap.indent(comment, '   * ', lambda line: True))
+    comment = comment.replace("- {@link Solver#mkString(std.wstring)}", "")
+    comment = format_list(comment)
+    return comment
+
+
+# Files generation
+def gen_java(parser: EnumParser, path):
+    for namespace in parser.namespaces:
+        for enum in namespace.enums:
+            subnamespace = namespace.name.replace('::', '.')
+            filedir = os.path.join(path, subnamespace.replace('.', '/'))
+            if not os.path.exists(filedir):
+                os.mkdir(filedir)
+            filename = os.path.join(filedir, enum.name + ".java")
+            with open(filename, "w") as f:
+                code = ENUM_JAVA_TOP.format(name=enum.name,
+                                            namespace=subnamespace)
+                for name, value in enum.enumerators.items():
+                    comment = enum.enumerators_doc.get(name, '')
+                    comment = format_comment(comment)
+                    code += "{comment}\n  {name}({enum_value}),\n".format(
+                        comment=comment, name=name, enum_value=value)
+                code += ENUM_JAVA_BOTTOM.format(name=enum.name)
+                f.write(code)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        'Read an enums header file and generate a '
+        'corresponding java file')
+    parser.add_argument('--enums-header',
+                        metavar='<ENUMS_HEADER>',
+                        help='The header file to read enums from')
+    parser.add_argument('--java-api-path',
+                        metavar='<ENUMS_FILE_PREFIX>',
+                        help='The prefix for the generated .java file',
+                        default=DEFAULT_PREFIX)
+
+    args = parser.parse_args()
+    enums_header = args.enums_header
+    java_api_path = args.java_api_path
+
+    ep = EnumParser()
+    ep.parse(enums_header)
+
+    gen_java(ep, java_api_path)

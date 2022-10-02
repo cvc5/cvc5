@@ -1,27 +1,33 @@
-/*********************                                                        */
-/*! \file monomial_bounds_check.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check for monomial bound inference lemmas
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check for monomial bound inference lemmas.
+ */
 
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 
 #include "expr/node.h"
 #include "options/arith_options.h"
+#include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/rewriter.h"
 
-namespace CVC4 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -64,8 +70,8 @@ bool hasNewMonomials(Node n, const std::vector<Node>& existing)
 }
 }  // namespace
 
-MonomialBoundsCheck::MonomialBoundsCheck(ExtState* data)
-    : d_data(data), d_cdb(d_data->d_mdb)
+MonomialBoundsCheck::MonomialBoundsCheck(Env& env, ExtState* data)
+    : EnvObj(env), d_data(data), d_cdb(d_data->d_mdb)
 {
 }
 
@@ -146,7 +152,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
       }
       // add to status if maximal degree
       d_ci_max[x][coeff][rhs] = d_cdb.isMaximal(atom, x);
-      if (Trace.isOn("nl-ext-bound-debug2"))
+      if (TraceIsOn("nl-ext-bound-debug2"))
       {
         Node t = ArithMSum::mkCoeffTerm(coeff, x);
         Trace("nl-ext-bound-debug2") << "Add Bound: " << t << " " << type << " "
@@ -187,7 +193,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           updated = false;
         }
       }
-      if (Trace.isOn("nl-ext-bound"))
+      if (TraceIsOn("nl-ext-bound"))
       {
         if (updated)
         {
@@ -203,7 +209,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
       }
       // compute if bound is not satisfied, and store what is required
       // for a possible refinement
-      if (options::nlExtTangentPlanes())
+      if (options().arith.nlExtTangentPlanes)
       {
         if (is_false_lit)
         {
@@ -288,22 +294,28 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 << "     ...coefficient " << mult << " is zero." << std::endl;
             continue;
           }
+          Node lhsTgt = t;
+          Node rhsTgt = rhs;
+          // if we are making an equality below, we require making it
+          // well-typed so that lhs/rhs have the same type. We use the
+          // mkSameType utility to do this
+          if (type == kind::EQUAL)
+          {
+            std::tie(lhsTgt, rhsTgt) = mkSameType(lhsTgt, rhsTgt);
+          }
           Trace("nl-ext-bound-debug")
               << "  from " << x << " * " << mult << " = " << y << " and " << t
               << " " << type << " " << rhs << ", infer : " << std::endl;
           Kind infer_type = mmv_sign == -1 ? reverseRelationKind(type) : type;
-          Node infer_lhs = nm->mkNode(Kind::MULT, mult, t);
-          Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhs);
+          Node infer_lhs = nm->mkNode(Kind::MULT, mult, lhsTgt);
+          Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhsTgt);
           Node infer = nm->mkNode(infer_type, infer_lhs, infer_rhs);
           Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
-          infer = Rewriter::rewrite(infer);
-          Trace("nl-ext-bound-debug2")
-              << "     ...rewritten : " << infer << std::endl;
-          // check whether it is false in model for abstraction
-          Node infer_mv = d_data->d_model.computeAbstractModelValue(infer);
+          Node infer_mv =
+              d_data->d_model.computeAbstractModelValue(rewrite(infer));
           Trace("nl-ext-bound-debug")
               << "       ...infer model value is " << infer_mv << std::endl;
-          if (infer_mv == d_data->d_false)
+          if (infer_mv.isConst() && !infer_mv.getConst<bool>())
           {
             Node exp = nm->mkNode(
                 Kind::AND,
@@ -311,16 +323,93 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                     mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
-            Node pr_iblem = iblem;
-            iblem = Rewriter::rewrite(iblem);
-            bool introNewTerms = hasNewMonomials(iblem, d_data->d_ms);
+            Node iblem_rw = rewrite(iblem);
+            bool introNewTerms = hasNewMonomials(iblem_rw, d_data->d_ms);
             Trace("nl-ext-bound-lemma")
-                << "*** Bound inference lemma : " << iblem
-                << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
-            // Trace("nl-ext-bound-lemma") << "       intro new
-            // monomials = " << introNewTerms << std::endl;
-            d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
+                << "*** Bound inference lemma : " << iblem_rw
+                << " (pre-rewrite : " << iblem << ")" << std::endl;
+            CDProof* proof = nullptr;
+            Node orig = d_ci_exp[x][coeff][rhs];
+            if (d_data->isProofEnabled())
+            {
+              proof = d_data->getProof();
+              Node simpleeq = nm->mkNode(type, lhsTgt, rhsTgt);
+              // this is iblem, but uses (type t rhs) instead of the original
+              // variant (which is identical under rewriting)
+              // we first infer the "clean" version of the lemma and then
+              // use MACRO_SR_PRED_TRANSFORM to rewrite
+              Node tmplem = nm->mkNode(Kind::IMPLIES,
+                                       nm->mkNode(Kind::AND, exp[0], simpleeq),
+                                       infer);
+              proof->addStep(tmplem,
+                             mmv_sign == 1 ? PfRule::ARITH_MULT_POS
+                                           : PfRule::ARITH_MULT_NEG,
+                             {},
+                             {mult, simpleeq});
+              if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
+              {
+                // it is not identical under rewriting and we need to do some work here
+                // The proof looks like this:
+                // (SCOPE
+                //   (MODUS_PONENS
+                //     <tmplem>
+                //     (AND_INTRO
+                //       <first premise of iblem>
+                //       (ARITH_TRICHOTOMY ***
+                //         (AND_ELIM <second premise of iblem> 1)
+                //         (AND_ELIM <second premise of iblem> 2)
+                //       )
+                //     )
+                //   )
+                //   :args <the two premises of iblem>
+                // )
+                // ***: the result of the AND_ELIM are rewritten forms of what
+                // ARITH_TRICHOTOMY expects, and also their order is not clear.
+                // Hence, we apply MACRO_SR_PRED_TRANSFORM to them, and check
+                // which corresponds to which subterm of the premise.
+                proof->addStep(exp[1][0],
+                               PfRule::AND_ELIM,
+                               {exp[1]},
+                               {nm->mkConstInt(Rational(0))});
+                proof->addStep(exp[1][1],
+                               PfRule::AND_ELIM,
+                               {exp[1]},
+                               {nm->mkConstInt(Rational(1))});
+                Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
+                Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
+                if (rewrite(lb) == rewrite(exp[1][0]))
+                {
+                  proof->addStep(
+                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {lb});
+                  proof->addStep(
+                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {rb});
+                }
+                else
+                {
+                  proof->addStep(
+                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {lb});
+                  proof->addStep(
+                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {rb});
+                }
+                proof->addStep(
+                    simpleeq, PfRule::ARITH_TRICHOTOMY, {lb, rb}, {simpleeq});
+                proof->addStep(
+                    tmplem[0], PfRule::AND_INTRO, {exp[0], simpleeq}, {});
+                proof->addStep(
+                    tmplem[1], PfRule::MODUS_PONENS, {tmplem[0], tmplem}, {});
+                proof->addStep(
+                    iblem, PfRule::SCOPE, {tmplem[1]}, {exp[0], exp[1]});
+              }
+              else
+              {
+                proof->addStep(
+                    iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
+              }
+            }
+            d_data->d_im.addPendingLemma(iblem,
+                                         InferenceId::ARITH_NL_INFER_BOUNDS_NT,
+                                         proof,
+                                         introNewTerms);
           }
         }
       }
@@ -399,7 +488,7 @@ void MonomialBoundsCheck::checkResBounds()
         {
           Node rhs_a = itcar->first;
           Node rhs_a_res_base = nm->mkNode(Kind::MULT, itb->second, rhs_a);
-          rhs_a_res_base = Rewriter::rewrite(rhs_a_res_base);
+          rhs_a_res_base = rewrite(rhs_a_res_base);
           if (hasNewMonomials(rhs_a_res_base, d_data->d_ms))
           {
             continue;
@@ -422,14 +511,14 @@ void MonomialBoundsCheck::checkResBounds()
               Node rhs_b = itcbr->first;
               Node rhs_b_res = nm->mkNode(Kind::MULT, ita->second, rhs_b);
               rhs_b_res = ArithMSum::mkCoeffTerm(coeff_a, rhs_b_res);
-              rhs_b_res = Rewriter::rewrite(rhs_b_res);
+              rhs_b_res = rewrite(rhs_b_res);
               if (hasNewMonomials(rhs_b_res, d_data->d_ms))
               {
                 continue;
               }
               Kind type_b = itcbr->second;
               exp.push_back(d_ci_exp[b][coeff_b][rhs_b]);
-              if (Trace.isOn("nl-ext-rbound"))
+              if (TraceIsOn("nl-ext-rbound"))
               {
                 Trace("nl-ext-rbound") << "* try bounds : ";
                 debugPrintBound("nl-ext-rbound", coeff_a, a, type_a, rhs_a);
@@ -475,11 +564,11 @@ void MonomialBoundsCheck::checkResBounds()
                          "(pre-rewrite) "
                          ": "
                       << rblem << std::endl;
-                  rblem = Rewriter::rewrite(rblem);
+                  rblem = rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  d_data->d_im.addPendingArithLemma(
-                      rblem, InferenceId::NL_RES_INFER_BOUNDS);
+                  d_data->d_im.addPendingLemma(
+                      rblem, InferenceId::ARITH_NL_RES_INFER_BOUNDS);
                 }
               }
               exp.pop_back();
@@ -497,4 +586,4 @@ void MonomialBoundsCheck::checkResBounds()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

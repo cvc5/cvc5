@@ -1,24 +1,29 @@
-/*********************                                                        */
-/*! \file proof_circuit_propagator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Proofs for the non-clausal circuit propagator.
- **
- ** Proofs for the non-clausal circuit propagator.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Proofs for the non-clausal circuit propagator.
+ */
 
 #include "theory/booleans/proof_circuit_propagator.h"
 
-#include "expr/proof_node_manager.h"
+#include <sstream>
 
-namespace CVC4 {
+#include "proof/proof_node.h"
+#include "proof/proof_node_manager.h"
+#include "util/rational.h"
+
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -26,9 +31,9 @@ namespace {
 
 /** Shorthand to create a Node from a constant number */
 template <typename T>
-Node mkRat(T val)
+Node mkInt(T val)
 {
-  return NodeManager::currentNM()->mkConst<Rational>(val);
+  return NodeManager::currentNM()->mkConstInt(Rational(val));
 }
 
 /**
@@ -166,11 +171,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqXFromY(bool y,
   {
     return nullptr;
   }
-  return mkResolution(
+  return mkNot(mkResolution(
       mkProof(y ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
       parent[1],
-      !y);
+      !y));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
@@ -180,11 +185,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::neqYFromX(bool x,
   {
     return nullptr;
   }
-  return mkResolution(
+  return mkNot(mkResolution(
       mkProof(x ? PfRule::NOT_EQUIV_ELIM2 : PfRule::NOT_EQUIV_ELIM1,
               {assume(parent.notNode())}),
       parent[0],
-      !x);
+      !x));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,
@@ -203,11 +208,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorXFromY(bool negated,
         parent[1],
         false));
   }
-  return mkResolution(
-      mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
-              {assume(negated ? parent.notNode() : Node(parent))}),
-      parent[1],
-      true);
+  return mkNot(
+      mkResolution(mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM1,
+                           {assume(negated ? parent.notNode() : Node(parent))}),
+                   parent[1],
+                   true));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
@@ -220,11 +225,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::xorYFromX(bool negated,
   }
   if (x)
   {
-    return mkResolution(
+    return mkNot(mkResolution(
         mkProof(negated ? PfRule::NOT_XOR_ELIM2 : PfRule::XOR_ELIM2,
                 {assume(negated ? parent.notNode() : Node(parent))}),
         parent[0],
-        false);
+        false));
   }
   return mkNot(
       mkResolution(mkProof(negated ? PfRule::NOT_XOR_ELIM1 : PfRule::XOR_ELIM1,
@@ -238,7 +243,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagator::mkProof(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
-  if (Trace.isOn("circuit-prop"))
+  if (TraceIsOn("circuit-prop"))
   {
     std::stringstream ss;
     ss << "Constructing (" << rule;
@@ -351,7 +356,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
     return nullptr;
   }
   return mkProof(
-      PfRule::AND_ELIM, {assume(d_parent)}, {mkRat(i - d_parent.begin())});
+      PfRule::AND_ELIM, {assume(d_parent)}, {mkInt(i - d_parent.begin())});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
@@ -363,7 +368,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
   }
   return mkNot(mkProof(PfRule::NOT_OR_ELIM,
                        {assume(d_parent.notNode())},
-                       {mkRat(i - d_parent.begin())}));
+                       {mkInt(i - d_parent.begin())}));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
@@ -379,10 +384,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
         d_parent[0],
         !c);
   }
-  return mkResolution(mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
-                              {assume(d_parent.notNode())}),
-                      d_parent[0],
-                      !c);
+  return mkNot(
+      mkResolution(mkProof(c ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
+                           {assume(d_parent.notNode())}),
+                   d_parent[0],
+                   !c));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
@@ -393,11 +399,14 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteIsCase(unsigned c)
   }
   if (d_parentAssignment)
   {
-    return mkResolution(
-        mkProof(PfRule::ITE_ELIM2, {assume(d_parent)}), d_parent[c + 1], false);
+    return mkResolution(mkProof(c == 0 ? PfRule::ITE_ELIM1 : PfRule::ITE_ELIM2,
+                                {assume(d_parent)}),
+                        d_parent[c + 1],
+                        true);
   }
   return mkResolution(
-      mkProof(PfRule::NOT_ITE_ELIM2, {assume(d_parent.notNode())}),
+      mkProof(c == 0 ? PfRule::NOT_ITE_ELIM1 : PfRule::NOT_ITE_ELIM2,
+              {assume(d_parent.notNode())}),
       d_parent[c + 1],
       false);
 }
@@ -454,7 +463,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::andOneFalse()
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
   return mkResolution(
       mkProof(
-          PfRule::CNF_AND_POS, {}, {d_parent, mkRat(it - d_parent.begin())}),
+          PfRule::CNF_AND_POS, {}, {d_parent, mkInt(it - d_parent.begin())}),
       d_child,
       true);
 }
@@ -467,7 +476,7 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::orOneTrue()
   }
   auto it = std::find(d_parent.begin(), d_parent.end(), d_child);
   return mkNot(mkResolution(
-      mkProof(PfRule::CNF_OR_NEG, {}, {d_parent, mkRat(it - d_parent.begin())}),
+      mkProof(PfRule::CNF_OR_NEG, {}, {d_parent, mkInt(it - d_parent.begin())}),
       d_child,
       false));
 }
@@ -584,4 +593,4 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorForward::xorEval(bool x,
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

@@ -1,37 +1,32 @@
-/*********************                                                        */
-/*! \file strings_fmf.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of a finite model finding decision strategy for
- ** strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of a finite model finding decision strategy for strings.
+ */
 
 #include "theory/strings/strings_fmf.h"
 
-using namespace std;
-using namespace CVC4::context;
-using namespace CVC4::kind;
+#include "util/rational.h"
 
-namespace CVC4 {
+using namespace std;
+using namespace cvc5::context;
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsFmf::StringsFmf(context::Context* c,
-                       context::UserContext* u,
-                       Valuation valuation,
-                       TermRegistry& tr)
-    : d_sslds(nullptr),
-      d_satContext(c),
-      d_userContext(u),
-      d_valuation(valuation),
-      d_termReg(tr)
+StringsFmf::StringsFmf(Env& env, Valuation valuation, TermRegistry& tr)
+    : EnvObj(env), d_sslds(nullptr), d_valuation(valuation), d_termReg(tr)
 {
 }
 
@@ -39,8 +34,7 @@ StringsFmf::~StringsFmf() {}
 
 void StringsFmf::presolve()
 {
-  d_sslds.reset(new StringSumLengthDecisionStrategy(
-      d_satContext, d_userContext, d_valuation));
+  d_sslds.reset(new StringSumLengthDecisionStrategy(d_env, d_valuation));
   Trace("strings-dstrat-reg")
       << "presolve: register decision strategy." << std::endl;
   const NodeSet& ivars = d_termReg.getInputVars();
@@ -58,8 +52,8 @@ DecisionStrategy* StringsFmf::getDecisionStrategy() const
 }
 
 StringsFmf::StringSumLengthDecisionStrategy::StringSumLengthDecisionStrategy(
-    context::Context* c, context::UserContext* u, Valuation valuation)
-    : DecisionStrategyFmf(c, valuation), d_inputVarLsum(u)
+    Env& env, Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_inputVarLsum(userContext())
 {
 }
 
@@ -79,7 +73,7 @@ void StringsFmf::StringSumLengthDecisionStrategy::initialize(
     {
       sum.push_back(nm->mkNode(STRING_LENGTH, v));
     }
-    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
+    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(ADD, sum);
     d_inputVarLsum.set(sumn);
   }
 }
@@ -91,7 +85,7 @@ Node StringsFmf::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
     return Node::null();
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConst(Rational(i)));
+  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConstInt(Rational(i)));
   Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
   return lit;
 }
@@ -102,4 +96,4 @@ std::string StringsFmf::StringSumLengthDecisionStrategy::identify() const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

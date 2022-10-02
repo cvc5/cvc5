@@ -1,0 +1,41 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2
+(set-logic ALL)
+
+(declare-datatype Pair ((pair (pmin Int) (pmax Int))))
+
+(define-fun wf ((p Pair)) Bool
+  (<= (pmin p) (pmax p)))
+(define-fun a ((p Pair) (q Pair)) Bool
+  (< (pmax p) (pmin q)))
+(define-fun intMax ((x Int) (y Int)) Int
+  (ite (>= x y) x y))
+(define-fun intMin ((x Int) (y Int)) Int
+  (ite (>= x y) y x))
+(define-fun midpoint ((x Int) (y Int)) Int
+  (div (+ x y) 2))
+
+(synth-fun pW ((p Pair) (q Pair)) Pair
+  ((StartPair Pair) (StartInt Int)) (
+  (StartPair Pair ((pair StartInt StartInt)))
+  (StartInt Int ((pmin p) (pmax p) (pmin q) (pmax q) (intMax StartInt StartInt) (intMin StartInt StartInt) (midpoint StartInt StartInt)))
+))
+(synth-fun pL ((p Pair) (q Pair)) Pair
+  ((StartPair Pair) (StartInt Int)) (
+  (StartPair Pair ((pair StartInt StartInt)))
+  (StartInt Int ((+ StartInt StartInt) 0 1 (pmin p) (pmax p) (pmin q) (pmax q) (intMax StartInt StartInt) (intMin StartInt StartInt) (midpoint StartInt StartInt)))
+))
+
+(declare-var p Pair)
+(declare-var q Pair)
+(declare-var r Pair)
+
+(constraint (=> (and (wf p) (wf q)) (wf (pW p q))))
+(constraint (=> (and (wf p) (wf q)) (wf (pL p q))))
+
+(constraint (=> (and (wf p) (wf q) (wf r) (a p r)) (a (pW p q) r)))
+(constraint (=> (and (wf p) (wf q) (wf r) (a p r)) (a p (pL r q))))
+
+(constraint (=> (and (wf p) (wf q)) (not (a (pL q p) (pW p q)))))
+
+(check-synth)

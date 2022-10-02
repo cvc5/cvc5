@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file ceg_dt_instantiator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief ceg_dt_instantiator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * ceg_dt_instantiator
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
-#define CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
+#define CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -32,7 +33,7 @@ namespace quantifiers {
 class DtInstantiator : public Instantiator
 {
  public:
-  DtInstantiator(TypeNode tn) : Instantiator(tn) {}
+  DtInstantiator(Env& env, TypeNode tn) : Instantiator(env, tn) {}
   virtual ~DtInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,
@@ -91,6 +92,6 @@ class DtInstantiator : public Instantiator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */

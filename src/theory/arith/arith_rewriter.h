@@ -1,79 +1,105 @@
-/*********************                                                        */
-/*! \file arith_rewriter.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Rewriter for arithmetic.
- **
- ** Rewriter for the theory of arithmetic.  This rewrites to the normal form for
- ** arithmetic. See theory/arith/normal_form.h for more information.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Gereon Kremer, Andrew Reynolds, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewriter for the theory of arithmetic.
+ *
+ * This rewrites to the normal form for arithmetic.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_REWRITER_H
-#define CVC4__THEORY__ARITH__ARITH_REWRITER_H
+#ifndef CVC5__THEORY__ARITH__ARITH_REWRITER_H
+#define CVC5__THEORY__ARITH__ARITH_REWRITER_H
 
 #include "theory/arith/rewrites.h"
-#include "theory/theory.h"
 #include "theory/theory_rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
+
+class OperatorElim;
 
 class ArithRewriter : public TheoryRewriter
 {
  public:
+  ArithRewriter(OperatorElim& oe);
   RewriteResponse preRewrite(TNode n) override;
   RewriteResponse postRewrite(TNode n) override;
-
+  /**
+   * Expand definition, which eliminates extended operators like div/mod in
+   * the given node.
+   */
+  TrustNode expandDefinition(Node node) override;
  private:
-  static Node makeSubtractionNode(TNode l, TNode r);
-  static Node makeUnaryMinusNode(TNode n);
-
-  static RewriteResponse preRewriteTerm(TNode t);
-  static RewriteResponse postRewriteTerm(TNode t);
-
-  static RewriteResponse rewriteVariable(TNode t);
-  static RewriteResponse rewriteConstant(TNode t);
-  static RewriteResponse rewriteMinus(TNode t, bool pre);
-  static RewriteResponse rewriteUMinus(TNode t, bool pre);
-  static RewriteResponse rewriteDiv(TNode t, bool pre);
-  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
-  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
-
-  static RewriteResponse preRewritePlus(TNode t);
-  static RewriteResponse postRewritePlus(TNode t);
-
-  static RewriteResponse preRewriteMult(TNode t);
-  static RewriteResponse postRewriteMult(TNode t);
-
-  static RewriteResponse postRewriteIAnd(TNode t);
-
-  static RewriteResponse preRewriteTranscendental(TNode t);
-  static RewriteResponse postRewriteTranscendental(TNode t);
-
+  /** preRewrite for atoms */
   static RewriteResponse preRewriteAtom(TNode t);
+  /** postRewrite for atoms */
   static RewriteResponse postRewriteAtom(TNode t);
 
-  static bool isAtom(TNode n);
+  /** preRewrite for terms */
+  static RewriteResponse preRewriteTerm(TNode t);
+  /** postRewrite for terms */
+  static RewriteResponse postRewriteTerm(TNode t);
 
-  static inline bool isTerm(TNode n) {
-    return !isAtom(n);
-  }
+  /** rewrite real algebraic numbers */
+  static RewriteResponse rewriteRAN(TNode t);
+  /** rewrite variables */
+  static RewriteResponse rewriteVariable(TNode t);
+
+  /** rewrite unary minus */
+  static RewriteResponse rewriteNeg(TNode t, bool pre);
+  /** rewrite binary minus */
+  static RewriteResponse rewriteSub(TNode t);
+  /** preRewrite addition */
+  static RewriteResponse preRewritePlus(TNode t);
+  /** postRewrite addition */
+  static RewriteResponse postRewritePlus(TNode t);
+  /** preRewrite multiplication */
+  static RewriteResponse preRewriteMult(TNode t);
+  /** postRewrite multiplication */
+  static RewriteResponse postRewriteMult(TNode t);
+
+  /** rewrite division */
+  static RewriteResponse rewriteDiv(TNode t, bool pre);
+  /** rewrite to_real */
+  static RewriteResponse rewriteToReal(TNode t);
+  /** rewrite absolute */
+  static RewriteResponse rewriteAbs(TNode t);
+  /** rewrite integer division and modulus */
+  static RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
+  /** rewrite integer total division and total modulus */
+  static RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
+  /** rewrite to_int and is_int */
+  static RewriteResponse rewriteExtIntegerOp(TNode t);
+
+  /** postRewrite IAND */
+  static RewriteResponse postRewriteIAnd(TNode t);
+  /** postRewrite POW2 */
+  static RewriteResponse postRewritePow2(TNode t);
+
+  /** preRewrite transcendental functions */
+  static RewriteResponse preRewriteTranscendental(TNode t);
+  /** postRewrite transcendental functions */
+  static RewriteResponse postRewriteTranscendental(TNode t);
+
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+  /** The operator elimination utility */
+  OperatorElim& d_opElim;
 }; /* class ArithRewriter */
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__ARITH_REWRITER_H */
+#endif /* CVC5__THEORY__ARITH__ARITH_REWRITER_H */

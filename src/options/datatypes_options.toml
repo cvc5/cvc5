@@ -1,79 +1,60 @@
 id     = "DATATYPES"
-name   = "Datatypes theory"
-header = "options/datatypes_options.h"
+name   = "Datatypes Theory"
 
-# How to handle selectors applied to incorrect constructors.  If this option is set,
-# then we do not rewrite such a selector term to an arbitrary ground term.  
-# For example, by default cvc4 considers cdr( nil ) = nil.  If this option is set, then
-# cdr( nil ) has no set value.
 [[option]]
-  name       = "dtRewriteErrorSel"
+  name       = "dtPoliteOptimize"
   category   = "expert"
-  long       = "dt-rewrite-error-sel"
+  long       = "dt-polite-optimize"
   type       = "bool"
-  default    = "false"
-  help       = "rewrite incorrectly applied selectors to arbitrary ground term"
-
-[[option]]
-  name       = "dtForceAssignment"
-  category   = "regular"
-  long       = "dt-force-assignment"
-  type       = "bool"
-  default    = "false"
-  help       = "force the datatypes solver to give specific values to all datatypes terms before answering sat"
+  default    = "true"
+  help       = "turn on optimization for polite combination"
 
 [[option]]
   name       = "dtBinarySplit"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-binary-split"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "do binary splits for datatype constructor types"
 
 [[option]]
   name       = "cdtBisimilar"
-  category   = "regular"
+  category   = "expert"
   long       = "cdt-bisimilar"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do bisimilarity check for co-datatypes"
 
 [[option]]
   name       = "dtCyclic"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-cyclic"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "do cyclicity check for datatypes"
 
 [[option]]
   name       = "dtInferAsLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-infer-as-lemmas"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "always send lemmas out instead of making internal inferences"
 
 [[option]]
   name       = "dtBlastSplits"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-blast-splits"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "when applicable, blast splitting lemmas for all variables at once"
 
 [[option]]
   name       = "dtNestedRec"
-  category   = "regular"
+  category   = "expert"
   long       = "dt-nested-rec"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "allow nested recursion in datatype definitions"
 
 [[option]]
@@ -82,35 +63,43 @@ header = "options/datatypes_options.h"
   long       = "dt-share-sel"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "internally use shared selectors across multiple constructors"
 
 [[option]]
-  name       = "sygusSymBreak"
+  name       = "sygusSimpleSymBreak"
   category   = "regular"
-  long       = "sygus-sym-break"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "simple sygus symmetry breaking lemmas"
-
+  long       = "sygus-simple-sym-break=MODE"
+  type       = "SygusSimpleSymBreakMode"
+  default    = "AGG"
+  help       = "if and how to apply simple symmetry breaking based on the grammar for smart enumeration"
+  help_mode  = "Modes for applying simple symmetry breaking based on the grammar for smart enumeration."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not apply simple symmetry breaking."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Apply basic simple symmetry breaking."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Apply aggressive simple symmetry breaking."
+  
 [[option]]
-  name       = "sygusSymBreakAgg"
+  name       = "sygusRewriter"
   category   = "regular"
-  long       = "sygus-sym-break-agg"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use aggressive checks for simple sygus symmetry breaking lemmas"
-
-[[option]]
-  name       = "sygusSymBreakDynamic"
-  category   = "regular"
-  long       = "sygus-sym-break-dynamic"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "dynamic sygus symmetry breaking lemmas"
+  long       = "sygus-rewriter=MODE"
+  type       = "SygusRewriterMode"
+  default    = "EXTENDED"
+  help       = "if and how to apply rewriting for sygus symmetry breaking"
+  help_mode  = "Modes for applying rewriting for sygus symmetry breaking."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use the rewriter."
+[[option.mode.BASIC]]
+  name = "basic"
+  help = "Use the basic rewriter."
+[[option.mode.EXTENDED]]
+  name = "extended"
+  help = "Use the extended rewriter."
 
 [[option]]
   name       = "sygusSymBreakPbe"
@@ -122,20 +111,18 @@ header = "options/datatypes_options.h"
 
 [[option]]
   name       = "sygusSymBreakLazy"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-sym-break-lazy"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "lazily add symmetry breaking lemmas for terms"
 
 [[option]]
   name       = "sygusSymBreakRlv"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-sym-break-rlv"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "add relevancy conditions to symmetry breaking lemmas"
 
 [[option]]
@@ -144,7 +131,6 @@ header = "options/datatypes_options.h"
   long       = "sygus-fair=MODE"
   type       = "SygusFairMode"
   default    = "DT_SIZE"
-  read_only  = true
   help       = "if and how to apply fairness for sygus"
   help_mode  = "Modes for enforcing fairness for counterexample guided quantifier instantion."
 [[option.mode.DIRECT]]
@@ -165,18 +151,16 @@ header = "options/datatypes_options.h"
 
 [[option]]
   name       = "sygusFairMax"
-  category   = "regular"
+  category   = "expert"
   long       = "sygus-fair-max"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "use max instead of sum for multi-function sygus conjectures"
 
 [[option]]
   name       = "sygusAbortSize"
   category   = "regular"
   long       = "sygus-abort-size=N"
-  type       = "int"
+  type       = "int64_t"
   default    = "-1"
-  read_only  = true
   help       = "tells enumerative sygus to only consider solutions up to term size N (-1 == no limit, default)"

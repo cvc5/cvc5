@@ -1,0 +1,13 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-fun x1 () Int)
+(declare-fun x2 () Int)
+(declare-fun y1 () Int)
+(declare-fun y2 () Int)
+(declare-datatypes ((type 0)) ( (
+    (constructor1 (f1 Int))
+    (constructor2 (f2 Int))
+)))
+(define-fun mktest ((constructor Int) (p1 Int) (p2 Int)) type (ite (= constructor 1) (constructor1 p1) (constructor2 p2)))
+(assert (distinct (mktest x1 x2 x2) (mktest y1 y2 y2)))
+(check-sat)

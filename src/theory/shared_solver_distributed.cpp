@@ -1,27 +1,27 @@
-/*********************                                                        */
-/*! \file shared_solver_distributed.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Shared solver in the distributed architecture
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Shared solver in the distributed architecture.
+ */
 
 #include "theory/shared_solver_distributed.h"
 
 #include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
-SharedSolverDistributed::SharedSolverDistributed(TheoryEngine& te,
-                                                 ProofNodeManager* pnm)
-    : SharedSolver(te, pnm)
+SharedSolverDistributed::SharedSolverDistributed(Env& env, TheoryEngine& te)
+    : SharedSolver(env, te)
 {
 }
 
@@ -59,8 +59,10 @@ EqualityStatus SharedSolverDistributed::getEqualityStatus(TNode a, TNode b)
       return EQUALITY_FALSE_AND_PROPAGATED;
     }
   }
-  // otherwise, ask the theory
-  return d_te.theoryOf(Theory::theoryOf(a.getType()))->getEqualityStatus(a, b);
+  // otherwise, ask the theory, which may depend on the uninterpreted sort owner
+  TheoryId tid =
+      Theory::theoryOf(a.getType(), d_env.getUninterpretedSortOwner());
+  return d_te.theoryOf(tid)->getEqualityStatus(a, b);
 }
 
 TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
@@ -85,12 +87,10 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   return texp;
 }
 
-void SharedSolverDistributed::assertSharedEquality(TNode equality,
-                                                   bool polarity,
-                                                   TNode reason)
+void SharedSolverDistributed::assertShared(TNode n, bool polarity, TNode reason)
 {
-  d_sharedTerms.assertEquality(equality, polarity, reason);
+  d_sharedTerms.assertShared(n, polarity, reason);
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

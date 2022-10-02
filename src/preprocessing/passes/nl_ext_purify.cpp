@@ -1,27 +1,32 @@
-/*********************                                                        */
-/*! \file nl_ext_purify.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The NlExtPurify preprocessing pass
- **
- ** Purifies non-linear terms
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The NlExtPurify preprocessing pass.
+ *
+ * Purifies non-linear terms.
+ */
 
 #include "preprocessing/passes/nl_ext_purify.h"
 
+#include "expr/skolem_manager.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "theory/rewriter.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace std;
+using namespace cvc5::internal::theory;
 
 Node NlExtPurify::purifyNlTerms(TNode n,
                                 NodeMap& cache,
@@ -29,6 +34,8 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 std::vector<Node>& var_eq,
                                 bool beneathMult)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   if (beneathMult)
   {
     NodeMap::iterator find = bcache.find(n);
@@ -53,11 +60,10 @@ Node NlExtPurify::purifyNlTerms(TNode n,
   Node ret = n;
   if (n.getNumChildren() > 0)
   {
-    if (beneathMult
-        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
+    if (beneathMult && (n.getKind() == kind::ADD || n.getKind() == kind::SUB))
     {
       // don't do it if it rewrites to a constant
-      Node nr = Rewriter::rewrite(n);
+      Node nr = rewrite(n);
       if (nr.isConst())
       {
         // return the rewritten constant
@@ -66,10 +72,9 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       else
       {
         // new variable
-        ret = NodeManager::currentNM()->mkSkolem(
-            "__purifyNl_var",
-            n.getType(),
-            "Variable introduced in purifyNl pass");
+        ret = sm->mkDummySkolem("__purifyNl_var",
+                                n.getType(),
+                                "Variable introduced in purifyNl pass");
         Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
         var_eq.push_back(np.eqNode(ret));
         Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np
@@ -89,7 +94,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+        ret = nm->mkNode(n.getKind(), children);
       }
     }
   }
@@ -110,8 +115,8 @@ NlExtPurify::NlExtPurify(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NlExtPurify::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  unordered_map<Node, Node, NodeHashFunction> cache;
-  unordered_map<Node, Node, NodeHashFunction> bcache;
+  unordered_map<Node, Node> cache;
+  unordered_map<Node, Node> bcache;
   std::vector<Node> var_eq;
   unsigned size = assertionsToPreprocess->size();
   for (unsigned i = 0; i < size; ++i)
@@ -137,4 +142,4 @@ PreprocessingPassResult NlExtPurify::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

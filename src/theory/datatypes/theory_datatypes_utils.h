@@ -1,23 +1,22 @@
-/*********************                                                        */
-/*! \file theory_datatypes_utils.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Util functions for theory datatypes.
- **
- ** Util functions for theory datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Util functions for theory datatypes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
-#define CVC4__THEORY__STRINGS__THEORY_DATATYPES_UTILS_H
+#ifndef CVC5__THEORY__DATATYPES__THEORY_DATATYPES_UTILS_H
+#define CVC5__THEORY__DATATYPES__THEORY_DATATYPES_UTILS_H
 
 #include <vector>
 
@@ -25,24 +24,44 @@
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 namespace utils {
+
+/**
+ * Get the index^th selector of datatype constructor dc whose type is dtt. If
+ * shareSel is true, this returns the shared selector of dc.
+ */
+Node getSelector(TypeNode dtt,
+                 const DTypeConstructor& dc,
+                 size_t index,
+                 bool shareSel);
+/**
+ * Apply the indext^th selector of datatype constructor dc to term n. If
+ * shareSel is true, we use the shared selector of dc.
+ */
+Node applySelector(const DTypeConstructor& dc,
+                   size_t index,
+                   bool shareSel,
+                   const Node& n);
 
 /** get instantiate cons
  *
  * This returns the term C( sel^{C,1}( n ), ..., sel^{C,m}( n ) ),
  * where C is the index^{th} constructor of datatype dt.
  */
-Node getInstCons(Node n, const DType& dt, int index);
-/** is instantiation cons
+Node getInstCons(Node n, const DType& dt, size_t index, bool shareSel);
+/**
+ * Apply constructor, taking into account whether the datatype is parametric.
  *
- * If this method returns a value >=0, then that value, call it index,
- * is such that n = C( sel^{C,1}( t ), ..., sel^{C,m}( t ) ),
- * where C is the index^{th} constructor of dt.
+ * Return the index^th constructor of dt applied to children, where tn is the
+ * datatype type for dt, instantiated if dt is parametric.
  */
-int isInstCons(Node t, Node n, const DType& dt);
+Node mkApplyCons(TypeNode tn,
+                 const DType& dt,
+                 size_t index,
+                 const std::vector<Node>& children);
 /** is tester
  *
  * This method returns a value >=0 if n is a tester predicate. The return
@@ -55,12 +74,12 @@ int isTester(Node n, Node& a);
 int isTester(Node n);
 /**
  * Get the index of a constructor or tester in its datatype, or the
- * index of a selector in its constructor.  (Zero is always the
+ * index of a selector or updater in its constructor.  (Zero is always the
  * first index.)
  */
 size_t indexOf(Node n);
 /**
- * Get the index of constructor corresponding to selector.
+ * Get the index of constructor corresponding to selector or updater.
  * (Zero is always the first index.)
  */
 size_t cindexOf(Node n);
@@ -97,6 +116,6 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
 }  // namespace utils
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

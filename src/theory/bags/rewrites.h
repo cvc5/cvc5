@@ -1,25 +1,26 @@
-/*********************                                                        */
-/*! \file rewrites.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Type for rewrites for bags.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Type for rewrites for bags.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BAGS__REWRITES_H
-#define CVC4__THEORY__BAGS__REWRITES_H
+#ifndef CVC5__THEORY__BAGS__REWRITES_H
+#define CVC5__THEORY__BAGS__REWRITES_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
@@ -30,25 +31,38 @@ namespace bags {
 enum class Rewrite : uint32_t
 {
   NONE,  // no rewrite happened
+  AGGREGATE_CONST,
+  BAG_MAKE_COUNT_NEGATIVE,
   CARD_DISJOINT,
-  CARD_MK_BAG,
-  CHOOSE_MK_BAG,
+  CARD_BAG_MAKE,
+  CHOOSE_BAG_MAKE,
   CONSTANT_EVALUATION,
   COUNT_EMPTY,
-  COUNT_MK_BAG,
-  DUPLICATE_REMOVAL_MK_BAG,
+  COUNT_BAG_MAKE,
+  DUPLICATE_REMOVAL_BAG_MAKE,
   EQ_CONST_FALSE,
   EQ_REFL,
   EQ_SYM,
+  FILTER_CONST,
+  FILTER_BAG_MAKE,
+  FILTER_UNION_DISJOINT,
   FROM_SINGLETON,
+  FOLD_BAG,
+  FOLD_CONST,
+  FOLD_UNION_DISJOINT,
   IDENTICAL_NODES,
   INTERSECTION_EMPTY_LEFT,
   INTERSECTION_EMPTY_RIGHT,
   INTERSECTION_SAME,
   INTERSECTION_SHARED_LEFT,
   INTERSECTION_SHARED_RIGHT,
-  IS_SINGLETON_MK_BAG,
-  MK_BAG_COUNT_NEGATIVE,
+  IS_SINGLETON_BAG_MAKE,
+  MAP_CONST,
+  MAP_BAG_MAKE,
+  MAP_UNION_DISJOINT,
+  MEMBER,
+  PARTITION_CONST,
+  PRODUCT_EMPTY,
   REMOVE_FROM_UNION,
   REMOVE_MIN,
   REMOVE_RETURN_LEFT,
@@ -92,6 +106,6 @@ std::ostream& operator<<(std::ostream& out, Rewrite r);
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__BAGS__REWRITES_H */
+#endif /* CVC5__THEORY__BAGS__REWRITES_H */

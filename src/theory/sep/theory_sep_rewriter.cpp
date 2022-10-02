@@ -1,26 +1,26 @@
-/*********************                                                        */
-/*! \file theory_sep_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Theory of separation logic rewriter.
+ */
+
+#include "theory/sep/theory_sep_rewriter.h"
 
 #include "expr/attribute.h"
-#include "theory/sep/theory_sep_rewriter.h"
-#include "theory/quantifiers/quant_util.h"
+#include "expr/emptyset.h"
 #include "options/sep_options.h"
+#include "theory/quantifiers/quant_util.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
@@ -100,26 +100,6 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   Trace("sep-postrewrite") << "Sep::postRewrite start " << node << std::endl;
   Node retNode = node;
   switch (node.getKind()) {
-    case kind::SEP_LABEL: {
-      if( node[0].getKind()==kind::SEP_PTO ){
-        // TODO(project##230): Find a safe type for the singleton operator
-        Node s = NodeManager::currentNM()->mkSingleton(node[0][0].getType(),
-                                                       node[0][0]);
-        if( node[1]!=s ){
-          Node c1 = node[1].eqNode( s );
-          Node c2 = NodeManager::currentNM()->mkNode( kind::SEP_LABEL, NodeManager::currentNM()->mkNode( kind::SEP_PTO, node[0][0], node[0][1] ), s );
-          retNode = NodeManager::currentNM()->mkNode( kind::AND, c1, c2 );
-        }
-      }
-      if( node[0].getKind()==kind::SEP_EMP ){
-        retNode = node[1].eqNode(
-            NodeManager::currentNM()->mkConst(EmptySet(node[1].getType())));
-      }
-      break;
-    }
-    case kind::SEP_PTO: {
-      break;
-    }
     case kind::SEP_STAR: {
       //flatten
       std::vector< Node > s_children;
@@ -164,6 +144,6 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
   return RewriteResponse(node==retNode ? REWRITE_DONE : REWRITE_AGAIN_FULL, retNode);
 }
 
-}/* CVC4::theory::sep namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sep
+}  // namespace theory
+}  // namespace cvc5::internal

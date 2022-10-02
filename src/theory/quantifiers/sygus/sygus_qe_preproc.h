@@ -1,30 +1,29 @@
-/*********************                                                        */
-/*! \file sygus_qe_preproc.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Sygus quantifier elimination preprocessor
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Sygus quantifier elimination preprocessor.
+ */
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
 
-#include <string>
-#include <vector>
 #include "expr/node.h"
-#include "expr/type_node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class Env;
+
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 /**
@@ -37,24 +36,20 @@ namespace quantifiers {
  *   exists f. forall x. Q[ f(x), x ]
  * For more details, see Example 6 of Reynolds et al. SYNT 2017.
  */
-class SygusQePreproc
+class SygusQePreproc : protected EnvObj
 {
  public:
-  SygusQePreproc(QuantifiersEngine* qe);
+  SygusQePreproc(Env& env);
   ~SygusQePreproc() {}
   /**
    * Preprocess. Returns a lemma of the form q = nq where nq is obtained
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
-
- private:
-  /** Pointer to quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H */

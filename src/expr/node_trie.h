@@ -1,27 +1,27 @@
-/*********************                                                        */
-/*! \file node_trie.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A trie class for Nodes and TNodes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A trie class for Nodes and TNodes.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NODE_TRIE_H
-#define CVC4__EXPR__NODE_TRIE_H
+#ifndef CVC5__EXPR__NODE_TRIE_H
+#define CVC5__EXPR__NODE_TRIE_H
 
 #include <map>
 #include "expr/node.h"
 
-namespace CVC4 {
-namespace theory {
+namespace cvc5::internal {
 
 /** NodeTemplate trie class
  *
@@ -49,8 +49,8 @@ namespace theory {
  *   t.d_data[b] :
  *     t.d_data[b].d_data[b] :
  *       t.d_data[b].d_data[b].d_data[f(b,b)] : (leaf)
- *     t.d_data[b].d_data[d] :
- *       t.d_data[b].d_data[d].d_data[f(b,d)] : (leaf)
+ *     t.d_data[b].d_data[a] :
+ *       t.d_data[b].d_data[a].d_data[f(b,d)] : (leaf)
  *
  * Leaf nodes store the terms that are indexed by the arguments, for example
  * term f(d,c) is indexed by the representative arguments (a,c), and is stored
@@ -92,6 +92,20 @@ class NodeTemplateTrie
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
   bool empty() const { return d_data.empty(); }
+  /**
+   * Get leaves at the given depth, where depth>0. This argument is necessary
+   * since we do not know apriori the depth of where data occurs.
+   *
+   * If this trie stores applications of a function f, then depth should be set
+   * to the arity of f.
+   *
+   * Notice this method will never throw an assertion error, even if the
+   * depth is not set to the proper value. In particular, it will return
+   * the empty vector if the provided depth is larger than the actual depth,
+   * and will return internal nodes if the provided depth is less than the
+   * actual depth of the trie.
+   */
+  std::vector<Node> getLeaves(size_t depth) const;
 }; /* class NodeTemplateTrie */
 
 template <bool ref_count>
@@ -106,7 +120,6 @@ typedef NodeTemplateTrie<true> NodeTrie;
 /** Non-reference-counted version of the above data structure */
 typedef NodeTemplateTrie<false> TNodeTrie;
 
-}  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__EXPR__NODE_TRIE_H */
+#endif /* CVC5__EXPR__NODE_TRIE_H */

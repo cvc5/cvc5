@@ -1,37 +1,54 @@
-/*********************                                                        */
-/*! \file metakind_template.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
-
-#include "expr/metakind.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andres Noetzli, Morgan Deters, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * [[ Add one-line brief description here ]]
+ *
+ * [[ Add lengthier description here ]]
+ * \todo document this file
+ */
 
 #include <iostream>
 
-namespace CVC4 {
+#include "expr/metakind.h"
+#include "expr/node_manager.h"
+#include "expr/node_value.h"
+
+// clang-format off
+${metakind_includes}
+// clang-format off
+
+namespace cvc5::internal {
+namespace expr {
+
+// clang-format off
+${metakind_constantMaps}
+// clang-format on
+
+}  // namespace expr
+
 namespace kind {
 
 /**
  * Get the metakind for a particular kind.
  */
-MetaKind metaKindOf(Kind k) {
+MetaKind metaKindOf(Kind k)
+{
   static const MetaKind metaKinds[] = {
-    metakind::INVALID, /* UNDEFINED_KIND */
-    metakind::INVALID, /* NULL_EXPR */
-${metakind_kinds}
-    metakind::INVALID /* LAST_KIND */
-  };/* metaKinds[] */
+      metakind::INVALID, /* UNDEFINED_KIND */
+      metakind::INVALID, /* NULL_EXPR */
+      // clang-format off
+${metakind_kinds}  // clang-format on
+      metakind::INVALID  /* LAST_KIND */
+  };                     /* metaKinds[] */
 
   Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
 
@@ -39,33 +56,70 @@ ${metakind_kinds}
   // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
   // emits warnings for non-assertion builds, since the check isn't done.
   return metaKinds[k + 1];
-}/* metaKindOf(k) */
+} /* metaKindOf(k) */
 
-}/* CVC4::kind namespace */
-
-namespace expr {
-
-${metakind_constantMaps}
-
-}/* CVC4::expr namespace */
-
-namespace kind {
 namespace metakind {
 
-size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv)
+/**
+ * Static, compile-time mapping from CONSTANT kinds to comparison
+ * functors on NodeValue*.  The single element of this structure is:
+ *
+ *   static bool NodeValueCompare<K, pool>::compare(NodeValue* x, NodeValue* y)
+ *
+ *     Compares x and y, given that they are both K-kinded (and the
+ *     meta-kind of K is CONSTANT).  If pool == true, one of x and y
+ *     (but not both) may be a "non-inlined" NodeValue.  If pool ==
+ *     false, neither x nor y may be a "non-inlined" NodeValue.
+ */
+template <Kind k, class T, bool pool>
+struct NodeValueConstCompare
+{
+  static bool compare(const cvc5::internal::expr::NodeValue* x,
+                      const cvc5::internal::expr::NodeValue* y)
+  {
+    if (pool)
+    {
+      if (x->d_nchildren == 1)
+      {
+        Assert(y->d_nchildren == 0);
+        return compare(y, x);
+      }
+      else if (y->d_nchildren == 1)
+      {
+        Assert(x->d_nchildren == 0);
+        return x->getConst<T>() == *reinterpret_cast<T*>(y->d_children[0]);
+      }
+    }
+
+    Assert(x->d_nchildren == 0);
+    Assert(y->d_nchildren == 0);
+    return x->getConst<T>() == y->getConst<T>();
+  }
+
+  static size_t constHash(const cvc5::internal::expr::NodeValue* nv)
+  {
+    return nv->getConst<T>().hash();
+  }
+};
+
+size_t NodeValueCompare::constHash(const cvc5::internal::expr::NodeValue* nv)
 {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch (nv->d_kind)
   {
-${metakind_constHashes}
-    default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
+// clang-format off
+    ${metakind_constHashes}
+// clang-format on
+    default:
+      Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
 template <bool pool>
-bool NodeValueCompare::compare(const ::CVC4::expr::NodeValue* nv1,
-                               const ::CVC4::expr::NodeValue* nv2) {
+bool NodeValueCompare::compare(const cvc5::internal::expr::NodeValue* nv1,
+                               const cvc5::internal::expr::NodeValue* nv2)
+{
   if(nv1->d_kind != nv2->d_kind) {
     return false;
   }
@@ -74,8 +128,11 @@ bool NodeValueCompare::compare(const ::CVC4::expr::NodeValue* nv1,
   {
     switch (nv1->d_kind)
     {
+// clang-format off
 ${metakind_compares}
-      default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind);
+// clang-format on
+default:
+  Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv1->d_kind);
     }
   }
 
@@ -83,9 +140,9 @@ ${metakind_compares}
     return false;
   }
 
-  ::CVC4::expr::NodeValue::const_nv_iterator i = nv1->nv_begin();
-  ::CVC4::expr::NodeValue::const_nv_iterator j = nv2->nv_begin();
-  ::CVC4::expr::NodeValue::const_nv_iterator i_end = nv1->nv_end();
+  cvc5::internal::expr::NodeValue::const_nv_iterator i = nv1->nv_begin();
+  cvc5::internal::expr::NodeValue::const_nv_iterator j = nv2->nv_begin();
+  cvc5::internal::expr::NodeValue::const_nv_iterator i_end = nv1->nv_end();
 
   while(i != i_end) {
     if((*i) != (*j)) {
@@ -98,25 +155,28 @@ ${metakind_compares}
   return true;
 }
 
-template bool NodeValueCompare::compare<true>(const ::CVC4::expr::NodeValue* nv1,
-                                              const ::CVC4::expr::NodeValue* nv2);
-template bool NodeValueCompare::compare<false>(const ::CVC4::expr::NodeValue* nv1,
-                                               const ::CVC4::expr::NodeValue* nv2);
+template bool NodeValueCompare::compare<true>(
+    const cvc5::internal::expr::NodeValue* nv1,
+    const cvc5::internal::expr::NodeValue* nv2);
+template bool NodeValueCompare::compare<false>(
+    const cvc5::internal::expr::NodeValue* nv1,
+    const cvc5::internal::expr::NodeValue* nv2);
 
-void NodeValueConstPrinter::toStream(std::ostream& out,
-                                            const ::CVC4::expr::NodeValue* nv) {
+void nodeValueConstantToStream(std::ostream& out,
+                               const cvc5::internal::expr::NodeValue* nv)
+{
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch (nv->d_kind)
   {
+// clang-format off
 ${metakind_constPrinters}
-    default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
+// clang-format on
+default:
+  Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
-void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
-  toStream(out, n.d_nv);
-}
 
 // The reinterpret_cast of d_children to various constant payload types
 // in deleteNodeValueConstant(), below, can flag a "strict aliasing"
@@ -134,23 +194,30 @@ void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
  * This doesn't support "non-inlined" NodeValues, which shouldn't need this
  * kind of cleanup.
  */
-void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
+void deleteNodeValueConstant(cvc5::internal::expr::NodeValue* nv)
+{
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch (nv->d_kind)
   {
+// clang-format off
 ${metakind_constDeleters}
-    default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
+// clang-format on
+default:
+  Unhandled() << cvc5::internal::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
 // re-enable the strict-aliasing warning
 # pragma GCC diagnostic warning "-Wstrict-aliasing"
 
-unsigned getLowerBoundForKind(::CVC4::Kind k) {
+uint32_t getMinArityForKind(cvc5::internal::Kind k)
+{
   static const unsigned lbs[] = {
     0, /* NULL_EXPR */
+// clang-format off
 ${metakind_lbchildren}
+// clang-format on
 
     0 /* LAST_KIND */
   };
@@ -158,10 +225,13 @@ ${metakind_lbchildren}
   return lbs[k];
 }
 
-unsigned getUpperBoundForKind(::CVC4::Kind k) {
+uint32_t getMaxArityForKind(cvc5::internal::Kind k)
+{
   static const unsigned ubs[] = {
     0, /* NULL_EXPR */
+// clang-format off
 ${metakind_ubchildren}
+// clang-format on
 
     0, /* LAST_KIND */
   };
@@ -169,27 +239,30 @@ ${metakind_ubchildren}
   return ubs[k];
 }
 
-}/* CVC4::metakind namespace */
+}  // namespace metakind
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.
  */
-Kind operatorToKind(::CVC4::expr::NodeValue* nv) {
+Kind operatorToKind(cvc5::internal::expr::NodeValue* nv)
+{
   if(nv->getKind() == kind::BUILTIN) {
     return nv->getConst<Kind>();
   } else if(nv->getKind() == kind::LAMBDA) {
     return kind::APPLY_UF;
   }
 
-  switch(Kind k CVC4_UNUSED = nv->getKind()) {
-${metakind_operatorKinds}
+  switch (Kind k CVC5_UNUSED = nv->getKind())
+  {
+// clang-format off
+    ${metakind_operatorKinds}
+// clang-format on
 
-  default:
-    return kind::UNDEFINED_KIND;  /* LAST_KIND */
+    default: return kind::UNDEFINED_KIND; /* LAST_KIND */
   };
 }
 
-}/* CVC4::kind namespace */
-}/* CVC4 namespace */
+}  // namespace kind
+}  // namespace cvc5::internal

@@ -1,31 +1,30 @@
-/*********************                                                        */
-/*! \file attribute_internals.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Node attributes' internals.
- **
- ** Node attributes' internals.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Tim King, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Node attributes' internals.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 #  error expr/attribute_internals.h should only be included by expr/attribute.h
-#endif /* CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
-#ifndef CVC4__EXPR__ATTRIBUTE_INTERNALS_H
-#define CVC4__EXPR__ATTRIBUTE_INTERNALS_H
+#ifndef CVC5__EXPR__ATTRIBUTE_INTERNALS_H
+#define CVC5__EXPR__ATTRIBUTE_INTERNALS_H
 
 #include <unordered_map>
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 
 // ATTRIBUTE HASH FUNCTIONS ====================================================
@@ -54,7 +53,7 @@ struct AttrBoolHashFunction {
   }
 };/* struct AttrBoolHashFunction */
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE TYPE MAPPINGS =====================================================
 
@@ -131,7 +130,7 @@ struct KindValueToTableValueMapping<
   static T convertBack(const uint64_t& t) { return static_cast<T>(t); }
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE HASH TABLES =======================================================
 
@@ -290,7 +289,7 @@ public:
       return BitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
@@ -314,7 +313,7 @@ public:
       return ConstBitIterator();
     }
     /*
-    Debug.printf("boolattr",
+    Trace.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
@@ -363,7 +362,7 @@ public:
   }
 };/* class AttrHash<bool> */
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE IDENTIFIER ASSIGNMENT TEMPLATE ====================================
 
@@ -373,8 +372,9 @@ namespace attr {
  * This is the last-attribute-assigner.  IDs are not globally
  * unique; rather, they are unique for each table_value_type.
  */
-template <class T, bool context_dep>
-struct LastAttributeId {
+template <class T>
+struct LastAttributeId
+{
  public:
   static uint64_t getNextId() {
     uint64_t* id = raw_id();
@@ -393,7 +393,7 @@ struct LastAttributeId {
   }
 };
 
-}/* CVC4::expr::attr namespace */
+}  // namespace attr
 
 // ATTRIBUTE DEFINITION ========================================================
 
@@ -403,11 +403,8 @@ struct LastAttributeId {
  * @param T the tag for the attribute kind.
  *
  * @param value_t the underlying value_type for the attribute kind
- *
- * @param context_dep whether this attribute kind is
- * context-dependent
  */
-template <class T, class value_t, bool context_dep = false>
+template <class T, class value_t>
 class Attribute
 {
   /**
@@ -433,11 +430,6 @@ public:
   static const bool has_default_value = false;
 
   /**
-   * Expose this setting to the users of this Attribute kind.
-   */
-  static const bool context_dependent = context_dep;
-
-  /**
    * Register this attribute kind and check that the ID is a valid ID
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
@@ -445,15 +437,15 @@ public:
   static inline uint64_t registerAttribute() {
     typedef typename attr::KindValueToTableValueMapping<value_t>::
                      table_value_type table_value_type;
-    return attr::LastAttributeId<table_value_type, context_dep>::getNextId();
+    return attr::LastAttributeId<table_value_type>::getNextId();
   }
 };/* class Attribute<> */
 
 /**
  * An "attribute type" structure for boolean flags (special).
  */
-template <class T, bool context_dep>
-class Attribute<T, bool, context_dep>
+template <class T>
+class Attribute<T, bool>
 {
   /** IDs for bool-valued attributes are actually bit assignments. */
   static const uint64_t s_id;
@@ -481,17 +473,12 @@ public:
   static const bool default_value = false;
 
   /**
-   * Expose this setting to the users of this Attribute kind.
-   */
-  static const bool context_dependent = context_dep;
-
-  /**
    * Register this attribute kind and check that the ID is a valid ID
    * for bool-valued attributes.  Fail an assert if not.  Otherwise
    * return the id.
    */
   static inline uint64_t registerAttribute() {
-    const uint64_t id = attr::LastAttributeId<bool, context_dep>::getNextId();
+    const uint64_t id = attr::LastAttributeId<bool>::getNextId();
     AlwaysAssert(id <= 63) << "Too many boolean node attributes registered "
                               "during initialization !";
     return id;
@@ -501,17 +488,16 @@ public:
 // ATTRIBUTE IDENTIFIER ASSIGNMENT =============================================
 
 /** Assign unique IDs to attributes at load time. */
-template <class T, class value_t, bool context_dep>
-const uint64_t Attribute<T, value_t, context_dep>::s_id =
-    Attribute<T, value_t,  context_dep>::registerAttribute();
-
+template <class T, class value_t>
+const uint64_t Attribute<T, value_t>::s_id =
+    Attribute<T, value_t>::registerAttribute();
 
 /** Assign unique IDs to attributes at load time. */
-template <class T, bool context_dep>
-const uint64_t Attribute<T, bool, context_dep>::s_id =
-    Attribute<T, bool, context_dep>::registerAttribute();
+template <class T>
+const uint64_t Attribute<T, bool>::s_id =
+    Attribute<T, bool>::registerAttribute();
 
-}/* CVC4::expr namespace */
-}/* CVC4 namespace */
+}  // namespace expr
+}  // namespace cvc5::internal
 
-#endif /* CVC4__EXPR__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC5__EXPR__ATTRIBUTE_INTERNALS_H */

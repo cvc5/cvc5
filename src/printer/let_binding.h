@@ -1,30 +1,30 @@
-/*********************                                                        */
-/*! \file let_binding.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A let binding
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A let binding.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__LET_BINDING_H
-#define CVC4__PRINTER__LET_BINDING_H
+#ifndef CVC5__PRINTER__LET_BINDING_H
+#define CVC5__PRINTER__LET_BINDING_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * A flexible let binding class. This class provides functionalities for
@@ -70,11 +70,24 @@ namespace CVC4 {
  * d_letList[i] does not contain subterm d_letList[j] for j>i.
  * It is intended that d_letList contains only unique nodes. Each node
  * in d_letList is mapped to a unique identifier in d_letMap.
+ *
+ * Notice that this class will *not* use introduced let symbols when converting
+ * the bodies of quantified formulas. Consider the formula:
+ * (let ((Q (forall ((x Int)) (= x (+ a a))))) (and (= (+ a a) (+ a a)) Q Q))
+ * where "let" above is from the user. When this is letified by this class,
+ * note that (+ a a) occurs as a subterm of Q, however it is not seen until
+ * after we have seen Q twice, since we traverse in reverse topological order.
+ * Since we do not traverse underneath quantified formulas, this means that Q
+ * may be marked as a term-to-letify before (+ a a), which leads to violation
+ * of the above invariant concerning containment. Thus, when converting, if
+ * a let symbol is introduced for (+ a a), we will not replace the occurence
+ * of (+ a a) within Q. Instead, the user of this class is responsible for
+ * letifying the bodies of quantified formulas independently.
  */
 class LetBinding
 {
   using NodeList = context::CDList<Node>;
-  using NodeIdMap = context::CDHashMap<Node, uint32_t, NodeHashFunction>;
+  using NodeIdMap = context::CDHashMap<Node, uint32_t>;
 
  public:
   LetBinding(uint32_t thresh = 2);
@@ -141,10 +154,12 @@ class LetBinding
   NodeIdMap d_count;
   /** The let list */
   NodeList d_letList;
+
+ protected:
   /** The let map */
   NodeIdMap d_letMap;
 };
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

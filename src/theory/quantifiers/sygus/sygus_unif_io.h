@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file sygus_unif_io.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_unif_io
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_unif_io
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -264,7 +265,7 @@ class SygusUnifIo : public SygusUnif
   friend class UnifContextIo;
 
  public:
-  SygusUnifIo(SynthConjecture* p);
+  SygusUnifIo(Env& env, SynthConjecture* p);
   ~SygusUnifIo();
 
   /** initialize
@@ -276,7 +277,7 @@ class SygusUnifIo : public SygusUnif
    * multiple functions can be separated.
    */
   void initializeCandidate(
-      QuantifiersEngine* qe,
+      TermDbSygus* tds,
       Node f,
       std::vector<Node>& enums,
       std::map<Node, std::vector<Node>>& strategy_lemmas) override;
@@ -310,9 +311,7 @@ class SygusUnifIo : public SygusUnif
    *   A -> ite( A, B, C ) | ...
    * where terms of type B and C can both act as solutions.
    */
-  std::map<size_t,
-           std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>>
-      d_psolutions;
+  std::map<size_t, std::map<TypeNode, std::unordered_set<Node>>> d_psolutions;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.
@@ -466,8 +465,8 @@ class SygusUnifIo : public SygusUnif
                                 const std::vector<Node>& conds) override;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */

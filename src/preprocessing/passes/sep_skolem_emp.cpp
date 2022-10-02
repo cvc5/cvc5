@@ -1,17 +1,17 @@
-/*********************                                                        */
-/*! \file sep_skolem_emp.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Yoni Zohar, Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The sep-pre-skolem-emp preprocessing pass
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Yoni Zohar, Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The sep-pre-skolem-emp preprocessing pass.
+ */
 
 #include "preprocessing/passes/sep_skolem_emp.h"
 
@@ -20,25 +20,34 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/skolem_manager.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_engine.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace CVC4::theory;
+using namespace std;
+using namespace cvc5::internal::theory;
 
 namespace {
 
-Node preSkolemEmp(Node n,
-                         bool pol,
-                         std::map<bool, std::map<Node, Node>>& visited)
+Node preSkolemEmp(TypeNode locType,
+                  TypeNode dataType,
+                  Node n,
+                  bool pol,
+                  std::map<bool, std::map<Node, Node>>& visited)
 {
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
                             << std::endl;
     Node ret = n;
@@ -46,16 +55,14 @@ Node preSkolemEmp(Node n,
     {
       if (!pol)
       {
-        TypeNode tnx = n[0].getType();
-        TypeNode tny = n[1].getType();
-        Node x = NodeManager::currentNM()->mkSkolem(
-            "ex", tnx, "skolem location for negated emp");
-        Node y = NodeManager::currentNM()->mkSkolem(
-            "ey", tny, "skolem data for negated emp");
-        return NodeManager::currentNM()
+        Node x =
+            sm->mkDummySkolem("ex", locType, "skolem location for negated emp");
+        Node y =
+            sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
+        return nm
             ->mkNode(kind::SEP_STAR,
-                     NodeManager::currentNM()->mkNode(kind::SEP_PTO, x, y),
-                     NodeManager::currentNM()->mkConst(true))
+                     nm->mkNode(kind::SEP_PTO, x, y),
+                     nm->mkConst(true))
             .negate();
       }
     }
@@ -74,14 +81,14 @@ Node preSkolemEmp(Node n,
         Node nc = n[i];
         if (newHasPol)
         {
-          nc = preSkolemEmp(n[i], newPol, visited);
+          nc = preSkolemEmp(locType, dataType, n[i], newPol, visited);
           childChanged = childChanged || nc != n[i];
         }
         children.push_back(nc);
       }
       if (childChanged)
       {
-        return NodeManager::currentNM()->mkNode(n.getKind(), children);
+        return nm->mkNode(n.getKind(), children);
       }
     }
     visited[pol][n] = ret;
@@ -101,15 +108,24 @@ SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  if (!d_env.hasSepHeap())
+  {
+    warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
+                 "heap types during preprocessing"
+              << std::endl;
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
+  TypeNode locType = d_env.getSepLocType();
+  TypeNode dataType = d_env.getSepDataType();
   std::map<bool, std::map<Node, Node>> visited;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
     bool pol = true;
-    Node next = preSkolemEmp(prev, pol, visited);
+    Node next = preSkolemEmp(locType, dataType, prev, pol, visited);
     if (next != prev)
     {
-      assertionsToPreprocess->replace(i, Rewriter::rewrite(next));
+      assertionsToPreprocess->replace(i, rewrite(next));
       Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
       Trace("sep-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
                               << endl;
@@ -122,4 +138,4 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

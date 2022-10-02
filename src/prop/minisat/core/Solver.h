@@ -21,45 +21,46 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
-#include "cvc4_private.h"
-
 #include <iosfwd>
 
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context.h"
+#include "cvc5_private.h"
 #include "proof/clause_id.h"
+#include "proof/proof_node_manager.h"
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/minisat/mtl/Alg.h"
 #include "prop/minisat/mtl/Heap.h"
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/utils/Options.h"
 #include "prop/sat_proof_manager.h"
+#include "smt/env_obj.h"
 #include "theory/theory.h"
+#include "util/resource_manager.h"
 
-
-namespace CVC4 {
-template <class Solver> class TSatProof;
+namespace cvc5::internal {
 
 namespace prop {
-  class TheoryProxy;
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+class PropEngine;
+class TheoryProxy;
+}  // namespace prop
+}  // namespace cvc5::internal
 
-
-namespace CVC4 {
+namespace cvc5::internal {
 namespace Minisat {
 
 //=================================================================================================
 // Solver -- the main class:
 
-class Solver {
+class Solver : protected EnvObj
+{
+  /** The only two cvc5 entry points to the private solver data */
+  friend class cvc5::internal::prop::PropEngine;
+  friend class cvc5::internal::prop::TheoryProxy;
+  friend class cvc5::internal::prop::SatProofManager;
 
-  /** The only two CVC4 entry points to the private solver data */
-  friend class CVC4::prop::TheoryProxy;
-  friend class CVC4::prop::SatProofManager;
-  friend class CVC4::TSatProof<Minisat::Solver>;
-
-public:
+ public:
   static CRef TCRef_Undef;
   static CRef TCRef_Lazy;
 
@@ -71,10 +72,10 @@ public:
 
  protected:
   /** The pointer to the proxy that provides interfaces to the SMT engine */
-  CVC4::prop::TheoryProxy* d_proxy;
+  cvc5::internal::prop::TheoryProxy* d_proxy;
 
-  /** The context from the SMT solver */
-  CVC4::context::Context* d_context;
+  /** The contexts from the SMT solver */
+  context::Context* d_context;
 
   /** The current assertion level (user) */
   int assertionLevel;
@@ -84,6 +85,9 @@ public:
 
   /** Variable representing false */
   Var varFalse;
+
+  /** The resolution proof manager */
+  std::unique_ptr<cvc5::internal::prop::SatProofManager> d_pfManager;
 
  public:
   /** Returns the current user assertion level */
@@ -98,9 +102,6 @@ public:
 
   /** Is the lemma removable */
   vec<bool> lemmas_removable;
-
-  /** Nodes being converted to CNF */
-  std::vector<CVC4::Node> lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -129,163 +130,255 @@ public:
 
     // Constructor/Destructor:
     //
-    Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, bool enableIncremental = false);
-    CVC4_PUBLIC virtual ~Solver();
+ Solver(Env& env,
+        cvc5::internal::prop::TheoryProxy* proxy,
+        context::Context* context,
+        context::UserContext* userContext,
+        ProofNodeManager* pnm,
+        bool enableIncremental = false);
+ virtual ~Solver();
 
-    // Problem specification:
-    //
-    Var     newVar    (bool polarity = true, bool dvar = true, bool isTheoryAtom = false, bool preRegister = false, bool canErase = true); // Add a new variable with parameters specifying variable mode.
-    Var     trueVar() const { return varTrue; }
-    Var     falseVar() const { return varFalse; }
+ // Problem specification:
+ //
+ Var newVar(bool polarity = true,
+            bool dvar = true,
+            bool isTheoryAtom = false,
+            bool preRegister = false,
+            bool canErase = true);  // Add a new variable with parameters
+                                    // specifying variable mode.
+ Var trueVar() const { return varTrue; }
+ Var falseVar() const { return varFalse; }
 
-    // Less than for literals in a lemma
-    struct lemma_lt {
-      Solver& d_solver;
-      lemma_lt(Solver& solver) : d_solver(solver) {}
-      bool operator()(Lit x, Lit y)
-      {
-        lbool x_value = d_solver.value(x);
-        lbool y_value = d_solver.value(y);
-        // Two unassigned literals are sorted arbitrarily
-        if (x_value == l_Undef && y_value == l_Undef)
-        {
-          return x < y;
-        }
-        // Unassigned literals are put to front
-        if (x_value == l_Undef) return true;
-        if (y_value == l_Undef) return false;
-        // Literals of the same value are sorted by decreasing levels
-        if (x_value == y_value)
-        {
-          return d_solver.trail_index(var(x)) > d_solver.trail_index(var(y));
-        }
-        else
-        {
-          // True literals go up front
-          if (x_value == l_True)
-          {
-            return true;
-          }
-          else
-          {
-            return false;
-          }
-        }
-      }
-    };
+ /** Retrive the SAT proof manager */
+ cvc5::internal::prop::SatProofManager* getProofManager();
 
+ /** Retrive the refutation proof */
+ std::shared_ptr<ProofNode> getProof();
 
-    // CVC4 context push/pop
-    void          push                     ();
-    void          pop                      ();
+ /** Is proof enabled? */
+ bool isProofEnabled() const;
 
-    /*
-     * Reset the decisions in the DPLL(T) SAT solver at the current assertion
-     * level.
-     */
-    void resetTrail();
-    // addClause returns the ClauseId corresponding to the clause added in the
-    // reference parameter id.
-    bool    addClause (const vec<Lit>& ps, bool removable, ClauseId& id);  // Add a clause to the solver.
-    bool    addEmptyClause(bool removable);                                // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p, bool removable, ClauseId& id);               // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, bool removable, ClauseId& id);        // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, bool removable, ClauseId& id); // Add a ternary clause to the solver.
-    bool    addClause_(      vec<Lit>& ps, bool removable, ClauseId& id);  // Add a clause to the solver without making superflous internal copy. Will
-                                                                                 // change the passed vector 'ps'.
+ /**
+  * Checks whether we need a proof.
+  *
+  * SAT proofs are not required for assumption-based unsat cores.
+  */
+ bool needProof() const;
 
-    // Solving:
-    //
-    bool    simplify     ();                        // Removes already satisfied clauses.
-    lbool    solve        (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions.
-    lbool   solveLimited (const vec<Lit>& assumps); // Search for a model that respects a given set of assumptions (With resource constraints).
-    lbool    solve        ();                        // Search without assumptions.
-    lbool    solve        (Lit p);                   // Search for a model that respects a single assumption.
-    lbool    solve        (Lit p, Lit q);            // Search for a model that respects two assumptions.
-    lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
-    bool    okay         () const;                  // FALSE means solver is in a conflicting state
+ /*
+  * Returns true if the solver should add all clauses at the current assertion
+  * level.
+  *
+  * FIXME (cvc5-projects/issues/503): This is a workaround. While proofs are now
+  * compatible with the assertion level optimization, it has to be seen for
+  * non-sat-proofs-based unsat cores.
+  */
+ bool assertionLevelOnly() const;
 
-    void toDimacs();
-    void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
-    void    toDimacs     (const char *file, const vec<Lit>& assumps);
-    void    toDimacs     (FILE* f, Clause& c, vec<Var>& map, Var& max);
+ // Less than for literals in a lemma
+ struct lemma_lt
+ {
+   Solver& d_solver;
+   lemma_lt(Solver& solver) : d_solver(solver) {}
+   bool operator()(Lit x, Lit y)
+   {
+     lbool x_value = d_solver.value(x);
+     lbool y_value = d_solver.value(y);
+     // Two unassigned literals are sorted arbitrarily
+     if (x_value == l_Undef && y_value == l_Undef)
+     {
+       return x < y;
+     }
+     // Unassigned literals are put to front
+     if (x_value == l_Undef) return true;
+     if (y_value == l_Undef) return false;
+     // Literals of the same value are sorted by decreasing levels
+     if (x_value == y_value)
+     {
+       return d_solver.trail_index(var(x)) > d_solver.trail_index(var(y));
+     }
+     else
+     {
+       // True literals go up front
+       if (x_value == l_True)
+       {
+         return true;
+       }
+       else
+       {
+         return false;
+       }
+     }
+   }
+ };
 
-    // Convenience versions of 'toDimacs()':
-    void    toDimacs     (const char* file);
-    void    toDimacs     (const char* file, Lit p);
-    void    toDimacs     (const char* file, Lit p, Lit q);
-    void    toDimacs     (const char* file, Lit p, Lit q, Lit r);
+ // cvc5 context push/pop
+ void push();
+ void pop();
 
-    // Variable mode:
-    //
-    void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
-    void    freezePolarity (Var v, bool b); // Declare which polarity the decision heuristic MUST ALWAYS use for a variable. Requires mode 'polarity_user'.
-    void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
+ /*
+  * Reset the decisions in the DPLL(T) SAT solver at the current assertion
+  * level.
+  */
+ void resetTrail();
+ // addClause returns the ClauseId corresponding to the clause added in the
+ // reference parameter id.
+ bool addClause(const vec<Lit>& ps,
+                bool removable,
+                ClauseId& id);  // Add a clause to the solver.
+ bool addEmptyClause(
+     bool removable);  // Add the empty clause, making the solver contradictory.
+ bool addClause(Lit p,
+                bool removable,
+                ClauseId& id);  // Add a unit clause to the solver.
+ bool addClause(Lit p,
+                Lit q,
+                bool removable,
+                ClauseId& id);  // Add a binary clause to the solver.
+ bool addClause(Lit p,
+                Lit q,
+                Lit r,
+                bool removable,
+                ClauseId& id);  // Add a ternary clause to the solver.
+ bool addClause_(
+     vec<Lit>& ps,
+     bool removable,
+     ClauseId& id);  // Add a clause to the solver without making superflous
+                     // internal copy. Will change the passed vector 'ps'.
 
-    // Read state:
-    //
-    lbool   value      (Var x) const;       // The current value of a variable.
-    lbool   value      (Lit p) const;       // The current value of a literal.
-    lbool   modelValue (Var x) const;       // The value of a variable in the last model. The last call to solve must have been satisfiable.
-    lbool   modelValue (Lit p) const;       // The value of a literal in the last model. The last call to solve must have been satisfiable.
-    int     nAssigns   ()      const;       // The current number of assigned literals.
-    int     nClauses   ()      const;       // The current number of original clauses.
-    int     nLearnts   ()      const;       // The current number of learnt clauses.
-    int     nVars      ()      const;       // The current number of variables.
-    int     nFreeVars  ()      const;
-    bool    isDecision (Var x) const;       // is the given var a decision?
+ // Solving:
+ //
+ bool simplify();                       // Removes already satisfied clauses.
+ lbool solve(const vec<Lit>& assumps);  // Search for a model that respects a
+                                        // given set of assumptions.
+ lbool solveLimited(
+     const vec<Lit>& assumps);  // Search for a model that respects a given set
+                                // of assumptions (With resource constraints).
+ lbool solve();                 // Search without assumptions.
+ lbool solve(Lit p);  // Search for a model that respects a single assumption.
+ lbool solve(Lit p,
+             Lit q);  // Search for a model that respects two assumptions.
+ lbool solve(Lit p,
+             Lit q,
+             Lit r);  // Search for a model that respects three assumptions.
+ bool okay() const;   // FALSE means solver is in a conflicting state
 
-    // Debugging SMT explanations
-    //
-    bool    properExplanation(Lit l, Lit expl) const; // returns true if expl can be used to explain l---i.e., both assigned and trail_index(expl) < trail_index(l)
+ void toDimacs();
+ void toDimacs(FILE* f,
+               const vec<Lit>& assumps);  // Write CNF to file in DIMACS-format.
+ void toDimacs(const char* file, const vec<Lit>& assumps);
+ void toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max);
 
-    // Resource contraints:
-    //
-    void    setConfBudget(int64_t x);
-    void    setPropBudget(int64_t x);
-    void    budgetOff();
-    void    interrupt();          // Trigger a (potentially asynchronous) interruption of the solver.
-    void    clearInterrupt();     // Clear interrupt indicator flag.
+ // Convenience versions of 'toDimacs()':
+ void toDimacs(const char* file);
+ void toDimacs(const char* file, Lit p);
+ void toDimacs(const char* file, Lit p, Lit q);
+ void toDimacs(const char* file, Lit p, Lit q, Lit r);
 
-    // Memory managment:
-    //
-    virtual void garbageCollect();
-    void    checkGarbage(double gf);
-    void    checkGarbage();
+ // Variable mode:
+ //
+ void setPolarity(
+     Var v, bool b);  // Declare which polarity the decision heuristic should
+                      // use for a variable. Requires mode 'polarity_user'.
+ void freezePolarity(
+     Var v,
+     bool b);  // Declare which polarity the decision heuristic MUST ALWAYS use
+               // for a variable. Requires mode 'polarity_user'.
+ void setDecisionVar(Var v,
+                     bool b);  // Declare if a variable should be eligible for
+                               // selection in the decision heuristic.
 
-    // Extra results: (read-only member variable)
-    //
-    vec<lbool> model;             // If problem is satisfiable, this vector contains the model (if any).
-    vec<Lit> d_conflict;          // If problem is unsatisfiable (possibly under
-                          // assumptions), this vector represent the final
-                          // conflict clause expressed in the assumptions.
+ // Return the decision trail
+ const vec<Lit>& getMiniSatDecisions() { return trail; }
 
-    // Mode of operation:
-    //
-    int       verbosity;
-    double    var_decay;
-    double    clause_decay;
-    double    random_var_freq;
-    double    random_seed;
-    bool      luby_restart;
-    int       ccmin_mode;         // Controls conflict clause minimization (0=none, 1=basic, 2=deep).
-    int       phase_saving;       // Controls the level of phase saving (0=none, 1=limited, 2=full).
-    bool      rnd_pol;            // Use random polarities for branching heuristics.
-    bool      rnd_init_act;       // Initialize variable activities with a small random value.
-    double    garbage_frac;       // The fraction of wasted memory allowed before a garbage collection is triggered.
+ // Return the order_heap, which is a priority queue of variables ordered with
+ // respect to the variable activity. The order heap is made available here
+ // in order to make partitions based on the literals contained in the heap.
 
-    int       restart_first;      // The initial restart limit.                                                                (default 100)
-    double    restart_inc;        // The factor with which the restart limit is multiplied in each restart.                    (default 1.5)
-    double    learntsize_factor;  // The intitial limit for learnt clauses is a factor of the original clauses.                (default 1 / 3)
-    double    learntsize_inc;     // The limit for learnt clauses is multiplied with this factor each restart.                 (default 1.1)
+ const std::vector<Node> getMiniSatOrderHeap();
 
-    int       learntsize_adjust_start_confl;
-    double    learntsize_adjust_inc;
+ // Read state:
+ //
+ lbool value(Var x) const;  // The current value of a variable.
+ lbool value(Lit p) const;  // The current value of a literal.
+ lbool modelValue(
+     Var x) const;  // The value of a variable in the last model. The last call
+                    // to solve must have been satisfiable.
+ lbool modelValue(
+     Lit p) const;  // The value of a literal in the last model. The last call
+                    // to solve must have been satisfiable.
+ int nAssigns() const;  // The current number of assigned literals.
+ int nClauses() const;  // The current number of original clauses.
+ int nLearnts() const;  // The current number of learnt clauses.
+ int nVars() const;     // The current number of variables.
+ int nFreeVars() const;
+ bool isDecision(Var x) const;  // is the given var a decision?
 
-    // Statistics: (read-only member variable)
-    //
-    uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts, resources_consumed;
-    uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
+ // Debugging SMT explanations
+ //
+ bool properExplanation(Lit l, Lit expl)
+     const;  // returns true if expl can be used to explain l---i.e., both
+             // assigned and trail_index(expl) < trail_index(l)
+
+ // Resource contraints:
+ //
+ void setConfBudget(int64_t x);
+ void setPropBudget(int64_t x);
+ void budgetOff();
+ void interrupt();  // Trigger a (potentially asynchronous) interruption of the
+                    // solver.
+ void clearInterrupt();  // Clear interrupt indicator flag.
+
+ // Memory managment:
+ //
+ virtual void garbageCollect();
+ void checkGarbage(double gf);
+ void checkGarbage();
+
+ // Extra results: (read-only member variable)
+ //
+ vec<lbool> model;  // If problem is satisfiable, this vector contains the model
+                    // (if any).
+ vec<Lit> d_conflict;  // If problem is unsatisfiable (possibly under
+                       // assumptions), this vector represent the final
+                       // conflict clause expressed in the assumptions.
+
+ // Mode of operation:
+ //
+ int verbosity;
+ double var_decay;
+ double clause_decay;
+ double random_var_freq;
+ double random_seed;
+ bool luby_restart;
+ int ccmin_mode;    // Controls conflict clause minimization (0=none, 1=basic,
+                    // 2=deep).
+ int phase_saving;  // Controls the level of phase saving (0=none, 1=limited,
+                    // 2=full).
+ bool rnd_pol;      // Use random polarities for branching heuristics.
+ bool
+     rnd_init_act;  // Initialize variable activities with a small random value.
+ double garbage_frac;  // The fraction of wasted memory allowed before a garbage
+                       // collection is triggered.
+
+ int restart_first;   // The initial restart limit. (default 100)
+ double restart_inc;  // The factor with which the restart limit is multiplied
+                      // in each restart.                    (default 1.5)
+ double
+     learntsize_factor;  // The intitial limit for learnt clauses is a factor of
+                         // the original clauses.                (default 1 / 3)
+ double learntsize_inc;  // The limit for learnt clauses is multiplied with this
+                         // factor each restart.                 (default 1.1)
+
+ int learntsize_adjust_start_confl;
+ double learntsize_adjust_inc;
+
+ // Statistics: (read-only member variable)
+ //
+ int64_t solves, starts, decisions, rnd_decisions, propagations, conflicts,
+     resources_consumed;
+ int64_t dec_vars, clauses_literals, learnts_literals, max_literals,
+     tot_literals;
 
 protected:
 
@@ -366,8 +459,13 @@ protected:
 
     ClauseAllocator     ca;
 
-    // CVC4 Stuff
-    vec<bool>           theory;           // Is the variable representing a theory atom
+    // cvc5 Stuff
+    /**
+     * A vector determining whether each variable represents a theory atom.
+     * More generally, this value is true for any literal that the theory proxy
+     * should be notified about when asserted.
+     */
+    vec<bool> theory;
 
     enum TheoryCheckType {
       // Quick check, but don't perform theory reasoning
@@ -409,7 +507,9 @@ protected:
     CRef     propagate        (TheoryCheckType type);                                  // Perform Boolean and Theory. Returns possibly conflicting clause.
     CRef     propagateBool    ();                                                      // Perform Boolean propagation. Returns possibly conflicting clause.
     void     propagateTheory  ();                                                      // Perform Theory propagation.
-    void     theoryCheck      (CVC4::theory::Theory::Effort effort);                   // Perform a theory satisfiability check. Adds lemmas.
+    void theoryCheck(
+        cvc5::internal::theory::Theory::Effort
+            effort);  // Perform a theory satisfiability check. Adds lemmas.
     CRef     updateLemmas     ();                                                      // Add the lemmas, backtraking if necessary and return a conflict if there is one
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
@@ -448,14 +548,14 @@ protected:
     bool     isPropagated     (Var x) const; // Does the variable have a propagated variables
     bool     isPropagatedBy   (Var x, const Clause& c) const; // Is the value of the variable propagated by the clause Clause C
 
-    int      level            (Var x) const;
-    int      user_level       (Var x) const; // User level at which this variable was asserted
-    int      intro_level      (Var x) const; // User level at which this variable was created
     int      trail_index      (Var x) const; // Index in the trail
     double   progressEstimate ()      const; // DELETE THIS ?? IT'S NOT VERY USEFUL ...
 public:
+    int      level            (Var x) const;
+    int      user_level       (Var x) const; // User level at which this variable was asserted
+    int      intro_level      (Var x) const; // User level at which this variable was created
     bool     withinBudget     (uint64_t amount)      const;
-    bool withinBudget(ResourceManager::Resource r) const;
+    bool withinBudget(Resource r) const;
 
    protected:
     // Static helpers:
@@ -471,10 +571,7 @@ public:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
-
 };
-
-
 
 //=================================================================================================
 // Implementation of inline methods:
@@ -497,7 +594,7 @@ inline bool Solver::isPropagatedBy(Var x, const Clause& c) const
 
 inline bool Solver::isDecision(Var x) const
 {
-  Debug("minisat") << "var " << x << " is a decision iff "
+  Trace("minisat") << "var " << x << " is a decision iff "
                    << (vardata[x].d_reason == CRef_Undef) << " && " << level(x)
                    << " > 0" << std::endl;
   return vardata[x].d_reason == CRef_Undef && level(x) > 0;
@@ -505,31 +602,32 @@ inline bool Solver::isDecision(Var x) const
 
 inline int Solver::level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_level;
 }
 
 inline int Solver::user_level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_user_level;
 }
 
 inline int Solver::intro_level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_intro_level;
 }
 
 inline int Solver::trail_index(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_trail_index;
 }
 
 inline void Solver::insertVarOrder(Var x) {
-    assert(x < vardata.size());
-    if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
+  Assert(x < vardata.size());
+  if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x);
+}
 
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
@@ -578,8 +676,16 @@ inline void Solver::newDecisionLevel()
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
-inline lbool    Solver::value         (Var x) const   { assert(x < nVars()); return assigns[x]; }
-inline lbool    Solver::value         (Lit p) const   { assert(var(p) < nVars()); return assigns[var(p)] ^ sign(p); }
+inline lbool Solver::value(Var x) const
+{
+  Assert(x < nVars());
+  return assigns[x];
+}
+inline lbool Solver::value(Lit p) const
+{
+  Assert(var(p) < nVars());
+  return assigns[var(p)] ^ sign(p);
+}
 inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
 inline lbool    Solver::modelValue    (Lit p) const   { return model[var(p)] ^ sign(p); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }
@@ -626,7 +732,7 @@ inline void     Solver::toDimacs     (const char* file, Lit p, Lit q, Lit r){ ve
 
 
 //=================================================================================================
-} /* CVC4::Minisat namespace */
-} /* CVC4 namespace */
+}  // namespace Minisat
+}  // namespace cvc5::internal
 
 #endif

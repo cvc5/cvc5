@@ -1,35 +1,35 @@
-/*********************                                                        */
-/*! \file nl_lemma_utils.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utilities for the non-linear solver
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utilities for the non-linear solver.
+ */
 
 #include "theory/arith/nl/nl_lemma_utils.h"
 
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nonlinear_extension.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-bool NlLemma::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode NlLemma::processLemma(LemmaProperty& p)
 {
-  bool res = ArithLemma::process(im, asLemma);
   if (d_nlext != nullptr)
   {
     d_nlext->processSideEffect(*this);
   }
-  return res;
+  return SimpleTheoryLemma::processLemma(p);
 }
 
 std::ostream& operator<<(std::ostream& out, NlLemma& n)
@@ -45,7 +45,7 @@ bool SortNlModel::operator()(Node i, Node j)
   {
     return i < j;
   }
-  return d_reverse_order ? cv < 0 : cv > 0;
+  return d_reverse_order ? cv > 0 : cv < 0;
 }
 
 bool SortNonlinearDegree::operator()(Node i, Node j)
@@ -79,4 +79,4 @@ Node ArgTrie::add(Node d, const std::vector<Node>& args)
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

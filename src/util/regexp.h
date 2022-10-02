@@ -1,27 +1,28 @@
-/*********************                                                        */
-/*! \file regexp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Data structures for regular expression operators.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Data structures for regular expression operators.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__UTIL__REGEXP_H
-#define CVC4__UTIL__REGEXP_H
+#ifndef CVC5__UTIL__REGEXP_H
+#define CVC5__UTIL__REGEXP_H
 
 #include <iosfwd>
 
-namespace CVC4 {
+namespace cvc5::internal {
 
-struct CVC4_PUBLIC RegExpRepeat
+struct RegExpRepeat
 {
   RegExpRepeat(uint32_t repeatAmount);
 
@@ -30,7 +31,7 @@ struct CVC4_PUBLIC RegExpRepeat
   uint32_t d_repeatAmount;
 };
 
-struct CVC4_PUBLIC RegExpLoop
+struct RegExpLoop
 {
   RegExpLoop(uint32_t l, uint32_t h);
 
@@ -42,13 +43,13 @@ struct CVC4_PUBLIC RegExpLoop
 };
 
 /* -----------------------------------------------------------------------
- ** Hash Function structs
+ * Hash Function structs
  * ----------------------------------------------------------------------- */
 
 /*
  * Hash function for the RegExpRepeat constants.
  */
-struct CVC4_PUBLIC RegExpRepeatHashFunction
+struct RegExpRepeatHashFunction
 {
   size_t operator()(const RegExpRepeat& r) const;
 };
@@ -56,19 +57,19 @@ struct CVC4_PUBLIC RegExpRepeatHashFunction
 /**
  * Hash function for the RegExpLoop objects.
  */
-struct CVC4_PUBLIC RegExpLoopHashFunction
+struct RegExpLoopHashFunction
 {
   size_t operator()(const RegExpLoop& r) const;
 };
 
 /* -----------------------------------------------------------------------
- ** Output stream
+ * Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpRepeat& bv);
 
-std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const RegExpLoop& bv);
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__UTIL__REGEXP_H */
+#endif /* CVC5__UTIL__REGEXP_H */

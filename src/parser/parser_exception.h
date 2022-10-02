@@ -1,34 +1,35 @@
-/*********************                                                        */
-/*! \file parser_exception.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Christopher L. Conway
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Exception class for parse errors.
- **
- ** Exception class for parse errors.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Morgan Deters, Christopher L. Conway
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Exception class for parse errors.
+ */
 
-#include "cvc4parser_public.h"
+#include "cvc5parser_public.h"
 
-#ifndef CVC4__PARSER__PARSER_EXCEPTION_H
-#define CVC4__PARSER__PARSER_EXCEPTION_H
+#ifndef CVC5__PARSER__PARSER_EXCEPTION_H
+#define CVC5__PARSER__PARSER_EXCEPTION_H
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 #include "base/exception.h"
+#include "cvc5_export.h"
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
-class CVC4_PUBLIC ParserException : public Exception {
+class CVC5_EXPORT ParserException : public internal::Exception
+{
  public:
   // Constructors
   ParserException() : d_filename(), d_line(0), d_column(0) {}
@@ -74,9 +75,10 @@ class CVC4_PUBLIC ParserException : public Exception {
   std::string d_filename;
   unsigned long d_line;
   unsigned long d_column;
-};/* class ParserException */
+}; /* class ParserException */
 
-class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
+class ParserEndOfFileException : public ParserException
+{
  public:
   // Constructors same as ParserException's
 
@@ -94,9 +96,9 @@ class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
   {
   }
 
-};/* class ParserEndOfFileException */
+}; /* class ParserEndOfFileException */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5
 
-#endif /* CVC4__PARSER__PARSER_EXCEPTION_H */
+#endif /* CVC5__PARSER__PARSER_EXCEPTION_H */

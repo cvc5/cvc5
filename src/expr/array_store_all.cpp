@@ -1,20 +1,18 @@
-/*********************                                                        */
-/*! \file array_store_all.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Representation of a constant array (an array in which the
- ** element is the same for all indices)
- **
- ** Representation of a constant array (an array in which the element is
- ** the same for all indices).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Representation of a constant array (an array in which the element is the
+ * same for all indices).
+ */
 
 #include "expr/array_store_all.h"
 
@@ -26,7 +24,7 @@
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
     : d_type(), d_value()
@@ -34,21 +32,16 @@ ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
   // this check is stronger than the assertion check in the expr manager that
   // ArrayTypes are actually array types
   // because this check is done in production builds too
-  PrettyCheckArgument(
-      type.isArray(), type,
-      "array store-all constants can only be created for array types, not `%s'",
-      type.toString().c_str());
-
-  PrettyCheckArgument(
-      value.getType().isComparableTo(type.getArrayConstituentType()),
-      value,
-      "expr type `%s' does not match constituent type of array type `%s'",
-      value.getType().toString().c_str(),
-      type.toString().c_str());
+  Assert(type.isArray())
+      << "array store-all constants can only be created for array types, not `"
+      << type.toString().c_str() << "'";
+  Assert(value.getType() == type.getArrayConstituentType())
+      << "expr type `" << value.getType().toString().c_str()
+      << "' does not match constituent type of array type `"
+      << type.toString().c_str() << "'";
   Trace("arrays") << "constructing constant array of type: '" << type
                   << "' and value: '" << value << "'" << std::endl;
-  PrettyCheckArgument(
-      value.isConst(), value, "ArrayStoreAll requires a constant expression");
+  Assert(value.isConst()) << "ArrayStoreAll requires a constant expression";
 
   // Delay allocation until the checks above have been performed. If these
   // fail, the memory for d_type and d_value should not leak. The alternative
@@ -111,8 +104,8 @@ std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
 }
 
 size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
-  return TypeNodeHashFunction()(asa.getType())
-         * NodeHashFunction()(asa.getValue());
+  return std::hash<TypeNode>()(asa.getType())
+         * std::hash<Node>()(asa.getValue());
 }
 
-}  // namespace CVC4
+}  // namespace cvc5::internal

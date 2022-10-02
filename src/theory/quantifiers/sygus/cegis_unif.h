@@ -1,28 +1,31 @@
-/*********************                                                        */
-/*! \file cegis_unif.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief cegis with unification techinques
- **/
-#include "cvc4_private.h"
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * cegis with unification techinques.
+ */
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
 
 #include <map>
 #include <vector>
 
+#include "smt/env_obj.h"
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -47,7 +50,11 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, SynthConjecture* parent);
+  CegisUnifEnumDecisionStrategy(Env& env,
+                                QuantifiersState& qs,
+                                QuantifiersInferenceManager& qim,
+                                TermDbSygus* tds,
+                                SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
    * This call may add new lemmas of the form described above
@@ -97,8 +104,8 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   void registerEvalPts(const std::vector<Node>& eis, Node e);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
@@ -202,7 +209,11 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersEngine* qe, SynthConjecture* p);
+  CegisUnif(Env& env,
+            QuantifiersState& qs,
+            QuantifiersInferenceManager& qim,
+            TermDbSygus* tds,
+            SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
    *
@@ -233,15 +244,13 @@ class CegisUnif : public Cegis
    * in which d is the deep embedding of the function-to-synthesize f
    */
   void registerRefinementLemma(const std::vector<Node>& vars,
-                               Node lem,
-                               std::vector<Node>& lems) override;
+                               Node lem) override;
 
  private:
   /** do cegis-implementation-specific initialization for this class */
   bool processInitialize(Node conj,
                          Node n,
-                         const std::vector<Node>& candidates,
-                         std::vector<Node>& lemmas) override;
+                         const std::vector<Node>& candidates) override;
   /** Tries to build new candidate solutions with new enumerated expressions
    *
    * This function relies on a data-driven unification-based approach for
@@ -255,11 +264,11 @@ class CegisUnif : public Cegis
    * for constructing candidate solutions when possible.
    *
    * This function also excludes models where (terms = terms_values) by adding
-   * blocking clauses to lems. For example, for grammar:
+   * blocking clauses to d_qim pending lemmas. For example, for grammar:
    *   A -> A+A | x | 1 | 0
    * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
    *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
-   * to lems, where G is active guard of the enumerator d (see
+   * to d_qim pending lemmas, where G is active guard of the enumerator d (see
    * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
    * indicates that d should not be given the model value +( x, 1 ) anymore,
    * since { d -> +( x, 1 ) } has now been added to the database of this class.
@@ -268,8 +277,7 @@ class CegisUnif : public Cegis
                                   const std::vector<Node>& enum_values,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& candidate_values,
-                                  bool satisfiedRl,
-                                  std::vector<Node>& lems) override;
+                                  bool satisfiedRl) override;
   /** communicate condition values to solution building utility
    *
    * for each unification candidate and for each strategy point associated with
@@ -277,8 +285,7 @@ class CegisUnif : public Cegis
    * condition enumerators (unif_cenums)
    */
   void setConditions(const std::map<Node, std::vector<Node>>& unif_cenums,
-                     const std::map<Node, std::vector<Node>>& unif_cvalues,
-                     std::vector<Node>& lems);
+                     const std::map<Node, std::vector<Node>>& unif_cvalues);
   /** set values of condition enumerators based on current enumerator assignment
    *
    * enums and enum_values are the enumerators registered in getTermList and
@@ -297,8 +304,7 @@ class CegisUnif : public Cegis
   bool getEnumValues(const std::vector<Node>& enums,
                      const std::vector<Node>& enum_values,
                      std::map<Node, std::vector<Node>>& unif_cenums,
-                     std::map<Node, std::vector<Node>>& unif_cvalues,
-                     std::vector<Node>& lems);
+                     std::map<Node, std::vector<Node>>& unif_cvalues);
 
   /**
    * Whether we are using condition pool enumeration (Section 4 of Barbosa et al
@@ -326,6 +332,6 @@ class CegisUnif : public Cegis
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

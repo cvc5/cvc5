@@ -1,43 +1,46 @@
-/*********************                                                        */
-/*! \file term_registry.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Bags state object
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Bags state object.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BAGS__TERM_REGISTRY_H
-#define CVC4__THEORY__BAGS__TERM_REGISTRY_H
+#ifndef CVC5__THEORY__BAGS__TERM_REGISTRY_H
+#define CVC5__THEORY__BAGS__TERM_REGISTRY_H
 
 #include <map>
-#include <vector>
 
 #include "context/cdhashmap.h"
-#include "theory/bags/inference_manager.h"
-#include "theory/bags/solver_state.h"
+#include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
+
+class InferenceManager;
+class SolverState;
 
 /**
  * Term registry, the purpose of this class is to maintain a database of
  * commonly used terms, and mappings from bags to their "proxy variables".
  */
-class TermRegistry
+class TermRegistry : protected EnvObj
 {
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+  typedef context::CDHashMap<Node, Node> NodeMap;
 
  public:
-  TermRegistry(SolverState& state, InferenceManager& im);
+  TermRegistry(Env& env, SolverState& state, InferenceManager& im);
 
   /**
    * Returns the existing empty bag for type tn
@@ -58,6 +61,6 @@ class TermRegistry
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__BAGS__TERM_REGISTRY_H */
+#endif /* CVC5__THEORY__BAGS__TERM_REGISTRY_H */

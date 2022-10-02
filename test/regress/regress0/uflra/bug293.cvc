@@ -1,7 +1,0 @@
-% EXPECT: unsat
-x: REAL;
-f: REAL -> REAL;
-ASSERT NOT (f(1) = f(x));
-ASSERT NOT (f(0) = f(x));
-ASSERT (x = 0) XOR (x = 1);
-CHECKSAT;

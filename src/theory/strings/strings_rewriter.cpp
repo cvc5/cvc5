@@ -1,32 +1,36 @@
-/*********************                                                        */
-/*! \file strings_rewriter.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of rewrite rules for string-specific operators in
- ** theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of rewrite rules for string-specific operators in
+ * theory of strings.
+ */
 
 #include "theory/strings/strings_rewriter.h"
 
 #include "expr/node_builder.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
+#include "util/string.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsRewriter::StringsRewriter(HistogramStat<Rewrite>* statistics)
-    : SequencesRewriter(statistics)
+StringsRewriter::StringsRewriter(Rewriter* r,
+                                 HistogramStat<Rewrite>* statistics,
+                                 uint32_t alphaCard)
+    : SequencesRewriter(r, statistics), d_alphaCard(alphaCard)
 {
 }
 
@@ -45,7 +49,7 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
   {
     retNode = rewriteStringLeq(node);
   }
-  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
+  else if (nk == STRING_TO_LOWER || nk == STRING_TO_UPPER)
   {
     retNode = rewriteStrConvert(node);
   }
@@ -68,6 +72,10 @@ RewriteResponse StringsRewriter::postRewrite(TNode node)
   else if (nk == STRING_FROM_CODE)
   {
     retNode = rewriteStringFromCode(node);
+  }
+  else if (nk == STRING_UNIT)
+  {
+    retNode = rewriteStringUnit(node);
   }
   else
   {
@@ -96,11 +104,11 @@ Node StringsRewriter::rewriteStrToInt(Node node)
     String s = node[0].getConst<String>();
     if (s.isNumber())
     {
-      ret = nm->mkConst(s.toNumber());
+      ret = nm->mkConstInt(s.toNumber());
     }
     else
     {
-      ret = nm->mkConst(Rational(-1));
+      ret = nm->mkConstInt(Rational(-1));
     }
     return returnRewrite(node, ret, Rewrite::STOI_EVAL);
   }
@@ -113,7 +121,7 @@ Node StringsRewriter::rewriteStrToInt(Node node)
         String t = nc.getConst<String>();
         if (!t.isNumber())
         {
-          Node ret = nm->mkConst(Rational(-1));
+          Node ret = nm->mkConstInt(Rational(-1));
           return returnRewrite(node, ret, Rewrite::STOI_CONCAT_NONNUM);
         }
       }
@@ -147,7 +155,7 @@ Node StringsRewriter::rewriteIntToStr(Node node)
 Node StringsRewriter::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
-  Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
+  Assert(nk == STRING_TO_LOWER || nk == STRING_TO_UPPER);
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
@@ -158,14 +166,14 @@ Node StringsRewriter::rewriteStrConvert(Node node)
       // transform it
       // upper 65 ... 90
       // lower 97 ... 122
-      if (nk == STRING_TOUPPER)
+      if (nk == STRING_TO_UPPER)
       {
         if (newChar >= 97 && newChar <= 122)
         {
           newChar = newChar - 32;
         }
       }
-      else if (nk == STRING_TOLOWER)
+      else if (nk == STRING_TO_LOWER)
       {
         if (newChar >= 65 && newChar <= 90)
         {
@@ -179,26 +187,26 @@ Node StringsRewriter::rewriteStrConvert(Node node)
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
-    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    NodeBuilder concatBuilder(STRING_CONCAT);
     for (const Node& nc : node[0])
     {
       concatBuilder << nm->mkNode(nk, nc);
     }
-    // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
+    // to_lower( x1 ++ x2 ) --> to_lower( x1 ) ++ to_lower( x2 )
     Node retNode = concatBuilder.constructNode();
     return returnRewrite(node, retNode, Rewrite::STR_CONV_MINSCOPE_CONCAT);
   }
-  else if (node[0].getKind() == STRING_TOLOWER
-           || node[0].getKind() == STRING_TOUPPER)
+  else if (node[0].getKind() == STRING_TO_LOWER
+           || node[0].getKind() == STRING_TO_UPPER)
   {
-    // tolower( tolower( x ) ) --> tolower( x )
-    // tolower( toupper( x ) ) --> tolower( x )
+    // to_lower( to_lower( x ) ) --> to_lower( x )
+    // to_lower( toupper( x ) ) --> to_lower( x )
     Node retNode = nm->mkNode(nk, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::STR_CONV_IDEM);
   }
   else if (node[0].getKind() == STRING_ITOS)
   {
-    // tolower( str.from.int( x ) ) --> str.from.int( x )
+    // to_lower( str.from.int( x ) ) --> str.from.int( x )
     return returnRewrite(node, node[0], Rewrite::STR_CONV_ITOS);
   }
   return node;
@@ -273,7 +281,7 @@ Node StringsRewriter::rewriteStringFromCode(Node n)
   {
     Integer i = n[0].getConst<Rational>().getNumerator();
     Node ret;
-    if (i >= 0 && i < strings::utils::getAlphabetCardinality())
+    if (i >= 0 && i < d_alphaCard)
     {
       std::vector<unsigned> svec = {i.toUnsignedInt()};
       ret = nm->mkConst(String(svec));
@@ -299,11 +307,11 @@ Node StringsRewriter::rewriteStringToCode(Node n)
     {
       std::vector<unsigned> vec = s.getVec();
       Assert(vec.size() == 1);
-      ret = nm->mkConst(Rational(vec[0]));
+      ret = nm->mkConstInt(Rational(vec[0]));
     }
     else
     {
-      ret = nm->mkConst(Rational(-1));
+      ret = nm->mkConstInt(Rational(-1));
     }
     return returnRewrite(n, ret, Rewrite::TO_CODE_EVAL);
   }
@@ -317,11 +325,29 @@ Node StringsRewriter::rewriteStringIsDigit(Node n)
   // eliminate str.is_digit(s) ----> 48 <= str.to_code(s) <= 57
   Node t = nm->mkNode(STRING_TO_CODE, n[0]);
   Node retNode = nm->mkNode(AND,
-                            nm->mkNode(LEQ, nm->mkConst(Rational(48)), t),
-                            nm->mkNode(LEQ, t, nm->mkConst(Rational(57))));
+                            nm->mkNode(LEQ, nm->mkConstInt(Rational(48)), t),
+                            nm->mkNode(LEQ, t, nm->mkConstInt(Rational(57))));
   return returnRewrite(n, retNode, Rewrite::IS_DIGIT_ELIM);
+}
+
+Node StringsRewriter::rewriteStringUnit(Node n)
+{
+  Assert(n.getKind() == STRING_UNIT);
+  NodeManager* nm = NodeManager::currentNM();
+  if (n[0].isConst())
+  {
+    Integer i = n[0].getConst<Rational>().getNumerator();
+    Node ret;
+    if (i >= 0 && i < d_alphaCard)
+    {
+      std::vector<unsigned> svec = {i.toUnsignedInt()};
+      ret = nm->mkConst(String(svec));
+      return returnRewrite(n, ret, Rewrite::SEQ_UNIT_EVAL);
+    }
+  }
+  return n;
 }
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

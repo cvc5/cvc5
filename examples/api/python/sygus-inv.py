@@ -1,27 +1,30 @@
 #!/usr/bin/env python
-#####################
-## sygus-inv.py
-## Top contributors (to current version):
-##   Yoni Zohar
-## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
-## in the top-level source directory and their institutional affiliations.
-## All rights reserved.  See the file COPYING in the top-level source
-## directory for licensing information.
-##
-## A simple demonstration of the solving capabilities of the CVC4
-## sygus solver through the Python API. This is a direct
-## translation of sygus-inv.cpp .
+###############################################################################
+# Top contributors (to current version):
+#   Yoni Zohar, Aina Niemetz, Mudathir Mohamed
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the solving capabilities of the cvc5
+# sygus solver through the Python API. This is a direct
+# translation of sygus-inv.cpp .
 ##
 
-import pycvc4
-from pycvc4 import kinds
+import utils
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-  slv = pycvc4.Solver()
+  slv = cvc5.Solver()
 
   # required options
-  slv.setOption("lang", "sygus2")
+  slv.setOption("sygus", "true")
   slv.setOption("incremental", "false")
 
   # set the logic
@@ -39,15 +42,15 @@ if __name__ == "__main__":
   xp = slv.mkVar(integer, "xp")
 
   # (ite (< x 10) (= xp (+ x 1)) (= xp x))
-  ite = slv.mkTerm(kinds.Ite,
-                        slv.mkTerm(kinds.Lt, x, ten),
-                        slv.mkTerm(kinds.Equal, xp, slv.mkTerm(kinds.Plus, x, one)),
-                        slv.mkTerm(kinds.Equal, xp, x))
+  ite = slv.mkTerm(Kind.ITE,
+                   slv.mkTerm(Kind.LT, x, ten),
+                   slv.mkTerm(Kind.EQUAL, xp, slv.mkTerm(Kind.ADD, x, one)),
+                   slv.mkTerm(Kind.EQUAL, xp, x))
 
   # define the pre-conditions, transition relations, and post-conditions
-  pre_f = slv.defineFun("pre-f", {x}, boolean, slv.mkTerm(kinds.Equal, x, zero))
-  trans_f = slv.defineFun("trans-f", {x, xp}, boolean, ite)
-  post_f = slv.defineFun("post-f", {x}, boolean, slv.mkTerm(kinds.Leq, x, ten))
+  pre_f = slv.defineFun("pre-f", [x], boolean, slv.mkTerm(Kind.EQUAL, x, zero))
+  trans_f = slv.defineFun("trans-f", [x, xp], boolean, ite)
+  post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(Kind.LEQ, x, ten))
 
   # declare the invariant-to-synthesize
   inv_f = slv.synthInv("inv-f", {x})
@@ -55,10 +58,10 @@ if __name__ == "__main__":
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f)
 
   # print solutions if available
-  if slv.checkSynth().isUnsat():
+  if slv.checkSynth().hasSolution():
     # Output should be equivalent to:
     # (define-fun inv-f ((x Int)) Bool (not (>= x 11)))
-    slv.printSynthSolution()
-
+    terms = [inv_f]
+    utils.print_synth_solutions(terms, slv.getSynthSolutions(terms))
 
 

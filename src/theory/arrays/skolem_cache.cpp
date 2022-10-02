@@ -1,37 +1,38 @@
-/*********************                                                        */
-/*! \file skolem_cache.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arrays skolem cache
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arrays skolem cache.
+ */
 
 #include "theory/arrays/skolem_cache.h"
 
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_node.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
 /**
- * A bound variable corresponding to an index for witnessing the satisfiability
- * of array disequalities.
+ * A bound variable corresponding to the index used in the eqrange expansion.
  */
-struct ExtIndexVarAttributeId
+struct EqRangeVarAttributeId
 {
 };
-typedef expr::Attribute<ExtIndexVarAttributeId, Node> ExtIndexVarAttribute;
+typedef expr::Attribute<EqRangeVarAttributeId, Node> EqRangeVarAttribute;
 
 SkolemCache::SkolemCache() {}
 
@@ -43,45 +44,20 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
   Assert(a.getType().isArray());
   Assert(b.getType() == a.getType());
 
-  NodeManager* nm = NodeManager::currentNM();
-
-  // get the reference index, which notice is deterministic for a, b in the
-  // lifetime of the node manager
-  Node x = getExtIndexVar(deq);
-
-  // make the axiom for x
-  Node as = nm->mkNode(SELECT, a, x);
-  Node bs = nm->mkNode(SELECT, b, x);
-  Node deqIndex = as.eqNode(bs).notNode();
-  Node axiom = nm->mkNode(IMPLIES, deq, deqIndex);
-
-  // make the skolem that witnesses the above axiom
-  SkolemManager* sm = nm->getSkolemManager();
-  return sm->mkSkolem(
-      x,
-      axiom,
-      "array_ext_index",
-      "an extensional lemma index variable from the theory of arrays");
+  // make the skolem, which is deterministic for a,b.
+  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  return sm->mkSkolemFunction(
+      SkolemFunId::ARRAY_DEQ_DIFF, a.getType().getArrayIndexType(), {a, b});
 }
 
-Node SkolemCache::getExtIndexVar(Node deq)
+Node SkolemCache::getEqRangeVar(TNode eqr)
 {
-  ExtIndexVarAttribute eiva;
-  if (deq.hasAttribute(eiva))
-  {
-    return deq.getAttribute(eiva);
-  }
-  Node a = deq[0][0];
-  Node b = deq[0][1];
-  TypeNode atn = a.getType();
-  Assert(atn.isArray());
-  Assert(atn == b.getType());
-  TypeNode atnIndex = atn.getArrayIndexType();
-  Node v = NodeManager::currentNM()->mkBoundVar(atnIndex);
-  deq.setAttribute(eiva, v);
-  return v;
+  Assert(eqr.getKind() == kind::EQ_RANGE);
+  BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
+  return bvm->mkBoundVar<EqRangeVarAttribute>(eqr, eqr[2].getType());
 }
+
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

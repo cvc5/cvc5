@@ -1,46 +1,55 @@
-/*********************                                                        */
-/*! \file model_builder.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Model Builder class
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Model Builder class.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
-#define CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#define CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/theory_model_builder.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+class FirstOrderModel;
+class QuantifiersState;
+class QuantifiersRegistry;
+class QuantifiersInferenceManager;
+class TermRegistry;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
-protected:
-  //quantifiers engine
-  QuantifiersEngine* d_qe;
+ protected:
   // must call preProcessBuildModelStd
   bool preProcessBuildModel(TheoryModel* m) override;
   bool preProcessBuildModelStd(TheoryModel* m);
   /** number of lemmas generated while building model */
   unsigned d_addedLemmas;
   unsigned d_triedLemmas;
-public:
-  QModelBuilder( context::Context* c, QuantifiersEngine* qe );
 
+ public:
+  QModelBuilder(Env& env,
+                QuantifiersState& qs,
+                QuantifiersInferenceManager& qim,
+                QuantifiersRegistry& qr,
+                TermRegistry& tr);
+  /** finish init, which sets the model object */
+  virtual void finishInit();
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
   // >0 : success
@@ -48,17 +57,31 @@ public:
   virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
   //whether to construct model
   virtual bool optUseModel();
-  /** exist instantiation ? */
-  virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
   //debug model
   void debugModel(TheoryModel* m) override;
   //statistics 
   unsigned getNumAddedLemmas() { return d_addedLemmas; }
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
+  /** get the model we are using */
+  FirstOrderModel* getModel();
+
+ protected:
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
+  /** Reference to the quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** Term registry */
+  TermRegistry& d_treg;
+  /** Pointer to the model object we are using */
+  FirstOrderModel* d_model;
+  /** The model object we have allocated */
+  std::unique_ptr<FirstOrderModel> d_modelAloc;
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

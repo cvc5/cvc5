@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file strategy.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the strategy of the theory of strings.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the strategy of the theory of strings.
+ */
 
 #include "theory/strings/strategy.h"
 
 #include "options/strings_options.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -37,12 +38,19 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
     case CHECK_MEMBERSHIP: out << "check_membership"; break;
     case CHECK_CARDINALITY: out << "check_cardinality"; break;
+    case CHECK_SEQUENCES_ARRAY_CONCAT:
+      out << "check_sequences_update_concat_terms";
+      break;
+    case CHECK_SEQUENCES_ARRAY: out << "check_sequences_array"; break;
+    case CHECK_SEQUENCES_ARRAY_EAGER:
+      out << "check_sequences_array_eager";
+      break;
     default: out << "?"; break;
   }
   return out;
 }
 
-Strategy::Strategy() : d_strategy_init(false) {}
+Strategy::Strategy(Env& env) : EnvObj(env), d_strategy_init(false) {}
 
 Strategy::~Strategy() {}
 
@@ -92,7 +100,7 @@ void Strategy::initializeStrategy()
     d_strategy_init = true;
     // beginning indices
     step_begin[Theory::EFFORT_FULL] = 0;
-    if (options::stringEager())
+    if (options().strings.stringEager)
     {
       step_begin[Theory::EFFORT_STANDARD] = 0;
     }
@@ -100,48 +108,60 @@ void Strategy::initializeStrategy()
     addStrategyStep(CHECK_INIT);
     addStrategyStep(CHECK_CONST_EQC);
     addStrategyStep(CHECK_EXTF_EVAL, 0);
+    if (options().strings.seqArray == options::SeqArrayMode::EAGER)
+    {
+      addStrategyStep(CHECK_SEQUENCES_ARRAY_EAGER);
+    }
     // we must check cycles before using flat forms
     addStrategyStep(CHECK_CYCLES);
-    if (options::stringFlatForms())
+    if (options().strings.stringFlatForms)
     {
       addStrategyStep(CHECK_FLAT_FORMS);
     }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
-    if (options::stringEager())
+    if (options().strings.stringEager)
     {
       // do only the above inferences at standard effort, if applicable
       step_end[Theory::EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
-    if (!options::stringEagerLen())
+    if (!options().strings.stringEagerLen)
     {
       addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
-    if (!options::stringEagerLen() && options::stringLenNorm())
+    if (!options().strings.stringEagerLen && options().strings.stringLenNorm)
     {
       addStrategyStep(CHECK_LENGTH_EQC, 0, false);
       addStrategyStep(CHECK_REGISTER_TERMS_NF);
     }
     addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
     addStrategyStep(CHECK_CODES);
-    if (options::stringEagerLen() && options::stringLenNorm())
+    if (options().strings.stringEagerLen && options().strings.stringLenNorm)
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
-    if (options::stringExp() && !options::stringGuessModel())
+    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    {
+      addStrategyStep(CHECK_SEQUENCES_ARRAY_CONCAT);
+      addStrategyStep(CHECK_SEQUENCES_ARRAY);
+    }
+    if (options().strings.stringExp)
     {
       addStrategyStep(CHECK_EXTF_REDUCTION, 2);
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);
     step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
-    if (options::stringExp() && options::stringGuessModel())
+    if (options().strings.stringModelBasedReduction)
     {
       step_begin[Theory::EFFORT_LAST_CALL] = d_infer_steps.size();
-      // these two steps are run in parallel
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2, false);
       addStrategyStep(CHECK_EXTF_EVAL, 3);
+      if (options().strings.stringExp)
+      {
+        addStrategyStep(CHECK_EXTF_REDUCTION, 3);
+      }
+      addStrategyStep(CHECK_MEMBERSHIP, 3);
       step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
     // set the beginning/ending ranges
@@ -158,4 +178,4 @@ void Strategy::initializeStrategy()
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

@@ -1,34 +1,40 @@
-/*********************                                                        */
-/*! \file quant_split.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of dynamic quantifiers splitting
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of dynamic quantifiers splitting.
+ */
 
 #include "theory/quantifiers/quant_split.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/first_order_model.h"
+
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/term_database.h"
 
-using namespace std;
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5::internal::kind;
 
+namespace cvc5::internal {
+namespace theory {
+namespace quantifiers {
 
-QuantDSplit::QuantDSplit( QuantifiersEngine * qe, context::Context* c ) :
-QuantifiersModule( qe ), d_added_split( qe->getUserContext() ){
-
+QuantDSplit::QuantDSplit(Env& env,
+                         QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim,
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr)
+    : QuantifiersModule(env, qs, qim, qr, tr), d_added_split(userContext())
+{
 }
 
 void QuantDSplit::checkOwnership(Node q)
@@ -43,10 +49,12 @@ void QuantDSplit::checkOwnership(Node q)
   }
   bool takeOwnership = false;
   bool doSplit = false;
+  QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
+      bool isFinite = d_env.isFiniteType(tn);
       const DType& dt = tn.getDType();
       if (dt.isRecursiveSingleton(tn))
       {
@@ -54,17 +62,18 @@ void QuantDSplit::checkOwnership(Node q)
       }
       else
       {
-        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        if (options().quantifiers.quantDynamicSplit
+            == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
-          doSplit = dt.isInterpretedFinite(tn);
+          doSplit = isFinite;
         }
-        else if (options::quantDynamicSplit()
+        else if (options().quantifiers.quantDynamicSplit
                  == options::QuantDSplitMode::DEFAULT)
         {
-          if (!d_quantEngine->isFiniteBound(q, q[0][i]))
+          if (!qbi.isFiniteBound(q, q[0][i]))
           {
-            if (dt.isInterpretedFinite(tn))
+            if (isFinite)
             {
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort
@@ -99,7 +108,7 @@ void QuantDSplit::checkOwnership(Node q)
   if (takeOwnership)
   {
     Trace("quant-dsplit-debug") << "Will take ownership." << std::endl;
-    d_quantEngine->setOwner( q, this );
+    d_qreg.setOwner(q, this);
   }
   // Notice we may not take ownership in some cases, meaning that both the
   // original quantified formula and the split one are generated. This may
@@ -126,14 +135,16 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
+  Trace("quant-dsplit") << "QuantDSplit::check" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  FirstOrderModel* m = d_quantEngine->getModel();
+  FirstOrderModel* m = d_treg.getModel();
   std::vector<Node> lemmas;
   for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
        it != d_quant_to_reduce.end();
        ++it)
   {
     Node q = it->first;
+    Trace("quant-dsplit") << "- Split quantifier " << q << std::endl;
     if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
         && d_added_split.find(q) == d_added_split.end())
     {
@@ -156,17 +167,18 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         std::vector<Node> vars;
+        TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
+        Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
         for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
         {
-          TypeNode tns = dt[j][k].getRangeType();
+          TypeNode tns = dtjtn[k];
           Node v = nm->mkBoundVar(tns);
           vars.push_back(v);
         }
         std::vector<Node> bvs_cmb;
         bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
         bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
-        vars.insert(vars.begin(), dt[j].getConstructor());
-        Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
+        Node c = datatypes::utils::mkApplyCons(tn, dt, j, vars);
         TNode ct = c;
         Node body = q[1].substitute(svar, ct);
         if (!bvs_cmb.empty())
@@ -194,7 +206,11 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   for (const Node& lem : lemmas)
   {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_quantEngine->addLemma(lem, false);
+    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_DSPLIT);
   }
+  Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal

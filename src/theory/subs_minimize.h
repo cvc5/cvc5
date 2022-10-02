@@ -1,27 +1,29 @@
-/*********************                                                        */
-/*! \file subs_minimize.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Substitution minimization.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Substitution minimization.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SUBS_MINIMIZE_H
-#define CVC4__THEORY__SUBS_MINIMIZE_H
+#ifndef CVC5__THEORY__SUBS_MINIMIZE_H
+#define CVC5__THEORY__SUBS_MINIMIZE_H
 
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 /** SubstitutionMinimize
@@ -29,10 +31,10 @@ namespace theory {
  * This class is used for finding a minimal substitution under which an
  * evaluation holds.
  */
-class SubstitutionMinimize
+class SubstitutionMinimize : protected EnvObj
 {
  public:
-  SubstitutionMinimize();
+  SubstitutionMinimize(Env& env);
   ~SubstitutionMinimize() {}
   /** find
    *
@@ -44,11 +46,11 @@ class SubstitutionMinimize
    * If t { vars -> subs } does not rewrite to target, this method returns
    * false.
    */
-  static bool find(Node t,
-                   Node target,
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs,
-                   std::vector<Node>& reqVars);
+  bool find(Node t,
+            Node target,
+            const std::vector<Node>& vars,
+            const std::vector<Node>& subs,
+            std::vector<Node>& reqVars);
   /** find with implied
    *
    * This method should be called on a formula t.
@@ -72,29 +74,29 @@ class SubstitutionMinimize
    * to appear in reqVars, whereas those later in the vars are more likely to
    * appear in impliedVars.
    */
-  static bool findWithImplied(Node t,
-                              const std::vector<Node>& vars,
-                              const std::vector<Node>& subs,
-                              std::vector<Node>& reqVars,
-                              std::vector<Node>& impliedVars);
+  bool findWithImplied(Node t,
+                       const std::vector<Node>& vars,
+                       const std::vector<Node>& subs,
+                       std::vector<Node>& reqVars,
+                       std::vector<Node>& impliedVars);
 
  private:
   /** Common helper function for the above functions. */
-  static bool findInternal(Node t,
-                           Node target,
-                           const std::vector<Node>& vars,
-                           const std::vector<Node>& subs,
-                           std::vector<Node>& reqVars);
+  bool findInternal(Node t,
+                    Node target,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::vector<Node>& reqVars);
   /** is singular arg
    *
    * Returns true if
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = c
    * always holds for some constant c.
    */
-  static bool isSingularArg(Node n, Kind k, unsigned arg);
+  bool isSingularArg(Node n, Kind k, unsigned arg);
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__SUBS_MINIMIZE_H */
+#endif /* CVC5__THEORY__SUBS_MINIMIZE_H */

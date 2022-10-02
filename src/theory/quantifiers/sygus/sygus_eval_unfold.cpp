@@ -1,37 +1,45 @@
-/*********************                                                        */
-/*! \file sygus_eval_unfold.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of sygus_eval_unfold
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of sygus_eval_unfold.
+ */
 
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace cvc5::internal::kind;
+using namespace cvc5::context;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
+SygusEvalUnfold::SygusEvalUnfold(Env& env, TermDbSygus* tds)
+    : EnvObj(env), d_tds(tds)
+{
+}
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
-  Assert(options::sygusEvalUnfold());
+  Assert(options().quantifiers.sygusEvalUnfoldMode
+         != options::SygusEvalUnfoldMode::NONE);
   // is this a sygus evaluation function application?
   if (n.getKind() != DT_SYGUS_EVAL)
   {
@@ -73,8 +81,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
                                          std::vector<Node>& vals,
                                          std::vector<Node>& exps)
 {
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator its =
-      d_subterms.find(a);
+  std::map<Node, std::unordered_set<Node> >::iterator its = d_subterms.find(a);
   if (its == d_subterms.end())
   {
     return;
@@ -94,7 +101,12 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TNode at = a;
       TNode vt = v;
       Node vn = n.substitute(at, vt);
-      vn = Rewriter::rewrite(vn);
+      vn = rewrite(vn);
+      // it might be incorrectly applied
+      if (!vn.isConst())
+      {
+        continue;
+      }
       unsigned start = d_node_mv_args_proc[n][vn];
       // get explanation in terms of testers
       std::vector<Node> antec_exp;
@@ -136,7 +148,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
         Node expn;
         // should we unfold?
         bool do_unfold = false;
-        if (options::sygusEvalUnfoldBool())
+        if (options().quantifiers.sygusEvalUnfoldMode
+            == options::SygusEvalUnfoldMode::SINGLE_BOOL)
         {
           Node bTermUse = bTerm;
           if (bTerm.getKind() == APPLY_UF)
@@ -153,6 +166,12 @@ void SygusEvalUnfold::registerModelValue(Node a,
           {
             do_unfold = true;
           }
+        }
+        else if (options().quantifiers.sygusEvalUnfoldMode
+                 == options::SygusEvalUnfoldMode::SINGLE)
+        {
+          // do single step for all
+          do_unfold = true;
         }
         if (do_unfold || hasSymCons)
         {
@@ -172,13 +191,13 @@ void SygusEvalUnfold::registerModelValue(Node a,
         }
         else
         {
-          EvalSygusInvarianceTest esit;
+          EvalSygusInvarianceTest esit(d_env.getRewriter());
           eval_children.insert(
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
-          res = d_tds->evaluateWithUnfolding(eval_fun);
+          res = d_tds->rewriteNode(eval_fun);
           Trace("sygus-eval-unfold")
               << "Evaluate with unfolding returns " << res << std::endl;
           esit.init(conj, n, res);
@@ -269,8 +288,11 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
+      bool shareSel = options().datatypes.dtSharedSelectors;
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+          APPLY_SELECTOR,
+          datatypes::utils::getSelector(headType, dt[i], 0, shareSel),
+          en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -279,7 +301,8 @@ Node SygusEvalUnfold::unfold(Node en,
 
   Assert(!dt.isParametric());
   std::map<int, Node> pre;
-  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+  bool sharedSel = options().datatypes.dtSharedSelectors;
+  for (size_t j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
   {
     std::vector<Node> cc;
     Node s;
@@ -292,8 +315,8 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
-      s = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
+      Node sel = datatypes::utils::getSelector(headType, dt[i], j, sharedSel);
+      s = nm->mkNode(APPLY_SELECTOR, sel, en[0]);
     }
     cc.push_back(s);
     if (track_exp)
@@ -317,18 +340,11 @@ Node SygusEvalUnfold::unfold(Node en,
   Trace("sygus-eval-unfold-debug")
       << "Applied sygus args : " << ret << std::endl;
   // rewrite
-  ret = Rewriter::rewrite(ret);
+  ret = rewrite(ret);
   Trace("sygus-eval-unfold-debug") << "Rewritten : " << ret << std::endl;
   return ret;
 }
 
-Node SygusEvalUnfold::unfold(Node en)
-{
-  std::map<Node, Node> vtm;
-  std::vector<Node> exp;
-  return unfold(en, vtm, exp, false, false);
-}
-
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

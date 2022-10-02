@@ -1,20 +1,20 @@
-/*********************                                                        */
-/*! \file process_assertions.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of module for processing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of module for processing assertions for an SMT engine.
+ */
 
 #include "smt/process_assertions.h"
 
-#include <stack>
 #include <utility>
 
 #include "expr/node_manager_attributes.h"
@@ -24,21 +24,23 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
-#include "smt/defined_function.h"
-#include "smt/dump.h"
-#include "smt/smt_engine.h"
+#include "smt/assertions.h"
+#include "smt/print_benchmark.h"
+#include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
-using namespace CVC4::preprocessing;
-using namespace CVC4::theory;
-using namespace CVC4::kind;
+using namespace std;
+using namespace cvc5::internal::preprocessing;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace smt {
 
 /** Useful for counting the number of recursive calls. */
@@ -52,15 +54,8 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt,
-                                     ExpandDefs& exDefs,
-                                     ResourceManager& rm,
-                                     SmtEngineStatistics& stats)
-    : d_smt(smt),
-      d_exDefs(exDefs),
-      d_resourceManager(rm),
-      d_smtStats(stats),
-      d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
+    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -71,7 +66,7 @@ ProcessAssertions::~ProcessAssertions()
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
-  Assert(d_preprocessingPassContext == nullptr);
+  // note that we may be replacing a stale preprocessing pass context here
   d_preprocessingPassContext = pc;
 
   PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
@@ -88,23 +83,33 @@ void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 
 void ProcessAssertions::cleanup() { d_passes.clear(); }
 
-void ProcessAssertions::spendResource(ResourceManager::Resource r)
+void ProcessAssertions::spendResource(Resource r)
 {
-  d_resourceManager.spendResource(r);
+  resourceManager()->spendResource(r);
 }
 
 bool ProcessAssertions::apply(Assertions& as)
 {
+  // must first refresh the assertions, in the case global declarations is true
+  as.refresh();
   AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
-  dumpAssertions("pre-everything", assertions);
+  dumpAssertions("assertions::pre-everything", as);
+  Trace("assertions::pre-everything") << std::endl;
+  if (isOutputOn(OutputTag::PRE_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::PRE_ASSERTS);
+    outPA << ";; pre-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; pre-asserts end" << std::endl;
+  }
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() begin" << endl;
   Trace("smt") << "ProcessAssertions::processAssertions()" << endl;
 
-  Debug("smt") << "#Assertions : " << assertions.size() << endl;
-  Debug("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
+  Trace("smt") << "#Assertions : " << assertions.size() << endl;
+  Trace("smt") << "#Assumptions: " << assertions.getNumAssumptions() << endl;
 
   if (assertions.size() == 0)
   {
@@ -112,9 +117,17 @@ bool ProcessAssertions::apply(Assertions& as)
     return true;
   }
 
-  if (options::bvGaussElim())
+  // this must be applied to assertions before they are preprocessed, so that
+  // we do not synthesize rewrite rules for internally generated symbols.
+  if (options().quantifiers.sygusRewSynthInput)
   {
-    d_passes["bv-gauss"]->apply(&assertions);
+    // do candidate rewrite rule synthesis
+    applyPass("synth-rr", as);
+  }
+
+  if (options().bv.bvGaussElim)
+  {
+    applyPass("bv-gauss", as);
   }
 
   // Add dummy assertion in last position - to be used as a
@@ -129,385 +142,298 @@ bool ProcessAssertions::apply(Assertions& as)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
-  dumpAssertions("pre-definition-expansion", assertions);
-  d_exDefs.expandAssertions(assertions, false);
+  // Apply substitutions first. If we are non-incremental, this has only the
+  // effect of replacing defined functions with their definitions.
+  // We do not call theory-specific expand definitions here, since we want
+  // to give the opportunity to rewrite/preprocess terms before expansion.
+  applyPass("apply-substs", as);
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
-  dumpAssertions("post-definition-expansion", assertions);
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
-  if (options::globalNegate())
+  if (options().quantifiers.globalNegate)
   {
     // global negation of the formula
-    d_passes["global-negate"]->apply(&assertions);
-    as.flipGlobalNegated();
+    applyPass("global-negate", as);
   }
 
-  if (options::nlExtPurify())
+  if (options().arith.nlExtPurify)
   {
-    d_passes["nl-ext-purify"]->apply(&assertions);
+    applyPass("nl-ext-purify", as);
   }
 
-  if (options::solveRealAsInt())
+  if (options().smt.solveRealAsInt)
   {
-    d_passes["real-to-int"]->apply(&assertions);
+    applyPass("real-to-int", as);
   }
 
-  if (options::solveIntAsBV() > 0)
+  if (options().smt.solveIntAsBV > 0)
   {
-    d_passes["int-to-bv"]->apply(&assertions);
+    applyPass("int-to-bv", as);
   }
 
-  if (options::ackermann())
+  if (options().smt.ackermann)
   {
-    d_passes["ackermann"]->apply(&assertions);
+    applyPass("ackermann", as);
   }
 
-  if (options::bvAbstraction())
-  {
-    d_passes["bv-abstraction"]->apply(&assertions);
-  }
-
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
   bool noConflict = true;
 
-  if (options::extRewPrep())
+  if (options().smt.extRewPrep != options::ExtRewPrepMode::OFF)
   {
-    d_passes["ext-rew-pre"]->apply(&assertions);
+    applyPass("ext-rew-pre", as);
   }
 
   // Unconstrained simplification
-  if (options::unconstrainedSimp())
+  if (options().smt.unconstrainedSimp)
   {
-    d_passes["rewrite"]->apply(&assertions);
-    d_passes["unconstrained-simplifier"]->apply(&assertions);
+    applyPass("rewrite", as);
+    applyPass("unconstrained-simplifier", as);
   }
 
-  if (options::bvIntroducePow2())
+  if (options().bv.bvIntroducePow2)
   {
-    d_passes["bv-intro-pow2"]->apply(&assertions);
+    applyPass("bv-intro-pow2", as);
   }
 
   // Lift bit-vectors of size 1 to bool
-  if (options::bitvectorToBool())
+  if (options().bv.bitvectorToBool)
   {
-    d_passes["bv-to-bool"]->apply(&assertions);
+    applyPass("bv-to-bool", as);
   }
-  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
+  if (options().smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
-    d_passes["bv-to-int"]->apply(&assertions);
-    // after running bv-to-int, we need to immediately run
-    // theory-preprocess and ite-removal so that newlly created
-    // terms and assertions are normalized (e.g., div is expanded).
-    d_passes["theory-preprocess"]->apply(&assertions);
+    applyPass("bv-to-int", as);
   }
-
-  // Since this pass is not robust for the information tracking necessary for
-  // unsat cores, it's only applied if we are not doing unsat core computation
-  if (!options::unsatCores())
+  if (options().smt.foreignTheoryRewrite)
   {
-    d_passes["apply-substs"]->apply(&assertions);
+    applyPass("foreign-theory-rewrite", as);
   }
 
   // Assertions MUST BE guaranteed to be rewritten by this point
-  d_passes["rewrite"]->apply(&assertions);
+  applyPass("rewrite", as);
 
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+  if (options().bv.boolToBitvector != options::BoolToBVMode::OFF)
   {
-    d_passes["bool-to-bv"]->apply(&assertions);
+    applyPass("bool-to-bv", as);
   }
-  if (options::sepPreSkolemEmp())
+  if (options().sep.sepPreSkolemEmp)
   {
-    d_passes["sep-skolem-emp"]->apply(&assertions);
+    applyPass("sep-skolem-emp", as);
   }
 
-  if (d_smt.getLogicInfo().isQuantified())
+  if (logicInfo().isQuantified())
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
-    d_passes["quantifiers-preprocess"]->apply(&assertions);
-    if (options::macrosQuant())
-    {
-      // quantifiers macro expansion
-      d_passes["quantifier-macros"]->apply(&assertions);
-    }
+    applyPass("quantifiers-preprocess", as);
 
     // fmf-fun : assume admissible functions, applying preprocessing reduction
     // to FMF
-    if (options::fmfFunWellDefined())
+    if (options().quantifiers.fmfFunWellDefined)
     {
-      d_passes["fun-def-fmf"]->apply(&assertions);
+      applyPass("fun-def-fmf", as);
     }
   }
-
-  if (options::sortInference() || options::ufssFairnessMonotone())
+  if (!options().strings.stringLazyPreproc)
   {
-    d_passes["sort-inference"]->apply(&assertions);
+    applyPass("strings-eager-pp", as);
+    // needed since strings eager preprocessing may reintroduce skolems that
+    // were already solved for in incremental mode
+    applyPass("apply-substs", as);
+  }
+  if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
+  {
+    applyPass("sort-inference", as);
   }
 
-  if (options::pbRewrites())
+  if (options().arith.pbRewrites)
   {
-    d_passes["pseudo-boolean-processor"]->apply(&assertions);
+    applyPass("pseudo-boolean-processor", as);
   }
 
   // rephrasing normal inputs as sygus problems
-  if (!d_smt.isInternalSubsolver())
+  if (options().quantifiers.sygusInference)
   {
-    if (options::sygusInference())
-    {
-      d_passes["sygus-infer"]->apply(&assertions);
-    }
-    else if (options::sygusRewSynthInput())
-    {
-      // do candidate rewrite rule synthesis
-      d_passes["synth-rr"]->apply(&assertions);
-    }
+    applyPass("sygus-infer", as);
   }
 
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : pre-simplify"
                     << endl;
-  dumpAssertions("pre-simplify", assertions);
-  Chat() << "simplifying assertions..." << endl;
-  noConflict = simplifyAssertions(assertions);
+  dumpAssertions("assertions::pre-simplify", as);
+  Trace("assertions::pre-simplify") << std::endl;
+  verbose(2) << "simplifying assertions..." << std::endl;
+  noConflict = simplifyAssertions(as);
   if (!noConflict)
   {
-    ++(d_smtStats.d_simplifiedToFalse);
+    ++(d_slvStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
-  dumpAssertions("post-simplify", assertions);
+  dumpAssertions("assertions::post-simplify", as);
+  Trace("assertions::post-simplify") << std::endl;
 
-  if (options::doStaticLearning())
+  if (options().smt.staticLearning)
   {
-    d_passes["static-learning"]->apply(&assertions);
+    applyPass("static-learning", as);
   }
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
+  if (options().smt.learnedRewrite)
   {
-    d_smtStats.d_numAssertionsPre += assertions.size();
-    d_passes["ite-removal"]->apply(&assertions);
+    applyPass("learned-rewrite", as);
+  }
+
+  if (options().smt.earlyIteRemoval)
+  {
+    d_slvStats.d_numAssertionsPre += assertions.size();
+    applyPass("ite-removal", as);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
-    d_passes["apply-substs"]->apply(&assertions);
-    d_smtStats.d_numAssertionsPost += assertions.size();
+    applyPass("apply-substs", as);
+    d_slvStats.d_numAssertionsPost += assertions.size();
   }
 
-  dumpAssertions("pre-repeat-simplify", assertions);
-  if (options::repeatSimp())
+  dumpAssertions("assertions::pre-repeat-simplify", as);
+  Trace("assertions::pre-repeat-simplify") << std::endl;
+  if (options().smt.repeatSimp)
   {
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : pre-repeat-simplify"
         << endl;
-    Chat() << "re-simplifying assertions..." << endl;
+    verbose(2) << "re-simplifying assertions..." << std::endl;
     ScopeCounter depth(d_simplifyAssertionsDepth);
-    noConflict &= simplifyAssertions(assertions);
-    if (noConflict)
-    {
-      // Need to fix up assertion list to maintain invariants:
-      // Let Sk be the set of Skolem variables introduced by ITE's.  Let <_sk be
-      // the order in which these variables were introduced during ite removal.
-      // For each skolem variable sk, let iteExpr = iteMap(sk) be the ite expr
-      // mapped to by sk.
-
-      // cache for expression traversal
-      unordered_map<Node, bool, NodeHashFunction> cache;
-
-      IteSkolemMap& iskMap = assertions.getIteSkolemMap();
-      // First, find all skolems that appear in the substitution map - their
-      // associated iteExpr will need to be moved to the main assertion set
-      set<TNode> skolemSet;
-      SubstitutionMap& top_level_substs =
-          d_preprocessingPassContext->getTopLevelSubstitutions().get();
-      SubstitutionMap::iterator pos = top_level_substs.begin();
-      for (; pos != top_level_substs.end(); ++pos)
-      {
-        collectSkolems(iskMap, (*pos).first, skolemSet, cache);
-        collectSkolems(iskMap, (*pos).second, skolemSet, cache);
-      }
-      // We need to ensure:
-      // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
-      // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
-      // If either of these is violated, we must add iteExpr as a proper
-      // assertion
-      IteSkolemMap::iterator it = iskMap.begin();
-      IteSkolemMap::iterator iend = iskMap.end();
-      std::vector<Node> newConj;
-      vector<TNode> toErase;
-      for (; it != iend; ++it)
-      {
-        if (skolemSet.find((*it).first) == skolemSet.end())
-        {
-          TNode iteExpr = assertions[(*it).second];
-          if (iteExpr.getKind() == ITE && iteExpr[1].getKind() == EQUAL
-              && iteExpr[1][0] == (*it).first && iteExpr[2].getKind() == EQUAL
-              && iteExpr[2][0] == (*it).first)
-          {
-            cache.clear();
-            bool bad =
-                checkForBadSkolems(iskMap, iteExpr[0], (*it).first, cache);
-            bad = bad
-                  || checkForBadSkolems(
-                         iskMap, iteExpr[1][1], (*it).first, cache);
-            bad = bad
-                  || checkForBadSkolems(
-                         iskMap, iteExpr[2][1], (*it).first, cache);
-            if (!bad)
-            {
-              continue;
-            }
-          }
-        }
-        // Move this iteExpr into the main assertions
-        newConj.push_back(assertions[(*it).second]);
-        assertions.replace((*it).second, d_true);
-        toErase.push_back((*it).first);
-      }
-      if (!newConj.empty())
-      {
-        while (!toErase.empty())
-        {
-          iskMap.erase(toErase.back());
-          toErase.pop_back();
-        }
-        size_t index = assertions.getRealAssertionsEnd() - 1;
-        Node newAssertion = NodeManager::currentNM()->mkAnd(newConj);
-        assertions.conjoin(index, newAssertion);
-      }
-      // TODO(b/1256): For some reason this is needed for some benchmarks, such
-      // as
-      // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      d_passes["ite-removal"]->apply(&assertions);
-      d_passes["apply-substs"]->apply(&assertions);
-    }
+    noConflict &= simplifyAssertions(as);
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : post-repeat-simplify"
         << endl;
   }
-  dumpAssertions("post-repeat-simplify", assertions);
+  dumpAssertions("assertions::post-repeat-simplify", as);
+  Trace("assertions::post-repeat-simplify") << std::endl;
 
-  if (options::ufHo())
+  if (logicInfo().isHigherOrder())
   {
-    d_passes["ho-elim"]->apply(&assertions);
+    applyPass("ho-elim", as);
   }
-
+  
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
-  Debug("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
+  Trace("smt") << "ProcessAssertions::processAssertions() POST SIMPLIFICATION"
                << endl;
-  Debug("smt") << " assertions     : " << assertions.size() << endl;
+  Trace("smt") << " assertions     : " << assertions.size() << endl;
 
-  d_passes["theory-preprocess"]->apply(&assertions);
-  // Must remove ITEs again since theory preprocessing may introduce them.
-  // Notice that we alternatively could ensure that the theory-preprocess
-  // pass above calls TheoryPreprocess::preprocess instead of
-  // TheoryPreprocess::theoryPreprocess, as the former also does ITE removal.
-  d_passes["ite-removal"]->apply(&assertions);
+  // ensure rewritten
+  applyPass("rewrite", as);
+  // rewrite equalities based on theory-specific rewriting
+  applyPass("theory-rewrite-eq", as);
+  // apply theory preprocess, which includes ITE removal
+  applyPass("theory-preprocess", as);
+  // notice that we do not apply substitutions as a last step here, since
+  // the range of substitutions is not theory-preprocessed.
 
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  if (options().bv.bitblastMode == options::BitblastMode::EAGER)
   {
-    d_passes["bv-eager-atoms"]->apply(&assertions);
+    applyPass("bv-eager-atoms", as);
   }
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
-  dumpAssertions("post-everything", assertions);
+  Trace("smt-proc") << "ProcessAssertions::apply() end" << endl;
+  dumpAssertions("assertions::post-everything", as);
+  Trace("assertions::post-everything") << std::endl;
+  if (isOutputOn(OutputTag::POST_ASSERTS))
+  {
+    std::ostream& outPA = d_env.output(OutputTag::POST_ASSERTS);
+    outPA << ";; post-asserts start" << std::endl;
+    dumpAssertionsToStream(outPA, as);
+    outPA << ";; post-asserts end" << std::endl;
+  }
 
   return noConflict;
 }
 
 // returns false if simplification led to "false"
-bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
+bool ProcessAssertions::simplifyAssertions(Assertions& as)
 {
-  spendResource(ResourceManager::Resource::PreprocessStep);
+  spendResource(Resource::PreprocessStep);
   try
   {
+    AssertionPipeline& assertions = as.getAssertionPipeline();
     ScopeCounter depth(d_simplifyAssertionsDepth);
 
-    Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
+    Trace("simplify") << "ProcessAssertions::simplify()" << endl;
 
-    if (options::simplificationMode() != options::SimplificationMode::NONE)
+    if (options().smt.simplificationMode != options::SimplificationMode::NONE)
     {
-      if (!options::unsatCores())
+      // Perform non-clausal simplification
+      PreprocessingPassResult res = applyPass("non-clausal-simp", as);
+      if (res == PreprocessingPassResult::CONFLICT)
       {
-        // Perform non-clausal simplification
-        PreprocessingPassResult res =
-            d_passes["non-clausal-simp"]->apply(&assertions);
-        if (res == PreprocessingPassResult::CONFLICT)
-        {
-          return false;
-        }
+        return false;
       }
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
       // do the miplib trick.
       if (  // check that option is on
-          options::arithMLTrick() &&
+          options().arith.arithMLTrick &&
           // only useful in arith
-          d_smt.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
+          logicInfo().isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
           assertions.getRealAssertionsEnd() == assertions.size())
       {
-        d_passes["miplib-trick"]->apply(&assertions);
+        applyPass("miplib-trick", as);
       }
       else
       {
-        Trace("simplify") << "SmtEnginePrivate::simplify(): "
+        Trace("simplify") << "ProcessAssertions::simplify(): "
                           << "skipping miplib pseudobooleans pass..." << endl;
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
-
-    // Theory preprocessing
-    bool doEarlyTheoryPp = !options::arithRewriteEq();
-    if (doEarlyTheoryPp)
-    {
-      d_passes["theory-preprocess"]->apply(&assertions);
-    }
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // ITE simplification
-    if (options::doITESimp()
-        && (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat()))
+    if (options().smt.doITESimp
+        && (d_simplifyAssertionsDepth <= 1 || options().smt.doITESimpOnRepeat))
     {
-      PreprocessingPassResult res = d_passes["ite-simp"]->apply(&assertions);
+      PreprocessingPassResult res = applyPass("ite-simp", as);
       if (res == PreprocessingPassResult::CONFLICT)
       {
-        Chat() << "...ITE simplification found unsat..." << endl;
+        verbose(2) << "...ITE simplification found unsat..." << std::endl;
         return false;
       }
     }
 
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
 
     // Unconstrained simplification
-    if (options::unconstrainedSimp())
+    if (options().smt.unconstrainedSimp)
     {
-      d_passes["unconstrained-simplifier"]->apply(&assertions);
+      applyPass("unconstrained-simplifier", as);
     }
 
-    if (options::repeatSimp()
-        && options::simplificationMode() != options::SimplificationMode::NONE
-        && !options::unsatCores())
+    if (options().smt.repeatSimp
+        && options().smt.simplificationMode
+               != options::SimplificationMode::NONE)
     {
-      PreprocessingPassResult res =
-          d_passes["non-clausal-simp"]->apply(&assertions);
+      PreprocessingPassResult res = applyPass("non-clausal-simp", as);
       if (res == PreprocessingPassResult::CONFLICT)
       {
         return false;
       }
     }
 
-    dumpAssertions("post-repeatsimp", assertions);
+    dumpAssertions("post-repeatsimp", as);
     Trace("smt") << "POST repeatSimp" << endl;
-    Debug("smt") << " assertions     : " << assertions.size() << endl;
+    Trace("smt") << " assertions     : " << assertions.size() << endl;
   }
   catch (TypeCheckingExceptionPrivate& tcep)
   {
@@ -523,95 +449,61 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
   return true;
 }
 
-void ProcessAssertions::dumpAssertions(const char* key,
-                                       const AssertionPipeline& assertionList)
+void ProcessAssertions::dumpAssertions(const std::string& key, Assertions& as)
 {
-  if (Dump.isOn("assertions") && Dump.isOn(string("assertions:") + key))
-  {
-    // Push the simplified assertions to the dump output stream
-    for (unsigned i = 0; i < assertionList.size(); ++i)
-    {
-      TNode n = assertionList[i];
-      d_smt.getOutputManager().getPrinter().toStreamCmdAssert(
-          d_smt.getOutputManager().getDumpOut(), n);
-    }
-  }
-}
-
-void ProcessAssertions::collectSkolems(
-    IteSkolemMap& iskMap,
-    TNode n,
-    set<TNode>& skolemSet,
-    unordered_map<Node, bool, NodeHashFunction>& cache)
-{
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
-  it = cache.find(n);
-  if (it != cache.end())
+  bool isTraceOn = TraceIsOn(key);
+  if (!isTraceOn)
   {
     return;
   }
-
-  size_t sz = n.getNumChildren();
-  if (sz == 0)
-  {
-    if (iskMap.find(n) != iskMap.end())
-    {
-      skolemSet.insert(n);
-    }
-    cache[n] = true;
-    return;
-  }
-
-  size_t k = 0;
-  for (; k < sz; ++k)
-  {
-    collectSkolems(iskMap, n[k], skolemSet, cache);
-  }
-  cache[n] = true;
+  std::stringstream ss;
+  dumpAssertionsToStream(ss, as);
+  Trace(key) << ";;; " << key << " start" << std::endl;
+  Trace(key) << ss.str();
+  Trace(key) << ";;; " << key << " end " << std::endl;
 }
 
-bool ProcessAssertions::checkForBadSkolems(
-    IteSkolemMap& iskMap,
-    TNode n,
-    TNode skolem,
-    unordered_map<Node, bool, NodeHashFunction>& cache)
+void ProcessAssertions::dumpAssertionsToStream(std::ostream& os, Assertions& as)
 {
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
-  it = cache.find(n);
-  if (it != cache.end())
+  PrintBenchmark pb(Printer::getPrinter(os));
+  std::vector<Node> assertions;
+  // Notice that the following list covers define-fun and define-fun-rec
+  // from input. The former does not impact the assertions since define-fun are
+  // added as top-level substitutions. The latter do get added to the list
+  // of assertions. Since we are interested in printing the result of
+  // preprocessed quantified formulas corresponding to recursive function
+  // definitions and not the original definitions, we discard the latter
+  // in the loop below.
+  //
+  // In summary, this means that define-fun-rec are expanded to
+  // (declare-fun ...) + (assert (forall ...)) in the printing below, whereas
+  // define-fun are preserved.
+  const context::CDList<Node>& asld = as.getAssertionListDefinitions();
+  std::vector<Node> defs;
+  for (const Node& d : asld)
   {
-    return (*it).second;
-  }
-
-  size_t sz = n.getNumChildren();
-  if (sz == 0)
-  {
-    IteSkolemMap::iterator iit = iskMap.find(n);
-    bool bad = false;
-    if (iit != iskMap.end())
+    if (d.getKind() != FORALL)
     {
-      if (!((*iit).first < n))
-      {
-        bad = true;
-      }
-    }
-    cache[n] = bad;
-    return bad;
-  }
-
-  size_t k = 0;
-  for (; k < sz; ++k)
-  {
-    if (checkForBadSkolems(iskMap, n[k], skolem, cache))
-    {
-      cache[n] = true;
-      return true;
+      defs.push_back(d);
     }
   }
+  AssertionPipeline& ap = as.getAssertionPipeline();
+  for (size_t i = 0, size = ap.size(); i < size; i++)
+  {
+    assertions.push_back(ap[i]);
+  }
+  pb.printBenchmark(os, logicInfo().getLogicString(), defs, assertions);
+}
 
-  cache[n] = false;
-  return false;
+PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
+                                                     Assertions& as)
+{
+  dumpAssertions("assertions::pre-" + pname, as);
+  AssertionPipeline& assertions = as.getAssertionPipeline();
+  PreprocessingPassResult res = d_passes[pname]->apply(&assertions);
+  dumpAssertions("assertions::post-" + pname, as);
+  return res;
 }
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5::internal

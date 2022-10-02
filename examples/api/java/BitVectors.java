@@ -1,108 +1,128 @@
-/*********************                                                        */
-/*! \file BitVectors.java
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Aina Niemetz
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A simple demonstration of the solving capabilities of the CVC4
- ** bit-vector solver.
- **
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Liana Hadarean, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A simple demonstration of the solving capabilities of the cvc5
+ * bit-vector solver.
+ *
+ */
 
-import edu.stanford.CVC4.*;
+import io.github.cvc5.*;
+import java.util.*;
 
-public class BitVectors {
-  public static void main(String[] args) {
-    System.loadLibrary("cvc4jni");
+public class BitVectors
+{
+  public static void main(String args[]) throws CVC5ApiException
+  {
+    try (Solver slv = new Solver())
+    {
+      slv.setLogic("QF_BV"); // Set the logic
 
-    ExprManager em = new ExprManager();
-    SmtEngine smt = new SmtEngine(em);
+      // The following example has been adapted from the book A Hacker's Delight by
+      // Henry S. Warren.
+      //
+      // Given a variable x that can only have two values, a or b. We want to
+      // assign to x a value other than the current one. The straightforward code
+      // to do that is:
+      //
+      //(0) if (x == a ) x = b;
+      //    else x = a;
+      //
+      // Two more efficient yet equivalent methods are:
+      //
+      //(1) x = a ⊕ b ⊕ x;
+      //
+      //(2) x = a + b - x;
+      //
+      // We will use cvc5 to prove that the three pieces of code above are all
+      // equivalent by encoding the problem in the bit-vector theory.
 
-    smt.setLogic("QF_BV"); // Set the logic
+      // Creating a bit-vector type of width 32
+      Sort bitvector32 = slv.mkBitVectorSort(32);
 
-    // The following example has been adapted from the book A Hacker's Delight by
-    // Henry S. Warren.
-    //
-    // Given a variable x that can only have two values, a or b. We want to
-    // assign to x a value other than the current one. The straightforward code
-    // to do that is:
-    //
-    //(0) if (x == a ) x = b;
-    //    else x = a;
-    //
-    // Two more efficient yet equivalent methods are:
-    //
-    //(1) x = a ⊕ b ⊕ x;
-    //
-    //(2) x = a + b - x;
-    //
-    // We will use CVC4 to prove that the three pieces of code above are all
-    // equivalent by encoding the problem in the bit-vector theory.
+      // Variables
+      Term x = slv.mkConst(bitvector32, "x");
+      Term a = slv.mkConst(bitvector32, "a");
+      Term b = slv.mkConst(bitvector32, "b");
 
-    // Creating a bit-vector type of width 32
-    Type bitvector32 = em.mkBitVectorType(32);
+      // First encode the assumption that x must be Kind.EQUAL to a or b
+      Term x_eq_a = slv.mkTerm(Kind.EQUAL, x, a);
+      Term x_eq_b = slv.mkTerm(Kind.EQUAL, x, b);
+      Term assumption = slv.mkTerm(Kind.OR, x_eq_a, x_eq_b);
 
-    // Variables
-    Expr x = em.mkVar("x", bitvector32);
-    Expr a = em.mkVar("a", bitvector32);
-    Expr b = em.mkVar("b", bitvector32);
+      // Assert the assumption
+      slv.assertFormula(assumption);
 
-    // First encode the assumption that x must be equal to a or b
-    Expr x_eq_a = em.mkExpr(Kind.EQUAL, x, a);
-    Expr x_eq_b = em.mkExpr(Kind.EQUAL, x, b);
-    Expr assumption = em.mkExpr(Kind.OR, x_eq_a, x_eq_b);
+      // Introduce a new variable for the new value of x after assignment.
+      Term new_x = slv.mkConst(bitvector32, "new_x"); // x after executing code (0)
+      Term new_x_ = slv.mkConst(bitvector32, "new_x_"); // x after executing code (1) or (2)
 
-    // Assert the assumption
-    smt.assertFormula(assumption);
+      // Encoding code (0)
+      // new_x = x == a ? b : a;
+      Term ite = slv.mkTerm(Kind.ITE, x_eq_a, b, a);
+      Term assignment0 = slv.mkTerm(Kind.EQUAL, new_x, ite);
 
-    // Introduce a new variable for the new value of x after assignment.
-    Expr new_x = em.mkVar("new_x", bitvector32); // x after executing code (0)
-    Expr new_x_ = em.mkVar("new_x_", bitvector32); // x after executing code (1) or (2)
+      // Assert the encoding of code (0)
+      System.out.println("Asserting " + assignment0 + " to cvc5 ");
+      slv.assertFormula(assignment0);
+      System.out.println("Pushing a new context.");
+      slv.push();
 
-    // Encoding code (0)
-    // new_x = x == a ? b : a;
-    Expr ite = em.mkExpr(Kind.ITE, x_eq_a, b, a);
-    Expr assignment0 = em.mkExpr(Kind.EQUAL, new_x, ite);
+      // Encoding code (1)
+      // new_x_ = a xor b xor x
+      Term a_xor_b_xor_x = slv.mkTerm(Kind.BITVECTOR_XOR, a, b, x);
+      Term assignment1 = slv.mkTerm(Kind.EQUAL, new_x_, a_xor_b_xor_x);
 
-    // Assert the encoding of code (0)
-    System.out.println("Asserting " + assignment0 + " to CVC4 ");
-    smt.assertFormula(assignment0);
-    System.out.println("Pushing a new context.");
-    smt.push();
+      // Assert encoding to cvc5 in current context;
+      System.out.println("Asserting " + assignment1 + " to cvc5 ");
+      slv.assertFormula(assignment1);
+      Term new_x_eq_new_x_ = slv.mkTerm(Kind.EQUAL, new_x, new_x_);
 
-    // Encoding code (1)
-    // new_x_ = a xor b xor x
-    Expr a_xor_b_xor_x = em.mkExpr(Kind.BITVECTOR_XOR, a, b, x);
-    Expr assignment1 = em.mkExpr(Kind.EQUAL, new_x_, a_xor_b_xor_x);
+      System.out.println(" Check sat assuming: " + new_x_eq_new_x_.notTerm());
+      System.out.println(" Expect UNSAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
+      System.out.println(" Popping context. ");
+      slv.pop();
 
-    // Assert encoding to CVC4 in current context;
-    System.out.println("Asserting " + assignment1 + " to CVC4 ");
-    smt.assertFormula(assignment1);
-    Expr new_x_eq_new_x_ = em.mkExpr(Kind.EQUAL, new_x, new_x_);
+      // Encoding code (2)
+      // new_x_ = a + b - x
+      Term a_plus_b = slv.mkTerm(Kind.BITVECTOR_ADD, a, b);
+      Term a_plus_b_minus_x = slv.mkTerm(Kind.BITVECTOR_SUB, a_plus_b, x);
+      Term assignment2 = slv.mkTerm(Kind.EQUAL, new_x_, a_plus_b_minus_x);
 
-    System.out.println(" Querying: " + new_x_eq_new_x_);
-    System.out.println(" Expect entailed. ");
-    System.out.println(" CVC4: " + smt.checkEntailed(new_x_eq_new_x_));
-    System.out.println(" Popping context. ");
-    smt.pop();
+      // Assert encoding to cvc5 in current context;
+      System.out.println("Asserting " + assignment2 + " to cvc5 ");
+      slv.assertFormula(assignment2);
 
-    // Encoding code (2)
-    // new_x_ = a + b - x
-    Expr a_plus_b = em.mkExpr(Kind.BITVECTOR_PLUS, a, b);
-    Expr a_plus_b_minus_x = em.mkExpr(Kind.BITVECTOR_SUB, a_plus_b, x);
-    Expr assignment2 = em.mkExpr(Kind.EQUAL, new_x_, a_plus_b_minus_x);
+      System.out.println(" Check sat assuming: " + new_x_eq_new_x_.notTerm());
+      System.out.println(" Expect UNSAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(new_x_eq_new_x_.notTerm()));
 
-    // Assert encoding to CVC4 in current context;
-    System.out.println("Asserting " + assignment2 + " to CVC4 ");
-    smt.assertFormula(assignment2);
+      Term x_neq_x = slv.mkTerm(Kind.EQUAL, x, x).notTerm();
+      Term[] v = new Term[] {new_x_eq_new_x_, x_neq_x};
+      Term query = slv.mkTerm(Kind.AND, v);
+      System.out.println(" Check sat assuming: " + query.notTerm());
+      System.out.println(" Expect SAT. ");
+      System.out.println(" cvc5: " + slv.checkSatAssuming(query.notTerm()));
 
-    System.out.println(" Querying: " + new_x_eq_new_x_);
-    System.out.println(" Expect entailed. ");
-    System.out.println(" CVC4: " + smt.checkEntailed(new_x_eq_new_x_));
+      // Assert that a is odd
+      Op extract_op = slv.mkOp(Kind.BITVECTOR_EXTRACT, 0, 0);
+      Term lsb_of_a = slv.mkTerm(extract_op, a);
+      System.out.println("Sort of " + lsb_of_a + " is " + lsb_of_a.getSort());
+      Term a_odd = slv.mkTerm(Kind.EQUAL, lsb_of_a, slv.mkBitVector(1, 1));
+      System.out.println("Assert " + a_odd);
+      System.out.println("Check satisfiability.");
+      slv.assertFormula(a_odd);
+      System.out.println(" Expect sat. ");
+      System.out.println(" cvc5: " + slv.checkSat());
+    }
   }
 }

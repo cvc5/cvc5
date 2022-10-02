@@ -1,28 +1,29 @@
-/*********************                                                        */
-/*! \file valuation.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A "valuation" proxy for TheoryEngine
- **
- ** Implementation of Valuation class.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A "valuation" proxy for TheoryEngine.
+ */
 
 #include "theory/valuation.h"
 
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "prop/prop_engine.h"
+#include "theory/assertion.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 std::ostream& operator<<(std::ostream& os, EqualityStatus s)
@@ -123,6 +124,15 @@ TheoryModel* Valuation::getModel() {
   }
   return d_engine->getModel();
 }
+SortInference* Valuation::getSortInference()
+{
+  if (d_engine == nullptr)
+  {
+    // no theory engine, thus we don't have a sort inference object
+    return nullptr;
+  }
+  return d_engine->getSortInference();
+}
 
 void Valuation::setUnevaluatedKind(Kind k)
 {
@@ -156,12 +166,38 @@ void Valuation::setIrrelevantKind(Kind k)
 
 Node Valuation::ensureLiteral(TNode n) {
   Assert(d_engine != nullptr);
-  return d_engine->ensureLiteral(n);
+  return d_engine->getPropEngine()->ensureLiteral(n);
+}
+
+Node Valuation::getPreprocessedTerm(TNode n)
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n);
+}
+
+Node Valuation::getPreprocessedTerm(TNode n,
+                                    std::vector<Node>& skAsserts,
+                                    std::vector<Node>& sks)
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n, skAsserts, sks);
 }
 
 bool Valuation::isDecision(Node lit) const {
   Assert(d_engine != nullptr);
   return d_engine->getPropEngine()->isDecision(lit);
+}
+
+int32_t Valuation::getDecisionLevel(Node lit) const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getDecisionLevel(lit);
+}
+
+int32_t Valuation::getIntroLevel(Node lit) const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getIntroLevel(lit);
 }
 
 unsigned Valuation::getAssertionLevel() const{
@@ -183,5 +219,18 @@ bool Valuation::needCheck() const{
 
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+context::CDList<Assertion>::const_iterator Valuation::factsBegin(TheoryId tid)
+{
+  Theory* theory = d_engine->theoryOf(tid);
+  Assert(theory != nullptr);
+  return theory->facts_begin();
+}
+context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
+{
+  Theory* theory = d_engine->theoryOf(tid);
+  Assert(theory != nullptr);
+  return theory->facts_end();
+}
+
+}  // namespace theory
+}  // namespace cvc5::internal

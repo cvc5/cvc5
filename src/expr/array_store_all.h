@@ -1,38 +1,36 @@
-/*********************                                                        */
-/*! \file array_store_all.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Representation of a constant array (an array in which the
- ** element is the same for all indices)
- **
- ** Representation of a constant array (an array in which the element is
- ** the same for all indices).
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andres Noetzli, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Representation of a constant array (an array in which the element is the
+ * same for all indices).
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__ARRAY_STORE_ALL_H
-#define CVC4__ARRAY_STORE_ALL_H
+#ifndef CVC5__EXPR__ARRAY_STORE_ALL_H
+#define CVC5__EXPR__ARRAY_STORE_ALL_H
 
 #include <iosfwd>
 #include <memory>
 
-
-namespace CVC4 {
+namespace cvc5::internal {
 
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class TypeNode;
 
-class CVC4_PUBLIC ArrayStoreAll {
+class ArrayStoreAll
+{
  public:
   /**
    * @throws IllegalArgumentException if `type` is not an array or if `expr` is
@@ -59,16 +57,16 @@ class CVC4_PUBLIC ArrayStoreAll {
   std::unique_ptr<Node> d_value;
 }; /* class ArrayStoreAll */
 
-std::ostream& operator<<(std::ostream& out,
-                         const ArrayStoreAll& asa) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa);
 
 /**
  * Hash function for the ArrayStoreAll constants.
  */
-struct CVC4_PUBLIC ArrayStoreAllHashFunction {
+struct ArrayStoreAllHashFunction
+{
   size_t operator()(const ArrayStoreAll& asa) const;
 }; /* struct ArrayStoreAllHashFunction */
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__ARRAY_STORE_ALL_H */
+#endif /* CVC5__ARRAY_STORE_ALL_H */

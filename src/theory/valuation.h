@@ -1,36 +1,40 @@
-/*********************                                                        */
-/*! \file valuation.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A "valuation" proxy for TheoryEngine
- **
- ** A "valuation" proxy for TheoryEngine.  This class breaks the dependence
- ** of theories' getValue() implementations on TheoryEngine.  getValue()
- ** takes a Valuation, which delegates to TheoryEngine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A "valuation" proxy for TheoryEngine
+ *
+ * A "valuation" proxy for TheoryEngine.  This class breaks the dependence
+ * of theories' getValue() implementations on TheoryEngine.  getValue()
+ * takes a Valuation, which delegates to TheoryEngine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__VALUATION_H
-#define CVC4__THEORY__VALUATION_H
+#ifndef CVC5__THEORY__VALUATION_H
+#define CVC5__THEORY__VALUATION_H
 
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
 namespace theory {
 
+struct Assertion;
 class TheoryModel;
+class SortInference;
 
 /**
  * The status of an equality in the current context.
@@ -111,6 +115,11 @@ public:
    * check.
    */
   TheoryModel* getModel();
+  /**
+   * Returns a pointer to the sort inference module, which lives in TheoryEngine
+   * and is non-null when options::sortInference is true.
+   */
+  SortInference* getSortInference();
 
   //-------------------------------------- static configuration of the model
   /**
@@ -135,11 +144,37 @@ public:
    * that is definitionally equal to it.  The result of this function
    * is a Node that can be queried via getSatValue().
    *
+   * Note that this call may add lemmas to the SAT solver corresponding to the
+   * definition of subterms eliminated by preprocessing.
+   *
    * @return the actual node that's been "literalized," which may
    * differ from the input due to theory-rewriting and preprocessing,
    * as well as CNF conversion
    */
-  Node ensureLiteral(TNode n) CVC4_WARN_UNUSED_RESULT;
+  CVC5_WARN_UNUSED_RESULT Node ensureLiteral(TNode n);
+
+  /**
+   * This returns the theory-preprocessed form of term n. The theory
+   * preprocessed form of a term t is one returned by
+   * TheoryPreprocess::preprocess (see theory/theory_preprocess.h). In
+   * particular, the returned term has syntax sugar symbols eliminated
+   * (e.g. div, mod, partial datatype selectors), has term formulas (e.g. ITE
+   * terms eliminated) and has been rewritten.
+   *
+   * Note that this call may add lemmas to the SAT solver corresponding to the
+   * definition of subterms eliminated by preprocessing.
+   *
+   * @param n The node to preprocess
+   * @return The preprocessed form of n
+   */
+  Node getPreprocessedTerm(TNode n);
+  /**
+   * Same as above, but also tracks the skolems and their corresponding
+   * definitions in sks and skAsserts respectively.
+   */
+  Node getPreprocessedTerm(TNode n,
+                           std::vector<Node>& skAsserts,
+                           std::vector<Node>& sks);
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision
@@ -148,6 +183,22 @@ public:
    * true both for lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Return SAT context level at which `lit` was decided on.
+   *
+   * @param lit: The node in question, must have an associated SAT literal.
+   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
+   *         or -1 if `lit` has not been assigned yet.
+   */
+  int32_t getDecisionLevel(Node lit) const;
+
+  /**
+   * Return the user-context level when `lit` was introduced..
+   *
+   * @return User-context level or -1 if not yet introduced.
+   */
+  int32_t getIntroLevel(Node lit) const;
 
   /**
    * Get the assertion level of the SAT solver.
@@ -169,9 +220,20 @@ public:
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
+
+  //------------------------------------------- access methods for assertions
+  /**
+   * The following methods are intended only to be used in limited use cases,
+   * for cases where a theory (e.g. quantifiers) requires knowing about the
+   * assertions from other theories.
+   */
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
 };/* class Valuation */
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__VALUATION_H */
+#endif /* CVC5__THEORY__VALUATION_H */

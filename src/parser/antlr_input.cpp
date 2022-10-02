@@ -1,32 +1,29 @@
-/*********************                                                        */
-/*! \file antlr_input.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief A super-class for ANTLR-generated input language parsers.
- **
- ** A super-class for ANTLR-generated input language parsers
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Kshitij Bansal, Christopher L. Conway, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A super-class for ANTLR-generated input language parsers.
+ */
 
 #include "parser/antlr_input.h"
 
 #include <antlr3.h>
-#include <limits.h>
+#include <limits>
 
+#include "base/check.h"
 #include "base/output.h"
-#include "expr/type.h"
 #include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
-#include "parser/cvc/cvc_input.h"
 #include "parser/input.h"
-#include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_input.h"
@@ -34,15 +31,12 @@
 #include "parser/tptp/tptp_input.h"
 
 using namespace std;
-using namespace CVC4;
-using namespace CVC4::parser;
-using namespace CVC4::kind;
 
-namespace CVC4 {
+namespace cvc5 {
 namespace parser {
 
 // These functions exactly wrap the antlr3 source inconsistencies.
-// These are the only location CVC4_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
+// These are the only location CVC5_ANTLR3_OLD_INPUT_STREAM ifdefs appear.
 // No other sanity checking happens;
 pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
                                              const std::string& name,
@@ -58,13 +52,13 @@ pANTLR3_INPUT_STREAM newAntlr3BufferedStream(std::istream& input,
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   inputStream =
       antlr3LineBufferedStreamNew(input, 0, name_duplicate, line_buffer);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   inputStream = antlr3LineBufferedStreamNew(input, ANTLR3_ENC_8BIT,
                                             name_duplicate, line_buffer);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
   return inputStream;
@@ -75,11 +69,11 @@ pANTLR3_INPUT_STREAM newAntlr3FileStream(const std::string& name){
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
 
   // libantlr3c v3.2 isn't source-compatible with v3.4
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   input = antlr3AsciiFileStreamNew(name_duplicate);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   input = antlr3FileStreamNew(name_duplicate, ANTLR3_ENC_8BIT);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
 
   free(name_duplicate);
   return input;
@@ -92,14 +86,14 @@ pANTLR3_INPUT_STREAM newAntrl3InPlaceStream(pANTLR3_UINT8 basep,
   pANTLR3_UINT8 name_duplicate = (pANTLR3_UINT8) strdup(name.c_str());
   pANTLR3_INPUT_STREAM inputStream = NULL;
   /* Create an ANTLR input backed by the buffer. */
-#ifdef CVC4_ANTLR3_OLD_INPUT_STREAM
+#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
   inputStream =
     antlr3NewAsciiStringInPlaceStream(basep, size, name_duplicate);
-#else /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   inputStream =
     antlr3StringStreamNew(basep, ANTLR3_ENC_8BIT, size,
                           name_duplicate);
-#endif /* CVC4_ANTLR3_OLD_INPUT_STREAM */
+#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
   free(name_duplicate);
   return inputStream;
 }
@@ -112,7 +106,7 @@ AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
       d_input(input),
       d_inputString(inputString),
       d_line_buffer(line_buffer) {
-  assert( input != NULL );
+  Assert(input != NULL);
   input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
 
@@ -130,84 +124,23 @@ pANTLR3_INPUT_STREAM AntlrInputStream::getAntlr3InputStream() const {
   return d_input;
 }
 
-
-
-AntlrInputStream*
-AntlrInputStream::newFileInputStream(const std::string& name,
-                                     bool useMmap)
+AntlrInputStream* AntlrInputStream::newFileInputStream(const std::string& name)
 {
-#ifdef _WIN32
-  if(useMmap) {
-    useMmap = false;
-  }
-#endif
-  pANTLR3_INPUT_STREAM input = NULL;
-  if(useMmap) {
-    input = MemoryMappedInputBufferNew(name);
-  } else {
-    input = newAntlr3FileStream(name);
-  }
-  if(input == NULL) {
+  pANTLR3_INPUT_STREAM input = newAntlr3FileStream(name);
+  if (input == nullptr)
+  {
     throw InputStreamException("Couldn't open file: " + name);
   }
   return new AntlrInputStream(name, input, false, NULL, NULL);
 }
 
-
-AntlrInputStream*
-AntlrInputStream::newStreamInputStream(std::istream& input,
-                                       const std::string& name,
-                                       bool lineBuffered)
+AntlrInputStream* AntlrInputStream::newStreamInputStream(
+    std::istream& input, const std::string& name)
 {
   pANTLR3_INPUT_STREAM inputStream = NULL;
   pANTLR3_UINT8 inputStringCopy = NULL;
-  LineBuffer* line_buffer = NULL;
-
-  if(lineBuffered) {
-    line_buffer = new LineBuffer(&input);
-    inputStream = newAntlr3BufferedStream(input, name, line_buffer);
-  } else {
-
-    // Since these are all NULL on entry, realloc will be called
-    char *basep = NULL, *boundp = NULL, *cp = NULL;
-    /* 64KB seems like a reasonable default size. */
-    size_t bufSize = 0x10000;
-
-    /* Keep going until we can't go no more. */
-    while( !input.eof() && !input.fail() ) {
-
-      if( cp == boundp ) {
-        /* We ran out of room in the buffer. Realloc at double the size. */
-        ptrdiff_t offset = cp - basep;
-        basep = (char *) realloc(basep, bufSize);
-        if( basep == NULL ) {
-          throw InputStreamException("Failed buffering input stream: " + name);
-        }
-        cp = basep + offset;
-        boundp = basep + bufSize;
-        bufSize *= 2;
-      }
-
-      /* Read as much as we have room for. */
-      input.read( cp, boundp - cp );
-      cp += input.gcount();
-    }
-
-    /* Make sure the fail bit didn't get set. */
-    if( !input.eof() ) {
-      throw InputStreamException("Stream input failed: " + name);
-    }
-    ptrdiff_t offset = cp - basep;
-    assert(offset >= 0);
-    assert(offset <= std::numeric_limits<uint32_t>::max());
-    inputStringCopy = (pANTLR3_UINT8)basep;
-    inputStream = newAntrl3InPlaceStream(inputStringCopy, (uint32_t) offset, name);
-  }
-
-  if( inputStream == NULL ) {
-    throw InputStreamException("Couldn't initialize input: " + name);
-  }
-
+  LineBuffer* line_buffer = new LineBuffer(&input);
+  inputStream = newAntlr3BufferedStream(input, name, line_buffer);
   return new AntlrInputStream(name, inputStream, false, inputStringCopy,
                               line_buffer);
 }
@@ -218,7 +151,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
                                        const std::string& name)
 {
   size_t input_size = input.size();
-  assert(input_size <= std::numeric_limits<uint32_t>::max());
+  Assert(input_size <= std::numeric_limits<uint32_t>::max());
 
   // Ownership of input_duplicate  is transferred to the AntlrInputStream.
   pANTLR3_UINT8 input_duplicate = (pANTLR3_UINT8) strdup(input.c_str());
@@ -234,37 +167,26 @@ AntlrInputStream::newStringInputStream(const std::string& input,
   return new AntlrInputStream(name, inputStream, false, input_duplicate, NULL);
 }
 
-AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStream) {
-  using namespace language::input;
-
-  AntlrInput* input;
-
-  switch(lang) {
-  case LANG_CVC4: {
-    input = new CvcInput(inputStream);
-    break;
+AntlrInput* AntlrInput::newInput(const std::string& lang,
+                                 AntlrInputStream& inputStream)
+{
+  if (lang == "LANG_SYGUS_V2")
+  {
+    return new SygusInput(inputStream);
   }
-
-  case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
-
-  case LANG_TPTP:
-    input = new TptpInput(inputStream);
-    break;
-
-  default:
-    if (language::isInputLang_smt2(lang))
-    {
-      input = new Smt2Input(inputStream);
-    }
-    else
-    {
-      std::stringstream ss;
-      ss << "unable to detect input file format, try --lang ";
-      throw InputStreamException(ss.str());
-    }
+  else if (lang == "LANG_TPTP")
+  {
+    return new TptpInput(inputStream);
   }
-
-  return input;
+  else if (lang == "LANG_SMTLIB_V2_6")
+  {
+    return new Smt2Input(inputStream);
+  }
+  else
+  {
+    throw InputStreamException(
+        "unable to detect input file format, try --lang ");
+  }
 }
 
 AntlrInput::AntlrInput(AntlrInputStream& inputStream, unsigned int lookahead) :
@@ -315,11 +237,11 @@ pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
 
 void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_LEXER lexer = (pANTLR3_LEXER)(recognizer->super);
-  assert(lexer!=NULL);
+  Assert(lexer != NULL);
   Parser *parser = (Parser*)(lexer->super);
-  assert(parser!=NULL);
+  Assert(parser != NULL);
   AntlrInput *input = (AntlrInput*) parser->getInput();
-  assert(input!=NULL);
+  Assert(input != NULL);
 
   /* Call the error display routine *if* there's not already a 
    * parse error pending.  If a parser error is pending, this
@@ -450,9 +372,9 @@ std::string parseErrorHelper(const char* lineStart,
         // we found the right place
         string word = slice.substr(caretPos, (caretPosOrig - caretPos + 1));
         size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
-        Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+        Trace("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
         if( matchLoc != string::npos ) {
-          Debug("friendlyparser") << "[friendlyparser] Feeling good." << std::endl;
+          Trace("friendlyparser") << "[friendlyparser] Feeling good." << std::endl;
         }
       }
     } else {
@@ -473,10 +395,10 @@ std::string parseErrorHelper(const char* lineStart,
           }
           string word = slice.substr(nearestWordSt, (nearestWordEn - nearestWordSt + 1));
           size_t matchLoc = wholeWordMatch(message, word, isSimpleChar);
-          Debug("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
-          Debug("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
+          Trace("friendlyparser") << "[friendlyparser] nearest word = " << word << std::endl;
+          Trace("friendlyparser") << "[friendlyparser] matchLoc = " << matchLoc << endl;
           if( matchLoc != string::npos ) {
-            Debug("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
+            Trace("friendlyparser") << "[friendlyparser] strong evidence that caret should be at "
                                     << nearestWordSt << std::endl;
             foundCaretPos = true;
           }
@@ -514,7 +436,7 @@ void AntlrInput::parseError(const std::string& message, bool eofException)
       d_lexer->getCharPositionInLine(d_lexer),
       message);
 
-  Debug("parser") << "Throwing exception: "
+  Trace("parser") << "Throwing exception: "
       << (const char*)d_lexer->rec->state->tokSource->fileName->chars << ":"
       << d_lexer->getLine(d_lexer) << "."
       << d_lexer->getCharPositionInLine(d_lexer) << ": "
@@ -581,5 +503,5 @@ void AntlrInput::setAntlr3Parser(pANTLR3_PARSER pParser) {
       d_parser->rec->mismatch;
 }
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace cvc5

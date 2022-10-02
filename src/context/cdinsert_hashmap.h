@@ -1,37 +1,39 @@
-/*********************                                                        */
-/*! \file cdinsert_hashmap.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Mathias Preiner, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Context-dependent insert only hashmap built using trail of edits
- **
- ** Context-dependent hashmap that only allows for one insertion per element.
- ** This can be viewed as a highly restricted version of CDHashMap.
- ** It is significantly lighter in memory usage than CDHashMap.
- **
- ** See also:
- **  CDTrailHashMap : A lightweight CD hash map with poor iteration
- **    characteristics and some quirks in usage.
- **  CDHashMap : A fully featured CD hash map. (The closest to <ext/hash_map>)
- **
- ** Notes:
- ** - To iterate efficiently over the elements use the key_iterators.
- ** - operator[] is only supported as a const derefence (must succeed).
- ** - insert(k) must always work.
- ** - Use insert_safe if you want to check if the element has been inserted
- **   and only insert if it has not yet been.
- ** - Does not accept TNodes as keys.
- ** - Supports insertAtContextLevelZero() if the element is not in the map.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Context-dependent insert only hashmap built using trail of edits
+ *
+ * Context-dependent hashmap that only allows for one insertion per element.
+ * This can be viewed as a highly restricted version of CDHashMap.
+ * It is significantly lighter in memory usage than CDHashMap.
+ *
+ * See also:
+ *  CDTrailHashMap : A lightweight CD hash map with poor iteration
+ *    characteristics and some quirks in usage.
+ *  CDHashMap : A fully featured CD hash map. (The closest to <ext/hash_map>)
+ *
+ * Notes:
+ * - To iterate efficiently over the elements use the key_iterators.
+ * - operator[] is only supported as a const derefence (must succeed).
+ * - insert(k) must always work.
+ * - Use insert_safe if you want to check if the element has been inserted
+ *   and only insert if it has not yet been.
+ * - Does not accept TNodes as keys.
+ */
 
+#include "cvc5parser_public.h"
 
-#include "cvc4_private.h"
+#ifndef CVC5__CONTEXT__CDINSERT_HASHMAP_H
+#define CVC5__CONTEXT__CDINSERT_HASHMAP_H
 
 #include <deque>
 #include <functional>
@@ -42,13 +44,15 @@
 #include "base/output.h"
 #include "context/cdinsert_hashmap_forward.h"
 #include "context/context.h"
-#include "expr/node.h"
 
-#pragma once
+namespace cvc5 {
 
-namespace CVC4 {
+namespace internal {
+template <bool ref_count>
+class NodeTemplate;
+}
+
 namespace context {
-
 
 template <class Key, class Data, class HashFcn = std::hash<Key> >
 class InsertHashMap {
@@ -155,7 +159,7 @@ public:
     const Key& front = d_keys.front();
     d_hashMap.erase(front);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_front " << size() << std::endl;
     d_keys.pop_front();
   }
 
@@ -167,7 +171,7 @@ public:
     const Key& back = d_keys.back();
     d_hashMap.erase(back);
 
-    Debug("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
+    Trace("TrailHashMap") <<"TrailHashMap pop_back " << size() << std::endl;
     d_keys.pop_back();
   }
 
@@ -193,23 +197,14 @@ private:
   size_t d_size;
 
   /**
-   * To support insertAtContextLevelZero() and restores,
-   * we have called d_insertMap->d_pushFront().
-   */
-  size_t d_pushFronts;
-
-  /**
    * Private copy constructor used only by save().  d_insertMap is
    * not copied: only the base class information and
-   * d_size and d_pushFronts are needed in restore.
+   * d_size are needed in restore.
    */
-  CDInsertHashMap(const CDInsertHashMap& l) :
-    ContextObj(l),
-    d_insertMap(NULL),
-    d_size(l.d_size),
-    d_pushFronts(l.d_pushFronts)
+  CDInsertHashMap(const CDInsertHashMap& l)
+      : ContextObj(l), d_insertMap(nullptr), d_size(l.d_size)
   {
-    Debug("CDInsertHashMap") << "copy ctor: " << this
+    Trace("CDInsertHashMap") << "copy ctor: " << this
                     << " from " << &l
                     << " size " << d_size << std::endl;
   }
@@ -225,52 +220,35 @@ private:
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
     ContextObj* data = new(pCMM) CDInsertHashMap<Key, Data, HashFcn>(*this);
-    Debug("CDInsertHashMap") << "save " << this
-                            << " at level " << this->getContext()->getLevel()
-                            << " size at " << this->d_size
-                            << " d_list is " << this->d_insertMap
-                            << " data:" << data << std::endl;
     return data;
   }
 protected:
-  /**
-   * Implementation of mandatory ContextObj method restore:
-   * restore to the previous size taking into account the number
-   * of new pushFront calls have happened since saving.
-   * The d_insertMap is untouched and d_pushFronts is also kept.
-   */
+ /**
+  * Implementation of mandatory ContextObj method restore:
+  * restore to the previous size taking into account the number
+  * of new pushFront calls have happened since saving.
+  * The d_insertMap is untouched.
+  */
  void restore(ContextObj* data) override
  {
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " data == " << data << " d_insertMap == " << this->d_insertMap
-       << std::endl;
    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
-   size_t oldPushFronts =
-       ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_pushFronts;
-   Assert(oldPushFronts <= d_pushFronts);
 
    // The size to restore to.
-   size_t restoreSize = oldSize + (d_pushFronts - oldPushFronts);
+   size_t restoreSize = oldSize;
    d_insertMap->pop_to_size(restoreSize);
    d_size = restoreSize;
    Assert(d_insertMap->size() == d_size);
-   Debug("CDInsertHashMap")
-       << "restore " << this << " level " << this->getContext()->getLevel()
-       << " size back to " << this->d_size << std::endl;
   }
 public:
 
  /**
    * Main constructor: d_insertMap starts as an empty map, with the size is 0
    */
-  CDInsertHashMap(Context* context) :
-    ContextObj(context),
-    d_insertMap(new IHM()),
-    d_size(0),
-    d_pushFronts(0){
-    Assert(d_insertMap->size() == d_size);
-  }
+ CDInsertHashMap(Context* context)
+     : ContextObj(context), d_insertMap(new IHM()), d_size(0)
+ {
+   Assert(d_insertMap->size() == d_size);
+ }
 
   /**
    * Destructor: delete the d_insertMap
@@ -329,20 +307,6 @@ public:
     }
   }
 
-  /**
-   * Version of insert() for CDMap<> that inserts data value d at
-   * context level zero.
-   *
-   * It is an error to insertAtContextLevelZero()
-   * a key that already is in the map.
-   */
-  void insertAtContextLevelZero(const Key& k, const Data& d){
-    makeCurrent();
-    ++d_size;
-    ++d_pushFronts;
-    d_insertMap->push_front(k, d);
-  }
-
   /** Returns true if k is a mapped key in the context. */
   bool contains(const Key& k) const {
     return d_insertMap->contains(k);
@@ -391,7 +355,9 @@ public:
 };/* class CDInsertHashMap<> */
 
 template <class Data, class HashFcn>
-class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
+class CDInsertHashMap<internal::NodeTemplate<false>, Data, HashFcn>
+    : public ContextObj
+{
   /* CDInsertHashMap is challenging to get working with TNode.
    * Consider using CDHashMap<TNode,...> instead.
    *
@@ -407,5 +373,7 @@ class CDInsertHashMap<TNode, Data, HashFcn> : public ContextObj {
                 "Cannot create a CDInsertHashMap with TNode keys");
 };
 
-}/* CVC4::context namespace */
-}/* CVC4 namespace */
+}  // namespace context
+}  // namespace cvc5
+
+#endif

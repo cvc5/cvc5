@@ -1,21 +1,22 @@
-/*********************                                                        */
-/*! \file type_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for strings
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Tianyi Liang
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for strings.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
-#define CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
+#ifndef CVC5__THEORY__STRINGS__TYPE_ENUMERATOR_H
+#define CVC5__THEORY__STRINGS__TYPE_ENUMERATOR_H
 
 #include <vector>
 
@@ -23,7 +24,7 @@
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -159,9 +160,27 @@ class SeqEnumLen : public SEnumLen
   /** an enumerator for the elements' type */
   std::unique_ptr<TypeEnumerator> d_elementEnumerator;
   /** The domain */
-  std::vector<Expr> d_elementDomain;
+  std::vector<Node> d_elementDomain;
   /** Make the current term from d_data */
   void mkCurr();
+};
+
+/** Set of the above class */
+class SEnumLenSet
+{
+ public:
+  /** constructor */
+  SEnumLenSet(TypeEnumeratorProperties* tep = nullptr);
+  /** destructor */
+  ~SEnumLenSet() {}
+  /** Get enumerator for length, type */
+  SEnumLen* getEnumerator(size_t len, TypeNode tn);
+
+ private:
+  /** an enumerator for the element's type */
+  TypeEnumeratorProperties* d_tep;
+  /** for each start length, type */
+  std::map<std::pair<size_t, TypeNode>, std::unique_ptr<SEnumLen> > d_sels;
 };
 
 class StringEnumerator : public TypeEnumeratorBase<StringEnumerator>
@@ -197,8 +216,8 @@ class SequenceEnumerator : public TypeEnumeratorBase<SequenceEnumerator>
   SeqEnumLen d_wenum;
 }; /* class SequenceEnumerator */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H */
+#endif /* CVC5__THEORY__STRINGS__TYPE_ENUMERATOR_H */

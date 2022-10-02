@@ -1,31 +1,37 @@
-/*********************                                                        */
-/*! \file expr_miner.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief expr_miner
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * expr_miner
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
-#define CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
+#ifndef CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
+#define CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 
 #include <map>
 #include <memory>
 #include <vector>
 
 #include "expr/node.h"
-#include "smt/smt_engine.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus_sampler.h"
+#include "theory/smt_engine_subsolver.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
+
+class Env;
+class SolverEngine;
+
 namespace theory {
 namespace quantifiers {
 
@@ -35,10 +41,10 @@ namespace quantifiers {
  * from (enumerated) expressions. This includes:
  * - candidate rewrite rules (--sygus-rr-synth)
  */
-class ExprMiner
+class ExprMiner : protected EnvObj
 {
  public:
-  ExprMiner() : d_sampler(nullptr) {}
+  ExprMiner(Env& env) : EnvObj(env), d_sampler(nullptr) {}
   virtual ~ExprMiner() {}
   /** initialize
    *
@@ -61,13 +67,15 @@ class ExprMiner
  protected:
   /** the set of variables used by this class */
   std::vector<Node> d_vars;
-  /** pointer to the sygus sampler object we are using */
-  SygusSampler* d_sampler;
   /**
-   * Maps to skolems for each free variable that appears in a check. This is
+   * The set of skolems corresponding to the above variables. These are
    * used during initializeChecker so that query (which may contain free
    * variables) is converted to a formula without free variables.
    */
+  std::vector<Node> d_skolems;
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /** Maps to skolems for each free variable based on d_vars/d_skolems. */
   std::map<Node, Node> d_fv_to_skolem;
   /** convert */
   Node convertToSkolem(Node n);
@@ -77,7 +85,9 @@ class ExprMiner
    * of the argument "query", which is a formula whose free variables (of
    * kind BOUND_VARIABLE) are a subset of d_vars.
    */
-  void initializeChecker(std::unique_ptr<SmtEngine>& smte, Node query);
+  void initializeChecker(std::unique_ptr<SolverEngine>& checker,
+                         Node query,
+                         const SubsolverSetupInfo& info);
   /**
    * Run the satisfiability check on query and return the result
    * (sat/unsat/unknown).
@@ -85,11 +95,11 @@ class ExprMiner
    * In contrast to the above method, this call should be used for cases where
    * the model for the query is not important.
    */
-  Result doCheck(Node query);
+  Result doCheck(Node query, const SubsolverSetupInfo& info);
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

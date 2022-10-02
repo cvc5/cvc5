@@ -1,24 +1,22 @@
-/*********************                                                        */
-/*! \file rational_cln_imp.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Tim King, Gereon Kremer, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Multiprecision rational constants; wraps a CLN multiprecision
- ** rational.
- **
- ** Multiprecision rational constants; wraps a CLN multiprecision rational.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Tim King, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Multiprecision rational constants; wraps a CLN multiprecision rational.
+ */
 
-#include "cvc4_public.h"
+#include "cvc5_public.h"
 
-#ifndef CVC4__RATIONAL_H
-#define CVC4__RATIONAL_H
+#ifndef CVC5__RATIONAL_H
+#define CVC5__RATIONAL_H
 
 #include <cln/dfloat.h>
 #include <cln/input.h>
@@ -29,32 +27,32 @@
 #include <cln/rational_io.h>
 #include <cln/real.h>
 
-#include <cassert>
+#include <optional>
 #include <sstream>
 #include <string>
 
 #include "base/exception.h"
+#include "cvc5_export.h"  // remove when Cvc language support is removed
 #include "util/integer.h"
-#include "util/maybe.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
- ** A multi-precision rational constant.
- ** This stores the rational as a pair of multi-precision integers,
- ** one for the numerator and one for the denominator.
- ** The number is always stored so that the gcd of the numerator and denominator
- ** is 1.  (This is referred to as referred to as canonical form in GMP's
- ** literature.) A consequence is that that the numerator and denominator may be
- ** different than the values used to construct the Rational.
- **
- ** NOTE: The correct way to create a Rational from an int is to use one of the
- ** int numerator/int denominator constructors with the denominator 1.  Trying
- ** to construct a Rational with a single int, e.g., Rational(0), will put you
- ** in danger of invoking the char* constructor, from whence you will segfault.
- **/
+ * A multi-precision rational constant.
+ * This stores the rational as a pair of multi-precision integers,
+ * one for the numerator and one for the denominator.
+ * The number is always stored so that the gcd of the numerator and denominator
+ * is 1.  (This is referred to as referred to as canonical form in GMP's
+ * literature.) A consequence is that that the numerator and denominator may be
+ * different than the values used to construct the Rational.
+ *
+ * NOTE: The correct way to create a Rational from an int is to use one of the
+ * int numerator/int denominator constructors with the denominator 1.  Trying
+ * to construct a Rational with a single int, e.g., Rational(0), will put you
+ * in danger of invoking the char* constructor, from whence you will segfault.
+ */
 
-class CVC4_PUBLIC Rational
+class CVC5_EXPORT Rational
 {
  public:
   /**
@@ -76,46 +74,11 @@ class CVC4_PUBLIC Rational
   /**
    * Constructs a Rational from a C string in a given base (defaults to 10).
    *
-   * Throws std::invalid_argument if the string is not a valid rational.
-   * For more information about what is a valid rational string,
-   * see CLN's documentation for read_rational.
+   * Throws std::invalid_argument if the string is not a valid rational, i.e.,
+   * if it does not match sign{digit}+/sign{digit}+.
    */
-  explicit Rational(const char* s, unsigned base = 10)
-  {
-    cln::cl_read_flags flags;
-
-    flags.syntax = cln::syntax_rational;
-    flags.lsyntax = cln::lsyntax_standard;
-    flags.rational_base = base;
-    try
-    {
-      d_value = read_rational(flags, s, NULL, NULL);
-    }
-    catch (...)
-    {
-      std::stringstream ss;
-      ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
-      throw std::invalid_argument(ss.str());
-    }
-  }
-  Rational(const std::string& s, unsigned base = 10)
-  {
-    cln::cl_read_flags flags;
-
-    flags.syntax = cln::syntax_rational;
-    flags.lsyntax = cln::lsyntax_standard;
-    flags.rational_base = base;
-    try
-    {
-      d_value = read_rational(flags, s.c_str(), NULL, NULL);
-    }
-    catch (...)
-    {
-      std::stringstream ss;
-      ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
-      throw std::invalid_argument(ss.str());
-    }
-  }
+  explicit Rational(const char* s, uint32_t base = 10);
+  Rational(const std::string& s, uint32_t base = 10);
 
   /**
    * Creates a Rational from another Rational, q, by performing a deep copy.
@@ -130,10 +93,10 @@ class CVC4_PUBLIC Rational
   Rational(signed long int n) : d_value(n) {}
   Rational(unsigned long int n) : d_value(n) {}
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Rational(int64_t n) : d_value(static_cast<long>(n)) {}
   Rational(uint64_t n) : d_value(static_cast<unsigned long>(n)) {}
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   /**
    * Constructs a canonical Rational from a numerator and denominator.
@@ -155,7 +118,7 @@ class CVC4_PUBLIC Rational
     d_value /= cln::cl_I(d);
   }
 
-#ifdef CVC4_NEED_INT64_T_OVERLOADS
+#ifdef CVC5_NEED_INT64_T_OVERLOADS
   Rational(int64_t n, int64_t d) : d_value(static_cast<long>(n))
   {
     d_value /= cln::cl_I(d);
@@ -164,7 +127,7 @@ class CVC4_PUBLIC Rational
   {
     d_value /= cln::cl_I(d);
   }
-#endif /* CVC4_NEED_INT64_T_OVERLOADS */
+#endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
   Rational(const Integer& n, const Integer& d) : d_value(n.get_cl_I())
   {
@@ -192,7 +155,7 @@ class CVC4_PUBLIC Rational
   Integer getDenominator() const { return Integer(cln::denominator(d_value)); }
 
   /** Return an exact rational for a double d. */
-  static Maybe<Rational> fromDouble(double d);
+  static std::optional<Rational> fromDouble(double d);
 
   /**
    * Get a double representation of this Rational, which is
@@ -210,22 +173,7 @@ class CVC4_PUBLIC Rational
     return cln::compare(d_value, x.d_value);
   }
 
-  int sgn() const
-  {
-    if (cln::zerop(d_value))
-    {
-      return 0;
-    }
-    else if (cln::minusp(d_value))
-    {
-      return -1;
-    }
-    else
-    {
-      assert(cln::plusp(d_value));
-      return 1;
-    }
-  }
+  int sgn() const;
 
   bool isZero() const { return cln::zerop(d_value); }
 
@@ -245,7 +193,7 @@ class CVC4_PUBLIC Rational
     }
   }
 
-  bool isIntegral() const { return getDenominator() == 1; }
+  bool isIntegral() const { return cln::denominator(d_value) == 1; }
 
   Integer floor() const { return Integer(cln::floor1(d_value)); }
 
@@ -351,11 +299,11 @@ class CVC4_PUBLIC Rational
 
 struct RationalHashFunction
 {
-  inline size_t operator()(const CVC4::Rational& r) const { return r.hash(); }
+  inline size_t operator()(const cvc5::internal::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
-CVC4_PUBLIC std::ostream& operator<<(std::ostream& os, const Rational& n);
+std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
 
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__RATIONAL_H */
+#endif /* CVC5__RATIONAL_H */

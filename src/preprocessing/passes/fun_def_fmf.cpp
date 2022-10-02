@@ -1,31 +1,37 @@
-/*********************                                                        */
-/*! \file fun_def_fmf.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Function definition processor for finite model finding
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Function definition processor for finite model finding.
+ */
 
 #include "preprocessing/passes/fun_def_fmf.h"
 
+#include <sstream>
+
+#include "expr/skolem_manager.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace std;
-using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::quantifiers;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -33,8 +39,7 @@ FunDefFmf::FunDefFmf(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "fun-def-fmf"),
       d_fmfRecFunctionsDefined(nullptr)
 {
-  d_fmfRecFunctionsDefined =
-      new (true) NodeList(preprocContext->getUserContext());
+  d_fmfRecFunctionsDefined = new (true) NodeList(userContext());
 }
 
 FunDefFmf::~FunDefFmf() { d_fmfRecFunctionsDefined->deleteSelf(); }
@@ -87,6 +92,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
   std::map<int, Node> subs_head;
   // first pass : find defined functions, transform quantifiers
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
     Node n = QuantAttributes::getFunDefHead(assertions[i]);
@@ -124,8 +130,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(
-              nm->mkSkolem(ssf.str(), typ, "op created during fun def fmf"));
+          d_input_arg_inj[f].push_back(sm->mkDummySkolem(
+              ssf.str(), typ, "op created during fun def fmf"));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
@@ -147,7 +153,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
             << "FMF fun def: FUNCTION : rewrite " << assertions[i] << std::endl;
         Trace("fmf-fun-def") << "  to " << std::endl;
         Node new_q = nm->mkNode(FORALL, bvl, bd);
-        new_q = Rewriter::rewrite(new_q);
+        new_q = rewrite(new_q);
         assertionsToPreprocess->replace(i, new_q);
         Trace("fmf-fun-def") << "  " << assertions[i] << std::endl;
         fd_assertions.push_back(i);
@@ -181,7 +187,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
     Assert(constraints.empty());
     if (n != assertions[i])
     {
-      n = Rewriter::rewrite(n);
+      n = rewrite(n);
       Trace("fmf-fun-def-rewrite")
           << "FMF fun def : rewrite " << assertions[i] << std::endl;
       Trace("fmf-fun-def-rewrite") << "  to " << std::endl;
@@ -226,7 +232,7 @@ Node FunDefFmf::simplifyFormula(
     for (unsigned i = 0; i < constraints.size(); i++)
     {
       constraints[i] = nm->mkNode(FORALL, n[0], constraints[i]);
-      constraints[i] = Rewriter::rewrite(constraints[i]);
+      constraints[i] = rewrite(constraints[i]);
     }
     if (c != n[1])
     {
@@ -359,7 +365,7 @@ Node FunDefFmf::simplifyFormula(
     if (constraints.size() > 1)
     {
       cons = nm->mkNode(AND, constraints);
-      cons = Rewriter::rewrite(cons);
+      cons = rewrite(cons);
       constraints.clear();
       constraints.push_back(cons);
     }
@@ -461,4 +467,4 @@ void FunDefFmf::getConstraints(Node n,
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace CVC4
+}  // namespace cvc5::internal

@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file vts_term_cache.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Virtual term substitution term cache.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Virtual term substitution term cache.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
-#define CVC4__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
+#define CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
 
 #include <map>
+
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
-
-class QuantifiersEngine;
 
 /** Attribute to mark Skolems as virtual terms */
 struct VirtualTermSkolemAttributeId
@@ -34,6 +35,8 @@ typedef expr::Attribute<VirtualTermSkolemAttributeId, bool>
     VirtualTermSkolemAttribute;
 
 namespace quantifiers {
+
+class QuantifiersInferenceManager;
 
 /** Virtual term substitution term cache
  *
@@ -67,11 +70,17 @@ namespace quantifiers {
  * that combine instantiating quantified formulas with nested quantifiers
  * with terms containing virtual terms.
  */
-class VtsTermCache
+class VtsTermCache : protected EnvObj
 {
  public:
-  VtsTermCache(QuantifiersEngine* qe);
+  VtsTermCache(Env& env);
   ~VtsTermCache() {}
+  /**
+   * Have we allocated any VTS symbol? This impacts quantifier instantiation.
+   * In particular we use virtual term substitution for all instantiations
+   * when this is true.
+   */
+  bool hasAllocated() const;
   /**
    * Get vts delta. The argument isFree indicates if we are getting the
    * free variant of delta. If create is false, this method returns Node::null
@@ -122,10 +131,8 @@ class VtsTermCache
   bool containsVtsInfinity(Node n, bool isFree = false);
 
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
-  /** constants */
-  Node d_zero;
+  /** Have we allocated any vts symbol? */
+  bool d_hasAllocated;
   /** The virtual term substitution delta */
   Node d_vts_delta;
   /** The virtual term substitution "free delta" */
@@ -140,6 +147,6 @@ class VtsTermCache
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H */

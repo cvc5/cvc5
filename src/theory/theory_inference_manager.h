@@ -1,40 +1,49 @@
-/*********************                                                        */
-/*! \file theory_inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Martin Brain
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief An inference manager for Theory
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * An inference manager for Theory.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
-#define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
+#define CVC5__THEORY__THEORY_INFERENCE_MANAGER_H
 
 #include <memory>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "proof/proof_rule.h"
+#include "proof/trust_node.h"
+#include "smt/env_obj.h"
+#include "theory/inference_id.h"
 #include "theory/output_channel.h"
-#include "theory/theory_state.h"
-#include "theory/trust_node.h"
-#include "theory/uf/proof_equality_engine.h"
+#include "util/statistics_stats.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
+class AnnotationProofGenerator;
+class EagerProofGenerator;
 
 namespace theory {
 
 class Theory;
+class TheoryState;
+class DecisionManager;
+class InferenceIdProofAnnotator;
 namespace eq {
 class EqualityEngine;
+class ProofEqEngine;
 }
 
 /**
@@ -61,26 +70,47 @@ class EqualityEngine;
  * setEqualityEngine, and use it for handling variants of assertInternalFact
  * below that involve proofs.
  */
-class TheoryInferenceManager
+class TheoryInferenceManager : protected EnvObj
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
   /**
    * Constructor, note that state should be the official state of theory t.
+   *
+   * @param t The theory this inference manager is for
+   * @param state The state of the theory
+   * @param pnm The proof node manager, which if non-null, enables proofs for
+   * this inference manager
+   * @param statsName The name of the inference manager, which is used for
+   * giving unique names for statistics,
+   * @param cacheLemmas Whether all lemmas sent using this theory inference
+   * manager are added to a user-context dependent cache. This means that
+   * only lemmas that are unique after rewriting are sent to the theory engine
+   * from this inference manager.
    */
-  TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
-  virtual ~TheoryInferenceManager() {}
+  TheoryInferenceManager(Env& env,
+                         Theory& t,
+                         TheoryState& state,
+                         const std::string& statsName,
+                         bool cacheLemmas = true);
+  virtual ~TheoryInferenceManager();
+  //--------------------------------------- initialization
   /**
    * Set equality engine, ee is a pointer to the official equality engine
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
+  /** Set the decision manager */
+  void setDecisionManager(DecisionManager* dm);
+  //--------------------------------------- end initialization
   /**
    * Are proofs enabled in this inference manager? Returns true if the proof
    * node manager pnm provided to the constructor of this class was non-null.
    */
   bool isProofEnabled() const;
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine* getProofEqEngine();
   /**
    * Reset, which resets counters regarding the number of added lemmas and
    * internal facts. This method should be manually called by the theory at
@@ -97,8 +127,6 @@ class TheoryInferenceManager
    * since the last call to reset.
    */
   bool hasSent() const;
-  /** Get the underlying proof equality engine */
-  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
@@ -108,7 +136,7 @@ class TheoryInferenceManager
    * EqualityEngineNotify::eqNotifyTriggerPredicate and
    * EqualityEngineNotify::eqNotifyTriggerTermEquality.
    */
-  bool propagateLit(TNode lit);
+  virtual bool propagateLit(TNode lit);
   /**
    * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
@@ -131,12 +159,12 @@ class TheoryInferenceManager
    * Raise conflict conf (of any form), without proofs. This method should
    * only be called if there is not yet proof support in the given theory.
    */
-  void conflict(TNode conf);
+  void conflict(TNode conf, InferenceId id);
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
    * been provided (as part of the trust node) in a custom way.
    */
-  void trustedConflict(TrustNode tconf);
+  void trustedConflict(TrustNode tconf, InferenceId id);
   /**
    * Explain and send conflict from contradictory facts. This method is called
    * when the proof rule id with premises exp and arguments args concludes
@@ -144,7 +172,8 @@ class TheoryInferenceManager
    * equality engine's explanation of literals in exp, with the proof equality
    * engine as the proof generator (if it exists).
    */
-  void conflictExp(PfRule id,
+  void conflictExp(InferenceId id,
+                   PfRule pfr,
                    const std::vector<Node>& exp,
                    const std::vector<Node>& args);
   /**
@@ -152,7 +181,7 @@ class TheoryInferenceManager
    * the responsibility of the caller to subsequently call trustedConflict with
    * the returned trust node.
    */
-  TrustNode mkConflictExp(PfRule id,
+  TrustNode mkConflictExp(PfRule pfr,
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
   /**
@@ -163,7 +192,9 @@ class TheoryInferenceManager
    * engine as the proof generator (if it exists), where pg provides the
    * final step(s) of this proof during this call.
    */
-  void conflictExp(const std::vector<Node>& exp, ProofGenerator* pg);
+  void conflictExp(InferenceId id,
+                   const std::vector<Node>& exp,
+                   ProofGenerator* pg);
   /**
    * Make the trust node corresponding to the conflict of the above form. It is
    * the responsibility of the caller to subsequently call trustedConflict with
@@ -176,20 +207,16 @@ class TheoryInferenceManager
    *
    * @param tlem The trust node containing the lemma and its proof generator.
    * @param p The property of the lemma
-   * @param doCache If true, we send the lemma only if it has not already been
-   * cached (see cacheLemma), and add it to the cache during this call.
    * @return true if the lemma was sent on the output channel.
    */
   bool trustedLemma(const TrustNode& tlem,
-                    LemmaProperty p = LemmaProperty::NONE,
-                    bool doCache = true);
+                    InferenceId id,
+                    LemmaProperty p = LemmaProperty::NONE);
   /**
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
-  bool lemma(TNode lem,
-             LemmaProperty p = LemmaProperty::NONE,
-             bool doCache = true);
+  bool lemma(TNode lem, InferenceId id, LemmaProperty p = LemmaProperty::NONE);
   /**
    * Explained lemma. This should be called when
    *   ( exp => conc )
@@ -210,16 +237,15 @@ class TheoryInferenceManager
    * equality engine
    * @param args The arguments to the proof step concluding conc
    * @param p The property of the lemma
-   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
-                PfRule id,
+                InferenceId id,
+                PfRule pfr,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 const std::vector<Node>& args,
-                LemmaProperty p = LemmaProperty::NONE,
-                bool doCache = true);
+                LemmaProperty p = LemmaProperty::NONE);
   /**
    * Make the trust node for the above method. It is responsibility of the
    * caller to subsequently call trustedLemma with the returned trust node.
@@ -241,15 +267,14 @@ class TheoryInferenceManager
    * equality engine
    * @param pg If non-null, the proof generator who can provide a proof of conc.
    * @param p The property of the lemma
-   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
+                InferenceId id,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 ProofGenerator* pg = nullptr,
-                LemmaProperty p = LemmaProperty::NONE,
-                bool doCache = true);
+                LemmaProperty p = LemmaProperty::NONE);
   /**
    * Make the trust node for the above method. It is responsibility of the
    * caller to subsequently call trustedLemma with the returned trust node.
@@ -279,13 +304,15 @@ class TheoryInferenceManager
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
    *
+   * Note this method should never be used when proofs are enabled.
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(TNode atom, bool pol, TNode exp);
+  bool assertInternalFact(TNode atom, bool pol, InferenceId id, TNode exp);
   /**
    * Assert internal fact, with a proof step justification. Notice that if
    * proofs are not enabled in this inference manager, then this asserts
@@ -301,7 +328,8 @@ class TheoryInferenceManager
    */
   bool assertInternalFact(TNode atom,
                           bool pol,
-                          PfRule id,
+                          InferenceId id,
+                          PfRule pfr,
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
   /**
@@ -319,6 +347,7 @@ class TheoryInferenceManager
    */
   bool assertInternalFact(TNode atom,
                           bool pol,
+                          InferenceId id,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
   /** The number of internal facts we have added since the last call to reset */
@@ -326,7 +355,9 @@ class TheoryInferenceManager
   /** Have we added a internal fact since the last call to reset? */
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
-  /** 
+  /** Get the decision manager, which manages decision strategies. */
+  DecisionManager* getDecisionManager();
+  /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
    */
@@ -335,17 +366,22 @@ class TheoryInferenceManager
   /**
    * Forward to OutputChannel::spendResource() to spend resources.
    */
-  void spendResource(ResourceManager::Resource r);
+  void spendResource(Resource r);
 
   /**
    * Forward to OutputChannel::safePoint() to spend resources.
    */
-  void safePoint(ResourceManager::Resource r);
+  void safePoint(Resource r);
   /**
    * Notification from a theory that it realizes it is incomplete at
    * this context level.
    */
-  void setIncomplete();
+  void setIncomplete(IncompleteId id);
+  /**
+   * Notify this inference manager that a conflict was sent in this SAT context.
+   * This method is called via TheoryEngine when a conflict is sent.
+   */
+  virtual void notifyInConflict();
 
  protected:
   /**
@@ -354,6 +390,7 @@ class TheoryInferenceManager
    */
   bool processInternalFact(TNode atom,
                            bool pol,
+                           InferenceId iid,
                            PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args,
@@ -392,6 +429,11 @@ class TheoryInferenceManager
    * override this method to take the lemma property into account as needed.
    */
   virtual bool cacheLemma(TNode lem, LemmaProperty p);
+  /**
+   * Return the trust node that is equivalent to trn, but its proof (if asked
+   * for) will be wrapped in (ANNOTATE ... :args id).
+   */
+  TrustNode annotateId(const TrustNode& trn, InferenceId id);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
@@ -400,10 +442,20 @@ class TheoryInferenceManager
   OutputChannel& d_out;
   /** Pointer to equality engine of the theory. */
   eq::EqualityEngine* d_ee;
+  /** Pointer to the decision manager */
+  DecisionManager* d_decManager;
   /** A proof equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;
-  /** The proof node manager of the theory */
-  ProofNodeManager* d_pnm;
+  eq::ProofEqEngine* d_pfee;
+  /** The proof equality engine we allocated */
+  std::unique_ptr<eq::ProofEqEngine> d_pfeeAlloc;
+  /** Proof generator for trusted THEORY_LEMMA steps */
+  std::unique_ptr<EagerProofGenerator> d_defaultPg;
+  /** The inference id proof annotator */
+  std::unique_ptr<InferenceIdProofAnnotator> d_iipa;
+  /** The annotation proof generator */
+  std::unique_ptr<AnnotationProofGenerator> d_apg;
+  /** Whether this manager caches lemmas */
+  bool d_cacheLemmas;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their
@@ -422,9 +474,15 @@ class TheoryInferenceManager
   uint32_t d_numCurrentLemmas;
   /** The number of internal facts added since the last call to reset. */
   uint32_t d_numCurrentFacts;
+  /** Statistics for conflicts sent via this inference manager. */
+  HistogramStat<InferenceId> d_conflictIdStats;
+  /** Statistics for facts sent via this inference manager. */
+  HistogramStat<InferenceId> d_factIdStats;
+  /** Statistics for lemmas sent via this inference manager. */
+  HistogramStat<InferenceId> d_lemmaIdStats;
 };
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__THEORY_INFERENCE_MANAGER_H */

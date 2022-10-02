@@ -1,53 +1,63 @@
-/*********************                                                        */
-/*! \file sygus_extension.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of the sygus extension of the theory of datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of the sygus extension of the theory of datatypes.
+ */
 
 #include "theory/datatypes/sygus_extension.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "smt/logic_exception.h"
+#include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/datatypes/theory_datatypes.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
+#include "util/rational.h"
 
-using namespace CVC4;
-using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::datatypes;
+using namespace cvc5::internal;
+using namespace cvc5::internal::kind;
+using namespace cvc5::context;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::datatypes;
 
-SygusExtension::SygusExtension(TheoryDatatypes* td,
-                                   QuantifiersEngine* qe,
-                                   context::Context* c)
-    : d_td(td),
-      d_tds(qe->getTermDatabaseSygus()),
-      d_ssb(qe),
-      d_testers(c),
-      d_testers_exp(c),
-      d_active_terms(c),
-      d_currTermSize(c)
+SygusExtension::SygusExtension(Env& env,
+                               TheoryState& s,
+                               InferenceManager& im,
+                               quantifiers::TermDbSygus* tds)
+    : EnvObj(env),
+      d_state(s),
+      d_im(im),
+      d_tds(tds),
+      d_ssb(tds),
+      d_testers(context()),
+      d_testers_exp(context()),
+      d_active_terms(context()),
+      d_currTermSize(context())
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
@@ -56,8 +66,9 @@ SygusExtension::~SygusExtension() {
 }
 
 /** add tester */
-void SygusExtension::assertTester( int tindex, TNode n, Node exp, std::vector< Node >& lemmas ) {
-  registerTerm( n, lemmas );
+void SygusExtension::assertTester(int tindex, TNode n, Node exp)
+{
+  registerTerm(n);
   // check if this is a relevant (sygus) term
   if( d_term_to_anchor.find( n )!=d_term_to_anchor.end() ){
     Trace("sygus-sb-debug2") << "Sygus : process tester : " << exp << std::endl;
@@ -68,8 +79,10 @@ void SygusExtension::assertTester( int tindex, TNode n, Node exp, std::vector< N
       
       // check if parent is active
       bool do_add = true;
-      if( options::sygusSymBreakLazy() ){
-        if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+      if (options().datatypes.sygusSymBreakLazy)
+      {
+        if (n.getKind() == kind::APPLY_SELECTOR)
+        {
           NodeSet::const_iterator it = d_active_terms.find( n[0] );
           if( it==d_active_terms.end() ){
             do_add = false;
@@ -90,7 +103,7 @@ void SygusExtension::assertTester( int tindex, TNode n, Node exp, std::vector< N
         }
       }
       if( do_add ){
-        assertTesterInternal( tindex, n, exp, lemmas );
+        assertTesterInternal(tindex, n, exp);
       }else{
         Trace("sygus-sb-debug2") << "...ignore inactive tester : " << exp << std::endl;
       }
@@ -102,25 +115,26 @@ void SygusExtension::assertTester( int tindex, TNode n, Node exp, std::vector< N
   }
 }
 
-void SygusExtension::assertFact( Node n, bool polarity, std::vector< Node >& lemmas ) {
+void SygusExtension::assertFact(Node n, bool polarity)
+{
   if (n.getKind() == kind::DT_SYGUS_BOUND)
   {
     Node m = n[0];
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
     registerMeasureTerm( m );
-    if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
+    if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
     {
       std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
           d_szinfo.find(m);
       Assert(its != d_szinfo.end());
-      Node mt = its->second->getOrMkMeasureValue(lemmas);
+      Node mt = its->second->getOrMkMeasureValue();
       //it relates the measure term to arithmetic
       Node blem = n.eqNode( NodeManager::currentNM()->mkNode( kind::LEQ, mt, n[1] ) );
-      lemmas.push_back( blem );
+      d_im.lemma(blem, InferenceId::DATATYPES_SYGUS_FAIR_SIZE);
     }
     if( polarity ){
-      unsigned s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
-      notifySearchSize( m, s, n, lemmas );
+      uint64_t s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      notifySearchSize(m, s, n);
     }
   }else if( n.getKind() == kind::DT_HEIGHT_BOUND || n.getKind()==DT_SIZE_BOUND ){
     //reduce to arithmetic TODO ?
@@ -137,17 +151,18 @@ Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   return szGeq;
 }
 
-void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
+void SygusExtension::registerTerm(Node n)
+{
   if( d_is_top_level.find( n )==d_is_top_level.end() ){
     d_is_top_level[n] = false;
     TypeNode tn = n.getType();
     unsigned d = 0;
     bool is_top_level = false;
     bool success = false;
-    if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
-      registerTerm( n[0], lemmas );
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
-          d_term_to_anchor.find(n[0]);
+    if (n.getKind() == kind::APPLY_SELECTOR)
+    {
+      registerTerm(n[0]);
+      std::unordered_map<Node, Node>::iterator it = d_term_to_anchor.find(n[0]);
       if( it!=d_term_to_anchor.end() ) {
         d_term_to_anchor[n] = it->second;
         unsigned sel_weight =
@@ -156,8 +171,10 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
         is_top_level = computeTopLevel( tn, n[0] );
         success = true;
       }
-    }else if( n.isVar() ){
-      registerSizeTerm( n, lemmas );
+    }
+    else if (n.isVar())
+    {
+      registerSizeTerm(n);
       if( d_register_st[n] ){
         d_term_to_anchor[n] = n;
         d_anchor_to_conj[n] = d_tds->getConjectureForEnumerator(n);
@@ -174,7 +191,7 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
           << ", type = " << tn.getDType().getName() << std::endl;
       d_term_to_depth[n] = d;
       d_is_top_level[n] = is_top_level;
-      registerSearchTerm( tn, d, n, is_top_level, lemmas );
+      registerSearchTerm(tn, d, n, is_top_level);
     }else{
       Trace("sygus-sb-debug2") << "Term " << n << " is not part of sygus search." << std::endl;
     }
@@ -184,14 +201,19 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
 bool SygusExtension::computeTopLevel( TypeNode tn, Node n ){
   if( n.getType()==tn ){
     return false;
-  }else if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
+  }
+  else if (n.getKind() == kind::APPLY_SELECTOR)
+  {
     return computeTopLevel( tn, n[0] );
-  }else{
+  }
+  else
+  {
     return true;
   }
 }
 
-void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas ) {
+void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
+{
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
@@ -218,7 +240,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
   Assert(itsz != d_szinfo.end());
   unsigned ssz = itsz->second->d_curr_search_size;
 
-  if (options::sygusFair() == options::SygusFairMode::DIRECT)
+  if (options().datatypes.sygusFair == options::SygusFairMode::DIRECT)
   {
     if( dt[tindex].getNumArgs()>0 ){
       quantifiers::SygusTypeInfo& nti = d_tds->getTypeInfo(ntn);
@@ -229,7 +251,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
       d_currTermSize[a].set( d_currTermSize[a].get() + ( lb_add - lb_rem ) );
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
-      if( Trace.isOn("sygus-sb-fair") ){
+      if( TraceIsOn("sygus-sb-fair") ){
         std::map< TypeNode, int > var_count;
         Node templ = getCurrentTemplate( a, var_count );
         Trace("sygus-sb-fair") << "FAIRNESS : we have " <<  d_currTermSize[a].get() << " at search size " << ssz << ", template is " << templ << std::endl;
@@ -258,7 +280,8 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
       conflict.push_back( itsz->second->d_search_size_exp[ssz] );
       Node conf = NodeManager::currentNM()->mkNode( kind::AND, conflict );
       Trace("sygus-sb-fair") << "Conflict is : " << conf << std::endl;
-      lemmas.push_back( conf.negate() );
+      Node confn = conf.negate();
+      d_im.lemma(confn, InferenceId::DATATYPES_SYGUS_FAIR_SIZE_CONFLICT);
       return;
     }
   }
@@ -268,9 +291,10 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
   unsigned d = d_term_to_depth[n];
   Trace("sygus-sb-fair-debug") << "Tester " << exp << " is for depth " << d << " term in search size " << ssz << std::endl;
   //Assert( d<=ssz );
-  if( options::sygusSymBreakLazy() ){
+  if (options().datatypes.sygusSymBreakLazy)
+  {
     // dynamic symmetry breaking
-    addSymBreakLemmasFor( ntn, n, d, lemmas );
+    addSymBreakLemmasFor(ntn, n, d);
   }
 
   Trace("sygus-sb-debug") << "Get simple symmetry breaking predicates...\n";
@@ -279,7 +303,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
   NodeManager* nm = NodeManager::currentNM();
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
-    std::vector<Node> sb_lemmas;
+    std::vector<std::pair<Node, InferenceId>> sbLemmas;
     // symmetry breaking lemmas requiring predicate elimination
     std::map<Node, bool> sb_elim_pred;
     bool usingSymCons = d_tds->usingSymbolicConsForEnumerator(m);
@@ -292,7 +316,8 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
           m, ntn, tindex, ds, usingSymCons, isVarAgnostic);
       if (!ipred.isNull())
       {
-        sb_lemmas.push_back(ipred);
+        sbLemmas.emplace_back(ipred,
+                              InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK);
         if (ds == 0 && isVarAgnostic)
         {
           sb_elim_pred[ipred] = true;
@@ -312,17 +337,19 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
               conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
           if (!dpred.isNull())
           {
-            sb_lemmas.push_back(dpred);
+            sbLemmas.emplace_back(dpred,
+                                  InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK);
           }
         }
       }
     }
 
     // add the above symmetry breaking predicates to lemmas
-    std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
+    std::unordered_map<TNode, TNode> cache;
     Node rlv = getRelevancyCondition(n);
-    for (const Node& slem : sb_lemmas)
+    for (std::pair<Node, InferenceId>& sbl : sbLemmas)
     {
+      Node slem = sbl.first;
       Node sslem = slem.substitute(x, n, cache);
       // if we require predicate elimination
       if (sb_elim_pred.find(slem) != sb_elim_pred.end())
@@ -337,24 +364,25 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
       {
         sslem = nm->mkNode(OR, rlv, sslem);
       }
-      lemmas.push_back(sslem);
+      d_im.lemma(sslem, sbl.second);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
 
   // now activate the children those testers were previously asserted in this
   // context and are awaiting activation, if they exist.
-  if( options::sygusSymBreakLazy() ){
+  if (options().datatypes.sygusSymBreakLazy)
+  {
     Trace("sygus-sb-debug") << "Do lazy symmetry breaking...\n";
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(ntn, j), n);
+          APPLY_SELECTOR, getSelectorInternal(ntn, dt[tindex], j), n);
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
       Assert(d_active_terms.find(sel) == d_active_terms.end());
       IntMap::const_iterator itt = d_testers.find( sel );
       if( itt != d_testers.end() ){
         Assert(d_testers_exp.find(sel) != d_testers_exp.end());
-        assertTesterInternal( (*itt).second, sel, d_testers_exp[sel], lemmas );
+        assertTesterInternal((*itt).second, sel, d_testers_exp[sel]);
       }
     }
     Trace("sygus-sb-debug") << "...finished" << std::endl;
@@ -362,19 +390,20 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
 }
 
 Node SygusExtension::getRelevancyCondition( Node n ) {
-  if (!options::sygusSymBreakRlv())
+  if (!options().datatypes.sygusSymBreakRlv)
   {
     return Node::null();
   }
   std::map< Node, Node >::iterator itr = d_rlv_cond.find( n );
   if( itr==d_rlv_cond.end() ){
     Node cond;
-    if (n.getKind() == APPLY_SELECTOR_TOTAL)
+    if (n.getKind() == APPLY_SELECTOR)
     {
       TypeNode ntn = n[0].getType();
       const DType& dt = ntn.getDType();
       Node sel = n.getOperator();
-      if( options::dtSharedSelectors() ){
+      if (options().datatypes.dtSharedSelectors)
+      {
         std::vector< Node > disj;
         bool excl = false;
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
@@ -393,7 +422,9 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
           cond = disj.size() == 1 ? disj[0] : NodeManager::currentNM()->mkNode(
                                                   kind::AND, disj);
         }
-      }else{
+      }
+      else
+      {
         int sindex = utils::cindexOf(sel);
         Assert(sindex != -1);
         cond = utils::mkTester(n[0], sindex, dt).negate();
@@ -422,10 +453,11 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
     return itt->second;
   }
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   std::vector<TypeNode> types;
   types.push_back(tn);
   TypeNode ptn = nm->mkPredicateType(types);
-  Node pred = nm->mkSkolem(isPre ? "pre" : "post", ptn);
+  Node pred = sm->mkDummySkolem(isPre ? "pre" : "post", ptn);
   d_traversal_pred[index][tn][n] = pred;
   return pred;
 }
@@ -433,8 +465,9 @@ Node SygusExtension::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 Node SygusExtension::eliminateTraversalPredicates(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  SkolemManager* sm = nm->getSkolemManager();
+  std::unordered_map<TNode, Node> visited;
+  std::unordered_map<TNode, Node>::iterator it;
   std::map<Node, Node>::iterator ittb;
   std::vector<TNode> visit;
   TNode cur;
@@ -451,14 +484,14 @@ Node SygusExtension::eliminateTraversalPredicates(Node n)
       {
         Assert(cur.getType().isBoolean());
         Assert(cur.getNumChildren() == 1
-               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR_TOTAL));
+               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR));
         ittb = d_traversal_bool.find(cur);
         Node ret;
         if (ittb == d_traversal_bool.end())
         {
           std::stringstream ss;
           ss << "v_" << cur;
-          ret = nm->mkSkolem(ss.str(), cur.getType());
+          ret = sm->mkDummySkolem(ss.str(), cur.getType());
           d_traversal_bool[cur] = ret;
         }
         else
@@ -568,8 +601,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   std::vector<Node> children;
   for (unsigned j = 0; j < dt_index_nargs; j++)
   {
-    Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(tn, j), n);
+    Node sel =
+        nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], j), n);
     Assert(sel.getType().isDatatype());
     children.push_back(sel);
   }
@@ -578,12 +611,15 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   {
     Trace("sygus-sb-simple-debug") << "  Size..." << std::endl;
     // fairness
-    if (options::sygusFair() == options::SygusFairMode::DT_SIZE
+    if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE
         && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
-      Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
-      szr = Rewriter::rewrite(szr);
+      Node szr =
+          nm->mkNode(DT_SIZE,
+                     utils::getInstCons(
+                         n, dt, tindex, options().datatypes.dtSharedSelectors));
+      szr = rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
     if (isVarAgnostic)
@@ -666,7 +702,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
 
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
-  bool doSymBreak = options::sygusSymBreak();
+  bool doSymBreak = options().datatypes.sygusSimpleSymBreak
+                    != options::SygusSimpleSymBreakMode::NONE;
   if (isAnyConstant || depth > 2)
   {
     doSymBreak = false;
@@ -675,7 +712,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   if (doSymBreak)
   {
     // direct solving for children
-    //   for instance, we may want to insist that the LHS of MINUS is 0
+    //   for instance, we may want to insist that the LHS of SUB is 0
     Trace("sygus-sb-simple-debug") << "  Solve children..." << std::endl;
     std::map<unsigned, unsigned> children_solved;
     for (unsigned j = 0; j < dt_index_nargs; j++)
@@ -721,9 +758,9 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           {
             // other cases of rewriting x k x -> x'
             Node req_const;
-            if (nk == GT || nk == LT || nk == XOR || nk == MINUS
+            if (nk == GT || nk == LT || nk == XOR || nk == SUB
                 || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
-                || nk == BITVECTOR_UREM_TOTAL)
+                || nk == BITVECTOR_UREM)
             {
               // must have the zero element
               req_const = quantifiers::TermUtil::mkTypeValue(tnb, 0);
@@ -748,12 +785,12 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             deq_child[1].push_back(1);
           }
         }
-        if (nk == ITE || nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == ITE || nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(1);
           deq_child[1].push_back(2);
         }
-        if (nk == STRING_STRREPL || nk == STRING_STRREPLALL)
+        if (nk == STRING_REPLACE || nk == STRING_REPLACE_ALL)
         {
           deq_child[0].push_back(0);
           deq_child[1].push_back(1);
@@ -769,7 +806,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           TypeNode tnc = children[c1].getType();
           // we may only apply this symmetry breaking scheme (which introduces
           // disequalities) if the types are infinite.
-          if (tnc == children[c2].getType() && !tnc.isInterpretedFinite())
+          if (tnc == children[c2].getType() && !d_env.isFiniteType(tnc))
           {
             Node sym_lem_deq = children[c1].eqNode(children[c2]).negate();
             // notice that this symmetry breaking still allows for
@@ -893,8 +930,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           && children[0].getType() == tn && children[1].getType() == tn)
       {
         // chainable
-        Node child11 = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                                  dt[tindex].getSelectorInternal(tn, 1),
+        Node child11 = nm->mkNode(APPLY_SELECTOR,
+                                  getSelectorInternal(tn, dt[tindex], 1),
                                   children[0]);
         Assert(child11.getType() == children[1].getType());
         Node order_pred_trans =
@@ -925,10 +962,13 @@ TNode SygusExtension::getFreeVar( TypeNode tn ) {
   return d_tds->getFreeVar(tn, 0);
 }
 
-void SygusExtension::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas ) {
+void SygusExtension::registerSearchTerm(TypeNode tn,
+                                        unsigned d,
+                                        Node n,
+                                        bool topLevel)
+{
   //register this term
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
-      d_term_to_anchor.find(n);
+  std::unordered_map<Node, Node>::iterator ita = d_term_to_anchor.find(n);
   Assert(ita != d_term_to_anchor.end());
   Node a = ita->second;
   Assert(!a.isNull());
@@ -939,8 +979,9 @@ void SygusExtension::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool t
   {
     Trace("sygus-sb-debug") << "  register search term : " << n << " at depth " << d << ", type=" << tn << ", tl=" << topLevel << std::endl;
     sca.d_search_terms[tn][d].push_back(n);
-    if( !options::sygusSymBreakLazy() ){
-      addSymBreakLemmasFor( tn, n, d, lemmas );
+    if (!options().datatypes.sygusSymBreakLazy)
+    {
+      addSymBreakLemmasFor(tn, n, d);
     }
   }
 }
@@ -949,11 +990,10 @@ Node SygusExtension::registerSearchValue(Node a,
                                            Node n,
                                            Node nv,
                                            unsigned d,
-                                           std::vector<Node>& lemmas,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
-  Assert(n.getType().isComparableTo(nv.getType()));
+  Assert(n.getType() == nv.getType());
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {
@@ -978,13 +1018,12 @@ Node SygusExtension::registerSearchValue(Node a,
     bool childrenChanged = false;
     for (unsigned i = 0, nchild = nv.getNumChildren(); i < nchild; i++)
     {
-      Node sel = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), n);
+      Node sel =
+          nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
       Node nvc = registerSearchValue(a,
                                      sel,
                                      nv[i],
                                      d + 1,
-                                     lemmas,
                                      isVarAgnostic,
                                      doSym && (!isVarAgnostic || i == 0));
       if (nvc.isNull())
@@ -1020,31 +1059,27 @@ Node SygusExtension::registerSearchValue(Node a,
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
-    Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
+    Node bvr = d_tds->rewriteNode(bv);
     Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
-    unsigned sz = d_tds->getSygusTermSize( nv );      
+    unsigned sz = utils::getSygusTermSize(nv);
     if( d_tds->involvesDivByZero( bvr ) ){
-      quantifiers::DivByZeroSygusInvarianceTest dbzet;
+      quantifiers::DivByZeroSygusInvarianceTest dbzet(d_env.getRewriter());
       Trace("sygus-sb-mexp-debug") << "Minimize explanation for div-by-zero in "
                                    << bv << std::endl;
-      registerSymBreakLemmaForValue(
-          a, nv, dbzet, Node::null(), var_count, lemmas);
+      registerSymBreakLemmaForValue(a, nv, dbzet, Node::null(), var_count);
       return Node::null();
     }else{
-      std::unordered_map<Node, Node, NodeHashFunction>& scasv =
-          sca.d_search_val[tn];
-      std::unordered_map<Node, unsigned, NodeHashFunction>& scasvs =
-          sca.d_search_val_sz[tn];
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator itsv =
-          scasv.find(bvr);
+      std::unordered_map<Node, Node>& scasv = sca.d_search_val[tn];
+      std::unordered_map<Node, unsigned>& scasvs = sca.d_search_val_sz[tn];
+      std::unordered_map<Node, Node>::iterator itsv = scasv.find(bvr);
       Node bad_val_bvr;
       bool by_examples = false;
       if (itsv == scasv.end())
       {
         // Is it equivalent under examples?
         Node bvr_equiv;
-        if (aconj != nullptr && options::sygusSymBreakPbe())
+        if (aconj != nullptr && options().datatypes.sygusSymBreakPbe)
         {
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.
@@ -1060,7 +1095,7 @@ Node SygusExtension::registerSearchValue(Node a,
             Assert(scasv.find(bvr_equiv) != scasv.end());
             Trace("sygus-sb-debug")
                 << "......search value was " << scasv[bvr_equiv] << std::endl;
-            if( Trace.isOn("sygus-sb-exc") ){
+            if( TraceIsOn("sygus-sb-exc") ){
               Node prev = d_tds->sygusToBuiltin(scasv[bvr_equiv], tn);
               Trace("sygus-sb-exc") << "  ......programs " << prev << " and " << bv << " are equivalent up to examples." << std::endl;
             }
@@ -1075,27 +1110,31 @@ Node SygusExtension::registerSearchValue(Node a,
       else
       {
         bad_val_bvr = bvr;
-        if( Trace.isOn("sygus-sb-exc") ){
+        if( TraceIsOn("sygus-sb-exc") ){
           Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
           Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
         }
       }
 
-      if (options::sygusRewVerify())
+      if (options().quantifiers.sygusRewVerify)
       {
         if (bv != bvr)
         {
           // add to the sampler database object
-          std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
-              d_sampler[a].find(tn);
-          if (its == d_sampler[a].end())
+          std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>& smap =
+              d_sampler[a];
+          std::map<TypeNode,
+                   std::unique_ptr<quantifiers::SygusSampler>>::iterator its =
+              smap.find(tn);
+          if (its == smap.end())
           {
-            d_sampler[a][tn].initializeSygus(
-                d_tds, nv, options::sygusSamples(), false);
+            smap[tn].reset(new quantifiers::SygusSampler(d_env));
+            smap[tn]->initializeSygus(
+                d_tds, nv, options().quantifiers.sygusSamples, false);
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv, bvr);
+          its->second->checkEquivalent(bv, bvr, *options().base.out);
         }
       }
 
@@ -1111,7 +1150,7 @@ Node SygusExtension::registerSearchValue(Node a,
           scasvs[bad_val_bvr] = sz;
           bad_val = scasv[bad_val_bvr];
           bad_val_o = nv;
-          if (Trace.isOn("sygus-sb-exc"))
+          if (TraceIsOn("sygus-sb-exc"))
           {
             Trace("sygus-sb-exc") << "Flip : exclude ";
             quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
@@ -1122,7 +1161,7 @@ Node SygusExtension::registerSearchValue(Node a,
           }
           sz = prev_sz;
         }
-        if( Trace.isOn("sygus-sb-exc") ){
+        if( TraceIsOn("sygus-sb-exc") ){
           Node bad_val_bv = d_tds->sygusToBuiltin( bad_val, tn );
           Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
           if( by_examples ){
@@ -1130,16 +1169,15 @@ Node SygusExtension::registerSearchValue(Node a,
           }
           Trace("sygus-sb-exc") << std::endl;
         }
-        Assert(d_tds->getSygusTermSize(bad_val) == sz);
+        Assert(utils::getSygusTermSize(bad_val) == sz);
 
         // generalize the explanation for why the analog of bad_val
         // is equivalent to bvr
-        quantifiers::EquivSygusInvarianceTest eset;
+        quantifiers::EquivSygusInvarianceTest eset(d_env.getRewriter());
         eset.init(d_tds, tn, aconj, a, bvr);
 
         Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
-        registerSymBreakLemmaForValue(
-            a, bad_val, eset, bad_val_o, var_count, lemmas);
+        registerSymBreakLemmaForValue(a, bad_val, eset, bad_val_o, var_count);
 
         // other generalization criteria go here
 
@@ -1161,12 +1199,11 @@ void SygusExtension::registerSymBreakLemmaForValue(
     Node val,
     quantifiers::SygusInvarianceTest& et,
     Node valr,
-    std::map<TypeNode, int>& var_count,
-    std::vector<Node>& lemmas)
+    std::map<TypeNode, int>& var_count)
 {
   TypeNode tn = val.getType();
   Node x = getFreeVar(tn);
-  unsigned sz = d_tds->getSygusTermSize(val);
+  unsigned sz = utils::getSygusTermSize(val);
   std::vector<Node> exp;
   d_tds->getExplain()->getExplanationFor(x, val, exp, et, valr, var_count, sz);
   Node lem =
@@ -1174,10 +1211,14 @@ void SygusExtension::registerSymBreakLemmaForValue(
   lem = lem.negate();
   Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz
                         << std::endl;
-  registerSymBreakLemma(tn, lem, sz, a, lemmas);
+  registerSymBreakLemma(tn, lem, sz, a);
 }
 
-void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a, std::vector< Node >& lemmas ) {
+void SygusExtension::registerSymBreakLemma(TypeNode tn,
+                                           Node lem,
+                                           unsigned sz,
+                                           Node a)
+{
   // lem holds for all terms of type tn, and is applicable to terms of size sz
   Trace("sygus-sb-debug") << "  register sym break lemma : " << lem
                           << std::endl;
@@ -1186,7 +1227,7 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
   Trace("sygus-sb-debug") << "     size : " << sz << std::endl;
   Assert(!a.isNull());
   SearchCache& sca = d_cache[a];
-  sca.d_sb_lemmas[tn][sz].push_back(lem);
+  sca.d_sbLemmas[tn][sz].push_back(lem);
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
   int max_depth = ((int)csz)-((int)sz);
@@ -1196,9 +1237,9 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
         sca.d_search_terms[tn].find(d);
     if (itt != sca.d_search_terms[tn].end())
     {
-      for (const TNode& t : itt->second)
+      for (const Node& t : itt->second)
       {
-        if (!options::sygusSymBreakLazy()
+        if (!options().datatypes.sygusSymBreakLazy
             || d_active_terms.find(t) != d_active_terms.end())
         {
           Node slem = lem.substitute(x, t);
@@ -1207,42 +1248,49 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
           {
             slem = nm->mkNode(OR, rlv, slem);
           }
-          lemmas.push_back(slem);
+          d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
         }
       }
     }
   }
 }
 
-void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas ) {
+void SygusExtension::addSymBreakLemmasFor(TypeNode tn, TNode t, unsigned d)
+{
   Assert(d_term_to_anchor.find(t) != d_term_to_anchor.end());
   Node a = d_term_to_anchor[t];
-  addSymBreakLemmasFor( tn, t, d, a, lemmas );
+  addSymBreakLemmasFor(tn, t, d, a);
 }
 
-void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node a, std::vector< Node >& lemmas ) {
+void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
+                                          TNode t,
+                                          unsigned d,
+                                          Node a)
+{
   Assert(t.getType() == tn);
   Assert(!a.isNull());
   Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
                            << " " << a << std::endl;
   SearchCache& sca = d_cache[a];
-  std::map<TypeNode, std::map<unsigned, std::vector<Node>>>::iterator its =
-      sca.d_sb_lemmas.find(tn);
+  std::map<TypeNode, std::map<uint64_t, std::vector<Node>>>::iterator its =
+      sca.d_sbLemmas.find(tn);
   Node rlv = getRelevancyCondition(t);
   NodeManager* nm = NodeManager::currentNM();
-  if (its != sca.d_sb_lemmas.end())
+  if (its != sca.d_sbLemmas.end())
   {
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
     unsigned csz = getSearchSizeForAnchor( a );
-    int max_sz = ((int)csz) - ((int)d);
+    uint64_t max_sz = d > csz ? 0 : (csz - d);
     Trace("sygus-sb-debug2")
         << "add lemmas up to size " << max_sz << ", which is (search_size) "
         << csz << " - (depth) " << d << std::endl;
-    std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-    for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
-      if( (int)it->first<=max_sz ){
-        for (const Node& lem : it->second)
+    std::unordered_map<TNode, TNode> cache;
+    for (std::pair<const uint64_t, std::vector<Node>>& sbls : its->second)
+    {
+      if (sbls.first <= max_sz)
+      {
+        for (const Node& lem : sbls.second)
         {
           Node slem = lem.substitute(x, t, cache);
           // add the relevancy condition for t
@@ -1250,7 +1298,7 @@ void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node
           {
             slem = nm->mkNode(OR, rlv, slem);
           }
-          lemmas.push_back(slem);
+          d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
         }
       }
     }
@@ -1258,14 +1306,15 @@ void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node
   Trace("sygus-sb-debug2") << "...finished." << std::endl;
 }
 
-void SygusExtension::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) {
+void SygusExtension::preRegisterTerm(TNode n)
+{
   if( n.isVar() ){
     Trace("sygus-sb-debug") << "Pre-register variable : " << n << std::endl;
-    registerSizeTerm( n, lemmas );
+    registerSizeTerm(n);
   }
 }
 
-void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
+void SygusExtension::registerSizeTerm(Node e)
 {
   if (d_register_st.find(e) != d_register_st.end())
   {
@@ -1300,13 +1349,10 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
         d_anchor_to_ag_strategy.find(e);
     if (itaas == d_anchor_to_ag_strategy.end())
     {
-      d_anchor_to_ag_strategy[e].reset(
-          new DecisionStrategySingleton("sygus_enum_active",
-                                        ag,
-                                        d_td->getSatContext(),
-                                        d_td->getValuation()));
+      d_anchor_to_ag_strategy[e].reset(new DecisionStrategySingleton(
+          d_env, "sygus_enum_active", ag, d_state.getValuation()));
     }
-    d_td->getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
         d_anchor_to_ag_strategy[e].get());
   }
@@ -1333,22 +1379,22 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
   d_szinfo[m]->d_anchors.push_back(e);
   d_anchor_to_measure_term[e] = m;
   NodeManager* nm = NodeManager::currentNM();
-  if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
+  if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
   {
     // update constraints on the measure term
     Node slem;
-    if (options::sygusFairMax())
+    if (options().datatypes.sygusFairMax)
     {
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = nm->mkNode(LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
+      slem = nm->mkNode(LEQ, ds, d_szinfo[m]->getOrMkMeasureValue());
     }else{
-      Node mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas);
-      Node new_mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
+      Node mt = d_szinfo[m]->getOrMkActiveMeasureValue();
+      Node newMt = d_szinfo[m]->getOrMkActiveMeasureValue(true);
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(nm->mkNode(PLUS, new_mt, ds));
+      slem = mt.eqNode(nm->mkNode(ADD, newMt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
-    lemmas.push_back(slem);
+    d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);
   }
   if (d_tds->isVariableAgnosticEnumerator(e))
   {
@@ -1376,7 +1422,7 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
       Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
       Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc
                            << std::endl;
-      lemmas.push_back(preNoVarProc);
+      d_im.lemma(preNoVarProc, InferenceId::DATATYPES_SYGUS_VAR_AGNOSTIC);
     }
   }
 }
@@ -1386,15 +1432,15 @@ void SygusExtension::registerMeasureTerm( Node m ) {
       d_szinfo.find(m);
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
-    d_szinfo[m].reset(new SygusSizeDecisionStrategy(
-        m, d_td->getSatContext(), d_td->getValuation()));
+    d_szinfo[m].reset(new SygusSizeDecisionStrategy(d_env, d_im, m, d_state));
     // register this as a decision strategy
-    d_td->getDecisionManager()->registerStrategy(
+    d_im.getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
   }
 }
 
-void SygusExtension::notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas ) {
+void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
+{
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
       d_szinfo.find(m);
   Assert(its != d_szinfo.end());
@@ -1407,26 +1453,15 @@ void SygusExtension::notifySearchSize( Node m, unsigned s, Node exp, std::vector
     Trace("sygus-fair") << "SygusExtension:: now considering term measure : " << s << " for " << m << std::endl;
     Assert(s >= its->second->d_curr_search_size);
     while( s>its->second->d_curr_search_size ){
-      incrementCurrentSearchSize( m, lemmas );
+      incrementCurrentSearchSize(m);
     }
     Trace("sygus-fair") << "...finish increment for term measure : " << s << std::endl;
-    /*
-    //re-add all testers (some may now be relevant) TODO
-    for( IntMap::const_iterator it = d_testers.begin(); it != d_testers.end();
-    ++it ){ Node n = (*it).first; NodeMap::const_iterator itx =
-    d_testers_exp.find( n ); if( itx!=d_testers_exp.end() ){ int tindex =
-    (*it).second; Node exp = (*itx).second; assertTester( tindex, n, exp, lemmas
-    ); }else{ Assert( false );
-      }
-    }
-    */
   }
 }
 
 unsigned SygusExtension::getSearchSizeFor( Node n ) {
   Trace("sygus-sb-debug2") << "get search size for term : " << n << std::endl;
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
-      d_term_to_anchor.find(n);
+  std::unordered_map<Node, Node>::iterator ita = d_term_to_anchor.find(n);
   Assert(ita != d_term_to_anchor.end());
   return getSearchSizeForAnchor( ita->second );
 }
@@ -1446,8 +1481,9 @@ unsigned SygusExtension::getSearchSizeForMeasureTerm(Node m)
   Assert(its != d_szinfo.end());
   return its->second->d_curr_search_size;
 }
-  
-void SygusExtension::incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas ) {
+
+void SygusExtension::incrementCurrentSearchSize(TNode m)
+{
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz =
       d_szinfo.find(m);
   Assert(itsz != d_szinfo.end());
@@ -1460,31 +1496,33 @@ void SygusExtension::incrementCurrentSearchSize( Node m, std::vector< Node >& le
     // check whether a is bounded by m
     Assert(d_anchor_to_measure_term.find(a) != d_anchor_to_measure_term.end());
     if( d_anchor_to_measure_term[a]==m ){
-      for( std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = itc->second.d_sb_lemmas.begin();
-           its != itc->second.d_sb_lemmas.end(); ++its ){
-        TypeNode tn = its->first;
+      for (std::pair<const TypeNode, std::map<uint64_t, std::vector<Node>>>&
+               sbl : itc->second.d_sbLemmas)
+      {
+        TypeNode tn = sbl.first;
         TNode x = getFreeVar( tn );
-        for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
-          unsigned sz = it->first;
+        for (std::pair<const uint64_t, std::vector<Node>>& s : sbl.second)
+        {
+          unsigned sz = s.first;
           int new_depth = ((int)itsz->second->d_curr_search_size) - ((int)sz);
           std::map< unsigned, std::vector< Node > >::iterator itt = itc->second.d_search_terms[tn].find( new_depth );
           if( itt!=itc->second.d_search_terms[tn].end() ){
-            for (const TNode& t : itt->second)
+            for (const Node& t : itt->second)
             {
-              if (!options::sygusSymBreakLazy()
+              if (!options().datatypes.sygusSymBreakLazy
                   || (d_active_terms.find(t) != d_active_terms.end()
-                      && !it->second.empty()))
+                      && !s.second.empty()))
               {
                 Node rlv = getRelevancyCondition(t);
-                std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-                for (const Node& lem : it->second)
+                std::unordered_map<TNode, TNode> cache;
+                for (const Node& lem : s.second)
                 {
                   Node slem = lem.substitute(x, t, cache);
                   if (!rlv.isNull())
                   {
                     slem = nm->mkNode(OR, rlv, slem);
                   }
-                  lemmas.push_back(slem);
+                  d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
                 }
               }
             }
@@ -1495,8 +1533,12 @@ void SygusExtension::incrementCurrentSearchSize( Node m, std::vector< Node >& le
   }
 }
 
-void SygusExtension::check( std::vector< Node >& lemmas ) {
+void SygusExtension::check()
+{
   Trace("sygus-sb") << "SygusExtension::check" << std::endl;
+
+  // reset the count of lemmas sent
+  d_im.reset();
 
   // check for externally registered symmetry breaking lemmas
   std::vector<Node> anchors;
@@ -1523,21 +1565,21 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
               // register the lemma template
               TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
               unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
-              registerSymBreakLemma(tn, lem, sz, a, lemmas);
+              registerSymBreakLemma(tn, lem, sz, a);
             }
             else
             {
               Trace("dt-sygus-debug")
                   << "DT sym break lemma : " << lem << std::endl;
               // it is a normal lemma
-              lemmas.push_back(lem);
+              d_im.lemma(lem, InferenceId::DATATYPES_SYGUS_ENUM_SYM_BREAK);
             }
           }
           d_tds->clearSymBreakLemmas(a);
         }
       }
     }
-    if (!lemmas.empty())
+    if (d_im.hasSentLemma())
     {
       return;
     }
@@ -1553,7 +1595,7 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
     if (d_register_st.find(prog) == d_register_st.end())
     {
       // not yet registered, do so now
-      registerSizeTerm(prog, lemmas);
+      registerSizeTerm(prog);
       needsRecheck = true;
     }
     else
@@ -1561,8 +1603,8 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
       Trace("dt-sygus-debug") << "Checking model value of " << prog << "..."
                               << std::endl;
       Assert(prog.getType().isDatatype());
-      Node progv = d_td->getValuation().getModel()->getValue( prog );
-      if (Trace.isOn("dt-sygus"))
+      Node progv = d_state.getValuation().getModel()->getValue(prog);
+      if (TraceIsOn("dt-sygus"))
       {
         Trace("dt-sygus") << "* DT model : " << prog << " -> ";
         std::stringstream ss;
@@ -1571,14 +1613,14 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
       }
       // first check that the value progv for prog is what we expected
       bool isExc = true;
-      if (checkValue(prog, progv, 0, lemmas))
+      if (checkValue(prog, progv, 0))
       {
         isExc = false;
         //debugging : ensure fairness was properly handled
-        if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
+        if (options().datatypes.sygusFair == options::SygusFairMode::DT_SIZE)
         {
           Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, prog );
-          Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
+          Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
           Node progv_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, progv );
             
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv << ", size = " << prog_szv << std::endl;
@@ -1587,20 +1629,22 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
             Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
                                                                      prog_sz.eqNode( progv_sz ) );
             Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
-            lemmas.push_back(szlem);
+            d_im.lemma(szlem, InferenceId::DATATYPES_SYGUS_SIZE_CORRECTION);
             isExc = true;
           }
         }
 
         // register the search value ( prog -> progv ), this may invoke symmetry
         // breaking
-        if (!isExc && options::sygusSymBreakDynamic())
+        if (!isExc
+            && options().datatypes.sygusRewriter
+                   != options::SygusRewriterMode::NONE)
         {
           bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
           // check that it is unique up to theory-specific rewriting and
           // conjecture-specific symmetry breaking.
-          Node rsv = registerSearchValue(
-              prog, prog, progv, 0, lemmas, isVarAgnostic, true);
+          Node rsv =
+              registerSearchValue(prog, prog, progv, 0, isVarAgnostic, true);
           if (rsv.isNull())
           {
             isExc = true;
@@ -1620,12 +1664,12 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
   if (needsRecheck)
   {
     Trace("sygus-sb") << " SygusExtension::rechecking..." << std::endl;
-    return check(lemmas);
+    return check();
   }
 
-  if (Trace.isOn("sygus-engine") && !d_szinfo.empty())
+  if (TraceIsOn("sygus-engine") && !d_szinfo.empty())
   {
-    if (lemmas.empty())
+    if (d_im.hasSentLemma())
     {
       Trace("sygus-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
       for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>&
@@ -1640,18 +1684,11 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
     {
       Trace("sygus-engine")
           << "*** Sygus : produced symmetry breaking lemmas" << std::endl;
-      for (const Node& lem : lemmas)
-      {
-        Trace("sygus-engine-debug") << "  " << lem << std::endl;
-      }
     }
   }
 }
 
-bool SygusExtension::checkValue(Node n,
-                                  Node vn,
-                                  int ind,
-                                  std::vector<Node>& lemmas)
+bool SygusExtension::checkValue(Node n, TNode vn, int ind)
 {
   if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {
@@ -1660,10 +1697,10 @@ bool SygusExtension::checkValue(Node n,
     return true;
   }
   NodeManager* nm = NodeManager::currentNM();
-  if (Trace.isOn("sygus-sb-check-value"))
+  if (TraceIsOn("sygus-sb-check-value"))
   {
     Node prog_sz = nm->mkNode(DT_SIZE, n);
-    Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
+    Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
     for( int i=0; i<ind; i++ ){
       Trace("sygus-sb-check-value") << "  ";
     }
@@ -1676,11 +1713,11 @@ bool SygusExtension::checkValue(Node n,
   // ensure that the expected size bound is met
   int cindex = utils::indexOf(vn.getOperator());
   Node tst = utils::mkTester(n, cindex, dt);
-  bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
+  bool hastst = d_state.getEqualityEngine()->hasTerm(tst);
   Node tstrep;
   if (hastst)
   {
-    tstrep = d_td->getEqualityEngine()->getRepresentative(tst);
+    tstrep = d_state.getEqualityEngine()->getRepresentative(tst);
   }
   if (!hastst || tstrep != d_true)
   {
@@ -1695,14 +1732,14 @@ bool SygusExtension::checkValue(Node n,
                            "missing split for "
                         << n << "." << std::endl;
       Assert(!split.isNull());
-      lemmas.push_back( split );
+      d_im.lemma(split, InferenceId::DATATYPES_SYGUS_VALUE_CORRECTION);
       return false;
     }
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    Node sel = nm->mkNode(
-        APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), n);
-    if (!checkValue(sel, vn[i], ind + 1, lemmas))
+    Node sel =
+        nm->mkNode(APPLY_SELECTOR, getSelectorInternal(tn, dt[cindex], i), n);
+    if (!checkValue(sel, vn[i], ind + 1))
     {
       return false;
     }
@@ -1723,7 +1760,7 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
       Node sel = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(tn, i), n);
+          APPLY_SELECTOR, getSelectorInternal(tn, dt[tindex], i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }
@@ -1733,50 +1770,59 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
   }
 }
 
-Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue(
-    std::vector<Node>& lemmas)
+SygusExtension::SygusSizeDecisionStrategy::SygusSizeDecisionStrategy(
+    Env& env, InferenceManager& im, Node t, TheoryState& s)
+    : DecisionStrategyFmf(env, s.getValuation()),
+      d_this(t),
+      d_curr_search_size(0),
+      d_im(im)
+{
+}
+
+Node SygusExtension::SygusSizeDecisionStrategy::getOrMkMeasureValue()
 {
   if (d_measure_value.isNull())
   {
-    d_measure_value = NodeManager::currentNM()->mkSkolem(
-        "mt", NodeManager::currentNM()->integerType());
-    lemmas.push_back(NodeManager::currentNM()->mkNode(
-        kind::GEQ,
-        d_measure_value,
-        NodeManager::currentNM()->mkConst(Rational(0))));
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    d_measure_value = sm->mkDummySkolem("mt", nm->integerType());
+    Node mtlem =
+        nm->mkNode(kind::GEQ, d_measure_value, nm->mkConstInt(Rational(0)));
+    d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
   return d_measure_value;
 }
 
 Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
-    std::vector<Node>& lemmas, bool mkNew)
+    bool mkNew)
 {
   if (mkNew)
   {
-    Node new_mt = NodeManager::currentNM()->mkSkolem(
-        "mt", NodeManager::currentNM()->integerType());
-    lemmas.push_back(NodeManager::currentNM()->mkNode(
-        kind::GEQ, new_mt, NodeManager::currentNM()->mkConst(Rational(0))));
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
+    Node new_mt = sm->mkDummySkolem("mt", nm->integerType());
+    Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConstInt(Rational(0)));
     d_measure_value_active = new_mt;
+    d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
   else if (d_measure_value_active.isNull())
   {
-    d_measure_value_active = getOrMkMeasureValue(lemmas);
+    d_measure_value_active = getOrMkMeasureValue();
   }
   return d_measure_value_active;
 }
 
 Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
 {
-  if (options::sygusFair() == options::SygusFairMode::NONE)
+  if (options().datatypes.sygusFair == options::SygusFairMode::NONE)
   {
     return Node::null();
   }
-  if (options::sygusAbortSize() != -1
-      && static_cast<int>(s) > options::sygusAbortSize())
+  if (options().datatypes.sygusAbortSize != -1
+      && static_cast<int>(s) > options().datatypes.sygusAbortSize)
   {
     std::stringstream ss;
-    ss << "Maximum term size (" << options::sygusAbortSize()
+    ss << "Maximum term size (" << options().datatypes.sygusAbortSize
        << ") for enumerative SyGuS exceeded.";
     throw LogicException(ss.str());
   }
@@ -1784,12 +1830,13 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
-  return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
+  return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConstInt(Rational(s)));
 }
 
 int SygusExtension::getGuardStatus( Node g ) {
   bool value;
-  if( d_td->getValuation().hasSatValue( g, value ) ) {
+  if (d_state.getValuation().hasSatValue(g, value))
+  {
     if( value ){
       return 1;
     }else{
@@ -1800,3 +1847,10 @@ int SygusExtension::getGuardStatus( Node g ) {
   }
 }
 
+Node SygusExtension::getSelectorInternal(TypeNode dtt,
+                                         const DTypeConstructor& dc,
+                                         size_t index) const
+{
+  return utils::getSelector(
+      dtt, dc, index, options().datatypes.dtSharedSelectors);
+}

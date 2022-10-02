@@ -1,26 +1,27 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The inference manager for the theory of sets.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The inference manager for the theory of sets.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__SETS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__SETS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__SETS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__SETS__INFERENCE_MANAGER_H
 
 #include "theory/inference_manager_buffered.h"
 #include "theory/sets/solver_state.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -35,10 +36,10 @@ class TheorySetsPrivate;
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  InferenceManager(Theory& t, SolverState& s, ProofNodeManager* pnm);
+  InferenceManager(Env& env, Theory& t, SolverState& s);
   /**
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.
@@ -50,32 +51,37 @@ class InferenceManager : public InferenceManagerBuffered
    * fact is processed as a lemma, where inferType=1 forces fact to be
    * set as a lemma, and inferType=-1 forces fact to be processed as a fact
    * (if possible).
-   *
-   * The argument c is the name of the inference, which is used for debugging.
    */
-  void assertInference(Node fact, Node exp, const char* c, int inferType = 0);
+  void assertInference(Node fact,
+                       InferenceId id,
+                       Node exp,
+                       int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
   void assertInference(Node fact,
+                       InferenceId id,
                        std::vector<Node>& exp,
-                       const char* c,
                        int inferType = 0);
   /** same as above, where conc is interpreted as a conjunction */
   void assertInference(std::vector<Node>& conc,
+                       InferenceId id,
                        Node exp,
-                       const char* c,
                        int inferType = 0);
   /** same as above, where both exp and conc are interpreted as conjunctions */
   void assertInference(std::vector<Node>& conc,
+                       InferenceId id,
                        std::vector<Node>& exp,
-                       const char* c,
                        int inferType = 0);
+  /**
+   * Immediately assert an internal fact with the default handling of proofs.
+   */
+  bool assertSetsFact(Node atom, bool polarity, InferenceId id, Node exp);
 
   /** flush the splitting lemma ( n OR (NOT n) )
    *
    * If reqPol is not 0, then a phase requirement for n is requested with
    * polarity ( reqPol>0 ).
    */
-  void split(Node n, int reqPol = 0);
+  void split(Node n, InferenceId id, int reqPol = 0);
 
  private:
   /** constants */
@@ -94,11 +100,11 @@ class InferenceManager : public InferenceManagerBuffered
    * The argument inferType determines the policy on whether fact is processed
    * as a fact or as a lemma (see assertInference above).
    */
-  bool assertFactRec(Node fact, Node exp, int inferType = 0);
+  bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
 };
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__SETS__INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__SETS__INFERENCE_MANAGER_H */

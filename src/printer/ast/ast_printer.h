@@ -1,45 +1,49 @@
-/*********************                                                        */
-/*! \file ast_printer.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the AST output language
- **
- ** The pretty-printer interface for the AST output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Abdalrhman Mohamed, Andrew Reynolds, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the AST output language.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__PRINTER__AST_PRINTER_H
-#define CVC4__PRINTER__AST_PRINTER_H
+#ifndef CVC5__PRINTER__AST_PRINTER_H
+#define CVC5__PRINTER__AST_PRINTER_H
 
 #include <iostream>
 
 #include "printer/printer.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 class LetBinding;
 
 namespace printer {
 namespace ast {
 
-class AstPrinter : public CVC4::Printer
+class AstPrinter : public cvc5::internal::Printer
 {
  public:
-  using CVC4::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
-  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  using cvc5::internal::Printer::toStream;
+  void toStream(std::ostream& out, TNode n) const override;
+  void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
+
+  void toStreamCmdSuccess(std::ostream& out) const override;
+  void toStreamCmdInterrupted(std::ostream& out) const override;
+  void toStreamCmdUnsupported(std::ostream& out) const override;
+  void toStreamCmdFailure(std::ostream& out,
+                          const std::string& message) const override;
+  void toStreamCmdRecoverableFailure(std::ostream& out,
+                                     const std::string& message) const override;
 
   /** Print empty command */
   void toStreamCmdEmpty(std::ostream& out,
@@ -53,10 +57,10 @@ class AstPrinter : public CVC4::Printer
   void toStreamCmdAssert(std::ostream& out, Node n) const override;
 
   /** Print push command */
-  void toStreamCmdPush(std::ostream& out) const override;
+  void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print pop command */
-  void toStreamCmdPop(std::ostream& out) const override;
+  void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,
@@ -81,8 +85,7 @@ class AstPrinter : public CVC4::Printer
                                  Node formula) const override;
 
   /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out,
-                           Node n = Node::null()) const override;
+  void toStreamCmdCheckSat(std::ostream& out) const override;
 
   /** Print check-sat-assuming command */
   void toStreamCmdCheckSatAssuming(
@@ -105,17 +108,14 @@ class AstPrinter : public CVC4::Printer
   void toStreamCmdGetModel(std::ostream& out) const override;
 
   /** Print get-proof command */
-  void toStreamCmdGetProof(std::ostream& out) const override;
+  void toStreamCmdGetProof(std::ostream& out,
+                           modes::ProofComponent c) const override;
 
   /** Print get-unsat-core command */
   void toStreamCmdGetUnsatCore(std::ostream& out) const override;
 
   /** Print get-assertions command */
   void toStreamCmdGetAssertions(std::ostream& out) const override;
-
-  /** Print set-info :status command */
-  void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                     Result::Sat status) const override;
 
   /** Print set-logic command */
   void toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -124,7 +124,7 @@ class AstPrinter : public CVC4::Printer
   /** Print set-info command */
   void toStreamCmdSetInfo(std::ostream& out,
                           const std::string& flag,
-                          SExpr sexpr) const override;
+                          const std::string& value) const override;
 
   /** Print get-info command */
   void toStreamCmdGetInfo(std::ostream& out,
@@ -133,7 +133,7 @@ class AstPrinter : public CVC4::Printer
   /** Print set-option command */
   void toStreamCmdSetOption(std::ostream& out,
                             const std::string& flag,
-                            SExpr sexpr) const override;
+                            const std::string& value) const override;
 
   /** Print get-option command */
   void toStreamCmdGetOption(std::ostream& out,
@@ -152,18 +152,6 @@ class AstPrinter : public CVC4::Printer
   /** Print quit command */
   void toStreamCmdQuit(std::ostream& out) const override;
 
-  /** Print comment command */
-  void toStreamCmdComment(std::ostream& out,
-                          const std::string& comment) const override;
-
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
-
-  /** Print declaration sequence command */
-  void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
-
  private:
   void toStream(std::ostream& out,
                 TNode n,
@@ -174,16 +162,16 @@ class AstPrinter : public CVC4::Printer
    * tn declared via declare-sort or declare-datatype.
    */
   void toStreamModelSort(std::ostream& out,
-                         const smt::Model& m,
-                         TypeNode tn) const override;
+                         TypeNode tn,
+                         const std::vector<Node>& elements) const override;
 
   /**
    * To stream model term. This prints the appropriate output for term
    * n declared via declare-fun.
    */
   void toStreamModelTerm(std::ostream& out,
-                         const smt::Model& m,
-                         Node n) const override;
+                         const Node& n,
+                         const Node& value) const override;
   /**
    * To stream with let binding. This prints n, possibly in the scope
    * of letification generated by this method based on lbind.
@@ -196,6 +184,6 @@ class AstPrinter : public CVC4::Printer
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__PRINTER__AST_PRINTER_H */
+#endif /* CVC5__PRINTER__AST_PRINTER_H */

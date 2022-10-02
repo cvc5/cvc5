@@ -1,30 +1,31 @@
-/*********************                                                        */
-/*! \file sygus_pbe.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief utility for processing programming by examples synthesis conjectures
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Utility for processing programming by examples synthesis conjectures.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_PBE_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_PBE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_PBE_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_PBE_H
 
-#include "context/cdhashmap.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
-#include "theory/quantifiers/sygus/sygus_unif_io.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+class SygusUnifIo;
 class SynthConjecture;
 
 /** SygusPbe
@@ -86,21 +87,24 @@ class SynthConjecture;
 class SygusPbe : public SygusModule
 {
  public:
-  SygusPbe(QuantifiersEngine* qe, SynthConjecture* p);
+  SygusPbe(Env& env,
+           QuantifiersState& qs,
+           QuantifiersInferenceManager& qim,
+           TermDbSygus* tds,
+           SynthConjecture* p);
   ~SygusPbe();
 
   /** initialize this class
-  *
-  * This function may add lemmas to the vector lemmas corresponding
-  * to initial lemmas regarding static analysis of enumerators it
-  * introduced. For example, we may say that the top-level symbol
-  * of an enumerator is not ITE if it is being used to construct
-  * return values for decision trees.
-  */
+   *
+   * This function may add lemmas via the inference manager corresponding
+   * to initial lemmas regarding static analysis of enumerators it
+   * introduced. For example, we may say that the top-level symbol
+   * of an enumerator is not ITE if it is being used to construct
+   * return values for decision trees.
+   */
   bool initialize(Node conj,
                   Node n,
-                  const std::vector<Node>& candidates,
-                  std::vector<Node>& lemmas) override;
+                  const std::vector<Node>& candidates) override;
   /** get term list
    *
   * Adds all active enumerators associated with functions-to-synthesize in
@@ -127,11 +131,11 @@ class SygusPbe : public SygusModule
    * for constructing candidate solutions when possible.
    *
    * This function also excludes models where (terms = terms_values) by adding
-   * blocking clauses to lems. For example, for grammar:
+   * blocking clauses to d_qim pending lemmas. For example, for grammar:
    *   A -> A+A | x | 1 | 0
    * and a call where terms = { d } and term_values = { +( x, 1 ) }, it adds:
    *   ~G V ~is_+( d ) V ~is_x( d.1 ) V ~is_1( d.2 )
-   * to lems, where G is active guard of the enumerator d (see
+   * to d_qim, where G is active guard of the enumerator d (see
    * TermDatabaseSygus::getActiveGuardForEnumerator). This blocking clause
    * indicates that d should not be given the model value +( x, 1 ) anymore,
    * since { d -> +( x, 1 ) } has now been added to the database of this class.
@@ -139,8 +143,7 @@ class SygusPbe : public SygusModule
   bool constructCandidates(const std::vector<Node>& terms,
                            const std::vector<Node>& term_values,
                            const std::vector<Node>& candidates,
-                           std::vector<Node>& candidate_values,
-                           std::vector<Node>& lems) override;
+                           std::vector<Node>& candidate_values) override;
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
 
@@ -165,8 +168,8 @@ class SygusPbe : public SygusModule
   std::map<Node, Node> d_enum_to_candidate;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace cvc5::internal
 
 #endif

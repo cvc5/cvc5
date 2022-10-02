@@ -1,24 +1,25 @@
-/*********************                                                        */
-/*! \file example_min_eval.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utility for minimizing the number of calls to
- ** evaluate a term on substitutions with a fixed domain.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utility for minimizing the number of calls to
+ * evaluate a term on substitutions with a fixed domain.
+ */
 
 #include "theory/quantifiers/sygus/example_min_eval.h"
 
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -31,7 +32,7 @@ ExampleMinEval::ExampleMinEval(Node n,
   d_vars.insert(d_vars.end(), vars.begin(), vars.end());
 
   // compute its free variables
-  std::unordered_set<Node, NodeHashFunction> fvs;
+  std::unordered_set<Node> fvs;
   expr::getFreeVariables(n, fvs);
   for (size_t i = 0, vsize = vars.size(); i < vsize; i++)
   {
@@ -84,4 +85,4 @@ Node EmeEvalTds::eval(TNode n,
 
 }  // namespace quantifiers
 }  // namespace theory
-} /* namespace CVC4 */
+}  // namespace cvc5::internal

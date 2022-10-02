@@ -1,29 +1,32 @@
-/*********************                                                        */
-/*! \file arith_state.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Arithmetic theory state.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Arithmetic theory state.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__ARITH__ARITH_STATE_H
-#define CVC4__THEORY__ARITH__ARITH_STATE_H
+#ifndef CVC5__THEORY__ARITH__ARITH_STATE_H
+#define CVC5__THEORY__ARITH__ARITH_STATE_H
 
 #include "theory/theory_state.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+namespace linear {
 class TheoryArithPrivate;
+}
 
 /**
  * The arithmetic state.
@@ -37,21 +40,21 @@ class TheoryArithPrivate;
 class ArithState : public TheoryState
 {
  public:
-  ArithState(TheoryArithPrivate& parent,
-             context::Context* c,
-             context::UserContext* u,
+  ArithState(Env& env,
              Valuation val);
   ~ArithState() {}
   /** Are we currently in conflict? */
   bool isInConflict() const override;
+  /** Set parent */
+  void setParent(linear::TheoryArithPrivate* p);
 
  private:
   /** reference to parent */
-  TheoryArithPrivate& d_parent;
+  linear::TheoryArithPrivate* d_parent;
 };
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

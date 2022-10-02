@@ -1,27 +1,27 @@
-/*********************                                                        */
-/*! \file proof_checker.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Haniel Barbosa
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Boolean proof checker utility
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Haniel Barbosa, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Boolean proof checker utility.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H
-#define CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H
+#ifndef CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H
+#define CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H
 
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
+#include "proof/proof_checker.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -44,6 +44,6 @@ class BoolProofRuleChecker : public ProofRuleChecker
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__BOOLEANS__PROOF_CHECKER_H */
+#endif /* CVC5__THEORY__BOOLEANS__PROOF_CHECKER_H */

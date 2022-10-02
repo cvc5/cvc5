@@ -1,51 +1,60 @@
-/*********************                                                        */
-/*! \file nonlinear_extension.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Extensions for incomplete handling of nonlinear multiplication.
- **
- ** Extensions to the theory of arithmetic incomplete handling of nonlinear
- ** multiplication via axiom instantiations.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Tim King
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Extensions to the theory of arithmetic incomplete handling of nonlinear
+ * multiplication via axiom instantiations.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
-#define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
+#ifndef CVC5__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
+#define CVC5__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
 #include <map>
 #include <vector>
 
-#include "context/cdlist.h"
-#include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/cad_solver.h"
+#include "smt/env_obj.h"
+#include "theory/arith/nl/coverings_solver.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
+#include "theory/arith/nl/ext/proof_checker.h"
 #include "theory/arith/nl/ext/split_zero_check.h"
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/pow2_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
-#include "theory/uf/equality_engine.h"
+#include "theory/theory.h"
+#include "util/result.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
+namespace eq {
+  class EqualityEngine;
+}
 namespace arith {
+
+class InferenceManager;
+class TheoryArith;
+
 namespace nl {
+
+class NlLemma;
 
 /** Non-linear extension class
  *
@@ -67,68 +76,43 @@ namespace nl {
  * which is called by TheoryArithPrivate either:
  * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
- * In this method, this class calls d_out->lemma(...)
+ * In this method, this class calls d_im.lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
- * where d_out is the output channel of TheoryArith.
+ * where d_im is the inference manager of TheoryArith.
  */
-class NonlinearExtension
+class NonlinearExtension : EnvObj
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(TheoryArith& containing, ArithState& state, eq::EqualityEngine* ee);
+  NonlinearExtension(Env& env, TheoryArith& containing, ArithState& state);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  /** Check at effort level e.
-   *
-   * This call may result in (possibly multiple) calls to d_out->lemma(...)
-   * where d_out is the output channel of TheoryArith.
-   *
-   * If e is FULL, then we add lemmas based on context-depedent
-   * simplification (see Reynolds et al FroCoS 2017).
-   *
-   * If e is LAST_CALL, we add lemmas based on model-based refinement
-   * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
-   * effort may be computed during a call to interceptModel as described below.
-   */
-  void check(Theory::Effort e);
-  /** intercept model
-   *
-   * This method is called during TheoryArith::collectModelInfo, which is
-   * invoked after the linear arithmetic solver passes a full effort check
-   * with no lemmas.
+
+  /**
+   * Performs the main checks for nonlinear arithmetic, based on the current
+   * (linear) arithmetic model from `arithModel`. This method may already send
+   * lemmas, but most lemmas are stored and only sent when finalizeModel
+   * is called.
    *
    * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
    * which represents the linear arithmetic theory solver's contribution to the
-   * current candidate model. That is, its collectModelInfo method is requesting
-   * that equalities v1 = c1, ..., vn = cn be added to the current model, where
-   * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
-   * arithmetic variables may be real-valued terms belonging to other theories,
-   * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
+   * current candidate model where v1, ..., vn are arithmetic variables and
+   * c1, ..., cn are constants. Note, that arithmetic variables may be
+   * real-valued terms belonging to other theories, or abstractions of
+   * applications of multiplication (kind NONLINEAR_MULT).
    *
-   * This method requests that the non-linear solver inspect this model and
-   * do any number of the following:
-   * (1) Construct lemmas based on a model-based refinement procedure inspired
-   * by Cimatti et al., TACAS 2017.,
-   * (2) In the case that the nonlinear solver finds that the current
-   * constraints are satisfiable, it may "repair" the values in the argument
-   * arithModel so that it satisfies certain nonlinear constraints. This may
-   * involve e.g. solving for variables in nonlinear equations.
+   * The argument termSet is the set of terms that is currently appearing in the
+   * assertions.
    */
-  void interceptModel(std::map<Node, Node>& arithModel);
+  void checkFullEffort(std::map<Node, Node>& arithModel,
+                       const std::set<Node>& termSet);
+
   /** Does this class need a call to check(...) at last call effort? */
-  bool needsCheckLastEffort() const { return d_needsLastCall; }
-  /** presolve
-   *
-   * This function is called during TheoryArith's presolve command.
-   * In this function, we send lemmas we accumulated during preprocessing,
-   * for instance, definitional lemmas from expandDefinitions are sent out
-   * on the output channel of TheoryArith in this function.
-   */
-  void presolve();
+  bool hasNlTerms() const { return d_hasNlTerms; }
 
   /** Process side effect se */
   void processSideEffect(const NlLemma& se);
@@ -143,12 +127,12 @@ class NonlinearExtension
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
    *
-   * This function returns true if a lemma was added to the inference manager.
-   * Otherwise, it returns false. In the latter case, the model object d_model
-   * may have information regarding how to construct a model, in the case that
-   * we determined the problem is satisfiable.
+   * This function returns whether we found a satisfying assignment
+   * (Result::SAT), or not (Result::UNSAT). Note that UNSAT does not
+   * necessarily means the whole query is UNSAT, but that the linear model was
+   * refuted by a lemma.
    */
-  bool modelBasedRefinement();
+  Result::Status modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *
@@ -169,7 +153,8 @@ class NonlinearExtension
    * whose model value cannot be computed is included in the return value of
    * this function.
    */
-  std::vector<Node> checkModelEval(const std::vector<Node>& assertions);
+  std::vector<Node> getUnsatisfiedAssertions(
+      const std::vector<Node>& assertions);
 
   //---------------------------check model
   /** Check model
@@ -189,20 +174,6 @@ class NonlinearExtension
   /** compute relevant assertions */
   void computeRelevantAssertions(const std::vector<Node>& assertions,
                                  std::vector<Node>& keep);
-  /**
-   * Potentially adds lemmas to the set out and clears lemmas. Returns
-   * the number of lemmas added to out. We do not add lemmas that have already
-   * been sent on the output channel of TheoryArith.
-   */
-  unsigned filterLemmas(std::vector<NlLemma>& lemmas,
-                        std::vector<NlLemma>& out);
-  /** singleton version of above */
-  unsigned filterLemma(NlLemma lem, std::vector<NlLemma>& out);
-
-  /**
-   * Send lemmas in out on the output channel of theory of arithmetic.
-   */
-  void sendLemmas(const std::vector<NlLemma>& out);
 
   /** run check strategy
    *
@@ -219,19 +190,16 @@ class NonlinearExtension
                    const std::vector<Node>& xts);
 
   /** commonly used terms */
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  /** A reference to the arithmetic state object */
+  ArithState& d_astate;
   InferenceManager& d_im;
-  // pointer to used equality engine
-  eq::EqualityEngine* d_ee;
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort
-  bool d_needsLastCall;
+  bool d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.
@@ -254,6 +222,8 @@ class NonlinearExtension
    * transcendental functions.
    */
   transcendental::TranscendentalSolver d_trSlv;
+  /** The proof checker for proofs of the nlext. */
+  ExtProofRuleChecker d_proofChecker;
   /**
    * Holds common lookup data for the checks implemented in the "nl-ext"
    * solvers (from Cimatti et al., TACAS 2017).
@@ -269,8 +239,8 @@ class NonlinearExtension
   SplitZeroCheck d_splitZeroSlv;
   /** Solver for tangent plane lemmas. */
   TangentPlaneCheck d_tangentPlaneSlv;
-  /** The CAD-based solver */
-  CadSolver d_cadSlv;
+  /** The coverings-based solver */
+  CoveringsSolver d_covSlv;
   /** The ICP-based solver */
   icp::ICPSolver d_icpSlv;
   /** The integer and solver
@@ -280,26 +250,20 @@ class NonlinearExtension
    */
   IAndSolver d_iandSlv;
 
+  /** The pow2 solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving powers of 2.
+   */
+  Pow2Solver d_pow2Slv;
+
   /** The strategy for the nonlinear extension. */
   Strategy d_strategy;
-
-  /**
-   * The approximations computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, std::pair<Node, Node>> d_approximations;
-  /**
-   * The witnesses computed during collectModelInfo. For details, see
-   * NlModel::getModelValueRepair.
-   */
-  std::map<Node, Node> d_witnesses;
-  /** have we successfully built the model in this SAT context? */
-  context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */

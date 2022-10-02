@@ -1,20 +1,21 @@
-/*********************                                                        */
-/*! \file output_channel.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The theory output channel interface
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The theory output channel interface.
+ */
 
 #include "theory/output_channel.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
@@ -41,10 +42,6 @@ bool isLemmaPropertyRemovable(LemmaProperty p)
 {
   return (p & LemmaProperty::REMOVABLE) != LemmaProperty::NONE;
 }
-bool isLemmaPropertyPreprocess(LemmaProperty p)
-{
-  return (p & LemmaProperty::PREPROCESS) != LemmaProperty::NONE;
-}
 bool isLemmaPropertySendAtoms(LemmaProperty p)
 {
   return (p & LemmaProperty::SEND_ATOMS) != LemmaProperty::NONE;
@@ -67,10 +64,6 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     {
       out << " REMOVABLE";
     }
-    if (isLemmaPropertyPreprocess(p))
-    {
-      out << " PREPROCESS";
-    }
     if (isLemmaPropertySendAtoms(p))
     {
       out << " SEND_ATOMS";
@@ -84,31 +77,17 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
   return out;
 }
 
-LemmaStatus::LemmaStatus(TNode rewrittenLemma, unsigned level)
-    : d_rewrittenLemma(rewrittenLemma), d_level(level)
-{
-}
-
-TNode LemmaStatus::getRewrittenLemma() const { return d_rewrittenLemma; }
-
-unsigned LemmaStatus::getLevel() const { return d_level; }
-
-LemmaStatus OutputChannel::split(TNode n)
-{
-  return splitLemma(n.orNode(n.notNode()));
-}
-
 void OutputChannel::trustedConflict(TrustNode pconf)
 {
   Unreachable() << "OutputChannel::trustedConflict: no implementation"
                 << std::endl;
 }
 
-LemmaStatus OutputChannel::trustedLemma(TrustNode lem, LemmaProperty p)
+void OutputChannel::trustedLemma(TrustNode lem, LemmaProperty p)
 {
   Unreachable() << "OutputChannel::trustedLemma: no implementation"
                 << std::endl;
 }
 
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

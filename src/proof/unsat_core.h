@@ -1,34 +1,35 @@
-/*********************                                                        */
-/*! \file unsat_core.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Representation of unsat cores.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Representation of unsat cores.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__UNSAT_CORE_H
-#define CVC4__UNSAT_CORE_H
+#ifndef CVC5__UNSAT_CORE_H
+#define CVC5__UNSAT_CORE_H
 
 #include <iosfwd>
 #include <vector>
 
 #include "expr/node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 /**
  * An unsat core, which can optionally be initialized as a list of names
  * or as a list of formulas.
  */
-class UnsatCore
+class CVC5_EXPORT UnsatCore
 {
  public:
   UnsatCore() {}
@@ -68,6 +69,6 @@ class UnsatCore
 /** Print the unsat core to stream out */
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core);
 
-}/* CVC4 namespace */
+}  // namespace cvc5::internal
 
-#endif /* CVC4__UNSAT_CORE_H */
+#endif /* CVC5__UNSAT_CORE_H */

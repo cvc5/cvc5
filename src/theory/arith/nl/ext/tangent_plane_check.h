@@ -1,32 +1,37 @@
-/*********************                                                        */
-/*! \file tangent_plane_check.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Gereon Kremer
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Check for tangent_plane lemma
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Check for tangent_plane lemma.
+ */
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
-#define CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
+#ifndef CVC5__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
+#define CVC5__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
+
+#include <map>
 
 #include "expr/node.h"
-#include "theory/arith/nl/ext/ext_state.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-class TangentPlaneCheck
+class ExtState;
+
+class TangentPlaneCheck : protected EnvObj
 {
  public:
-  TangentPlaneCheck(ExtState* data);
+  TangentPlaneCheck(Env& env, ExtState* data);
 
   /** check tangent planes
    *
@@ -64,6 +69,6 @@ class TangentPlaneCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

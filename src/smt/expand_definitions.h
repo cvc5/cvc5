@@ -1,76 +1,60 @@
-/*********************                                                        */
-/*! \file process_assertions.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The module for processing assertions for an SMT engine.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The module for processing assertions for an SMT engine.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__SMT__EXPAND_DEFINITIONS_H
-#define CVC4__SMT__EXPAND_DEFINITIONS_H
+#ifndef CVC5__SMT__EXPAND_DEFINITIONS_H
+#define CVC5__SMT__EXPAND_DEFINITIONS_H
 
 #include <unordered_map>
 
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
-#include "smt/smt_engine_stats.h"
-#include "util/resource_manager.h"
+#include "smt/env_obj.h"
 
-namespace CVC4 {
-
-class SmtEngine;
-
+namespace cvc5::internal {
 namespace smt {
 
 /**
- * Module in charge of expanding definitions for an SMT engine.
+ * Implements expand definitions, which returns the expanded form of a term.
  *
- * Its main features is expandDefinitions(TNode, ...), which returns the
- * expanded formula of a term.
+ * This method is similar in nature to PropEngine::preprocess in that it
+ * converts a (possibly user-provided) term into the form that we pass
+ * internally. However, this method can be seen as a lightweight version
+ * of that method which only does enough conversions to make, e.g., get-value
+ * accurate on the resulting term. Moreover, this method does not impact
+ * the state of lemmas known to the PropEngine.
+ *
+ * This utility is not proof producing, since it should only be used for
+ * getting model values.
  */
-class ExpandDefs
+class ExpandDefs : protected EnvObj
 {
  public:
-  ExpandDefs(SmtEngine& smt, ResourceManager& rm, SmtEngineStatistics& stats);
+  ExpandDefs(Env& env);
   ~ExpandDefs();
   /**
    * Expand definitions in term n. Return the expanded form of n.
    *
    * @param n The node to expand
    * @param cache Cache of previous results
-   * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
-  Node expandDefinitions(
-      TNode n,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache,
-      bool expandOnly = false);
-  /**
-   * Expand defintitions in assertions. This applies this above method to each
-   * assertion in the given pipeline.
-   */
-  void expandAssertions(preprocessing::AssertionPipeline& assertions,
-                        bool expandOnly = false);
-
- private:
-  /** Reference to the SMT engine */
-  SmtEngine& d_smt;
-  /** Reference to resource manager */
-  ResourceManager& d_resourceManager;
-  /** Reference to the SMT stats */
-  SmtEngineStatistics& d_smtStats;
+  Node expandDefinitions(TNode n, std::unordered_map<Node, Node>& cache);
 };
 
 }  // namespace smt
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
 #endif

@@ -1,25 +1,27 @@
-/*********************                                                        */
-/*! \file constraint.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of utilities for non-linear constraints
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Tim King, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of utilities for non-linear constraints.
+ */
 
 #include "theory/arith/nl/ext/constraint.h"
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/ext/monomial.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -39,7 +41,7 @@ void ConstraintDb::registerConstraint(Node atom)
   if (ArithMSum::getMonomialSumLit(atom, msum))
   {
     Trace("nl-ext-debug") << "got monomial sum: " << std::endl;
-    if (Trace.isOn("nl-ext-debug"))
+    if (TraceIsOn("nl-ext-debug"))
     {
       ArithMSum::debugPrintMonomialSum(msum, "nl-ext-debug");
     }
@@ -122,4 +124,4 @@ bool ConstraintDb::isMaximal(Node atom, Node x) const
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

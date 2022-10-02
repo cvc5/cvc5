@@ -1,32 +1,37 @@
-/*********************                                                        */
-/*! \file infer_proof_cons.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implementation of inference to proof conversion  for datatypes
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of inference to proof conversion  for datatypes.
+ */
 
 #include "theory/datatypes/infer_proof_cons.h"
 
+#include "proof/proof.h"
+#include "proof/proof_checker.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/model_manager.h"
 #include "theory/rewriter.h"
+#include "util/rational.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-InferProofCons::InferProofCons(context::Context* c, ProofNodeManager* pnm)
-    : d_pnm(pnm), d_lazyFactMap(c == nullptr ? &d_context : c)
+InferProofCons::InferProofCons(Env& env, context::Context* c)
+    : EnvObj(env), d_lazyFactMap(c == nullptr ? &d_context : c)
 {
-  Assert(d_pnm != nullptr);
 }
 
 void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
@@ -44,7 +49,7 @@ void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
   d_lazyFactMap.insert(fact, di);
 }
 
-void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
+void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
@@ -68,7 +73,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
   bool success = false;
   switch (infer)
   {
-    case InferId::UNIF:
+    case InferenceId::DATATYPES_UNIF:
     {
       Assert(expv.size() == 1);
       Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
@@ -102,7 +107,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
         }
         if (argSuccess)
         {
-          narg = nm->mkConst(Rational(i));
+          narg = nm->mkConstInt(Rational(i));
           break;
         }
       }
@@ -126,7 +131,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       }
     }
     break;
-    case InferId::INST:
+    case InferenceId::DATATYPES_INST:
     {
       if (expv.size() == 1)
       {
@@ -135,7 +140,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
         if (n >= 0)
         {
           Node t = exp[0];
-          Node nn = nm->mkConst(Rational(n));
+          Node nn = nm->mkConstInt(Rational(n));
           Node eq = exp.eqNode(conc);
           cdp->addStep(eq, PfRule::DT_INST, {}, {t, nn});
           cdp->addStep(conc, PfRule::EQ_RESOLVE, {exp, eq}, {});
@@ -144,7 +149,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       }
     }
     break;
-    case InferId::SPLIT:
+    case InferenceId::DATATYPES_SPLIT:
     {
       Assert(expv.empty());
       Node t = conc.getKind() == OR ? conc[0][0] : conc[0];
@@ -152,7 +157,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::COLLAPSE_SEL:
+    case InferenceId::DATATYPES_COLLAPSE_SEL:
     {
       Assert(exp.getKind() == EQUAL);
       Node concEq = conc;
@@ -163,39 +168,46 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
         Node concAtom = concPol ? conc : conc[0];
         concEq = concAtom.eqNode(nm->mkConst(concPol));
       }
-      Assert(concEq.getKind() == EQUAL
-             && concEq[0].getKind() == APPLY_SELECTOR_TOTAL);
-      Assert(exp[0].getType().isDatatype());
-      Node sop = concEq[0].getOperator();
-      Node sl = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[0]);
-      Node sr = nm->mkNode(APPLY_SELECTOR_TOTAL, sop, exp[1]);
-      // exp[0] = exp[1]
-      // --------------------- CONG        ----------------- DT_COLLAPSE
-      // s(exp[0]) = s(exp[1])             s(exp[1]) = r
-      // --------------------------------------------------- TRANS
-      // s(exp[0]) = r
-      Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR_TOTAL);
-      Node seq = sl.eqNode(sr);
-      cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
-      Node sceq = sr.eqNode(concEq[1]);
-      cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
-      cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
-      if (conc.getKind() != EQUAL)
+      if (concEq[0].getKind() != APPLY_SELECTOR)
       {
-        PfRule eid =
-            conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
-        cdp->addStep(conc, eid, {concEq}, {});
+        // can happen for Boolean term variables, which are not currently
+        // supported.
+        success = false;
       }
-      success = true;
+      else
+      {
+        Assert(exp[0].getType().isDatatype());
+        Node sop = concEq[0].getOperator();
+        Node sl = nm->mkNode(APPLY_SELECTOR, sop, exp[0]);
+        Node sr = nm->mkNode(APPLY_SELECTOR, sop, exp[1]);
+        // exp[0] = exp[1]
+        // --------------------- CONG        ----------------- DT_COLLAPSE
+        // s(exp[0]) = s(exp[1])             s(exp[1]) = r
+        // --------------------------------------------------- TRANS
+        // s(exp[0]) = r
+        Node asn = ProofRuleChecker::mkKindNode(APPLY_SELECTOR);
+        Node seq = sl.eqNode(sr);
+        cdp->addStep(seq, PfRule::CONG, {exp}, {asn, sop});
+        Node sceq = sr.eqNode(concEq[1]);
+        cdp->addStep(sceq, PfRule::DT_COLLAPSE, {}, {sr});
+        cdp->addStep(sl.eqNode(concEq[1]), PfRule::TRANS, {seq, sceq}, {});
+        if (conc.getKind() != EQUAL)
+        {
+          PfRule eid =
+              conc.getKind() == NOT ? PfRule::FALSE_ELIM : PfRule::TRUE_ELIM;
+          cdp->addStep(conc, eid, {concEq}, {});
+        }
+        success = true;
+      }
     }
     break;
-    case InferId::CLASH_CONFLICT:
+    case InferenceId::DATATYPES_CLASH_CONFLICT:
     {
       cdp->addStep(conc, PfRule::MACRO_SR_PRED_ELIM, {exp}, {});
       success = true;
     }
     break;
-    case InferId::TESTER_CONFLICT:
+    case InferenceId::DATATYPES_TESTER_CONFLICT:
     {
       // rewrites to false under substitution
       Node fn = nm->mkConst(false);
@@ -203,25 +215,34 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::TESTER_MERGE_CONFLICT:
+    case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT:
     {
-      Assert(expv.size() == 3);
+      Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
       Node tester1c =
           nm->mkNode(APPLY_TESTER, expv[1].getOperator(), expv[0][0]);
-      cdp->addStep(tester1c,
-                   PfRule::MACRO_SR_PRED_TRANSFORM,
-                   {expv[1], expv[2]},
-                   {tester1c});
+      std::vector<Node> targs{expv[1]};
+      if (expv.size() == 3)
+      {
+        targs.push_back(expv[2]);
+      }
+      cdp->addStep(
+          tester1c, PfRule::MACRO_SR_PRED_TRANSFORM, targs, {tester1c});
       Node fn = nm->mkConst(false);
       cdp->addStep(fn, PfRule::DT_CLASH, {tester1, tester1c}, {});
       success = true;
     }
     break;
+    case InferenceId::DATATYPES_PURIFY:
+    {
+      cdp->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {}, {conc});
+      success = true;
+    }
+    break;
     // inferences currently not supported
-    case InferId::LABEL_EXH:
-    case InferId::BISIMILAR:
-    case InferId::CYCLE:
+    case InferenceId::DATATYPES_LABEL_EXH:
+    case InferenceId::DATATYPES_BISIMILAR:
+    case InferenceId::DATATYPES_CYCLE:
     default:
       Trace("dt-ipc") << "...no conversion for inference " << infer
                       << std::endl;
@@ -232,7 +253,8 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
   {
     // failed to reconstruct, add trust
     Trace("dt-ipc") << "...failed " << infer << std::endl;
-    cdp->addStep(conc, PfRule::DT_TRUST, expv, {conc});
+    Node t = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(THEORY_DATATYPES);
+    cdp->addStep(conc, PfRule::THEORY_INFERENCE, expv, {conc, t});
   }
   else
   {
@@ -244,7 +266,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
 {
   Trace("dt-ipc") << "dt-ipc: Ask proof for " << fact << std::endl;
   // temporary proof
-  CDProof pf(d_pnm);
+  CDProof pf(d_env);
   // get the inference
   NodeDatatypesInferenceMap::iterator it = d_lazyFactMap.find(fact);
   if (it == d_lazyFactMap.end())
@@ -261,7 +283,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // now go back and convert it to proof steps and add to proof
   std::shared_ptr<DatatypesInference> di = (*it).second;
   // run the conversion
-  convert(di->getInferId(), di->d_conc, di->d_exp, &pf);
+  convert(di->getId(), di->d_conc, di->d_exp, &pf);
   return pf.getProofFor(fact);
 }
 
@@ -272,4 +294,4 @@ std::string InferProofCons::identify() const
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

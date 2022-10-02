@@ -1,50 +1,52 @@
-/*********************                                                        */
-/*! \file ast_printer.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Morgan Deters, Abdalrhman Mohamed, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The pretty-printer interface for the AST output language
- **
- ** The pretty-printer interface for the AST output language.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Morgan Deters, Abdalrhman Mohamed, Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The pretty-printer interface for the AST output language.
+ */
 #include "printer/ast/ast_printer.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"                     // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
 #include "printer/let_binding.h"
-#include "smt/command.h"
-#include "smt/node_command.h"
 
 using namespace std;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace printer {
 namespace ast {
 
-void AstPrinter::toStream(std::ostream& out,
-                          TNode n,
-                          int toDepth,
-                          size_t dag) const
+void AstPrinter::toStream(std::ostream& out, TNode n) const
 {
+  size_t dag = options::ioutils::getDagThresh(out);
+  int toDepth = options::ioutils::getNodeDepth(out);
   if(dag != 0) {
     LetBinding lbind(dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
   } else {
     toStream(out, n, toDepth);
   }
+}
+
+void AstPrinter::toStream(std::ostream& out, Kind k) const
+{
+  out << kind::kindToString(k);
 }
 
 void AstPrinter::toStream(std::ostream& out,
@@ -73,7 +75,7 @@ void AstPrinter::toStream(std::ostream& out,
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     // constant
     out << ' ';
-    kind::metakind::NodeValueConstPrinter::toStream(out, n);
+    n.constToStream(out);
   }
   else if (n.isClosure())
   {
@@ -117,57 +119,78 @@ void AstPrinter::toStream(std::ostream& out,
   out << ')';
 }/* AstPrinter::toStream(TNode) */
 
-template <class T>
-static bool tryToStream(std::ostream& out, const Command* c);
-
-template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s);
-
-void AstPrinter::toStream(std::ostream& out, const CommandStatus* s) const
-{
-  if(tryToStream<CommandSuccess>(out, s) ||
-     tryToStream<CommandFailure>(out, s) ||
-     tryToStream<CommandUnsupported>(out, s) ||
-     tryToStream<CommandInterrupted>(out, s)) {
-    return;
-  }
-
-  out << "ERROR: don't know how to print a CommandStatus of class: "
-      << typeid(*s).name() << endl;
-
-}/* AstPrinter::toStream(CommandStatus*) */
-
 void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
-  out << "Model()";
+  out << "Model(" << std::endl;
+  this->Printer::toStream(out, m);
+  out << ")" << std::endl;
 }
 
 void AstPrinter::toStreamModelSort(std::ostream& out,
-                                   const smt::Model& m,
-                                   TypeNode tn) const
+                                   TypeNode tn,
+                                   const std::vector<Node>& elements) const
 {
-  // shouldn't be called; only the non-Command* version above should be
-  Unreachable();
+  out << "(" << tn << "(";
+  bool firstTime = true;
+  for (const Node& elem : elements)
+  {
+    if (firstTime)
+    {
+      firstTime = false;
+    }
+    else
+    {
+      out << " ";
+    }
+    out << elem;
+  }
+  out << "))" << std::endl;
 }
 
 void AstPrinter::toStreamModelTerm(std::ostream& out,
-                                   const smt::Model& m,
-                                   Node n) const
+                                   const Node& n,
+                                   const Node& value) const
 {
-  // shouldn't be called; only the non-Command* version above should be
-  Unreachable();
+  out << "(" << n << " " << value << ")" << std::endl;
+}
+
+void AstPrinter::toStreamCmdSuccess(std::ostream& out) const
+{
+  out << "OK" << endl;
+}
+
+void AstPrinter::toStreamCmdInterrupted(std::ostream& out) const
+{
+  out << "INTERRUPTED" << endl;
+}
+
+void AstPrinter::toStreamCmdUnsupported(std::ostream& out) const
+{
+  out << "UNSUPPORTED" << endl;
+}
+
+void AstPrinter::toStreamCmdFailure(std::ostream& out,
+                                    const std::string& message) const
+{
+  out << message << endl;
+}
+
+void AstPrinter::toStreamCmdRecoverableFailure(std::ostream& out,
+                                               const std::string& message) const
+{
+  out << message << endl;
 }
 
 void AstPrinter::toStreamCmdEmpty(std::ostream& out,
                                   const std::string& name) const
 {
-  out << "EmptyCommand(" << name << ')' << std::endl;
+  out << "Emptycvc5::Command(" << name << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdEcho(std::ostream& out,
                                  const std::string& output) const
 {
-  out << "EchoCommand(" << output << ')' << std::endl;
+  out << "Echocvc5::Command(" << output << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
@@ -175,26 +198,19 @@ void AstPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
   out << "Assert(" << n << ')' << std::endl;
 }
 
-void AstPrinter::toStreamCmdPush(std::ostream& out) const
+void AstPrinter::toStreamCmdPush(std::ostream& out, uint32_t nscopes) const
 {
-  out << "Push()" << std::endl;
+  out << "Push(" << nscopes << ")" << std::endl;
 }
 
-void AstPrinter::toStreamCmdPop(std::ostream& out) const {
-  out << "Pop()" << std::endl;
+void AstPrinter::toStreamCmdPop(std::ostream& out, uint32_t nscopes) const
+{
+  out << "Pop(" << nscopes << ")" << std::endl;
 }
 
-void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
+void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const
 {
-  if (n.isNull())
-  {
-    out << "CheckSat()";
-  }
-  else
-  {
-    out << "CheckSat(" << n << ')';
-  }
-  out << std::endl;
+  out << "CheckSat()" << std::endl;
 }
 
 void AstPrinter::toStreamCmdCheckSatAssuming(
@@ -223,32 +239,6 @@ void AstPrinter::toStreamCmdResetAssertions(std::ostream& out) const
 void AstPrinter::toStreamCmdQuit(std::ostream& out) const
 {
   out << "Quit()" << std::endl;
-}
-
-void AstPrinter::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
-{
-  out << "DeclarationSequence[" << endl;
-  for (CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
-}
-
-void AstPrinter::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
-{
-  out << "CommandSequence[" << endl;
-  for (CommandSequence::const_iterator i = sequence.cbegin();
-       i != sequence.cend();
-       ++i)
-  {
-    out << *i << endl;
-  }
-  out << "]" << std::endl;
 }
 
 void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
@@ -323,20 +313,15 @@ void AstPrinter::toStreamCmdGetAssertions(std::ostream& out) const
   out << "GetAssertions()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdGetProof(std::ostream& out) const
+void AstPrinter::toStreamCmdGetProof(std::ostream& out,
+                                     modes::ProofComponent c) const
 {
-  out << "GetProof()" << std::endl;
+  out << "GetProof(" << c << ")" << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
   out << "GetUnsatCore()" << std::endl;
-}
-
-void AstPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                               Result::Sat status) const
-{
-  out << "SetBenchmarkStatus(" << status << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
@@ -347,9 +332,9 @@ void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const
+                                    const std::string& value) const
 {
-  out << "SetInfo(" << flag << ", " << sexpr << ')' << std::endl;
+  out << "SetInfo(" << flag << ", " << value << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
@@ -360,9 +345,9 @@ void AstPrinter::toStreamCmdGetInfo(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetOption(std::ostream& out,
                                       const std::string& flag,
-                                      SExpr sexpr) const
+                                      const std::string& value) const
 {
-  out << "SetOption(" << flag << ", " << sexpr << ')' << std::endl;
+  out << "SetOption(" << flag << ", " << value << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdGetOption(std::ostream& out,
@@ -374,18 +359,12 @@ void AstPrinter::toStreamCmdGetOption(std::ostream& out,
 void AstPrinter::toStreamCmdDatatypeDeclaration(
     std::ostream& out, const std::vector<TypeNode>& datatypes) const
 {
-  out << "DatatypeDeclarationCommand([";
+  out << "DatatypeDeclarationcvc5::Command([";
   for (const TypeNode& t : datatypes)
   {
     out << t << ";" << endl;
   }
   out << "])" << std::endl;
-}
-
-void AstPrinter::toStreamCmdComment(std::ostream& out,
-                                    const std::string& comment) const
-{
-  out << "CommentCommand([" << comment << "])" << std::endl;
 }
 
 void AstPrinter::toStreamWithLetify(std::ostream& out,
@@ -432,48 +411,6 @@ void AstPrinter::toStreamWithLetify(std::ostream& out,
   lbind->popScope();
 }
 
-template <class T>
-static bool tryToStream(std::ostream& out, const Command* c)
-{
-  if(typeid(*c) == typeid(T)) {
-    toStream(out, dynamic_cast<const T*>(c));
-    return true;
-  }
-  return false;
-}
-
-static void toStream(std::ostream& out, const CommandSuccess* s)
-{
-  if(Command::printsuccess::getPrintSuccess(out)) {
-    out << "OK" << endl;
-  }
-}
-
-static void toStream(std::ostream& out, const CommandInterrupted* s)
-{
-  out << "INTERRUPTED" << endl;
-}
-
-static void toStream(std::ostream& out, const CommandUnsupported* s)
-{
-  out << "UNSUPPORTED" << endl;
-}
-
-static void toStream(std::ostream& out, const CommandFailure* s)
-{
-  out << s->getMessage() << endl;
-}
-
-template <class T>
-static bool tryToStream(std::ostream& out, const CommandStatus* s)
-{
-  if(typeid(*s) == typeid(T)) {
-    toStream(out, dynamic_cast<const T*>(s));
-    return true;
-  }
-  return false;
-}
-
-}/* CVC4::printer::ast namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}  // namespace ast
+}  // namespace printer
+}  // namespace cvc5::internal

@@ -1,30 +1,33 @@
-/*********************                                                        */
-/*! \file sygus_enumerator.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief sygus_enumerator
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * sygus_enumerator
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H
+#ifndef CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H
+#define CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H
 
 #include <map>
 #include <unordered_set>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/enum_val_generator.h"
+#include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -55,10 +58,28 @@ class SygusPbe;
 class SygusEnumerator : public EnumValGenerator
 {
  public:
-  SygusEnumerator(TermDbSygus* tds,
-                  SynthConjecture* p,
-                  SygusStatistics& s,
-                  bool enumShapes = false);
+  /**
+   * @param env Reference to the environment
+   * @param tds Pointer to the term database, required if enumShapes or
+   * enumAnyConstHoles is true, or if we want to include symmetry breaking from
+   * lemmas stored in the sygus term database,
+   * @param sec Pointer to the callback, required e.g. if we wish to do
+   * conjecture-specific symmetry breaking
+   * @param s Pointer to the statistics
+   * @param enumShapes If true, this enumerator will generate terms having any
+   * number of free variables
+   * @param enumAnyConstHoles If true, this enumerator will generate terms where
+   * free variables are the arguments to any-constant constructors.
+   * @param numConstants The number of interpreted constants to consider for
+   * each size
+   */
+  SygusEnumerator(Env& env,
+                  TermDbSygus* tds = nullptr,
+                  SygusEnumeratorCallback* sec = nullptr,
+                  SygusStatistics* s = nullptr,
+                  bool enumShapes = false,
+                  bool enumAnyConstHoles = false,
+                  size_t numConstants = 5);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -74,12 +95,19 @@ class SygusEnumerator : public EnumValGenerator
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
-  /** pointer to the synth conjecture that owns this enumerator */
-  SynthConjecture* d_parent;
-  /** reference to the statistics of parent */
-  SygusStatistics& d_stats;
+  /** pointer to the enumerator callback we are using (if any) */
+  SygusEnumeratorCallback* d_sec;
+  /** if we allocated a default sygus enumerator callback */
+  std::unique_ptr<SygusEnumeratorCallbackDefault> d_secd;
+  /** pointer to the statistics */
+  SygusStatistics* d_stats;
   /** Whether we are enumerating shapes */
   bool d_enumShapes;
+  /** Whether we are enumerating free variables as arguments to any-constant
+   * constructors */
+  bool d_enumAnyConstHoles;
+  /** The number of interpreted constants to consider for each size */
+  size_t d_enumNumConsts;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -120,8 +148,7 @@ class SygusEnumerator : public EnumValGenerator
     void initialize(SygusStatistics* s,
                     Node e,
                     TypeNode tn,
-                    TermDbSygus* tds,
-                    ExampleEvalCache* ece = nullptr);
+                    SygusEnumeratorCallback* sec = nullptr);
     /** get last constructor class index for weight
      *
      * This returns a minimal index n such that all constructor classes at
@@ -168,13 +195,8 @@ class SygusEnumerator : public EnumValGenerator
     Node d_enum;
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
-    /** pointer to term database sygus */
-    TermDbSygus* d_tds;
-    /**
-     * Pointer to the example evaluation cache utility (used for symmetry
-     * breaking).
-     */
-    ExampleEvalCache* d_eec;
+    /** Pointer to the callback (used for symmetry breaking). */
+    SygusEnumeratorCallback* d_sec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
     bool d_isSygusType;
@@ -203,7 +225,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the list of sygus terms we have enumerated */
     std::vector<Node> d_terms;
     /** the set of builtin terms corresponding to the above list */
-    std::unordered_set<Node, NodeHashFunction> d_bterms;
+    std::unordered_set<Node> d_bterms;
     /**
      * The index of first term whose size is greater than or equal to that size,
      * if it exists.
@@ -213,10 +235,6 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_sizeEnum;
     /** whether this term cache is complete */
     bool d_isComplete;
-    /** sampler (for --sygus-rr-verify) */
-    quantifiers::SygusSampler d_samplerRrV;
-    /** is the above sampler initialized? */
-    bool d_sampleRrVInit;
   };
   /** above cache for each sygus type */
   std::map<TypeNode, TermCache> d_tcache;
@@ -230,7 +248,7 @@ class SygusEnumerator : public EnumValGenerator
     TermEnum();
     virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
-    unsigned getCurrentSize();
+    unsigned getCurrentSize() const;
     /** get the current term of the enumerator */
     virtual Node getCurrent() = 0;
     /** increment the enumerator, return false if the enumerator is finished */
@@ -287,6 +305,8 @@ class SygusEnumerator : public EnumValGenerator
    private:
     /** the maximum size of terms this enumerator should enumerate */
     unsigned d_sizeLim;
+    /** is the index valid? */
+    bool d_indexValid;
     /** the current index in the term cache we are considering */
     unsigned d_index;
     /** the index in the term cache where terms of the current size end */
@@ -441,7 +461,7 @@ class SygusEnumerator : public EnumValGenerator
   class TermEnumMasterInterp : public TermEnum
   {
    public:
-    TermEnumMasterInterp(TypeNode tn);
+    TermEnumMasterInterp(TypeNode tn, size_t numConstants);
     /** initialize this enumerator */
     bool initialize(SygusEnumerator* se, TypeNode tn);
     /** get the current term of the enumerator */
@@ -456,6 +476,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currNumConsts;
     /** the next end threshold */
     unsigned d_nextIndexEnd;
+    /** The number of interpreted constants to consider for each size */
+    size_t d_enumNumConsts;
   };
   /** a free variable enumerator
    *
@@ -500,12 +522,12 @@ class SygusEnumerator : public EnumValGenerator
    * lemma that entails ~is-C( d_enum ) was registered to
    * TermDbSygus::registerSymBreakLemma.
    */
-  std::unordered_set<Node, NodeHashFunction> d_sbExcTlCons;
+  std::unordered_set<Node> d_sbExcTlCons;
   //-------------------------------- end externally specified symmetry breaking
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H */

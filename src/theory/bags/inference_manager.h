@@ -1,28 +1,30 @@
-/*********************                                                        */
-/*! \file inference_manager.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief The inference manager for the theory of bags.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Aina Niemetz, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The inference manager for the theory of bags.
+ */
 
-#include "cvc4_private.h"
+#include "cvc5_private.h"
 
-#ifndef CVC4__THEORY__BAGS__INFERENCE_MANAGER_H
-#define CVC4__THEORY__BAGS__INFERENCE_MANAGER_H
+#ifndef CVC5__THEORY__BAGS__INFERENCE_MANAGER_H
+#define CVC5__THEORY__BAGS__INFERENCE_MANAGER_H
 
-#include "theory/bags/solver_state.h"
 #include "theory/inference_manager_buffered.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace bags {
+
+class SolverState;
 
 /** Inference manager
  *
@@ -33,10 +35,20 @@ namespace bags {
  */
 class InferenceManager : public InferenceManagerBuffered
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  InferenceManager(Theory& t, SolverState& s, ProofNodeManager* pnm);
+  InferenceManager(Env& env, Theory& t, SolverState& s);
+
+  /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  // TODO issue #78: refactor this with theory of strings
+  void doPending();
 
  private:
   /** constants */
@@ -52,6 +64,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal
 
-#endif /* CVC4__THEORY__BAGS__INFERENCE_MANAGER_H */
+#endif /* CVC5__THEORY__BAGS__INFERENCE_MANAGER_H */

@@ -1,0 +1,102 @@
+###############################################################################
+# Top contributors (to current version):
+#   Gereon Kremer
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# This file serves as a template for how the FindX.cmake scripts should work.
+#
+# Find Dummy library
+# Exported variables:
+#   Dummy_FOUND - we have the Dummy lib, always true
+#   Dummy_FOUND_SYSTEM - we use the system version
+# Exported targets:
+#   Dummy - an imported library target
+##
+
+# provides some utility definitions
+include(deps-helper)
+
+# initial setup, for example load Java, Python, ...
+
+# first look for the library using the standard procedures
+find_path(Dummy_INCLUDE_DIR NAMES dummy/dummy.h)
+find_library(Dummy_LIBRARIES NAMES dummy)
+
+# check whether we found something
+set(Dummy_FOUND_SYSTEM FALSE)
+if(Dummy_INCLUDE_DIR AND Dummy_LIBRARIES)
+    # was installed system wide
+    set(Dummy_FOUND_SYSTEM TRUE)
+
+    # parse the version
+    file(STRINGS ${Dummy_INCLUDE_DIR}/dummy/dummy.h Dummy_VERSION REGEX "^#define DUMMY_VERSION .*")
+	  string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+" Dummy_VERSION "${Dummy_VERSION}")
+
+    # check whether the version satisfies the version requirement
+    # this may reset the Dummy_FOUND_SYSTEM variable
+    check_system_version("Dummy")
+endif()
+
+# not found or version too old
+if(NOT Dummy_FOUND_SYSTEM)
+    # we install the library with an external project
+    include(ExternalProject)
+
+    # check for cases where the external project is known to fail
+    # it might make sense to specify a reason
+    fail_if_cross_compiling("Windows" "" "Dummy" "some reason")
+    fail_if_cross_compiling("" "arm" "Dummy" "some reason")
+
+    # declare some release, version, tag, commit
+    set(Dummy_VERSION "1.2.3")
+    # do whatever is necessary
+    # - use some common config
+    # - prefer URL to GIT (to avoid rebuilds)
+    # - only build / install static versions if possible
+    # - pass ${TOOLCHAIN_PREFIX}
+    ExternalProject_Add(
+        Dummy-EP
+        ${COMMON_EP_CONFIG}
+        URL https://dummy.org/download/dummy-${Dummy_VERSION}.tar.bz2
+        URL_HASH SHA1=abc123
+        CMAKE_ARGS
+          -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+          -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+    )
+    # we may have dependencies on some other library
+    add_dependencies(Dummy-EP Foo)
+
+    # set the variables like the find_* commands at the top
+    set(Dummy_INCLUDE_DIR "${DEPS_BASE}/include/")
+    set(Dummy_LIBRARIES "${DEPS_BASE}/lib/libdummy.a")
+endif()
+
+# just set this to true
+set(Dummy_FOUND TRUE)
+
+# now create a target for the library
+add_library(Dummy STATIC IMPORTED GLOBAL)
+set_target_properties(Dummy PROPERTIES IMPORTED_LOCATION "${Dummy_LIBRARIES}")
+set_target_properties(Dummy PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Dummy_INCLUDE_DIR}")
+
+# mark all variables as advanced
+mark_as_advanced(Dummy_FOUND)
+mark_as_advanced(Dummy_FOUND_SYSTEM)
+mark_as_advanced(Dummy_INCLUDE_DIR)
+mark_as_advanced(Dummy_LIBRARIES)
+
+# print an appropriate message
+if(Dummy_FOUND_SYSTEM)
+    message(STATUS "Found Dummy ${Dummy_VERSION}: ${Dummy_LIBRARIES}")
+else()
+    message(STATUS "Building Dummy ${Dummy_VERSION}: ${Dummy_LIBRARIES}")
+    # make sure the external project is actually build
+    add_dependencies(Dummy Dummy-EP)
+endif()

@@ -1,0 +1,146 @@
+; This file defines how SMT-LIB sorts and terms are represented in LFSC. Notice
+; that we use an embedding where "sort" and "term" are LFSC types. This file
+; contains the "core" definitions of SMT-LIB, e.g. those that are specified
+; in the SMT-LIB standard, covering Boolean connectives, ITE, equality, and
+; quantifiers. We additionally define core definitions required for representing
+; higher-order applications, which are used throughout.
+
+; At a high level, the LFSC signature for SMT-LIB uses the following principles:
+;
+; (1) Apart from indexed function symbols, all terms are simply typed, that is,
+; the type of all terms is "term", as defined below.
+;
+; (2) The higher-order apply function "apply", as defined below, is used to
+; construct all function applications. Since LFSC does not natively support
+; n-ary function symbols, apply always expects two arguments. The use of this
+; apply symbol is in turn curried when representing function applications with
+; more than 2 arguments.
+;
+; (3) We use the following style when defining function symbols X:
+;   (a) We declare a simply typed version of the symbol:
+;         `(declare f_X term)`
+;       In other words, f_X is a term, which is the function X itself.
+;   (b) We define a macro that is a fully applied application of X. For example,
+;       when X expects two arguments, then we define:
+;         `(define X (# t1 term (# t2 term (apply (apply f_X t1) t2))))`
+;       More generally, this application consists of a right-associative chain
+;       of higher-order apply and f_X.
+;       Given this definition, we may write applications of X using SMT-LIB
+;       like syntax `(X a b)`.
+;
+; (4) Like SMT-LIB, we do not distinguish formulas and terms. Instead, formulas
+; can be seen as terms of Boolean sort.
+;
+; (5) We use a type `holds` which takes a term as an argument. This is expected
+; to take a Boolean term, e.g. a formula. The meaning of `(holds t)` is that
+; `t` can be inferred in the current context.
+;
+; Note that since our signature does not strictly enforce that terms type
+; check, the meta-level argument for the soundness of the signature relies
+; on the fact that the proof rules do not introduce terms that are not well
+; sorted according to SMT-LIB. Moreover, we assume that the input formula from
+; the user contains only well sorted terms.
+
+; Sorts
+(declare sort type)
+
+; Terms
+(declare term type)
+
+; holds: term t holds, where t should have Boolean type
+(declare holds (! t term type))
+
+; function type constructor
+(declare arrow (! s1 sort (! s2 sort sort)))
+
+; higher-order apply
+(declare apply (! t1 term (! t2 term term)))
+
+; Boolean value terms
+(declare true term)
+(declare false term)
+
+; Negation
+(declare f_not term)
+(define not (# t term (apply f_not t)))
+
+; Conjunction
+(declare f_and term)
+(define and (# t1 term (# t2 term (apply (apply f_and t1) t2))))
+
+; Disjunction
+(declare f_or term)
+(define or (# t1 term (# t2 term (apply (apply f_or t1) t2))))
+
+; Implication
+(declare f_=> term)
+(define => (# t1 term (# t2 term (apply (apply f_=> t1) t2))))
+
+; Xor
+(declare f_xor term)
+(define xor (# t1 term (# t2 term (apply (apply f_xor t1) t2))))
+
+; ITE
+(declare f_ite term)
+(define ite (# c term (# t1 term (# t2 term (apply (apply (apply f_ite c) t1) t2)))))
+
+; Equality:
+(declare f_=  term)
+(define = (# t1 term (# t2 term (apply (apply f_= t1) t2))))
+
+; Disequality:
+(declare f_distinct term)
+(define distinct (# t1 term (# t2 term (apply (apply f_distinct t1) t2))))
+
+;; ---- free constants
+; A "free constant" is an input variable to an SMT-LIB problem. We identify
+; each free constant by an integer identifier (argument v:mpz) and a sort
+; (argument s:sort). Given a user input, we assign unique integer identifiers
+; to each variable.
+(declare var (! v mpz (! s sort term)))
+
+;; ---- variables
+; A "bound variable" is a variable that is explicitly bound by a quantifier
+; (e.g. universal, existential, lambda, witness). In this signature,
+; bound variables are represented explicitly as free terms. Like free constants,
+; they are identified by an integer identifier (argument v:mpz) and a sort
+; (argument s:sort).
+(declare bvar (! v mpz (! s sort term)))
+
+;; ---- quantifiers
+; A quantified formula is represented as an indexed symbol whose arguments
+; indicate which bound variable is being bound. Notice that quantified formulas
+; bind only one variable at a time. Like SMT-LIB, we support both universal
+; and existential quantification. We also support lambda and witness terms.
+; In detail, the term (f_forall v s) binds the bound variable (bvar v s)
+; universally. To write the SMT-LIB term (forall ((x Int)) (P x)), we write:
+;   `(apply (forall v Int) (apply P (bvar v Int)))`
+; where v is the integer identifier associated with x.
+(declare f_forall (! v mpz (! s sort term)))
+(define forall (# v mpz (# s sort (# t term (apply (f_forall v s) t)))))
+
+; existentials
+(declare f_exists (! v mpz (! s sort term)))
+(define exists (# v mpz (# s sort (# t term (apply (f_exists v s) t)))))
+
+; witness, similar to Hilbert's choice operator. However, it is not necessarily
+; the case that (witness ((x Int)) (P x)) and (witness ((y Int)) (Q y)) are
+; equal when (exists ((x Int)) (P x)) and (exists ((y Int)) (Q y)) are
+; equivalent.
+(declare f_witness (! v mpz (! s sort term)))
+(define witness (# v mpz (# s sort (# t term (apply (f_witness v s) t)))))
+
+; lambda
+(declare f_lambda (! v mpz (! s sort term)))
+(define lambda (# v mpz (# s sort (# t term (apply (f_lambda v s) t)))))
+
+; ---- Skolem variables
+; A "Skolem variable" is an internally introduced variable. Its semantics are
+; the same as free constants. In contrast to free constants, we identify Skolem
+; variables by a term, which they are indexed by. Given a Skolem variable
+; (skolem t), we call t the "witness term" of this Skolem. The witness term
+; of a Skolem is often a term that the Skolem was used to abstract during
+; solving. It is *not* necessarily the case that the witness term for a Skolem
+; is an application of witness. Some Skolem variables, e.g. those used for
+; purification, are associated with a quantifier-free term.
+(declare skolem (! w term term))

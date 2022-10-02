@@ -1,24 +1,27 @@
-/*********************                                                        */
-/*! \file type_enumerator.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Enumerators for datatypes
- **
- ** Enumerators for datatypes.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Enumerators for datatypes.
+ */
 
 #include "theory/datatypes/type_enumerator.h"
+
+#include "expr/ascription_type.h"
+#include "expr/codatatype_bound_variable.h"
+#include "expr/dtype_cons.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-using namespace CVC4;
+using namespace cvc5::internal;
 using namespace theory;
 using namespace datatypes;
 
@@ -27,7 +30,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    if( i<d_terms[tn].size() ){
      ret = d_terms[tn][i];
    }else{
-     Debug("dt-enum-debug") << "get term enum " << tn << " " << i << std::endl;
+     Trace("dt-enum-debug") << "get term enum " << tn << " " << i << std::endl;
      std::map< TypeNode, unsigned >::iterator it = d_te_index.find( tn );
      unsigned tei;
      if( it==d_te_index.end() ){
@@ -49,28 +52,28 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      while( i>=d_terms[tn].size() ){
        ++d_children[tei];
        if( d_children[tei].isFinished() ){
-         Debug("dt-enum-debug") << "...fail term enum " << tn << " " << i << std::endl;
+         Trace("dt-enum-debug") << "...fail term enum " << tn << " " << i << std::endl;
          return Node::null();
        }
        d_terms[tn].push_back( *d_children[tei] );
      }
-     Debug("dt-enum-debug") << "...return term enum " << tn << " " << i << " : " << d_terms[tn][i] << std::endl;
+     Trace("dt-enum-debug") << "...return term enum " << tn << " " << i << " : " << d_terms[tn][i] << std::endl;
      ret = d_terms[tn][i];
    }
    return ret;
  }
 
  bool DatatypesEnumerator::increment( unsigned index ){
-   Debug("dt-enum") << "Incrementing " << d_type << " " << d_ctor << " at size " << d_sel_sum[index] << "/" << d_size_limit << std::endl;
+   Trace("dt-enum") << "Incrementing " << d_type << " " << d_ctor << " at size " << d_sel_sum[index] << "/" << d_size_limit << std::endl;
    if( d_sel_sum[index]==-1 ){
      //first time
      d_sel_sum[index] = 0;
      //special case: no children to iterate
      if( index>=d_has_debruijn && d_sel_types[index].empty() ){
-       Debug("dt-enum") << "...success (nc) = " << (d_size_limit==0) << std::endl;
+       Trace("dt-enum") << "...success (nc) = " << (d_size_limit==0) << std::endl;
        return d_size_limit==0;
      }else{
-       Debug("dt-enum") << "...success" << std::endl;
+       Trace("dt-enum") << "...success" << std::endl;
        return true;
      }
    }else{
@@ -80,34 +83,34 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        if( d_sel_sum[index]<(int)d_size_limit ){
          //also check if child enumerator has enough terms
          if( !getTermEnum( d_sel_types[index][i], d_sel_index[index][i]+1 ).isNull() ){
-           Debug("dt-enum") << "...success increment child " << i << std::endl;
+           Trace("dt-enum") << "...success increment child " << i << std::endl;
            d_sel_index[index][i]++;
            d_sel_sum[index]++;
            return true;
          }
        }
-       Debug("dt-enum") << "......failed increment child " << i << std::endl;
+       Trace("dt-enum") << "......failed increment child " << i << std::endl;
        //reset child, iterate next
        d_sel_sum[index] -= d_sel_index[index][i];
        d_sel_index[index][i] = 0;
        i++;
      }
-     Debug("dt-enum") << "...failure." << std::endl;
+     Trace("dt-enum") << "...failure." << std::endl;
      return false;
    }
  }
 
  Node DatatypesEnumerator::getCurrentTerm(unsigned index)
  {
-   Debug("dt-enum-debug") << "Get current term at " << index << " " << d_type
+   Trace("dt-enum-debug") << "Get current term at " << index << " " << d_type
                           << std::endl;
    Node ret;
    if (index < d_has_debruijn)
    {
      if (d_child_enum)
      {
-       ret = NodeManager::currentNM()->mkConst(
-           UninterpretedConstant(d_type, d_size_limit));
+       NodeManager* nm = NodeManager::currentNM();
+       ret = nm->mkConst(CodatatypeBoundVariable(d_type, d_size_limit));
      }
      else
      {
@@ -117,10 +120,10 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    }
    else
    {
-     Debug("dt-enum-debug")
+     Trace("dt-enum-debug")
          << "Look at constructor " << (index - d_has_debruijn) << std::endl;
      const DTypeConstructor& ctor = d_datatype[index - d_has_debruijn];
-     Debug("dt-enum-debug") << "Check last term..." << std::endl;
+     Trace("dt-enum-debug") << "Check last term..." << std::endl;
      // we first check if the last argument (which is forced to make sum of
      // iterated arguments equal to d_size_limit) is defined
      Node lc;
@@ -132,25 +135,21 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
                         d_size_limit - d_sel_sum[index]);
        if (lc.isNull())
        {
-         Debug("dt-enum-debug") << "Current infeasible." << std::endl;
+         Trace("dt-enum-debug") << "Current infeasible." << std::endl;
          return Node::null();
        }
      }
-     Debug("dt-enum-debug") << "Get constructor..." << std::endl;
-     NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+     Trace("dt-enum-debug") << "Get constructor..." << std::endl;
+     NodeBuilder b(kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
-       NodeManager* nm = NodeManager::currentNM();
-       TypeNode typ = ctor.getSpecializedConstructorType(d_type);
-       b << nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                       nm->mkConst(AscriptionType(typ)),
-                       ctor.getConstructor());
+       b << ctor.getInstantiatedConstructor(d_type);
      }
      else
      {
        b << ctor.getConstructor();
      }
-     Debug("dt-enum-debug") << "Get arguments..." << std::endl;
+     Trace("dt-enum-debug") << "Get arguments..." << std::endl;
      if (ctor.getNumArgs() > 0)
      {
        Assert(index < d_sel_types.size());
@@ -166,7 +165,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        b << lc;
      }
      Node nnn = Node(b);
-     Debug("dt-enum-debug") << "Return... " << nnn << std::endl;
+     Trace("dt-enum-debug") << "Return... " << nnn << std::endl;
      ret = nnn;
    }
 
@@ -193,13 +192,13 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
 
  void DatatypesEnumerator::init()
  {
-   Debug("dt-enum") << "datatype is datatype? " << d_type.isDatatype()
+   Trace("dt-enum") << "datatype is datatype? " << d_type.isDatatype()
                     << std::endl;
-   Debug("dt-enum") << "datatype is kind " << d_type.getKind() << std::endl;
-   Debug("dt-enum") << "datatype is " << d_type << std::endl;
-   Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " "
+   Trace("dt-enum") << "datatype is kind " << d_type.getKind() << std::endl;
+   Trace("dt-enum") << "datatype is " << d_type << std::endl;
+   Trace("dt-enum") << "properties : " << d_datatype.isCodatatype() << " "
                     << d_datatype.isRecursiveSingleton(d_type);
-   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
+   Trace("dt-enum") << " " << d_datatype.getCardinalityClass(d_type)
                     << std::endl;
    // Start with the ground term constructed via mkGroundValue, which does
    // a traversal over the structure of the datatype to find a finite term.
@@ -226,12 +225,12 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    else
    {
      // find the "zero" term via mkGroundTerm
-     Debug("dt-enum-debug") << "make ground term..." << std::endl;
-     Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
+     Trace("dt-enum-debug") << "make ground term..." << std::endl;
+     Trace("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
      Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
      d_has_debruijn = 0;
    }
-   Debug("dt-enum") << "zero term : " << d_zeroTerm << std::endl;
+   Trace("dt-enum") << "zero term : " << d_zeroTerm << std::endl;
    d_ctor = 0;
    for (unsigned i = 0, ncons = d_datatype.getNumConstructors(); i < ncons; ++i)
    {
@@ -242,7 +241,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      TypeNode typ;
      if (d_datatype.isParametric())
      {
-       typ = ctor.getSpecializedConstructorType(d_type);
+       typ = ctor.getInstantiatedConstructorType(d_type);
      }
      for (unsigned a = 0; a < ctor.getNumArgs(); ++a)
      {
@@ -278,7 +277,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
 
  DatatypesEnumerator& DatatypesEnumerator::operator++()
  {
-   Debug("dt-enum-debug") << ": increment " << this << std::endl;
+   Trace("dt-enum-debug") << ": increment " << this << std::endl;
    if (d_zeroTermActive)
    {
      d_zeroTermActive = false;
@@ -312,7 +311,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        // or other cases
        if (prevSize == d_size_limit
            || (d_size_limit == 0 && d_datatype.isCodatatype())
-           || !d_datatype.isInterpretedFinite(d_type))
+           || d_datatype.getCardinalityClass(d_type)
+                  == CardinalityClass::INFINITE)
        {
          d_size_limit++;
          d_ctor = 0;

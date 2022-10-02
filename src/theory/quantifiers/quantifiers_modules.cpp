@@ -1,23 +1,26 @@
-/*********************                                                        */
-/*! \file quantifiers_modules.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Class for initializing the modules of quantifiers engine
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Class for initializing the modules of quantifiers engine.
+ */
 
 #include "theory/quantifiers/quantifiers_modules.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers_engine.h"
+#include "options/strings_options.h"
+#include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/term_registry.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -31,83 +34,101 @@ QuantifiersModules::QuantifiersModules()
       d_sg_gen(nullptr),
       d_synth_e(nullptr),
       d_fs(nullptr),
+      d_ipool(nullptr),
       d_i_cbqi(nullptr),
       d_qsplit(nullptr),
-      d_anti_skolem(nullptr),
       d_sygus_inst(nullptr)
 {
 }
 QuantifiersModules::~QuantifiersModules() {}
-void QuantifiersModules::initialize(QuantifiersEngine* qe,
-                                    context::Context* c,
+void QuantifiersModules::initialize(Env& env,
+                                    QuantifiersState& qs,
+                                    QuantifiersInferenceManager& qim,
+                                    QuantifiersRegistry& qr,
+                                    TermRegistry& tr,
+                                    QModelBuilder* builder,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
-  if (options::quantConflictFind())
+  const Options& options = env.getOptions();
+  if (options.quantifiers.conflictBasedInst)
   {
-    d_qcf.reset(new quantifiers::QuantConflictFind(qe, c));
+    d_qcf.reset(new QuantConflictFind(env, qs, qim, qr, tr));
     modules.push_back(d_qcf.get());
   }
-  if (options::conjectureGen())
+  if (options.quantifiers.conjectureGen)
   {
-    d_sg_gen.reset(new quantifiers::ConjectureGenerator(qe, c));
+    d_sg_gen.reset(new ConjectureGenerator(env, qs, qim, qr, tr));
     modules.push_back(d_sg_gen.get());
   }
-  if (!options::finiteModelFind() || options::fmfInstEngine())
+  if (options.quantifiers.eMatching)
   {
-    d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
+    d_inst_engine.reset(new InstantiationEngine(env, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());
   }
-  if (options::cegqi())
+  if (options.quantifiers.cegqi)
   {
-    d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
+    d_i_cbqi.reset(new InstStrategyCegqi(env, qs, qim, qr, tr));
     modules.push_back(d_i_cbqi.get());
-    qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
+    qim.getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
   }
-  if (options::sygus())
+  if (options.quantifiers.sygus)
   {
-    d_synth_e.reset(new quantifiers::SynthEngine(qe, c));
+    d_synth_e.reset(new SynthEngine(env, qs, qim, qr, tr));
     modules.push_back(d_synth_e.get());
   }
-  // finite model finding
-  if (options::fmfBound())
+  // bounded integer instantiation is used when the user requests it via
+  // fmfBound, or if strings are enabled.
+  if (options.quantifiers.fmfBound || options.strings.stringExp)
   {
-    d_bint.reset(new quantifiers::BoundedIntegers(c, qe));
+    d_bint.reset(new BoundedIntegers(env, qs, qim, qr, tr));
     modules.push_back(d_bint.get());
   }
-  if (options::finiteModelFind() || options::fmfBound())
+
+  if (options.quantifiers.finiteModelFind || options.quantifiers.fmfBound
+      || options.strings.stringExp)
   {
-    d_model_engine.reset(new quantifiers::ModelEngine(c, qe));
+    d_model_engine.reset(new ModelEngine(env, qs, qim, qr, tr, builder));
     modules.push_back(d_model_engine.get());
   }
-  if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
+  if (options.quantifiers.quantDynamicSplit != options::QuantDSplitMode::NONE)
   {
-    d_qsplit.reset(new quantifiers::QuantDSplit(qe, c));
+    d_qsplit.reset(new QuantDSplit(env, qs, qim, qr, tr));
     modules.push_back(d_qsplit.get());
   }
-  if (options::quantAntiSkolem())
+  if (options.quantifiers.quantAlphaEquiv)
   {
-    d_anti_skolem.reset(new quantifiers::QuantAntiSkolem(qe));
-    modules.push_back(d_anti_skolem.get());
-  }
-  if (options::quantAlphaEquiv())
-  {
-    d_alpha_equiv.reset(new quantifiers::AlphaEquivalence(qe));
+    d_alpha_equiv.reset(new AlphaEquivalence(env));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
-  if (options::fullSaturateQuant() || options::fullSaturateInterleave())
+  if (options.quantifiers.enumInst || options.quantifiers.enumInstInterleave)
   {
-    d_rel_dom.reset(new quantifiers::RelevantDomain(qe));
-    d_fs.reset(new quantifiers::InstStrategyEnum(qe, d_rel_dom.get()));
+    d_rel_dom.reset(new RelevantDomain(env, qs, qr, tr));
+    d_fs.reset(new InstStrategyEnum(env, qs, qim, qr, tr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }
-  if (options::sygusInst())
+  if (options.quantifiers.poolInst)
   {
-    d_sygus_inst.reset(new quantifiers::SygusInst(qe));
+    d_ipool.reset(new InstStrategyPool(env, qs, qim, qr, tr));
+    modules.push_back(d_ipool.get());
+  }
+  if (options.quantifiers.sygusInst)
+  {
+    d_sygus_inst.reset(new SygusInst(env, qs, qim, qr, tr));
     modules.push_back(d_sygus_inst.get());
+  }
+  if (options.quantifiers.mbqi)
+  {
+    d_mbqi.reset(new InstStrategyMbqi(env, qs, qim, qr, tr));
+    modules.push_back(d_mbqi.get());
+  }
+  if (options.quantifiers.oracles)
+  {
+    d_oracleEngine.reset(new OracleEngine(env, qs, qim, qr, tr));
+    modules.push_back(d_oracleEngine.get());
   }
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace cvc5::internal

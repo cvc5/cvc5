@@ -1,14 +1,17 @@
-/*********************                                                        */
-/*! \file emptybag.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Mudathir Mohamed
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * A class for empty bags.
+ */
 
 #include "expr/emptybag.h"
 
@@ -16,7 +19,7 @@
 
 #include "expr/type_node.h"
 
-namespace CVC4 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, const EmptyBag& asa)
 {
@@ -25,7 +28,7 @@ std::ostream& operator<<(std::ostream& out, const EmptyBag& asa)
 
 size_t EmptyBagHashFunction::operator()(const EmptyBag& es) const
 {
-  return TypeNodeHashFunction()(es.getType());
+  return std::hash<TypeNode>()(es.getType());
 }
 
 /**
@@ -62,4 +65,4 @@ bool EmptyBag::operator<=(const EmptyBag& es) const
 
 bool EmptyBag::operator>(const EmptyBag& es) const { return !(*this <= es); }
 bool EmptyBag::operator>=(const EmptyBag& es) const { return !(*this < es); }
-}  // namespace CVC4
+}  // namespace cvc5::internal

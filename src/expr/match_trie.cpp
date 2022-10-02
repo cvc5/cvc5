@@ -1,22 +1,23 @@
-/*********************                                                        */
-/*! \file match_trie.cpp
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
- ** \brief Implements a match trie, also known as a discrimination tree.
- **/
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds, Mathias Preiner
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implements a match trie, also known as a discrimination tree.
+ */
 
 #include "expr/match_trie.h"
 
-using namespace CVC4::kind;
+using namespace cvc5::internal::kind;
 
-namespace CVC4 {
+namespace cvc5::internal {
 namespace expr {
 
 bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
@@ -128,7 +129,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
               recurse = false;
             }
           }
-          else if (!var.getType().isSubtypeOf(cn.getType()))
+          else if (var.getType() != cn.getType())
           {
             recurse = false;
           }
@@ -196,4 +197,4 @@ void MatchTrie::clear()
 }
 
 }  // namespace expr
-}  // namespace CVC4
+}  // namespace cvc5::internal

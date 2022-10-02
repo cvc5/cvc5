@@ -5,193 +5,157 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        name: [
-          production,
-          production-clang,
-          debug,
-          debug-cln
-        ]
-
-        exclude:
-          - name: production-clang
-            os: macos-latest
-          - name: debug
-            os: macos-latest
-          - name: debug-cln
-            os: macos-latest
-
         include:
-          - name: production
-            config: production --all-bindings --lfsc --editline --poly
+          - name: ubuntu:production
+            os: ubuntu-latest
+            config: production --auto-download --all-bindings --editline --docs
             cache-key: production
+            strip-bin: strip
+            python-bindings: true
+            build-documentation: true
+            check-examples: true
+            binary-name: cvc5-Linux
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: macos:production
+            os: macos-11
+            config: production --auto-download --python-bindings --editline
+            cache-key: production
+            strip-bin: strip
             python-bindings: true
             check-examples: true
+            binary-name: cvc5-macOS
             exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: production-clang
-            config: production
-            cache-key: production-clang
-            check-examples: true
+          - name: macos:production-arm64
+            os: macos-12
+            config: production --auto-download --python-bindings --editline --arm64
+            cache-key: production-arm64
+            strip-bin: strip
+            python-bindings: true
+            binary-name: cvc5-macOS-arm64
+
+          - name: win64:production
+            os: ubuntu-latest
+            config: production --auto-download --win64
+            cache-key: productionwin64
+            strip-bin: x86_64-w64-mingw32-strip
+            windows-build: true
+            binary-name: cvc5-Win64.exe
+            binary-ext: .exe
+
+          - name: ubuntu:production-clang
+            os: ubuntu-18.04
             env: CC=clang CXX=clang++
-            os: ubuntu-latest
-            exclude_regress: 1-4
+            config: production --auto-download --no-poly
+            cache-key: productionclang
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: debug
-            config: debug --symfpu --lfsc --no-debug-symbols --editline
-            cache-key: debug
-            os: ubuntu-latest
-            exclude_regress: 1-4
+          - name: ubuntu:production-dbg
+            os: ubuntu-18.04
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
+            cache-key: dbg
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
+            python-bindings: true
 
-          - name: debug-cln
-            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs --poly
-            cache-key: debug-cln
+          - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
-            exclude_regress: 1-4
+            env: CC=clang CXX=clang++
+            config: production --auto-download --assertions --tracing --cln --gpl
+            cache-key: dbgclang
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
-    name: ${{ matrix.os }}:${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+
+    # cancel already running jobs for the same branch/pr/tag
+    concurrency:
+      group: build-${{ github.ref }}-${{ matrix.name }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
+      cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
 
     - uses: actions/checkout@v2
 
-    - name: Install Packages
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ccache \
-          cxxtest \
-          libcln-dev \
-          libgmp-dev \
-          libgtest-dev \
-          libedit-dev \
-          flex \
-          libfl-dev \
-          flexc++
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        cd /usr/src/googletest
-        sudo cmake .
-        sudo cmake --build . --target install
-        cd -
-        echo "/usr/lib/ccache" >> $GITHUB_PATH
-
-    # Note: macOS comes with a libedit; it does not need to brew-installed
-    - name: Install Packages (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew install \
-          ccache \
-          cxxtest \
-          cln \
-          gmp \
-          pkgconfig \
-          flex
-        python3 -m pip install toml
-        python3 -m pip install setuptools
-        python3 -m pip install pexpect
-        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
-
-    - name: Install Python Dependencies
-      if: matrix.python-bindings
-      run: |
-        python3 -m pip install pytest
-        python3 -m pytest --version
-        python3 -m pip install \
-          Cython==0.29.* --install-option="--no-cython-compile"
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-
-    - name: Restore Dependencies
-      id: restore-deps
-      uses: actions/cache@v1
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
       with:
-        path: deps/install
-        key: ${{ runner.os }}-deps-${{ hashFiles('contrib/get-**') }}-${{ hashFiles('.github/workflows/ci.yml') }}
+        with-documentation: ${{ matrix.build-documentation }}
+        with-python-bindings: ${{ matrix.python-bindings }}
+        windows-build: ${{ matrix.windows-build }}
 
-    - name: Setup Dependencies
-      if: steps.restore-deps.outputs.cache-hit != 'true'
-      run: |
-        ./contrib/get-antlr-3.4
-        ./contrib/get-poly
-        ./contrib/get-symfpu
-        ./contrib/get-cadical
-        ./contrib/get-cryptominisat
-        ./contrib/get-lfsc-checker
-
-    - name: List dependencies
-      run: |
-        find deps/install -type f
-        cat deps/install/bin/antlr3
-
-    # GitHub actions currently does not support modifying an already existing
-    # cache. Hence, we create a new cache for each commit with key
-    # cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}. This
-    # will result in an initial cache miss. However, restore-keys will search
-    # for the most recent cache with prefix
-    # cache-${{ runner.os }}-${{ matrix.cache-key }}-, and if found uses it as
-    # a base for the new cache.
-    - name: Restore ccache
-      id: cache
-      uses: actions/cache@v1
+    - name: Setup caches
+      uses: ./.github/actions/setup-cache
       with:
-        path: ccache-dir
-        key: cache-${{ runner.os }}-${{ matrix.cache-key }}-${{ github.sha }}
-        restore-keys: cache-${{ runner.os }}-${{ matrix.cache-key }}-
+        cache-key: ${{ matrix.cache-key }}
 
-    - name: Configure ccache
-      run: |
-        ccache --set-config=cache_dir=${{ github.workspace }}/ccache-dir
-        ccache --set-config=compression=true
-        ccache --set-config=compression_level=6
-        ccache -M 500M
-        ccache -z
-
-    - name: Configure
-      run: |
-        ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
-          --python3 \
-          --prefix=$(pwd)/build/install \
-          --unit-testing
-
-    - name: Build
-      run: make -j2
-      working-directory: build
+    - name: Configure and build
+      id: configure-and-build
+      uses: ./.github/actions/configure-and-build
+      with:
+        configure-env: ${{ matrix.env }}
+        configure-config: ${{ matrix.config }}
+        build-shared: ${{ matrix.build-shared }}
+        build-static: ${{ matrix.build-static }}
+        strip-bin: ${{ matrix.strip-bin }}
 
     - name: ccache Statistics
       run: ccache -s
 
-    - name: Run CTest
-      run: make -j2 check
-      env:
-        ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
-        CVC4_REGRESSION_ARGS: --no-early-exit
-      working-directory: build
+    - name: Run tests
+      if: matrix.run_regression_args
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
+        check-examples: ${{ matrix.check-examples }}
+        check-python-bindings: ${{ matrix.python-bindings }}
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: ${{ matrix.exclude_regress }}
+  
+    - name: Run tests
+      if: matrix.run_regression_args
+      uses: ./.github/actions/run-tests
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        check-examples: false
+        check-install: false
+        check-python-bindings: false
+        regressions-args: ${{ matrix.run_regression_args }}
+        regressions-exclude: 1-4
 
-    - name: Install Check
-      run: |
-        make -j2 install
-        echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
-        g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
-      working-directory: build
+    - name: Build documentation
+      if: matrix.build-documentation
+      uses: ./.github/actions/build-documentation
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
 
-    - name: Python Install Check
-      if: matrix.python-bindings
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       python3 -c "import pycvc4"
+    - name: Add binary to latest and release
+      if: matrix.binary-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      uses: ./.github/actions/store-binary
+      with:
+        binary: ${{ steps.configure-and-build.outputs.static-build-dir }}/bin/cvc5${{ matrix.binary-ext }}
+        binary-name: ${{ matrix.binary-name }}
+        # when using GITHUB_TOKEN, no further workflows are triggered
+        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
+        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
 
-      # Examples are built for non-symfpu builds
-    - name: Check Examples
-      if: matrix.check-examples && runner.os == 'Linux'
-      run: |
-        mkdir build
-        cd build
-        cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
-        make -j2
-        ctest -j2 --output-on-failure
-      working-directory: examples
-
+  update-pr:
+    runs-on: ubuntu-latest
+    if: github.repository == 'cvc5/cvc5' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: update-pr
+    steps:
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.6.0
+        with:
+          token: ${{ secrets.ACTION_USER_TOKEN }}
+          base: 'main'
+          sort: 'created'
+          direction: 'asc'
+          required_approval_count: 1
