@@ -28,7 +28,7 @@ If you would like a more feature-complete---yet verbose---python API, with the a
 You can compare examples using the two APIs by visiting the :doc:`examples page <../../examples/quickstart>`.
 
 
-Installation (Except MacOS with Apple Silicon)
+Installation (x86-64 variants of Linux and macOS)
 ------------
 
 The base and pythonic Python API can be installed via `pip` as follows:
@@ -38,10 +38,10 @@ The base and pythonic Python API can be installed via `pip` as follows:
   pip install cvc5
 
 
-Installation (MacOS with Apple Silicon)
+Installation (ARM64 variants of Linux and macOS)
 ------------
 
-For M1 Macs, the base and pythonic Python API can be installed from source as follows:
+For ARM64-based machines (including Apple computers with M1 and M2 chips), the base and the pythonic Python API can be installed from source as follows:
 
 .. code:: bash
 
