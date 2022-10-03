@@ -59,7 +59,7 @@ cvc5 1.0
 **Documentation**: https://cvc5.github.io/docs
 
 **System Description**
-  * *cvc5: A Versatile and Industrial-Strength SMT Solver.*
+  * *cvc5: A Versatile and Industrial-Strength SMT Solver.*  
     Barbosa H., Barrett C., Brain M., Kremer G., Lachnitt H.,
     Mann M., Mohamed A., Mohamed M., Niemetz A., Nötzli A.,
     Ozdemir A., Preiner M., Reynolds A., Sheng Y., Tinelli C., and Zohar Y.,
