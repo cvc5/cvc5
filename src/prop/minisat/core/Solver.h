@@ -413,6 +413,9 @@ protected:
         CRef cref;
         Lit  blocker;
         Watcher(CRef cr, Lit p) : cref(cr), blocker(p) {}
+        Watcher(Watcher&& w) = default;
+        Watcher& operator=(const Watcher& w) = default;
+
         bool operator==(const Watcher& w) const { return cref == w.cref; }
         bool operator!=(const Watcher& w) const { return cref != w.cref; }
     };

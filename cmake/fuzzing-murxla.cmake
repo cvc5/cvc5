@@ -16,7 +16,7 @@
 
 include(ExternalProject)
 
-set(Murxla_COMMIT "9ba2583")
+set(Murxla_COMMIT "95aac998e22f8a633f5547d85388e146030cca81")
 
 add_custom_target(install-for-murxla
   COMMAND DESTDIR=murxla-install ${CMAKE_MAKE_PROGRAM} install
@@ -28,7 +28,7 @@ ExternalProject_Add(
   EXCLUDE_FROM_ALL ON
   ${COMMON_EP_CONFIG}
   URL https://github.com/murxla/murxla/archive/${Murxla_COMMIT}.tar.gz
-  URL_HASH SHA1=176e325344a94250c4f4f6df3a9d2d01d6529a26
+  URL_HASH SHA1=6ba90f474afd6f5bbdde1ad7e771ff005d4f6b22
   SOURCE_DIR ${CMAKE_BINARY_DIR}/murxla
   CMAKE_ARGS
     -DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/murxla-install/usr/local/
