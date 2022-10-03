@@ -72,6 +72,8 @@ enum RewriteRuleId
   SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
+  UmuloEliminate,
+  SmuloEliminate,
   BVToNatEliminate,
   IntToBVEliminate,
 
