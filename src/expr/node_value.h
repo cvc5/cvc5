@@ -57,7 +57,7 @@ namespace expr {
 /**
  * This is a NodeValue.
  */
-class NodeValue
+class CVC5_EXPORT NodeValue
 {
   template <bool>
   friend class cvc5::internal::NodeTemplate;
@@ -93,7 +93,7 @@ class NodeValue
     using pointer = T*;
     using reference = T;
 
-    iterator() : d_i(NULL) {}
+    iterator() : d_i(nullptr) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
     /** Conversion of a TNode iterator to a Node iterator. */
@@ -294,10 +294,6 @@ class NodeValue
 
   void inc()
   {
-    Assert(!isBeingDeleted())
-        << "NodeValue is currently being deleted "
-           "and increment is being called on it. Don't Do That!";
-    // FIXME multithreading
     if (__builtin_expect((d_rc < MAX_RC - 1), true))
     {
       ++d_rc;
@@ -327,8 +323,6 @@ class NodeValue
 
   /** Decrement ref counts of children */
   inline void decrRefCounts();
-
-  bool isBeingDeleted() const;
 
   /** Returns true if the reference count is maximized. */
   inline bool HasMaximizedReferenceCount() { return d_rc == MAX_RC; }

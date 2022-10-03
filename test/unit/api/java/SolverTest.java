@@ -138,6 +138,8 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkFloatingPointSort(4, 8));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(0, 8));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 0));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(1, 8));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkFloatingPointSort(4, 1));
   }
 
   @Test

@@ -201,7 +201,7 @@ poly::Polynomial up_to_poly(const poly::UPolynomial& p, poly::Variable var)
 
 TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
 {
-  Rewriter* rewriter = d_slvEngine->getRewriter();
+  Rewriter* rewriter = d_slvEngine->getEnv().getRewriter();
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
