@@ -53,17 +53,8 @@ Node AletheNoSubtypeNodeConverter::postConvert(Node n)
         // this is easily salvageable. Otherwise it's not.
         if (expr::hasSubtermKinds({kind::APPLY_UF, kind::SKOLEM}, n[i]))
         {
-          // Unreachable() << "AletheBackend: Can't handle subtyping case of "
-          //                  "non-value integers.\n";
-          Trace("alethe-proof-subtyping")
-              << "\t\t..traverse and convert consts in term, then apply a "
-                 "to_real over it\n";
-          childChanged = true;
-          children.push_back(
-              nm->mkNode(kind::TO_REAL, traverseAndConvertAllConsts(n[i])));
-          Trace("alethe-proof-subtyping")
-              << "\t\t..converted " << n[i] << " into " << children.back()
-              << "\n";
+          Unreachable() << "AletheBackend: Can't handle subtyping case of "
+                           "non-value integers.\n";
         }
         Trace("alethe-proof-subtyping")
             << "\t\t..traverse and convert term with only consts\n";
