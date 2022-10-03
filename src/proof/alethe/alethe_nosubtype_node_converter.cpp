@@ -24,7 +24,16 @@ namespace proof {
 Node AletheNoSubtypeNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  // corce function applications
+  if (n.isConst() && n.getType().isReal() && !n.getType().isInteger())
+  {
+    return nm->mkNode(kind::TO_INTEGER, n);
+  }
+  if (n.getKind() == kind::TO_REAL)
+  {
+    return n[0];
+  }
+  return n;
+  // coerce function applications
   if (n.getKind() == kind::APPLY_UF)
   {
     Node op = n.getOperator();
