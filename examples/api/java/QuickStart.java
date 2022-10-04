@@ -25,7 +25,7 @@ public class QuickStart
   public static void main(String args[]) throws CVC5ApiException
   {
     // Create a solver
-    try (Solver solver = new Solver())
+    Solver solver = new Solver();
     {
       // We will ask the solver to produce models and unsat cores,
       // hence these options should be turned on.

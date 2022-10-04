@@ -5381,15 +5381,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
-Sort Solver::getNullSort(void) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return Sort(d_nm, internal::TypeNode());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Sort Solver::getBooleanSort(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

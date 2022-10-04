@@ -687,6 +687,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/core.cpp
+  theory/ff/core.h
   theory/ff/roots.cpp
   theory/ff/roots.h
   theory/ff/stats.cpp
