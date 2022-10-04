@@ -1071,290 +1071,289 @@ std::string Smt2Printer::smtKindString(Kind k)
 {
   switch(k) {
     // builtin theory
-  case kind::EQUAL: return "=";
-  case kind::DISTINCT: return "distinct";
-  case kind::SEXPR: break;
+    case kind::EQUAL: return "=";
+    case kind::DISTINCT: return "distinct";
+    case kind::SEXPR: break;
 
     // bool theory
-  case kind::NOT: return "not";
-  case kind::AND: return "and";
-  case kind::IMPLIES: return "=>";
-  case kind::OR: return "or";
-  case kind::XOR: return "xor";
-  case kind::ITE: return "ite";
+    case kind::NOT: return "not";
+    case kind::AND: return "and";
+    case kind::IMPLIES: return "=>";
+    case kind::OR: return "or";
+    case kind::XOR: return "xor";
+    case kind::ITE: return "ite";
 
     // uf theory
-  case kind::APPLY_UF: break;
+    case kind::APPLY_UF: break;
 
-  case kind::LAMBDA: return "lambda";
-  case kind::MATCH: return "match";
-  case kind::WITNESS: return "witness";
+    case kind::LAMBDA: return "lambda";
+    case kind::MATCH: return "match";
+    case kind::WITNESS: return "witness";
 
-  // arith theory
-  case kind::ADD: return "+";
-  case kind::MULT:
-  case kind::NONLINEAR_MULT: return "*";
-  case kind::IAND: return "iand";
-  case kind::POW2: return "int.pow2";
-  case kind::EXPONENTIAL: return "exp";
-  case kind::SINE: return "sin";
-  case kind::COSINE: return "cos";
-  case kind::TANGENT: return "tan";
-  case kind::COSECANT: return "csc";
-  case kind::SECANT: return "sec";
-  case kind::COTANGENT: return "cot";
-  case kind::ARCSINE: return "arcsin";
-  case kind::ARCCOSINE: return "arccos";
-  case kind::ARCTANGENT: return "arctan";
-  case kind::ARCCOSECANT: return "arccsc";
-  case kind::ARCSECANT: return "arcsec";
-  case kind::ARCCOTANGENT: return "arccot";
-  case kind::PI: return "real.pi";
-  case kind::SQRT: return "sqrt";
-  case kind::SUB: return "-";
-  case kind::NEG: return "-";
-  case kind::LT: return "<";
-  case kind::LEQ: return "<=";
-  case kind::GT: return ">";
-  case kind::GEQ: return ">=";
-  case kind::DIVISION:
-  case kind::DIVISION_TOTAL: return "/";
-  case kind::INTS_DIVISION_TOTAL:
-  case kind::INTS_DIVISION: return "div";
-  case kind::INTS_MODULUS_TOTAL:
-  case kind::INTS_MODULUS: return "mod";
-  case kind::ABS: return "abs";
-  case kind::IS_INTEGER: return "is_int";
-  case kind::TO_INTEGER: return "to_int";
-  case kind::TO_REAL: return "to_real";
-  case kind::POW: return "^";
+    // arith theory
+    case kind::ADD: return "+";
+    case kind::MULT:
+    case kind::NONLINEAR_MULT: return "*";
+    case kind::IAND: return "iand";
+    case kind::POW2: return "int.pow2";
+    case kind::EXPONENTIAL: return "exp";
+    case kind::SINE: return "sin";
+    case kind::COSINE: return "cos";
+    case kind::TANGENT: return "tan";
+    case kind::COSECANT: return "csc";
+    case kind::SECANT: return "sec";
+    case kind::COTANGENT: return "cot";
+    case kind::ARCSINE: return "arcsin";
+    case kind::ARCCOSINE: return "arccos";
+    case kind::ARCTANGENT: return "arctan";
+    case kind::ARCCOSECANT: return "arccsc";
+    case kind::ARCSECANT: return "arcsec";
+    case kind::ARCCOTANGENT: return "arccot";
+    case kind::PI: return "real.pi";
+    case kind::SQRT: return "sqrt";
+    case kind::SUB: return "-";
+    case kind::NEG: return "-";
+    case kind::LT: return "<";
+    case kind::LEQ: return "<=";
+    case kind::GT: return ">";
+    case kind::GEQ: return ">=";
+    case kind::DIVISION:
+    case kind::DIVISION_TOTAL: return "/";
+    case kind::INTS_DIVISION_TOTAL:
+    case kind::INTS_DIVISION: return "div";
+    case kind::INTS_MODULUS_TOTAL:
+    case kind::INTS_MODULUS: return "mod";
+    case kind::ABS: return "abs";
+    case kind::IS_INTEGER: return "is_int";
+    case kind::TO_INTEGER: return "to_int";
+    case kind::TO_REAL: return "to_real";
+    case kind::POW: return "^";
 
     // arrays theory
-  case kind::SELECT: return "select";
-  case kind::STORE: return "store";
-  case kind::ARRAY_TYPE: return "Array";
-  case kind::PARTIAL_SELECT_0: return "partial_select_0";
-  case kind::PARTIAL_SELECT_1: return "partial_select_1";
-  case kind::EQ_RANGE:
-    return "eqrange";
+    case kind::SELECT: return "select";
+    case kind::STORE: return "store";
+    case kind::ARRAY_TYPE: return "Array";
+    case kind::PARTIAL_SELECT_0: return "partial_select_0";
+    case kind::PARTIAL_SELECT_1: return "partial_select_1";
+    case kind::EQ_RANGE: return "eqrange";
 
     // bv theory
-  case kind::BITVECTOR_CONCAT: return "concat";
-  case kind::BITVECTOR_AND: return "bvand";
-  case kind::BITVECTOR_OR: return "bvor";
-  case kind::BITVECTOR_XOR: return "bvxor";
-  case kind::BITVECTOR_NOT: return "bvnot";
-  case kind::BITVECTOR_NAND: return "bvnand";
-  case kind::BITVECTOR_NOR: return "bvnor";
-  case kind::BITVECTOR_XNOR: return "bvxnor";
-  case kind::BITVECTOR_COMP: return "bvcomp";
-  case kind::BITVECTOR_MULT: return "bvmul";
-  case kind::BITVECTOR_ADD: return "bvadd";
-  case kind::BITVECTOR_SUB: return "bvsub";
-  case kind::BITVECTOR_NEG: return "bvneg";
-  case kind::BITVECTOR_UDIV: return "bvudiv";
-  case kind::BITVECTOR_UREM: return "bvurem";
-  case kind::BITVECTOR_SDIV: return "bvsdiv";
-  case kind::BITVECTOR_SREM: return "bvsrem";
-  case kind::BITVECTOR_SMOD: return "bvsmod";
-  case kind::BITVECTOR_SHL: return "bvshl";
-  case kind::BITVECTOR_LSHR: return "bvlshr";
-  case kind::BITVECTOR_ASHR: return "bvashr";
-  case kind::BITVECTOR_ULT: return "bvult";
-  case kind::BITVECTOR_ULE: return "bvule";
-  case kind::BITVECTOR_UGT: return "bvugt";
-  case kind::BITVECTOR_UGE: return "bvuge";
-  case kind::BITVECTOR_SLT: return "bvslt";
-  case kind::BITVECTOR_SLE: return "bvsle";
-  case kind::BITVECTOR_SGT: return "bvsgt";
-  case kind::BITVECTOR_SGE: return "bvsge";
-  case kind::BITVECTOR_UMULO: return "bvumulo";
-  case kind::BITVECTOR_SMULO: return "bvsmulo";
-  case kind::BITVECTOR_TO_NAT: return "bv2nat";
-  case kind::BITVECTOR_REDOR: return "bvredor";
-  case kind::BITVECTOR_REDAND: return "bvredand";
+    case kind::BITVECTOR_CONCAT: return "concat";
+    case kind::BITVECTOR_AND: return "bvand";
+    case kind::BITVECTOR_OR: return "bvor";
+    case kind::BITVECTOR_XOR: return "bvxor";
+    case kind::BITVECTOR_NOT: return "bvnot";
+    case kind::BITVECTOR_NAND: return "bvnand";
+    case kind::BITVECTOR_NOR: return "bvnor";
+    case kind::BITVECTOR_XNOR: return "bvxnor";
+    case kind::BITVECTOR_COMP: return "bvcomp";
+    case kind::BITVECTOR_MULT: return "bvmul";
+    case kind::BITVECTOR_ADD: return "bvadd";
+    case kind::BITVECTOR_SUB: return "bvsub";
+    case kind::BITVECTOR_NEG: return "bvneg";
+    case kind::BITVECTOR_UDIV: return "bvudiv";
+    case kind::BITVECTOR_UREM: return "bvurem";
+    case kind::BITVECTOR_SDIV: return "bvsdiv";
+    case kind::BITVECTOR_SREM: return "bvsrem";
+    case kind::BITVECTOR_SMOD: return "bvsmod";
+    case kind::BITVECTOR_SHL: return "bvshl";
+    case kind::BITVECTOR_LSHR: return "bvlshr";
+    case kind::BITVECTOR_ASHR: return "bvashr";
+    case kind::BITVECTOR_ULT: return "bvult";
+    case kind::BITVECTOR_ULE: return "bvule";
+    case kind::BITVECTOR_UGT: return "bvugt";
+    case kind::BITVECTOR_UGE: return "bvuge";
+    case kind::BITVECTOR_SLT: return "bvslt";
+    case kind::BITVECTOR_SLE: return "bvsle";
+    case kind::BITVECTOR_SGT: return "bvsgt";
+    case kind::BITVECTOR_SGE: return "bvsge";
+    case kind::BITVECTOR_UADDO: return "bvuaddo";
+    case kind::BITVECTOR_UMULO: return "bvumulo";
+    case kind::BITVECTOR_SMULO: return "bvsmulo";
+    case kind::BITVECTOR_TO_NAT: return "bv2nat";
+    case kind::BITVECTOR_REDOR: return "bvredor";
+    case kind::BITVECTOR_REDAND: return "bvredand";
 
-  case kind::BITVECTOR_EXTRACT: return "extract";
-  case kind::BITVECTOR_REPEAT: return "repeat";
-  case kind::BITVECTOR_ZERO_EXTEND: return "zero_extend";
-  case kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
-  case kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
-  case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
-  case kind::INT_TO_BITVECTOR: return "int2bv";
-  case kind::BITVECTOR_BB_TERM: return "bbT";
+    case kind::BITVECTOR_EXTRACT: return "extract";
+    case kind::BITVECTOR_REPEAT: return "repeat";
+    case kind::BITVECTOR_ZERO_EXTEND: return "zero_extend";
+    case kind::BITVECTOR_SIGN_EXTEND: return "sign_extend";
+    case kind::BITVECTOR_ROTATE_LEFT: return "rotate_left";
+    case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
+    case kind::INT_TO_BITVECTOR: return "int2bv";
+    case kind::BITVECTOR_BB_TERM: return "bbT";
 
-  // datatypes theory
-  case kind::APPLY_TESTER: return "is";
-  case kind::APPLY_UPDATER: return "update";
-  case kind::TUPLE_TYPE: return "Tuple";
+    // datatypes theory
+    case kind::APPLY_TESTER: return "is";
+    case kind::APPLY_UPDATER: return "update";
+    case kind::TUPLE_TYPE: return "Tuple";
 
-  // set theory
-  case kind::SET_UNION: return "set.union";
-  case kind::SET_INTER: return "set.inter";
-  case kind::SET_MINUS: return "set.minus";
-  case kind::SET_SUBSET: return "set.subset";
-  case kind::SET_MEMBER: return "set.member";
-  case kind::SET_TYPE: return "Set";
-  case kind::SET_SINGLETON: return "set.singleton";
-  case kind::SET_INSERT: return "set.insert";
-  case kind::SET_COMPLEMENT: return "set.complement";
-  case kind::SET_CARD: return "set.card";
-  case kind::SET_COMPREHENSION: return "set.comprehension";
-  case kind::SET_CHOOSE: return "set.choose";
-  case kind::SET_IS_SINGLETON: return "set.is_singleton";
-  case kind::SET_MAP: return "set.map";
-  case kind::SET_FILTER: return "set.filter";
-  case kind::SET_FOLD: return "set.fold";
-  case kind::RELATION_JOIN: return "rel.join";
-  case kind::RELATION_PRODUCT: return "rel.product";
-  case kind::RELATION_TRANSPOSE: return "rel.transpose";
-  case kind::RELATION_TCLOSURE: return "rel.tclosure";
-  case kind::RELATION_IDEN: return "rel.iden";
-  case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
-  case kind::RELATION_GROUP: return "rel.group";
-  case kind::RELATION_AGGREGATE: return "rel.aggr";
-  case kind::RELATION_PROJECT: return "rel.project";
+    // set theory
+    case kind::SET_UNION: return "set.union";
+    case kind::SET_INTER: return "set.inter";
+    case kind::SET_MINUS: return "set.minus";
+    case kind::SET_SUBSET: return "set.subset";
+    case kind::SET_MEMBER: return "set.member";
+    case kind::SET_TYPE: return "Set";
+    case kind::SET_SINGLETON: return "set.singleton";
+    case kind::SET_INSERT: return "set.insert";
+    case kind::SET_COMPLEMENT: return "set.complement";
+    case kind::SET_CARD: return "set.card";
+    case kind::SET_COMPREHENSION: return "set.comprehension";
+    case kind::SET_CHOOSE: return "set.choose";
+    case kind::SET_IS_SINGLETON: return "set.is_singleton";
+    case kind::SET_MAP: return "set.map";
+    case kind::SET_FILTER: return "set.filter";
+    case kind::SET_FOLD: return "set.fold";
+    case kind::RELATION_JOIN: return "rel.join";
+    case kind::RELATION_PRODUCT: return "rel.product";
+    case kind::RELATION_TRANSPOSE: return "rel.transpose";
+    case kind::RELATION_TCLOSURE: return "rel.tclosure";
+    case kind::RELATION_IDEN: return "rel.iden";
+    case kind::RELATION_JOIN_IMAGE: return "rel.join_image";
+    case kind::RELATION_GROUP: return "rel.group";
+    case kind::RELATION_AGGREGATE: return "rel.aggr";
+    case kind::RELATION_PROJECT: return "rel.project";
 
-  // bag theory
-  case kind::BAG_TYPE: return "Bag";
-  case kind::BAG_UNION_MAX: return "bag.union_max";
-  case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
-  case kind::BAG_INTER_MIN: return "bag.inter_min";
-  case kind::BAG_DIFFERENCE_SUBTRACT: return "bag.difference_subtract";
-  case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
-  case kind::BAG_SUBBAG: return "bag.subbag";
-  case kind::BAG_COUNT: return "bag.count";
-  case kind::BAG_MEMBER: return "bag.member";
-  case kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
-  case kind::BAG_MAKE: return "bag";
-  case kind::BAG_CARD: return "bag.card";
-  case kind::BAG_CHOOSE: return "bag.choose";
-  case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
-  case kind::BAG_FROM_SET: return "bag.from_set";
-  case kind::BAG_TO_SET: return "bag.to_set";
-  case kind::BAG_MAP: return "bag.map";
-  case kind::BAG_FILTER: return "bag.filter";
-  case kind::BAG_FOLD: return "bag.fold";
-  case kind::BAG_PARTITION: return "bag.partition";
-  case kind::TABLE_PRODUCT: return "table.product";
-  case kind::TABLE_PROJECT: return "table.project";
-  case kind::TABLE_AGGREGATE: return "table.aggr";
-  case kind::TABLE_JOIN: return "table.join";
-  case kind::TABLE_GROUP: return "table.group";
+    // bag theory
+    case kind::BAG_TYPE: return "Bag";
+    case kind::BAG_UNION_MAX: return "bag.union_max";
+    case kind::BAG_UNION_DISJOINT: return "bag.union_disjoint";
+    case kind::BAG_INTER_MIN: return "bag.inter_min";
+    case kind::BAG_DIFFERENCE_SUBTRACT: return "bag.difference_subtract";
+    case kind::BAG_DIFFERENCE_REMOVE: return "bag.difference_remove";
+    case kind::BAG_SUBBAG: return "bag.subbag";
+    case kind::BAG_COUNT: return "bag.count";
+    case kind::BAG_MEMBER: return "bag.member";
+    case kind::BAG_DUPLICATE_REMOVAL: return "bag.duplicate_removal";
+    case kind::BAG_MAKE: return "bag";
+    case kind::BAG_CARD: return "bag.card";
+    case kind::BAG_CHOOSE: return "bag.choose";
+    case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
+    case kind::BAG_FROM_SET: return "bag.from_set";
+    case kind::BAG_TO_SET: return "bag.to_set";
+    case kind::BAG_MAP: return "bag.map";
+    case kind::BAG_FILTER: return "bag.filter";
+    case kind::BAG_FOLD: return "bag.fold";
+    case kind::BAG_PARTITION: return "bag.partition";
+    case kind::TABLE_PRODUCT: return "table.product";
+    case kind::TABLE_PROJECT: return "table.project";
+    case kind::TABLE_AGGREGATE: return "table.aggr";
+    case kind::TABLE_JOIN: return "table.join";
+    case kind::TABLE_GROUP:
+      return "table.group";
 
-    // fp theory
-  case kind::FLOATINGPOINT_FP: return "fp";
-  case kind::FLOATINGPOINT_EQ: return "fp.eq";
-  case kind::FLOATINGPOINT_ABS: return "fp.abs";
-  case kind::FLOATINGPOINT_NEG: return "fp.neg";
-  case kind::FLOATINGPOINT_ADD: return "fp.add";
-  case kind::FLOATINGPOINT_SUB: return "fp.sub";
-  case kind::FLOATINGPOINT_MULT: return "fp.mul";
-  case kind::FLOATINGPOINT_DIV: return "fp.div";
-  case kind::FLOATINGPOINT_FMA: return "fp.fma";
-  case kind::FLOATINGPOINT_SQRT: return "fp.sqrt";
-  case kind::FLOATINGPOINT_REM: return "fp.rem";
-  case kind::FLOATINGPOINT_RTI: return "fp.roundToIntegral";
-  case kind::FLOATINGPOINT_MIN: return "fp.min";
-  case kind::FLOATINGPOINT_MAX: return "fp.max";
-  case kind::FLOATINGPOINT_MIN_TOTAL: return "fp.min_total";
-  case kind::FLOATINGPOINT_MAX_TOTAL: return "fp.max_total";
+      // fp theory
+    case kind::FLOATINGPOINT_FP: return "fp";
+    case kind::FLOATINGPOINT_EQ: return "fp.eq";
+    case kind::FLOATINGPOINT_ABS: return "fp.abs";
+    case kind::FLOATINGPOINT_NEG: return "fp.neg";
+    case kind::FLOATINGPOINT_ADD: return "fp.add";
+    case kind::FLOATINGPOINT_SUB: return "fp.sub";
+    case kind::FLOATINGPOINT_MULT: return "fp.mul";
+    case kind::FLOATINGPOINT_DIV: return "fp.div";
+    case kind::FLOATINGPOINT_FMA: return "fp.fma";
+    case kind::FLOATINGPOINT_SQRT: return "fp.sqrt";
+    case kind::FLOATINGPOINT_REM: return "fp.rem";
+    case kind::FLOATINGPOINT_RTI: return "fp.roundToIntegral";
+    case kind::FLOATINGPOINT_MIN: return "fp.min";
+    case kind::FLOATINGPOINT_MAX: return "fp.max";
+    case kind::FLOATINGPOINT_MIN_TOTAL: return "fp.min_total";
+    case kind::FLOATINGPOINT_MAX_TOTAL: return "fp.max_total";
 
-  case kind::FLOATINGPOINT_LEQ: return "fp.leq";
-  case kind::FLOATINGPOINT_LT: return "fp.lt";
-  case kind::FLOATINGPOINT_GEQ: return "fp.geq";
-  case kind::FLOATINGPOINT_GT: return "fp.gt";
+    case kind::FLOATINGPOINT_LEQ: return "fp.leq";
+    case kind::FLOATINGPOINT_LT: return "fp.lt";
+    case kind::FLOATINGPOINT_GEQ: return "fp.geq";
+    case kind::FLOATINGPOINT_GT: return "fp.gt";
 
-  case kind::FLOATINGPOINT_IS_NORMAL: return "fp.isNormal";
-  case kind::FLOATINGPOINT_IS_SUBNORMAL: return "fp.isSubnormal";
-  case kind::FLOATINGPOINT_IS_ZERO: return "fp.isZero";
-  case kind::FLOATINGPOINT_IS_INF: return "fp.isInfinite";
-  case kind::FLOATINGPOINT_IS_NAN: return "fp.isNaN";
-  case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
-  case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
+    case kind::FLOATINGPOINT_IS_NORMAL: return "fp.isNormal";
+    case kind::FLOATINGPOINT_IS_SUBNORMAL: return "fp.isSubnormal";
+    case kind::FLOATINGPOINT_IS_ZERO: return "fp.isZero";
+    case kind::FLOATINGPOINT_IS_INF: return "fp.isInfinite";
+    case kind::FLOATINGPOINT_IS_NAN: return "fp.isNaN";
+    case kind::FLOATINGPOINT_IS_NEG: return "fp.isNegative";
+    case kind::FLOATINGPOINT_IS_POS: return "fp.isPositive";
 
-  case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_FROM_FP: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_FROM_REAL: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_FROM_SBV: return "to_fp";
-  case kind::FLOATINGPOINT_TO_FP_FROM_UBV: return "to_fp_unsigned";
-  case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
-  case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
-  case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
-  case kind::FLOATINGPOINT_TO_SBV_TOTAL: return "fp.to_sbv_total";
-  case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
-  case kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
+    case kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV: return "to_fp";
+    case kind::FLOATINGPOINT_TO_FP_FROM_FP: return "to_fp";
+    case kind::FLOATINGPOINT_TO_FP_FROM_REAL: return "to_fp";
+    case kind::FLOATINGPOINT_TO_FP_FROM_SBV: return "to_fp";
+    case kind::FLOATINGPOINT_TO_FP_FROM_UBV: return "to_fp_unsigned";
+    case kind::FLOATINGPOINT_TO_UBV: return "fp.to_ubv";
+    case kind::FLOATINGPOINT_TO_UBV_TOTAL: return "fp.to_ubv_total";
+    case kind::FLOATINGPOINT_TO_SBV: return "fp.to_sbv";
+    case kind::FLOATINGPOINT_TO_SBV_TOTAL: return "fp.to_sbv_total";
+    case kind::FLOATINGPOINT_TO_REAL: return "fp.to_real";
+    case kind::FLOATINGPOINT_TO_REAL_TOTAL: return "fp.to_real_total";
 
-  case kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
-  case kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
-  case kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
-  case kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
-  case kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
-  case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
-  case kind::ROUNDINGMODE_BITBLAST:
-    return "RMBITBLAST";
+    case kind::FLOATINGPOINT_COMPONENT_NAN: return "NAN";
+    case kind::FLOATINGPOINT_COMPONENT_INF: return "INF";
+    case kind::FLOATINGPOINT_COMPONENT_ZERO: return "ZERO";
+    case kind::FLOATINGPOINT_COMPONENT_SIGN: return "SIGN";
+    case kind::FLOATINGPOINT_COMPONENT_EXPONENT: return "EXPONENT";
+    case kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND: return "SIGNIFICAND";
+    case kind::ROUNDINGMODE_BITBLAST: return "RMBITBLAST";
 
-  //string theory
-  case kind::STRING_CONCAT: return "str.++";
-  case kind::STRING_LENGTH: return "str.len";
-  case kind::STRING_SUBSTR: return "str.substr" ;
-  case kind::STRING_UPDATE: return "str.update";
-  case kind::STRING_CONTAINS: return "str.contains";
-  case kind::STRING_CHARAT: return "str.at" ;
-  case kind::STRING_INDEXOF: return "str.indexof";
-  case kind::STRING_INDEXOF_RE: return "str.indexof_re";
-  case kind::STRING_REPLACE: return "str.replace";
-  case kind::STRING_REPLACE_ALL: return "str.replace_all";
-  case kind::STRING_REPLACE_RE: return "str.replace_re";
-  case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
-  case kind::STRING_TO_LOWER: return "str.to_lower";
-  case kind::STRING_TO_UPPER: return "str.to_upper";
-  case kind::STRING_REV: return "str.rev";
-  case kind::STRING_PREFIX: return "str.prefixof" ;
-  case kind::STRING_SUFFIX: return "str.suffixof" ;
-  case kind::STRING_LEQ: return "str.<=";
-  case kind::STRING_LT: return "str.<";
-  case kind::STRING_FROM_CODE: return "str.from_code";
-  case kind::STRING_TO_CODE: return "str.to_code";
-  case Kind::STRING_IS_DIGIT: return "str.is_digit";
-  case kind::STRING_ITOS: return "str.from_int";
-  case kind::STRING_STOI: return "str.to_int";
-  case kind::STRING_IN_REGEXP: return "str.in_re";
-  case kind::STRING_TO_REGEXP: return "str.to_re";
-  case kind::STRING_UNIT: return "str.unit";
-  case kind::REGEXP_NONE: return "re.none";
-  case kind::REGEXP_ALL: return "re.all";
-  case kind::REGEXP_ALLCHAR: return "re.allchar";
-  case kind::REGEXP_CONCAT: return "re.++";
-  case kind::REGEXP_UNION: return "re.union";
-  case kind::REGEXP_INTER: return "re.inter";
-  case kind::REGEXP_STAR: return "re.*";
-  case kind::REGEXP_PLUS: return "re.+";
-  case kind::REGEXP_OPT: return "re.opt";
-  case kind::REGEXP_RANGE: return "re.range";
-  case kind::REGEXP_REPEAT: return "re.^";
-  case kind::REGEXP_LOOP: return "re.loop";
-  case kind::REGEXP_COMPLEMENT: return "re.comp";
-  case kind::REGEXP_DIFF: return "re.diff";
-  case kind::SEQUENCE_TYPE: return "Seq";
-  case kind::SEQ_UNIT: return "seq.unit";
-  case kind::SEQ_NTH: return "seq.nth";
+    // string theory
+    case kind::STRING_CONCAT: return "str.++";
+    case kind::STRING_LENGTH: return "str.len";
+    case kind::STRING_SUBSTR: return "str.substr";
+    case kind::STRING_UPDATE: return "str.update";
+    case kind::STRING_CONTAINS: return "str.contains";
+    case kind::STRING_CHARAT: return "str.at";
+    case kind::STRING_INDEXOF: return "str.indexof";
+    case kind::STRING_INDEXOF_RE: return "str.indexof_re";
+    case kind::STRING_REPLACE: return "str.replace";
+    case kind::STRING_REPLACE_ALL: return "str.replace_all";
+    case kind::STRING_REPLACE_RE: return "str.replace_re";
+    case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
+    case kind::STRING_TO_LOWER: return "str.to_lower";
+    case kind::STRING_TO_UPPER: return "str.to_upper";
+    case kind::STRING_REV: return "str.rev";
+    case kind::STRING_PREFIX: return "str.prefixof";
+    case kind::STRING_SUFFIX: return "str.suffixof";
+    case kind::STRING_LEQ: return "str.<=";
+    case kind::STRING_LT: return "str.<";
+    case kind::STRING_FROM_CODE: return "str.from_code";
+    case kind::STRING_TO_CODE: return "str.to_code";
+    case Kind::STRING_IS_DIGIT: return "str.is_digit";
+    case kind::STRING_ITOS: return "str.from_int";
+    case kind::STRING_STOI: return "str.to_int";
+    case kind::STRING_IN_REGEXP: return "str.in_re";
+    case kind::STRING_TO_REGEXP: return "str.to_re";
+    case kind::STRING_UNIT: return "str.unit";
+    case kind::REGEXP_NONE: return "re.none";
+    case kind::REGEXP_ALL: return "re.all";
+    case kind::REGEXP_ALLCHAR: return "re.allchar";
+    case kind::REGEXP_CONCAT: return "re.++";
+    case kind::REGEXP_UNION: return "re.union";
+    case kind::REGEXP_INTER: return "re.inter";
+    case kind::REGEXP_STAR: return "re.*";
+    case kind::REGEXP_PLUS: return "re.+";
+    case kind::REGEXP_OPT: return "re.opt";
+    case kind::REGEXP_RANGE: return "re.range";
+    case kind::REGEXP_REPEAT: return "re.^";
+    case kind::REGEXP_LOOP: return "re.loop";
+    case kind::REGEXP_COMPLEMENT: return "re.comp";
+    case kind::REGEXP_DIFF: return "re.diff";
+    case kind::SEQUENCE_TYPE: return "Seq";
+    case kind::SEQ_UNIT: return "seq.unit";
+    case kind::SEQ_NTH: return "seq.nth";
 
-  //sep theory
-  case kind::SEP_STAR: return "sep";
-  case kind::SEP_PTO: return "pto";
-  case kind::SEP_WAND: return "wand";
-  case kind::SEP_EMP: return "sep.emp";
+    // sep theory
+    case kind::SEP_STAR: return "sep";
+    case kind::SEP_PTO: return "pto";
+    case kind::SEP_WAND: return "wand";
+    case kind::SEP_EMP: return "sep.emp";
 
-  // quantifiers
-  case kind::FORALL: return "forall";
-  case kind::EXISTS: return "exists";
+    // quantifiers
+    case kind::FORALL: return "forall";
+    case kind::EXISTS: return "exists";
 
-  // HO
-  case kind::HO_APPLY: return "@";
+    // HO
+    case kind::HO_APPLY: return "@";
 
-  default:
-    ; /* fall through */
+    default:; /* fall through */
   }
 
   // fall back on however the kind prints itself; this probably
