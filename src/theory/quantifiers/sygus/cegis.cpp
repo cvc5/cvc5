@@ -296,10 +296,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       Assert(!exp.empty());
       NodeManager* nm = NodeManager::currentNM();
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
-      // must guard it
-      expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
       d_qim.addPendingLemma(
-          expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
+          expn.negate(), InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
     }
   }
@@ -487,8 +485,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
     // "this conjecture has a solution", hence this lemma states:
     // if the parent conjecture has a solution, it satisfies the specification
     // for the given concrete point.
-    Node rlem = NodeManager::currentNM()->mkNode(
-        OR, d_parent->getGuard().negate(), lem);
+    Node rlem = lem;
     d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
@@ -508,7 +505,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   NodeManager* nm = NodeManager::currentNM();
 
   Node nfalse = nm->mkConst(false);
-  Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
 
   for (unsigned r = 0; r < 2; r++)
@@ -559,15 +555,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           Trace("sygus-cref-eval2-debug")
               << "updated term : " << msu[k] << std::endl;
         }
-        if (!mexp.empty())
-        {
-          Node en = mexp.size() == 1 ? mexp[0] : nm->mkNode(kind::AND, mexp);
-          cre_lem = nm->mkNode(kind::OR, en.negate(), neg_guard);
-        }
-        else
-        {
-          cre_lem = neg_guard;
-        }
+        Node cre_lem = nm->mkAnd(mexp).negate();
         if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
         {
           Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
@@ -694,9 +682,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options().quantifiers.cegisSample
               != options::CegisSampleMode::TRUST)
           {
-            Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
             d_qim.addPendingLemma(
-                lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
+                rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }
           return true;
         }
