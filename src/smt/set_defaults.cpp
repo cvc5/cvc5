@@ -1292,7 +1292,8 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
           && opts.smt.solveIntAsBV == 0)
       // If arithmetic and bv are enabled, it is possible to use bv2nat and
       // int2bv, which require the UF theory.
-      || (logic.isTheoryEnabled(THEORY_ARITH) && logic.isTheoryEnabled(THEORY_BV))
+      || (logic.isTheoryEnabled(THEORY_ARITH)
+          && logic.isTheoryEnabled(THEORY_BV))
       // FP requires UF since there are multiple operators that are partially
       // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
       // details).
