@@ -289,7 +289,6 @@ class SkolemManager
     SKOLEM_BOOL_TERM_VAR = 2,
     /** a skolem that stands for an abstract value (used for printing) */
     SKOLEM_ABSTRACT_VALUE = 4,
-
   };
   /**
    * Make skolemized form of existentially quantified formula q, and store its
@@ -513,7 +512,10 @@ class SkolemManager
    * Notice that (exists ((v T)) pred) should be a valid formula. This fact
    * captures the reason for why the returned Skolem was introduced.
    *
-   * Take as an example extensionality in arrays:
+   * Note that arrays uses a skolem (which identifier ARRAY_DEQ_DIFF) via
+   * mkSkolemFunction for extensionality. However, consider the following
+   * example, which demonstrates how it could use a witness skolem for
+   * formalizing this instead:
    *
    * (declare-fun a () (Array Int Int))
    * (declare-fun b () (Array Int Int))
@@ -538,8 +540,8 @@ class SkolemManager
    *                                   (not (= (select a x) (select b x)))))))
    *     (=> (not (= a b)) (not (= (select a w) (select b w)))))
    * This version of the lemma, which requires no explicit tracking of free
-   * Skolem variables, can be obtained by a call to getWitnessForm(...)
-   * below. We call this the "witness form" of the lemma above.
+   * Skolem variables, can be obtained by a calls to getWitnessForm(...).
+   * We call this the "witness form" of the lemma above.
    *
    * @param v The bound variable of the same type of the Skolem to create.
    * @param pred The desired property of the Skolem to create, in terms of bound
