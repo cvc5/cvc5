@@ -901,6 +901,7 @@ void TheoryStrings::notifyFact(TNode atom,
     d_im.processConflict(iiPendingConf);
     return;
   }
+  // if not doing eager registration, we now register all subterms of the atom
   if (!options().strings.stringEagerReg)
   {
     d_termReg.registerSubterms(atom);
@@ -1093,6 +1094,8 @@ void TheoryStrings::computeCareGraph()
 
 void TheoryStrings::notifySharedTerm(TNode n)
 {
+  // a new shared term causes new terms to be relevant, hence we register
+  // them if not doing eager registration.
   if (!options().strings.stringEagerReg)
   {
     d_termReg.registerSubterms(n);

@@ -106,7 +106,7 @@ class TermRegistry : protected EnvObj
   void preRegisterTerm(TNode n);
   /** Register term
    *
-   * This performs user-context-independent registration for a term n, which
+   * This performs user-context-dependent registration for a term n, which
    * may cause lemmas to be sent on the output channel that involve
    * "initial refinement lemmas" for n. This includes introducing proxy
    * variables for string terms and asserting that str.code terms are within
