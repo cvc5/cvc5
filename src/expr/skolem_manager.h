@@ -235,8 +235,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * (2) a predicate the skolem satisfies (this is currently solely used by
  * mkSkolemize for witnessing existential quantifiers),
  * (3) an identifier (mkSkolemFunction), which are typically used for
- * implementing theory-specific inferences that introduce symbols containing
- * functions not belonging to the theory (see SkolemFunId enum).
+ * implementing theory-specific inferences that introduce symbols that
+ * are not interpreted by the theory (see SkolemFunId enum).
  *
  * If a variable cannot be associated with any of the above information,
  * the method mkDummySkolem may be used, which always constructs a fresh skolem
