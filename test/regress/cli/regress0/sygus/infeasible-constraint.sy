@@ -1,0 +1,15 @@
+; COMMAND-LINE: --sygus-out=status 
+; EXPECT: infeasible
+(set-logic NIA)
+(synth-fun p ((a Int)) Bool
+    ( (B Bool) (I Int))
+    (
+        (B Bool ((and B B) (or B B) (<= I I) (< I I)))
+        (I Int (a (+ I I) (* I I)))
+    )
+)
+(declare-var x Int)
+; common mistake of making a constraint for an assumption
+(constraint (> x 0))
+(constraint (= (p x) (> x 0)))
+(check-synth)
