@@ -1,0 +1,5 @@
+(set-logic QF_BVLIA)
+(declare-fun x () (_ BitVec 4))
+(declare-fun y () Int)
+(assert (not (= (bv2nat x) y)))
+(check-sat)
