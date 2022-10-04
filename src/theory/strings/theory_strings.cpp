@@ -1243,7 +1243,8 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       NodeManager* nm = NodeManager::currentNM();
       Node t = atom[0];
       Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
-      Node ret = nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
+      Node ret =
+          nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
       return TrustNode::mkTrustRewrite(atom, ret, nullptr);
     }
   }
@@ -1253,8 +1254,9 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     NodeManager* nm = NodeManager::currentNM();
     Node ret = nm->mkNode(
         STRING_TO_CODE,
-        nm->mkNode(STRING_SUBSTR, atom[0], atom[1], nm->mkConstInt(Rational(1))));
-      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+        nm->mkNode(
+            STRING_SUBSTR, atom[0], atom[1], nm->mkConstInt(Rational(1))));
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
 
   TrustNode ret;
