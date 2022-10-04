@@ -135,7 +135,7 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       Trace("skolem-cache")
           << "Don't know how to handle Skolem ID " << id << std::endl;
-      sk = sm->mkDummySkolem(tn, c, "string skolem");
+      sk = sm->mkDummySkolem(c, tn, "string skolem");
     }
     break;
   }
