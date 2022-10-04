@@ -772,23 +772,18 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
   Node xor1 =
       nm->mkNode(kind::BITVECTOR_XOR, node[1], nm->mkNode(sextOpN, sign1));
 
-  Node ppc[size - 2];
-  ppc[0] = utils::mkExtract(xor0, size - 2, size - 2);
+  Node ppc = utils::mkExtract(xor0, size - 2, size - 2);
+  Node res = nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(xor1, 1, 1), ppc);
   for (uint32_t i = 1; i < size - 2; ++i)
   {
-    ppc[i] = nm->mkNode(kind::BITVECTOR_OR,
-                        ppc[i - 1],
-                        utils::mkExtract(xor0, size - 2 - i, size - 2 - i));
-  }
-  Node res =
-      nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(xor1, 1, 1), ppc[0]);
-  for (uint32_t i = 1; i < size - 2; ++i)
-  {
+    ppc = nm->mkNode(kind::BITVECTOR_OR,
+                     ppc,
+                     utils::mkExtract(xor0, size - 2 - i, size - 2 - i));
     res = nm->mkNode(
         kind::BITVECTOR_OR,
         res,
         nm->mkNode(
-            kind::BITVECTOR_AND, utils::mkExtract(xor1, i + 1, i + 1), ppc[i]));
+            kind::BITVECTOR_AND, utils::mkExtract(xor1, i + 1, i + 1), ppc));
   }
   return nm->mkNode(
       kind::EQUAL,
