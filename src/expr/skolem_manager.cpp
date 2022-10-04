@@ -123,7 +123,7 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
-Node SkolemManager::mkSkolem(Node v,
+Node SkolemManager::mkWitnessSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
                              const std::string& comment,
@@ -221,7 +221,7 @@ Node SkolemManager::skolemize(Node q,
   Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
   // don't use a proof generator, since this may be an intermediate, partially
   // skolemized formula.
-  Node k = mkSkolem(v, pred, prefix, comment, flags, nullptr);
+  Node k = mkWitnessSkolem(v, pred, prefix, comment, flags, nullptr);
   Assert(k.getType() == v.getType());
   TNode tv = v;
   TNode tk = k;
