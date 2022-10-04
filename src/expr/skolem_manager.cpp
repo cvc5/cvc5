@@ -124,11 +124,11 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
 Node SkolemManager::mkWitnessSkolem(Node v,
-                             Node pred,
-                             const std::string& prefix,
-                             const std::string& comment,
-                             int flags,
-                             ProofGenerator* pg)
+                                    Node pred,
+                                    const std::string& prefix,
+                                    const std::string& comment,
+                                    int flags,
+                                    ProofGenerator* pg)
 {
   // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);

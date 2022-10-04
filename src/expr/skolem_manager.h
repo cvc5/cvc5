@@ -236,7 +236,7 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * (3) an identifier (mkSkolemFunction), which are typically used for
  * implementing theory-specific inferences that introduce symbols containing
  * functions not belonging to the theory (see SkolemFunId enum).
- * 
+ *
  * If a variable is not associated with any of the above information,
  * the method mkDummySkolem may be used, which always constructs a fresh skolem
  * variable.
@@ -279,8 +279,7 @@ class SkolemManager
    * "SKOLEM_BOOL_TERM_VAR | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
    * cannot be composed in such a manner.
    */
-  enum SkolemFlags
-  {
+  enum SkolemFlags {
     /** default behavior */
     SKOLEM_DEFAULT = 0,
     /** do not make the name unique by adding the id */
@@ -289,219 +288,220 @@ class SkolemManager
     SKOLEM_BOOL_TERM_VAR = 2,
     /** a skolem that stands for an abstract value (used for printing) */
     SKOLEM_ABSTRACT_VALUE = 4,
-  /**
-   * Make skolemized form of existentially quantified formula q, and store its
-   * Skolems into the argument skolems.
-   *
-   * For example, calling this method on:
-   *   (exists ((x Int) (y Int)) (P x y))
-   * returns:
-   *   (P w1 w2)
-   * where w1 and w2 are skolems with witness forms:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   *   (witness ((y Int)) (P w1 y))
-   * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is *not* renamed in the witness form of w1. This is not
-   * necessary since w1 is skolem. Although its witness form contains
-   * quantification on y, we never construct a term where the witness form
-   * of w1 is expanded in the witness form of w2. This avoids variable
-   * shadowing.
-   *
-   * In contrast to mkSkolem, the proof generator is for the *entire*
-   * existentially quantified formula q, which may have multiple variables in
-   * its prefix.
-   *
-   * @param q The existentially quantified formula to skolemize,
-   * @param skolems Vector to add Skolems of q to,
-   * @param prefix The prefix of the name of each of the Skolems
-   * @param comment Debug information about each of the Skolems
-   * @param flags The flags for the Skolem (see SkolemFlags)
-   * @param pg The proof generator for this skolem. If non-null, this proof
-   * generator must respond to a call to getProofFor(q) during
-   * the lifetime of the current node manager.
-   * @return The skolemized form of q.
-   */
-  Node mkSkolemize(Node q,
-                   std::vector<Node>& skolems,
+    /**
+     * Make skolemized form of existentially quantified formula q, and store its
+     * Skolems into the argument skolems.
+     *
+     * For example, calling this method on:
+     *   (exists ((x Int) (y Int)) (P x y))
+     * returns:
+     *   (P w1 w2)
+     * where w1 and w2 are skolems with witness forms:
+     *   (witness ((x Int)) (exists ((y Int)) (P x y)))
+     *   (witness ((y Int)) (P w1 y))
+     * respectively. Additionally, this method will add { w1, w2 } to skolems.
+     * Notice that y is *not* renamed in the witness form of w1. This is not
+     * necessary since w1 is skolem. Although its witness form contains
+     * quantification on y, we never construct a term where the witness form
+     * of w1 is expanded in the witness form of w2. This avoids variable
+     * shadowing.
+     *
+     * In contrast to mkSkolem, the proof generator is for the *entire*
+     * existentially quantified formula q, which may have multiple variables in
+     * its prefix.
+     *
+     * @param q The existentially quantified formula to skolemize,
+     * @param skolems Vector to add Skolems of q to,
+     * @param prefix The prefix of the name of each of the Skolems
+     * @param comment Debug information about each of the Skolems
+     * @param flags The flags for the Skolem (see SkolemFlags)
+     * @param pg The proof generator for this skolem. If non-null, this proof
+     * generator must respond to a call to getProofFor(q) during
+     * the lifetime of the current node manager.
+     * @return The skolemized form of q.
+     */
+    Node mkSkolemize(Node q,
+                     std::vector<Node>& skolems,
+                     const std::string& prefix,
+                     const std::string& comment = "",
+                     int flags = SKOLEM_DEFAULT,
+                     ProofGenerator* pg = nullptr);
+    /**
+     * Make purification skolem. This skolem is unique for each t, which we
+     * implement via an attribute on t. This attribute is used to ensure to
+     * associate a unique skolem for each t.
+     *
+     * Notice that a purification skolem is trivial to justify (via
+     * SKOLEM_INTRO), and hence it does not require a proof generator.
+     *
+     * Notice that we do not convert t to original form in this call. Thus,
+     * in very rare cases, two Skolems may be introduced that have the same
+     * original form. For example, let k be the skolem introduced to eliminate
+     * (ite A B C). Then, asking for the purify skolem for:
+     *  (ite (ite A B C) D E) and (ite k D E)
+     * will return two different Skolems.
+     */
+    Node mkPurifySkolem(Node t,
+                        const std::string& prefix,
+                        const std::string& comment = "",
+                        int flags = SKOLEM_DEFAULT);
+    /**
+     * Make skolem function. This method should be used for creating fixed
+     * skolem functions of the forms described in SkolemFunId. The user of this
+     * method is responsible for providing a proper type for the identifier that
+     * matches the description of id. Skolem functions are useful for modelling
+     * the behavior of partial functions, or for theory-specific inferences that
+     * introduce fresh variables.
+     *
+     * A skolem function is not given a formal semantics in terms of a witness
+     * term, nor is it a purification skolem, thus it does not fall into the two
+     * categories of skolems above. This method is motivated by convenience, as
+     * the user of this method does not require constructing canonical variables
+     * for witness terms.
+     *
+     * The returned skolem is an ordinary skolem variable that can be used
+     * e.g. in APPLY_UF terms when tn is a function type.
+     *
+     * Notice that we do not insist that tn is a function type. A user of this
+     * method may construct a canonical (first-order) skolem using this method
+     * as well.
+     *
+     * @param id The identifier of the skolem function
+     * @param tn The type of the returned skolem function
+     * @param cacheVal A cache value. The returned skolem function will be
+     * unique to the pair (id, cacheVal). This value is required, for instance,
+     * for skolem functions that are in fact families of skolem functions,
+     * e.g. the wrongly applied case of selectors.
+     * @return The skolem function.
+     */
+    Node mkSkolemFunction(SkolemFunId id,
+                          TypeNode tn,
+                          Node cacheVal = Node::null(),
+                          int flags = SKOLEM_DEFAULT);
+    /** Same as above, with multiple cache values */
+    Node mkSkolemFunction(SkolemFunId id,
+                          TypeNode tn,
+                          const std::vector<Node>& cacheVals,
+                          int flags = SKOLEM_DEFAULT);
+    /**
+     * Is k a skolem function? Returns true if k was generated by the above
+     * call. Updates the arguments to the values used when constructing it.
+     */
+    bool isSkolemFunction(Node k, SkolemFunId& id, Node& cacheVal) const;
+    /**
+     * Create a skolem constant with the given name, type, and comment. This
+     * should only be used if the definition of the skolem does not matter.
+     * The definition of a skolem matters e.g. when the skolem is used in a
+     * proof.
+     *
+     * @param prefix the name of the new skolem variable is the prefix
+     * appended with a unique ID.  This way a family of skolem variables
+     * can be made with unique identifiers, used in dump, tracing, and
+     * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
+     * a unique ID appended and use prefix as the name.
+     * @param type the type of the skolem variable to create
+     * @param comment a comment for dumping output; if declarations are
+     * being dumped, this is included in a comment before the declaration
+     * and can be quite useful for debugging
+     * @param flags an optional mask of bits from SkolemFlags to control
+     * skolem behavior
+     */
+    Node mkDummySkolem(const std::string& prefix,
+                       const TypeNode& type,
+                       const std::string& comment = "",
+                       int flags = SKOLEM_DEFAULT);
+    /**
+     * Get proof generator for existentially quantified formula q. This returns
+     * the proof generator that was provided in a call to mkSkolem above.
+     */
+    ProofGenerator * getProofGenerator(Node q) const;
+
+    /** Returns true if n is a skolem that stands for an abstract value */
+    bool isAbstractValue(TNode n) const;
+
+    /**
+     * Convert to witness form, which gets the witness form of a skolem k.
+     * Notice this method is *not* recursive, instead, it is a simple attribute
+     * lookup.
+     *
+     * @param k The variable to convert to witness form described above
+     * @return k in witness form.
+     */
+    static Node getWitnessForm(Node k);
+    /**
+     * Convert to original form, which recursively replaces all skolems terms in
+     * n by the term they purify.
+     *
+     * @param n The term or formula to convert to original form described above
+     * @return n in original form.
+     */
+    static Node getOriginalForm(Node n);
+    /**
+     * Convert to unpurified form, which returns the term that k purifies. This
+     * is literally the term that was passed as an argument to mkPurify on the
+     * call that created k. In contrast to getOriginalForm, this is not
+     * recursive w.r.t. skolems, so that the term purified by k may itself
+     * contain purification skolems that are not expanded.
+     *
+     * @param k The skolem to convert to unpurified form
+     * @return the unpurified form of k.
+     */
+    static Node getUnpurifiedForm(Node k);
+
+    private :
+        /** Cache of skolem functions for mkSkolemFunction above. */
+        std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
+    /** Backwards mapping of above */
+    std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
+    /**
+     * Mapping from witness terms to proof generators.
+     */
+    std::map<Node, ProofGenerator*> d_gens;
+
+    /**
+     * A counter used to produce unique skolem names.
+     *
+     * Note that it is NOT incremented when skolems are created using
+     * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
+     * by this node manager.
+     */
+    size_t d_skolemCounter;
+
+    /** Get or make skolem attribute for term w, which may be a witness term */
+    Node mkSkolemInternal(Node w,
+                          const std::string& prefix,
+                          const std::string& comment,
+                          int flags);
+    /**
+     * Skolemize the first variable of existentially quantified formula q.
+     * For example, calling this method on:
+     *   (exists ((x Int) (y Int)) (P x y))
+     * will return:
+     *   (witness ((x Int)) (exists ((y Int)) (P x y)))
+     * If q is not an existentially quantified formula, then null is
+     * returned and an assertion failure is thrown.
+     *
+     * This method additionally updates qskolem to be the skolemized form of q.
+     * In the above example, this is set to:
+     *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y')))
+     * y))
+     */
+    Node skolemize(Node q,
+                   Node& qskolem,
                    const std::string& prefix,
                    const std::string& comment = "",
-                   int flags = SKOLEM_DEFAULT,
-                   ProofGenerator* pg = nullptr);
-  /**
-   * Make purification skolem. This skolem is unique for each t, which we
-   * implement via an attribute on t. This attribute is used to ensure to
-   * associate a unique skolem for each t.
-   *
-   * Notice that a purification skolem is trivial to justify (via SKOLEM_INTRO),
-   * and hence it does not require a proof generator.
-   *
-   * Notice that we do not convert t to original form in this call. Thus,
-   * in very rare cases, two Skolems may be introduced that have the same
-   * original form. For example, let k be the skolem introduced to eliminate
-   * (ite A B C). Then, asking for the purify skolem for:
-   *  (ite (ite A B C) D E) and (ite k D E)
-   * will return two different Skolems.
-   */
-  Node mkPurifySkolem(Node t,
-                      const std::string& prefix,
+                   int flags = SKOLEM_DEFAULT);
+    /**
+     * Create a skolem constant with the given name, type, and comment.
+     *
+     * This method is intentionally private. To create skolems, one should
+     * call a public method from SkolemManager for allocating a skolem in a
+     * proper way, or otherwise use SkolemManager::mkDummySkolem.
+     */
+    Node mkSkolemNode(const std::string& prefix,
+                      const TypeNode& type,
                       const std::string& comment = "",
                       int flags = SKOLEM_DEFAULT);
-  /**
-   * Make skolem function. This method should be used for creating fixed
-   * skolem functions of the forms described in SkolemFunId. The user of this
-   * method is responsible for providing a proper type for the identifier that
-   * matches the description of id. Skolem functions are useful for modelling
-   * the behavior of partial functions, or for theory-specific inferences that
-   * introduce fresh variables.
-   *
-   * A skolem function is not given a formal semantics in terms of a witness
-   * term, nor is it a purification skolem, thus it does not fall into the two
-   * categories of skolems above. This method is motivated by convenience, as
-   * the user of this method does not require constructing canonical variables
-   * for witness terms.
-   *
-   * The returned skolem is an ordinary skolem variable that can be used
-   * e.g. in APPLY_UF terms when tn is a function type.
-   *
-   * Notice that we do not insist that tn is a function type. A user of this
-   * method may construct a canonical (first-order) skolem using this method
-   * as well.
-   *
-   * @param id The identifier of the skolem function
-   * @param tn The type of the returned skolem function
-   * @param cacheVal A cache value. The returned skolem function will be
-   * unique to the pair (id, cacheVal). This value is required, for instance,
-   * for skolem functions that are in fact families of skolem functions,
-   * e.g. the wrongly applied case of selectors.
-   * @return The skolem function.
-   */
-  Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
-                        Node cacheVal = Node::null(),
-                        int flags = SKOLEM_DEFAULT);
-  /** Same as above, with multiple cache values */
-  Node mkSkolemFunction(SkolemFunId id,
-                        TypeNode tn,
-                        const std::vector<Node>& cacheVals,
-                        int flags = SKOLEM_DEFAULT);
-  /**
-   * Is k a skolem function? Returns true if k was generated by the above call.
-   * Updates the arguments to the values used when constructing it.
-   */
-  bool isSkolemFunction(Node k, SkolemFunId& id, Node& cacheVal) const;
-  /**
-   * Create a skolem constant with the given name, type, and comment. This
-   * should only be used if the definition of the skolem does not matter.
-   * The definition of a skolem matters e.g. when the skolem is used in a
-   * proof.
-   *
-   * @param prefix the name of the new skolem variable is the prefix
-   * appended with a unique ID.  This way a family of skolem variables
-   * can be made with unique identifiers, used in dump, tracing, and
-   * debugging output.  Use SKOLEM_EXACT_NAME flag if you don't want
-   * a unique ID appended and use prefix as the name.
-   * @param type the type of the skolem variable to create
-   * @param comment a comment for dumping output; if declarations are
-   * being dumped, this is included in a comment before the declaration
-   * and can be quite useful for debugging
-   * @param flags an optional mask of bits from SkolemFlags to control
-   * skolem behavior
-   */
-  Node mkDummySkolem(const std::string& prefix,
-                     const TypeNode& type,
-                     const std::string& comment = "",
-                     int flags = SKOLEM_DEFAULT);
-  /**
-   * Get proof generator for existentially quantified formula q. This returns
-   * the proof generator that was provided in a call to mkSkolem above.
-   */
-  ProofGenerator* getProofGenerator(Node q) const;
-
-  /** Returns true if n is a skolem that stands for an abstract value */
-  bool isAbstractValue(TNode n) const;
-
-  /**
-   * Convert to witness form, which gets the witness form of a skolem k.
-   * Notice this method is *not* recursive, instead, it is a simple attribute
-   * lookup.
-   *
-   * @param k The variable to convert to witness form described above
-   * @return k in witness form.
-   */
-  static Node getWitnessForm(Node k);
-  /**
-   * Convert to original form, which recursively replaces all skolems terms in n
-   * by the term they purify.
-   *
-   * @param n The term or formula to convert to original form described above
-   * @return n in original form.
-   */
-  static Node getOriginalForm(Node n);
-  /**
-   * Convert to unpurified form, which returns the term that k purifies. This
-   * is literally the term that was passed as an argument to mkPurify on the
-   * call that created k. In contrast to getOriginalForm, this is not recursive
-   * w.r.t. skolems, so that the term purified by k may itself contain
-   * purification skolems that are not expanded.
-   *
-   * @param k The skolem to convert to unpurified form
-   * @return the unpurified form of k.
-   */
-  static Node getUnpurifiedForm(Node k);
-
- private:
-  /** Cache of skolem functions for mkSkolemFunction above. */
-  std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
-  /** Backwards mapping of above */
-  std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
-  /**
-   * Mapping from witness terms to proof generators.
-   */
-  std::map<Node, ProofGenerator*> d_gens;
-
-  /**
-   * A counter used to produce unique skolem names.
-   *
-   * Note that it is NOT incremented when skolems are created using
-   * SKOLEM_EXACT_NAME, so it is NOT a count of the skolems produced
-   * by this node manager.
-   */
-  size_t d_skolemCounter;
-
-  /** Get or make skolem attribute for term w, which may be a witness term */
-  Node mkSkolemInternal(Node w,
-                        const std::string& prefix,
-                        const std::string& comment,
-                        int flags);
-  /**
-   * Skolemize the first variable of existentially quantified formula q.
-   * For example, calling this method on:
-   *   (exists ((x Int) (y Int)) (P x y))
-   * will return:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   * If q is not an existentially quantified formula, then null is
-   * returned and an assertion failure is thrown.
-   *
-   * This method additionally updates qskolem to be the skolemized form of q.
-   * In the above example, this is set to:
-   *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y'))) y))
-   */
-  Node skolemize(Node q,
-                 Node& qskolem,
-                 const std::string& prefix,
-                 const std::string& comment = "",
-                 int flags = SKOLEM_DEFAULT);
-  /**
-   * Create a skolem constant with the given name, type, and comment.
-   *
-   * This method is intentionally private. To create skolems, one should
-   * call a public method from SkolemManager for allocating a skolem in a
-   * proper way, or otherwise use SkolemManager::mkDummySkolem.
-   */
-  Node mkSkolemNode(const std::string& prefix,
-                    const TypeNode& type,
-                    const std::string& comment = "",
-                    int flags = SKOLEM_DEFAULT);
   };
   /**
    * This makes a skolem of same type as bound variable v, (say its type is T),
@@ -551,11 +551,11 @@ class SkolemManager
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkWitnessSkolem(Node v,
-                Node pred,
-                const std::string& prefix,
-                const std::string& comment = "",
-                int flags = SKOLEM_DEFAULT,
-                ProofGenerator* pg = nullptr);
+                       Node pred,
+                       const std::string& prefix,
+                       const std::string& comment = "",
+                       int flags = SKOLEM_DEFAULT,
+                       ProofGenerator* pg = nullptr);
 };
 
 }  // namespace cvc5::internal
