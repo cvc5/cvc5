@@ -394,13 +394,9 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
       d_u_enum_manager.registerEvalPts(ep.second, n);
     }
   }
-  // Make the refinement lemma and add it to lems. This lemma is guarded by the
-  // parent's guard, which has the semantics "this conjecture has a solution",
-  // hence this lemma states: if the parent conjecture has a solution, it
+  // Make the refinement lemma and add it to lems. This lemma states: it
   // satisfies the specification for the given concrete point.
-  Node rlem =
-      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), plem);
-  d_qim.addPendingLemma(rlem,
+  d_qim.addPendingLemma(plem,
                         InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
 

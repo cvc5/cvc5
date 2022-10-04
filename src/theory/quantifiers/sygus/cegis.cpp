@@ -521,7 +521,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                << " against current model." << std::endl;
       Trace("sygus-cref-eval2") << "Check refinement lemma conjunct " << lem
                                 << " against current model." << std::endl;
-      Node cre_lem;
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
       Trace("sygus-cref-eval2")
           << "...under substitution it is : " << lemcs << std::endl;
@@ -641,7 +640,6 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   sbody = rewrite(sbody);
   Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size;
        i++)
   {
