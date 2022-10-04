@@ -73,6 +73,7 @@ enum RewriteRuleId
   ZeroExtendEliminate,
   SignExtendEliminate,
   UmuloEliminate,
+  SmuloEliminate,
   BVToNatEliminate,
   IntToBVEliminate,
 

@@ -721,6 +721,79 @@ inline Node RewriteRule<UmuloEliminate>::apply(TNode node)
   return nm->mkNode(
       kind::EQUAL, nm->mkNode(kind::BITVECTOR_OR, tmp), utils::mkOne(1));
 }
+
+template <>
+inline bool RewriteRule<SmuloEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SMULO);
 }
+
+template <>
+inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
+{
+  /* Signed multiplication overflow detection.
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767 */
+
+  Trace("bv-rewrite") << "RewriteRule<SmuloEliminate>(" << node << ")"
+                      << std::endl;
+
+  uint32_t size = node[0].getType().getBitVectorSize();
+  NodeManager* nm = NodeManager::currentNM();
+  Node bvone = utils::mkOne(1);
+
+  if (size == 1)
+  {
+    return nm->mkNode(
+        kind::EQUAL, nm->mkNode(kind::BITVECTOR_AND, node[0], node[1]), bvone);
+  }
+
+  Node sextOp1 = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(1));
+  Node mul = nm->mkNode(kind::BITVECTOR_MULT,
+                        nm->mkNode(sextOp1, node[0]),
+                        nm->mkNode(sextOp1, node[1]));
+
+  if (size == 2)
+  {
+    return nm->mkNode(kind::EQUAL,
+                      nm->mkNode(kind::BITVECTOR_XOR,
+                                 utils::mkExtract(mul, size, size),
+                                 utils::mkExtract(mul, size - 1, size - 1)),
+                      bvone);
+  }
+
+  Node sextOpN =
+      nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(size - 1));
+  Node sign0 = utils::mkExtract(node[0], size - 1, size - 1);
+  Node sign1 = utils::mkExtract(node[1], size - 1, size - 1);
+  Node xor0 =
+      nm->mkNode(kind::BITVECTOR_XOR, node[0], nm->mkNode(sextOpN, sign0));
+  Node xor1 =
+      nm->mkNode(kind::BITVECTOR_XOR, node[1], nm->mkNode(sextOpN, sign1));
+
+  Node ppc = utils::mkExtract(xor0, size - 2, size - 2);
+  Node res = nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(xor1, 1, 1), ppc);
+  for (uint32_t i = 1; i < size - 2; ++i)
+  {
+    ppc = nm->mkNode(kind::BITVECTOR_OR,
+                     ppc,
+                     utils::mkExtract(xor0, size - 2 - i, size - 2 - i));
+    res = nm->mkNode(
+        kind::BITVECTOR_OR,
+        res,
+        nm->mkNode(
+            kind::BITVECTOR_AND, utils::mkExtract(xor1, i + 1, i + 1), ppc));
+  }
+  return nm->mkNode(
+      kind::EQUAL,
+      nm->mkNode(kind::BITVECTOR_OR,
+                 res,
+                 nm->mkNode(kind::BITVECTOR_XOR,
+                            utils::mkExtract(mul, size, size),
+                            utils::mkExtract(mul, size - 1, size - 1))),
+      bvone);
 }
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
