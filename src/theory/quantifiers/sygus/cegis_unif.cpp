@@ -394,8 +394,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
       d_u_enum_manager.registerEvalPts(ep.second, n);
     }
   }
-  // Make the refinement lemma and add it to lems. This lemma states: it
-  // satisfies the specification for the given concrete point.
+  // Make the refinement lemma and add it to lems. This lemma states: the
+  // parent conjecture satisfies the specification for the given concrete point.
   d_qim.addPendingLemma(plem,
                         InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }

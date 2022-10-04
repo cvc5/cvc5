@@ -480,13 +480,10 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
       && options().quantifiers.sygusEvalUnfoldMode
              != options::SygusEvalUnfoldMode::NONE)
   {
-    // Make the refinement lemma and add it to lems.
-    // This lemma is guarded by the parent's guard, which has the semantics
-    // "this conjecture has a solution", hence this lemma states:
-    // if the parent conjecture has a solution, it satisfies the specification
-    // for the given concrete point.
-    Node rlem = lem;
-    d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
+    // Make the refinement lemma and add it to lems. This lemma states:
+    // the parent conjecture satisfies the specification for the given
+    // concrete point.
+    d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
 
