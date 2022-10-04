@@ -1239,6 +1239,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   {
     if (ak == STRING_TO_CODE)
     {
+      // If we are eliminating code, convert it to nth.
       // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
       NodeManager* nm = NodeManager::currentNM();
       Node t = atom[0];
@@ -1250,6 +1251,8 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   }
   else if (ak == SEQ_NTH && atom[0].getType().isString())
   {
+    // If we are not eliminating code, we are eliminating nth (over strings);
+    // convert it to code.
     // (seq.nth x n) ---> (str.to_code (str.substr x n 1))
     NodeManager* nm = NodeManager::currentNM();
     Node ret = nm->mkNode(
