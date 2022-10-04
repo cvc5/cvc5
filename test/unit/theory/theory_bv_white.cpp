@@ -41,6 +41,29 @@ class TestTheoryWhiteBv : public TestSmtNoFinishInit
 {
 };
 
+TEST_F(TestTheoryWhiteBv, uaddo)
+{
+  d_slvEngine->setOption("incremental", "true");
+  for (uint32_t w = 1; w < 8; ++w)
+  {
+    d_slvEngine->push();
+    Node x = d_nodeManager->mkVar("x", d_nodeManager->mkBitVectorType(w));
+    Node y = d_nodeManager->mkVar("y", d_nodeManager->mkBitVectorType(w));
+
+    Node zx = mkConcat(mkZero(1), x);
+    Node zy = mkConcat(mkZero(1), y);
+    Node add = d_nodeManager->mkNode(kind::BITVECTOR_ADD, zx, zy);
+    Node lhs =
+        d_nodeManager->mkNode(kind::DISTINCT, mkExtract(add, w, w), mkZero(1));
+    Node rhs = d_nodeManager->mkNode(kind::BITVECTOR_UADDO, x, y);
+    Node eq = d_nodeManager->mkNode(kind::DISTINCT, lhs, rhs);
+    d_slvEngine->assertFormula(eq);
+    Result res = d_slvEngine->checkSat();
+    ASSERT_EQ(res.getStatus(), Result::UNSAT);
+    d_slvEngine->pop();
+  }
+}
+
 TEST_F(TestTheoryWhiteBv, umulo)
 {
   d_slvEngine->setOption("incremental", "true");

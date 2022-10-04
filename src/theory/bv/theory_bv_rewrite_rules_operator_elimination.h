@@ -678,6 +678,32 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<UaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UADDO);
+}
+
+template <>
+inline Node RewriteRule<UaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node bvZero = utils::mkZero(1);
+  Node bvOne = utils::mkOne(1);
+
+  Node add = nm->mkNode(kind::BITVECTOR_ADD,
+                        utils::mkConcat(bvZero, node[0]),
+                        utils::mkConcat(bvZero, node[1]));
+
+  uint32_t size = add.getType().getBitVectorSize();
+  return nm->mkNode(
+      kind::EQUAL, utils::mkExtract(add, size - 1, size - 1), bvOne);
+}
+
+template <>
 inline bool RewriteRule<UmuloEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_UMULO);
@@ -714,8 +740,9 @@ inline Node RewriteRule<UmuloEliminate>::apply(TNode node)
                       utils::mkExtract(node[0], size - 1 - i, size - 1 - i),
                       uppc);
   }
-  Node zext_t1 = utils::mkConcat(utils::mkZero(1), node[0]);
-  Node zext_t2 = utils::mkConcat(utils::mkZero(1), node[1]);
+  Node bvZero = utils::mkZero(1);
+  Node zext_t1 = utils::mkConcat(bvZero, node[0]);
+  Node zext_t2 = utils::mkConcat(bvZero, node[1]);
   Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
   tmp.push_back(utils::mkExtract(mul, size, size));
   return nm->mkNode(
