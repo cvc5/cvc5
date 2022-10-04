@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
+ *   Mudathir Mohamed
  *
  * This file is part of the cvc5 project.
  *
@@ -15,37 +15,28 @@
 
 package io.github.cvc5;
 
-abstract class AbstractPointer implements IPointer
+import java.util.ArrayList;
+import java.util.List;
+
+public class Context
 {
-  protected long pointer;
+  // store pointers for terms, sorts, etc
+  private static List<AbstractPointer> abstractPointers = new ArrayList<>();
 
-  public long getPointer()
+  static void addAbstractPointer(AbstractPointer pointer)
   {
-    return pointer;
+    abstractPointers.add(pointer);
   }
 
-  protected abstract void deletePointer(long pointer);
-
-  public void deletePointer()
+  /**
+   * Delete all cpp pointers for terms, sorts, etc
+   */
+  public static void deletePointers()
   {
-    if (pointer != 0)
+    for (int i = abstractPointers.size() - 1; i >= 0; i--)
     {
-      deletePointer(pointer);
+      abstractPointers.get(i).deletePointer();
     }
-    pointer = 0;
-  }
-
-  @Override
-  public String toString()
-  {
-    return toString(pointer);
-  }
-
-  abstract protected String toString(long pointer);
-
-  AbstractPointer(long pointer)
-  {
-    this.pointer = pointer;
-    Context.addAbstractPointer(this);
+    abstractPointers.clear();
   }
 }

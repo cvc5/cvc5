@@ -50,22 +50,6 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    getNullSort
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullSort(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Sort* sortPointer = new Sort(solver->getNullSort());
-  return reinterpret_cast<jlong>(sortPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
  * Method:    getBooleanSort
  * Signature: (J)J
  */
@@ -2203,7 +2187,7 @@ Java_io_github_cvc5_Solver_declarePool(JNIEnv* env,
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
-                                            jobject jSolver,
+                                            jobject,
                                             jlong pointer,
                                             jstring jSymbol,
                                             jlongArray sortPointers,
@@ -2211,8 +2195,6 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
                                             jobject oracle)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  jobject solverReference = env->NewGlobalRef(jSolver);
-  globalReferences[pointer].push_back(solverReference);
   jobject oracleReference = env->NewGlobalRef(oracle);
   globalReferences[pointer].push_back(oracleReference);
   Solver* solver = reinterpret_cast<Solver*>(pointer);
@@ -2221,8 +2203,8 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
   std::function<Term(std::vector<Term>)> fn =
-      [env, solverReference, oracleReference](std::vector<Term> input) {
-        Term term = applyOracle(env, solverReference, oracleReference, input);
+      [env, oracleReference](std::vector<Term> input) {
+        Term term = applyOracle(env, oracleReference, input);
         return term;
       };
   Term* retPointer =
@@ -2761,79 +2743,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getStatistics(JNIEnv* env,
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   Statistics* retPointer = new Statistics(solver->getStatistics());
   return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullTerm
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullTerm(JNIEnv* env,
-                                                               jobject,
-                                                               jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* ret = new Term();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullResult
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullResult(JNIEnv* env,
-                                                                 jobject,
-                                                                 jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Result* ret = new Result();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullSynthResult
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_getNullSynthResult(JNIEnv* env, jobject, jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  SynthResult* ret = new SynthResult();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullOp
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getNullOp(JNIEnv* env,
-                                                             jobject,
-                                                             jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Op* ret = new Op();
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getNullDatatypeDecl
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_getNullDatatypeDecl(JNIEnv* env, jobject, jlong)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  DatatypeDecl* ret = new DatatypeDecl();
-  return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
