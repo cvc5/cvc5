@@ -78,7 +78,7 @@ void IncrementalTracer::addInput(const CoCoA::RingElem& i)
     Trace("ff::core") << " drop" << std::endl;
   }
   d_nInputs++;
-};
+}
 
 std::vector<size_t> IncrementalTracer::trace(const CoCoA::RingElem& i) const
 {
