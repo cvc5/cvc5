@@ -243,7 +243,7 @@ void SynthConjecture::assign(Node q)
   if (d_exampleInfer!=nullptr && !d_exampleInfer->initialize(conjForExamples, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
-    Node infLem = nm->mkConst(false);
+    Node infLem = d_quant.negate();
     d_qim.lemma(infLem, InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA);
     // we don't need to continue initialization in this case
     return;
