@@ -36,8 +36,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 
   NodeManager* nm = NodeManager::currentNM();
 
-  if (in[0].getType().isBitVector()
-      && in.getNumChildren() > std::pow(2, in[0].getType().getBitVectorSize()))
+  if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
   {
     return nm->mkConst<bool>(false);
   }

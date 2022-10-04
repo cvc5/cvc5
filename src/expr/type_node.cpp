@@ -14,6 +14,7 @@
  */
 #include "expr/type_node.h"
 
+#include <cmath>
 #include <vector>
 
 #include "expr/dtype_cons.h"
@@ -199,6 +200,36 @@ CardinalityClass TypeNode::getCardinalityClass()
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
+}
+
+bool TypeNode::isCardinalityLessThan(size_t n)
+{
+  if (getCardinalityClass() == CardinalityClass::INFINITE)
+  {
+    return false;
+  }
+  if (isBoolean())
+  {
+    return n > 2;
+  }
+  if (isBitVector())
+  {
+    return std::log2(n) > getBitVectorSize();
+  }
+  if (isFloatingPoint())
+  {
+    return std::log2(n) > (getFloatingPointExponentSize()
+                           + getFloatingPointSignificandSize());
+  }
+  if (isRoundingMode())
+  {
+    return n > 5;
+  }
+  if (isFiniteField())
+  {
+    return Integer(n) > getFfSize();
+  }
+  return false;
 }
 
 /** Attribute true for types that are closed enumerable */
