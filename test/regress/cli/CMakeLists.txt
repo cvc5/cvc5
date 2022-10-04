@@ -475,8 +475,12 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/uaddo1.smt2
+  regress0/bv/overflow/uaddo2.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
+  regress0/bv/overflow/smulo1.smt2
+  regress0/bv/overflow/smulo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
