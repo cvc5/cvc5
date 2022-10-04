@@ -288,6 +288,8 @@ class SkolemManager
     SKOLEM_BOOL_TERM_VAR = 2,
     /** a skolem that stands for an abstract value (used for printing) */
     SKOLEM_ABSTRACT_VALUE = 4,
+    
+  };
     /**
      * Make skolemized form of existentially quantified formula q, and store its
      * Skolems into the argument skolems.
@@ -502,7 +504,6 @@ class SkolemManager
                       const TypeNode& type,
                       const std::string& comment = "",
                       int flags = SKOLEM_DEFAULT);
-  };
   /**
    * This makes a skolem of same type as bound variable v, (say its type is T),
    * whose definition is (witness ((v T)) pred). This definition is maintained
