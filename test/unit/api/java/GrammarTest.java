@@ -36,7 +36,7 @@ class GrammarTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
@@ -57,7 +57,7 @@ class GrammarTest
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
-    Term nullTerm = d_solver.getNullTerm();
+    Term nullTerm = new Term();
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
@@ -83,7 +83,7 @@ class GrammarTest
     Sort bool = d_solver.getBooleanSort();
     Sort integer = d_solver.getIntegerSort();
 
-    Term nullTerm = d_solver.getNullTerm();
+    Term nullTerm = new Term();
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
@@ -112,7 +112,7 @@ class GrammarTest
     d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
 
-    Term nullTerm = d_solver.getNullTerm();
+    Term nullTerm = new Term();
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
 
@@ -135,7 +135,7 @@ class GrammarTest
     d_solver.setOption("sygus", "true");
     Sort bool = d_solver.getBooleanSort();
 
-    Term nullTerm = d_solver.getNullTerm();
+    Term nullTerm = new Term();
     Term x = d_solver.mkVar(bool);
     Term start = d_solver.mkVar(bool);
     Term nts = d_solver.mkVar(bool);
