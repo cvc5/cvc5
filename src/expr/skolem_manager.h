@@ -231,9 +231,9 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * a trusted interface for constructing variables of SKOLEM type, where one
  * must provide information that characterizes the skolem. This information
  * may either be:
- * (1) the term that they purify (mkPurifySkolem)
- * (2) a predicate they satisfy (this is currently solely used by mkSkolemize
- * for skolemizing existential quantifiers),
+ * (1) the term that the skolem purifies (mkPurifySkolem)
+ * (2) a predicate the skolem satisfies (this is currently solely used by
+ * mkSkolemize for witnessing existential quantifiers),
  * (3) an identifier (mkSkolemFunction), which are typically used for
  * implementing theory-specific inferences that introduce symbols containing
  * functions not belonging to the theory (see SkolemFunId enum).
