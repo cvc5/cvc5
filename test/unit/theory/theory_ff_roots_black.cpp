@@ -21,7 +21,6 @@
 #include <CoCoA/SparsePolyRing.H>
 #include <CoCoA/ring.H>
 #include <CoCoA/symbol.H>
-#endif  // CVC5_USE_COCOA
 
 #include <memory>
 #include <utility>
@@ -37,8 +36,6 @@ using namespace context;
 using namespace theory;
 
 namespace test {
-
-#ifdef CVC5_USE_COCOA
 
 class TestTheoryFfRootsBlack : public TestSmt
 {
