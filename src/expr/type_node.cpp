@@ -204,11 +204,6 @@ CardinalityClass TypeNode::getCardinalityClass()
 
 bool TypeNode::isCardinalityLessThan(size_t n)
 {
-  if ((isDatatype() && !isInstantiated())
-      || getCardinalityClass() == CardinalityClass::INFINITE)
-  {
-    return false;
-  }
   if (isBoolean())
   {
     return n > 2;
