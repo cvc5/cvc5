@@ -24,10 +24,14 @@ namespace proof {
 Node AletheNoSubtypeNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  // force all constants to be integers. integers. Note that this may lead to
+  // errors when n is not integral
   if (n.isConst() && n.getType().isReal() && !n.getType().isInteger())
   {
-    return nm->mkNode(kind::TO_INTEGER, n);
+    AlwaysAssert(n.isIntegral());
+    return nm->mkConstInt(n.getConst<Rational>());
   }
+  // remove casts to reals
   if (n.getKind() == kind::TO_REAL)
   {
     return n[0];
