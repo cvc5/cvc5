@@ -22,10 +22,19 @@ import java.util.List;
  */
 public class Sort extends AbstractPointer implements Comparable<Sort>
 {
-  // region construction and destruction
-  Sort(Solver solver, long pointer)
+  /**
+   * Null sort
+   */
+  public Sort()
   {
-    super(solver, pointer);
+    super(getNullSort());
+  }
+
+  private static native long getNullSort();
+
+  Sort(long pointer)
+  {
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -395,7 +404,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getUninterpretedSortConstructor()
   {
     long sortPointer = getUninterpretedSortConstructor(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getUninterpretedSortConstructor(long pointer);
@@ -406,7 +415,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Datatype getDatatype()
   {
     long datatypePointer = getDatatype(pointer);
-    return new Datatype(solver, datatypePointer);
+    return new Datatype(datatypePointer);
   }
 
   private native long getDatatype(long pointer);
@@ -425,7 +434,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   {
     long[] paramsPointers = Utils.getPointers(params);
     long sortPointer = instantiate(pointer, paramsPointers);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long instantiate(long pointer, long[] paramsPointers);
@@ -441,7 +450,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort[] getInstantiatedParameters()
   {
     long[] pointers = getInstantiatedParameters(pointer);
-    return Utils.getSorts(solver, pointers);
+    return Utils.getSorts(pointers);
   }
 
   private native long[] getInstantiatedParameters(long pointer);
@@ -460,7 +469,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort substitute(Sort sort, Sort replacement)
   {
     long sortPointer = substitute(pointer, sort.getPointer(), replacement.getPointer());
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long substitute(long pointer, long sortPointer, long replacementPointer);
@@ -487,7 +496,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     long[] sortPointers = Utils.getPointers(sorts);
     long[] replacementPointers = Utils.getPointers(sorts);
     long sortPointer = substitute(pointer, sortPointers, replacementPointers);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long substitute(long pointer, long[] sortPointers, long[] replacementPointers);
@@ -515,7 +524,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort[] getDatatypeConstructorDomainSorts()
   {
     long[] pointers = getDatatypeConstructorDomainSorts(pointer);
-    return Utils.getSorts(solver, pointers);
+    return Utils.getSorts(pointers);
   }
 
   private native long[] getDatatypeConstructorDomainSorts(long pointer);
@@ -526,7 +535,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getDatatypeConstructorCodomainSort()
   {
     long sortPointer = getDatatypeConstructorCodomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getDatatypeConstructorCodomainSort(long pointer);
@@ -539,7 +548,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getDatatypeSelectorDomainSort()
   {
     long sortPointer = getDatatypeSelectorDomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getDatatypeSelectorDomainSort(long pointer);
@@ -550,7 +559,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getDatatypeSelectorCodomainSort()
   {
     long sortPointer = getDatatypeSelectorCodomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getDatatypeSelectorCodomainSort(long pointer);
@@ -563,7 +572,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getDatatypeTesterDomainSort()
   {
     long sortPointer = getDatatypeTesterDomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getDatatypeTesterDomainSort(long pointer);
@@ -575,7 +584,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getDatatypeTesterCodomainSort()
   {
     long sortPointer = getDatatypeTesterCodomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getDatatypeTesterCodomainSort(long pointer);
@@ -598,7 +607,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort[] getFunctionDomainSorts()
   {
     long[] pointers = getFunctionDomainSorts(pointer);
-    return Utils.getSorts(solver, pointers);
+    return Utils.getSorts(pointers);
   }
 
   private native long[] getFunctionDomainSorts(long pointer);
@@ -609,7 +618,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getFunctionCodomainSort()
   {
     long sortPointer = getFunctionCodomainSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getFunctionCodomainSort(long pointer);
@@ -622,7 +631,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getArrayIndexSort()
   {
     long sortPointer = getArrayIndexSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getArrayIndexSort(long pointer);
@@ -633,7 +642,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getArrayElementSort()
   {
     long sortPointer = getArrayElementSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getArrayElementSort(long pointer);
@@ -646,7 +655,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getSetElementSort()
   {
     long sortPointer = getSetElementSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getSetElementSort(long pointer);
@@ -659,7 +668,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getBagElementSort()
   {
     long sortPointer = getBagElementSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getBagElementSort(long pointer);
@@ -672,7 +681,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort getSequenceElementSort()
   {
     long sortPointer = getSequenceElementSort(pointer);
-    return new Sort(solver, sortPointer);
+    return new Sort(sortPointer);
   }
 
   private native long getSequenceElementSort(long pointer);
@@ -753,7 +762,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort[] getTupleSorts()
   {
     long[] pointers = getTupleSorts(pointer);
-    return Utils.getSorts(solver, pointers);
+    return Utils.getSorts(pointers);
   }
 
   private native long[] getTupleSorts(long pointer);

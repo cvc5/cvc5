@@ -22,7 +22,7 @@ public class BitVectors
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       slv.setLogic("QF_BV"); // Set the logic
 

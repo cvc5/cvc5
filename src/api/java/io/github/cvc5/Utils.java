@@ -40,12 +40,12 @@ public class Utils
   /**
    * return sorts array from array of pointers
    */
-  public static Sort[] getSorts(Solver solver, long[] pointers)
+  public static Sort[] getSorts(long[] pointers)
   {
     Sort[] sorts = new Sort[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      sorts[i] = new Sort(solver, pointers[i]);
+      sorts[i] = new Sort(pointers[i]);
     }
     return sorts;
   }
@@ -53,12 +53,12 @@ public class Utils
   /**
    * return terms array from array of pointers
    */
-  public static Term[] getTerms(Solver solver, long[] pointers)
+  public static Term[] getTerms(long[] pointers)
   {
     Term[] terms = new Term[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      terms[i] = new Term(solver, pointers[i]);
+      terms[i] = new Term(pointers[i]);
     }
     return terms;
   }
