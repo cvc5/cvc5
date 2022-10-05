@@ -38,6 +38,8 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in)
 
   if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
   {
+    // Cardinality of type does not allow to find distinct values for all
+    // children of this node.
     return nm->mkConst<bool>(false);
   }
 
