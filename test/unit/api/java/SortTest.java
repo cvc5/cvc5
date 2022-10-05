@@ -40,7 +40,7 @@ class SortTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   Sort create_datatype_sort() throws CVC5ApiException
@@ -70,15 +70,15 @@ class SortTest
   @Test
   void operators_comparison()
   {
-    assertDoesNotThrow(() -> d_solver.getIntegerSort() == d_solver.getNullSort());
-    assertDoesNotThrow(() -> d_solver.getIntegerSort() != d_solver.getNullSort());
-    assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(d_solver.getNullSort()));
+    assertDoesNotThrow(() -> d_solver.getIntegerSort() == new Sort());
+    assertDoesNotThrow(() -> d_solver.getIntegerSort() != new Sort());
+    assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(new Sort()));
   }
 
   @Test
   void hasGetSymbol() throws CVC5ApiException
   {
-    Sort n = d_solver.getNullSort();
+    Sort n = new Sort();
     Sort b = d_solver.getBooleanSort();
     Sort s0 = d_solver.mkParamSort("s0");
     Sort s1 = d_solver.mkParamSort("|s1\\|");
@@ -98,7 +98,7 @@ class SortTest
   void isBoolean()
   {
     assertTrue(d_solver.getBooleanSort().isBoolean());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isBoolean());
+    assertDoesNotThrow(() -> new Sort().isBoolean());
   }
 
   @Test
@@ -106,7 +106,7 @@ class SortTest
   {
     assertTrue(d_solver.getIntegerSort().isInteger());
     assertTrue(!d_solver.getRealSort().isInteger());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isInteger());
+    assertDoesNotThrow(() -> new Sort().isInteger());
   }
 
   @Test
@@ -114,42 +114,42 @@ class SortTest
   {
     assertTrue(d_solver.getRealSort().isReal());
     assertTrue(!d_solver.getIntegerSort().isReal());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isReal());
+    assertDoesNotThrow(() -> new Sort().isReal());
   }
 
   @Test
   void isString()
   {
     assertTrue(d_solver.getStringSort().isString());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isString());
+    assertDoesNotThrow(() -> new Sort().isString());
   }
 
   @Test
   void isRegExp()
   {
     assertTrue(d_solver.getRegExpSort().isRegExp());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isRegExp());
+    assertDoesNotThrow(() -> new Sort().isRegExp());
   }
 
   @Test
   void isRoundingMode() throws CVC5ApiException
   {
     assertTrue(d_solver.getRoundingModeSort().isRoundingMode());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isRoundingMode());
+    assertDoesNotThrow(() -> new Sort().isRoundingMode());
   }
 
   @Test
   void isBitVector() throws CVC5ApiException
   {
     assertTrue(d_solver.mkBitVectorSort(8).isBitVector());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isBitVector());
+    assertDoesNotThrow(() -> new Sort().isBitVector());
   }
 
   @Test
   void isFloatingPoint() throws CVC5ApiException
   {
     assertTrue(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isFloatingPoint());
+    assertDoesNotThrow(() -> new Sort().isFloatingPoint());
   }
 
   @Test
@@ -157,7 +157,7 @@ class SortTest
   {
     Sort dt_sort = create_datatype_sort();
     assertTrue(dt_sort.isDatatype());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatype());
+    assertDoesNotThrow(() -> new Sort().isDatatype());
   }
 
   @Test
@@ -167,7 +167,7 @@ class SortTest
     Datatype dt = dt_sort.getDatatype();
     Sort cons_sort = dt.getConstructor(0).getTerm().getSort();
     assertTrue(cons_sort.isDatatypeConstructor());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeConstructor());
+    assertDoesNotThrow(() -> new Sort().isDatatypeConstructor());
   }
 
   @Test
@@ -177,7 +177,7 @@ class SortTest
     Datatype dt = dt_sort.getDatatype();
     Sort cons_sort = dt.getConstructor(0).getSelector(1).getTerm().getSort();
     assertTrue(cons_sort.isDatatypeSelector());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeSelector());
+    assertDoesNotThrow(() -> new Sort().isDatatypeSelector());
   }
 
   @Test
@@ -187,7 +187,7 @@ class SortTest
     Datatype dt = dt_sort.getDatatype();
     Sort cons_sort = dt.getConstructor(0).getTesterTerm().getSort();
     assertTrue(cons_sort.isDatatypeTester());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeTester());
+    assertDoesNotThrow(() -> new Sort().isDatatypeTester());
   }
 
   @Test
@@ -197,7 +197,7 @@ class SortTest
     Datatype dt = dt_sort.getDatatype();
     Sort updater_sort = dt.getConstructor(0).getSelector(0).getUpdaterTerm().getSort();
     assertTrue(updater_sort.isDatatypeUpdater());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isDatatypeUpdater());
+    assertDoesNotThrow(() -> new Sort().isDatatypeUpdater());
   }
 
   @Test
@@ -205,7 +205,7 @@ class SortTest
   {
     Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(), d_solver.getIntegerSort());
     assertTrue(fun_sort.isFunction());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isFunction());
+    assertDoesNotThrow(() -> new Sort().isFunction());
   }
 
   @Test
@@ -213,7 +213,7 @@ class SortTest
   {
     Sort pred_sort = d_solver.mkPredicateSort(new Sort[] {d_solver.getRealSort()});
     assertTrue(pred_sort.isPredicate());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isPredicate());
+    assertDoesNotThrow(() -> new Sort().isPredicate());
   }
 
   @Test
@@ -221,7 +221,7 @@ class SortTest
   {
     Sort tup_sort = d_solver.mkTupleSort(new Sort[] {d_solver.getRealSort()});
     assertTrue(tup_sort.isTuple());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isTuple());
+    assertDoesNotThrow(() -> new Sort().isTuple());
   }
 
   @Test
@@ -230,7 +230,7 @@ class SortTest
     Sort rec_sort =
         d_solver.mkRecordSort(new Pair[] {new Pair<String, Sort>("asdf", d_solver.getRealSort())});
     assertTrue(rec_sort.isRecord());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isRecord());
+    assertDoesNotThrow(() -> new Sort().isRecord());
   }
 
   @Test
@@ -238,7 +238,7 @@ class SortTest
   {
     Sort arr_sort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
     assertTrue(arr_sort.isArray());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isArray());
+    assertDoesNotThrow(() -> new Sort().isArray());
   }
 
   @Test
@@ -246,7 +246,7 @@ class SortTest
   {
     Sort set_sort = d_solver.mkSetSort(d_solver.getRealSort());
     assertTrue(set_sort.isSet());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isSet());
+    assertDoesNotThrow(() -> new Sort().isSet());
   }
 
   @Test
@@ -254,7 +254,7 @@ class SortTest
   {
     Sort bag_sort = d_solver.mkBagSort(d_solver.getRealSort());
     assertTrue(bag_sort.isBag());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isBag());
+    assertDoesNotThrow(() -> new Sort().isBag());
   }
 
   @Test
@@ -262,7 +262,7 @@ class SortTest
   {
     Sort seq_sort = d_solver.mkSequenceSort(d_solver.getRealSort());
     assertTrue(seq_sort.isSequence());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isSequence());
+    assertDoesNotThrow(() -> new Sort().isSequence());
   }
 
   @Test
@@ -270,7 +270,7 @@ class SortTest
   {
     Sort un_sort = d_solver.mkUninterpretedSort("asdf");
     assertTrue(un_sort.isUninterpretedSort());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isUninterpretedSort());
+    assertDoesNotThrow(() -> new Sort().isUninterpretedSort());
   }
 
   @Test
@@ -278,7 +278,7 @@ class SortTest
   {
     Sort sc_sort = d_solver.mkUninterpretedSortConstructorSort(1, "asdf");
     assertTrue(sc_sort.isUninterpretedSortConstructor());
-    assertDoesNotThrow(() -> d_solver.getNullSort().isUninterpretedSortConstructor());
+    assertDoesNotThrow(() -> new Sort().isUninterpretedSortConstructor());
   }
 
   @Test

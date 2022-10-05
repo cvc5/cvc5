@@ -209,6 +209,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BITVECTOR_SGE, internal::Kind::BITVECTOR_SGE),
         KIND_ENUM(BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
         KIND_ENUM(BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
         KIND_ENUM(BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
         KIND_ENUM(BITVECTOR_SMULO, internal::Kind::BITVECTOR_SMULO),
         KIND_ENUM(BITVECTOR_ITE, internal::Kind::BITVECTOR_ITE),
@@ -516,6 +517,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_SGE, BITVECTOR_SGE},
         {internal::Kind::BITVECTOR_ULTBV, BITVECTOR_ULTBV},
         {internal::Kind::BITVECTOR_SLTBV, BITVECTOR_SLTBV},
+        {internal::Kind::BITVECTOR_UADDO, BITVECTOR_UADDO},
         {internal::Kind::BITVECTOR_UMULO, BITVECTOR_UMULO},
         {internal::Kind::BITVECTOR_SMULO, BITVECTOR_SMULO},
         {internal::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
@@ -5378,15 +5380,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
-
-Sort Solver::getNullSort(void) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return Sort(d_nm, internal::TypeNode());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 
 Sort Solver::getBooleanSort(void) const
 {
