@@ -267,7 +267,7 @@ void LfscPrinter::printTypeDefinition(
   }
   processed.insert(tn);
   // print uninterpreted sorts and uninterpreted sort constructors here
-  if (tn.getKind()==SORT_TYPE)
+  if (tn.getKind() == SORT_TYPE)
   {
     os << "(declare ";
     printType(os, tn);
@@ -277,7 +277,7 @@ void LfscPrinter::printTypeDefinition(
       arity = tn.getUninterpretedSortConstructorArity();
     }
     std::stringstream tcparen;
-    for (uint64_t i=0; i<arity; i++)
+    for (uint64_t i = 0; i < arity; i++)
     {
       os << " (! s" << i << " sort";
       tcparen << ")";
