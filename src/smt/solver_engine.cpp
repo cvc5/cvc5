@@ -756,7 +756,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   else if (d_env->getOptions().proof.produceFinalProof
            && r.getStatus() == Result::UNSAT)
   {
-    PropEngine* pe = getPropEngine();
+    PropEngine* pe = d_smtSolver->getPropEngine();
     Assert(pe->getProof() != nullptr);
     std::shared_ptr<ProofNode> pePfn = pe->getProof();
     Assertions& as = d_smtSolver->getAssertions();
