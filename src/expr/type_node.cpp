@@ -22,6 +22,7 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
@@ -214,8 +215,7 @@ bool TypeNode::isCardinalityLessThan(size_t n)
   }
   if (isFloatingPoint())
   {
-    return std::log2(n) > (getFloatingPointExponentSize()
-                           + getFloatingPointSignificandSize());
+    return Integer(n) > theory::fp::utils::getCardinality(*this);
   }
   if (isRoundingMode())
   {
