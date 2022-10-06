@@ -1,4 +1,4 @@
-; COMMAND-LINE: --learned-rewrite --no-produce-proofs
+; COMMAND-LINE: --learned-rewrite
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof

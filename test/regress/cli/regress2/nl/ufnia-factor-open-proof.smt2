@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-produce-proofs
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic QF_UFNIA)

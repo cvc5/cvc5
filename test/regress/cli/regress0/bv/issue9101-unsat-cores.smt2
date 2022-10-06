@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-produce-proofs
 (set-option :produce-models true)
 (set-option :produce-unsat-cores true)
 (set-logic QF_BV)
