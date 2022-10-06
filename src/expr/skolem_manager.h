@@ -266,7 +266,7 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  *
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
- * case for algorithms that introduce witness, e.g. BV/set instantiation.
+ * case for algorithms that introduce witnesses, e.g. BV/set instantiation.
  */
 class SkolemManager
 {
@@ -485,8 +485,8 @@ class SkolemManager
    *
    * This method additionally updates qskolem to be the skolemized form of q.
    * In the above example, this is set to:
-   *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y')))
-   * y))
+   *   (exists
+   *       ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y'))) y))
    */
   Node skolemize(Node q,
                  Node& qskolem,
@@ -505,7 +505,7 @@ class SkolemManager
                     const std::string& comment = "",
                     int flags = SKOLEM_DEFAULT);
   /**
-   * This makes a skolem of same type as bound variable v, (say its type is T),
+   * This makes a skolem of same type as bound variable v, say its type is T,
    * whose definition is (witness ((v T)) pred). This definition is maintained
    * by this class.
    *
