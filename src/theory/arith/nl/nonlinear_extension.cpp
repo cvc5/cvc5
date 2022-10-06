@@ -347,6 +347,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
       runStrategy(Theory::Effort::EFFORT_FULL, assertions, false_asserts, xts);
       if (d_im.hasSentLemma() || d_im.hasPendingLemma())
       {
+        d_im.doPendingLemmas();
         d_im.clearWaitingLemmas();
         return Result::UNSAT;
       }

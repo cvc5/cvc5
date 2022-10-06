@@ -247,6 +247,11 @@ void TheoryArith::postCheck(Effort level)
     {
       updateModelCache(termSet);
       d_nonlinearExtension->checkFullEffort(d_arithModelCache, termSet);
+      // if we sent a lemma, we are done
+      if (d_im.hasSent())
+      {
+        return;
+      }
     }
     else if (d_internal->foundNonlinear())
     {
@@ -382,19 +387,19 @@ void TheoryArith::presolve(){
 }
 
 EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
-  Trace("arith") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  Trace("arith-eq-status") << "TheoryArith::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
   if (a == b)
   {
-    Trace("arith") << "...return (trivial) true" << std::endl;
+    Trace("arith-eq-status") << "...return (trivial) true" << std::endl;
     return EQUALITY_TRUE_IN_MODEL;
   }
   if (d_arithModelCache.empty())
   {
     EqualityStatus es = d_internal->getEqualityStatus(a, b);
-    Trace("arith") << "...return (from linear) " << es << std::endl;
+    Trace("arith-eq-status") << "...return (from linear) " << es << std::endl;
     return es;
   }
-  Trace("arith") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
+  Trace("arith-eq-status") << "Evaluate under " << d_arithModelCacheSubs.d_vars << " / "
                  << d_arithModelCacheSubs.d_subs << std::endl;
   Node diff = NodeManager::currentNM()->mkNode(Kind::SUB, a, b);
   std::optional<bool> isZero =
@@ -403,10 +408,10 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   {
     EqualityStatus es =
         *isZero ? EQUALITY_TRUE_IN_MODEL : EQUALITY_FALSE_IN_MODEL;
-    Trace("arith") << "...return (from evaluate) " << es << std::endl;
+    Trace("arith-eq-status") << "...return (from evaluate) " << es << std::endl;
     return es;
   }
-  Trace("arith") << "...return unknown" << std::endl;
+  Trace("arith-eq-status") << "...return unknown" << std::endl;
   return EQUALITY_UNKNOWN;
 }
 
