@@ -3540,5 +3540,47 @@ TEST_F(TestApiBlackSolver, getVersion)
   std::cout << d_solver.getVersion() << std::endl;
 }
 
+TEST_F(TestApiBlackSolver, multipleSolvers)
+{
+  Term function1, function2, value1, value2, definedFunction;
+  Sort integerSort;
+  Term zero;
+  {
+    Solver s1;
+    s1.setLogic("ALL");
+    s1.setOption("produce-models", "true");
+    integerSort = s1.getIntegerSort();
+    function1 = s1.declareFun("f1", {}, s1.getIntegerSort());
+    Term x = s1.mkVar(integerSort, "x");
+    zero = s1.mkInteger(0);
+    definedFunction = s1.defineFun("f", {x}, integerSort, zero);
+    s1.assertFormula(function1.eqTerm(zero));
+    s1.checkSat();
+    value1 = s1.getValue(function1);
+  }
+  ASSERT_EQ(zero, value1);
+  {
+    Solver s2;
+    s2.setLogic("ALL");
+    s2.setOption("produce-models", "true");
+    function2 = s2.declareFun("function2", {}, integerSort);
+    s2.assertFormula(function2.eqTerm(value1));
+    s2.checkSat();
+    value2 = s2.getValue(function2);
+  }
+  ASSERT_EQ(value1, value2);
+  {
+    Solver s3;
+    s3.setLogic("ALL");
+    s3.setOption("produce-models", "true");
+    function2 = s3.declareFun("function3", {}, integerSort);
+    Term apply = s3.mkTerm(APPLY_UF, {definedFunction, zero});
+    s3.assertFormula(function2.eqTerm(apply));
+    s3.checkSat();
+    Term value3 = s3.getValue(function2);
+    ASSERT_EQ(value1, value3);
+  }
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
