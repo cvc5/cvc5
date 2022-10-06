@@ -640,7 +640,8 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       // should be erased from children.
       targs.erase(targs.begin(), targs.begin() + 1);
       types.erase(types.begin(), types.begin() + 1);
-      d_declTypes.insert(tn.getUninterpretedSortConstructor());
+      // We don't add to declared types here. The type constructor is already
+      // added to declare types when processing the children of this.
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),

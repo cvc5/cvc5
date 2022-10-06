@@ -51,7 +51,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (const Node& n : definitions)
   {
     definedSymbols.insert(n[0]);
-    Trace("ajr-temp") << "Convert def " << n << std::endl;
+    // Convert the assertion so that we remember the declared symbols and sorts
+    // in it.
     d_tproc.convert(n);
   }
   const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
@@ -152,7 +153,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   const std::unordered_set<TypeNode> types = d_tproc.getDeclaredTypes();
   for (const TypeNode& st : types)
   {
-    Trace("ajr-temp") << "Ensure printed " << st << " " << st.getKind() << std::endl;
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
     ensureTypeDefinitionPrinted(preamble, st, sts, tupleArity);
@@ -266,7 +266,7 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  Trace("ajr-temp") << "Print type definition " << tn << " " << tn.getKind() << std::endl;
+  // print uninterpreted sorts and uninterpreted sort constructors here
   if (tn.getKind()==SORT_TYPE)
   {
     os << "(declare ";
