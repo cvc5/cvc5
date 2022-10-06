@@ -271,7 +271,11 @@ void LfscPrinter::printTypeDefinition(
   {
     os << "(declare ";
     printType(os, tn);
-    uint64_t arity = tn.getUninterpretedSortConstructorArity();
+    uint64_t arity = 0;
+    if (tn.isUninterpretedSortConstructor())
+    {
+      arity = tn.getUninterpretedSortConstructorArity();
+    }
     std::stringstream tcparen;
     for (uint64_t i=0; i<arity; i++)
     {
