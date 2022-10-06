@@ -319,6 +319,19 @@ void TheoryArith::propagate(Effort e) {
 bool TheoryArith::collectModelInfo(TheoryModel* m,
                                    const std::set<Node>& termSet)
 {
+  // If we have a pending lemma (from the non-linear extension), then we
+  // do not assert model values, since those values are not correct.
+  if (d_im.hasPendingLemma())
+  {
+    if (!termSet.empty())
+    {
+      if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   // this overrides behavior to not assert equality engine
   return collectModelValues(m, termSet);
 }
