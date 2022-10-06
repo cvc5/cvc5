@@ -3157,14 +3157,12 @@ set(regress_2_tests
 set(regress_3_tests
   regress3/arith/abz5_1400.smtv1.smt2
   regress3/arith_prp-13-24.smt2
-  regress3/aufbv-wchains010ue.smtv1.smt2
   regress3/auflia-fuzz06.smtv1.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
   regress3/bug2.smtv1.smt2
-  regress3/bv_to_int_and_or.smt2
   regress3/bv_to_int_bench_9839.smt2.minimized.smt2
   regress3/bv_to_int_check_bvsge_bvashr0_4bit.smt2.minimized.smt2
   regress3/bv_to_int_check_bvsgt_bvlshr0_4bit.smt2.minimized.smt2
@@ -3178,7 +3176,6 @@ set(regress_3_tests
   regress3/bv-fuzz17.smtv1.smt2
   regress3/cegisunif-depth1.sy
   regress3/decision-uflia-xs-09-16-3-4-1-5.smtv1.smt2
-  regress3/decision-wchains010ue.smtv1.smt2
   regress3/DRAGON_1.lus.sy
   regress3/eq_diamond14.smtv1.smt2
   regress3/error0.smt2
@@ -3351,6 +3348,10 @@ set(regression_disabled_tests
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
   regress3/issue4476-ext-rew.smt2
+  # timeouts
+  regress3/aufbv-wchains010ue.smtv1.smt2
+  regress3/bv_to_int_and_or.smt2
+  regress3/decision-wchains010ue.smtv1.smt2
 )
 
 #-----------------------------------------------------------------------------#
