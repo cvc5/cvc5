@@ -691,6 +691,14 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/core.cpp
+  theory/ff/core.h
+  theory/ff/model.cpp
+  theory/ff/model.h
+  theory/ff/roots.cpp
+  theory/ff/roots.h
+  theory/ff/stats.cpp
+  theory/ff/stats.h
   theory/ff/theory_ff.cpp
   theory/ff/theory_ff.h
   theory/ff/theory_ff_rewriter.cpp
@@ -821,6 +829,8 @@ libcvc5_add_sources(
   theory/quantifiers/ieval/free_var_info.h
   theory/quantifiers/ieval/inst_evaluator.cpp
   theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/inst_evaluator_manager.cpp
+  theory/quantifiers/ieval/inst_evaluator_manager.h
   theory/quantifiers/ieval/pattern_term_info.cpp
   theory/quantifiers/ieval/pattern_term_info.h
   theory/quantifiers/ieval/quant_info.cpp

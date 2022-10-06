@@ -52,9 +52,9 @@ import java.math.BigInteger;
 public class OptionInfo extends AbstractPointer
 {
   // region construction and destruction
-  OptionInfo(Solver solver, long pointer)
+  OptionInfo(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);

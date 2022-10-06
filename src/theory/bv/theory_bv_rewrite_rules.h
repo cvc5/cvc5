@@ -21,7 +21,6 @@
 
 #include "context/context.h"
 #include "printer/printer.h"
-#include "smt/solver_engine.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
@@ -73,6 +72,9 @@ enum RewriteRuleId
   SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
+  UaddoEliminate,
+  UmuloEliminate,
+  SmuloEliminate,
   BVToNatEliminate,
   IntToBVEliminate,
 

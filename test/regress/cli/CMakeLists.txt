@@ -251,6 +251,7 @@ set(regress_0_tests
   regress0/bug605.cvc.smt2
   regress0/bug639.smt2
   regress0/buggy-ite.smt2
+  regress0/bv2nat-logic.smt2
   regress0/bv/ackermann1.smt2
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
@@ -475,6 +476,12 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/uaddo1.smt2
+  regress0/bv/overflow/uaddo2.smt2
+  regress0/bv/overflow/umulo1.smt2
+  regress0/bv/overflow/umulo2.smt2
+  regress0/bv/overflow/smulo1.smt2
+  regress0/bv/overflow/smulo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
   regress0/bv/pr4993-bvugt-bvurem-b.smt2
   regress0/bv/proj-issue343.smt2
@@ -932,6 +939,7 @@ set(regress_0_tests
   regress0/parser/issue7894-parse-error-assoc.smt2
   regress0/parser/issue8377-resolve-indexed.smt2
   regress0/parser/issue8767-exception.smt2
+  regress0/parser/issue9140-check-to-fp-args.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -949,6 +957,8 @@ set(regress_0_tests
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
+  regress0/parser/use-name-in-same-command.smt2
+  regress0/parser/use-name-in-same-command-minimal.smt2
   regress0/precedence/and-not.cvc.smt2
   regress0/precedence/and-xor.cvc.smt2
   regress0/precedence/bool-cmp.cvc.smt2
@@ -1034,6 +1044,7 @@ set(regress_0_tests
   regress0/proofs/proj-issue468-mkScope.smt2
   regress0/proofs/proj-issue492-skolem-lemma-pf.smt2
   regress0/proofs/proj-issue528-ufpfchecker.smt2
+  regress0/proofs/proj-issue529-open-pf.smt2
   regress0/proofs/proof-components.smt2
   regress0/proofs/qgu-fuzz-1-bool-sat.smt2
   regress0/proofs/qgu-fuzz-2-bool-chainres-checking.smt2
@@ -2108,6 +2119,10 @@ set(regress_1_tests
   regress1/nl/issue8162-drop-pi-bound.smt2
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
+  regress1/nl/issue9113-1-iand-cg.smt2
+  regress1/nl/issue9113-iand-cg.smt2
+  regress1/nl/issue9164.smt2
+  regress1/nl/issue9164-2.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2936,6 +2951,7 @@ set(regress_1_tests
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
+  regress1/sygus/quant-lia-1.sy
   regress1/sygus/rand_const.sy
   regress1/sygus/rand_p_0.sy
   regress1/sygus/rand_p_1.sy
@@ -3384,6 +3400,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
+    ${PYTHON_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc

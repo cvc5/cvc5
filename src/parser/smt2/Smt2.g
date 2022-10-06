@@ -154,7 +154,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
     /* This extended command has to be in the outermost production so that
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
-  | LPAREN_TOK INCLUDE_TOK str[name] RPAREN_TOK
+  | LPAREN_TOK INCLUDE_TOK str[name, true] RPAREN_TOK
     { if(!PARSER_STATE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this "
                                  "run.");
@@ -336,7 +336,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
-    GET_VALUE_TOK 
+    GET_VALUE_TOK
     {
       PARSER_STATE->checkThatLogicIsSet();
       // bind all symbols specific to the model, e.g. uninterpreted constant
@@ -414,7 +414,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
     GET_DIFFICULTY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetDifficultyCommand); }
   | /* get-learned-literals */
-    GET_LEARNED_LITERALS_TOK ( KEYWORD { readKeyword = true; } )? { 
+    GET_LEARNED_LITERALS_TOK ( KEYWORD { readKeyword = true; } )? {
       PARSER_STATE->checkThatLogicIsSet();
       modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
       if (readKeyword)
@@ -767,7 +767,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( str[s]
+    ( str[s, true]
       { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
@@ -1118,12 +1118,8 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
-  | SIMPLE_SYMBOL
-    { s = AntlrInput::tokenText($SIMPLE_SYMBOL); }
-  | QUOTED_SYMBOL
-    { s = AntlrInput::tokenText($QUOTED_SYMBOL); }
-  | STRING_LITERAL
-    { s = AntlrInput::tokenText($STRING_LITERAL); }
+  | symbol[s, CHECK_NONE, SYM_VERBATIM]
+  | str[s, false]
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
@@ -1244,7 +1240,7 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
       expr = PARSER_STATE->applyParseOp(p, args);
     }
   | /* a let or sygus let binding */
-    LPAREN_TOK 
+    LPAREN_TOK
       LET_TOK LPAREN_TOK
       { PARSER_STATE->pushScope(); }
       ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
@@ -1754,7 +1750,7 @@ termAtomic[cvc5::Term& atomTerm]
     }
 
   // String constant
-  | str[s] { atomTerm = PARSER_STATE->mkStringConstant(s); }
+  | str[s, true] { atomTerm = PARSER_STATE->mkStringConstant(s); }
 
   // NOTE: Theory constants go here
 
@@ -1786,7 +1782,7 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   | ( ATTRIBUTE_PATTERN_TOK { k = cvc5::INST_PATTERN; } |
       ATTRIBUTE_POOL_TOK { k = cvc5::INST_POOL; }  |
       ATTRIBUTE_INST_ADD_TO_POOL_TOK { k = cvc5::INST_ADD_TO_POOL; }  |
-      ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK{ k = cvc5::SKOLEM_ADD_TO_POOL; } 
+      ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK{ k = cvc5::SKOLEM_ADD_TO_POOL; }
     )
     LPAREN_TOK
     ( term[patexpr, e2]
@@ -1818,11 +1814,6 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   | ATTRIBUTE_NAMED_TOK symbol[s,CHECK_UNDECLARED,SYM_VARIABLE]
     {
       Trace("parser") << "Named: " << s << " for " << expr << std::endl;
-      // notify that expression was given a name
-      DefineFunctionCommand* defFunCmd =
-          new DefineFunctionCommand(s, expr.getSort(), expr);
-      defFunCmd->setMuted(true);
-      PARSER_STATE->preemptCommand(defFunCmd);
       PARSER_STATE->notifyNamedExpression(expr, s);
     }
   ;
@@ -1843,40 +1834,46 @@ termList[std::vector<cvc5::Term>& formulas, cvc5::Term& expr]
   ;
 
 /**
- * Matches a string, and strips off the quotes.
+ * Matches a string, and (optionally) strips off the quotes/unescapes the
+ * string when `unescape` is set to true.
  */
-str[std::string& s]
+str[std::string& s, bool unescape]
   : STRING_LITERAL
     {
       s = AntlrInput::tokenText($STRING_LITERAL);
-      /* strip off the quotes */
-      s = s.substr(1, s.size() - 2);
-      for (size_t i = 0; i < s.size(); i++)
+      if (unescape)
       {
-        if ((unsigned)s[i] > 127 && !isprint(s[i]))
+        /* strip off the quotes */
+        s = s.substr(1, s.size() - 2);
+        for (size_t i = 0; i < s.size(); i++)
         {
-          PARSER_STATE->parseError(
-              "Extended/unprintable characters are not "
-              "part of SMT-LIB, and they must be encoded "
-              "as escape sequences");
+          if ((unsigned)s[i] > 127 && !isprint(s[i]))
+          {
+            PARSER_STATE->parseError(
+                "Extended/unprintable characters are not "
+                "part of SMT-LIB, and they must be encoded "
+                "as escape sequences");
+          }
         }
-      }
-      char* p_orig = strdup(s.c_str());
-      char *p = p_orig, *q = p_orig;
-      while (*q != '\0')
-      {
-        if (*q == '"')
+        char* p_orig = strdup(s.c_str());
+        char *p = p_orig, *q = p_orig;
+        while (*q != '\0')
         {
-          // Handle SMT-LIB >=2.5 standard escape '""'.
-          ++q;
-          Assert(*q == '"');
+          if (*q == '"')
+          {
+            // Handle SMT-LIB >=2.5 standard escape '""'.
+            ++q;
+            Assert(*q == '"');
+          }
+          *p++ = *q++;
         }
-        *p++ = *q++;
+        *p = '\0';
+        s = p_orig;
+        free(p_orig);
       }
-      *p = '\0';
-      s = p_orig;
-      free(p_orig);
     }
+  | UNTERMINATED_STRING_LITERAL EOF
+    { PARSER_STATE->unexpectedEOF("unterminated string literal"); }
   ;
 
 quantOp[cvc5::Kind& kind]
@@ -1966,8 +1963,8 @@ sortSymbol[cvc5::Sort& t]
   | LPAREN_TOK (INDEX_TOK {indexed = true;} | {indexed = false;})
     symbol[name,CHECK_NONE,SYM_SORT]
     ( nonemptyNumeralList[numerals]
-      { 
-        if (!indexed) 
+      {
+        if (!indexed)
         {
           std::stringstream ss;
           ss << "SMT-LIB requires use of an indexed sort here, e.g. (_ " << name
@@ -2091,8 +2088,11 @@ symbol[std::string& id,
     }
   | QUOTED_SYMBOL
     { id = AntlrInput::tokenText($QUOTED_SYMBOL);
-      /* strip off the quotes */
-      id = id.substr(1, id.size() - 2);
+      if (type != SymbolType::SYM_VERBATIM)
+      {
+        /* strip off the quotes */
+        id = id.substr(1, id.size() - 2);
+      }
       if(!PARSER_STATE->isAbstractValue(id)) {
         // if an abstract value, SolverEngine handles declaration
         PARSER_STATE->checkDeclaration(id, check, type);
@@ -2164,7 +2164,7 @@ selector[cvc5::DatatypeConstructorDecl& ctor]
   cvc5::Sort t, t2;
 }
   : symbol[id,CHECK_NONE,SYM_SORT] sortSymbol[t]
-    { 
+    {
       ctor.addSelector(id, t);
       Trace("parser-idt") << "selector: " << id.c_str()
                           << " of type " << t << std::endl;
@@ -2375,7 +2375,11 @@ BINARY_LITERAL
  * of the token text.  Use the str[] parser rule instead.
  */
 STRING_LITERAL
-  : '"' (~('"') | '""')* '"' 
+  : '"' (~('"') | '""')* '"'
+  ;
+
+UNTERMINATED_STRING_LITERAL
+  : '"' (~('"') | '""')*
   ;
 
 /**

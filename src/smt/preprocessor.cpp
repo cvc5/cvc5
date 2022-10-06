@@ -24,7 +24,6 @@
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
-#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;

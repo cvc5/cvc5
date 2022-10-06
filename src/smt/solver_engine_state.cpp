@@ -21,7 +21,6 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 
 namespace cvc5::internal {
 namespace smt {
