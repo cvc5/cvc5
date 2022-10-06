@@ -320,7 +320,13 @@ bool TheoryArith::collectModelInfo(TheoryModel* m,
                                    const std::set<Node>& termSet)
 {
   // If we have a pending lemma (from the non-linear extension), then we
-  // do not assert model values, since those values are not correct.
+  // do not assert model values, since those values are likely incorrect.
+  // Moreover, the model does not need to satisfy the assertions, so
+  // arbitrary values can be used for arithmetic terms. We do, however,
+  // require for the sake of theory combination that the information in the
+  // equality engine is respected. Hence, we run the (default) implementation
+  // of collectModelInfo here. The pending lemmas will be sent immediately
+  // after at LAST_CALL effort.
   if (d_im.hasPendingLemma())
   {
     if (!termSet.empty())
