@@ -51,6 +51,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (const Node& n : definitions)
   {
     definedSymbols.insert(n[0]);
+    Trace("ajr-temp") << "Convert def " << n << std::endl;
+    d_tproc.convert(n);
   }
   const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pn->getChildren()[0]->getChildren()[0].get();
@@ -150,6 +152,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   const std::unordered_set<TypeNode> types = d_tproc.getDeclaredTypes();
   for (const TypeNode& st : types)
   {
+    Trace("ajr-temp") << "Ensure printed " << st << " " << st.getKind() << std::endl;
     // note that we must get all "component types" of a type, so that
     // e.g. U is printed as a sort declaration when we have type (Array U Int).
     ensureTypeDefinitionPrinted(preamble, st, sts, tupleArity);
@@ -263,11 +266,19 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  if (tn.isUninterpretedSort())
+  Trace("ajr-temp") << "Print type definition " << tn << " " << tn.getKind() << std::endl;
+  if (tn.getKind()==SORT_TYPE)
   {
     os << "(declare ";
     printType(os, tn);
-    os << " sort)" << std::endl;
+    uint64_t arity = tn.getUninterpretedSortConstructorArity();
+    std::stringstream tcparen;
+    for (uint64_t i=0; i<arity; i++)
+    {
+      os << " (! s" << i << " sort";
+      tcparen << ")";
+    }
+    os << " sort" << tcparen.str() << ")" << std::endl;
   }
   else if (tn.isDatatype())
   {
