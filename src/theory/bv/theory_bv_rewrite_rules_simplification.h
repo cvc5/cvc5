@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITER_RULES_SIMPLIFICATION_H
-#define CVC5__THEORY__BV__THEORY_BV_REWRITER_RULES_SIMPLIFICATION_H
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_SIMPLIFICATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_SIMPLIFICATION_H
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
