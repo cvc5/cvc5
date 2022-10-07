@@ -687,6 +687,10 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/core.cpp
+  theory/ff/core.h
+  theory/ff/model.cpp
+  theory/ff/model.h
   theory/ff/roots.cpp
   theory/ff/roots.h
   theory/ff/stats.cpp
@@ -707,6 +711,8 @@ libcvc5_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/theory_fp_type_rules.cpp
+  theory/fp/theory_fp_utils.h
+  theory/fp/theory_fp_utils.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
   theory/incomplete_id.cpp
