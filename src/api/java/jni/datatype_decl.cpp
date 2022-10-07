@@ -21,11 +21,25 @@ using namespace cvc5;
 
 /*
  * Class:     io_github_cvc5_DatatypeDecl
+ * Method:    getNullDatatypeDecl
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_DatatypeDecl_getNullDatatypeDecl(JNIEnv* env, jclass)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  DatatypeDecl* ret = new DatatypeDecl();
+  return reinterpret_cast<jlong>(ret);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_DatatypeDecl
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_DatatypeDecl_deletePointer(
-    JNIEnv*, jobject, jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_DatatypeDecl_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete ((DatatypeDecl*)pointer);
 }
@@ -92,8 +106,8 @@ Java_io_github_cvc5_DatatypeDecl_isNull(JNIEnv* env, jobject, jlong pointer)
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeDecl_toString(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_DatatypeDecl_toString(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeDecl* current = (DatatypeDecl*)pointer;
@@ -106,8 +120,8 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeDecl_toString(
  * Method:    getName
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_io_github_cvc5_DatatypeDecl_getName(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL
+Java_io_github_cvc5_DatatypeDecl_getName(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   DatatypeDecl* current = (DatatypeDecl*)pointer;

@@ -1244,8 +1244,8 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "sygus-verify-inst-max-rounds=N"
   type       = "int64_t"
-  default    = "3"
-  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
+  default    = "10"
+  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 10)"
 
 [[option]]
   name       = "sygusVerifyTimeout"
