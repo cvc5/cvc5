@@ -238,7 +238,6 @@ TEST_F(TestTheoryFfModelBlack, CommonRootCosntraints)
   EXPECT_EQ(values[1] * values[2], z + 1);
 }
 
-#endif  // CVC5_USE_COCOA
-
 }  // namespace test
 }  // namespace cvc5::internal
+#endif  // CVC5_USE_COCOA

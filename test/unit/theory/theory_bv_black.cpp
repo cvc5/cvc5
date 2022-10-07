@@ -108,5 +108,26 @@ TEST_F(TestTheoryBlackBv, smulo)
     d_solver.pop();
   }
 }
+
+TEST_F(TestTheoryBlackBv, reg8361)
+{
+  Solver slv;
+  slv.setLogic("QF_BV");
+
+  Sort bvSort = slv.mkBitVectorSort(6);
+  std::vector<Term> bvs;
+  for (int i = 0; i < 64; i++)
+  {
+    bvs.push_back(slv.mkConst(bvSort));
+  }
+
+  slv.assertFormula(slv.mkTerm(DISTINCT, bvs));
+  ASSERT_TRUE(slv.checkSat().isSat());
+  slv.resetAssertions();
+
+  bvs.push_back(slv.mkConst(bvSort));
+  slv.assertFormula(slv.mkTerm(DISTINCT, bvs));
+  ASSERT_TRUE(slv.checkSat().isUnsat());
+}
 }  // namespace test
 }  // namespace cvc5::internal
