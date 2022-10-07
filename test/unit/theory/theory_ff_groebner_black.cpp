@@ -198,7 +198,7 @@ TEST_F(TestTheoryFfGroebnerBlack, NoSolution)
   EXPECT_EQ(ideal.hasSolution(), false);
 }
 
-#endif  // CVC5_USE_COCOA
-
 }  // namespace test
 }  // namespace cvc5::internal
+
+#endif  // CVC5_USE_COCOA
