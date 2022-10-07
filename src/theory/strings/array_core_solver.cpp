@@ -142,8 +142,11 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node lem = nm->mkNode(EQUAL, left, right);
 
       std::vector<Node> exp;
-      // we don't have to add (termProxy = n) to the explanation, since this
-      // is always true and justified by definition.
+      // We don't have to add (termProxy = n) to the explanation, since this
+      // is always true and justified by definition. Also note that if lazy
+      // term registration is enabled, this equality may not (yet) hold in
+      // the equality engine, since termProxy may have been introduced in this
+      // call.
       d_im.sendInference(exp,
                          lem,
                          InferenceId::STRINGS_ARRAY_NTH_TERM_FROM_UPDATE,

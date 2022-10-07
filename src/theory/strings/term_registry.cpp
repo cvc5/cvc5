@@ -330,6 +330,7 @@ void TermRegistry::registerTerm(Node n)
 
 void TermRegistry::registerTermInternal(Node n)
 {
+  Assert (d_registeredTerms.find(n) == d_registeredTerms.end());
   Trace("strings-register")
       << "TheoryStrings::registerTermInternal() " << n << std::endl;
   d_registeredTerms.insert(n);
