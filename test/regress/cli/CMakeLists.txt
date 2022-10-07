@@ -478,6 +478,8 @@ set(regress_0_tests
   regress0/bv/mult-pow2-negative.smt2
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
+  regress0/bv/overflow/saddo1.smt2
+  regress0/bv/overflow/saddo2.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
