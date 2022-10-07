@@ -2116,6 +2116,7 @@ set(regress_1_tests
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
   regress1/nl/issue9113-1-iand-cg.smt2
+  regress1/nl/issue9113-2-iand.smt2
   regress1/nl/issue9113-iand-cg.smt2
   regress1/nl/issue9164.smt2
   regress1/nl/issue9164-2.smt2
