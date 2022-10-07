@@ -51,9 +51,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (const Node& n : definitions)
   {
     definedSymbols.insert(n[0]);
-    // Convert the assertion so that we remember the declared symbols and sorts
-    // in it.
-    d_tproc.convert(n);
+    // Note that we don't have to convert it via the term processor (for the
+    // sake of inferring declared symbols), since this is already done in the
+    // lfsc post processor update method for the outermost SCOPE.
   }
   const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pn->getChildren()[0]->getChildren()[0].get();
