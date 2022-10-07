@@ -118,7 +118,7 @@ class TermRegistry : protected EnvObj
    */
   void registerTerm(Node n);
   /**
-   * Call the above method for each subterm of n
+   * Call `registerTerm` for each subterm of n
    */
   void registerSubterms(Node n);
   /** register length
