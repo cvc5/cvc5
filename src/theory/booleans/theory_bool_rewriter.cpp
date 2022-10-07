@@ -276,9 +276,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         if(constantsEqual){
           return RewriteResponse(REWRITE_DONE, tt);
         }else{
-          Cardinality kappa = t.getType().getCardinality();
-          Cardinality two(2l);
-          if(kappa.knownLessThanOrEqual(two)){
+          if(t.getType().isCardinalityLessThan(2)){
             return RewriteResponse(REWRITE_DONE, ff);
           }else{
             Node neitherEquality = (makeNegation(n[0])).andNode(makeNegation(n[1]));
