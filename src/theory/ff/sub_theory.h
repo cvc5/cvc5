@@ -83,6 +83,9 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   const std::vector<Node>& conflict() const;
 
   // Get a model.
+  //
+  // Can only be called after a full-effort post-check
+  // if inConflict is false.
   const std::unordered_map<Node, Node>& model() const;
 
  private:
