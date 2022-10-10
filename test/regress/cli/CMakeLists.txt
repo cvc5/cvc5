@@ -251,6 +251,7 @@ set(regress_0_tests
   regress0/bug605.cvc.smt2
   regress0/bug639.smt2
   regress0/buggy-ite.smt2
+  regress0/bv2nat-logic.smt2
   regress0/bv/ackermann1.smt2
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
@@ -475,6 +476,8 @@ set(regress_0_tests
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
+  regress0/bv/overflow/uaddo1.smt2
+  regress0/bv/overflow/uaddo2.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
@@ -1023,6 +1026,7 @@ set(regress_0_tests
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
+  regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -2114,9 +2118,14 @@ set(regress_1_tests
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
   regress1/nl/issue9113-1-iand-cg.smt2
+  regress1/nl/issue9113-2-iand.smt2
   regress1/nl/issue9113-iand-cg.smt2
   regress1/nl/issue9164.smt2
   regress1/nl/issue9164-2.smt2
+  regress1/nl/issue9183-1.smt2
+  regress1/nl/issue9183-3.smt2
+  regress1/nl/issue9183-4.smt2
+  regress1/nl/issue9183-5.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2945,6 +2954,7 @@ set(regress_1_tests
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
+  regress1/sygus/quant-lia-1.sy
   regress1/sygus/rand_const.sy
   regress1/sygus/rand_p_0.sy
   regress1/sygus/rand_p_1.sy

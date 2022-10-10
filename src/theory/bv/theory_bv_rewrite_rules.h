@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_H
 
 #include <sstream>
 
@@ -72,6 +73,7 @@ enum RewriteRuleId
   SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
+  UaddoEliminate,
   UmuloEliminate,
   SmuloEliminate,
   BVToNatEliminate,
@@ -749,12 +751,12 @@ struct FixpointRewriteStrategy {
       if (R19::applies(current)) current = R19::template run<false>(current);
       if (R20::applies(current)) current = R20::template run<false>(current);
     } while (previous != current);
-    
+
     return current;
   }
 };
 
-
-} // End namespace bv
-} // End namespace theory
-}  // End namespace cvc5::internal
+}  // namespace bv
+}  // namespace theory
+}  // namespace cvc5::internal
+#endif

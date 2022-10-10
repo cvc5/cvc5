@@ -16,7 +16,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_NORMALIZATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_NORMALIZATION_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -1561,8 +1562,7 @@ inline Node RewriteRule<NormalizeEqAddNeg>::apply(TNode node)
 //   return resultNode;
 // }
 
-
-
-}
-}
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
+#endif
