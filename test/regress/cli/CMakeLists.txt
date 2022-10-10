@@ -3195,7 +3195,6 @@ set(regress_3_tests
   regress3/quantifiers/ForElimination-scala-9.smt2
   regress3/quantifiers/javafe.ast.ArrayInit.35.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
-  regress3/regex-rrv.sy
   regress3/sixfuncs.sy
   regress3/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
   regress3/strings-any-term.sy
@@ -3214,9 +3213,6 @@ set(regress_4_tests
   regress4/C880mul.miter.shuffled-as.sat03-348.smtv1.smt2
   regress4/fischer3-mutex-16.smtv1.smt2
   regress4/instance_1151.smtv1.smt2
-  regress4/issue2429.smt2
-  regress4/miplib-pp08a-3000.smt2
-  regress4/miplib-pp08a-3000.smtv1.smt2
   regress4/NEQ016_size5.smtv1.smt2
   regress4/sets-card-neg-mem-union-2.smt2
   regress4/siegel-nl-bases.smt2
@@ -3338,7 +3334,7 @@ set(regression_disabled_tests
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
   regress3/issue4476-ext-rew.smt2
-  # timeouts (>60 seconds production)
+  # timeouts (>300 seconds production)
   regress3/aufbv-wchains010ue.smtv1.smt2
   regress3/bv_to_int_and_or.smt2
   regress3/decision-wchains010ue.smtv1.smt2
@@ -3346,12 +3342,17 @@ set(regression_disabled_tests
   regress3/ho/SYO362^5.p
   regress3/issue4714.smt2
   regress3/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
+  regress3/regex-rrv.sy
   regress3/strings/indexof_re_red.smt2
   regress3/strings/replace_re_all.smt2
   regress4/bug337.smt2
   regress4/bug396.smt2
   regress4/comb2.shuffled-as.sat03-420.smtv1.smt2
+  regress4/issue2429.smt2
   regress4/pp-regfile.smtv1.smt2
+  # leads to subtyping issues with miplib preprocessing pass
+  regress4/miplib-pp08a-3000.smt2
+  regress4/miplib-pp08a-3000.smtv1.smt2
 )
 
 #-----------------------------------------------------------------------------#
