@@ -29,6 +29,7 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
+#include "options/quantifiers_options.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -252,25 +253,20 @@ void UnconstrainedSimplifier::processUnconstrained()
         // larger than 1, any unconstrained child makes parent unconstrained as
         // well
         case kind::EQUAL:
-          if (parent[0].getType() != parent[1].getType())
-          {
-            TNode other = (parent[0] == current) ? parent[1] : parent[0];
-            if (current.getType() == other.getType())
-            {
-              break;
-            }
-          }
-          if (parent[0].getType().getCardinality().isOne())
+        {
+          // equality uses strict type rule
+          Assert (parent[0].getType() == parent[1].getType());
+          CardinalityClass c = parent[0].getType().getCardinalityClass();
+          if (c==CardinalityClass::ONE)
           {
             break;
           }
-          if (parent[0].getType().isDatatype())
+          else if (c==CardinalityClass::INTERPRETED_ONE)
           {
-            TypeNode tn = parent[0].getType();
-            const DType& dt = tn.getDType();
-            if (dt.isRecursiveSingleton(tn))
+            // type may be interpreted as cardinality one, e.g. uninterpreted
+            // sorts when finite model finding is enabled.
+            if (options().quantifiers.finiteModelFind)
             {
-              // domain size may be 1
               break;
             }
           }
@@ -280,6 +276,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             break;
           }
           CVC5_FALLTHROUGH;
+        }
         case kind::BITVECTOR_COMP:
         case kind::LT:
         case kind::LEQ:
