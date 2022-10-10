@@ -44,6 +44,18 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
+/**
+ * A solver for a specific, known finite field.
+ *
+ * While the main ff solver is responsible for all elements in any finite field,
+ * this solver just considers a single field. The main ff solver essentially
+ * just multiplexes between different sub-solvers.
+ *
+ * The solver only exposes a subset of the standard SMT theory interface. See
+ * the methods below.
+ *
+ * For now, our implementation assumes that the finite field has prime order.
+ */
 class SubTheory : protected EnvObj, protected context::ContextNotifyObj
 {
  public:
@@ -132,8 +144,16 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   // Atoms
   context::CDList<Node> d_atoms;
 
+  // Statistics shared among all finite-field sub-theories.
   FfStatistics* d_stats;
+  // The base field of the multivariate polynomial ring.
+  //
+  // That is, the field that the polynomial coefficients live in/the
+  // finite-field constants live in.
+  //
+  // For now, we assume this is a prime-order finite-field.
   CoCoA::ring d_baseRing;
+  // The prime modulus for the base field.
   Integer d_modulus;
   // Set after registration is done.
   std::optional<CoCoA::ring> d_polyRing{};
