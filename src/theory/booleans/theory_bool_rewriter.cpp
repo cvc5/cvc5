@@ -276,9 +276,12 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         if(constantsEqual){
           return RewriteResponse(REWRITE_DONE, tt);
         }else{
-          if(t.getType().isCardinalityLessThan(2)){
+          if (t.getType().isCardinalityLessThan(2))
+          {
             return RewriteResponse(REWRITE_DONE, ff);
-          }else{
+          }
+          else
+          {
             Node neitherEquality = (makeNegation(n[0])).andNode(makeNegation(n[1]));
             return RewriteResponse(REWRITE_AGAIN, neitherEquality);
           }

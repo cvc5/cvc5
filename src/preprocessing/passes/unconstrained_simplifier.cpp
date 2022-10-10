@@ -21,6 +21,7 @@
 
 #include "expr/dtype.h"
 #include "expr/skolem_manager.h"
+#include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
@@ -29,7 +30,6 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
-#include "options/quantifiers_options.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -255,13 +255,13 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::EQUAL:
         {
           // equality uses strict type rule
-          Assert (parent[0].getType() == parent[1].getType());
+          Assert(parent[0].getType() == parent[1].getType());
           CardinalityClass c = parent[0].getType().getCardinalityClass();
-          if (c==CardinalityClass::ONE)
+          if (c == CardinalityClass::ONE)
           {
             break;
           }
-          else if (c==CardinalityClass::INTERPRETED_ONE)
+          else if (c == CardinalityClass::INTERPRETED_ONE)
           {
             // type may be interpreted as cardinality one, e.g. uninterpreted
             // sorts when finite model finding is enabled.
