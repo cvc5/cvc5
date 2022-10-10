@@ -1590,8 +1590,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (<= i greatestIntLessThan(c))
     case PfRule::INT_TIGHT_UB:
     {
-      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConstInt(Rational(1)));
       new_args.push_back(nm->mkConstInt(Rational(1)));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
@@ -1615,8 +1616,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is (>= i leastIntGreaterThan(c))
     case PfRule::INT_TIGHT_LB:
     {
-      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0], res);
+      Node vp1 = nm->mkNode(kind::SEXPR, d_cl, children[0].notNode(), res);
       std::vector<Node> new_children = {vp1, children[0]};
+      new_args.push_back(nm->mkConstInt(Rational(1)));
       new_args.push_back(nm->mkConstInt(Rational(1)));
       return addAletheStep(AletheRule::LA_GENERIC, vp1, vp1, {}, new_args, *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
