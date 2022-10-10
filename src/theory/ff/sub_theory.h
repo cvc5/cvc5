@@ -44,7 +44,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-class SubTheory : EnvObj, context::ContextNotifyObj
+class SubTheory : protected EnvObj, protected context::ContextNotifyObj
 {
  public:
   // Create a new sub-theory.
