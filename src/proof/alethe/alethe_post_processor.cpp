@@ -1386,11 +1386,22 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
     }
-    //================================================= Quantifiers rules
+    //================================================= Skolems rules
+    //================================================= Quantifiers/Skolems rules
     // ======== Skolem intro
     case PfRule::SKOLEM_INTRO:
     {
       return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== Skolem intro
+    case PfRule::REMOVE_TERM_FORMULA_AXIOM:
+    {
+      return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            {},
