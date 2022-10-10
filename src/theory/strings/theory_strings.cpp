@@ -1231,13 +1231,30 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     lems.push_back(SkolemLemma(tnk, k));
     return TrustNode::mkTrustRewrite(atom, k, nullptr);
   }
-  else if (ak == STRING_TO_CODE && options().strings.stringsCodeElim)
+  if (options().strings.stringsCodeElim)
   {
-    // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
+    if (ak == STRING_TO_CODE)
+    {
+      // If we are eliminating code, convert it to nth.
+      // str.to_code(t) ---> ite(str.len(t) = 1, str.nth(t,0), -1)
+      NodeManager* nm = NodeManager::currentNM();
+      Node t = atom[0];
+      Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
+      Node ret =
+          nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
+      return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+    }
+  }
+  else if (ak == SEQ_NTH && atom[0].getType().isString())
+  {
+    // If we are not eliminating code, we are eliminating nth (over strings);
+    // convert it to code.
+    // (seq.nth x n) ---> (str.to_code (str.substr x n 1))
     NodeManager* nm = NodeManager::currentNM();
-    Node t = atom[0];
-    Node cond = nm->mkNode(EQUAL, nm->mkNode(STRING_LENGTH, t), d_one);
-    Node ret = nm->mkNode(ITE, cond, nm->mkNode(SEQ_NTH, t, d_zero), d_neg_one);
+    Node ret = nm->mkNode(
+        STRING_TO_CODE,
+        nm->mkNode(
+            STRING_SUBSTR, atom[0], atom[1], nm->mkConstInt(Rational(1))));
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
 
