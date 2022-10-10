@@ -18,8 +18,8 @@
 
 include(deps-helper)
 
-find_path(CoCoA_INCLUDE_DIR NAMES CoCoA/CoCoA.h)
-find_library(CoCoA_LIBRARIES NAMES CoCoA)
+find_path(CoCoA_INCLUDE_DIR NAMES CoCoA/library.H)
+find_library(CoCoA_LIBRARIES NAMES cocoa)
 
 set(CoCoA_FOUND_SYSTEM FALSE)
 if(CoCoA_INCLUDE_DIR AND CoCoA_LIBRARIES)
@@ -54,8 +54,12 @@ if(NOT CoCoA_FOUND_SYSTEM)
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
-    URL "https://cocoa.dima.unige.it/cocoa/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz"
-    URL_HASH SHA1=f4fd9ea846b245adb3ee955dd8af9aaf192a9df3
+    URL "http://cocoa.dima.unige.it/cocoa/cocoalib/tgz/CoCoALib-${CoCoA_VERSION}.tgz"
+    URL_HASH SHA256=f8bb227e2e1729e171cf7ac2008af71df25914607712c35db7bcb5a044a928c6
+    # CoCoA requires C++14, but the check does not work with compilers that
+    # default to C++17 or newer. The patch fixes the check.
+    PATCH_COMMAND patch -p1 -d <SOURCE_DIR>
+        -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CoCoALib-0.99800-trace.patch
     BUILD_IN_SOURCE YES
     CONFIGURE_COMMAND ./configure --prefix=<INSTALL_DIR>
     BUILD_COMMAND ${make_cmd} library

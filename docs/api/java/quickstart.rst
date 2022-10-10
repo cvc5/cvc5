@@ -2,14 +2,11 @@ Quickstart Guide
 ================
 
 First, create a cvc5 `Solver <io/github/cvc5/api/Solver.html>`_
-instance using try with resources:
+instance:
 
 .. code-block:: java
 
-     try (Solver solver = new Solver())
-     {
-       /** write your code here */
-     }
+     Solver solver = new Solver();
 
 To produce models and unsat cores, we have to enable the following options.
 

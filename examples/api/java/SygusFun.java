@@ -24,7 +24,7 @@ public class SygusFun
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // required options
       slv.setOption("sygus", "true");
@@ -57,8 +57,7 @@ public class SygusFun
       Term leq = slv.mkTerm(LEQ, start, start);
 
       // create the grammar object
-      Grammar g =
-          slv.mkGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
+      Grammar g = slv.mkGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
 
       // bind each non-terminal to its rules
       g.addRules(start, new Term[] {zero, one, x, y, plus, minus, ite});
