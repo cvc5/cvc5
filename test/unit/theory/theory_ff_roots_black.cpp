@@ -260,7 +260,6 @@ TEST_F(TestTheoryFfRootsBlack, RootsFull)
   }
 }
 
-#endif  // CVC5_USE_COCOA
-
 }  // namespace test
 }  // namespace cvc5::internal
+#endif  // CVC5_USE_COCOA

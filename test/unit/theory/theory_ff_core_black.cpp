@@ -77,7 +77,6 @@ TEST_F(TestTheoryFfRootsBlack, DistinctRootsPoly)
   }
 }
 
-#endif  // CVC5_USE_COCOA
-
 }  // namespace test
 }  // namespace cvc5::internal
+#endif  // CVC5_USE_COCOA
