@@ -13,6 +13,7 @@
  * Black box testing of ff model construction.
  */
 
+#ifdef CVC5_USE_COCOA
 #include <CoCoA/BigInt.H>
 #include <CoCoA/QuotientRing.H>
 #include <CoCoA/RingZZ.H>
@@ -239,3 +240,4 @@ TEST_F(TestTheoryFfModelBlack, CommonRootCosntraints)
 
 }  // namespace test
 }  // namespace cvc5::internal
+#endif  // CVC5_USE_COCOA

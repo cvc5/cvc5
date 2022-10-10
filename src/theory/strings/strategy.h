@@ -47,8 +47,6 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
-  // check register terms pre-normal forms
-  CHECK_REGISTER_TERMS_PRE_NF,
   // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
   // check normal forms disequalities
