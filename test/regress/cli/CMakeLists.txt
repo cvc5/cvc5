@@ -3214,7 +3214,6 @@ set(regress_4_tests
   regress4/fischer3-mutex-16.smtv1.smt2
   regress4/instance_1151.smtv1.smt2
   regress4/NEQ016_size5.smtv1.smt2
-  regress4/sets-card-neg-mem-union-2.smt2
   regress4/siegel-nl-bases.smt2
   regress4/unsat-circ-reduce.smt2
   regress4/xs-11-20-5-2-5-3.smt2
@@ -3350,6 +3349,7 @@ set(regression_disabled_tests
   regress4/comb2.shuffled-as.sat03-420.smtv1.smt2
   regress4/issue2429.smt2
   regress4/pp-regfile.smtv1.smt2
+  regress4/sets-card-neg-mem-union-2.smt2
   # leads to subtyping issues with miplib preprocessing pass
   regress4/miplib-pp08a-3000.smt2
   regress4/miplib-pp08a-3000.smtv1.smt2
