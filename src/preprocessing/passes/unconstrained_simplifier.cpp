@@ -262,9 +262,15 @@ void UnconstrainedSimplifier::processUnconstrained()
             break;
           }
           // Otherwise if the cardinality class is INTERPRETED_ONE, then
-          // the type is infinite if finite model finding is disabled.
-          // Moreover, finite model find can never be combined with this class.
-          Assert (!options().quantifiers.finiteModelFind);
+          // the type may be one if finite model finding is enabled. We abort
+          // in this case.
+          if (c == CardinalityClass::INTERPRETED_ONE)
+          {
+            if (options().quantifiers.finiteModelFind)
+            {
+              break;
+            }
+          }
           if (parent[0].getType().isBoolean())
           {
             checkParent = true;
