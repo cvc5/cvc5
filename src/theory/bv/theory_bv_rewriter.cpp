@@ -51,25 +51,6 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return res;
 }
 
-TrustNode TheoryBVRewriter::expandDefinition(Node node)
-{
-  Trace("bitvector-expandDefinition")
-      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
-  Node ret;
-  switch (node.getKind())
-  {
-    case kind::BITVECTOR_SDIV:
-    case kind::BITVECTOR_SREM:
-    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
-    default: break;
-  }
-  if (!ret.isNull() && node != ret)
-  {
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
@@ -750,13 +731,4 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable[kind::BITVECTOR_UMULO] = RewriteUmulo;
   d_rewriteTable[kind::BITVECTOR_SMULO] = RewriteSmulo;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
-}
-
-Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {
-  Node result = bv::LinearRewriteStrategy <
-    bv::RewriteRule<bv::SremEliminate>,
-    bv::RewriteRule<bv::SdivEliminate>,
-    bv::RewriteRule<bv::SmodEliminate>
-    >::apply(node);
-  return result;
 }
