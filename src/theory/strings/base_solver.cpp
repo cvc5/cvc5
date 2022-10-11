@@ -375,10 +375,10 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // s or t may be concrete integers corresponding to code
         // points of string constants, and thus are not guaranteed to
         // be terms in the equality engine.
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         // We must send this lemma immediately, since otherwise if buffered,
         // this lemma may be dropped if there is a fact or conflict that
-        // preempts it. 
+        // preempts it.
         Node lem = nm->mkNode(IMPLIES, nm->mkAnd(exp), conc);
         d_im.lemma(lem, InferenceId::STRINGS_UNIT_INJ_OOB);
         Trace("strings-base") << "...oob split" << std::endl;
