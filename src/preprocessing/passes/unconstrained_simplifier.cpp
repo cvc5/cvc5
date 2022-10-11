@@ -21,6 +21,7 @@
 
 #include "expr/dtype.h"
 #include "expr/skolem_manager.h"
+#include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/logic_exception.h"
@@ -252,25 +253,21 @@ void UnconstrainedSimplifier::processUnconstrained()
         // larger than 1, any unconstrained child makes parent unconstrained as
         // well
         case kind::EQUAL:
-          if (parent[0].getType() != parent[1].getType())
-          {
-            TNode other = (parent[0] == current) ? parent[1] : parent[0];
-            if (current.getType() == other.getType())
-            {
-              break;
-            }
-          }
-          if (parent[0].getType().getCardinality().isOne())
+        {
+          // equality uses strict type rule
+          Assert(parent[0].getType() == parent[1].getType());
+          CardinalityClass c = parent[0].getType().getCardinalityClass();
+          if (c == CardinalityClass::ONE)
           {
             break;
           }
-          if (parent[0].getType().isDatatype())
+          // Otherwise if the cardinality class is INTERPRETED_ONE, then
+          // the type may be one if finite model finding is enabled. We abort
+          // in this case.
+          if (c == CardinalityClass::INTERPRETED_ONE)
           {
-            TypeNode tn = parent[0].getType();
-            const DType& dt = tn.getDType();
-            if (dt.isRecursiveSingleton(tn))
+            if (options().quantifiers.finiteModelFind)
             {
-              // domain size may be 1
               break;
             }
           }
@@ -280,6 +277,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             break;
           }
           CVC5_FALLTHROUGH;
+        }
         case kind::BITVECTOR_COMP:
         case kind::LT:
         case kind::LEQ:
