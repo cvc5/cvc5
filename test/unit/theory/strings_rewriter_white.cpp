@@ -38,7 +38,7 @@ class TestTheoryWhiteStringsRewriter : public TestSmt
 
 TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode intType = d_nodeManager->integerType();
   TypeNode strType = d_nodeManager->stringType();
 

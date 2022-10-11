@@ -17,7 +17,6 @@ package io.github.cvc5;
 
 abstract class AbstractPointer implements IPointer
 {
-  protected final Solver solver;
   protected long pointer;
 
   public long getPointer()
@@ -27,18 +26,13 @@ abstract class AbstractPointer implements IPointer
 
   protected abstract void deletePointer(long pointer);
 
-  void deletePointer()
+  public void deletePointer()
   {
     if (pointer != 0)
     {
       deletePointer(pointer);
     }
     pointer = 0;
-  }
-
-  public Solver getSolver()
-  {
-    return solver;
   }
 
   @Override
@@ -49,10 +43,9 @@ abstract class AbstractPointer implements IPointer
 
   abstract protected String toString(long pointer);
 
-  AbstractPointer(Solver solver, long pointer)
+  AbstractPointer(long pointer)
   {
-    this.solver = solver;
     this.pointer = pointer;
-    solver.addAbstractPointer(this);
+    Context.addAbstractPointer(this);
   }
 }

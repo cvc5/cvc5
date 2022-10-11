@@ -22,6 +22,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/smt_solver.h"
 #include "smt/solver_engine.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -46,8 +47,8 @@ class TestPPWhiteBVGauss : public TestSmt
 
     d_preprocContext.reset(new preprocessing::PreprocessingPassContext(
         d_slvEngine->getEnv(),
-        d_slvEngine->getTheoryEngine(),
-        d_slvEngine->getPropEngine(),
+        d_slvEngine->d_smtSolver->getTheoryEngine(),
+        d_slvEngine->d_smtSolver->getPropEngine(),
         nullptr));
 
     d_bv_gauss.reset(new BVGauss(d_preprocContext.get()));
@@ -1870,7 +1871,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2022,7 +2023,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2242,7 +2243,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -3007,7 +3008,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5a)
 
 TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   /* (bvadd
    *   (bvadd
    *     (bvadd

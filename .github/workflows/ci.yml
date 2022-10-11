@@ -30,7 +30,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
           - name: macos:production-arm64
-            os: macos-11
+            os: macos-12
             config: production --auto-download --python-bindings --editline --arm64
             cache-key: production-arm64
             strip-bin: strip
@@ -57,7 +57,7 @@ jobs:
 
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
-            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline
+            config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
             cache-key: dbg
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump

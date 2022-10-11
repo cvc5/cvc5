@@ -38,7 +38,6 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
 #include "util/didyoumean.h"
 
 namespace cvc5::internal {

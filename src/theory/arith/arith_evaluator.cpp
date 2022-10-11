@@ -23,10 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::optional<bool> isExpressionZero(Env& env,
-                                     Node expr,
-                                     const std::vector<TNode>& nodes,
-                                     const std::vector<TNode>& repls)
+std::optional<bool> isExpressionZero(Env& env, Node expr, const ArithSubs& subs)
 {
   // Substitute constants and rewrite
   expr = env.getRewriter()->rewrite(expr);
@@ -34,8 +31,9 @@ std::optional<bool> isExpressionZero(Env& env,
   {
     return expr.getConst<Rational>().isZero();
   }
-  expr =
-      expr.substitute(nodes.begin(), nodes.end(), repls.begin(), repls.end());
+  // we use an arithmetic substitution, which does not traverse into
+  // terms that do not belong to the core theory of arithmetic.
+  expr = subs.applyArith(expr);
   expr = env.getRewriter()->rewrite(expr);
   if (expr.isConst())
   {
