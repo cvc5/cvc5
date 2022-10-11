@@ -6,6 +6,7 @@ This file contains a summary of important user-visible changes.
     of the solver version.
 - Support for bit-vector overflow detection operators:
   * `BITVECTOR_UADDO` unsigned addition overflow detection
+  * `BITVECTOR_SADDO` signed addition overflow detection
   * `BITVECTOR_UMULO` unsigned multiplication overflow detection
   * `BITVECTOR_SMULO` signed multiplication overflow detection
 
