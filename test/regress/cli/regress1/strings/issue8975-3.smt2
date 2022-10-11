@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=internal
+; COMMAND-LINE: --decision=internal -q
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (declare-const x Int)
