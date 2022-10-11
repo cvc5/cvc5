@@ -645,7 +645,9 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   // should trigger the match object. For example, if we have auxiliary
   // variable k and original variable x where x <-> k currently, and we set
   // k -> t, then we should notify the match object that x -> t. However,
-  // this is not done here, as it would require more complex bookkeeping.
+  // this is not done, as it would require more complex bookkeeping. Overall,
+  // this means that we may fail in some rare cases to eagerly recognize when a
+  // substitution is an entailed.
   d_match[v] = n;
   return true;
 }
@@ -688,8 +690,10 @@ bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
   if (options().quantifiers.ievalMode != options::IevalMode::OFF)
   {
     // We rely on the instantiation evaluator. When the instantiation evaluator
-    // is enabled, this method (almost) always returns false. It may return
-    // true based on minor differences in the entailment tests.
+    // is enabled, this method (almost) always returns false. The code may
+    // return true based on minor differences in the entailment tests, which
+    // would allow us in very rare cases to recognize when an instantiation
+    // is spurious.
     return false;
   }
   if (options().quantifiers.cbqiEagerTest)
