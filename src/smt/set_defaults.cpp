@@ -189,15 +189,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     std::stringstream reasonNoProofs;
     if (incompatibleWithProofs(opts, reasonNoProofs))
     {
-      // different on proof-new we silently disable
-      opts.writeSmt().produceUnsatCores = false;
-      opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::OFF;
-      notifyModifyOption(
-          "produceProofs and unsatCores", "false", reasonNoProofs.str());
-      opts.writeSmt().produceProofs = false;
-      opts.writeProof().proofReq = false;
-      opts.writeSmt().checkProofs = false;
-      opts.writeSmt().proofMode = options::ProofMode::OFF;
+      std::stringstream ss;
+      ss << reasonNoProofs.str() << " not supported with proofs or unsat cores";
+      throw OptionException(ss.str());
     }
   }
   if (d_isInternalSubsolver)
