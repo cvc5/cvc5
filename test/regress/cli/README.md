@@ -29,7 +29,8 @@ TEST_TIMEOUT=0.5 ctest -L regress0
 
 This runs regression tests from level 0 with a 0.5 second timeout.
 
-In order to run regressions with an option turned on, set the `CVC5_REGRESSION_ARGS` environment variable:
+In order to run regressions with an option turned on, set the
+`CVC5_REGRESSION_ARGS` environment variable:
 
 ```
 CVC5_REGRESSION_ARGS="--ackermann" ctest -L regress0
