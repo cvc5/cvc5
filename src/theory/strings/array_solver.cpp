@@ -227,6 +227,11 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
         }
         else
         {
+          if (d_state.areDisequal(t[1], d_zero))
+          {
+            // n is known to be disequal from zero, skip
+            return;
+          }
           Assert(k == SEQ_NTH);
           Node val;
           if (cIsConst)

@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_UTILS_H
+#define CVC5__THEORY__BV__THEORY_BV_UTILS_H
 
 #include <set>
 #include <unordered_map>
@@ -199,6 +200,8 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 }
-}
-}
+
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
+#endif

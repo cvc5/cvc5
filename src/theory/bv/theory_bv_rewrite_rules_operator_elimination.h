@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -704,6 +705,48 @@ inline Node RewriteRule<UaddoEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<SaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SADDO);
+}
+
+template <>
+inline Node RewriteRule<SaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  // Overflow occurs if
+  //  1) negative + negative = positive
+  //  2) positive + positive = negative
+
+  NodeManager* nm = NodeManager::currentNM();
+  uint32_t size = node[0].getType().getBitVectorSize();
+  Node zero = utils::mkZero(1);
+  Node one = utils::mkOne(1);
+  Node extOpN =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+  Node sign0 = nm->mkNode(extOpN, node[0]);
+  Node sign1 = nm->mkNode(extOpN, node[1]);
+  Node add = nm->mkNode(kind::BITVECTOR_ADD, node[0], node[1]);
+  Node signa = nm->mkNode(extOpN, add);
+
+  Node both_neg = nm->mkNode(kind::AND,
+                             nm->mkNode(kind::EQUAL, sign0, one),
+                             nm->mkNode(kind::EQUAL, sign1, one));
+  Node both_pos = nm->mkNode(kind::AND,
+                             nm->mkNode(kind::EQUAL, sign0, zero),
+                             nm->mkNode(kind::EQUAL, sign1, zero));
+
+  Node result_neg = nm->mkNode(kind::EQUAL, signa, one);
+  Node result_pos = nm->mkNode(kind::EQUAL, signa, zero);
+
+  return nm->mkNode(kind::OR,
+                    nm->mkNode(kind::AND, both_neg, result_pos),
+                    nm->mkNode(kind::AND, both_pos, result_neg));
+}
+
+template <>
 inline bool RewriteRule<UmuloEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_UMULO);
@@ -824,3 +867,4 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal
+#endif
