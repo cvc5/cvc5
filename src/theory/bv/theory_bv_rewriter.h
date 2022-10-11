@@ -29,22 +29,10 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryBVRewriter : public TheoryRewriter
 {
  public:
-  /**
-   * Temporary hack for devision-by-zero until we refactor theory code from
-   * smt engine.
-   *
-   * @param node
-   *
-   * @return
-   */
-  static Node eliminateBVSDiv(TNode node);
-
   TheoryBVRewriter();
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
-
-  TrustNode expandDefinition(Node node) override;
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
