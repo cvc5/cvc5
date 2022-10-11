@@ -478,6 +478,8 @@ set(regress_0_tests
   regress0/bv/mult-pow2-negative.smt2
   regress0/bv/overflow/uaddo1.smt2
   regress0/bv/overflow/uaddo2.smt2
+  regress0/bv/overflow/saddo1.smt2
+  regress0/bv/overflow/saddo2.smt2
   regress0/bv/overflow/umulo1.smt2
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
@@ -1026,6 +1028,7 @@ set(regress_0_tests
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
+  regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -1510,6 +1513,7 @@ set(regress_0_tests
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
+  regress0/strings/simple-nth-fail.smt2
   regress0/strings/std2.6.1.smt2
   regress0/strings/str_unsound_ext_rew_eq.smt2
   regress0/strings/str-rev-simple.smt2
@@ -2116,9 +2120,14 @@ set(regress_1_tests
   regress1/nl/issue8960-lr-to-real-model.smt2
   regress1/nl/issue8963-to-real-model.smt2
   regress1/nl/issue9113-1-iand-cg.smt2
+  regress1/nl/issue9113-2-iand.smt2
   regress1/nl/issue9113-iand-cg.smt2
   regress1/nl/issue9164.smt2
   regress1/nl/issue9164-2.smt2
+  regress1/nl/issue9183-1.smt2
+  regress1/nl/issue9183-3.smt2
+  regress1/nl/issue9183-4.smt2
+  regress1/nl/issue9183-5.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2

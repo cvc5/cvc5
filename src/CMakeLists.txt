@@ -687,6 +687,8 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/groebner.cpp
+  theory/ff/groebner.h
   theory/ff/core.cpp
   theory/ff/core.h
   theory/ff/model.cpp
@@ -711,6 +713,8 @@ libcvc5_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/theory_fp_type_rules.cpp
+  theory/fp/theory_fp_utils.h
+  theory/fp/theory_fp_utils.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
   theory/incomplete_id.cpp
@@ -1241,6 +1245,7 @@ set(options_toml_files
   options/datatypes_options.toml
   options/decision_options.toml
   options/expr_options.toml
+  options/ff_options.toml
   options/fp_options.toml
   options/main_options.toml
   options/parallel_options.toml
