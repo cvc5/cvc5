@@ -119,6 +119,8 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
 
   // Facts, in notification order.
   //
+  // Contains only the facts in *this specific field*.
+  //
   // Uses SAT context.
   context::CDList<Node> d_facts;
 
