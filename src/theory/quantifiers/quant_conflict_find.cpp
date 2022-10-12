@@ -647,7 +647,7 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   // k -> t, then we should notify the match object that x -> t. However,
   // this is not done, as it would require more complex bookkeeping. Overall,
   // this means that we may fail in some rare cases to eagerly recognize when a
-  // substitution is an entailed.
+  // substitution is entailed.
   d_match[v] = n;
   return true;
 }
