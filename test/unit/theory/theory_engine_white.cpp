@@ -26,6 +26,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "options/options.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
@@ -49,10 +50,8 @@ class TestTheoryWhiteEngine : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_context = d_slvEngine->getContext();
-    d_user_context = d_slvEngine->getUserContext();
 
-    d_theoryEngine = d_slvEngine->getTheoryEngine();
+    d_theoryEngine = d_slvEngine->d_smtSolver->getTheoryEngine();
     for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
     {
       delete d_theoryEngine->d_theoryOut[id];
@@ -68,14 +67,12 @@ class TestTheoryWhiteEngine : public TestSmt
     d_theoryEngine->addTheory<DummyTheory<THEORY_BV> >(THEORY_BV);
   }
 
-  Context* d_context;
-  UserContext* d_user_context;
   TheoryEngine* d_theoryEngine;
 };
 
 TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
@@ -99,7 +96,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 
 TEST_F(TestTheoryWhiteEngine, rewriter_complex)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->realType());
   TypeNode u = d_nodeManager->mkSort("U");

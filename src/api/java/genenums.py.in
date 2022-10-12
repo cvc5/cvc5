@@ -104,7 +104,7 @@ CPP_JAVA_MAPPING = \
         r"\buint64_t\b": "long",
         r"\bunsigned char\b": "byte",
         r"cvc5::": "cvc5.",
-        r"Term::Term\(\)": "{@link Solver#getNullTerm()}",
+        r"Term::Term\(\)": "{@link Term#Term()}",
         r"([a-zA-Z]*)::(.*?\))": r"{@link \1#\2}",
         r"std::vector<int>": "int[]",
         r"std::vector<Term>": "Term[]",

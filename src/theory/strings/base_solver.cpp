@@ -53,12 +53,11 @@ BaseSolver::~BaseSolver() {}
 void BaseSolver::checkInit()
 {
   // build term index
-  d_relevantTerms.clear();
   d_eqcInfo.clear();
   d_termIndex.clear();
   d_stringLikeEqc.clear();
 
-  d_termReg.getRelevantTermSet(d_relevantTerms);
+  const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
 
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
@@ -215,8 +214,8 @@ void BaseSolver::checkInit()
               // assuming that the reduction of f(a) depends on itself.
             }
             // this node is congruent to another one, we can ignore it
-            if (d_relevantTerms.find(n) != d_relevantTerms.end()
-                && d_relevantTerms.find(nc) == d_relevantTerms.end())
+            if (rlvSet.find(n) != rlvSet.end()
+                && rlvSet.find(nc) == rlvSet.end())
             {
               // If `n` is a relevant term and `nc` is not, then we change
               // the term at its index to `n` and mark `nc` as congruent.
@@ -355,6 +354,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
       if (!d_state.areDisequal(s, t))
       {
         d_im.sendSplit(s, t, InferenceId::STRINGS_UNIT_SPLIT);
+        Trace("strings-base") << "...split" << std::endl;
       }
       else if (d_strUnitOobEq.find(eq) == d_strUnitOobEq.end())
       {
@@ -375,7 +375,17 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // s or t may be concrete integers corresponding to code
         // points of string constants, and thus are not guaranteed to
         // be terms in the equality engine.
-        d_im.sendInference(exp, exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+        NodeManager* nm = NodeManager::currentNM();
+        // We must send this lemma immediately, since otherwise if buffered,
+        // this lemma may be dropped if there is a fact or conflict that
+        // preempts it.
+        Node lem = nm->mkNode(IMPLIES, nm->mkAnd(exp), conc);
+        d_im.lemma(lem, InferenceId::STRINGS_UNIT_INJ_OOB);
+        Trace("strings-base") << "...oob split" << std::endl;
+      }
+      else
+      {
+        Trace("strings-base") << "...already sent oob" << std::endl;
       }
     }
     else
@@ -383,7 +393,12 @@ bool BaseSolver::processConstantLike(Node a, Node b)
       // (seq.unit x) = (seq.unit y) => x=y, or
       // (seq.unit x) = (seq.unit c) => x=c
       d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+      Trace("strings-base") << "...inj seq" << std::endl;
     }
+  }
+  else
+  {
+    Trace("strings-base") << "...equal" << std::endl;
   }
   return false;
 }

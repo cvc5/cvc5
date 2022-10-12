@@ -18,6 +18,7 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
@@ -38,10 +39,11 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   {
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->finishInit();
-    delete d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
-    delete d_slvEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
-    d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
-    d_slvEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    delete te->d_theoryTable[THEORY_BUILTIN];
+    delete te->d_theoryOut[THEORY_BUILTIN];
+    te->d_theoryTable[THEORY_BUILTIN] = nullptr;
+    te->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
     d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
         d_slvEngine->getEnv(), d_outputChannel, Valuation(nullptr)));

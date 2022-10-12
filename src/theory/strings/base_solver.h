@@ -231,8 +231,6 @@ class BaseSolver : protected EnvObj
   /** Commonly used constants */
   Node d_emptyString;
   Node d_false;
-  /** Set of terms that appear in the current assertions */
-  std::set<Node> d_relevantTerms;
   /**
    * A congruence class is a set of terms f( t1 ), ..., f( tn ) where
    * t1 = ... = tn. Congruence classes are important since all but

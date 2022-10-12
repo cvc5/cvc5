@@ -51,6 +51,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (const Node& n : definitions)
   {
     definedSymbols.insert(n[0]);
+    // Note that we don't have to convert it via the term processor (for the
+    // sake of inferring declared symbols), since this is already done in the
+    // lfsc post processor update method for the outermost SCOPE.
   }
   const std::vector<Node>& assertions = pn->getChildren()[0]->getArguments();
   const ProofNode* pnBody = pn->getChildren()[0]->getChildren()[0].get();
@@ -145,7 +148,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   std::unordered_set<size_t> tupleArity;
   // get the types from the term processor, which has seen all terms occurring
   // in the proof at this point
-  const std::unordered_set<TypeNode>& types = d_tproc.getDeclaredTypes();
+  // The for loop below may add elements to the set of declared types, so we
+  // copy the set to ensure that the for loop iterators do not become outdated.
+  const std::unordered_set<TypeNode> types = d_tproc.getDeclaredTypes();
   for (const TypeNode& st : types)
   {
     // note that we must get all "component types" of a type, so that
@@ -261,11 +266,23 @@ void LfscPrinter::printTypeDefinition(
     return;
   }
   processed.insert(tn);
-  if (tn.isUninterpretedSort())
+  // print uninterpreted sorts and uninterpreted sort constructors here
+  if (tn.getKind() == SORT_TYPE)
   {
     os << "(declare ";
     printType(os, tn);
-    os << " sort)" << std::endl;
+    uint64_t arity = 0;
+    if (tn.isUninterpretedSortConstructor())
+    {
+      arity = tn.getUninterpretedSortConstructorArity();
+    }
+    std::stringstream tcparen;
+    for (uint64_t i = 0; i < arity; i++)
+    {
+      os << " (! s" << i << " sort";
+      tcparen << ")";
+    }
+    os << " sort" << tcparen.str() << ")" << std::endl;
   }
   else if (tn.isDatatype())
   {

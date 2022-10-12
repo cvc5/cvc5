@@ -242,7 +242,9 @@ void ExtfSolver::checkExtfReductions(int effort)
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
   // stratifying effort levels are done in doReduction below.
-  std::vector<Node> extf = d_extt.getActive();
+  // We only have to reduce extended functions that are both relevant and
+  // active (see getRelevantActive).
+  std::vector<Node> extf = getRelevantActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
   for (const Node& n : extf)
@@ -752,14 +754,16 @@ bool ExtfSolver::isActiveInModel(Node n) const
 
 std::vector<Node> ExtfSolver::getRelevantActive() const
 {
-  std::set<Node> relevantTerms;
-  d_termReg.getRelevantTermSet(relevantTerms);
+  // get the relevant term set
+  std::vector<Node> extf = d_extt.getActive();
+  const std::set<Node>& relevantTerms = d_termReg.getRelevantTermSet();
 
   std::vector<Node> res;
-  for (const Node& n : relevantTerms)
+  for (const Node& n : extf)
   {
-    if (d_extt.hasFunctionKind(n.getKind()) && !d_extt.isActive(n))
+    if (relevantTerms.find(n) == relevantTerms.end())
     {
+      // not relevant
       continue;
     }
     res.push_back(n);
