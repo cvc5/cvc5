@@ -503,8 +503,24 @@ std::string AletheProofPrinter::printInternal(
   out << "(step " << current_t << " ";
   printTerm(out, args[2]);
   out << " :rule " << arule;
-  if (args.size() > 3 && arule != AletheRule::RESOLUTION && arule != AletheRule::RESOLUTION_OR)
+  if (pfn->getChildren().size() >= 1)
   {
+    out << " :premises (";
+    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
+    {
+      out << child_prefixes[i] << (i != size - 1? " " : "");
+    }
+    out << ")";
+  }
+  if (args.size() > 3)
+  {
+  if (arule == AletheRule::RESOLUTION || arule == AletheRule::RESOLUTION_OR)
+  {
+    Trace("test") << "Args of res"
+                  << (arule == AletheRule::RESOLUTION ? "" : "_or") << " for "
+                  << current_t << " are " << args << "\n";
+  }
+
     out << " :args (";
     for (size_t i = 3, size = args.size(); i < size; i++)
     {
@@ -525,19 +541,7 @@ std::string AletheProofPrinter::printInternal(
     }
     out << ")";
   }
-  if (pfn->getChildren().size() >= 1)
-  {
-    out << " :premises (";
-    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
-    {
-      out << child_prefixes[i] << (i != size - 1? " " : "");
-    }
-    out << "))\n";
-  }
-  else
-  {
-    out << ")\n";
-  }
+  out << ")\n";
   return current_t;
 }
 
