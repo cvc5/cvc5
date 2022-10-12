@@ -119,6 +119,11 @@ TEST_F(TestTheoryBlackBv, smulo)
   test_signed_overflow(BITVECTOR_MULT, BITVECTOR_SMULO);
 }
 
+TEST_F(TestTheoryBlackBv, ssubo)
+{
+  test_signed_overflow(BITVECTOR_SUB, BITVECTOR_SSUBO);
+}
+
 TEST_F(TestTheoryBlackBv, reg8361)
 {
   Solver slv;
