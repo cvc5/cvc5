@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: unsat
 ; COMMAND-LINE: --no-debug-check-models
 ; XOR compilation strategy (sound case)

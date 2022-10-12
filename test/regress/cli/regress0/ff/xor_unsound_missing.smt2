@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: sat
 ; XOR compilation strategy
 ; unsound because of a missing bit-constraint.

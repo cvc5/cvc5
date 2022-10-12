@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: sat
 ; EXPECT: sat
 ; COMMAND-LINE: --incremental

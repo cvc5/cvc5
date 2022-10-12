@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: unsat
 ; x, m, is_zero: field
 ; The constraints mx - 1 + is_zero = 0

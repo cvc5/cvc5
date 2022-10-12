@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: sat
 ; XOR compilation strategy (unsound because even though the XOR sum can not
 ; overflow, the bit decomposition sum can.

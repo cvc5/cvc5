@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: sat
 ; Tests the ff rewriter
 (set-info :smt-lib-version 2.6)

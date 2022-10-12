@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: sat

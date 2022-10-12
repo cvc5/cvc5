@@ -1,3 +1,4 @@
+; REQUIRES: cocoa
 ; EXPECT: sat
 ; COMMAND-LINE: --no-debug-check-models
 ; x, m, is_zero: field
