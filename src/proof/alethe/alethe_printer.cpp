@@ -503,7 +503,7 @@ std::string AletheProofPrinter::printInternal(
   out << "(step " << current_t << " ";
   printTerm(out, args[2]);
   out << " :rule " << arule;
-  if (args.size() > 3)
+  if (args.size() > 3 && arule != AletheRule::RESOLUTION && arule != AletheRule::RESOLUTION_OR)
   {
     out << " :args (";
     for (size_t i = 3, size = args.size(); i < size; i++)

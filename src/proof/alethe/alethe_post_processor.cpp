@@ -57,7 +57,7 @@ bool AletheProofPostprocessCallback::shouldUpdatePost(
 {
   Assert(!pn->getArguments().empty());
   AletheRule rule = getAletheRule(pn->getArguments()[0]);
-  return rule == AletheRule::RESOLUTION || rule == AletheRule::REORDERING
+  return rule == AletheRule::RESOLUTION_OR || rule == AletheRule::REORDERING
          || rule == AletheRule::CONTRACTION;
 }
 
