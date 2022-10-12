@@ -30,6 +30,7 @@ endmacro()
 
 # add specific test files
 cvc5_add_python_api_test(pyapi_boilerplate boilerplate.py)
+cvc5_add_python_api_test(pyapi_finite_field finite_field.py)
 cvc5_add_python_api_test(pyapi_issue4889 issue4889.py)
 cvc5_add_python_api_test(pyapi_issue5074 issue5074.py)
 cvc5_add_python_api_test(pyapi_issue6111 issue6111.py)

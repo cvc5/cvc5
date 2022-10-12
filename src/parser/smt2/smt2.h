@@ -413,6 +413,8 @@ class Smt2 : public Parser
 
   void addBitvectorOperators();
 
+  void addFiniteFieldOperators();
+
   void addDatatypesOperators();
 
   void addStringOperators();

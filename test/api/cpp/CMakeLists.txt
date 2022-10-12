@@ -45,6 +45,7 @@ endmacro()
 
 cvc5_add_api_test(boilerplate)
 cvc5_add_api_test(ouroborous)
+cvc5_add_api_test(finite_field)
 cvc5_add_api_test(reset_assertions)
 cvc5_add_api_test(sep_log_api)
 cvc5_add_api_test(smt2_compliance)

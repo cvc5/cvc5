@@ -1118,6 +1118,8 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
+  | FIELD_LITERAL
+    { s = AntlrInput::tokenText($FIELD_LITERAL); }
   | symbol[s, CHECK_NONE, SYM_VERBATIM]
   | str[s, false]
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
@@ -1748,6 +1750,16 @@ termAtomic[cvc5::Term& atomTerm]
       std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       atomTerm = SOLVER->mkBitVector(binStr.size(), binStr, 2);
     }
+  | FIELD_LITERAL
+    {
+      Assert(AntlrInput::tokenText($FIELD_LITERAL).find("#f") == 0);
+      size_t mPos = AntlrInput::tokenText($FIELD_LITERAL).find("m");
+      Assert(mPos > 2);
+      std::string ffValStr = AntlrInput::tokenTextSubstr($FIELD_LITERAL, 2, mPos - 2);
+      std::string ffModStr = AntlrInput::tokenTextSubstr($FIELD_LITERAL, mPos + 1);
+      Sort ffSort = SOLVER->mkFiniteFieldSort(ffModStr);
+      atomTerm = SOLVER->mkFiniteFieldElem(ffValStr, ffSort);
+    }
 
   // String constant
   | str[s, true] { atomTerm = PARSER_STATE->mkStringConstant(s); }
@@ -1953,7 +1965,7 @@ sortSymbol[cvc5::Sort& t]
 @declarations {
   std::string name;
   std::vector<cvc5::Sort> args;
-  std::vector<uint32_t> numerals;
+  std::vector<std::string> numerals;
   bool indexed = false;
 }
   : sortName[name,CHECK_NONE]
@@ -1962,7 +1974,7 @@ sortSymbol[cvc5::Sort& t]
     }
   | LPAREN_TOK (INDEX_TOK {indexed = true;} | {indexed = false;})
     symbol[name,CHECK_NONE,SYM_SORT]
-    ( nonemptyNumeralList[numerals]
+    ( nonemptyNumeralStringList[numerals]
       {
         if (!indexed)
         {
@@ -1975,21 +1987,28 @@ sortSymbol[cvc5::Sort& t]
           if( numerals.size() != 1 ) {
             PARSER_STATE->parseError("Illegal bitvector type.");
           }
-          if(numerals.front() == 0) {
+          if(numerals.front() == "0") {
             PARSER_STATE->parseError("Illegal bitvector size: 0");
           }
-          t = SOLVER->mkBitVectorSort(numerals.front());
+          t = SOLVER->mkBitVectorSort(AntlrInput::stringToUnsigned(numerals.front()));
+        } else if( name == "FiniteField" ) {
+          if( numerals.size() != 1 ) {
+            PARSER_STATE->parseError("Illegal finite field type.");
+          }
+          t = SOLVER->mkFiniteFieldSort(numerals.front());
         } else if ( name == "FloatingPoint" ) {
           if( numerals.size() != 2 ) {
             PARSER_STATE->parseError("Illegal floating-point type.");
           }
-          if(!internal::validExponentSize(numerals[0])) {
+          uint32_t n0 = AntlrInput::stringToUnsigned(numerals[0]);
+          uint32_t n1 = AntlrInput::stringToUnsigned(numerals[1]);
+          if(!internal::validExponentSize(n0)) {
             PARSER_STATE->parseError("Illegal floating-point exponent size");
           }
-          if(!internal::validSignificandSize(numerals[1])) {
+          if(!internal::validSignificandSize(n1)) {
             PARSER_STATE->parseError("Illegal floating-point significand size");
           }
-          t = SOLVER->mkFloatingPointSort(numerals[0],numerals[1]);
+          t = SOLVER->mkFloatingPointSort(n0, n1);
         } else {
           std::stringstream ss;
           ss << "unknown indexed sort symbol `" << name << "'";
@@ -2108,12 +2127,22 @@ symbol[std::string& id,
   ;
 
 /**
- * Matches a nonempty list of numerals.
+ * Matches a nonempty list of unsigned numerals and returns their unsigned values, capped at 2^32-1.
  * @param numerals the (empty) vector to house the numerals.
  */
 nonemptyNumeralList[std::vector<uint32_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
+    )+
+  ;
+
+/**
+ * Matches a nonempty list of numerals.
+ * @param numerals the (empty) vector to house the numerals.
+ */
+nonemptyNumeralStringList[std::vector<std::string>& numeralStrings]
+  : ( INTEGER_LITERAL
+      { numeralStrings.push_back(AntlrInput::tokenText($INTEGER_LITERAL)); }
     )+
   ;
 
@@ -2364,6 +2393,13 @@ HEX_LITERAL
  */
 BINARY_LITERAL
   : '#b' ('0' | '1')+
+  ;
+
+/**
+ * Matches a binary constant.
+ */
+FIELD_LITERAL
+  : '#f' INTEGER_LITERAL 'm' INTEGER_LITERAL
   ;
 
 /**

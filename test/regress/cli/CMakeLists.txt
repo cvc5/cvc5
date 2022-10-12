@@ -642,6 +642,28 @@ set(regress_0_tests
   regress0/expect/scrub.06.cvc.smt2
   regress0/expect/scrub.08.sy
   regress0/expect/scrub.09.p
+  regress0/ff/as.smt2
+  regress0/ff/bigff_is_zero_sound.smt2
+  regress0/ff/bigff_is_zero_unsound.smt2
+  regress0/ff/bool_nary_or_sound.smt2
+  regress0/ff/bool_nary_or_unsound.smt2
+  regress0/ff/combination.smt2
+  regress0/ff/ctx.smt2
+  regress0/ff/ff_is_zero_sound.smt2
+  regress0/ff/ff_is_zero_unsound.smt2
+  regress0/ff/ff_xor_sound.smt2
+  regress0/ff/ff_xor_unsound.smt2
+  regress0/ff/ff_xor_unsound_model.smt2
+  regress0/ff/multicheck.smt2
+  regress0/ff/negneg.smt2
+  regress0/ff/randcompile-sound-3i-5t-circ.smt2
+  regress0/ff/randcompile-sound-3i-5t-zokcirc.smt2
+  regress0/ff/randcompile-sound-3i-5t-zokref.smt2
+  regress0/ff/rewriter.smt2
+  regress0/ff/simple.smt2
+  regress0/ff/univar_conjunction_sat.smt2
+  regress0/ff/univar_conjunction_unsat.smt2
+  regress0/ff/xor_unsound_missing.smt2
   regress0/flet.smtv1.smt2
   regress0/flet2.smtv1.smt2
   regress0/fmf/array_card.smt2

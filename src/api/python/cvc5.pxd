@@ -213,6 +213,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkArraySort(Sort indexSort, Sort elemSort) except +
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
+        Sort mkFiniteFieldSort(const string& size) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
         vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
@@ -275,6 +276,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Term mkBitVector(const string& s) except +
         Term mkBitVector(const string& s, uint32_t base) except +
         Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
+        Term mkFiniteFieldElem(const string& s, Sort sort) except +
         Term mkConstArray(Sort sort, Term val) except +
         Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
         Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +
@@ -391,6 +393,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isTuple() except +
         bint isRecord() except +
         bint isArray() except +
+        bint isFiniteField() except +
         bint isSet() except +
         bint isBag() except +
         bint isSequence() except +
@@ -420,6 +423,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort getSequenceElementSort() except +
         size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
+        string getFiniteFieldSize() except +
         uint32_t getFloatingPointExponentSize() except +
         uint32_t getFloatingPointSignificandSize() except +
         size_t getDatatypeArity() except +
@@ -506,6 +510,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         string getRealValue() except +
         bint isBitVectorValue() except +
         string getBitVectorValue(uint32_t base) except +
+        bint isFiniteFieldValue() except +
+        string getFiniteFieldValue() except +
         bint isUninterpretedSortValue() except +
         string getUninterpretedSortValue() except +
         bint isTupleValue() except +

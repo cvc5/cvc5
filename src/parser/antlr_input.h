@@ -172,6 +172,9 @@ public:
   /** Retrieve an unsigned from the text of a token */
   static unsigned tokenToUnsigned( pANTLR3_COMMON_TOKEN token );
 
+  /** Retrieve the text associated with a token. */
+  static unsigned stringToUnsigned(const std::string& str);
+
   /** Get the ANTLR3 lexer for this input. */
   pANTLR3_LEXER getAntlr3Lexer() { return d_lexer; }
 
@@ -248,9 +251,14 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
 }
 
 inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
+  return stringToUnsigned(tokenText(token));
+}
+
+inline unsigned AntlrInput::stringToUnsigned(const std::string& str)
+{
   unsigned result;
   std::stringstream ss;
-  ss << tokenText(token);
+  ss << str;
   ss >> result;
   return result;
 }

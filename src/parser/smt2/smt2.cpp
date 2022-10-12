@@ -128,6 +128,13 @@ void Smt2::addBitvectorOperators() {
   addIndexedOperator(cvc5::BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
+void Smt2::addFiniteFieldOperators()
+{
+  addOperator(cvc5::FINITE_FIELD_ADD, "ff.add");
+  addOperator(cvc5::FINITE_FIELD_MULT, "ff.mul");
+  addOperator(cvc5::FINITE_FIELD_NEG, "ff.neg");
+}
+
 void Smt2::addDatatypesOperators()
 {
   Parser::addOperator(cvc5::APPLY_CONSTRUCTOR);
@@ -752,6 +759,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addFloatingPointOperators();
   }
 
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_FF))
+  {
+    addFiniteFieldOperators();
+  }
+
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SEP))
   {
     addSepOperators();
@@ -946,6 +958,18 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
     {
       p.d_expr = getExpressionForNameAndType(p.d_name, type);
       p.d_name = std::string("");
+    }
+    if (p.d_name.find("ff") == 0)
+    {
+      std::string rest = p.d_name.substr(2);
+      if (!type.isFiniteField())
+      {
+        std::stringstream ss;
+        ss << "expected finite field sort to ascribe " << p.d_name
+           << " but found sort: " << type;
+        parseError(ss.str());
+      }
+      p.d_expr = d_solver->mkFiniteFieldElem(rest, type);
     }
     if (p.d_expr.isNull())
     {

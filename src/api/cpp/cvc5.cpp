@@ -74,6 +74,7 @@
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
+#include "util/ff_val.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/random.h"
@@ -226,6 +227,11 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
                   internal::Kind::BITVECTOR_ROTATE_RIGHT),
         KIND_ENUM(INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR),
         KIND_ENUM(BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
+        /* Finite Fields --------------------------------------------------- */
+        KIND_ENUM(CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
+        KIND_ENUM(FINITE_FIELD_MULT, internal::Kind::FINITE_FIELD_MULT),
+        KIND_ENUM(FINITE_FIELD_ADD, internal::Kind::FINITE_FIELD_ADD),
+        KIND_ENUM(FINITE_FIELD_NEG, internal::Kind::FINITE_FIELD_NEG),
         /* FP --------------------------------------------------------------- */
         KIND_ENUM(CONST_FLOATINGPOINT, internal::Kind::CONST_FLOATINGPOINT),
         KIND_ENUM(CONST_ROUNDINGMODE, internal::Kind::CONST_ROUNDINGMODE),
@@ -542,6 +548,11 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR},
         {internal::Kind::INT_TO_BITVECTOR, INT_TO_BITVECTOR},
         {internal::Kind::BITVECTOR_TO_NAT, BITVECTOR_TO_NAT},
+        /* Finite Fields --------------------------------------------------- */
+        {internal::Kind::CONST_FINITE_FIELD, CONST_FINITE_FIELD},
+        {internal::Kind::FINITE_FIELD_MULT, FINITE_FIELD_MULT},
+        {internal::Kind::FINITE_FIELD_ADD, FINITE_FIELD_ADD},
+        {internal::Kind::FINITE_FIELD_NEG, FINITE_FIELD_NEG},
         /* FP -------------------------------------------------------------- */
         {internal::Kind::CONST_FLOATINGPOINT, CONST_FLOATINGPOINT},
         {internal::Kind::CONST_ROUNDINGMODE, CONST_ROUNDINGMODE},
@@ -1408,6 +1419,15 @@ bool Sort::isArray() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Sort::isFiniteField() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFiniteField();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::isSet() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1776,6 +1796,19 @@ uint32_t Sort::getBitVectorSize() const
   CVC5_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
   //////// all checks before this line
   return d_type->getBitVectorSize();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/* Finite field sort --------------------------------------------------- */
+
+std::string Sort::getFiniteFieldSize() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isFiniteField()) << "Not a finite field sort.";
+  //////// all checks before this line
+  return d_type->getFfSize().toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3065,6 +3098,28 @@ std::string Term::getBitVectorValue(std::uint32_t base) const
       << "Term to be a bit-vector value when calling getBitVectorValue()";
   //////// all checks before this line
   return d_node->getConst<internal::BitVector>().toString(base);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::isFiniteFieldValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::CONST_FINITE_FIELD;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+std::string Term::getFiniteFieldValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::CONST_FINITE_FIELD, *d_node)
+      << "Term to be a finite field value when calling getFiniteFieldValue()";
+  //////// all checks before this line
+  return d_node->getConst<internal::FfVal>().toSignedInteger().toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5462,6 +5517,16 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Solver::mkFiniteFieldSort(const std::string& modulus) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  internal::Integer m(modulus, 10);
+  return Sort(d_nm, d_nm->mkFiniteFieldType(m));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5892,6 +5957,20 @@ Term Solver::mkBitVector(uint32_t size,
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromStrHelper(size, s, base);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkFiniteFieldElem(const std::string& value, const Sort& sort) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isFiniteField(), sort)
+      << "a finite field sort";
+  //////// all checks before this line
+  internal::Integer v(value, 10);
+  internal::FfVal f(v, sort.d_type->getFfSize());
+
+  return mkValHelper<internal::FfVal>(d_nm, f);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

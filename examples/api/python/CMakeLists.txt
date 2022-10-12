@@ -22,6 +22,7 @@ set(EXAMPLES_API_PYTHON
   exceptions
   extract
   floating_point
+  finite_field
   helloworld
   id
   linear_arith

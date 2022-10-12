@@ -24,6 +24,7 @@
 
 #include "expr/node_manager_attributes.h"
 #include "expr/node_traversal.h"
+#include "options/ff_options.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 #include "util/statistics_registry.h"
@@ -48,7 +49,9 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
     : Theory(THEORY_FF, env, out, valuation),
       d_state(env, valuation),
       d_im(env, *this, d_state, getStatsPrefix(THEORY_FF)),
-      d_eqNotify(d_im)
+      d_eqNotify(d_im),
+      d_stats(
+          std::make_unique<FfStatistics>(statisticsRegistry(), "theory::ff::"))
 {
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -78,7 +81,21 @@ void TheoryFiniteFields::finishInit()
 
 void TheoryFiniteFields::postCheck(Effort level)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::check") << "ff::check : " << level << std::endl;
+  for (auto& subTheory : d_subTheories)
+  {
+    subTheory.second.postCheck(level);
+    if (subTheory.second.inConflict())
+    {
+      d_im.conflict(
+          NodeManager::currentNM()->mkAnd(subTheory.second.conflict()),
+          InferenceId::ARITH_FF);
+    }
+  }
+#else  /* CVC5_USE_COCOA */
+  noCoCoA();
+#endif /* CVC5_USE_COCOA */
 }
 
 void TheoryFiniteFields::notifyFact(TNode atom,
@@ -86,13 +103,36 @@ void TheoryFiniteFields::notifyFact(TNode atom,
                                     TNode fact,
                                     bool isInternal)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::check") << "ff::notifyFact : " << fact << " @ level "
+                     << context()->getLevel() << std::endl;
+  d_subTheories.at(atom[0].getType()).notifyFact(fact);
+#else  /* CVC5_USE_COCOA */
+  noCoCoA();
+#endif /* CVC5_USE_COCOA */
 }
 
 bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
                                             const std::set<Node>& termSet)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::model") << "Term set: " << termSet << std::endl;
+  for (const auto& subTheory : d_subTheories)
+  {
+    for (const auto& entry : subTheory.second.model())
+    {
+      Trace("ff::model") << "Model entry: " << entry.first << " -> "
+                         << entry.second << std::endl;
+      if (termSet.count(entry.first))
+      {
+        bool okay = m->assertEquality(entry.first, entry.second, true);
+        Assert(okay) << "Our model was rejected";
+      }
+    }
+  }
+#else  /* CVC5_USE_COCOA */
+  noCoCoA();
+#endif /* CVC5_USE_COCOA */
   return true;
 }
 
@@ -115,7 +155,24 @@ Node TheoryFiniteFields::getModelValue(TNode node)
 
 void TheoryFiniteFields::preRegisterTerm(TNode node)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::register") << "ff::preRegisterTerm : " << node << std::endl;
+  TypeNode ty = node.getType();
+  TypeNode fieldTy = ty;
+  if (!ty.isFiniteField())
+  {
+    Assert(node.getKind() == Kind::EQUAL);
+    fieldTy = node[0].getType();
+  }
+  if (d_subTheories.count(fieldTy) == 0)
+  {
+    d_subTheories.try_emplace(
+        fieldTy, d_env, d_stats.get(), ty.getFfSize());
+  }
+  d_subTheories.at(fieldTy).preRegisterTerm(node);
+#else  /* CVC5_USE_COCOA */
+  noCoCoA();
+#endif /* CVC5_USE_COCOA */
 }
 
 TrustNode TheoryFiniteFields::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)

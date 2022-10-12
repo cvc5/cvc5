@@ -21,6 +21,7 @@ set(CVC5_EXAMPLES_API
   datatypes
   extract
   floating_point_arith
+  finite_field
   helloworld
   linear_arith
   quickstart
