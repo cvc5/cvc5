@@ -463,7 +463,8 @@ void Smt2Printer::toStream(std::ostream& out,
     if(n.getNumChildren() != 0) {
       out << '(';
     }
-    if(n.hasName()) {
+    if (n.hasName())
+    {
       std::string name = n.getName();
       out << cvc5::internal::quoteSymbol(name);
     }

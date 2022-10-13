@@ -122,7 +122,7 @@ template bool NodeTemplate<false>::hasName() const;
 template <bool ref_count>
 std::string NodeTemplate<ref_count>::getName() const
 {
-  Assert (hasName());
+  Assert(hasName());
   return NodeManager::currentNM()->getAttribute(*this, expr::VarNameAttr());
 }
 

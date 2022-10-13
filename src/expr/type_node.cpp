@@ -465,7 +465,7 @@ bool TypeNode::hasName() const
 std::string TypeNode::getName() const
 {
   Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
-  Assert (hasName());
+  Assert(hasName());
   return getAttribute(expr::VarNameAttr());
 }
 

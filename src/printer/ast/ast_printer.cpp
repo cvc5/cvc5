@@ -61,9 +61,12 @@ void AstPrinter::toStream(std::ostream& out,
 
   // variable
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
-    if(n.hasName()) {
+    if (n.hasName())
+    {
       out << n.getName();
-    } else {
+    }
+    else
+    {
       out << "var_" << n.getId();
     }
     return;

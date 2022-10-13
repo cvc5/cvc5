@@ -79,9 +79,7 @@ SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
 }
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
-    : d_tn(src_tn),
-      d_unres_tn(unres_tn),
-      d_sdt(unres_tn.getName())
+    : d_tn(src_tn), d_unres_tn(unres_tn), d_sdt(unres_tn.getName())
 {
 }
 
