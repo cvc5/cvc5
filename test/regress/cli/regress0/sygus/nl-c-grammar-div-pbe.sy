@@ -1,3 +1,5 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
 (set-logic NIA)
 (synth-fun f ((x Int) (y Int)) Int
   ((Start Int) (StartC Int))
