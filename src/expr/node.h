@@ -479,6 +479,13 @@ public:
    * (default: false)
    */
   TypeNode getType(bool check = false) const;
+  
+  /**
+   * Get the variable name. Should only be called on nodes with metakind
+   * variable. Returns the string value of the attribute VarNameAttr for this
+   * node.
+   */
+  std::string getVarName() const;
 
   /**
    * Substitution of Nodes.

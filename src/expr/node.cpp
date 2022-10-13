@@ -22,6 +22,7 @@
 #include "base/output.h"
 #include "expr/attribute.h"
 #include "expr/type_checker.h"
+#include "expr/node_manager_attributes.h"
 
 using namespace std;
 
@@ -108,6 +109,13 @@ bool NodeTemplate<ref_count>::isConst() const {
 
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
+
+
+template <bool ref_count>
+std::string NodeTemplate<ref_count>::getVarName() const
+{
+  return NodeManager::currentNM()->getAttribute(expr::VarNameAttr());
+}
 
 }  // namespace cvc5::internal
 
