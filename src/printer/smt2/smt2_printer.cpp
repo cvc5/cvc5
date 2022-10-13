@@ -30,7 +30,6 @@
 #include "expr/emptybag.h"
 #include "expr/emptyset.h"
 #include "expr/function_array_const.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
@@ -461,11 +460,11 @@ void Smt2Printer::toStream(std::ostream& out,
   Kind k = n.getKind();
   if (k == kind::SORT_TYPE)
   {
-    string name;
     if(n.getNumChildren() != 0) {
       out << '(';
     }
-    if(n.getAttribute(expr::VarNameAttr(), name)) {
+    if(n.hasName()) {
+      std::string name = n.getName();
       out << cvc5::internal::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
@@ -519,17 +518,16 @@ void Smt2Printer::toStream(std::ostream& out,
   if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
   {
     // abstract value
-    std::string s;
-    n.getAttribute(expr::VarNameAttr(), s);
+    std::string s = n.getName();
     out << "(as @" << cvc5::internal::quoteSymbol(s) << " " << n.getType() << ")";
     return;
   }
   else if (n.isVar())
   {
     // variable
-    string s;
-    if (n.getAttribute(expr::VarNameAttr(), s))
+    if (n.hasName())
     {
+      std::string s = n.getName();
       if (n.getKind() == kind::RAW_SYMBOL)
       {
         // raw symbols are never quoted

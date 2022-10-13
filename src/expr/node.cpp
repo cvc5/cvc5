@@ -116,12 +116,18 @@ bool NodeTemplate<ref_count>::hasName() const
   return NodeManager::currentNM()->hasAttribute(*this, expr::VarNameAttr());
 }
 
+template bool NodeTemplate<true>::hasName() const;
+template bool NodeTemplate<false>::hasName() const;
+
 template <bool ref_count>
 std::string NodeTemplate<ref_count>::getName() const
 {
   Assert (hasName());
   return NodeManager::currentNM()->getAttribute(*this, expr::VarNameAttr());
 }
+
+template std::string NodeTemplate<true>::getName() const;
+template std::string NodeTemplate<false>::getName() const;
 
 }  // namespace cvc5::internal
 
