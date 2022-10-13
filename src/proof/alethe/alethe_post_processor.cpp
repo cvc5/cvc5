@@ -1837,10 +1837,10 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 nm->mkNode(kind::SEXPR, d_cl, res),
                                 {vp2, vp_child1, vp_child2},
                                 options().proof.proofAletheResPivots
-                                    ? std::vector<Node>{vp_child1,
+                                    ? std::vector<Node>{vp_child1[1],
                                                         d_false,
-                                                        vp_child2,
-                                                        d_false}
+                                                        vp_child2[0],
+                                                        d_true}
                                     : std::vector<Node>(),
                                 *cdp);
       }
@@ -1875,26 +1875,24 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 vp3,
                                 {vp2, vp_child1, vp_child2},
                                 options().proof.proofAletheResPivots
-                                    ? std::vector<Node>{vp_child1,
+                                    ? std::vector<Node>{vp_child1[1],
                                                         d_false,
-                                                        vp_child2,
-                                                        d_false}
+                                                        vp_child2[0],
+                                                        d_true}
                                     : std::vector<Node>(),
                                 *cdp)
                && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
                && addAletheStep(
                    AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
-               && addAletheStep(AletheRule::RESOLUTION,
-                                res,
-                                nm->mkNode(kind::SEXPR, d_cl, res),
-                                {vp3, vp4, vp5},
-                                options().proof.proofAletheResPivots
-                                    ? std::vector<Node>{vp_child1,
-                                                        d_false,
-                                                        vp_child2,
-                                                        d_false}
-                                    : std::vector<Node>(),
-                                *cdp);
+               && addAletheStep(
+                   AletheRule::RESOLUTION,
+                   res,
+                   nm->mkNode(kind::SEXPR, d_cl, res),
+                   {vp3, vp4, vp5},
+                   options().proof.proofAletheResPivots
+                       ? std::vector<Node>{vp3[1], d_true, vp5[1], d_false}
+                       : std::vector<Node>(),
+                   *cdp);
       }
       // have (not (<= c x)) but result should be (< x c)
       Node vp3 = nm->mkNode(
@@ -1919,15 +1917,17 @@ bool AletheProofPostprocessCallback::update(Node res,
               .eqNode(nm->mkNode(kind::LEQ, c, x)
                           .notNode()));  // (cl (= (< x c) (not (<= c x))))
       return success
-             && addAletheStep(
-                 AletheRule::RESOLUTION,
-                 vp3,
-                 vp3,
-                 {vp2, vp_child1, vp_child2},
-                 options().proof.proofAletheResPivots
-                     ? std::vector<Node>{vp_child1, d_false, vp_child2, d_false}
-                     : std::vector<Node>(),
-                 *cdp)
+             && addAletheStep(AletheRule::RESOLUTION,
+                              vp3,
+                              vp3,
+                              {vp2, vp_child1, vp_child2},
+                              options().proof.proofAletheResPivots
+                                  ? std::vector<Node>{vp_child1,
+                                                      d_false,
+                                                      vp_child2[0],
+                                                      d_true}
+                                  : std::vector<Node>(),
+                              *cdp)
              && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
              && addAletheStep(AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
              && addAletheStep(
