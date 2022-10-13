@@ -487,9 +487,8 @@ public:
    */
   bool hasName() const;
   /**
-   * Get the name. Should only be called on nodes such that
-   * hasName() returns true. Returns the string value of the
-   * expr::VarNameAttr attribute for this node.
+   * Get the name. Returns the string value of the expr::VarNameAttr attribute
+   * for this node.
    */
   std::string getName() const;
 
