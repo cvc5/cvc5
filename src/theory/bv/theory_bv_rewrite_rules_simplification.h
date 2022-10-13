@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_SIMPLIFICATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_SIMPLIFICATION_H
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -2213,3 +2214,4 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal
+#endif
