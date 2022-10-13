@@ -412,6 +412,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
+    case PfRule::PREPROCESS:
     case PfRule::THEORY_PREPROCESS:
     {
       return addAletheStep(AletheRule::ALL_SIMPLIFY,
