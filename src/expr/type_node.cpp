@@ -458,13 +458,11 @@ bool TypeNode::isUnresolvedDatatype() const
 
 bool TypeNode::hasName() const
 {
-  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return hasAttribute(expr::VarNameAttr());
 }
 
 std::string TypeNode::getName() const
 {
-  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
