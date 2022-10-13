@@ -97,7 +97,7 @@ class CadicalSolver : public SatSolver
   SatVariable d_true;
   SatVariable d_false;
   FILE* d_dratFile;
-  char* d_tempDratFilePath;
+  char d_tempDratFilePath[256];
 
   struct Statistics
   {

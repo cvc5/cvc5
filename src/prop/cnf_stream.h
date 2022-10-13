@@ -121,6 +121,12 @@ class CnfStream : protected EnvObj
   bool hasLiteral(TNode node) const;
 
   /**
+   * Returns true iff CNF stream has a mapping for the giving literal
+   * @param literal the literal
+   */
+  bool hasLiteral(const SatLiteral& literal) const;
+
+  /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it.  The result of this function is that the Node
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-
