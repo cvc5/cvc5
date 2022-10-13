@@ -30,8 +30,13 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, bool doFlatten, size_t lfscDagThresh)
-    : d_tproc(ltp), d_flatten(doFlatten), d_lfscDagThresh(lfscDagThresh), d_assumpCounter(0)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp,
+                         bool doFlatten,
+                         size_t lfscDagThresh)
+    : d_tproc(ltp),
+      d_flatten(doFlatten),
+      d_lfscDagThresh(lfscDagThresh),
+      d_assumpCounter(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -265,10 +270,10 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   {
     // print the proof letification as definitions
     // define the let proofs
-    for (size_t i=0; i<=pletList.size(); i++)
+    for (size_t i = 0; i <= pletList.size(); i++)
     {
-      bool isFinal = (i==pletList.size());
-      const ProofNode * p = isFinal ? pnBody : pletList[i];
+      bool isFinal = (i == pletList.size());
+      const ProofNode* p = isFinal ? pnBody : pletList[i];
       Node res = p->getResult();
       std::stringstream resType;
       resType << "(holds ";
@@ -822,9 +827,10 @@ void LfscPrinter::computeProofLetification(
     std::map<const ProofNode*, size_t>& pletMap)
 {
   // use callback to specify to stop at LAMBDA
-  if (d_lfscDagThresh>0)
+  if (d_lfscDagThresh > 0)
   {
-    ProofLetify::computeProofLet(pn, pletList, pletMap, d_lfscDagThresh, &d_lpltc);
+    ProofLetify::computeProofLet(
+        pn, pletList, pletMap, d_lfscDagThresh, &d_lpltc);
   }
 }
 
