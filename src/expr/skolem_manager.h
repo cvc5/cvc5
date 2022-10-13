@@ -231,16 +231,16 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * a trusted interface for constructing variables of SKOLEM type, where one
  * must provide information that characterizes the skolem. This information
  * may either be:
- * (1) the term that the skolem purifies (mkPurifySkolem)
+ * (1) the term that the skolem purifies (`mkPurifySkolem`)
  * (2) a predicate the skolem satisfies (this is currently solely used by
- * mkSkolemize for witnessing existential quantifiers),
- * (3) an identifier (mkSkolemFunction), which are typically used for
+ * `mkSkolemize` for witnessing existential quantifiers),
+ * (3) an identifier (`mkSkolemFunction`), which are typically used for
  * implementing theory-specific inferences that introduce symbols that
  * are not interpreted by the theory (see SkolemFunId enum).
  *
  * If a variable cannot be associated with any of the above information,
- * the method mkDummySkolem may be used, which always constructs a fresh skolem
- * variable.
+ * the method `mkDummySkolem` may be used, which always constructs a fresh
+ * skolem variable.
  *
  * It is implemented by mapping terms to an attribute corresponding to their
  * "original form" and "witness form" as described below. Hence, this class does
@@ -250,10 +250,10 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * We distinguish two kinds of mappings between terms and skolems:
  *
  * (1) "Original form", which associates skolems with the terms they purify.
- * This is used in mkPurifySkolem below.
+ * This is used in `mkPurifySkolem` below.
  *
  * (2) "Witness form", which associates skolems with a witness term whose
- * body is a predicate they satisfy. This is used in mkSkolemize below.
+ * body is a predicate they satisfy. This is used in `mkSkolemize` below.
  *
  * It is possible to unify these so that purification skolems for t are skolems
  * whose witness form is (witness ((x T)) (= x t)). However, there are
@@ -414,7 +414,7 @@ class SkolemManager
                      int flags = SKOLEM_DEFAULT);
   /**
    * Get proof generator for existentially quantified formula q. This returns
-   * the proof generator that was provided in a call to mkSkolemize above.
+   * the proof generator that was provided in a call to `mkSkolemize` above.
    */
   ProofGenerator* getProofGenerator(Node q) const;
 
@@ -513,7 +513,7 @@ class SkolemManager
    * captures the reason for why the returned Skolem was introduced.
    *
    * Note that arrays uses a skolem (which identifier ARRAY_DEQ_DIFF) via
-   * mkSkolemFunction for extensionality. However, consider the following
+   * `mkSkolemFunction` for extensionality. However, consider the following
    * example, which demonstrates how it could use a witness skolem for
    * formalizing this instead:
    *
