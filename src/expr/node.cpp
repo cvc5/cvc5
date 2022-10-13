@@ -111,9 +111,15 @@ template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
 
 template <bool ref_count>
+bool NodeTemplate<ref_count>::hasVarName() const
+{
+  return NodeManager::currentNM()->hasAttribute(*this, expr::VarNameAttr());
+}
+
+template <bool ref_count>
 std::string NodeTemplate<ref_count>::getVarName() const
 {
-  return NodeManager::currentNM()->getAttribute(expr::VarNameAttr());
+  return NodeManager::currentNM()->getAttribute(*this, expr::VarNameAttr());
 }
 
 }  // namespace cvc5::internal

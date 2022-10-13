@@ -481,9 +481,14 @@ public:
   TypeNode getType(bool check = false) const;
 
   /**
-   * Get the variable name. Should only be called on nodes with metakind
-   * variable. Returns the string value of the attribute VarNameAttr for this
-   * node.
+   * Has variable name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr).
+   */
+  bool hasVarName() const;
+  /**
+   * Get the variable name. Should only be called on nodes such that
+   * hasVarName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getVarName() const;
 
