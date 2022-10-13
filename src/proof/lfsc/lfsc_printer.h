@@ -44,7 +44,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten);
   ~LfscPrinter() {}
 
   /**
@@ -118,7 +118,7 @@ class LfscPrinter
    * print let list, prints definitions of lbind on out in order, and closing
    * parentheses on cparen.
    */
-  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind);
+  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind, bool asDefs = false);
 
   //------------------------------ printing proofs
   /**
@@ -155,6 +155,8 @@ class LfscPrinter
   //------------------------------ end printing proofs
   /** The term processor */
   LfscNodeConverter& d_tproc;
+  /** Are we flattening the output */
+  bool d_flatten;
   /** The proof traversal callback */
   LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */

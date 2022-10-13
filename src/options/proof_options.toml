@@ -26,6 +26,15 @@ name   = "Proof"
   help       = "Output TPTP proof (work in progress)"
 
 [[option]]
+  name       = "flattenLfsc"
+  category   = "expert"
+  long       = "flatten-lfsc"
+  type       = "bool"
+  default    = "false"
+  help       = "Flatten steps in the LFSC proof"
+
+
+[[option]]
   name       = "proofPrintConclusion"
   category   = "expert"
   long       = "proof-print-conclusion"
