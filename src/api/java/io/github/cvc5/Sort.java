@@ -193,6 +193,17 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native boolean isBitVector(long pointer);
 
   /**
+   * Determine if this is a finite field sort (SMT-LIB: {@code (_ FiniteField i)}).
+   * @return True if this sort is a finite field sort.
+   */
+  public boolean isFiniteField()
+  {
+    return isFiniteField(pointer);
+  }
+
+  private native boolean isFiniteField(long pointer);
+
+  /**
    * Determine if this is a floatingpoint sort
    * (SMT-LIB: {@code (_ FloatingPoint eb sb)}).
    * @return True if this sort is a floating-point sort.
@@ -709,6 +720,18 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native int getBitVectorSize(long pointer);
+
+  /* Finite field sort --------------------------------------------------- */
+
+  /**
+   * @return The bit-width of the bit-vector sort.
+   */
+  public String getFiniteFieldSize()
+  {
+    return getFiniteFieldSize(pointer);
+  }
+
+  private native String getFiniteFieldSize(long pointer);
 
   /* Floating-point sort ------------------------------------------------- */
 
