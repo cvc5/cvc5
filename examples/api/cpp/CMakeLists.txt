@@ -21,7 +21,6 @@ set(CVC5_EXAMPLES_API
   datatypes
   extract
   floating_point_arith
-  finite_field
   helloworld
   linear_arith
   quickstart
@@ -35,6 +34,10 @@ set(CVC5_EXAMPLES_API
 foreach(example ${CVC5_EXAMPLES_API})
   cvc5_add_example(${example} "" "api/cpp")
 endforeach()
+
+if(USE_COCOA)
+  cvc5_add_example(finite_field "" "api/cpp")
+endif()
 
 set(SYGUS_EXAMPLES_API
   sygus-fun
