@@ -44,7 +44,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten);
+  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten, size_t lfscDagThresh);
   ~LfscPrinter() {}
 
   /**
@@ -160,6 +160,8 @@ class LfscPrinter
   LfscNodeConverter& d_tproc;
   /** Are we flattening the output */
   bool d_flatten;
+  /** The proof dag threshold */
+  size_t d_lfscDagThresh;
   /** The proof traversal callback */
   LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */

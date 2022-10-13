@@ -250,7 +250,7 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscNodeConverter ltp;
     proof::LfscProofPostprocess lpp(d_env, ltp);
     lpp.process(fp);
-    proof::LfscPrinter lp(ltp, options().proof.flattenLfsc);
+    proof::LfscPrinter lp(ltp, options().proof.flattenLfsc, options().proof.lfscDagThresh);
     lp.print(out, fp.get());
   }
   else if (mode == options::ProofFormatMode::TPTP)

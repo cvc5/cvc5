@@ -26,15 +26,6 @@ name   = "Proof"
   help       = "Output TPTP proof (work in progress)"
 
 [[option]]
-  name       = "flattenLfsc"
-  category   = "expert"
-  long       = "flatten-lfsc"
-  type       = "bool"
-  default    = "false"
-  help       = "Flatten steps in the LFSC proof"
-
-
-[[option]]
   name       = "proofPrintConclusion"
   category   = "expert"
   long       = "proof-print-conclusion"
@@ -148,3 +139,20 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"
+
+[[option]]
+  name       = "flattenLfsc"
+  category   = "expert"
+  long       = "flatten-lfsc"
+  type       = "bool"
+  default    = "false"
+  help       = "Flatten steps in the LFSC proof"
+
+[[option]]
+  name       = "lfscDagThresh"
+  category   = "common"
+  long       = "lfsc-dag-thresh=N"
+  type       = "int64_t"
+  default    = "2"
+  minimum    = "0"
+  help       = "dagify common subexprs appearing >= N times (2 == default, 0 == don't dagify)"
