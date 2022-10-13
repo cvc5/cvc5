@@ -40,7 +40,7 @@ int main()
                      z});
   Term aIsTwo = solver.mkTerm(
       EQUAL,
-      {solver.mkTerm(FINITE_FIELD_ADD, {a, solver.mkFiniteFieldElem("-1", f5)}),
+      {solver.mkTerm(FINITE_FIELD_ADD, {a, solver.mkFiniteFieldElem("-2", f5)}),
        z});
   solver.assertFormula(inv);
   solver.assertFormula(aIsTwo);
@@ -53,7 +53,7 @@ int main()
 
   Term bIsTwo = solver.mkTerm(
       EQUAL,
-      {solver.mkTerm(FINITE_FIELD_ADD, {b, solver.mkFiniteFieldElem("-1", f5)}),
+      {solver.mkTerm(FINITE_FIELD_ADD, {b, solver.mkFiniteFieldElem("-2", f5)}),
        z});
 
   solver.assertFormula(bIsTwo);

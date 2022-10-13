@@ -1087,13 +1087,13 @@ public class Solver implements IPointer
    * @return The finite field constant.
    * @throws CVC5ApiException
    */
-  public Term mkFiniteField(String val, Sort sort) throws CVC5ApiException
+  public Term mkFiniteFieldElem(String val, Sort sort) throws CVC5ApiException
   {
-    long termPointer = mkFiniteField(pointer, val, sort);
+    long termPointer = mkFiniteFieldElem(pointer, val, sort.getPointer());
     return new Term(termPointer);
   }
 
-  private native long mkFiniteField(long pointer, String val, Sort sort);
+  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer);
 
   /**
    * Create a constant array with the provided constant value stored at

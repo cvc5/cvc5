@@ -238,6 +238,21 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isBitVector(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Sort
+ * Method:    isFiniteField
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isFiniteField(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isFiniteField());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
  * Method:    isFloatingPoint
  * Signature: (J)Z
  */
@@ -927,6 +942,21 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getBitVectorSize(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
   return static_cast<jint>(current->getBitVectorSize());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    getFiniteFieldSize
+ * Signature: (J)I
+ */
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Sort_getFiniteFieldSize(JNIEnv* env,
+                                                                      jobject,
+                                                                      jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return env->NewStringUTF(current->getFiniteFieldSize().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
