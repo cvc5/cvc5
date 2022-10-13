@@ -94,7 +94,7 @@ void TheoryFiniteFields::postCheck(Effort level)
     }
   }
 #else  /* CVC5_USE_COCOA */
-  noCoCoA();
+  // We don't crash here, since we'd have crashed on notifyFact
 #endif /* CVC5_USE_COCOA */
 }
 
@@ -131,7 +131,7 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
     }
   }
 #else  /* CVC5_USE_COCOA */
-  noCoCoA();
+  // We don't crash here, since we'd have crashed on notifyFact
 #endif /* CVC5_USE_COCOA */
   return true;
 }
