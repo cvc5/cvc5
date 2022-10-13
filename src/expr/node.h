@@ -481,16 +481,17 @@ public:
   TypeNode getType(bool check = false) const;
 
   /**
-   * Has variable name? Return true if this node has an associated variable
-   * name (via the attribute expr::VarNameAttr).
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true typically for
+   * user-created variables.
    */
-  bool hasVarName() const;
+  bool hasName() const;
   /**
-   * Get the variable name. Should only be called on nodes such that
-   * hasVarName() returns true. Returns the string value of the
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
    * expr::VarNameAttr attribute for this node.
    */
-  std::string getVarName() const;
+  std::string getName() const;
 
   /**
    * Substitution of Nodes.
