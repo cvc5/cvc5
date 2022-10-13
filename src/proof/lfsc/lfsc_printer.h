@@ -118,7 +118,10 @@ class LfscPrinter
    * print let list, prints definitions of lbind on out in order, and closing
    * parentheses on cparen.
    */
-  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind, bool asDefs = false);
+  void printLetList(std::ostream& out,
+                    std::ostream& cparen,
+                    LetBinding& lbind,
+                    bool asDefs = false);
 
   //------------------------------ printing proofs
   /**

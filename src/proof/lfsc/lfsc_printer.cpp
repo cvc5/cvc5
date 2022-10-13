@@ -196,8 +196,6 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // [4c] user declared function symbols
   preamble << preambleSymDecl.str();
 
-
-  
   // [5] print warnings
   for (PfRule r : d_trustWarned)
   {
@@ -262,7 +260,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
   LfscPrintChannelOut lout(out);
-  
+
   if (d_flatten)
   {
     // print the proof letification as definitions
