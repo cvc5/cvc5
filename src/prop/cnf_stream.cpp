@@ -94,6 +94,11 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
+bool CnfStream::hasLiteral(const SatLiteral& literal) const
+{
+  return d_literalToNodeMap.contains(literal);
+}
+
 void CnfStream::ensureMappingForLiteral(TNode n)
 {
   SatLiteral lit = getLiteral(n);

@@ -51,15 +51,16 @@ struct DratInstruction
 /**
  * Class to handle a DRAT proof.
  *
- * A DratProof instance is a sequence of DratInstructions build from a plain
- * (non-binary) DRAT proof.
+ * A DratProof instance is a sequence of DratInstructions built from DRAT
+ * proof.
  */
 class DratProof
 {
  public:
-  DratProof(const DratProof&) = default;
-
-  DratProof(DratProof&&) = default;
+  /**
+   * Create an DRAT proof with no instructions.
+   */
+  DratProof();
 
   ~DratProof() = default;
 
@@ -77,11 +78,6 @@ class DratProof
   const std::vector<DratInstruction>& getInstructions() const;
 
  private:
-  /**
-   * Create an DRAT proof with no instructions.
-   */
-  DratProof();
-
   /**
    * The instructions of the DRAT proof.
    */

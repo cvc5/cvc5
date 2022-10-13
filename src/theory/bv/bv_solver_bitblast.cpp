@@ -20,7 +20,6 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
-#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -328,7 +327,11 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  bool isTheoryProofProducing = d_env.isTheoryProofProducing();
+  // For now we have this always as "false", since the proof tracking it allows
+  // is not used. Once the remaining infrastructure is set up to prove the
+  // theory lemmas from the DRAT proofs, this flag will be initialized with the
+  // value of d_env.isTheoryProofProducing().
+  bool isTheoryProofProducing = false;
   switch (options().bv.bvSatSolver)
   {
     case options::SatSolverMode::CRYPTOMINISAT:
@@ -417,7 +420,7 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   registeredAtoms.clear();
 }
 
-std::vector<Node> BVSolverBitblast::getProofNodes(proof::DratProof dratProof)
+std::vector<Node> BVSolverBitblast::convertDratProof(proof::DratProof dratProof)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node cl = nm->mkBoundVar("cl", nm->booleanType());

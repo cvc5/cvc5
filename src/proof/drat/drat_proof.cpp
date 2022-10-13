@@ -71,8 +71,6 @@ void insertSatLiteralIntoClause(prop::SatClause* clause,
   clause->emplace_back(prop::SatLiteral((uint64_t)literal, negated));
 }
 
-// See the "binary format" section of
-// https://www.cs.utexas.edu/~marijn/drat-trim/
 DratProof DratProof::fromPlain(const std::string& s)
 {
   DratProof dratProof;
@@ -101,7 +99,7 @@ DratProof DratProof::fromPlain(const std::string& s)
     }
     prop::SatClause currentClause;
     // last column is 0
-    for (std::size_t i = columnsStart; i < columns.size() - 1; i++)
+    for (std::size_t i = columnsStart, size = columns.size() - 1; i < size; i++)
     {
       insertSatLiteralIntoClause(&currentClause, columns[i]);
     }
