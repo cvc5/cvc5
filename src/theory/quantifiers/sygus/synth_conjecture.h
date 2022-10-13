@@ -101,11 +101,6 @@ class SynthConjecture : protected EnvObj
    *   f -> (lambda x. x+1)
    */
   bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-  /**
-   * The feasible guard whose semantics are "this conjecture is feasiable".
-   * This is "G" in Figure 3 of Reynolds et al CAV 2015.
-   */
-  Node getGuard() const;
   /** is ground */
   bool isGround() const { return d_innerVars.empty(); }
   /** are we using single invocation techniques */
@@ -186,8 +181,6 @@ class SynthConjecture : protected EnvObj
   TermDbSygus* d_tds;
   /** The synthesis verify utility */
   SynthVerify d_verify;
-  /** The feasible guard. */
-  Node d_feasible_guard;
   /**
    * Do we have a solution in this solve context? This flag is reset to false
    * on every call to presolve.
@@ -338,12 +331,6 @@ class SynthConjecture : protected EnvObj
   //-------------------------------- sygus stream
   /** exclude the current solution { enums -> values } */
   void excludeCurrentSolution(const std::vector<Node>& values);
-  /**
-   * Whether we have guarded a stream exclusion lemma when using sygusStream.
-   * This is an optimization that allows us to guard only the first stream
-   * exclusion lemma.
-   */
-  bool d_guarded_stream_exc;
   //-------------------------------- end sygus stream
   /** expression miner managers for each function-to-synthesize
    *
