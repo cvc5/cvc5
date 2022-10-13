@@ -236,9 +236,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     {
       out << "(define ";
       LfscPrintChannelOut::printAssumeId(out, i);
-      out << " (trust (holds ";
+      out << " (trust ";
       printInternal(out, ia, lbind);
-      out << ")))" << std::endl;
+      out << "))" << std::endl;
     }
     else
     {
@@ -276,10 +276,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
       const ProofNode* p = isFinal ? pnBody : pletList[i];
       Node res = p->getResult();
       std::stringstream resType;
-      resType << "(holds ";
       printInternal(resType, d_tproc.convert(res), lbind);
-      resType << ")";
-      out << "(check (: " << resType.str() << std::endl;
+      out << "(check (: (holds " << resType.str() << ")" << std::endl;
       itp = pletMap.find(p);
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
