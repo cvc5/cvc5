@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/ieval/inst_evaluator.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -43,12 +44,19 @@ class InstMatch : protected EnvObj
 {
  public:
   InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q);
+  /**
+   * Set evaluator mode. This can be modified if there are no variable
+   * assignments.
+   */
+  void setEvaluatorMode(ieval::TermEvaluatorMode tev);
   /** is this complete, i.e. are all fields non-null? */
   bool isComplete() const;
   /** is this empty, i.e. are all fields the null node? */
   bool empty() const;
   /**
    * Clear the instantiation, i.e. set all fields to the null node.
+   * Note that this does not clear information regarding the instantiation
+   * evaluator, e.g. its evaluation mode and watched information.
    */
   void resetAll();
   /** debug print method */
@@ -62,11 +70,13 @@ class InstMatch : protected EnvObj
    * If the d_vals[i] is not null, then this return true iff it is equal to
    * n based on the quantifiers state.
    *
-   * If the d_vals[i] is null, then this sets d_vals[i] to n.
+   * If the d_vals[i] is null, then this sets d_vals[i] to n, and pushes a
+   * context scope in the inst evaluator (if used).
    */
   bool set(size_t i, TNode n);
   /**
-   * Resets index i, which sets d_vals[i] to null.
+   * Resets index i, which sets d_vals[i] to null, and pops a context scope in
+   * the inst evaluator (if used).
    */
   void reset(size_t i);
   /** Get the values */
@@ -84,6 +94,8 @@ class InstMatch : protected EnvObj
   std::vector<Node> d_vals;
   /** The quantified formula */
   Node d_quant;
+  /** The instantiation evaluator */
+  ieval::InstEvaluator* d_ieval;
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
