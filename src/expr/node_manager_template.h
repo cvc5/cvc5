@@ -937,9 +937,10 @@ class NodeManager
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
-   * mkVar("a", type) again, you have two variables.  The NodeManager
-   * version of this is private to avoid internal uses of mkVar() from
-   * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
+   * mkVar("a", type) again, you have two variables.  This method is private to
+   * avoid internal uses of mkVar() from within cvc5. Instead, the SkolemManager
+   * submodule is the interface for constructing internal variables
+   * (see expr/skolem_manager.h).
    */
   Node mkVar(const std::string& name, const TypeNode& type);
 
