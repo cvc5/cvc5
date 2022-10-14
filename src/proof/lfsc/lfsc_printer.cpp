@@ -31,7 +31,7 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
-    : d_tproc(ltp), d_assumpCounter(0)
+    : d_tproc(ltp), d_expandTrusted(false), d_trustPletCounter(0), d_assumpCounter(0),d_assumpPrefix("a"), d_pletPrefix("p"), d_pletTrustChildPrefix("q")
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -214,7 +214,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   {
     Node ia = iasserts[i];
     out << "(# ";
-    LfscPrintChannelOut::printAssumeId(out, i);
+    LfscPrintChannelOut::printProofId(out, i, d_assumpPrefix);
     out << " (holds ";
     printInternal(out, ia, lbind);
     out << ")" << std::endl;
@@ -362,7 +362,7 @@ void LfscPrinter::printProofLetify(
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
       pletMap.erase(p);
-      printPLet(out, p, pid, lbind, pletMap, passumeMap);
+      printPLet(out, p, pid, d_pletPrefix, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
       // printPLet opens two parentheses
       cparen = cparen + 2;
@@ -379,9 +379,9 @@ void LfscPrinter::printProofLetify(
 
 void LfscPrinter::printPLet(LfscPrintChannel* out,
                             const ProofNode* p,
-                            size_t pid,
+                            size_t pid, const std::string& prefix,
                             const LetBinding& lbind,
-                            std::map<const ProofNode*, size_t>& pletMap,
+                            const std::map<const ProofNode*, size_t>& pletMap,
                             std::map<Node, size_t>& passumeMap)
 {
   // print (plet _ _
@@ -393,7 +393,7 @@ void LfscPrinter::printPLet(LfscPrintChannel* out,
   printProofInternal(out, p, lbind, pletMap, passumeMap);
   // print the lambda (\ __pX
   out->printOpenLfscRule(LfscRule::LAMBDA);
-  out->printProofId(pid);
+  out->printProofId(pid, prefix);
   out->printEndLine();
 }
 
@@ -431,7 +431,7 @@ void LfscPrinter::printProofInternal(
       if (pletIt != pletMap.end())
       {
         // a letified proof
-        out->printProofId(pletIt->second);
+        out->printProofId(pletIt->second, d_pletPrefix);
         continue;
       }
       pit = processingChildren.find(cur);
@@ -449,7 +449,7 @@ void LfscPrinter::printProofInternal(
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
-          out->printAssumeId(passumeIt->second);
+          out->printProofId(passumeIt->second, d_assumpPrefix);
         }
         else if (isLambda)
         {
@@ -473,7 +473,7 @@ void LfscPrinter::printProofInternal(
           // make the node whose name is the assumption id, where notice that
           // the type of this node does not matter
           std::stringstream pidNodeName;
-          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
+          LfscPrintChannelOut::printProofId(pidNodeName, pid, d_assumpPrefix);
           // must be an internal symbol so that it is not turned into (bvar ...)
           Node pidNode =
               d_tproc.mkInternalSymbol(pidNodeName.str(), d_boolType);
@@ -512,10 +512,24 @@ void LfscPrinter::printProofInternal(
           else
           {
             // could not print the rule, trust for now
+            // its children are printed as plet applications that wrap
+            // this term
+            size_t cparenTrustChild = 0;
+            if (d_expandTrusted)
+            {
+              const std::vector<std::shared_ptr<ProofNode>>& children = cur->getChildren();
+              for (const std::shared_ptr<ProofNode>& c : children)
+              {
+                printPLet(out, c.get(), d_trustPletCounter, d_pletTrustChildPrefix, lbind, pletMap, passumeMap);
+                cparenTrustChild = cparenTrustChild+2;
+                d_trustPletCounter++;
+              }
+            }
             Node res = d_tproc.convert(cur->getResult());
             res = lbind.convert(res, "__t", true);
             out->printTrust(res, r);
             d_trustWarned.insert(r);
+            out->printCloseRule(cparenTrustChild);
           }
         }
       }

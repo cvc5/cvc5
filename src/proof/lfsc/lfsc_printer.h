@@ -143,9 +143,9 @@ class LfscPrinter
    */
   void printPLet(LfscPrintChannel* out,
                  const ProofNode* pn,
-                 size_t pid,
+                 size_t pid, const std::string& prefix,
                  const LetBinding& lbind,
-                 std::map<const ProofNode*, size_t>& pletMap,
+                 const std::map<const ProofNode*, size_t>& pletMap,
                  std::map<Node, size_t>& passumeMap);
   /**
    * Get the arguments for the proof node application. This adds the arguments
@@ -170,8 +170,18 @@ class LfscPrinter
   Node d_ff;
   /** Boolean type */
   TypeNode d_boolType;
+  /** Expand trusted */
+  bool d_expandTrusted;
+  /** Plet counter */
+  size_t d_trustPletCounter;
   /** assumption counter */
   size_t d_assumpCounter;
+  /** assumption prefix */
+  std::string d_assumpPrefix;
+  /** proof letified prefix */
+  std::string d_pletPrefix;
+  /** proof letified trust child prefix */
+  std::string d_pletTrustChildPrefix;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
 };
