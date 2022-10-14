@@ -30,6 +30,11 @@ public class FiniteField
       Term b = slv.mkConst(f5, "b");
       Term z = slv.mkFiniteFieldElem("0", f5);
 
+      System.out.println("is ff: " + f5.isFiniteField());
+      System.out.println("ff size: " + f5.getFiniteFieldSize());
+      System.out.println("is ff value: " + z.isFiniteFieldValue());
+      System.out.println("ff value: " + z.getFiniteFieldValue());
+
       Term inv =
         slv.mkTerm(Kind.EQUAL,
             slv.mkTerm(Kind.FINITE_FIELD_ADD,
@@ -48,7 +53,7 @@ public class FiniteField
       slv.assertFormula(aIsTwo);
 
       Result r = slv.checkSat();
-      assert r.isSat();
+      System.out.println("is sat: " + r.isSat());
 
       Term bIsTwo =
         slv.mkTerm(Kind.EQUAL,
@@ -57,8 +62,9 @@ public class FiniteField
               slv.mkFiniteFieldElem("-2", f5)),
             z);
 
+      slv.assertFormula(bIsTwo);
       r = slv.checkSat();
-      assert !r.isSat();
+      System.out.println("is sat: " + r.isSat());
     }
   }
 }

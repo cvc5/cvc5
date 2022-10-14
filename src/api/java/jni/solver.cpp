@@ -1231,11 +1231,11 @@ Java_io_github_cvc5_Solver_mkBitVector__JILjava_lang_String_2I(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    mkFiniteField
+ * Method:    mkFiniteFieldElem
  * Signature: (JLjava/lang/String;J)J
  */
 JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkFiniteFieldElem__JILjava_lang_String_2I(
+Java_io_github_cvc5_Solver_mkFiniteFieldElem(
     JNIEnv* env, jobject, jlong pointer, jstring jS, jlong sortPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
