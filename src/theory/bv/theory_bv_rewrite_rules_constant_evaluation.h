@@ -16,7 +16,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_CONSTANT_EVALUATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_CONSTANT_EVALUATION_H
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -503,6 +504,7 @@ inline Node RewriteRule<EvalEagerAtom>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<EvalComp>(" << node << ")" << std::endl;
   return node[0];
 }
-}
-}
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
+#endif

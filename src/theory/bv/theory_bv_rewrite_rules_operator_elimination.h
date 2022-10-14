@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -678,6 +679,74 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<UaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UADDO);
+}
+
+template <>
+inline Node RewriteRule<UaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node bvZero = utils::mkZero(1);
+  Node bvOne = utils::mkOne(1);
+
+  Node add = nm->mkNode(kind::BITVECTOR_ADD,
+                        utils::mkConcat(bvZero, node[0]),
+                        utils::mkConcat(bvZero, node[1]));
+
+  uint32_t size = add.getType().getBitVectorSize();
+  return nm->mkNode(
+      kind::EQUAL, utils::mkExtract(add, size - 1, size - 1), bvOne);
+}
+
+template <>
+inline bool RewriteRule<SaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SADDO);
+}
+
+template <>
+inline Node RewriteRule<SaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  // Overflow occurs if
+  //  1) negative + negative = positive
+  //  2) positive + positive = negative
+
+  NodeManager* nm = NodeManager::currentNM();
+  uint32_t size = node[0].getType().getBitVectorSize();
+  Node zero = utils::mkZero(1);
+  Node one = utils::mkOne(1);
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+  Node sign0 = nm->mkNode(extOp, node[0]);
+  Node sign1 = nm->mkNode(extOp, node[1]);
+  Node add = nm->mkNode(kind::BITVECTOR_ADD, node[0], node[1]);
+  Node signa = nm->mkNode(extOp, add);
+
+  Node both_neg = nm->mkNode(kind::AND,
+                             nm->mkNode(kind::EQUAL, sign0, one),
+                             nm->mkNode(kind::EQUAL, sign1, one));
+  Node both_pos = nm->mkNode(kind::AND,
+                             nm->mkNode(kind::EQUAL, sign0, zero),
+                             nm->mkNode(kind::EQUAL, sign1, zero));
+
+  Node result_neg = nm->mkNode(kind::EQUAL, signa, one);
+  Node result_pos = nm->mkNode(kind::EQUAL, signa, zero);
+
+  return nm->mkNode(kind::OR,
+                    nm->mkNode(kind::AND, both_neg, result_pos),
+                    nm->mkNode(kind::AND, both_pos, result_neg));
+}
+
+template <>
 inline bool RewriteRule<UmuloEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_UMULO);
@@ -714,8 +783,9 @@ inline Node RewriteRule<UmuloEliminate>::apply(TNode node)
                       utils::mkExtract(node[0], size - 1 - i, size - 1 - i),
                       uppc);
   }
-  Node zext_t1 = utils::mkConcat(utils::mkZero(1), node[0]);
-  Node zext_t2 = utils::mkConcat(utils::mkZero(1), node[1]);
+  Node bvZero = utils::mkZero(1);
+  Node zext_t1 = utils::mkConcat(bvZero, node[0]);
+  Node zext_t2 = utils::mkConcat(bvZero, node[1]);
   Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
   tmp.push_back(utils::mkExtract(mul, size, size));
   return nm->mkNode(
@@ -741,12 +811,12 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
 
   uint32_t size = node[0].getType().getBitVectorSize();
   NodeManager* nm = NodeManager::currentNM();
-  Node bvone = utils::mkOne(1);
+  Node one = utils::mkOne(1);
 
   if (size == 1)
   {
     return nm->mkNode(
-        kind::EQUAL, nm->mkNode(kind::BITVECTOR_AND, node[0], node[1]), bvone);
+        kind::EQUAL, nm->mkNode(kind::BITVECTOR_AND, node[0], node[1]), one);
   }
 
   Node sextOp1 = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(1));
@@ -760,7 +830,7 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
                       nm->mkNode(kind::BITVECTOR_XOR,
                                  utils::mkExtract(mul, size, size),
                                  utils::mkExtract(mul, size - 1, size - 1)),
-                      bvone);
+                      one);
   }
 
   Node sextOpN =
@@ -792,8 +862,54 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
                  nm->mkNode(kind::BITVECTOR_XOR,
                             utils::mkExtract(mul, size, size),
                             utils::mkExtract(mul, size - 1, size - 1))),
-      bvone);
+      one);
 }
+
+template <>
+inline bool RewriteRule<SsuboEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SSUBO);
+}
+
+template <>
+inline Node RewriteRule<SsuboEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SsuboEliminate>(" << node << ")"
+                      << std::endl;
+
+  // Overflow occurs if
+  //  1) negative - positive = positive
+  //  2) postive - negative = negative
+
+  NodeManager* nm = NodeManager::currentNM();
+  uint32_t size = node[0].getType().getBitVectorSize();
+  Node one = utils::mkOne(1);
+  Node zero = utils::mkZero(1);
+
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+
+  Node sign0 = nm->mkNode(extOp, node[0]);
+  Node sign1 = nm->mkNode(extOp, node[1]);
+  Node sub = nm->mkNode(kind::BITVECTOR_SUB, node[0], node[1]);
+  Node signs = nm->mkNode(extOp, sub);
+
+  Node neg_pos = nm->mkNode(kind::AND,
+                            nm->mkNode(kind::EQUAL, sign0, one),
+                            nm->mkNode(kind::EQUAL, sign1, zero));
+  Node pos_neg = nm->mkNode(kind::AND,
+                            nm->mkNode(kind::EQUAL, sign0, zero),
+                            nm->mkNode(kind::EQUAL, sign1, one));
+
+  Node result_neg = nm->mkNode(kind::EQUAL, signs, one);
+  Node result_pos = nm->mkNode(kind::EQUAL, signs, zero);
+
+  return nm->mkNode(kind::OR,
+                    nm->mkNode(kind::AND, neg_pos, result_pos),
+                    nm->mkNode(kind::AND, pos_neg, result_neg));
+}
+
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal
+#endif

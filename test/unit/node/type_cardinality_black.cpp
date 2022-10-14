@@ -330,5 +330,23 @@ TEST_F(TestNodeBlackTypeCardinality, bitvectors)
   }
 }
 
+TEST_F(TestNodeBlackTypeCardinality, lessThan)
+{
+  ASSERT_FALSE(d_nodeManager->booleanType().isCardinalityLessThan(2));
+  ASSERT_TRUE(d_nodeManager->booleanType().isCardinalityLessThan(3));
+  ASSERT_FALSE(d_nodeManager->mkBitVectorType(1).isCardinalityLessThan(2));
+  ASSERT_TRUE(d_nodeManager->mkBitVectorType(1).isCardinalityLessThan(3));
+  ASSERT_FALSE(d_nodeManager->mkBitVectorType(8).isCardinalityLessThan(256));
+  ASSERT_TRUE(d_nodeManager->mkBitVectorType(8).isCardinalityLessThan(257));
+  ASSERT_FALSE(
+      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(229));
+  ASSERT_TRUE(
+      d_nodeManager->mkFloatingPointType(3, 5).isCardinalityLessThan(230));
+  ASSERT_FALSE(d_nodeManager->roundingModeType().isCardinalityLessThan(5));
+  ASSERT_TRUE(d_nodeManager->roundingModeType().isCardinalityLessThan(6));
+  ASSERT_FALSE(
+      d_nodeManager->mkFiniteFieldType(256).isCardinalityLessThan(256));
+  ASSERT_TRUE(d_nodeManager->mkFiniteFieldType(256).isCardinalityLessThan(257));
+}
 }  // namespace test
 }  // namespace cvc5::internal

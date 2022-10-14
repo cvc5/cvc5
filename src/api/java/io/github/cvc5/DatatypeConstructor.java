@@ -24,9 +24,9 @@ import java.util.NoSuchElementException;
 public class DatatypeConstructor extends AbstractPointer implements Iterable<DatatypeSelector>
 {
   // region construction and destruction
-  DatatypeConstructor(Solver solver, long pointer)
+  DatatypeConstructor(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);
@@ -66,7 +66,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   public Term getTerm()
   {
     long termPointer = getTerm(pointer);
-    return new Term(solver, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getTerm(long pointer);
@@ -102,7 +102,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   public Term getInstantiatedTerm(Sort retSort)
   {
     long termPointer = getInstantiatedTerm(pointer, retSort.getPointer());
-    return new Term(solver, termPointer);
+    return new Term(termPointer);
   }
 
   private native long getInstantiatedTerm(long pointer, long retSortPointer);
@@ -119,7 +119,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   public Term getTesterTerm()
   {
     long termPointer = getTesterTerm(pointer);
-    return new Term(solver, termPointer);
+    return new Term(termPointer);
   }
   private native long getTesterTerm(long pointer);
 
@@ -140,7 +140,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   public DatatypeSelector getSelector(int index)
   {
     long selectorPointer = getSelector(pointer, index);
-    return new DatatypeSelector(solver, selectorPointer);
+    return new DatatypeSelector(selectorPointer);
   }
   private native long getSelector(long pointer, int index);
 
@@ -154,7 +154,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   public DatatypeSelector getSelector(String name)
   {
     long selectorPointer = getSelector(pointer, name);
-    return new DatatypeSelector(solver, selectorPointer);
+    return new DatatypeSelector(selectorPointer);
   }
   private native long getSelector(long pointer, String name);
 
