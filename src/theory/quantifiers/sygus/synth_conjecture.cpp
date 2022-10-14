@@ -294,16 +294,17 @@ bool SynthConjecture::doCheck()
     // not succeed in solving the conjecture. In either case,  we are done and
     // return true.
     Result res = d_ceg_si->solve();
-    if (res.getStatus()==Result::UNSAT)
+    if (res.getStatus() == Result::UNSAT)
     {
       d_hasSolution = true;
       // the conjecture has a solution, we set incomplete
       d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
     }
-    else if (res.getStatus()==Result::SAT)
+    else if (res.getStatus() == Result::SAT)
     {
       // the conjecture is definitely infeasible
-      d_qim.lemma(d_quant.negate(), InferenceId::QUANTIFIERS_SYGUS_SI_INFEASIBLE);
+      d_qim.lemma(d_quant.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_SI_INFEASIBLE);
     }
     return true;
   }

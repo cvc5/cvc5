@@ -241,9 +241,10 @@ Result CegSingleInv::solve()
   {
     if (res != Result::SAT)
     {
-      warning() << "Warning : the single invocation solver determined the SyGuS "
-                  "conjecture may be infeasible"
-                << std::endl;
+      warning()
+          << "Warning : the single invocation solver determined the SyGuS "
+             "conjecture may be infeasible"
+          << std::endl;
     }
     // conjecture is infeasible or unknown
     return res;
