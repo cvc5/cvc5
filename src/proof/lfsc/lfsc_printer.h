@@ -44,7 +44,12 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten, size_t lfscDagThresh);
+  /**
+   * @param ltp the node converter used for converting terms to LFSC
+   * @param doFlatten if true, we use a style of proof where dagified proofs
+   * are separate check statements.
+   */
+  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten);
   ~LfscPrinter() {}
 
   /**
@@ -160,8 +165,6 @@ class LfscPrinter
   LfscNodeConverter& d_tproc;
   /** Are we flattening the output */
   bool d_flatten;
-  /** The proof dag threshold */
-  size_t d_lfscDagThresh;
   /** The proof traversal callback */
   LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */
