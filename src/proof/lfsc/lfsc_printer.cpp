@@ -215,9 +215,10 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   }
   else
   {
+    // the outer check statement for the main proof
     out << "(check" << std::endl;
     cparen << ")";
-    // print the term let list
+    // print the term let list wrapped around the body of the final proof
     printLetList(out, cparen, lbind, false);
   }
 
@@ -263,8 +264,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   if (d_flatten)
   {
-    // print the proof letification as definitions
-    // define the let proofs
+    // print the proof letification as separate check statements, followed
+    // by the main proof.
     for (size_t i = 0; i <= pletList.size(); i++)
     {
       bool isFinal = (i == pletList.size());
