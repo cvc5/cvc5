@@ -34,8 +34,8 @@ namespace proof {
 LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp)
     : EnvObj(env),
       d_tproc(ltp),
-      d_trustPletCounter(0),
       d_assumpCounter(0),
+      d_trustChildPletCounter(0),
       d_termLetPrefix("t"),
       d_assumpPrefix("a"),
       d_pletPrefix("p"),
@@ -531,8 +531,8 @@ void LfscPrinter::printProofInternal(
                   cur->getChildren();
               for (const std::shared_ptr<ProofNode>& c : children)
               {
-                size_t pid = d_trustPletCounter;
-                d_trustPletCounter++;
+                size_t pid = d_trustChildPletCounter;
+                d_trustChildPletCounter++;
                 printPLet(out,
                           c.get(),
                           pid,

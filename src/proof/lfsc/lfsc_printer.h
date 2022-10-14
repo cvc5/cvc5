@@ -172,10 +172,10 @@ class LfscPrinter : protected EnvObj
   Node d_ff;
   /** Boolean type */
   TypeNode d_boolType;
-  /** Plet counter */
-  size_t d_trustPletCounter;
   /** assumption counter */
   size_t d_assumpCounter;
+  /** Counter for plet definitions for children of trust steps */
+  size_t d_trustChildPletCounter;
   /** term prefix */
   std::string d_termLetPrefix;
   /** assumption prefix */
