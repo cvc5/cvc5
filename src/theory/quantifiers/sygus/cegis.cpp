@@ -110,14 +110,22 @@ bool Cegis::processInitialize(Node conj,
     Trace("cegis") << std::endl;
     Node e = candidates[i];
     d_tds->registerEnumerator(e, e, d_parent, erole);
-    activeGuards.push_back(d_tds->getActiveGuardForEnumerator(e));
+    Node g = d_tds->getActiveGuardForEnumerator(e);
+    if (!g.isNull())
+    {
+      activeGuards.push_back(g);
+    }
   }
-  // This lemma has the semantics "if the conjecture holds, then there must
-  // be another (tuple of) values to enumerate". This lemma allows us to
-  // answer infeasible when we run out of values (for finite grammars).
-  NodeManager* nm = NodeManager::currentNM();
-  Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
-  d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
+  if (!activeGuards.empty())
+  {
+    // This lemma has the semantics "if the conjecture holds, then there must
+    // be another value to enumerate for each function to synthesize". This lemma
+    // allows us to answer infeasible when we run out of values (for finite
+    // grammars).
+    NodeManager* nm = NodeManager::currentNM();
+    Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
+    d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
+  }
   return true;
 }
 
