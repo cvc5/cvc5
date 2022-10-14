@@ -119,9 +119,12 @@ bool Cegis::processInitialize(Node conj,
   if (!activeGuards.empty())
   {
     // This lemma has the semantics "if the conjecture holds, then there must
-    // be another value to enumerate for each function to synthesize". This lemma
-    // allows us to answer infeasible when we run out of values (for finite
-    // grammars).
+    // be another value to enumerate for each function to synthesize". Note
+    // that active guards are only assigned for "actively generated"
+    // enumerators, e.g. when using sygus-enum=fast. Thus, this lemma is
+    // typically only added for single function conjectures.
+    // This lemma allows us to answer infeasible when we run out of values (for
+    // finite grammars).
     NodeManager* nm = NodeManager::currentNM();
     Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
     d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);

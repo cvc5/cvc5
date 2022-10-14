@@ -25,6 +25,7 @@
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
+#include "util/result.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -67,7 +68,7 @@ class CegSingleInv : protected EnvObj
    * copy of the SMT engine. This method returns true if it has successfully
    * found a solution to the synthesis conjecture using this method.
    */
-  bool solve();
+  Result solve();
   /**
    * Get solution for the sol_index^th function to synthesize of the conjecture
    * this class was assigned.
