@@ -22,7 +22,7 @@ public class Bags
   public static void main(String args[]) throws CVC5ApiException
 
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       slv.setLogic("ALL");
 

@@ -25,7 +25,7 @@ public class SygusGrammar
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // required options
       slv.setOption("sygus", "true");

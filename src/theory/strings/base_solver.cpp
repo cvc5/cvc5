@@ -57,6 +57,8 @@ void BaseSolver::checkInit()
   d_termIndex.clear();
   d_stringLikeEqc.clear();
 
+  const std::set<Node>& rlvSet = d_termReg.getRelevantTermSet();
+
   Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
   // count of congruent, non-congruent per operator (independent of type),
   // for debugging.
@@ -83,7 +85,7 @@ void BaseSolver::checkInit()
       bool isString = eqc.getType().isString();
       // have we found a constant in this equivalence class
       bool foundConst = false;
-      while (!eqc_i.isFinished())
+      for (; !eqc_i.isFinished(); ++eqc_i)
       {
         Node n = *eqc_i;
         Kind k = n.getKind();
@@ -128,156 +130,164 @@ void BaseSolver::checkInit()
             prevConstLike.push_back(n);
           }
         }
+
         if (tn.isInteger())
         {
           // do nothing
+          continue;
         }
-        // process indexing
-        else if (n.getNumChildren() > 0)
+        else if (d_congruent.find(n) != d_congruent.end())
         {
-          if (k != EQUAL)
+          // skip congruent terms
+          congruentCount[k].first++;
+          continue;
+        }
+
+        congruentCount[k].second++;
+
+        // process indexing
+        if (n.getNumChildren() > 0)
+        {
+          if (k == EQUAL)
           {
-            if (d_congruent.find(n) == d_congruent.end())
+            continue;
+          }
+
+          std::vector<Node> c;
+          Node nc = tti[k].add(n, 0, d_state, emps, false, c);
+          if (nc != n)
+          {
+            Trace("strings-base-debug")
+                << "...found congruent term " << nc << std::endl;
+            // check if we have inferred a new equality by removal of empty
+            // components
+            if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
             {
-              std::vector<Node> c;
-              Node nc = tti[k].add(n, 0, d_state, emps, c);
-              if (nc != n)
+              std::vector<Node> exp;
+              // the number of empty components of n, nc
+              size_t count[2] = {0, 0};
+              while (count[0] < nc.getNumChildren()
+                     || count[1] < n.getNumChildren())
               {
-                Trace("strings-base-debug")
-                    << "...found congruent term " << nc << std::endl;
-                // check if we have inferred a new equality by removal of empty
-                // components
-                if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
+                // explain empty prefixes
+                for (unsigned t = 0; t < 2; t++)
                 {
-                  std::vector<Node> exp;
-                  // the number of empty components of n, nc
-                  size_t count[2] = {0, 0};
-                  while (count[0] < nc.getNumChildren()
-                         || count[1] < n.getNumChildren())
+                  Node nn = t == 0 ? nc : n;
+                  while (count[t] < nn.getNumChildren()
+                         && (nn[count[t]] == emps
+                             || d_state.areEqual(nn[count[t]], emps)))
                   {
-                    // explain empty prefixes
-                    for (unsigned t = 0; t < 2; t++)
+                    if (nn[count[t]] != emps)
                     {
-                      Node nn = t == 0 ? nc : n;
-                      while (count[t] < nn.getNumChildren()
-                             && (nn[count[t]] == emps
-                                 || d_state.areEqual(nn[count[t]], emps)))
-                      {
-                        if (nn[count[t]] != emps)
-                        {
-                          exp.push_back(nn[count[t]].eqNode(emps));
-                        }
-                        count[t]++;
-                      }
+                      exp.push_back(nn[count[t]].eqNode(emps));
                     }
-                    Trace("strings-base-debug")
-                        << "  counts = " << count[0] << ", " << count[1]
-                        << std::endl;
-                    // explain equal components
-                    if (count[0] < nc.getNumChildren())
-                    {
-                      Assert(count[1] < n.getNumChildren());
-                      if (nc[count[0]] != n[count[1]])
-                      {
-                        exp.push_back(nc[count[0]].eqNode(n[count[1]]));
-                      }
-                      count[0]++;
-                      count[1]++;
-                    }
+                    count[t]++;
                   }
-                  // infer the equality
-                  d_im.sendInference(exp, n.eqNode(nc), InferenceId::STRINGS_I_NORM);
                 }
-                else
+                Trace("strings-base-debug") << "  counts = " << count[0] << ", "
+                                            << count[1] << std::endl;
+                // explain equal components
+                if (count[0] < nc.getNumChildren())
                 {
-                  // We cannot mark one of the terms as reduced here (via
-                  // ExtTheory::markCongruent) since extended function terms
-                  // rely on reductions to other extended function terms. We
-                  // may have a pair of extended function terms f(a)=f(b) where
-                  // the reduction of argument a depends on the term b.
-                  // Thus, marking f(b) as reduced by virtue of the fact we
-                  // have f(a) is incorrect, since then we are effectively
-                  // assuming that the reduction of f(a) depends on itself.
-                }
-                // this node is congruent to another one, we can ignore it
-                Trace("strings-base-debug")
-                    << "  congruent term : " << n << " (via " << nc << ")"
-                    << std::endl;
-                d_congruent.insert(n);
-                congruentCount[k].first++;
-              }
-              else if (k == STRING_CONCAT && c.size() == 1)
-              {
-                Trace("strings-base-debug")
-                    << "  congruent term by singular : " << n << " " << c[0]
-                    << std::endl;
-                // singular case
-                if (!d_state.areEqual(c[0], n))
-                {
-                  Node ns;
-                  std::vector<Node> exp;
-                  // explain empty components
-                  bool foundNEmpty = false;
-                  for (const Node& nnc : n)
+                  Assert(count[1] < n.getNumChildren());
+                  if (nc[count[0]] != n[count[1]])
                   {
-                    if (d_state.areEqual(nnc, emps))
-                    {
-                      if (nnc != emps)
-                      {
-                        exp.push_back(nnc.eqNode(emps));
-                      }
-                    }
-                    else
-                    {
-                      Assert(!foundNEmpty);
-                      ns = nnc;
-                      foundNEmpty = true;
-                    }
+                    exp.push_back(nc[count[0]].eqNode(n[count[1]]));
                   }
-                  AlwaysAssert(foundNEmpty);
-                  // infer the equality
-                  d_im.sendInference(exp, n.eqNode(ns), InferenceId::STRINGS_I_NORM_S);
+                  count[0]++;
+                  count[1]++;
                 }
-                d_congruent.insert(n);
-                congruentCount[k].first++;
               }
-              else
-              {
-                congruentCount[k].second++;
-              }
+              // infer the equality
+              d_im.sendInference(
+                  exp, n.eqNode(nc), InferenceId::STRINGS_I_NORM);
             }
             else
             {
-              congruentCount[k].first++;
+              // We cannot mark one of the terms as reduced here (via
+              // ExtTheory::markCongruent) since extended function terms
+              // rely on reductions to other extended function terms. We
+              // may have a pair of extended function terms f(a)=f(b) where
+              // the reduction of argument a depends on the term b.
+              // Thus, marking f(b) as reduced by virtue of the fact we
+              // have f(a) is incorrect, since then we are effectively
+              // assuming that the reduction of f(a) depends on itself.
             }
+            // this node is congruent to another one, we can ignore it
+            if (rlvSet.find(n) != rlvSet.end()
+                && rlvSet.find(nc) == rlvSet.end())
+            {
+              // If `n` is a relevant term and `nc` is not, then we change
+              // the term at its index to `n` and mark `nc` as congruent.
+              // This ensures that if we have mutliple congruent terms, we
+              // reason about one of the relevant ones (if available).
+              tti[k].add(n, 0, d_state, emps, true, c);
+              std::swap(nc, n);
+            }
+            Trace("strings-base-debug")
+                << "  congruent term : " << n << " (via " << nc << ")"
+                << std::endl;
+            d_congruent.insert(n);
+            congruentCount[k].first++;
+          }
+          else if (k == STRING_CONCAT && c.size() == 1)
+          {
+            Trace("strings-base-debug")
+                << "  congruent term by singular : " << n << " " << c[0]
+                << std::endl;
+            // singular case
+            if (!d_state.areEqual(c[0], n))
+            {
+              Node ns;
+              std::vector<Node> exp;
+              // explain empty components
+              bool foundNEmpty = false;
+              for (const Node& nnc : n)
+              {
+                if (d_state.areEqual(nnc, emps))
+                {
+                  if (nnc != emps)
+                  {
+                    exp.push_back(nnc.eqNode(emps));
+                  }
+                }
+                else
+                {
+                  Assert(!foundNEmpty);
+                  ns = nnc;
+                  foundNEmpty = true;
+                }
+              }
+              AlwaysAssert(foundNEmpty);
+              // infer the equality
+              d_im.sendInference(
+                  exp, n.eqNode(ns), InferenceId::STRINGS_I_NORM_S);
+            }
+            d_congruent.insert(n);
           }
         }
         else if (!n.isConst())
         {
-          if (d_congruent.find(n) == d_congruent.end())
+          // We mark all but the oldest variable in the equivalence class as
+          // congruent.
+          if (var.isNull())
           {
-            // We mark all but the oldest variable in the equivalence class as
-            // congruent.
-            if (var.isNull())
-            {
-              var = n;
-            }
-            else if (var > n)
-            {
-              Trace("strings-base-debug")
-                  << "  congruent variable : " << var << std::endl;
-              d_congruent.insert(var);
-              var = n;
-            }
-            else
-            {
-              Trace("strings-base-debug")
-                  << "  congruent variable : " << n << std::endl;
-              d_congruent.insert(n);
-            }
+            var = n;
+          }
+          else if (var > n)
+          {
+            Trace("strings-base-debug")
+                << "  congruent variable : " << var << std::endl;
+            d_congruent.insert(var);
+            var = n;
+          }
+          else
+          {
+            Trace("strings-base-debug")
+                << "  congruent variable : " << n << std::endl;
+            d_congruent.insert(n);
           }
         }
-        ++eqc_i;
       }
     }
     ++eqcs_i;
@@ -344,6 +354,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
       if (!d_state.areDisequal(s, t))
       {
         d_im.sendSplit(s, t, InferenceId::STRINGS_UNIT_SPLIT);
+        Trace("strings-base") << "...split" << std::endl;
       }
       else if (d_strUnitOobEq.find(eq) == d_strUnitOobEq.end())
       {
@@ -364,7 +375,17 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         // s or t may be concrete integers corresponding to code
         // points of string constants, and thus are not guaranteed to
         // be terms in the equality engine.
-        d_im.sendInference(exp, exp, conc, InferenceId::STRINGS_UNIT_INJ_OOB);
+        NodeManager* nm = NodeManager::currentNM();
+        // We must send this lemma immediately, since otherwise if buffered,
+        // this lemma may be dropped if there is a fact or conflict that
+        // preempts it.
+        Node lem = nm->mkNode(IMPLIES, nm->mkAnd(exp), conc);
+        d_im.lemma(lem, InferenceId::STRINGS_UNIT_INJ_OOB);
+        Trace("strings-base") << "...oob split" << std::endl;
+      }
+      else
+      {
+        Trace("strings-base") << "...already sent oob" << std::endl;
       }
     }
     else
@@ -372,7 +393,12 @@ bool BaseSolver::processConstantLike(Node a, Node b)
       // (seq.unit x) = (seq.unit y) => x=y, or
       // (seq.unit x) = (seq.unit c) => x=c
       d_im.sendInference(exp, eq, InferenceId::STRINGS_UNIT_INJ);
+      Trace("strings-base") << "...inj seq" << std::endl;
     }
+  }
+  else
+  {
+    Trace("strings-base") << "...equal" << std::endl;
   }
   return false;
 }
@@ -844,11 +870,12 @@ Node BaseSolver::TermIndex::add(TNode n,
                                 unsigned index,
                                 const SolverState& s,
                                 Node er,
+                                bool overwrite,
                                 std::vector<Node>& c)
 {
   if (index == n.getNumChildren())
   {
-    if (d_data.isNull())
+    if (overwrite || d_data.isNull())
     {
       d_data = n;
     }
@@ -859,10 +886,10 @@ Node BaseSolver::TermIndex::add(TNode n,
   // if it is empty, and doing CONCAT, ignore
   if (nir == er && n.getKind() == STRING_CONCAT)
   {
-    return add(n, index + 1, s, er, c);
+    return add(n, index + 1, s, er, overwrite, c);
   }
   c.push_back(nir);
-  return d_children[nir].add(n, index + 1, s, er, c);
+  return d_children[nir].add(n, index + 1, s, er, overwrite, c);
 }
 
 }  // namespace strings

@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_CORE_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_CORE_H
 
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -303,6 +304,7 @@ Node RewriteRule<ReflexivityEq>::apply(TNode node) {
   return res;
 }
 
-}
-}
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
+#endif

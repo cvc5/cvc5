@@ -56,18 +56,6 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
-  # !!! TEMPORARY !!!
-  # We currently add the symbol manager and the symbol table to both libcvc5
-  # and libcvc5parser as a stopgap solution, because the command infrastructure
-  # is still in libcvc5. Once PR #8893 is merged, they can be removed from
-  # libcvc5. We have to add them to libcvc5 because linking a DLL for Windows
-  # requires all symbols to be present. Concretely, because of the commands, we
-  # need the symbols for the symbol manager/table to link libcvc5.
-  parser/api/cpp/symbol_manager.cpp
-  parser/api/cpp/symbol_manager.h
-  parser/symbol_table.cpp
-  parser/symbol_table.h
-  # !!! /TEMPORARY !!!
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -217,6 +205,8 @@ libcvc5_add_sources(
   proof/proof_node_updater.h
   proof/proof_rule.cpp
   proof/proof_rule.h
+  proof/proof_rule_checker.cpp
+  proof/proof_rule_checker.h
   proof/proof_set.h
   proof/proof_step_buffer.cpp
   proof/proof_step_buffer.h
@@ -296,8 +286,6 @@ libcvc5_add_sources(
   smt/assertions.h
   smt/check_models.cpp
   smt/check_models.h
-  smt/command.cpp
-  smt/command.h
   smt/context_manager.cpp
   smt/context_manager.h
   smt/difficulty_post_processor.cpp
@@ -701,6 +689,18 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/groebner.cpp
+  theory/ff/groebner.h
+  theory/ff/core.cpp
+  theory/ff/core.h
+  theory/ff/model.cpp
+  theory/ff/model.h
+  theory/ff/roots.cpp
+  theory/ff/roots.h
+  theory/ff/stats.cpp
+  theory/ff/stats.h
+  theory/ff/sub_theory.cpp
+  theory/ff/sub_theory.h
   theory/ff/theory_ff.cpp
   theory/ff/theory_ff.h
   theory/ff/theory_ff_rewriter.cpp
@@ -717,6 +717,8 @@ libcvc5_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/theory_fp_type_rules.cpp
+  theory/fp/theory_fp_utils.h
+  theory/fp/theory_fp_utils.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
   theory/incomplete_id.cpp
@@ -829,6 +831,10 @@ libcvc5_add_sources(
   theory/quantifiers/ho_term_database.h
   theory/quantifiers/ieval/free_var_info.cpp
   theory/quantifiers/ieval/free_var_info.h
+  theory/quantifiers/ieval/inst_evaluator.cpp
+  theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/inst_evaluator_manager.cpp
+  theory/quantifiers/ieval/inst_evaluator_manager.h
   theory/quantifiers/ieval/pattern_term_info.cpp
   theory/quantifiers/ieval/pattern_term_info.h
   theory/quantifiers/ieval/quant_info.cpp
@@ -1243,6 +1249,7 @@ set(options_toml_files
   options/datatypes_options.toml
   options/decision_options.toml
   options/expr_options.toml
+  options/ff_options.toml
   options/fp_options.toml
   options/main_options.toml
   options/parallel_options.toml

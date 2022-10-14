@@ -25,14 +25,14 @@ package io.github.cvc5;
 public class Grammar extends AbstractPointer
 {
   // region construction and destruction
-  Grammar(Solver solver, long pointer)
+  Grammar(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   public Grammar(Grammar grammar)
   {
-    super(grammar.solver, copyGrammar(grammar.pointer));
+    super(copyGrammar(grammar.pointer));
   }
 
   private static native long copyGrammar(long pointer);

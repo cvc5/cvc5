@@ -58,6 +58,8 @@ Trigger::Trigger(Env& env,
       d_quant(q),
       d_instMatch(env, qs, tr, q)
 {
+  // set evaluator mode to "no entail"
+  d_instMatch.setEvaluatorMode(ieval::TermEvaluatorMode::NO_ENTAIL);
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
   Valuation& val = d_qstate.getValuation();
