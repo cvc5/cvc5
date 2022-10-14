@@ -24,15 +24,16 @@
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
+#include "options/proof_options.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
-    : d_tproc(ltp),
-      d_expandTrusted(false),
+LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env),
+      d_tproc(ltp),
       d_trustPletCounter(0),
       d_assumpCounter(0),
       d_assumpPrefix("a"),
@@ -518,29 +519,31 @@ void LfscPrinter::printProofInternal(
           }
           else
           {
-            // could not print the rule, trust for now
-            // its children are printed as plet applications that wrap
-            // this term
+            // Could not print the rule, trust for now.
+            // If we are expanding trusted steps, its children are printed as
+            // plet applications that wrap this term, so that all subproofs are
+            // recorded in the proof.
             size_t cparenTrustChild = 0;
-            if (d_expandTrusted)
+            if (options().proof.lfscExpandTrust)
             {
               const std::vector<std::shared_ptr<ProofNode>>& children =
                   cur->getChildren();
               for (const std::shared_ptr<ProofNode>& c : children)
               {
+                size_t pid = d_trustPletCounter;
+                d_trustPletCounter++;
                 printPLet(out,
                           c.get(),
-                          d_trustPletCounter,
+                          pid,
                           d_pletTrustChildPrefix,
                           lbind,
                           pletMap,
                           passumeMap);
                 cparenTrustChild = cparenTrustChild + 2;
-                d_trustPletCounter++;
               }
             }
             Node res = d_tproc.convert(cur->getResult());
-            res = lbind.convert(res, "__t", true);
+            res = lbind.convert(res, "t", true);
             out->printTrust(res, r);
             d_trustWarned.insert(r);
             out->printCloseRule(cparenTrustChild);
@@ -557,7 +560,7 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       // it has already been converted to internal form, we letify it here
-      Node curni = lbind.convert(curn, "__t", true);
+      Node curni = lbind.convert(curn, "t", true);
       out->printNode(curni);
     }
     // case 3: printing a type node
@@ -857,7 +860,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 LetBinding& lbind,
                                 bool letTop)
 {
-  Node nc = lbind.convert(n, "__t", letTop);
+  Node nc = lbind.convert(n, "t", letTop);
   LfscPrintChannelOut::printNodeInternal(out, nc);
 }
 

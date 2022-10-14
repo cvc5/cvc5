@@ -27,6 +27,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -41,10 +42,10 @@ class LfscPrintChannel;
  * It expects to print proof nodes that have been processed by the LFSC
  * proof post processor.
  */
-class LfscPrinter
+class LfscPrinter : protected EnvObj
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  LfscPrinter(Env& env, LfscNodeConverter& ltp);
   ~LfscPrinter() {}
 
   /**
@@ -171,8 +172,6 @@ class LfscPrinter
   Node d_ff;
   /** Boolean type */
   TypeNode d_boolType;
-  /** Expand trusted */
-  bool d_expandTrusted;
   /** Plet counter */
   size_t d_trustPletCounter;
   /** assumption counter */
