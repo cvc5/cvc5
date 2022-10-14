@@ -115,7 +115,7 @@ bool Cegis::processInitialize(Node conj,
   // This lemma has the semantics "if the conjecture holds, then there must
   // be another (tuple of) values to enumerate". This lemma allows us to
   // answer infeasible when we run out of values (for finite grammars).
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
   d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
   return true;
