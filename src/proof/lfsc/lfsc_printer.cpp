@@ -365,7 +365,7 @@ void LfscPrinter::printProofLetify(
       printPLet(out, p, pid, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
       // printPLet opens two parentheses
-      cparen = cparen+2;
+      cparen = cparen + 2;
     }
     out->printEndLine();
   }
@@ -378,11 +378,11 @@ void LfscPrinter::printProofLetify(
 }
 
 void LfscPrinter::printPLet(LfscPrintChannel* out,
-                                const ProofNode* p,
+                            const ProofNode* p,
                             size_t pid,
-                                const LetBinding& lbind,
-                                std::map<const ProofNode*, size_t>& pletMap,
-                                std::map<Node, size_t>& passumeMap)
+                            const LetBinding& lbind,
+                            std::map<const ProofNode*, size_t>& pletMap,
+                            std::map<Node, size_t>& passumeMap)
 {
   // print (plet _ _
   out->printOpenLfscRule(LfscRule::PLET);
