@@ -65,8 +65,9 @@ class CegSingleInv : protected EnvObj
    *
    * If single invocation techniques are being used, it solves
    * the first order form of the negated synthesis conjecture using a fresh
-   * copy of the SMT engine. This method returns true if it has successfully
-   * found a solution to the synthesis conjecture using this method.
+   * copy of the SMT engine. This method returns UNSAT if it has successfully
+   * found a solution to the synthesis conjecture using this method, SAT
+   * if the conjecture is determined to be infeasible, or UNKNOWN otherwise.
    */
   Result solve();
   /**
