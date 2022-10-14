@@ -303,6 +303,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_PBE_EXCLUDE";
     case InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL:
       return "QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL";
+    case InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM:
+      return "QUANTIFIERS_SYGUS_COMPLETE_ENUM";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
       return "QUANTIFIERS_CONJ_GEN_SPLIT";

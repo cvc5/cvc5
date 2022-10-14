@@ -81,13 +81,14 @@ bool Cegis::processInitialize(Node conj,
                               const std::vector<Node>& candidates)
 {
   Trace("cegis") << "Initialize cegis..." << std::endl;
-  unsigned csize = candidates.size();
+  size_t csize = candidates.size();
   // The role of enumerators is to be either the single solution or part of
   // a solution involving multiple enumerators.
   EnumeratorRole erole =
       csize == 1 ? ROLE_ENUM_SINGLE_SOLUTION : ROLE_ENUM_MULTI_SOLUTION;
   // initialize an enumerator for each candidate
-  for (unsigned i = 0; i < csize; i++)
+  std::vector<Node> activeGuards;
+  for (size_t i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
     // We use symbolic constants if we are doing repair constants or if the
@@ -107,8 +108,16 @@ bool Cegis::processInitialize(Node conj,
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
+    Node e = candidates[i];
+    d_tds->registerEnumerator(e, e, d_parent, erole);
+    activeGuards.push_back(d_tds->getActiveGuardForEnumerator(e));
   }
+  // This lemma has the semantics "if the conjecture holds, then there must
+  // be another (tuple of) values to enumerate". This lemma allows us to
+  // answer infeasible when we run out of values (for finite grammars).
+  NodeManager * nm = NodeManager::currentNM();
+  Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
+  d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
   return true;
 }
 

@@ -424,6 +424,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_PBE_EXCLUDE,
   // a lemma generated while constructing a candidate solution for PBE
   QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
+  // complete enumeration lemma
+  QUANTIFIERS_SYGUS_COMPLETE_ENUM,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
