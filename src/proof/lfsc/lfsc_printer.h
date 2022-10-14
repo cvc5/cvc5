@@ -121,7 +121,8 @@ class LfscPrinter
                      bool letTop = true);
   /**
    * print let list, prints definitions of lbind on out in order, and closing
-   * parentheses on cparen.
+   * parentheses on cparen. If asDefs is true, then the definition is printed
+   * as a standalone define statement on out.
    */
   void printLetList(std::ostream& out,
                     std::ostream& cparen,
