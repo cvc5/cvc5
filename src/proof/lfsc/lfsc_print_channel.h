@@ -87,8 +87,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
    */
   static void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   static void printRule(std::ostream& out, const ProofNode* pn);
-  static void printId(std::ostream& out, size_t id,
-                           const std::string& prefix);
+  static void printId(std::ostream& out, size_t id, const std::string& prefix);
   //------------------- end helper methods
  private:
   /**

@@ -22,9 +22,9 @@
 #include "expr/dtype_selector.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/proof_options.h"
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
-#include "options/proof_options.h"
 
 using namespace cvc5::internal::kind;
 

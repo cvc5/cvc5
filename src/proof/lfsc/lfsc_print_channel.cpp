@@ -112,8 +112,8 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
 }
 
 void LfscPrintChannelOut::printId(std::ostream& out,
-                                       size_t id,
-                                       const std::string& prefix)
+                                  size_t id,
+                                  const std::string& prefix)
 {
   out << prefix << id;
 }
