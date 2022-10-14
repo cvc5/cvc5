@@ -361,21 +361,11 @@ void LfscPrinter::printProofLetify(
       itp = pletMap.find(p);
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
-      // print (plet _ _
-      out->printOpenLfscRule(LfscRule::PLET);
-      cparen++;
-      out->printHole();
-      out->printHole();
-      out->printEndLine();
-      // print the letified proof
       pletMap.erase(p);
-      printProofInternal(out, p, lbind, pletMap, passumeMap);
+      printPLet(out, p, pid, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
-      // print the lambda (\ __pX
-      out->printOpenLfscRule(LfscRule::LAMBDA);
-      cparen++;
-      out->printProofId(pid);
-      out->printEndLine();
+      // printPLet opens two parentheses
+      cparen = cparen+2;
     }
     out->printEndLine();
   }
@@ -385,6 +375,26 @@ void LfscPrinter::printProofLetify(
 
   // print the closing parenthesis
   out->printCloseRule(cparen);
+}
+
+void LfscPrinter::printPLet(LfscPrintChannel* out,
+                                const ProofNode* p,
+                            size_t pid,
+                                const LetBinding& lbind,
+                                std::map<const ProofNode*, size_t>& pletMap,
+                                std::map<Node, size_t>& passumeMap)
+{
+  // print (plet _ _
+  out->printOpenLfscRule(LfscRule::PLET);
+  out->printHole();
+  out->printHole();
+  out->printEndLine();
+  // print the letified proof
+  printProofInternal(out, p, lbind, pletMap, passumeMap);
+  // print the lambda (\ __pX
+  out->printOpenLfscRule(LfscRule::LAMBDA);
+  out->printProofId(pid);
+  out->printEndLine();
 }
 
 void LfscPrinter::printProofInternal(

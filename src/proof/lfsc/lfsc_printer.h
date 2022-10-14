@@ -140,6 +140,14 @@ class LfscPrinter
                           const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
   /**
+   */
+  void printPLet(LfscPrintChannel* out,
+                        const ProofNode* pn,
+                 size_t pid,
+                        const LetBinding& lbind,
+                        std::map<const ProofNode*, size_t>& pletMap,
+                        std::map<Node, size_t>& passumeMap);
+  /**
    * Get the arguments for the proof node application. This adds the arguments
    * of the given proof to the vector pargs.
    *
