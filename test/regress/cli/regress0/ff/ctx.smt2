@@ -2,6 +2,7 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: sat
+; EXPECT: sat
 ; COMMAND-LINE: --incremental
 ; Tests the ff rewriter
 (set-info :smt-lib-version 2.6)
@@ -24,5 +25,6 @@
 (declare-fun c () F)
 (assert (= (ff.mul c c) c))
 (assert (= (ff.mul c c) b))
+(check-sat)
 (check-sat)
 (pop)

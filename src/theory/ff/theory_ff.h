@@ -65,16 +65,8 @@ class TheoryFiniteFields : public Theory
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
-  void computeCareGraph() override;
-  TrustNode explain(TNode) override;
-  Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_FF"; }
   void preRegisterTerm(TNode node) override;
-  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
-  void presolve() override;
-  bool isEntailed(Node n, bool pol);
 
  private:
   TheoryFiniteFieldsRewriter d_rewriter{};

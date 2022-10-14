@@ -213,34 +213,37 @@ void SubTheory::computeBasis(size_t factIndex)
 {
   Assert(d_conflict.empty());
   Assert(d_updateIndices.size() > 0);
-  Assert(factIndex > d_updateIndices.back());
-  IncrementalIdeal& ideal = d_incrementalIdeal.value();
-  std::vector<CoCoA::RingElem> newGens;
-  for (size_t i = d_updateIndices.back(); i < factIndex; ++i)
+  Assert(factIndex >= d_updateIndices.back());
+  if (factIndex > d_updateIndices.back())
   {
-    TNode fact = d_facts[i];
-    translate(fact);
-    newGens.push_back(d_translationCache.at(fact));
-  }
-  {
-    CodeTimer reductionTimer(d_stats->d_reductionTime);
-    ideal.pushGenerators(std::move(newGens));
-    d_stats->d_numReductions += 1;
-  }
-  d_updateIndices.push_back(factIndex);
-  if (ideal.idealIsTrivial())
-  {
-    for (size_t i : ideal.trivialCoreIndices())
+    IncrementalIdeal& ideal = d_incrementalIdeal.value();
+    std::vector<CoCoA::RingElem> newGens;
+    for (size_t i = d_updateIndices.back(); i < factIndex; ++i)
     {
-      d_conflict.push_back(d_facts[i]);
+      TNode fact = d_facts[i];
+      translate(fact);
+      newGens.push_back(d_translationCache.at(fact));
     }
-    Trace("ff::conflict") << "conflict " << ideal.trivialCoreIndices().size()
-                          << "/" << d_facts.size() << " facts" << std::endl;
-    if (TraceChannel.isOn("ff::conflict"))
     {
-      Trace("ff::conflict::debug")
-          << "conflict " << NodeManager::currentNM()->mkAnd(d_conflict)
-          << std::endl;
+      CodeTimer reductionTimer(d_stats->d_reductionTime);
+      ideal.pushGenerators(std::move(newGens));
+      d_stats->d_numReductions += 1;
+    }
+    d_updateIndices.push_back(factIndex);
+    if (ideal.idealIsTrivial())
+    {
+      for (size_t i : ideal.trivialCoreIndices())
+      {
+        d_conflict.push_back(d_facts[i]);
+      }
+      Trace("ff::conflict") << "conflict " << ideal.trivialCoreIndices().size()
+                            << "/" << d_facts.size() << " facts" << std::endl;
+      if (TraceChannel.isOn("ff::conflict"))
+      {
+        Trace("ff::conflict::debug")
+            << "conflict " << NodeManager::currentNM()->mkAnd(d_conflict)
+            << std::endl;
+      }
     }
   }
 }
@@ -328,8 +331,8 @@ void SubTheory::translate(TNode t)
         default:
           Unreachable() << "Invalid finite field kind: " << node.getKind();
       }
-      Trace("ff::trans")
-          << "Translated " << node << "\t-> " << poly << std::endl;
+      Trace("ff::trans") << "Translated " << node << "\t-> " << poly
+                         << std::endl;
       cache.insert(std::make_pair(node, poly));
     }
   }

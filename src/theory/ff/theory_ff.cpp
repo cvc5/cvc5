@@ -136,23 +136,6 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
   return true;
 }
 
-void TheoryFiniteFields::computeCareGraph()
-{
-  // TODO
-}
-
-TrustNode TheoryFiniteFields::explain(TNode node)
-{
-  // TODO
-  return TrustNode::null();
-}
-
-Node TheoryFiniteFields::getModelValue(TNode node)
-{
-  // TODO
-  return Node::null();
-}
-
 void TheoryFiniteFields::preRegisterTerm(TNode node)
 {
 #ifdef CVC5_USE_COCOA
@@ -173,32 +156,6 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
 #else  /* CVC5_USE_COCOA */
   noCoCoA();
 #endif /* CVC5_USE_COCOA */
-}
-
-TrustNode TheoryFiniteFields::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
-{
-  // TODO
-  return TrustNode::null();
-}
-
-Theory::PPAssertStatus TheoryFiniteFields::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
-{
-  TNode in = tin.getNode();
-  Trace("ff::pp") << "ff::ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
-  return status;
-}
-
-void TheoryFiniteFields::presolve()
-{
-  // TODO
-}
-
-bool TheoryFiniteFields::isEntailed(Node n, bool pol)
-{
-  // TODO
-  return false;
 }
 
 }  // namespace ff
