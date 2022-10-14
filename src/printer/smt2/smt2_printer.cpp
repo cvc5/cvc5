@@ -1171,6 +1171,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::BITVECTOR_SADDO: return "bvsaddo";
     case kind::BITVECTOR_UMULO: return "bvumulo";
     case kind::BITVECTOR_SMULO: return "bvsmulo";
+    case kind::BITVECTOR_USUBO: return "bvusubo";
     case kind::BITVECTOR_SSUBO: return "bvssubo";
     case kind::BITVECTOR_TO_NAT: return "bv2nat";
     case kind::BITVECTOR_REDOR: return "bvredor";
