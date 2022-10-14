@@ -62,10 +62,10 @@ void LfscPrintChannelOut::printCloseRule(size_t nparen)
   }
 }
 
-void LfscPrintChannelOut::printProofId(size_t id, const std::string& prefix)
+void LfscPrintChannelOut::printId(size_t id, const std::string& prefix)
 {
   d_out << " ";
-  printProofId(d_out, id, prefix);
+  printId(d_out, id, prefix);
 }
 
 void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
@@ -111,12 +111,7 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrintChannelOut::printId(std::ostream& out, size_t id)
-{
-  out << "t" << id;
-}
-
-void LfscPrintChannelOut::printProofId(std::ostream& out,
+void LfscPrintChannelOut::printId(std::ostream& out,
                                        size_t id,
                                        const std::string& prefix)
 {

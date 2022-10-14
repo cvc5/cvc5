@@ -36,6 +36,7 @@ LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp)
       d_tproc(ltp),
       d_trustPletCounter(0),
       d_assumpCounter(0),
+      d_termLetPrefix("t"),
       d_assumpPrefix("a"),
       d_pletPrefix("p"),
       d_pletTrustChildPrefix("q")
@@ -221,7 +222,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   {
     Node ia = iasserts[i];
     out << "(# ";
-    LfscPrintChannelOut::printProofId(out, i, d_assumpPrefix);
+    LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
     out << " (holds ";
     printInternal(out, ia, lbind);
     out << ")" << std::endl;
@@ -401,7 +402,7 @@ void LfscPrinter::printPLet(LfscPrintChannel* out,
   printProofInternal(out, p, lbind, pletMap, passumeMap);
   // print the lambda (\ __pX
   out->printOpenLfscRule(LfscRule::LAMBDA);
-  out->printProofId(pid, prefix);
+  out->printId(pid, prefix);
   out->printEndLine();
 }
 
@@ -439,7 +440,7 @@ void LfscPrinter::printProofInternal(
       if (pletIt != pletMap.end())
       {
         // a letified proof
-        out->printProofId(pletIt->second, d_pletPrefix);
+        out->printId(pletIt->second, d_pletPrefix);
         continue;
       }
       pit = processingChildren.find(cur);
@@ -457,7 +458,7 @@ void LfscPrinter::printProofInternal(
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
-          out->printProofId(passumeIt->second, d_assumpPrefix);
+          out->printId(passumeIt->second, d_assumpPrefix);
         }
         else if (isLambda)
         {
@@ -481,7 +482,7 @@ void LfscPrinter::printProofInternal(
           // make the node whose name is the assumption id, where notice that
           // the type of this node does not matter
           std::stringstream pidNodeName;
-          LfscPrintChannelOut::printProofId(pidNodeName, pid, d_assumpPrefix);
+          LfscPrintChannelOut::printId(pidNodeName, pid, d_assumpPrefix);
           // must be an internal symbol so that it is not turned into (bvar ...)
           Node pidNode =
               d_tproc.mkInternalSymbol(pidNodeName.str(), d_boolType);
@@ -543,7 +544,7 @@ void LfscPrinter::printProofInternal(
               }
             }
             Node res = d_tproc.convert(cur->getResult());
-            res = lbind.convert(res, "t", true);
+            res = lbind.convert(res, d_termLetPrefix, true);
             out->printTrust(res, r);
             d_trustWarned.insert(r);
             out->printCloseRule(cparenTrustChild);
@@ -560,7 +561,7 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       // it has already been converted to internal form, we letify it here
-      Node curni = lbind.convert(curn, "t", true);
+      Node curni = lbind.convert(curn, d_termLetPrefix, true);
       out->printNode(curni);
     }
     // case 3: printing a type node
@@ -841,7 +842,7 @@ void LfscPrinter::printLetList(std::ostream& out,
     out << "(@ ";
     size_t id = lbind.getId(nl);
     Assert(id != 0);
-    LfscPrintChannelOut::printId(out, id);
+    LfscPrintChannelOut::printId(out, id, d_termLetPrefix);
     out << " ";
     // remove, print, insert again
     printInternal(out, nl, lbind, false);
@@ -860,7 +861,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 LetBinding& lbind,
                                 bool letTop)
 {
-  Node nc = lbind.convert(n, "t", letTop);
+  Node nc = lbind.convert(n, d_termLetPrefix, letTop);
   LfscPrintChannelOut::printNodeInternal(out, nc);
 }
 

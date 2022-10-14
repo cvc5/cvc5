@@ -176,6 +176,8 @@ class LfscPrinter : protected EnvObj
   size_t d_trustPletCounter;
   /** assumption counter */
   size_t d_assumpCounter;
+  /** term prefix */
+  std::string d_termLetPrefix;
   /** assumption prefix */
   std::string d_assumpPrefix;
   /** proof letified prefix */

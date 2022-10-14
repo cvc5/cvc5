@@ -57,8 +57,8 @@ class LfscPrintChannel
   virtual void printOpenLfscRule(LfscRule lr) {}
   /** Print the closing of # nparen proof rules */
   virtual void printCloseRule(size_t nparen = 1) {}
-  /** Print a letified proof with the given identifier */
-  virtual void printProofId(size_t id, const std::string& prefix) {}
+  /** Print an identifier for the given prefix */
+  virtual void printId(size_t id, const std::string& prefix) {}
   /** Print an end line */
   virtual void printEndLine() {}
 };
@@ -75,7 +75,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   void printOpenRule(const ProofNode* pn) override;
   void printOpenLfscRule(LfscRule lr) override;
   void printCloseRule(size_t nparen = 1) override;
-  void printProofId(size_t id, const std::string& prefix) override;
+  void printId(size_t id, const std::string& prefix) override;
   void printEndLine() override;
   //------------------- helper methods
   /**
@@ -87,9 +87,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
    */
   static void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   static void printRule(std::ostream& out, const ProofNode* pn);
-  static void printId(std::ostream& out, size_t id);
-  static void printProofId(std::ostream& out,
-                           size_t id,
+  static void printId(std::ostream& out, size_t id,
                            const std::string& prefix);
   //------------------- end helper methods
  private:
