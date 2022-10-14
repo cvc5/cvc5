@@ -116,7 +116,9 @@ void LfscPrintChannelOut::printId(std::ostream& out, size_t id)
   out << "t" << id;
 }
 
-void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id, const std::string& prefix)
+void LfscPrintChannelOut::printProofId(std::ostream& out,
+                                       size_t id,
+                                       const std::string& prefix)
 {
   out << prefix << id;
 }

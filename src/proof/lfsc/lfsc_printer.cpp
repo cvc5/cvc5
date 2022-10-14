@@ -31,7 +31,13 @@ namespace cvc5::internal {
 namespace proof {
 
 LfscPrinter::LfscPrinter(LfscNodeConverter& ltp)
-    : d_tproc(ltp), d_expandTrusted(false), d_trustPletCounter(0), d_assumpCounter(0),d_assumpPrefix("a"), d_pletPrefix("p"), d_pletTrustChildPrefix("q")
+    : d_tproc(ltp),
+      d_expandTrusted(false),
+      d_trustPletCounter(0),
+      d_assumpCounter(0),
+      d_assumpPrefix("a"),
+      d_pletPrefix("p"),
+      d_pletTrustChildPrefix("q")
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -379,7 +385,8 @@ void LfscPrinter::printProofLetify(
 
 void LfscPrinter::printPLet(LfscPrintChannel* out,
                             const ProofNode* p,
-                            size_t pid, const std::string& prefix,
+                            size_t pid,
+                            const std::string& prefix,
                             const LetBinding& lbind,
                             const std::map<const ProofNode*, size_t>& pletMap,
                             std::map<Node, size_t>& passumeMap)
@@ -517,11 +524,18 @@ void LfscPrinter::printProofInternal(
             size_t cparenTrustChild = 0;
             if (d_expandTrusted)
             {
-              const std::vector<std::shared_ptr<ProofNode>>& children = cur->getChildren();
+              const std::vector<std::shared_ptr<ProofNode>>& children =
+                  cur->getChildren();
               for (const std::shared_ptr<ProofNode>& c : children)
               {
-                printPLet(out, c.get(), d_trustPletCounter, d_pletTrustChildPrefix, lbind, pletMap, passumeMap);
-                cparenTrustChild = cparenTrustChild+2;
+                printPLet(out,
+                          c.get(),
+                          d_trustPletCounter,
+                          d_pletTrustChildPrefix,
+                          lbind,
+                          pletMap,
+                          passumeMap);
+                cparenTrustChild = cparenTrustChild + 2;
                 d_trustPletCounter++;
               }
             }

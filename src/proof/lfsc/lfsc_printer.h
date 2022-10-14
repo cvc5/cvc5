@@ -143,7 +143,8 @@ class LfscPrinter
    */
   void printPLet(LfscPrintChannel* out,
                  const ProofNode* pn,
-                 size_t pid, const std::string& prefix,
+                 size_t pid,
+                 const std::string& prefix,
                  const LetBinding& lbind,
                  const std::map<const ProofNode*, size_t>& pletMap,
                  std::map<Node, size_t>& passumeMap);
