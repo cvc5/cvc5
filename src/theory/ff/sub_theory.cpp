@@ -24,7 +24,6 @@
 
 #include <numeric>
 
-#include "expr/node_manager_attributes.h"
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
 #include "smt/env_obj.h"
@@ -100,8 +99,7 @@ void SubTheory::ensureInitPolyRing()
     std::vector<CoCoA::symbol> symbols;
     for (const auto& v : d_vars)
     {
-      symbols.push_back(
-          CoCoA::symbol(varNameToSymName(v.getAttribute(expr::VarNameAttr()))));
+      symbols.push_back(CoCoA::symbol(varNameToSymName(v.getName())));
     }
     for (size_t i = 0; i < d_atoms.size(); ++i)
     {
