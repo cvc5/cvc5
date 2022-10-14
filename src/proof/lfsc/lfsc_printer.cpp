@@ -30,11 +30,8 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp,
-                         bool doFlatten)
-    : d_tproc(ltp),
-      d_flatten(doFlatten),
-      d_assumpCounter(0)
+LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, bool doFlatten)
+    : d_tproc(ltp), d_flatten(doFlatten), d_assumpCounter(0)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -823,8 +820,7 @@ void LfscPrinter::computeProofLetification(
     std::map<const ProofNode*, size_t>& pletMap)
 {
   // use callback to specify to stop at LAMBDA
-  ProofLetify::computeProofLet(
-      pn, pletList, pletMap, 2, &d_lpltc);
+  ProofLetify::computeProofLet(pn, pletList, pletMap, 2, &d_lpltc);
 }
 
 void LfscPrinter::print(std::ostream& out, Node n)
