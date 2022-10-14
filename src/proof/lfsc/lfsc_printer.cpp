@@ -229,9 +229,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     Node ia = iasserts[i];
     if (d_flatten)
     {
-      out << "(define ";
+      out << "(declare ";
       LfscPrintChannelOut::printAssumeId(out, i);
-      out << " (trust ";
+      out << " (holds ";
       printInternal(out, ia, lbind);
       out << "))" << std::endl;
     }
@@ -283,9 +283,9 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
       out << "))" << std::endl;
       if (!isFinal)
       {
-        out << "(define ";
+        out << "(declare ";
         LfscPrintChannelOut::printProofId(out, pid);
-        out << " (trust " << resType.str() << "))" << std::endl;
+        out << " (holds " << resType.str() << "))" << std::endl;
       }
     }
   }
