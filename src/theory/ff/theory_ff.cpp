@@ -90,7 +90,7 @@ void TheoryFiniteFields::postCheck(Effort level)
     {
       d_im.conflict(
           NodeManager::currentNM()->mkAnd(subTheory.second.conflict()),
-          InferenceId::ARITH_FF);
+          InferenceId::FF_LEMMA);
     }
   }
 #else  /* CVC5_USE_COCOA */

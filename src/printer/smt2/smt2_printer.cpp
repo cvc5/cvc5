@@ -675,15 +675,6 @@ void Smt2Printer::toStream(std::ostream& out,
     break;
   }
 
-    // ff theory
-  case kind::FINITE_FIELD_ADD:
-  case kind::FINITE_FIELD_MULT:
-  case kind::FINITE_FIELD_NEG:
-  {
-    out << smtKindString(k) << " ";
-    break;
-  }
-
     // bv theory
   case kind::BITVECTOR_CONCAT:
   case kind::BITVECTOR_AND:

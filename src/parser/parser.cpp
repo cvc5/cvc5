@@ -926,5 +926,14 @@ cvc5::Term Parser::mkCharConstant(const std::string& s)
   return d_solver->mkString(std::wstring(1, val));
 }
 
+unsigned stringToUnsigned(const std::string& str)
+{
+  unsigned result;
+  std::stringstream ss;
+  ss << str;
+  ss >> result;
+  return result;
+}
+
 }  // namespace parser
 }  // namespace cvc5

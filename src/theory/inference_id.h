@@ -173,9 +173,12 @@ enum class InferenceId
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
   //-------------------- ff inference
-  // arith ff
-  ARITH_FF,
   // ---------------------------------- end arith theory
+
+  // ---------------------------------- finite field theory
+  // a catch-all, for now
+  FF_LEMMA,
+  // ---------------------------------- end finite field theory
 
   // ---------------------------------- arrays theory
   ARRAYS_EXT,

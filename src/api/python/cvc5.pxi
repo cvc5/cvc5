@@ -4089,8 +4089,7 @@ cdef class Term:
 
            .. note:: Uses the integer representative of smallest absolute value.
 
-           :return: The representation of a finite field value in string
-                    representation.
+           :return: The representation of a finite field value as an integer.
         """
         return int(self.cterm.getFiniteFieldValue().decode())
 

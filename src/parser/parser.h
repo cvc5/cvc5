@@ -759,6 +759,9 @@ public:
   std::wstring processAdHocStringEsc(const std::string& s);
 }; /* class Parser */
 
+/** Compute the unsigned integer for a token. */
+unsigned stringToUnsigned(const std::string& str);
+
 }  // namespace parser
 }  // namespace cvc5
 

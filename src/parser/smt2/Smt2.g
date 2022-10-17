@@ -1990,7 +1990,7 @@ sortSymbol[cvc5::Sort& t]
           if(numerals.front() == "0") {
             PARSER_STATE->parseError("Illegal bitvector size: 0");
           }
-          t = SOLVER->mkBitVectorSort(AntlrInput::stringToUnsigned(numerals.front()));
+          t = SOLVER->mkBitVectorSort(stringToUnsigned(numerals.front()));
         } else if( name == "FiniteField" ) {
           if( numerals.size() != 1 ) {
             PARSER_STATE->parseError("Illegal finite field type.");
@@ -2000,8 +2000,8 @@ sortSymbol[cvc5::Sort& t]
           if( numerals.size() != 2 ) {
             PARSER_STATE->parseError("Illegal floating-point type.");
           }
-          uint32_t n0 = AntlrInput::stringToUnsigned(numerals[0]);
-          uint32_t n1 = AntlrInput::stringToUnsigned(numerals[1]);
+          uint32_t n0 = stringToUnsigned(numerals[0]);
+          uint32_t n1 = stringToUnsigned(numerals[1]);
           if(!internal::validExponentSize(n0)) {
             PARSER_STATE->parseError("Illegal floating-point exponent size");
           }
@@ -2396,7 +2396,7 @@ BINARY_LITERAL
   ;
 
 /**
- * Matches a binary constant.
+ * Matches a finite field constant.
  */
 FIELD_LITERAL
   : '#f' INTEGER_LITERAL 'm' INTEGER_LITERAL
