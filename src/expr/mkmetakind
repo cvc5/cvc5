@@ -264,7 +264,7 @@ $2 ${class};"
 #pragma GCC diagnostic ignored \"-Wstrict-aliasing\"
 
 template <>
-${class} const& NodeValue::getConst< ${class} >() const {
+${class} const\& NodeValue::getConst< ${class} >() const {
   //AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
   //               \"Improper kind for getConst<${class}>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
@@ -284,20 +284,20 @@ ${class} const& NodeValue::getConst< ${class} >() const {
   if [ "${skip_const_map}" != true ]; then
     metakind_mkConst="${metakind_mkConst}
 template<>
-Node NodeManager::mkConst<${class}>(const ${class}& val)
+Node NodeManager::mkConst<${class}>(const ${class}\& val)
 {
   return mkConstInternal<Node, ${class}>(::cvc5::internal::kind::$1, val);
 }
 
 template<>
-TypeNode NodeManager::mkTypeConst<${class}>(const ${class}& val)
+TypeNode NodeManager::mkTypeConst<${class}>(const ${class}\& val)
 {
   return mkConstInternal<TypeNode, ${class}>(::cvc5::internal::kind::$1, val);
 }
 "
     metakind_mkConst="${metakind_mkConst}
 template<>
-Node NodeManager::mkConst(Kind k, const ${class}& val)
+Node NodeManager::mkConst(Kind k, const ${class}\& val)
 {
   return mkConstInternal<Node, ${class}>(k, val);
 }
@@ -305,11 +305,11 @@ Node NodeManager::mkConst(Kind k, const ${class}& val)
   elif [[ "${payload_seen}" != true ]]; then
     metakind_mkConstDelete="${metakind_mkConstDelete}
 template<>
-Node NodeManager::mkConst<${class}>(const ${class}& val) = delete;
+Node NodeManager::mkConst<${class}>(const ${class}\& val) = delete;
 "
     metakind_mkConst="${metakind_mkConst}
 template<>
-Node NodeManager::mkConst(Kind k, const ${class}& val)
+Node NodeManager::mkConst(Kind k, const ${class}\& val)
 {
   return mkConstInternal<Node, ${class}>(k, val);
 }
