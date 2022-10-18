@@ -433,7 +433,8 @@ bool AletheProofPostprocessCallback::update(Node res,
         {
           Node toTest = arg.getKind() == kind::NOT ? arg[0] : arg;
           Kind k = toTest.getKind();
-          if (k != kind::LT && k != kind::LEQ && k != kind::GT && k != kind::GEQ)
+          if (k != kind::LT && k != kind::LEQ && k != kind::GT && k != kind::GEQ
+              && k != kind::EQUAL)
           {
             Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
             allIneqs = false;
@@ -450,7 +451,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                *cdp);
         }
       }
-      Unreachable();
+      Unreachable() << "Theory lemma not representable with LIA_GENERIC: " << res;
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
