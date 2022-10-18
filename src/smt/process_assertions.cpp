@@ -17,7 +17,6 @@
 
 #include <utility>
 
-#include "expr/node_manager_attributes.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"

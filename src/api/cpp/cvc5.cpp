@@ -53,7 +53,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -1220,7 +1219,7 @@ bool Sort::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_type->hasAttribute(internal::expr::VarNameAttr());
+  return d_type->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1229,11 +1228,11 @@ std::string Sort::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_type->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the sort to have a symbol.";
   //////// all checks before this line
-  return d_type->getAttribute(internal::expr::VarNameAttr());
+  return d_type->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2460,7 +2459,7 @@ bool Term::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->hasAttribute(internal::expr::VarNameAttr());
+  return d_node->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2469,11 +2468,11 @@ std::string Term::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_node->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_node->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the term to have a symbol.";
   //////// all checks before this line
-  return d_node->getAttribute(internal::expr::VarNameAttr());
+  return d_node->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }

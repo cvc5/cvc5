@@ -18,7 +18,6 @@
 #include <stack>
 #include <utility>
 
-#include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env.h"
 #include "theory/rewriter.h"
