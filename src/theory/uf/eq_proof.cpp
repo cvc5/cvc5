@@ -18,6 +18,7 @@
 #include "base/configuration.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
 
 namespace cvc5::internal {
@@ -1457,9 +1458,35 @@ Node EqProof::addToProof(CDProof* p,
     Trace("eqproof-conv") << "EqProof::addToProof: add "
                           << PfRule::MACRO_SR_PRED_TRANSFORM
                           << " step to flatten rebuilt conclusion "
-                          << conclusion << "into " << d_node << "\n";
-    p->addStep(
-        d_node, PfRule::MACRO_SR_PRED_TRANSFORM, {conclusion}, {d_node}, true);
+                          << conclusion << " into " << d_node << "\n";
+    Node res = p->getManager()->getChecker()->checkDebug(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {conclusion},
+        {d_node},
+        d_node,
+        "eqproof-conv");
+    if (res.isNull())
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: adding a trust rewrite step\n";
+      Node bridgeEq = conclusion.eqNode(d_node);
+      p->addStep(bridgeEq,
+                 PfRule::TRUST_REWRITE,
+                 {},
+                 {bridgeEq});
+      p->addStep(d_node,
+                 PfRule::EQ_RESOLVE,
+                 {conclusion, bridgeEq},
+                 {});
+    }
+    else
+    {
+      p->addStep(d_node,
+                 PfRule::MACRO_SR_PRED_TRANSFORM,
+                 {conclusion},
+                 {d_node},
+                 true);
+    }
   }
   visited[d_node] = d_node;
   return d_node;
