@@ -1455,9 +1455,9 @@ Node EqProof::addToProof(CDProof* p,
   // rewriting
   if (!CDProof::isSame(conclusion, d_node))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: add "
+    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a"
                           << PfRule::MACRO_SR_PRED_TRANSFORM
-                          << " step to flatten rebuilt conclusion "
+                          << " step the rebuilt conclusion "
                           << conclusion << " into " << d_node << "\n";
     Node res = p->getManager()->getChecker()->checkDebug(
         PfRule::MACRO_SR_PRED_TRANSFORM,
@@ -1465,6 +1465,18 @@ Node EqProof::addToProof(CDProof* p,
         {d_node},
         Node::null(),
         "eqproof-conv");
+    // If rewriting was not able to flatten the rebuilt conclusion into the
+    // original one, we give up and use a TRUST_REWRITE step, generating a proof
+    // for the original conclusion d_node such as
+    //
+    //     Converted EqProof
+    //  ----------------------         ----------------------- TRUST_REWRITE
+    //     conclusion                    conclusion = d_node
+    // ------------------------------------------------------- EQ_RESOLVE
+    //                       d_node
+    //
+    //
+    //  If rewriting was able to do it, however, we just add the macro step.
     if (res.isNull())
     {
       Trace("eqproof-conv")
