@@ -1463,7 +1463,7 @@ Node EqProof::addToProof(CDProof* p,
         PfRule::MACRO_SR_PRED_TRANSFORM,
         {conclusion},
         {d_node},
-        d_node,
+        Node::null(),
         "eqproof-conv");
     if (res.isNull())
     {
