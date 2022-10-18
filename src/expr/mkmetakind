@@ -16,6 +16,9 @@
 #
 # Output is to standard out.
 #
+# Required to disable this option for bash >=5.2 to avoid automatically
+# replacing & by the substituted text.
+shopt -u patsub_replacement
 
 copyright=2010-2022
 
