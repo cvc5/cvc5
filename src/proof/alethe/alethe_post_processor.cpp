@@ -424,6 +424,33 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     case PfRule::THEORY_LEMMA:
     {
+      // if we are in the arithmetic case, we rather add a LIA_GENERIC step
+      if (res.getKind() == kind::NOT && res[0].getKind() == kind::AND)
+      {
+        Trace("alethe-proof") << "... test each arg if ineq\n";
+        bool allIneqs = true;
+        for (const Node& arg : res[0])
+        {
+          Node toTest = arg.getKind() == kind::NOT ? arg[0] : arg;
+          Kind k = toTest.getKind();
+          if (k != kind::LT && k != kind::LEQ && k != kind::GT && k != kind::GEQ)
+          {
+            Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
+            allIneqs = false;
+            break;
+          }
+        }
+        if (allIneqs)
+        {
+          return addAletheStep(AletheRule::LIA_GENERIC,
+                               res,
+                               nm->mkNode(kind::SEXPR, d_cl, res),
+                               children,
+                               {},
+                               *cdp);
+        }
+      }
+      Unreachable();
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
