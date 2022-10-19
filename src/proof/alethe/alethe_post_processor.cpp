@@ -1628,43 +1628,47 @@ bool AletheProofPostprocessCallback::update(Node res,
                               *cdp);
     }
     //================================================= Arithmetic rules
-    // ======== Adding Inequalities
+    // ======== Adding Scaled Inequalities
     //
-    // ----- LIA_GENERIC
-    //  VP1                P1 ... Pn
-    // ------------------------------- RESOLUTION
+    // -------------------------------------- LA_GENERIC
+    // (cl (not P1) ... (not Pn) (>< t1 t2))              P1 ... Pn
+    // ------------------------------------------------------------- RESOLUTION
     //  (cl (>< t1 t2))*
     //
-    // VP1: (cl (not l1) ... (not ln) (>< t1 t2))
-    //
     // * the corresponding proof node is (>< t1 t2)
-    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
+    case PfRule::ARITH_SUM_UB:
     {
-      std::vector<Node> vp1s{d_cl};
+      // if the conclusion were an equality we'd need to phrase LA_GENERIC in
+      // terms of disequalities, but ARITH_SUM_UB does not have equalities as
+      // conclusions
+      Assert(res.getKind() != kind::EQUAL);
+      Node one = nm->mkConstInt(Rational(1));
+      Node minusOne = nm->mkNode(kind::NEG, one);
+      std::vector<Node> resArgs;
+      std::vector<Node> resChildren;
+      std::vector<Node> lits{d_cl};
       for (const Node& child : children)
       {
-        vp1s.push_back(child.notNode());
+        lits.push_back(child.notNode());
+        // equalities are multiplied by minus 1 rather than 1
+        new_args.push_back(child.getKind() == kind::EQUAL ? minusOne : one);
+        resArgs.push_back(child);
+        resArgs.push_back(d_false);
       }
-      vp1s.push_back(res);
-      Node vp1 = nm->mkNode(kind::SEXPR, vp1s);
-      std::vector<Node> new_children = {vp1};
-      new_children.insert(new_children.end(), children.begin(), children.end());
-      std::vector<Node> newArgs;
-      if (options().proof.proofAletheResPivots)
-      {
-        for (const Node& child : children)
-        {
-          newArgs.push_back(child);
-          newArgs.push_back(d_false);
-        }
-      }
-      return addAletheStep(AletheRule::LIA_GENERIC, vp1, vp1, {}, args, *cdp)
-             && addAletheStep(AletheRule::RESOLUTION,
-                              res,
-                              nm->mkNode(kind::SEXPR, d_cl, res),
-                              new_children,
-                              newArgs,
-                              *cdp);
+      lits.push_back(res);
+      new_args.push_back(one);
+      Node laGen = nm->mkNode(kind::SEXPR, lits);
+      addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
+      resChildren.push_back(laGen);
+      resChildren.insert(resChildren.end(), children.begin(), children.end());
+      return addAletheStep(
+          AletheRule::RESOLUTION,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          resChildren,
+          options().proof.proofAletheResPivots ? resArgs : std::vector<Node>(),
+          *cdp);
+    }
     }
     // ======== Tightening Strict Integer Upper Bounds
     //

@@ -88,10 +88,7 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION_TRUST);
     d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
-    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
-    {
-      d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
-    }
+    d_pfpp->setEliminateRule(PfRule::MACRO_ARITH_SCALE_SUM_UB);
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
