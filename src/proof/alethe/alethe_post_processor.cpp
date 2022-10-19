@@ -1669,6 +1669,28 @@ bool AletheProofPostprocessCallback::update(Node res,
           options().proof.proofAletheResPivots ? resArgs : std::vector<Node>(),
           *cdp);
     }
+      // For now handle these guys as holes
+    case PfRule::ARITH_MULT_POS:
+    {
+      // We require the multiplicative factor to be a value
+      Assert(args[0].isConst());
+      return addAletheStep(AletheRule::LA_MULT_POS,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case PfRule::ARITH_MULT_NEG:
+    {
+      // We require the multiplicative factor to be a value
+      Assert(args[0].isConst());
+      return addAletheStep(AletheRule::LA_MULT_NEG,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     // ======== Tightening Strict Integer Upper Bounds
     //

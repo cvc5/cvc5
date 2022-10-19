@@ -61,6 +61,8 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::DISTINCT_ELIM: return "distinct_elim";
     case AletheRule::LA_RW_EQ: return "la_rw_eq";
     case AletheRule::LA_GENERIC: return "la_generic";
+    case AletheRule::LA_MULT_POS: return "hole";
+    case AletheRule::LA_MULT_NEG: return "hole";
     case AletheRule::LIA_GENERIC: return "lia_generic";
     case AletheRule::LA_DISEQUALITY: return "la_disequality";
     case AletheRule::LA_TOTALITY: return "la_totality";
