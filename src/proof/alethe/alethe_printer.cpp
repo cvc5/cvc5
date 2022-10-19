@@ -287,14 +287,17 @@ void AletheProofPrinter::print(std::ostream& out,
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
   AlwaysAssert(innerPf);
-  // Traverse the proof node to letify the (converted) conclusions of proof
-  // steps. TODO This traversal will collect the skolems to de defined.
-  ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
-  Trace("alethe-printer") << "- letify.\n";
-  updater.process(innerPf);
 
   if (options::ioutils::getDagThresh(std::cout))
   {
+    // Traverse the proof node to letify the (converted) conclusions of proof
+    // steps. Note that we traverse the original proof node since assumptions
+    // only necessarily show up in it. If that's the case then repeated terms
+    // *only* in assumptions will not be letified
+    ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
+    Trace("alethe-printer") << "- letify.\n";
+    updater.process(pfn);
+
     std::vector<Node> letList;
     d_lbind.letify(letList);
     for (TNode n : letList)
