@@ -51,14 +51,14 @@ struct DratInstruction
 /**
  * Class to handle a DRAT proof.
  *
- * A DratProof instance is a sequence of DratInstructions built from DRAT
+ * A DratProof instance is a sequence of DratInstructions built from a DRAT
  * proof.
  */
 class DratProof
 {
  public:
   /**
-   * Create an DRAT proof with no instructions.
+   * Create a DRAT proof with no instructions.
    */
   DratProof();
 
