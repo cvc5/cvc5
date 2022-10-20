@@ -136,7 +136,9 @@ class RegExpEntail
    *           in rewritten form)
    * @return True if the inclusion can be shown, false otherwise
    */
-  static bool regExpIncludes(Node r1, Node r2, std::map<std::pair<Node, Node>, bool>& cache);
+  static bool regExpIncludes(Node r1,
+                             Node r2,
+                             std::map<std::pair<Node, Node>, bool>& cache);
   /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
  private:

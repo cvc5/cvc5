@@ -783,7 +783,9 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
   return ret;
 }
 
-bool RegExpEntail::regExpIncludes(Node r1, Node r2, std::map<std::pair<Node, Node>, bool>& cache)
+bool RegExpEntail::regExpIncludes(Node r1,
+                                  Node r2,
+                                  std::map<std::pair<Node, Node>, bool>& cache)
 {
   if (r1 == r2)
   {
@@ -797,7 +799,7 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2, std::map<std::pair<Node, Nod
   }
   bool ret = false;
   bool retSet = false;
-  if (r1.getKind()==REGEXP_UNION)
+  if (r1.getKind() == REGEXP_UNION)
   {
     retSet = true;
     // if any component of r1 includes r2, return true
@@ -810,7 +812,7 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2, std::map<std::pair<Node, Nod
       }
     }
   }
-  else if (r1.getKind()==REGEXP_STAR && r2.getKind()==REGEXP_STAR)
+  else if (r1.getKind() == REGEXP_STAR && r2.getKind() == REGEXP_STAR)
   {
     // inclusion if the body of r1 includes body of r2
     ret = regExpIncludes(r1[0], r2[0], cache);
