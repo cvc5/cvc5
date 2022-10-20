@@ -828,19 +828,34 @@ bool RegExpEntail::regExpIncludes(Node r1,
   }
   else if (r1.getKind() == REGEXP_STAR && r2.getKind() == REGEXP_STAR)
   {
-    // inclusion if the body of r1 includes body of r2
-    if (regExpIncludes(r1[0], r2[0], cache))
+    retSet = true;
+    // inclusion if r1 is (re.* re.allchar), or if the body of r1 includes body
+    // of r2, this is an incomplete check.
+    if (r1[0].getKind()==REGEXP_ALLCHAR || regExpIncludes(r1[0], r2[0], cache))
     {
       ret = true;
-      retSet = true;
     }
   }
+  else if (r1.getKind()==REGEXP_ALLCHAR)
+  {
+    retSet = true;
+    if (r2.getKind()==STRING_TO_REGEXP)
+    {
+      ret = (r2[0].getConst<String>().size() == 1);
+    }
+  }
+  else if (r1.getKind()==STRING_TO_REGEXP)
+  {
+    retSet = true;
+  }
   // The rest of this method only works on a fragment of regular expressions
-  if (retSet || !utils::isSimpleRegExp(r1) || !utils::isSimpleRegExp(r2))
+  if (retSet)
   {
     cache[key] = ret;
     return ret;
   }
+  // avoid infinite loop
+  cache[key] = false;
   NodeManager* nm = NodeManager::currentNM();
   Node sigma = nm->mkNode(REGEXP_ALLCHAR, std::vector<Node>{});
   Node sigmaStar = nm->mkNode(REGEXP_STAR, sigma);
@@ -874,21 +889,17 @@ bool RegExpEntail::regExpIncludes(Node r1,
     }
     newIdxs.clear();
 
-    if (n2.getKind() == STRING_TO_REGEXP || n2 == sigma)
+    for (size_t idx : idxs)
     {
-      Assert(n2 == sigma
-             || (n2[0].isConst() && n2[0].getConst<String>().size() == 1));
-      for (size_t idx : idxs)
+      if (regExpIncludes(v1[idx], n2, cache))
       {
-        if (v1[idx] == sigma || v1[idx] == n2)
-        {
-          // Given a character or an re.allchar in `r2`, we can either
-          // match it with a corresponding character in `r1` or an
-          // re.allchar
-          newIdxs.insert(idx + 1);
-        }
+        // Given a character or an re.allchar in `r2`, we can either
+        // match it with a corresponding character in `r1` or an
+        // re.allchar
+        newIdxs.insert(idx + 1);
       }
     }
+    
 
     for (size_t idx : idxs)
     {
