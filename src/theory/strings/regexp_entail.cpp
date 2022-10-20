@@ -783,17 +783,44 @@ Node RegExpEntail::getConstantBoundLengthForRegexp(TNode n, bool isLower) const
   return ret;
 }
 
-bool RegExpEntail::regExpIncludes(Node r1, Node r2)
+bool RegExpEntail::regExpIncludes(Node r1, Node r2, std::map<std::pair<Node, Node>, bool>& cache)
 {
   if (r1 == r2)
   {
     return true;
   }
-
-  // This method only works on a fragment of regular expressions
-  if (!utils::isSimpleRegExp(r1) || !utils::isSimpleRegExp(r2))
+  std::pair<Node, Node> key = std::make_pair(r1, r2);
+  const auto& it = cache.find(key);
+  if (it != cache.end())
   {
-    return false;
+    return (*it).second;
+  }
+  bool ret = false;
+  bool retSet = false;
+  if (r1.getKind()==REGEXP_UNION)
+  {
+    retSet = true;
+    // if any component of r1 includes r2, return true
+    for (const Node& r : r1)
+    {
+      if (regExpIncludes(r, r2, cache))
+      {
+        ret = true;
+        break;
+      }
+    }
+  }
+  else if (r1.getKind()==REGEXP_STAR && r2.getKind()==REGEXP_STAR)
+  {
+    // inclusion if the body of r1 includes body of r2
+    ret = regExpIncludes(r1[0], r2[0], cache);
+    retSet = true;
+  }
+  // This method only works on a fragment of regular expressions
+  if (retSet || !utils::isSimpleRegExp(r1) || !utils::isSimpleRegExp(r2))
+  {
+    cache[key] = ret;
+    return ret;
   }
   NodeManager* nm = NodeManager::currentNM();
   Node sigma = nm->mkNode(REGEXP_ALLCHAR, std::vector<Node>{});
@@ -864,7 +891,7 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
     if (newIdxs.empty())
     {
       // If there are no candidates, we can't match the remainder of r2
-      return false;
+      break;
     }
   }
 
@@ -880,8 +907,14 @@ bool RegExpEntail::regExpIncludes(Node r1, Node r2)
       break;
     }
   }
-
+  cache[key] = result;
   return result;
+}
+
+bool RegExpEntail::regExpIncludes(Node r1, Node r2)
+{
+  std::map<std::pair<Node, Node>, bool> cache;
+  return regExpIncludes(r1, r2, cache);
 }
 
 struct RegExpEntailConstantBoundLowerId
