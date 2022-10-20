@@ -797,6 +797,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
   {
     return (*it).second;
   }
+  // first, check some basic inclusions
   bool ret = false;
   bool retSet = false;
   if (r1.getKind() == REGEXP_UNION)
@@ -812,13 +813,29 @@ bool RegExpEntail::regExpIncludes(Node r1,
       }
     }
   }
+  else if (r2.getKind() == REGEXP_INTER)
+  {
+    retSet = true;
+    // if r1 includes any component of r2, return true
+    for (const Node& r : r2)
+    {
+      if (regExpIncludes(r1, r, cache))
+      {
+        ret = true;
+        break;
+      }
+    }
+  }
   else if (r1.getKind() == REGEXP_STAR && r2.getKind() == REGEXP_STAR)
   {
     // inclusion if the body of r1 includes body of r2
-    ret = regExpIncludes(r1[0], r2[0], cache);
-    retSet = true;
+    if (regExpIncludes(r1[0], r2[0], cache))
+    {
+      ret = true;
+      retSet = true;
+    }
   }
-  // This method only works on a fragment of regular expressions
+  // The rest of this method only works on a fragment of regular expressions
   if (retSet || !utils::isSimpleRegExp(r1) || !utils::isSimpleRegExp(r2))
   {
     cache[key] = ret;
