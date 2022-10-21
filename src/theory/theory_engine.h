@@ -535,7 +535,7 @@ class TheoryEngine : protected EnvObj
   context::CDO<bool> d_inConflict;
 
   /**
-   * True if a theory has notified us of incompleteness (at this
+   * True if a theory has notified us of incompleteness (at this SAT
    * context level or below).
    */
   context::CDO<bool> d_incomplete;
