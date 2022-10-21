@@ -2997,6 +2997,7 @@ set(regress_1_tests
   regress1/sygus/strings-trivial-simp.sy
   regress1/sygus/strings-trivial-two-type.sy
   regress1/sygus/strings-trivial.sy
+  regress1/sygus/sum-sq-unknown.sy
   regress1/sygus/sygus-dt.sy
   regress1/sygus/sygus-lambda-fv.sy
   regress1/sygus/sygus-uf-ex.sy
