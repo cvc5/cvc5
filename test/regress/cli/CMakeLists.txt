@@ -1032,6 +1032,7 @@ set(regress_0_tests
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
+  regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
@@ -2821,7 +2822,7 @@ set(regress_1_tests
   regress1/strings/str006.smt2
   regress1/strings/str007.smt2
   regress1/strings/string-unsound-sem.smt2
-  regress1/strings/strings-code-elim-min.smt2 
+  regress1/strings/strings-code-elim-min.smt2
   regress1/strings/strings-index-empty.smt2
   regress1/strings/strings-leq-trans-unsat.smt2
   regress1/strings/strings-lt-len5.smt2

@@ -21,6 +21,7 @@
 #include "api/cpp/cvc5_types.h"
 
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
@@ -92,6 +93,14 @@ class PropPfManager : protected EnvObj
   void checkProof(const context::CDList<Node>& assertions);
 
  private:
+  /** The proofs of this proof manager, which are saved once requested (note the
+   * request may require or not the full proof).
+   *
+   * The proofs are kept in a (user)context-dependent manner because between
+   * satisfiability checks we should discard them.
+   */
+  context::CDO<std::shared_ptr<ProofNode>> d_satSkoletonProofNode;
+  context::CDO<std::shared_ptr<ProofNode>> d_fullPropProofNode;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**
