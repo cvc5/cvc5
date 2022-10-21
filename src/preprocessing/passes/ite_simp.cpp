@@ -125,21 +125,22 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
                                   size_t before)
 {
   size_t cur_size = assertionsToPreprocess->size();
-  if (before >= cur_size || assertionsToPreprocess->getRealAssertionsEnd() <= 0
-      || assertionsToPreprocess->getRealAssertionsEnd() >= cur_size)
+  size_t realAssertionsEnd = cur_size;
+  if (before >= cur_size || realAssertionsEnd <= 0
+      || realAssertionsEnd >= cur_size)
   {
     return;
   }
 
   // assertions
-  // original: [0 ... assertionsToPreprocess.getRealAssertionsEnd())
+  // original: [0 ... assertionsToPreprocess.realAssertionsEnd)
   //  can be modified
-  // ites skolems [assertionsToPreprocess.getRealAssertionsEnd(), before)
+  // ites skolems [assertionsToPreprocess.realAssertionsEnd, before)
   //  cannot be moved
   // added [before, cur_size)
   //  can be modified
-  Assert(0 < assertionsToPreprocess->getRealAssertionsEnd());
-  Assert(assertionsToPreprocess->getRealAssertionsEnd() <= before);
+  Assert(0 < realAssertionsEnd);
+  Assert(realAssertionsEnd <= before);
   Assert(before < cur_size);
 
   std::vector<Node> intoConjunction;
@@ -148,7 +149,7 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
     intoConjunction.push_back((*assertionsToPreprocess)[i]);
   }
   assertionsToPreprocess->resize(before);
-  size_t lastBeforeItes = assertionsToPreprocess->getRealAssertionsEnd() - 1;
+  size_t lastBeforeItes = realAssertionsEnd - 1;
   intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
   Node newLast = mkAssocAnd(intoConjunction);
   assertionsToPreprocess->replace(lastBeforeItes, newLast);
