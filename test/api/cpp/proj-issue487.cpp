@@ -52,7 +52,8 @@ int main(void)
   Term t75 = slv.mkTerm(Kind::APPLY_UF, {t23, t18, t18});
   Term t98 = slv.mkTerm(Kind::SET_CARD, {t75});
   Term t101 = slv.mkTerm(Kind::DIVISION, {t98, t98});
-  Term t139 = slv.mkTerm(Kind::EQUAL, {t101, t98});
+  Term t98r = slv.mkTerm(Kind::TO_REAL, {t98});
+  Term t139 = slv.mkTerm(Kind::EQUAL, {t101, t98r});
   Term t142 = slv.mkTerm(Kind::SET_SUBSET, {t13, t51});
   Term t217 = slv.mkTerm(Kind::IMPLIES, {t142, t139});
   slv.checkSatAssuming({t217});
