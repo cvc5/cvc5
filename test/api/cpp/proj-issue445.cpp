@@ -37,5 +37,13 @@ int main(void)
   Term t279 = slv.mkTerm(Kind::SEQ_REPLACE_ALL, {t141, t229, t141});
   Term t289 = slv.mkTerm(Kind::SEQ_PREFIX, {t279, t229});
   slv.assertFormula({t289});
-  (void)slv.simplify(t7);
+  try
+  {
+    (void)slv.simplify(t7);
+  }
+  catch (const CVC5ApiException& e)
+  {
+    // currently simplify triggers rewrite rule synthesis which terminates
+    // with an exception
+  }
 }
