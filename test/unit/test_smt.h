@@ -130,6 +130,7 @@ class DummyOutputChannel : public theory::OutputChannel
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete(theory::IncompleteId id) override {}
+  void setUnsound(theory::IncompleteId id) override {}
 
   void clear() { d_callHistory.clear(); }
 
