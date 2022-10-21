@@ -22,7 +22,6 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "expr/node_manager_attributes.h"
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
 #include "theory/theory_model.h"

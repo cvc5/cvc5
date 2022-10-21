@@ -100,7 +100,7 @@ bool SygusEnumeratorCallbackDefault::addTermInternal(Node n, Node bn, Node bnr)
       ++(d_stats->d_enumTermsExampleEval);
     }
     // Is it equivalent under examples?
-    Node bne = d_eec->addSearchVal(d_tn, bnr);
+    Node bne = d_eec->addSearchVal(n.getType(), bnr);
     if (!bne.isNull())
     {
       if (bnr != bne)

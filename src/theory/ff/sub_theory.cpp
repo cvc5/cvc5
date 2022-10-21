@@ -24,7 +24,6 @@
 
 #include <numeric>
 
-#include "expr/node_manager_attributes.h"
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
 #include "smt/env_obj.h"
@@ -101,7 +100,7 @@ void SubTheory::ensureInitPolyRing()
       std::string name;
       if (v.isVar())
       {
-        name = v.getAttribute(expr::VarNameAttr());
+        name = v.getName();
       }
       else
       {

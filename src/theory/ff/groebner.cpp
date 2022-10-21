@@ -25,7 +25,6 @@
 
 #include <numeric>
 
-#include "expr/node_manager_attributes.h"
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
 #include "theory/ff/model.h"
