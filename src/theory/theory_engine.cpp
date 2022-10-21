@@ -230,6 +230,9 @@ TheoryEngine::TheoryEngine(Env& env)
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
+      d_unsound(userContext(), false),
+      d_unsoundTheory(userContext(), THEORY_BUILTIN),
+      d_unsoundId(userContext(), IncompleteId::UNKNOWN),
       d_propagationMap(context()),
       d_propagationMapTimestamp(context(), 0),
       d_propagatedLiterals(context()),
@@ -1090,6 +1093,10 @@ theory::IncompleteId TheoryEngine::getIncompleteId() const
 {
   return d_incompleteId.get();
 }
+theory::IncompleteId TheoryEngine::getUnsoundId() const
+{
+  return d_unsoundId.get();
+}
 
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
@@ -1473,6 +1480,13 @@ void TheoryEngine::setIncomplete(theory::TheoryId theory,
   d_incomplete = true;
   d_incompleteTheory = theory;
   d_incompleteId = id;
+}
+
+void TheoryEngine::setUnsound(theory::TheoryId theory, theory::IncompleteId id)
+{
+  d_unsound = true;
+  d_unsoundTheory = theory;
+  d_unsoundId = id;
 }
 
 TrustNode TheoryEngine::getExplanation(

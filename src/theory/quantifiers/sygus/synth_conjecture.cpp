@@ -293,11 +293,18 @@ bool SynthConjecture::doCheck()
     // We now try to solve with the single invocation solver, which may or may
     // not succeed in solving the conjecture. In either case,  we are done and
     // return true.
-    if (d_ceg_si->solve())
+    Result res = d_ceg_si->solve();
+    if (res.getStatus() == Result::UNSAT)
     {
       d_hasSolution = true;
       // the conjecture has a solution, we set incomplete
       d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_SOLVED);
+    }
+    else if (res.getStatus() == Result::SAT)
+    {
+      // the conjecture is definitely infeasible
+      d_qim.lemma(d_quant.negate(),
+                  InferenceId::QUANTIFIERS_SYGUS_SI_INFEASIBLE);
     }
     return true;
   }
@@ -533,7 +540,7 @@ bool SynthConjecture::doCheck()
     // We should set incomplete, since a "sat" answer should not be
     // interpreted as "infeasible", which would make a difference in the rare
     // case where e.g. we had a finite grammar and exhausted the grammar.
-    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
+    d_qim.setUnsound(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
     return false;
   }
   // otherwise we are unsat, and we will process the solution below

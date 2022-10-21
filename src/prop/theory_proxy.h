@@ -133,9 +133,12 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Is incomplete */
   bool isIncomplete() const;
-
+  /** Is unsound */
+  bool isUnsound() const;
   /** Get incomplete id, valid immediately after an `unknown` response. */
   theory::IncompleteId getIncompleteId() const;
+  /** Get unsound id, valid immediately after an `unknown` response. */
+  theory::IncompleteId getUnsoundId() const;
 
   /**
    * Notifies of a new variable at a decision level.
