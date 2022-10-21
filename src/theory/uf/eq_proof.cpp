@@ -1466,12 +1466,12 @@ Node EqProof::addToProof(CDProof* p,
         Node::null(),
         "eqproof-conv");
     // If rewriting was not able to flatten the rebuilt conclusion into the
-    // original one, we give up and use a TRUST_REWRITE step, generating a proof
-    // for the original conclusion d_node such as
+    // original one, we give up and use a TRUST_FLATTENING_REWRITE step,
+    // generating a proof for the original conclusion d_node such as
     //
     //     Converted EqProof
-    //  ----------------------         ----------------------- TRUST_REWRITE
-    //     conclusion                    conclusion = d_node
+    //  ----------------------      ------------------- TRUST_FLATTENING_REWRITE
+    //     conclusion               conclusion = d_node
     // ------------------------------------------------------- EQ_RESOLVE
     //                       d_node
     //
@@ -1480,10 +1480,10 @@ Node EqProof::addToProof(CDProof* p,
     if (res.isNull())
     {
       Trace("eqproof-conv")
-          << "EqProof::addToProof: adding a trust rewrite step\n";
+          << "EqProof::addToProof: adding a trust flattening rewrite step\n";
       Node bridgeEq = conclusion.eqNode(d_node);
       p->addStep(bridgeEq,
-                 PfRule::TRUST_REWRITE,
+                 PfRule::TRUST_FLATTENING_REWRITE,
                  {},
                  {bridgeEq});
       p->addStep(d_node,
