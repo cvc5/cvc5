@@ -26,7 +26,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
-#include "smt/logic_exception.h"
 #include "smt/set_defaults.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -501,7 +500,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // Note that typically the above call will be non-terminating, as it will
   // enumerate rewrite rules ad infinitum, but it is possible to reach this
   // line if a finite grammar is inferred above.
-  throw LogicException("Finished synthesizing rewrite rules.");
+  throw Exception("Finished synthesizing rewrite rules.");
 
   return PreprocessingPassResult::NO_CONFLICT;
 }

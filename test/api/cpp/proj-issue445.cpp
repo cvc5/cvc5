@@ -24,6 +24,8 @@ int main(void)
 {
   Solver slv;
   slv.setOption("sygus-rr-synth-input", "true");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("tlimit", 100);
   Sort s1 = slv.mkUninterpretedSort("_u0");
   Sort s5 = slv.mkUninterpretedSort("_u1");
   Sort s6 = slv.mkUninterpretedSort("_u2");
@@ -37,13 +39,5 @@ int main(void)
   Term t279 = slv.mkTerm(Kind::SEQ_REPLACE_ALL, {t141, t229, t141});
   Term t289 = slv.mkTerm(Kind::SEQ_PREFIX, {t279, t229});
   slv.assertFormula({t289});
-  try
-  {
-    (void)slv.simplify(t7);
-  }
-  catch (const CVC5ApiException& e)
-  {
-    // currently simplify triggers rewrite rule synthesis which terminates
-    // with an exception
-  }
+  (void)slv.simplify(t7);
 }
