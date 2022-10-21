@@ -77,6 +77,7 @@ enum RewriteRuleId
   SaddoEliminate,
   UmuloEliminate,
   SmuloEliminate,
+  UsuboEliminate,
   SsuboEliminate,
   BVToNatEliminate,
   IntToBVEliminate,

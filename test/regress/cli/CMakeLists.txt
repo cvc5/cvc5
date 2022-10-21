@@ -484,6 +484,8 @@ set(regress_0_tests
   regress0/bv/overflow/umulo2.smt2
   regress0/bv/overflow/smulo1.smt2
   regress0/bv/overflow/smulo2.smt2
+  regress0/bv/overflow/usubo1.smt2
+  regress0/bv/overflow/usubo2.smt2
   regress0/bv/overflow/ssubo1.smt2
   regress0/bv/overflow/ssubo2.smt2
   regress0/bv/pr4993-bvugt-bvurem-a.smt2
@@ -2193,6 +2195,7 @@ set(regress_1_tests
   regress1/proj-issue406-diff-unsat-core.smt2
   regress1/proj-issue476-theoryOf-no-uf.smt2
   regress1/proof00.smt2
+  regress1/proofs/base-lfsc-treesize.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue6625-unsat-core-proofs.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
