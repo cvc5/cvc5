@@ -898,11 +898,6 @@ bool RegExpEntail::regExpIncludes(Node r1,
         // If this component includes n2, then we can consume it.
         newIdxs.insert(idx + 1);
       }
-    }
-    
-
-    for (size_t idx : idxs)
-    {
       if (v1[idx] == sigmaStar)
       {
         // (re.* re.allchar) can match an arbitrary amount of `r2`
