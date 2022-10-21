@@ -45,6 +45,7 @@ const char* toString(PfRule id)
     case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
+    case PfRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
     case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";

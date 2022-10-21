@@ -1,0 +1,12 @@
+; EXPECT: unsat
+(set-logic QF_UFBVLIA)
+(declare-fun to (Int) Bool)
+(declare-fun top (Int) (_ BitVec 32))
+(declare-fun t (Int) Bool)
+(declare-fun p (Int) (_ BitVec 32))
+(declare-fun p. (Int) (_ BitVec 32))
+(declare-fun op. (Int) (_ BitVec 32))
+(declare-fun op (Int) (_ BitVec 32))
+(declare-fun o (Int) (_ BitVec 32))
+(assert (and (to 1) (not (t 1)) (= (op 1) (op 0)) (= (op. 1) (op. 0)) (= (p. 1) (p. 0)) (= (p 0) (bvadd (bvadd (p. 0) (op. 0)) (op 0) (o 0))) (= (top 1) (bvadd (bvadd (p. 1) (op. 1)) (op 1) (o 1))) (= (o 1) (ite (to 1) (o 0) (bvadd (o 0) (op 0)))) (= (t 1) (= (p 0) (bvadd (bvadd (p. 1) (op. 1)) (op 1) (o 1))))))
+(check-sat)
