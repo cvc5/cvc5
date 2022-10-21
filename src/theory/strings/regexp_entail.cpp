@@ -895,9 +895,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
     {
       if (regExpIncludes(v1[idx], n2, cache))
       {
-        // Given a character or an re.allchar in `r2`, we can either
-        // match it with a corresponding character in `r1` or an
-        // re.allchar
+        // If this component includes n2, then we can consume it.
         newIdxs.insert(idx + 1);
       }
     }
