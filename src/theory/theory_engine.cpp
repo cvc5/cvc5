@@ -1482,8 +1482,7 @@ void TheoryEngine::setIncomplete(theory::TheoryId theory,
   d_incompleteId = id;
 }
 
-void TheoryEngine::setUnsound(theory::TheoryId theory,
-                                 theory::IncompleteId id)
+void TheoryEngine::setUnsound(theory::TheoryId theory, theory::IncompleteId id)
 {
   d_unsound = true;
   d_unsoundTheory = theory;

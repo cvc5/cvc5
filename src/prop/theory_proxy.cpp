@@ -289,10 +289,7 @@ bool TheoryProxy::isIncomplete() const
   return d_stopSearch.get() || d_theoryEngine->isIncomplete();
 }
 
-bool TheoryProxy::isUnsound() const
-{
-  return d_theoryEngine->isUnsound();
-}
+bool TheoryProxy::isUnsound() const { return d_theoryEngine->isUnsound(); }
 
 theory::IncompleteId TheoryProxy::getIncompleteId() const
 {
