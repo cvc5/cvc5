@@ -540,7 +540,7 @@ bool SynthConjecture::doCheck()
     // We should set incomplete, since a "sat" answer should not be
     // interpreted as "infeasible", which would make a difference in the rare
     // case where e.g. we had a finite grammar and exhausted the grammar.
-    d_qim.setIncomplete(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
+    d_qim.setUnsound(IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY);
     return false;
   }
   // otherwise we are unsat, and we will process the solution below

@@ -289,6 +289,11 @@ bool TheoryProxy::isIncomplete() const
   return d_stopSearch.get() || d_theoryEngine->isIncomplete();
 }
 
+bool TheoryProxy::isUnsound() const
+{
+  return d_theoryEngine->isUnsound();
+}
+
 theory::IncompleteId TheoryProxy::getIncompleteId() const
 {
   if (d_stopSearch.get())
@@ -296,6 +301,11 @@ theory::IncompleteId TheoryProxy::getIncompleteId() const
     return theory::IncompleteId::STOP_SEARCH;
   }
   return d_theoryEngine->getIncompleteId();
+}
+
+theory::IncompleteId TheoryProxy::getUnsoundId() const
+{
+  return d_theoryEngine->getUnsoundId();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {

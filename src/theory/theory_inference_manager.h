@@ -378,6 +378,11 @@ class TheoryInferenceManager : protected EnvObj
    */
   void setIncomplete(IncompleteId id);
   /**
+   * Notification from a theory that it realizes it is unsound at
+   * this user context level.
+   */
+  void setUnsound(IncompleteId id);
+  /**
    * Notify this inference manager that a conflict was sent in this SAT context.
    * This method is called via TheoryEngine when a conflict is sent.
    */

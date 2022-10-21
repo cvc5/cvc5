@@ -141,6 +141,12 @@ class OutputChannel {
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
   virtual void setIncomplete(IncompleteId id) = 0;
+  /**
+   * Notification from a theory that it realizes it is unsound at
+   * this user context level.  If UNSAT is later determined by the
+   * TheoryEngine, it should actually return an UNKNOWN result.
+   */
+  virtual void setUnsound(IncompleteId id) = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in

@@ -626,6 +626,11 @@ void TheoryInferenceManager::setIncomplete(IncompleteId id)
   d_out.setIncomplete(id);
 }
 
+void TheoryInferenceManager::setUnsound(IncompleteId id)
+{
+  d_out.setUnsound(id);
+}
+
 void TheoryInferenceManager::notifyInConflict()
 {
   d_theoryState.notifyInConflict();
