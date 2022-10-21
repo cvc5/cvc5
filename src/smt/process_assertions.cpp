@@ -378,7 +378,10 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
       if (  // check that option is on
           options().arith.arithMLTrick &&
           // only useful in arith
-          logicInfo().isTheoryEnabled(THEORY_ARITH))
+          logicInfo().isTheoryEnabled(THEORY_ARITH) &&
+          // disables miplib processing during re-simplification, which we don't
+          // expect to be useful
+          d_simplifyAssertionsDepth <= 1)
       {
         applyPass("miplib-trick", as);
       }
