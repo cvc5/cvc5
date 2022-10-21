@@ -800,7 +800,9 @@ bool RegExpEntail::regExpIncludes(Node r1,
   // first, check some basic inclusions
   bool ret = false;
   bool retSet = false;
-  if (r1.getKind() == REGEXP_UNION)
+  Kind k1 = r1.getKind();
+  Kind k2 = r2.getKind();
+  if (k1 == REGEXP_UNION)
   {
     retSet = true;
     // if any component of r1 includes r2, return true
@@ -813,7 +815,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
       }
     }
   }
-  else if (r2.getKind() == REGEXP_INTER)
+  if (k2 == REGEXP_INTER && !ret)
   {
     retSet = true;
     // if r1 includes any component of r2, return true
@@ -826,29 +828,29 @@ bool RegExpEntail::regExpIncludes(Node r1,
       }
     }
   }
-  else if (r1.getKind() == REGEXP_STAR && r2.getKind() == REGEXP_STAR)
+  if (k1 == REGEXP_STAR && k2 == REGEXP_STAR)
   {
     retSet = true;
     // inclusion if r1 is (re.* re.allchar), or if the body of r1 includes body
-    // of r2, this is an incomplete check.
+    // of r2.
     if (r1[0].getKind()==REGEXP_ALLCHAR || regExpIncludes(r1[0], r2[0], cache))
     {
       ret = true;
     }
   }
-  else if (r1.getKind()==REGEXP_ALLCHAR)
+  else if (k1==REGEXP_ALLCHAR)
   {
     retSet = true;
-    if (r2.getKind()==STRING_TO_REGEXP)
+    if (k2==STRING_TO_REGEXP)
     {
       ret = (r2[0].getConst<String>().size() == 1);
     }
   }
-  else if (r1.getKind()==STRING_TO_REGEXP)
+  else if (k1==STRING_TO_REGEXP)
   {
+    // only way to include is if equal, which was already checked
     retSet = true;
   }
-  // The rest of this method only works on a fragment of regular expressions
   if (retSet)
   {
     cache[key] = ret;
