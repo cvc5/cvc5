@@ -21,11 +21,12 @@
 #include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
+#include "smt/logic_exception.h"
 #include "smt/set_defaults.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -33,7 +34,6 @@
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/smt_engine_subsolver.h"
-#include "smt/logic_exception.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -479,7 +479,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("srs-input") << "got : " << res << std::endl;
   Trace("srs-input") << "...finished." << std::endl;
-  
+
   // use a separate subsolver
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
@@ -490,7 +490,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // in rewrites that are not in the main rewriter
   if (!subOptions.datatypes.sygusRewriterWasSetByUser)
   {
-    subOptions.writeDatatypes().sygusRewriter = options::SygusRewriterMode::BASIC;
+    subOptions.writeDatatypes().sygusRewriter =
+        options::SygusRewriterMode::BASIC;
   }
   smt::SetDefaults::disableChecking(subOptions);
   theory::SubsolverSetupInfo ssi(d_env, subOptions);
@@ -501,7 +502,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // enumerate rewrite rules ad infinitum, but it is possible to reach this
   // line if a finite grammar is inferred above.
   throw LogicException("Finished synthesizing rewrite rules.");
-      
+
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
