@@ -39,8 +39,7 @@ SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
     : EnvObj(env),
       context::ContextNotifyObj(context()),
       d_facts(context()),
-      d_vars(userContext()),
-      d_atoms(userContext()),
+      d_leaves(userContext()),
       d_stats(stats),
       d_baseRing(CoCoA::NewZZmod(CoCoA::BigIntFromString(modulus.toString()))),
       d_modulus(modulus)
@@ -52,14 +51,11 @@ SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
 
 void SubTheory::preRegisterTerm(TNode n)
 {
-  if (n.isVar())
+  if (Theory::isLeafOf(n, TheoryId::THEORY_FF) && !n.isConst())
   {
     clearPolyRing();
-    d_vars.push_back(n);
-  }
-  else if (n.getKind() == Kind::EQUAL)
-  {
-    d_atoms.push_back(n);
+    Trace("ff::register") << "FF variable: " << n << std::endl;
+    d_leaves.push_back(n);
   }
 }
 
@@ -97,33 +93,47 @@ void SubTheory::ensureInitPolyRing()
 {
   if (!d_polyRing.has_value())
   {
+    Trace("ff::trans") << "reinitializing CoCoA poly ring" << std::endl;
     std::vector<CoCoA::symbol> symbols;
-    for (const auto& v : d_vars)
+    size_t leaf_num = 0;
+    for (const auto& v : d_leaves)
     {
-      symbols.push_back(
-          CoCoA::symbol(varNameToSymName(v.getAttribute(expr::VarNameAttr()))));
+      std::string name;
+      if (v.isVar())
+      {
+        name = v.getAttribute(expr::VarNameAttr());
+      }
+      else
+      {
+        name = "leaf" + std::to_string(leaf_num);
+        ++leaf_num;
+      }
+      Trace("ff::trans") << "var " << name << std::endl;
+      symbols.push_back(CoCoA::symbol(varNameToSymName(name)));
     }
-    for (size_t i = 0; i < d_atoms.size(); ++i)
+    for (size_t i = 0; i < d_numInverses; ++i)
     {
       symbols.push_back(CoCoA::symbol("i", i));
     }
     d_polyRing = CoCoA::NewPolyRing(d_baseRing, symbols);
     size_t i = 0;
     Assert(d_translationCache.empty());
-    Assert(d_symbolIdxVars.empty());
-    for (const auto& v : d_vars)
+    Assert(d_symbolIdxLeaves.empty());
+    for (const auto& v : d_leaves)
     {
       d_translationCache.insert({v, CoCoA::indet(d_polyRing.value(), i)});
-      d_symbolIdxVars.insert({i, v});
+      d_symbolIdxLeaves.insert({i, v});
       ++i;
     }
+    Assert(d_inverses.empty());
     Assert(d_atomInverses.empty());
-    for (const auto& a : d_atoms)
+    for (size_t j = 0; j < d_numInverses; ++j)
     {
-      d_atomInverses.insert({a, CoCoA::indet(d_polyRing.value(), i)});
-      Trace("ff::trans") << "inverse for " << a << std::endl;
+      d_inverses.push_back(CoCoA::indet(d_polyRing.value(), i));
       ++i;
     }
+    Trace("ff::trans") << "num allocated inverses: " << d_numInverses
+                       << std::endl;
     Assert(!d_incrementalIdeal.has_value());
     Assert(d_updateIndices.empty());
     d_incrementalIdeal.emplace(d_env, d_polyRing.value());
@@ -136,9 +146,10 @@ void SubTheory::clearPolyRing()
   d_polyRing.reset();
   d_checkIndices.clear();
   d_atomInverses.clear();
+  d_inverses.clear();
   d_translationCache.clear();
   d_incrementalIdeal.reset();
-  d_symbolIdxVars.clear();
+  d_symbolIdxLeaves.clear();
   d_updateIndices.clear();
 }
 
@@ -197,12 +208,20 @@ const std::unordered_map<Node, Node>& SubTheory::model() const
 void SubTheory::contextNotifyPop()
 {
   Trace("ff::context") << "Pop " << context()->getLevel() << std::endl;
-  while (d_updateIndices.back() > d_facts.size())
+  // d_facts is a list of facts recieved that is sync'd with the external
+  // context.
+  // Now we need to sync up d_updateIndices and d_checkIndices.
+
+  // while d_updateIndices has an OOB ref to d_facts, remove it (and pop the
+  // incremental ideal)
+  while (d_updateIndices.size() > 0 && d_updateIndices.back() > d_facts.size())
   {
     d_updateIndices.pop_back();
     d_incrementalIdeal.value().pop();
     d_conflict.clear();
   }
+
+  // while d_checkIndices has an OOB ref to d_facts, remove it
   while (d_checkIndices.size() > 0 && d_checkIndices.back() > d_facts.size())
   {
     d_checkIndices.pop_back();
@@ -216,14 +235,36 @@ void SubTheory::computeBasis(size_t factIndex)
   Assert(factIndex >= d_updateIndices.back());
   if (factIndex > d_updateIndices.back())
   {
-    IncrementalIdeal& ideal = d_incrementalIdeal.value();
+    // ensure we have enough inverses for all the new disequalities.
+    size_t numDisequalities = 0;
+    for (size_t i = d_updateIndices.back(); i < factIndex; ++i)
+    {
+      if (d_facts[i].getKind() == Kind::NOT
+          && d_atomInverses.count(d_facts[i][0]) == 0)
+      {
+        ++numDisequalities;
+      }
+    }
+    ensureInverses(numDisequalities);
+
+    // build the new generators
     std::vector<CoCoA::RingElem> newGens;
     for (size_t i = d_updateIndices.back(); i < factIndex; ++i)
     {
       TNode fact = d_facts[i];
       translate(fact);
       newGens.push_back(d_translationCache.at(fact));
+      const auto& b = newGens.back();
+      if (TraceIsOn("ff::groebner::push"))
+      {
+        Trace("ff::groebner::push")
+            << "gens: " << fact << " " << b << " @ "
+            << CoCoA::RingID(CoCoA::owner(b)) << std::endl;
+      }
     }
+
+    // Feed them to the ideal
+    IncrementalIdeal& ideal = d_incrementalIdeal.value();
     {
       CodeTimer reductionTimer(d_stats->d_reductionTime);
       ideal.pushGenerators(std::move(newGens));
@@ -259,11 +300,11 @@ void SubTheory::extractModel()
     Trace("ff::model") << "found model" << std::endl;
     const auto& values = ideal.solution();
     NodeManager* nm = NodeManager::currentNM();
-    for (size_t i = 0, numVars = d_vars.size(); i < numVars; ++i)
+    for (size_t i = 0, numVars = d_leaves.size(); i < numVars; ++i)
     {
       std::ostringstream symName;
       symName << CoCoA::indet(d_polyRing.value(), i);
-      Node var = d_symbolIdxVars.at(i);
+      Node var = d_symbolIdxLeaves.at(i);
       std::ostringstream valStr;
       valStr << values[i];
       Integer integer(valStr.str(), 10);
@@ -281,15 +322,30 @@ void SubTheory::extractModel()
   }
 }
 
+void SubTheory::ensureInverses(size_t numDisequalities)
+{
+  while (d_atomInverses.size() + numDisequalities >= d_numInverses)
+  {
+    d_numInverses *= 2;
+    Trace("ff::trans") << "Increasing number of inverses to " << d_numInverses
+                       << std::endl;
+    clearPolyRing();
+  }
+  ensureInitPolyRing();
+}
+
 void SubTheory::translate(TNode t)
 {
   auto& cache = d_translationCache;
+  Assert(d_polyRing.has_value());
   // Build polynomials for terms
   for (const auto& node :
        NodeDfsIterable(t, VisitOrder::POSTORDER, [&cache](TNode nn) {
          return cache.count(nn) > 0;
        }))
   {
+    Trace("ff::trans") << "Translating " << node << std::endl;
+    Trace("ff::trans") << "size " << cache.size() << std::endl;
     if (node.getType().isFiniteField() || node.getKind() == Kind::EQUAL
         || node.getKind() == Kind::NOT)
     {
@@ -323,11 +379,29 @@ void SubTheory::translate(TNode t)
                      node.getConst<FfVal>().getValue().toString());
           break;
         // fact cases:
-        case Kind::EQUAL: poly = subPolys[0] - subPolys[1]; break;
-        case Kind::NOT:
-          Assert(node[0].getKind() == Kind::EQUAL);
-          poly = subPolys[0] * d_atomInverses.at(node[0]) - 1;
+        case Kind::EQUAL:
+          Assert(node[0].getType().isFiniteField());
+          poly = subPolys[0] - subPolys[1];
           break;
+        case Kind::NOT:
+        {
+          auto it = d_atomInverses.find(node[0]);
+          Assert(node[0].getKind() == Kind::EQUAL);
+          Assert(node[0][0].getType().isFiniteField());
+          CoCoA::RingElem inverse;
+          if (it == d_atomInverses.end())
+          {
+            // ensure we have a spare inverse
+            Assert(d_atomInverses.size() < d_inverses.size())
+                << "Cannot translate when out of inverses" << std::endl;
+            size_t next = d_atomInverses.size();
+            it = d_atomInverses.insert(it, {node[0], d_inverses[next]});
+          }
+          Assert(it != d_atomInverses.end());
+          inverse = it->second;
+          poly = subPolys[0] * inverse - 1;
+          break;
+        }
         default:
           Unreachable() << "Invalid finite field kind: " << node.getKind();
       }

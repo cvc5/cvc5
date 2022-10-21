@@ -663,6 +663,13 @@ set(regress_0_tests
   regress0/ff/simple.smt2
   regress0/ff/univar_conjunction_sat.smt2
   regress0/ff/univar_conjunction_unsat.smt2
+  regress0/ff/with_uf.smt2
+  regress0/ff/with_uf2.smt2
+  regress0/ff/with_uf3.smt2
+  regress0/ff/with_uf4.smt2
+  regress0/ff/with_uf5.smt2
+  regress0/ff/with_uf6.smt2
+  regress0/ff/with_uf7.smt2
   regress0/ff/xor_unsound_missing.smt2
   regress0/flet.smtv1.smt2
   regress0/flet2.smtv1.smt2

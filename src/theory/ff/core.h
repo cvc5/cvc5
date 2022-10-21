@@ -45,6 +45,8 @@ class IncrementalTracer
   IncrementalTracer();
   // Hook up to CoCoA handlers.
   void setFunctionPointers();
+  // Unhook from CoCoA handlers.
+  void unsetFunctionPointers();
   // Add an input to the graph
   void addInput(const CoCoA::RingElem& i);
   // Get the index of inputs responsible for this element.

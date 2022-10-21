@@ -103,7 +103,14 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   // Uninitialize the polynomial ring, clear post-registration data structures.
   void clearPolyRing();
 
+  // Ensure we have at least `numDisequalities` spare inverses.
+  //
+  // If more inverses are added, this will call clearPolyRing.
+  void ensureInverses(size_t numDisequalities);
+
   // Translate t to CoCoA, and cache the result.
+  //
+  // This will never call clearPolyRing.
   void translate(TNode t);
 
   // Is registration done and the polynomial ring initialized?
@@ -115,7 +122,12 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   // For an atom x == y, contains the potential inverse of (x - y).
   //
   // Used to make x != y.
+  //
+  // Perhaps this could be contextual, to more eagerly free inverses.
   std::unordered_map<Node, CoCoA::RingElem> d_atomInverses{};
+
+  // An array of inverses. They're used from index 0 upward.
+  std::vector<CoCoA::RingElem> d_inverses{};
 
   // Facts, in notification order.
   //
@@ -140,14 +152,25 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   // values.
   std::unordered_map<Node, Node> d_model{};
 
-  // Variables
-  context::CDList<Node> d_vars;
+  // Theory leaves
+  context::CDList<Node> d_leaves;
 
-  // Variables
-  std::unordered_map<size_t, Node> d_symbolIdxVars{};
+  // Map from CoCoA Indeterminate symbol indexes to leaves
+  std::unordered_map<size_t, Node> d_symbolIdxLeaves{};
 
-  // Atoms
-  context::CDList<Node> d_atoms;
+  // When asserted, a diseq (not (= a b))
+  // is represented internally to FF as (= (* (- a b) w) 1)
+  // for fresh w, called an "inverse".
+  //
+  // We don't know how many inverses we will need before DPLL(T) search,
+  // since we could get a new diseq at any time.
+  //
+  // We also have to tell CoCoA which variables we want before creating *any*
+  // CoCoA polynomials.
+  //
+  // So we guess a number of inverses, use them incrementally, and double the
+  // number (clearing all CoCoA polynomials) whenever we exceed the bound.
+  size_t d_numInverses = 10;
 
   // Statistics shared among all finite-field sub-theories.
   FfStatistics* d_stats;
