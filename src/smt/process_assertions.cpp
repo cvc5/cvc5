@@ -294,10 +294,10 @@ bool ProcessAssertions::apply(Assertions& as)
     d_slvStats.d_numAssertionsPost += assertions.size();
   }
 
-  dumpAssertions("assertions::pre-repeat-simplify", as);
-  Trace("assertions::pre-repeat-simplify") << std::endl;
   if (options().smt.repeatSimp)
   {
+    dumpAssertions("assertions::pre-repeat-simplify", as);
+    Trace("assertions::pre-repeat-simplify") << std::endl;
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : pre-repeat-simplify"
         << endl;
@@ -307,9 +307,9 @@ bool ProcessAssertions::apply(Assertions& as)
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : post-repeat-simplify"
         << endl;
+    dumpAssertions("assertions::post-repeat-simplify", as);
+    Trace("assertions::post-repeat-simplify") << std::endl;
   }
-  dumpAssertions("assertions::post-repeat-simplify", as);
-  Trace("assertions::post-repeat-simplify") << std::endl;
 
   if (logicInfo().isHigherOrder())
   {
@@ -424,10 +424,6 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as)
         return false;
       }
     }
-
-    dumpAssertions("post-repeatsimp", as);
-    Trace("smt") << "POST repeatSimp" << endl;
-    Trace("smt") << " assertions     : " << assertions.size() << endl;
   }
   catch (TypeCheckingExceptionPrivate& tcep)
   {
