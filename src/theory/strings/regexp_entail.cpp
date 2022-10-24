@@ -839,7 +839,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
     }
     else
     {
-      ret = regExpIncludes(r1[0], k2 == REGEXP_STAR ? r2[0] : r2, cache)
+      ret = regExpIncludes(r1[0], k2 == REGEXP_STAR ? r2[0] : r2, cache);
     }
   }
   else if (k1==REGEXP_ALLCHAR)
