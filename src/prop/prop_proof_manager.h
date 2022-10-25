@@ -93,13 +93,12 @@ class PropPfManager : protected EnvObj
 
  private:
   /** The proofs of this proof manager, which are saved once requested (note the
-   * request may require or not the full proof).
+   * cache is for both the request of the full proof (true) or not (false)).
    *
    * The proofs are kept in a (user)context-dependent manner because between
    * satisfiability checks we should discard them.
    */
-  context::CDO<std::shared_ptr<ProofNode>> d_satSkoletonProofNode;
-  context::CDO<std::shared_ptr<ProofNode>> d_fullPropProofNode;
+  context::CDHashMap<bool, std::shared_ptr<ProofNode>> d_propProofs;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**
