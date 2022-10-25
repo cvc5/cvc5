@@ -67,6 +67,7 @@ class TheoryFiniteFields : public Theory
                           const std::set<Node>& termSet) override;
   std::string identify() const override { return "THEORY_FF"; }
   void preRegisterTerm(TNode node) override;
+  TrustNode explain(TNode n) override;
 
  private:
   TheoryFiniteFieldsRewriter d_rewriter{};

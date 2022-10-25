@@ -157,6 +157,14 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
 #endif /* CVC5_USE_COCOA */
 }
 
+TrustNode TheoryFiniteFields::explain(TNode n)
+{
+  Trace("ff::prop") << "explain " << n << std::endl;
+  TrustNode exp = d_im.explainLit(n);
+  AlwaysAssert(!exp.isNull());
+  return exp;
+}
+
 }  // namespace ff
 }  // namespace theory
 }  // namespace cvc5::internal
