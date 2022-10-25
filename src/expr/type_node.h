@@ -30,13 +30,13 @@
 #include "expr/metakind.h"
 #include "expr/node_value.h"
 #include "util/cardinality_class.h"
-#include "util/integer.h"
 
 namespace cvc5::internal {
 
 class NodeManager;
 class Cardinality;
 class DType;
+class Integer;
 
 namespace expr {
   class NodeValue;
@@ -46,9 +46,9 @@ namespace expr {
  * Encapsulation of an NodeValue pointer for Types. The reference count is
  * maintained in the NodeValue.
  */
-class TypeNode {
-
-private:
+class CVC5_EXPORT TypeNode
+{
+ private:
 
   /**
    * The NodeValue has access to the private constructors, so that the
@@ -402,6 +402,13 @@ private:
    * @return the cardinality class
    */
   CardinalityClass getCardinalityClass();
+  /**
+   * Determine if the cardinality of this type is strictly less than `n`.
+   * We do not want to compute the precise cardinality for this for performance
+   * reasons, and will answer false if it is not less than or if we don't know.
+   * @return if the cardinality of this type is strictly less than `n`.
+   */
+  bool isCardinalityLessThan(size_t n);
 
   /** is closed enumerable type
    *
@@ -658,7 +665,7 @@ private:
   uint32_t getBitVectorSize() const;
 
   /** Get the field cardinality (order) of this finite-field type. */
-  Integer getFfSize() const;
+  const Integer& getFfSize() const;
 
   /** Is this a sort kind? */
   bool isUninterpretedSort() const;
@@ -671,9 +678,16 @@ private:
 
   /** Is this an unresolved datatype? */
   bool isUnresolvedDatatype() const;
-
   /**
-   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true for
+   * uninterpreted sorts and uninterpreted sort constructors.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getName() const;
 
@@ -949,26 +963,6 @@ inline bool TypeNode::isPredicate() const {
 
 inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
-}
-
-/** Is this a floating-point type of with <code>exp</code> exponent bits
-    and <code>sig</code> significand bits */
-inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return (getKind() == kind::FLOATINGPOINT_TYPE
-          && getConst<FloatingPointSize>().exponentWidth() == exp
-          && getConst<FloatingPointSize>().significandWidth() == sig);
-}
-
-/** Get the exponent size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointExponentSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponentWidth();
-}
-
-/** Get the significand size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointSignificandSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significandWidth();
 }
 
 }  // namespace cvc5::internal

@@ -368,6 +368,18 @@ enum class PfRule : uint32_t
   TRUST_REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-supported flattening rewrite **
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality `t = t'` where both `t` and `t'` are
+   * applications of associative operators but the rewriter does not support
+   * flattening them to the same normal form. \endverbatim
+   */
+  TRUST_FLATTENING_REWRITE,
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-replayable substitution**
    *
    * .. math::

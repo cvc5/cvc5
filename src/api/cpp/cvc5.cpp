@@ -53,7 +53,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -209,6 +208,12 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BITVECTOR_SGE, internal::Kind::BITVECTOR_SGE),
         KIND_ENUM(BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
         KIND_ENUM(BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
+        KIND_ENUM(BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
+        KIND_ENUM(BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
+        KIND_ENUM(BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
+        KIND_ENUM(BITVECTOR_SMULO, internal::Kind::BITVECTOR_SMULO),
+        KIND_ENUM(BITVECTOR_USUBO, internal::Kind::BITVECTOR_USUBO),
+        KIND_ENUM(BITVECTOR_SSUBO, internal::Kind::BITVECTOR_SSUBO),
         KIND_ENUM(BITVECTOR_ITE, internal::Kind::BITVECTOR_ITE),
         KIND_ENUM(BITVECTOR_REDOR, internal::Kind::BITVECTOR_REDOR),
         KIND_ENUM(BITVECTOR_REDAND, internal::Kind::BITVECTOR_REDAND),
@@ -514,6 +519,12 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_SGE, BITVECTOR_SGE},
         {internal::Kind::BITVECTOR_ULTBV, BITVECTOR_ULTBV},
         {internal::Kind::BITVECTOR_SLTBV, BITVECTOR_SLTBV},
+        {internal::Kind::BITVECTOR_UADDO, BITVECTOR_UADDO},
+        {internal::Kind::BITVECTOR_SADDO, BITVECTOR_SADDO},
+        {internal::Kind::BITVECTOR_UMULO, BITVECTOR_UMULO},
+        {internal::Kind::BITVECTOR_SMULO, BITVECTOR_SMULO},
+        {internal::Kind::BITVECTOR_USUBO, BITVECTOR_USUBO},
+        {internal::Kind::BITVECTOR_SSUBO, BITVECTOR_SSUBO},
         {internal::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
         {internal::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
         {internal::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
@@ -1116,14 +1127,15 @@ Sort::Sort(internal::NodeManager* nm, const internal::TypeNode& t)
 {
 }
 
-Sort::Sort() : d_nm(nullptr), d_type(new internal::TypeNode()) {}
+Sort::Sort()
+    : d_nm(internal::NodeManager::currentNM()), d_type(new internal::TypeNode())
+{
+}
 
 Sort::~Sort()
 {
-  if (d_nm != nullptr)
-  {
-    d_type.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_type.reset();
 }
 
 std::vector<internal::TypeNode> Sort::sortVectorToTypeNodes(
@@ -1207,7 +1219,7 @@ bool Sort::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_type->hasAttribute(internal::expr::VarNameAttr());
+  return d_type->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1216,11 +1228,11 @@ std::string Sort::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_type->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the sort to have a symbol.";
   //////// all checks before this line
-  return d_type->getAttribute(internal::expr::VarNameAttr());
+  return d_type->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1850,7 +1862,12 @@ bool Sort::isNullHelper() const { return d_type->isNull(); }
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_nm(nullptr), d_kind(NULL_TERM), d_node(new internal::Node()) {}
+Op::Op()
+    : d_nm(internal::NodeManager::currentNM()),
+      d_kind(NULL_TERM),
+      d_node(new internal::Node())
+{
+}
 
   Op::Op(internal::NodeManager* nm, const Kind k)
     : d_nm(nm), d_kind(k), d_node(new internal::Node())
@@ -1864,12 +1881,8 @@ Op::Op(internal::NodeManager* nm, const Kind k, const internal::Node& n)
 
 Op::~Op()
 {
-  if (d_nm != nullptr)
-  {
-    // Ensure that the correct node manager is in scope when the type node is
-    // destroyed.
-    d_node.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_node.reset();
 }
 
 /* Public methods                                                             */
@@ -2189,10 +2202,7 @@ std::string Op::toString() const
   {
     CVC5_API_CHECK(!d_node->isNull())
         << "Expecting a non-null internal expression";
-    if (d_nm != nullptr)
-    {
-      return d_node->toString();
-    }
+    Assert(d_nm != nullptr);
     return d_node->toString();
   }
   ////////
@@ -2222,7 +2232,10 @@ bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Term::Term() : d_nm(nullptr), d_node(new internal::Node()) {}
+Term::Term()
+    : d_nm(internal::NodeManager::currentNM()), d_node(new internal::Node())
+{
+}
 
 Term::Term(internal::NodeManager* nm, const internal::Node& n) : d_nm(nm)
 {
@@ -2231,10 +2244,8 @@ Term::Term(internal::NodeManager* nm, const internal::Node& n) : d_nm(nm)
 
 Term::~Term()
 {
-  if (d_nm != nullptr)
-  {
-    d_node.reset();
-  }
+  Assert(d_nm != nullptr);
+  d_node.reset();
 }
 
 bool Term::operator==(const Term& t) const
@@ -2448,7 +2459,7 @@ bool Term::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->hasAttribute(internal::expr::VarNameAttr());
+  return d_node->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2457,11 +2468,11 @@ std::string Term::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_node->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_node->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the term to have a symbol.";
   //////// all checks before this line
-  return d_node->getAttribute(internal::expr::VarNameAttr());
+  return d_node->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2576,7 +2587,7 @@ std::string Term::toString() const
 }
 
 Term::const_iterator::const_iterator()
-    : d_nm(nullptr), d_origNode(nullptr), d_pos(0)
+    : d_nm(internal::NodeManager::currentNM()), d_origNode(nullptr), d_pos(0)
 {
 }
 
@@ -2588,7 +2599,7 @@ Term::const_iterator::const_iterator(internal::NodeManager* nm,
 }
 
 Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_nm(nullptr), d_origNode(nullptr)
+    : d_nm(internal::NodeManager::currentNM()), d_origNode(nullptr)
 {
   if (it.d_origNode != nullptr)
   {
@@ -3345,6 +3356,7 @@ std::pair<Sort, uint32_t> Term::getCardinalityConstraint() const
 
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
+  // Note that this ignores the options::ioutils properties of `out`.
   out << t.toString();
   return out;
 }
@@ -3434,7 +3446,7 @@ Kind Term::getKindHelper() const
 /* DatatypeConstructorDecl -------------------------------------------------- */
 
 DatatypeConstructorDecl::DatatypeConstructorDecl()
-    : d_nm(nullptr), d_ctor(nullptr)
+    : d_nm(internal::NodeManager::currentNM()), d_ctor(nullptr)
 {
 }
 
@@ -3532,7 +3544,10 @@ bool DatatypeConstructorDecl::isResolved() const
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl() : d_nm(nullptr), d_dtype(nullptr) {}
+DatatypeDecl::DatatypeDecl()
+    : d_nm(internal::NodeManager::currentNM()), d_dtype(nullptr)
+{
+}
 
 DatatypeDecl::DatatypeDecl(internal::NodeManager* nm,
                            const std::string& name,
@@ -3660,7 +3675,10 @@ internal::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 /* DatatypeSelector --------------------------------------------------------- */
 
-DatatypeSelector::DatatypeSelector() : d_nm(nullptr), d_stor(nullptr) {}
+DatatypeSelector::DatatypeSelector()
+    : d_nm(internal::NodeManager::currentNM()), d_stor(nullptr)
+{
+}
 
 DatatypeSelector::DatatypeSelector(internal::NodeManager* nm,
                                    const internal::DTypeSelector& stor)
@@ -3747,7 +3765,10 @@ bool DatatypeSelector::isNullHelper() const { return d_stor == nullptr; }
 
 /* DatatypeConstructor ------------------------------------------------------ */
 
-DatatypeConstructor::DatatypeConstructor() : d_nm(nullptr), d_ctor(nullptr) {}
+DatatypeConstructor::DatatypeConstructor()
+    : d_nm(internal::NodeManager::currentNM()), d_ctor(nullptr)
+{
+}
 
 DatatypeConstructor::DatatypeConstructor(internal::NodeManager* nm,
                                          const internal::DTypeConstructor& ctor)
@@ -3883,7 +3904,7 @@ DatatypeConstructor::const_iterator::const_iterator(
 }
 
 DatatypeConstructor::const_iterator::const_iterator()
-    : d_nm(nullptr), d_int_stors(nullptr), d_idx(0)
+    : d_nm(internal::NodeManager::currentNM()), d_int_stors(nullptr), d_idx(0)
 {
 }
 
@@ -4000,7 +4021,10 @@ Datatype::Datatype(internal::NodeManager* nm, const internal::DType& dtype)
   CVC5_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
 
-Datatype::Datatype() : d_nm(nullptr), d_dtype(nullptr) {}
+Datatype::Datatype()
+    : d_nm(internal::NodeManager::currentNM()), d_dtype(nullptr)
+{
+}
 
 Datatype::~Datatype()
 {
@@ -4245,7 +4269,7 @@ Datatype::const_iterator::const_iterator(internal::NodeManager* nm,
 }
 
 Datatype::const_iterator::const_iterator()
-    : d_nm(nullptr), d_int_ctors(nullptr), d_idx(0)
+    : d_nm(internal::NodeManager::currentNM()), d_int_ctors(nullptr), d_idx(0)
 {
 }
 
@@ -4306,7 +4330,7 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype)
 /* -------------------------------------------------------------------------- */
 
 Grammar::Grammar()
-    : d_nm(nullptr),
+    : d_nm(internal::NodeManager::currentNM()),
       d_sygusVars(),
       d_ntSyms(),
       d_ntsToTerms(0),
@@ -4938,7 +4962,6 @@ std::ostream& operator<<(std::ostream& out, const Statistics& stats)
 Solver::Solver(std::unique_ptr<internal::Options>&& original)
 {
   d_nm = internal::NodeManager::currentNM();
-  d_nm->init();
   d_originalOptions = std::move(original);
   d_slv.reset(new internal::SolverEngine(d_originalOptions.get()));
   d_slv->setSolver(this);
@@ -5363,15 +5386,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
-Sort Solver::getNullSort(void) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
-  return Sort(d_nm, internal::TypeNode());
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 Sort Solver::getBooleanSort(void) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5452,8 +5466,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
-  CVC5_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
+  CVC5_API_ARG_CHECK_EXPECTED(exp > 1, exp) << "exponent size > 1";
+  CVC5_API_ARG_CHECK_EXPECTED(sig > 1, sig) << "significand size > 1";
   //////// all checks before this line
   return Sort(d_nm, d_nm->mkFloatingPointType(exp, sig));
   ////////
@@ -6183,25 +6197,35 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
       break;
     case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPIEEEBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_FP:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPFloatingPoint(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_REAL:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(kind, internal::FloatingPointToFPReal(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_SBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPSignedBitVector(args[0], args[1]));
       break;
     case FLOATINGPOINT_TO_FP_FROM_UBV:
       CVC5_API_OP_CHECK_ARITY(nargs, 2, kind);
+      CVC5_API_CHECK_OP_INDEX(args[0] > 1, args, 0) << "a value > 1";
+      CVC5_API_CHECK_OP_INDEX(args[1] > 1, args, 1) << "a value > 1";
       res = mkOpHelper(
           kind, internal::FloatingPointToFPUnsignedBitVector(args[0], args[1]));
       break;

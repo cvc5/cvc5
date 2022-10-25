@@ -114,6 +114,12 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_SGE, "bvsge");
   addOperator(cvc5::BITVECTOR_REDOR, "bvredor");
   addOperator(cvc5::BITVECTOR_REDAND, "bvredand");
+  addOperator(cvc5::BITVECTOR_UADDO, "bvuaddo");
+  addOperator(cvc5::BITVECTOR_SADDO, "bvsaddo");
+  addOperator(cvc5::BITVECTOR_UMULO, "bvumulo");
+  addOperator(cvc5::BITVECTOR_SMULO, "bvsmulo");
+  addOperator(cvc5::BITVECTOR_USUBO, "bvusubo");
+  addOperator(cvc5::BITVECTOR_SSUBO, "bvssubo");
 
   addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
@@ -645,7 +651,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
   {
-    defineVar("set.empty", d_solver->mkEmptySet(d_solver->getNullSort()));
+    defineVar("set.empty", d_solver->mkEmptySet(Sort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("set.universe",
@@ -675,7 +681,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
-    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    defineVar("bag.empty", d_solver->mkEmptyBag(Sort()));
     addOperator(cvc5::BAG_UNION_MAX, "bag.union_max");
     addOperator(cvc5::BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(cvc5::BAG_INTER_MIN, "bag.inter_min");
@@ -1399,9 +1405,19 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // Note that we do not bind the symbol here; this is done separately
-  // in a define-fun command in Smt.g to ensure -o raw-benchmark results in a
-  // parsable result.
+  // define the variable. This needs to be done here so that in the rest of the
+  // command we can use this name, which is required by the semantics of :named.
+  //
+  // Note that as we are defining the name to the expression here, names never
+  // show up in "-o raw-benchmark" nor in proofs. To be able to do it it'd be
+  // necessary to not define this variable here and create a
+  // DefineFunctionCommand with the binding, so that names are handled as
+  // defined functions. However, these commands would need to be processed
+  // *before* the rest of the command in which the :named attribute appears, so
+  // the name can be defined in the rest of the command. This would greatly
+  // complicate the design of the parser and provide little gain, so we opt to
+  // handle :named as a macro processed directly in the parser.
+  defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
   // named
   setLastNamedTerm(expr, name);

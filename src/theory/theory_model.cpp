@@ -22,7 +22,6 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
 #include "util/rational.h"

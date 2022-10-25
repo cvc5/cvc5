@@ -39,7 +39,7 @@ class TestTheoryBlack : public TestSmt
 
 TEST_F(TestTheoryBlack, array_const)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
   Node zero = d_nodeManager->mkConstInt(Rational(0));

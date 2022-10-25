@@ -163,6 +163,20 @@ namespace cvc5 {
                 << "Invalid " << (what) << " in '" << #args << "' at index " \
                 << (idx) << ", expected "
 
+/**
+ * Check condition 'cond' for given operator index `index` in list of indices
+ * `args`. Creates a stream to provide a message that identifies what was
+ * expected to hold if condition is false and throws a non-recoverable
+ * exception.
+ */
+#define CVC5_API_CHECK_OP_INDEX(cond, args, index)                            \
+  CVC5_PREDICT_TRUE(cond)                                                     \
+  ? (void)0                                                                   \
+  : cvc5::internal::OstreamVoider()                                           \
+          & CVC5ApiExceptionStream().ostream()                                \
+                << "Invalid value '" << args[index] << "' at index " << index \
+                << " for operator, expected "
+
 /* -------------------------------------------------------------------------- */
 /* Node manager check.                                                        */
 /* -------------------------------------------------------------------------- */
@@ -459,7 +473,7 @@ namespace cvc5 {
     CVC5_API_CHECK(d_nm == sort.d_nm) << "Given sort is not associated with " \
                                          "the node manager of this solver";   \
     CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)                     \
-        << "function sort as codomain sort";                                  \
+        << "non-function sort as codomain sort";                                  \
   } while (0)
 
 /* Term checks. ------------------------------------------------------------- */

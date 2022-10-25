@@ -30,7 +30,6 @@ class TestNode : public TestInternal
   void SetUp() override
   {
     d_nodeManager = NodeManager::currentNM();
-    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));

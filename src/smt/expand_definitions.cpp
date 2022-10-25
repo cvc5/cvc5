@@ -18,10 +18,8 @@
 #include <stack>
 #include <utility>
 
-#include "expr/node_manager_attributes.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
@@ -64,8 +62,9 @@ Node ExpandDefs::expandDefinitions(TNode n,
     // Working downwards
     if (!childrenPushed)
     {
-      // we can short circuit (variable) leaves
-      if (n.isVar())
+      // we can short circuit (variable) leaves and closures, whose bodies
+      // are not preprocessed
+      if (n.isVar() || n.isClosure())
       {
         // don't bother putting in the cache
         result.push(n);

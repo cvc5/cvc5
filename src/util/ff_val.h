@@ -126,7 +126,7 @@ class FfVal
 struct FfSize
 {
   FfSize(Integer size) : d_size(size) {}
-  operator Integer() const { return d_size; }
+  operator const Integer&() const { return d_size; }
   bool operator==(const FfSize& y) const
   {
     return d_size == y.d_size;

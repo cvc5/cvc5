@@ -52,6 +52,14 @@ class TheoryFiniteFieldsRewriter : public TheoryRewriter
    * Even if this function returns REWRITE_DONE, if the returned
    * expression belongs to a different theory, it will be fully
    * rewritten by that theory's rewriter.
+   *
+   * Ensures:
+   *  - addition and multiplication results are flat
+   *  - addition and multiplication terms have at most one constant, in the
+   *    final position
+   *  - addition terms do not have the 0 constant
+   *  - multiplication terms do not have a 0 or 1 constant
+   *
    */
   RewriteResponse postRewrite(TNode node) override;
 

@@ -45,6 +45,7 @@ TermRegistry::TermRegistry(Env& env,
       d_sygusTdb(nullptr),
       d_ochecker(nullptr),
       d_vtsCache(new VtsTermCache(env)),
+      d_ievalMan(new ieval::InstEvaluatorManager(env, qs, *d_termDb.get())),
       d_qmodel(nullptr)
 {
   if (options().quantifiers.oracles)
@@ -160,6 +161,17 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 TermPools* TermRegistry::getTermPools() const { return d_termPools.get(); }
 
 VtsTermCache* TermRegistry::getVtsTermCache() const { return d_vtsCache.get(); }
+
+ieval::InstEvaluatorManager* TermRegistry::getInstEvaluatorManager() const
+{
+  return d_ievalMan.get();
+}
+
+ieval::InstEvaluator* TermRegistry::getEvaluator(Node q,
+                                                 ieval::TermEvaluatorMode tev)
+{
+  return d_ievalMan->getEvaluator(q, tev);
+}
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel; }
 
