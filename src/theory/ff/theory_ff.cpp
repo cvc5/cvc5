@@ -135,8 +135,25 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
   return true;
 }
 
+void TheoryFiniteFields::preRegisterWithEe(TNode node)
+{
+  eq::EqualityEngine* ee = getEqualityEngine();
+  if (ee)
+  {
+    if (node.getKind() == kind::EQUAL)
+    {
+      ee->addTriggerPredicate(node);
+    }
+    else
+    {
+      ee->addTerm(node);
+    }
+  }
+}
+
 void TheoryFiniteFields::preRegisterTerm(TNode node)
 {
+  preRegisterWithEe(node);
 #ifdef CVC5_USE_COCOA
   Trace("ff::register") << "ff::preRegisterTerm : " << node << std::endl;
   TypeNode ty = node.getType();

@@ -672,6 +672,8 @@ set(regress_0_tests
   regress0/ff/with_uf5.smt2
   regress0/ff/with_uf6.smt2
   regress0/ff/with_uf7.smt2
+  regress0/ff/with_uf8.smt2
+  regress0/ff/with_uf9.smt2
   regress0/ff/xor_unsound_missing.smt2
   regress0/flet.smtv1.smt2
   regress0/flet2.smtv1.smt2

@@ -66,6 +66,8 @@ class TheoryFiniteFields : public Theory
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
   std::string identify() const override { return "THEORY_FF"; }
+  /** preRegister this term or equality with the eq engine */
+  void preRegisterWithEe(TNode node);
   void preRegisterTerm(TNode node) override;
   TrustNode explain(TNode n) override;
 
