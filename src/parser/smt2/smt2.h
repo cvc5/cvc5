@@ -234,6 +234,9 @@ class Smt2 : public Parser
 
   /** Are we using a sygus language? */
   bool sygus() const;
+  
+  /** Has grammars? */
+  bool hasGrammars() const;
 
   void checkThatLogicIsSet();
 

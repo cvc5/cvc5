@@ -2244,8 +2244,8 @@ CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'constraint';
 ASSUME_TOK : { PARSER_STATE->sygus()}?'assume';
 INV_CONSTRAINT_TOK : { PARSER_STATE->sygus()}?'inv-constraint';
 SET_FEATURE_TOK : { PARSER_STATE->sygus() }? 'set-feature';
-SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
-SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
+SYGUS_CONSTANT_TOK : { PARSER_STATE->hasGrammars() }? 'Constant';
+SYGUS_VARIABLE_TOK : { PARSER_STATE->hasGrammars() }? 'Variable';
 
 // attributes
 ATTRIBUTE_PATTERN_TOK : ':pattern';

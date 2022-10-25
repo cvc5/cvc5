@@ -789,6 +789,11 @@ bool Smt2::sygus() const
   return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
 }
 
+bool Smt2::hasGrammars() const
+{
+  return sygus() || d_solver->getOption("produce-abducts");
+}
+
 void Smt2::checkThatLogicIsSet()
 {
   if (!logicIsSet())
