@@ -235,7 +235,11 @@ class Smt2 : public Parser
   /** Are we using a sygus language? */
   bool sygus() const;
 
-  /** Has grammars? */
+  /**
+   * Are we using SyGuS grammars? This is true if the input is the SyGuS
+   * language or if produce-abducts is true. Enables grammar-specific tokens
+   * `Constant` and `Variable`.
+   */
   bool hasGrammars() const;
 
   void checkThatLogicIsSet();

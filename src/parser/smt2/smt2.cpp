@@ -791,7 +791,7 @@ bool Smt2::sygus() const
 
 bool Smt2::hasGrammars() const
 {
-  return sygus() || d_solver->getOption("produce-abducts");
+  return sygus() || d_solver->getOption("produce-abducts") == "true";
 }
 
 void Smt2::checkThatLogicIsSet()
