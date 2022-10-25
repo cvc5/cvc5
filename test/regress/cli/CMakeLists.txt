@@ -138,6 +138,7 @@ set(regress_0_tests
   regress0/arrays/issue7596-define-array-uminus.smt2
   regress0/arrays/issue8103-1-weak-equiv-models.smt2
   regress0/arrays/issue8276-arith-getModelValue.smt2
+  regress0/arrays/issue8810-model-success.smt2
   regress0/arrays/issue9041.smt2
   regress0/arrays/issue9043_1.smt2
   regress0/arrays/issue9043_2.smt2
@@ -1033,6 +1034,7 @@ set(regress_0_tests
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
+  regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
   regress0/proofs/open-pf-datatypes.smt2
@@ -1508,6 +1510,7 @@ set(regress_0_tests
   regress0/strings/proj-issue409-re-loop-none.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
+  regress0/strings/re-include-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
   regress0/strings/re-syntax.smt2
@@ -2821,7 +2824,7 @@ set(regress_1_tests
   regress1/strings/str006.smt2
   regress1/strings/str007.smt2
   regress1/strings/string-unsound-sem.smt2
-  regress1/strings/strings-code-elim-min.smt2 
+  regress1/strings/strings-code-elim-min.smt2
   regress1/strings/strings-index-empty.smt2
   regress1/strings/strings-leq-trans-unsat.smt2
   regress1/strings/strings-lt-len5.smt2
