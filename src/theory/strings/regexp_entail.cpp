@@ -833,7 +833,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
     retSet = true;
     // inclusion if r1 is (re.* re.allchar), or if the body of r1 includes r2
     // (or the body of r2 if it is also a star).
-    if (r1[0].getKind()==REGEXP_ALLCHAR)
+    if (r1[0].getKind() == REGEXP_ALLCHAR)
     {
       ret = true;
     }
@@ -842,15 +842,15 @@ bool RegExpEntail::regExpIncludes(Node r1,
       ret = regExpIncludes(r1[0], k2 == REGEXP_STAR ? r2[0] : r2, cache);
     }
   }
-  else if (k1==REGEXP_ALLCHAR)
+  else if (k1 == REGEXP_ALLCHAR)
   {
     retSet = true;
-    if (k2==STRING_TO_REGEXP)
+    if (k2 == STRING_TO_REGEXP)
     {
       ret = (r2[0].getConst<String>().size() == 1);
     }
   }
-  else if (k1==STRING_TO_REGEXP)
+  else if (k1 == STRING_TO_REGEXP)
   {
     // only way to include is if equal, which was already checked
     retSet = true;
