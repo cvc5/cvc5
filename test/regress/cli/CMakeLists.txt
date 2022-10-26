@@ -1033,6 +1033,7 @@ set(regress_0_tests
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
+  regress0/proofs/issue9172-doublePropProof.smt2
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/nomerge-alethe-pf.smt2
