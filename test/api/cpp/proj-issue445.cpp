@@ -25,7 +25,7 @@ int main(void)
   Solver slv;
   slv.setOption("sygus-rr-synth-input", "true");
   slv.setOption("strings-exp", "true");
-  slv.setOption("tlimit", "100");
+  slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkUninterpretedSort("_u0");
   Sort s5 = slv.mkUninterpretedSort("_u1");
   Sort s6 = slv.mkUninterpretedSort("_u2");
