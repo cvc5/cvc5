@@ -237,8 +237,8 @@ class Smt2 : public Parser
 
   /**
    * Are we using SyGuS grammars? This is true if the input is the SyGuS
-   * language or if produce-abducts is true. Enables grammar-specific tokens
-   * `Constant` and `Variable`.
+   * language or if produce-abducts or produce-interpolants is true. Enables
+   * grammar-specific token `Constant`.
    */
   bool hasGrammars() const;
 
