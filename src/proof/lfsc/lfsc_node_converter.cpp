@@ -632,12 +632,14 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       ss << tn[0];
       op = getSymbolInternal(k, ftype, ss.str());
     }
-    else if (k == SORT_TYPE)
+    else if (k == INSTANTIATED_SORT_TYPE)
     {
-      // Add its uninterpreted sort constructor to the list of declared types.
-      // This is required since the (type) operator is not part of the AST of
-      // the TypeNode.
-      d_declTypes.insert(tn.getUninterpretedSortConstructor());
+      // We don't add to declared types here. The type constructor is already
+      // added to declare types when processing the children of this.
+      // Also, similar to PARAMETRIC_DATATYPE, the type constructor
+      // should be erased from children.
+      targs.erase(targs.begin(), targs.begin() + 1);
+      types.erase(types.begin(), types.begin() + 1);
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
       std::string name;
       tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),

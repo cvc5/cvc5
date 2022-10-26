@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -678,6 +679,32 @@ inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<UaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UADDO);
+}
+
+template <>
+inline Node RewriteRule<UaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node bvZero = utils::mkZero(1);
+  Node bvOne = utils::mkOne(1);
+
+  Node add = nm->mkNode(kind::BITVECTOR_ADD,
+                        utils::mkConcat(bvZero, node[0]),
+                        utils::mkConcat(bvZero, node[1]));
+
+  uint32_t size = add.getType().getBitVectorSize();
+  return nm->mkNode(
+      kind::EQUAL, utils::mkExtract(add, size - 1, size - 1), bvOne);
+}
+
+template <>
 inline bool RewriteRule<UmuloEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_UMULO);
@@ -714,8 +741,9 @@ inline Node RewriteRule<UmuloEliminate>::apply(TNode node)
                       utils::mkExtract(node[0], size - 1 - i, size - 1 - i),
                       uppc);
   }
-  Node zext_t1 = utils::mkConcat(utils::mkZero(1), node[0]);
-  Node zext_t2 = utils::mkConcat(utils::mkZero(1), node[1]);
+  Node bvZero = utils::mkZero(1);
+  Node zext_t1 = utils::mkConcat(bvZero, node[0]);
+  Node zext_t2 = utils::mkConcat(bvZero, node[1]);
   Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
   tmp.push_back(utils::mkExtract(mul, size, size));
   return nm->mkNode(
@@ -772,23 +800,18 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
   Node xor1 =
       nm->mkNode(kind::BITVECTOR_XOR, node[1], nm->mkNode(sextOpN, sign1));
 
-  Node ppc[size - 2];
-  ppc[0] = utils::mkExtract(xor0, size - 2, size - 2);
+  Node ppc = utils::mkExtract(xor0, size - 2, size - 2);
+  Node res = nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(xor1, 1, 1), ppc);
   for (uint32_t i = 1; i < size - 2; ++i)
   {
-    ppc[i] = nm->mkNode(kind::BITVECTOR_OR,
-                        ppc[i - 1],
-                        utils::mkExtract(xor0, size - 2 - i, size - 2 - i));
-  }
-  Node res =
-      nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(xor1, 1, 1), ppc[0]);
-  for (uint32_t i = 1; i < size - 2; ++i)
-  {
+    ppc = nm->mkNode(kind::BITVECTOR_OR,
+                     ppc,
+                     utils::mkExtract(xor0, size - 2 - i, size - 2 - i));
     res = nm->mkNode(
         kind::BITVECTOR_OR,
         res,
         nm->mkNode(
-            kind::BITVECTOR_AND, utils::mkExtract(xor1, i + 1, i + 1), ppc[i]));
+            kind::BITVECTOR_AND, utils::mkExtract(xor1, i + 1, i + 1), ppc));
   }
   return nm->mkNode(
       kind::EQUAL,
@@ -802,3 +825,4 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal
+#endif

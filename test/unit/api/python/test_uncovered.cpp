@@ -226,17 +226,26 @@ TEST_F(TestApiBlackUncovered, Statistics)
     testing::internal::GetCapturedStdout();
 }
 
-TEST_F(TestApiBlackUncovered, DeclareOracleFun)
+// Copied from api/cpp/solver_black.cpp
+TEST_F(TestApiBlackUncovered, declareOracleFunUnsat)
 {
-  // oracle functions currently not supported in Python API due to restrictions
-  // on passing functionals
   d_solver.setOption("oracles", "true");
   Sort iSort = d_solver.getIntegerSort();
-  std::function<Term(const std::vector<Term>&)> fn =
-      [&](const std::vector<Term>& input) { return d_solver.mkInteger(0); };
-  Term f = d_solver.declareOracleFun("f", {iSort}, iSort, fn);
-  std::vector<Term> terms;
-  Term ret = fn(terms);
+  // f is the function implementing (lambda ((x Int)) (+ x 1))
+  Term f = d_solver.declareOracleFun(
+      "f", {iSort}, iSort, [&](const std::vector<Term>& input) {
+        if (input[0].isUInt32Value())
+        {
+          return d_solver.mkInteger(input[0].getUInt32Value() + 1);
+        }
+        return d_solver.mkInteger(0);
+      });
+  Term three = d_solver.mkInteger(3);
+  Term five = d_solver.mkInteger(5);
+  Term eq =
+      d_solver.mkTerm(EQUAL, {d_solver.mkTerm(APPLY_UF, {f, three}), five});
+  d_solver.assertFormula(eq);
+  d_solver.checkSat();
 }
 
 }  // namespace test

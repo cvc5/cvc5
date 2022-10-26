@@ -21,7 +21,7 @@ public class Exceptions
 {
   public static void main(String[] args)
   {
-    try (Solver solver = new Solver())
+    Solver solver = new Solver();
     {
       solver.setOption("produce-models", "true");
 
