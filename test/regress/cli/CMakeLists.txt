@@ -1033,6 +1033,8 @@ set(regress_0_tests
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
+  regress0/proofs/issue9156-doublePropProof.smt2
+  regress0/proofs/issue9172-doublePropProof.smt2
   regress0/proofs/issue9200-lfsc-inst-sorts.smt2
   regress0/proofs/issue9205-eqProofNary.smt2
   regress0/proofs/lfsc-test-1.smt2
@@ -1784,6 +1786,7 @@ set(regress_1_tests
   regress1/abduction/abd-simple-conj-4.smt2
   regress1/abduction/arjun-global-dec.smt2
   regress1/abduction/arjun-unsat-core-opt.smt2
+  regress1/abduction/constant-in-grammar.smt2
   regress1/abduction/dd.abduct-check-sc.smt2
   regress1/abduction/issue5848-2.smt2
   regress1/abduction/issue5848-3-trivial-no-abduct.smt2
