@@ -30,7 +30,6 @@ std::ostream& operator<<(std::ostream& out, UnknownExplanation e)
       out << "REQUIRES_FULL_CHECK";
       break;
     case UnknownExplanation::INCOMPLETE: out << "INCOMPLETE"; break;
-    case UnknownExplanation::UNSOUND: out << "UNSOUND"; break;
     case UnknownExplanation::TIMEOUT: out << "TIMEOUT"; break;
     case UnknownExplanation::RESOURCEOUT: out << "RESOURCEOUT"; break;
     case UnknownExplanation::MEMOUT: out << "MEMOUT"; break;
