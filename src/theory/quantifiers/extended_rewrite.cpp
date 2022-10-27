@@ -619,7 +619,8 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
   for (unsigned i = 0; i < nchildren; i++)
   {
     // these rewrites in this loop are currently classified as not aggressive,
-    // although in previous iterations they were classified as aggressive.
+    // although in previous versions they were classified as aggressive. These
+    // are shown to help in some Kind2 problems.
     if (n[i].getKind() == itek)
     {
       unsigned ii = hasOp ? i + 1 : i;
