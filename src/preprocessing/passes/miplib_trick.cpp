@@ -191,8 +191,6 @@ void MipLibTrick::collectBooleanVariables(
 PreprocessingPassResult MipLibTrick::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(assertionsToPreprocess->getRealAssertionsEnd()
-         == assertionsToPreprocess->size());
   Assert(!options().base.incrementalSolving);
 
   // collect Boolean variables
@@ -615,7 +613,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   if (!removeAssertions.empty())
   {
     Trace("miplib") << " scrubbing miplib encoding..." << endl;
-    for (size_t i = 0, size = assertionsToPreprocess->getRealAssertionsEnd();
+    for (size_t i = 0, size = assertionsToPreprocess->size();
          i < size;
          ++i)
     {
@@ -646,7 +644,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   {
     Trace("miplib") << " miplib pass found nothing." << endl;
   }
-  assertionsToPreprocess->updateRealAssertionsEnd();
   return PreprocessingPassResult::NO_CONFLICT;
 }
 

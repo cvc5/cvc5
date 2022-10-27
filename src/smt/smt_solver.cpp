@@ -166,13 +166,13 @@ void SmtSolver::preprocess()
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
+  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   // process the assertions with the preprocessor
-  d_pp.process(d_asserts);
+  d_pp.process(d_asserts, ap);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter

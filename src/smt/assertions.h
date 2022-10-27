@@ -142,12 +142,8 @@ class Assertions : protected EnvObj
    * guaranteed not to have free variables. However, other cases such as
    * assertions from the SyGuS parser may have free variables (say if the
    * input contains an assert or define-fun-rec command).
-   *
-   * @param isAssumption If true, the formula is considered to be an assumption
-   * (this is used to distinguish assertions and assumptions)
    */
   void addFormula(TNode n,
-                  bool isAssumption,
                   bool isFunDef,
                   bool maybeHasFv);
   /** Reference to the abstract values utility */

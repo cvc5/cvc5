@@ -64,7 +64,7 @@ class Preprocessor : protected EnvObj
    *
    * @param as The assertions.
    */
-  bool process(Assertions& as);
+  bool process(Assertions& as, preprocessing::AssertionPipeline& ap);
   /**
    * Clear learned literals from the Boolean propagator.
    */
