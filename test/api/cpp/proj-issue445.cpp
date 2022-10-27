@@ -41,5 +41,11 @@ int main(void)
   slv.assertFormula({t289});
   // should terminate with an exception indicating we are done enumerating
   // rewrite rules.
-  ASSERT_THROW((void)slv.simplify(t7));
+  try
+  {
+    (void)slv.simplify(t7);
+  }
+  catch (cvc5::CVC5ApiException& e)
+  {
+  }
 }
