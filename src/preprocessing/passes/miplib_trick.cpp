@@ -613,9 +613,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   if (!removeAssertions.empty())
   {
     Trace("miplib") << " scrubbing miplib encoding..." << endl;
-    for (size_t i = 0, size = assertionsToPreprocess->size();
-         i < size;
-         ++i)
+    for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
       Node assertion = (*assertionsToPreprocess)[i];
       if (removeAssertions.find(assertion.getId()) != removeAssertions.end())
