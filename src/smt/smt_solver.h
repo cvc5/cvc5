@@ -135,13 +135,13 @@ class SmtSolver : protected EnvObj
    * Preprocess the assertions. This calls the preprocessor on the assertions
    * d_asserts and records d_ppAssertions / d_ppSkolemMap if necessary.
    */
-  void preprocess();
+  void preprocess(preprocessing::AssertionPipeline& ap);
   /**
    * Push the assertions to the prop engine. Assumes that the assertions
    * (d_asserts) have been preprocessed. This pushes the assertions
    * into the prop engine of this solver and subsequently clears d_asserts.
    */
-  void assertToInternal();
+  void assertToInternal(preprocessing::AssertionPipeline& ap);
   /**
    * Check satisfiability based on the current state of the prop engine.
    * This assumes we have pushed the necessary assertions to it. It post

@@ -156,17 +156,17 @@ Result SmtSolver::checkSatInternal()
 void SmtSolver::processAssertions()
 {
   // preprocess
-  preprocess();
+  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
+  preprocess(ap);
   // assert to internal
-  assertToInternal();
+  assertToInternal(ap);
 }
 
-void SmtSolver::preprocess()
+void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   // process the assertions with the preprocessor
   d_pp.process(d_asserts, ap);
 
@@ -214,10 +214,9 @@ void SmtSolver::preprocess()
   }
 }
 
-void SmtSolver::assertToInternal()
+void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
 {
   // get the assertions
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
   // assert to prop engine, which will convert to CNF
