@@ -61,12 +61,6 @@ void Assertions::refresh()
   d_globalDefineFunLemmasIndex = numGlobalDefs;
 }
 
-void Assertions::clearCurrent()
-{
-  d_assertions.clear();
-  d_assertions.getIteSkolemMap().clear();
-}
-
 void Assertions::setAssumptions(const std::vector<Node>& assumptions)
 {
   d_assumptions.clear();

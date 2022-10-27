@@ -67,7 +67,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
             && result.getUnknownExplanation() == REQUIRES_CHECK_AGAIN)
         {
           Assert(d_ctx != nullptr);
-          as.clearCurrent();
+          as.getAssertionPipeline().clear();
           d_ctx->notifyResetAssertions();
           // get the next assertions based on the driver strategy
           getNextAssertions(as);

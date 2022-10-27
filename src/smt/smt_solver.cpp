@@ -223,7 +223,7 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
   // clear the current assertions
-  d_asserts.clearCurrent();
+  ap.clear();
 }
 
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const

@@ -1855,7 +1855,7 @@ void SolverEngine::pop()
   d_ctxManager->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
-  d_smtSolver->getAssertions().clearCurrent();
+  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   // clear the learned literals from the preprocessor
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
@@ -1878,7 +1878,7 @@ void SolverEngine::resetAssertions()
 
   Trace("smt") << "SMT resetAssertions()" << endl;
 
-  d_smtSolver->getAssertions().clearCurrent();
+  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   d_ctxManager->notifyResetAssertions();
   // push the state to maintain global context around everything
   d_ctxManager->setup();
