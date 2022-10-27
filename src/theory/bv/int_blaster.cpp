@@ -547,10 +547,13 @@ Node IntBlaster::translateWithChildren(
     {
       // The preprocessing pass does not support function applications
       // with bound variables.
-      for (Node child : original) {
-        if (child.getKind() == Kind::BOUND_VARIABLE) {
-          throw OptionException("bv-to-int does not support quantified variables under uninterpreted functions");
-
+      for (Node child : original)
+      {
+        if (child.getKind() == Kind::BOUND_VARIABLE)
+        {
+          throw OptionException(
+              "bv-to-int does not support quantified variables under "
+              "uninterpreted functions");
         }
       }
 
