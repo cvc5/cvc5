@@ -87,8 +87,7 @@ void ProcessAssertions::spendResource(Resource r)
   resourceManager()->spendResource(r);
 }
 
-bool ProcessAssertions::apply(const Assertions& as,
-                              AssertionPipeline& ap)
+bool ProcessAssertions::apply(const Assertions& as, AssertionPipeline& ap)
 {
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions

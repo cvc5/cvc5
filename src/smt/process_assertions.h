@@ -105,7 +105,8 @@ class ProcessAssertions : protected EnvObj
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions(const Assertions& as, preprocessing::AssertionPipeline& ap);
+  bool simplifyAssertions(const Assertions& as,
+                          preprocessing::AssertionPipeline& ap);
   /**
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
