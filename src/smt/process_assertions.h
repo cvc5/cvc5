@@ -71,10 +71,13 @@ class ProcessAssertions : protected EnvObj
    */
   void cleanup();
   /**
-   * Process the formulas in as. Returns true if there was no conflict when
+   * Process the formulas in ap. Returns true if there was no conflict when
    * processing the assertions.
    *
-   * @param as The assertions.
+   * @param as The overall assertions. Note this is only used for pretty
+   * printing definitions in output traces e.g. -t assertions::X and
+   * -o post-asserts.
+   * @param ap The assertions to preprocess.
    */
   bool apply(const Assertions& as, preprocessing::AssertionPipeline& ap);
 
