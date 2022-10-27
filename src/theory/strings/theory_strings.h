@@ -168,6 +168,8 @@ class TheoryStrings : public Theory {
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;
+  /** notify shared term */
+  void notifySharedTerm(TNode n) override;
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type

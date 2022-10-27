@@ -1,4 +1,4 @@
-; COMMAND-LINE: --solve-bv-as-int=sum --nl-ext-tplanes --no-check-unsat-cores
+; COMMAND-LINE: --solve-bv-as-int=sum --nl-ext-tplanes 
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun x$ () (_ BitVec 32))

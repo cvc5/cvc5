@@ -29,9 +29,9 @@ import java.util.Map;
 public class Stat extends AbstractPointer
 {
   // region construction and destruction
-  Stat(Solver solver, long pointer)
+  Stat(long pointer)
   {
-    super(solver, pointer);
+    super(pointer);
   }
 
   protected native void deletePointer(long pointer);

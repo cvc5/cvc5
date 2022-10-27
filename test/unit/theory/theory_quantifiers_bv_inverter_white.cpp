@@ -36,9 +36,6 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->setOption("cegqi-full", "true");
     d_slvEngine->setOption("produce-models", "true");
-    // don't insist on proofs here !!!! will not be necessary on master, since
-    // proof is not default true
-    d_slvEngine->setOption("produce-proofs", "false");
     d_slvEngine->finishInit();
 
     d_s = d_nodeManager->mkVar("s", d_nodeManager->mkBitVectorType(4));

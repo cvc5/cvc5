@@ -1,7 +1,5 @@
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
-; only required on proof-new
-; COMMAND-LINE: --no-produce-proofs
 ; EXPECT: unsat
 ; EXPECT: (error "Cannot get unsat core unless explicitly enabled (try --produce-unsat-cores)")
 ; EXIT: 1

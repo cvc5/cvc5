@@ -1,4 +1,4 @@
-; COMMAND-LINE: --learned-rewrite --strings-exp --no-produce-proofs
+; COMMAND-LINE: --learned-rewrite --strings-exp
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const a String) 

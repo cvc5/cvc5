@@ -21,7 +21,7 @@ public class Sequences
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       // Set the logic
       slv.setLogic("QF_SLIA");
