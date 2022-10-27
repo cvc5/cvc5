@@ -408,7 +408,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   if (!learnedLitsToConjoin.empty())
   {
-    size_t replIndex = assertionsToPreprocess->size()-1;
+    size_t replIndex = assertionsToPreprocess->size() - 1;
     Node newConj = nm->mkAnd(learnedLitsToConjoin);
     Trace("non-clausal-simplify")
         << "non-clausal simplification, reassert: " << newConj << std::endl;

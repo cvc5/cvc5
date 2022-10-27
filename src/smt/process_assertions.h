@@ -110,14 +110,20 @@ class ProcessAssertions : protected EnvObj
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
-  void dumpAssertions(const std::string& key, Assertions& as, preprocessing::AssertionPipeline& ap);
+  void dumpAssertions(const std::string& key,
+                      Assertions& as,
+                      preprocessing::AssertionPipeline& ap);
   /**
    * Dump assertions to stream os using the print benchmark utility.
    */
-  void dumpAssertionsToStream(std::ostream& os, Assertions& as, preprocessing::AssertionPipeline& ap);
+  void dumpAssertionsToStream(std::ostream& os,
+                              Assertions& as,
+                              preprocessing::AssertionPipeline& ap);
   /** apply pass */
-  preprocessing::PreprocessingPassResult applyPass(const std::string& pass,
-                                                   Assertions& as, preprocessing::AssertionPipeline& ap);
+  preprocessing::PreprocessingPassResult applyPass(
+      const std::string& pass,
+      Assertions& as,
+      preprocessing::AssertionPipeline& ap);
 };
 
 }  // namespace smt
