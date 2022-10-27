@@ -547,7 +547,7 @@ Node IntBlaster::translateWithChildren(
     {
       // The preprocessing pass does not support function applications
       // with bound variables.
-      for (Node child : original)
+      for (const Node& child : original)
       {
         if (child.getKind() == Kind::BOUND_VARIABLE)
         {
