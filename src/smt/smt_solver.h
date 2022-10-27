@@ -85,7 +85,7 @@ class SmtSolver : protected EnvObj
    * assertions that have been buffered into as, preprocesses them, pushes them
    * into the SMT solver, and clears the buffer.
    */
-  void processAssertions();
+  void refreshAssertions();
   /**
    * Get the list of preprocessed assertions. Only valid if
    * trackPreprocessedAssertions is true.

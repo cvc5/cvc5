@@ -153,7 +153,7 @@ Result SmtSolver::checkSatInternal()
   return result;
 }
 
-void SmtSolver::processAssertions()
+void SmtSolver::refreshAssertions()
 {
   // preprocess
   preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
@@ -261,7 +261,7 @@ void SmtSolver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make
   // the state accurate prior to pushing
-  processAssertions();
+  refreshAssertions();
 }
 
 void SmtSolver::notifyPushPost()

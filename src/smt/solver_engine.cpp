@@ -947,7 +947,7 @@ Node SolverEngine::simplify(const Node& t)
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
-  d_smtSolver->processAssertions();
+  d_smtSolver->refreshAssertions();
   // Substitute out any abstract values in node.
   Node tt = d_absValues->substituteAbstractValues(t);
   // apply substitutions
@@ -1844,7 +1844,7 @@ void SolverEngine::push()
   finishInit();
   d_ctxManager->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
-  d_smtSolver->processAssertions();
+  d_smtSolver->refreshAssertions();
   d_ctxManager->userPush();
 }
 
