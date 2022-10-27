@@ -3378,6 +3378,8 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
+  // should terminate with an exception indicating we are done enumerating
+  // rewrite rules.
   ASSERT_THROW(slv.push(4), CVC5ApiException);
 }
 
