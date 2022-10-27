@@ -289,7 +289,10 @@ bool TheoryProxy::isModelUnsound() const
   return d_stopSearch.get() || d_theoryEngine->isModelUnsound();
 }
 
-bool TheoryProxy::isRefutationUnsound() const { return d_theoryEngine->isRefutationUnsound(); }
+bool TheoryProxy::isRefutationUnsound() const
+{
+  return d_theoryEngine->isRefutationUnsound();
+}
 
 theory::IncompleteId TheoryProxy::getModelUnsoundId() const
 {

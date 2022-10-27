@@ -1475,14 +1475,15 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
 }
 
 void TheoryEngine::setModelUnsound(theory::TheoryId theory,
-                                 theory::IncompleteId id)
+                                   theory::IncompleteId id)
 {
   d_modelUnsound = true;
   d_modelUnsoundTheory = theory;
   d_modelUnsoundId = id;
 }
 
-void TheoryEngine::setRefutationUnsound(theory::TheoryId theory, theory::IncompleteId id)
+void TheoryEngine::setRefutationUnsound(theory::TheoryId theory,
+                                        theory::IncompleteId id)
 {
   d_refutationUnsound = true;
   d_refutationUnsoundTheory = theory;

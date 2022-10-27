@@ -185,12 +185,12 @@ class TheoryEngine : protected EnvObj
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
-  /** 
+  /**
    * Return whether or not we are model unsound (in the current SAT context).
    * For details, see theory_inference_manager.
    */
   bool isModelUnsound() const { return d_modelUnsound; }
-  /** 
+  /**
    * Return whether or not we are refutation unsound (in the current user
    * context). For details, see theory_inference_manager.
    */

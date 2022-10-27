@@ -387,8 +387,9 @@ class TheoryInferenceManager : protected EnvObj
    * this user context level. In other words, we cannot answer "unsat" in this
    * user context.
    *
-   * Note that we use user context for refutation unsoundness, since typically the source
-   * of refutation unsoundness is a lemma, which are user context dependent.
+   * Note that we use user context for refutation unsoundness, since typically
+   * the source of refutation unsoundness is a lemma, which are user context
+   * dependent.
    */
   void setRefutationUnsound(IncompleteId id);
   /**

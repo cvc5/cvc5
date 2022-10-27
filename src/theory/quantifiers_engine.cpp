@@ -430,7 +430,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
               setModelUnsound = true;
             }
             //if we have a chance not to set incomplete
-            if( !setModelUnsound ){
+            if (!setModelUnsound)
+            {
               //check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
               {
@@ -444,7 +445,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
                   break;
                 }
               }
-              if( !setModelUnsound ){
+              if (!setModelUnsound)
+              {
                 //look at individual quantified formulas, one module must claim completeness for each one
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
                   bool hasCompleteM = false;
@@ -472,8 +474,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 }
               }
             }
-            //if setModelUnsound = false, we will answer SAT, otherwise we will run at quant_e QEFFORT_LAST_CALL
-            if( !setModelUnsound ){
+            // if setModelUnsound = false, we will answer SAT, otherwise we will
+            // run at quant_e QEFFORT_LAST_CALL
+            if (!setModelUnsound)
+            {
               break;
             }
           }
@@ -502,7 +506,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //SAT case
   if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
   {
-    if( setModelUnsound ){
+    if (setModelUnsound)
+    {
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       d_qim.setModelUnsound(setModelUnsoundId);
     }
