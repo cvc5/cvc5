@@ -76,7 +76,7 @@ class ProcessAssertions : protected EnvObj
    *
    * @param as The assertions.
    */
-  bool apply(Assertions& as, preprocessing::AssertionPipeline& ap);
+  bool apply(const Assertions& as, preprocessing::AssertionPipeline& ap);
 
  private:
   /** Reference to the SMT stats */
@@ -105,24 +105,24 @@ class ProcessAssertions : protected EnvObj
    *
    * Returns false if the formula simplifies to "false"
    */
-  bool simplifyAssertions(Assertions& as, preprocessing::AssertionPipeline& ap);
+  bool simplifyAssertions(const Assertions& as, preprocessing::AssertionPipeline& ap);
   /**
    * Dump assertions. Print the current assertion list to the dump
    * assertions:`key` if it is enabled.
    */
   void dumpAssertions(const std::string& key,
-                      Assertions& as,
-                      preprocessing::AssertionPipeline& ap);
+                      const Assertions& as,
+                      const preprocessing::AssertionPipeline& ap);
   /**
    * Dump assertions to stream os using the print benchmark utility.
    */
   void dumpAssertionsToStream(std::ostream& os,
-                              Assertions& as,
-                              preprocessing::AssertionPipeline& ap);
+                              const Assertions& as,
+                              const preprocessing::AssertionPipeline& ap);
   /** apply pass */
   preprocessing::PreprocessingPassResult applyPass(
       const std::string& pass,
-      Assertions& as,
+      const Assertions& as,
       preprocessing::AssertionPipeline& ap);
 };
 

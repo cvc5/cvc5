@@ -73,6 +73,8 @@ bool Preprocessor::process(Assertions& as, preprocessing::AssertionPipeline& ap)
     ap.disableStoreSubstsInAsserts();
   }
 
+  // must first refresh the assertions, in the case global declarations is true
+  as.refresh();
   // process the assertions, return true if no conflict is discovered
   bool noConflict = d_processor.apply(as, ap);
 

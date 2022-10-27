@@ -87,11 +87,9 @@ void ProcessAssertions::spendResource(Resource r)
   resourceManager()->spendResource(r);
 }
 
-bool ProcessAssertions::apply(Assertions& as,
-                              preprocessing::AssertionPipeline& ap)
+bool ProcessAssertions::apply(const Assertions& as,
+                              AssertionPipeline& ap)
 {
-  // must first refresh the assertions, in the case global declarations is true
-  as.refresh();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
   dumpAssertions("assertions::pre-everything", as, ap);
@@ -354,7 +352,7 @@ bool ProcessAssertions::apply(Assertions& as,
 }
 
 // returns false if simplification led to "false"
-bool ProcessAssertions::simplifyAssertions(Assertions& as,
+bool ProcessAssertions::simplifyAssertions(const Assertions& as,
                                            AssertionPipeline& ap)
 {
   spendResource(Resource::PreprocessStep);
@@ -440,8 +438,8 @@ bool ProcessAssertions::simplifyAssertions(Assertions& as,
 }
 
 void ProcessAssertions::dumpAssertions(const std::string& key,
-                                       Assertions& as,
-                                       AssertionPipeline& ap)
+                                       const Assertions& as,
+                                       const AssertionPipeline& ap)
 {
   bool isTraceOn = TraceIsOn(key);
   if (!isTraceOn)
@@ -456,8 +454,8 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
 }
 
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
-                                               Assertions& as,
-                                               AssertionPipeline& ap)
+                                               const Assertions& as,
+                                               const AssertionPipeline& ap)
 {
   PrintBenchmark pb(Printer::getPrinter(os));
   std::vector<Node> assertions;
@@ -489,7 +487,7 @@ void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
 }
 
 PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
-                                                     Assertions& as,
+                                                     const Assertions& as,
                                                      AssertionPipeline& ap)
 {
   dumpAssertions("assertions::pre-" + pname, as, ap);
