@@ -34,7 +34,8 @@ SmtDriverDeepRestarts::SmtDriverDeepRestarts(Env& env,
 Result SmtDriverDeepRestarts::checkSatNext()
 {
   d_zll.clear();
-  preprocessing::AssertionPipeline& ap = d_smt.getAssertions().getAssertionPipeline();
+  preprocessing::AssertionPipeline& ap =
+      d_smt.getAssertions().getAssertionPipeline();
   d_smt.preprocess(ap);
   d_smt.assertToInternal(ap);
   Result result = d_smt.checkSatInternal();

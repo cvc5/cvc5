@@ -116,7 +116,8 @@ SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
 
 Result SmtDriverSingleCall::checkSatNext()
 {
-  preprocessing::AssertionPipeline& ap = d_smt.getAssertions().getAssertionPipeline();
+  preprocessing::AssertionPipeline& ap =
+      d_smt.getAssertions().getAssertionPipeline();
   d_smt.preprocess(ap);
   d_smt.assertToInternal(ap);
   return d_smt.checkSatInternal();
