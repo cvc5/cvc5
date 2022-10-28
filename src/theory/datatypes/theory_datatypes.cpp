@@ -1079,6 +1079,13 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     }else{
       Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
       m->assertSkeleton(it->second);
+      // if this was not a relevant term
+      /*
+      if (termSet.find(it->second)==termSet.end())
+      {
+        AlwaysAssert(false);
+      }
+      */
     }
   }
   return true;
@@ -1788,17 +1795,14 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  //also include non-singleton dt equivalence classes  TODO : revisit this
+  // Also include the explicit constructor recorded for each equivalence class
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
-    TNode r = (*eqcs_i);
-    if (r.getType().isDatatype())
-    {
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
-      while (!eqc_i.isFinished())
-      {
-        termSet.insert(*eqc_i);
-        ++eqc_i;
+    TNode eqc = (*eqcs_i);
+    if( eqc.getType().isDatatype() ){
+      EqcInfo* ei = getOrMakeEqcInfo( eqc );
+      if( ei && !ei->d_constructor.get().isNull() ){
+        termSet.insert(ei->d_constructor.get());
       }
     }
     ++eqcs_i;
