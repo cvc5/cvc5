@@ -81,9 +81,11 @@ class SmtSolver : protected EnvObj
    */
   void interrupt();
   /**
-   * Process the assertions that have been asserted in as. This moves the set of
+   * Refresh the assertions that have been asserted in as. This moves the set of
    * assertions that have been buffered into as, preprocesses them, pushes them
-   * into the SMT solver, and clears the buffer.
+   * into the SMT solver, and clears the buffer. We ensure that assertions
+   * are refreshed eagerly during user pushes to ensure that assertions are
+   * only preprocessed in one context.
    */
   void refreshAssertions();
   /**
