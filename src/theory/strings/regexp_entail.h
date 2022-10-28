@@ -105,7 +105,7 @@ class RegExpEntail
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExp(cvc5::internal::String& s,
+  static bool testConstStringInRegExp(String& s,
                                       unsigned index_start,
                                       TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
