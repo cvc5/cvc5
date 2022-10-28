@@ -21,7 +21,7 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "theory/type_enumerator.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/integer.h"
 
 namespace cvc5::internal {
@@ -49,8 +49,8 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
     {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst<FfVal>(
-        FfVal(d_currentInt, d_modulus));
+    return NodeManager::currentNM()->mkConst<FiniteFieldValue>(
+        FiniteFieldValue(d_currentInt, d_modulus));
   }
 
   FiniteFieldEnumerator& operator++() override

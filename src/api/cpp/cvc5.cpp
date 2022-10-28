@@ -73,7 +73,7 @@
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/random.h"
@@ -3120,7 +3120,7 @@ std::string Term::getFiniteFieldValue() const
       d_node->getKind() == internal::Kind::CONST_FINITE_FIELD, *d_node)
       << "Term to be a finite field value when calling getFiniteFieldValue()";
   //////// all checks before this line
-  return d_node->getConst<internal::FfVal>().toSignedInteger().toString();
+  return d_node->getConst<internal::FiniteFieldValue>().toSignedInteger().toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5969,9 +5969,9 @@ Term Solver::mkFiniteFieldElem(const std::string& value, const Sort& sort) const
       << "a finite field sort";
   //////// all checks before this line
   internal::Integer v(value, 10);
-  internal::FfVal f(v, sort.d_type->getFfSize());
+  internal::FiniteFieldValue f(v, sort.d_type->getFfSize());
 
-  return mkValHelper<internal::FfVal>(d_nm, f);
+  return mkValHelper<internal::FiniteFieldValue>(d_nm, f);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

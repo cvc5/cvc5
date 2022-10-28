@@ -35,8 +35,8 @@ libcvc5_add_sources(
   didyoumean.h
   divisible.cpp
   divisible.h
-  ff_val.cpp
-  ff_val.h
+  finite_field_value.cpp
+  finite_field_value.h
   floatingpoint.cpp
   floatingpoint.h
   floatingpoint_size.cpp

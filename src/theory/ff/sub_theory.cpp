@@ -28,7 +28,7 @@
 #include "options/ff_options.h"
 #include "smt/env_obj.h"
 #include "util/cocoa_globals.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -304,7 +304,7 @@ void SubTheory::extractModel()
       std::ostringstream valStr;
       valStr << values[i];
       Integer integer(valStr.str(), 10);
-      FfVal literal(integer, d_modulus);
+      FiniteFieldValue literal(integer, d_modulus);
       Node value = nm->mkConst(literal);
 
       Trace("ff::model") << var << ": " << value << std::endl;
@@ -372,7 +372,7 @@ void SubTheory::translate(TNode t)
         case Kind::CONST_FINITE_FIELD:
           poly = d_polyRing.value()->myOne()
                  * CoCoA::BigIntFromString(
-                     node.getConst<FfVal>().getValue().toString());
+                     node.getConst<FiniteFieldValue>().getValue().toString());
           break;
         // fact cases:
         case Kind::EQUAL:

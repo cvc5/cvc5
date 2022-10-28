@@ -45,7 +45,7 @@
 #include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/indexed_root_predicate.h"
@@ -223,7 +223,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_FINITE_FIELD:
     {
-      const FfVal& ff = n.getConst<FfVal>();
+      const FiniteFieldValue& ff = n.getConst<FiniteFieldValue>();
       out << "#f" << ff.getValue() << "m" << ff.getFieldSize();
       break;
     }

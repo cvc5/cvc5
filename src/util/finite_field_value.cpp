@@ -13,30 +13,30 @@
  * A finite-field element, implemented as a wrapper around Integer.
  */
 
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 
 #include "util/hash.h"
 
 namespace cvc5::internal {
 
-const Integer& FfVal::getValue() const { return d_value; }
+const Integer& FiniteFieldValue::getValue() const { return d_value; }
 
-const Integer& FfVal::getFieldSize() const { return d_size; }
+const Integer& FiniteFieldValue::getFieldSize() const { return d_size; }
 
-Integer FfVal::toInteger() const { return d_value; }
+Integer FiniteFieldValue::toInteger() const { return d_value; }
 
-Integer FfVal::toSignedInteger() const
+Integer FiniteFieldValue::toSignedInteger() const
 {
   Integer half_size = d_size.divByPow2(1) + 1;
   return (d_value < half_size) ? d_value : d_value - d_size;
 }
 
-std::string FfVal::toString() const
+std::string FiniteFieldValue::toString() const
 {
   return toSignedInteger().toString();
 }
 
-size_t FfVal::hash() const
+size_t FiniteFieldValue::hash() const
 {
   PairHashFunction<size_t, size_t> h;
   return h(std::make_pair(d_value.hash(), d_size.hash()));
@@ -48,13 +48,13 @@ size_t FfVal::hash() const
 
 /* (Dis)Equality --------------------------------------------------------- */
 
-bool operator==(const FfVal& x, const FfVal& y)
+bool operator==(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   if (x.d_size != y.d_size) return false;
   return x.d_value == y.d_value;
 }
 
-bool operator!=(const FfVal& x, const FfVal& y)
+bool operator!=(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   if (x.d_size != y.d_size) return true;
   return x.d_value != y.d_value;
@@ -62,29 +62,29 @@ bool operator!=(const FfVal& x, const FfVal& y)
 
 /* Unsigned Inequality --------------------------------------------------- */
 
-bool operator<(const FfVal& x, const FfVal& y)
+bool operator<(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   return x.d_value < y.d_value;
 }
 
-bool operator<=(const FfVal& x, const FfVal& y)
+bool operator<=(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   return x.d_value <= y.d_value;
 }
 
-bool operator>(const FfVal& x, const FfVal& y)
+bool operator>(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   return x.d_value > y.d_value;
 }
 
-bool operator>=(const FfVal& x, const FfVal& y)
+bool operator>=(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   return x.d_value >= y.d_value;
 }
 
 /* Arithmetic operations ------------------------------------------------- */
 
-FfVal operator+(const FfVal& x, const FfVal& y)
+FiniteFieldValue operator+(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   Assert(x.d_size == y.d_size)
       << "Size mismatch: " << x.d_size << " != " << y.d_size;
@@ -92,19 +92,19 @@ FfVal operator+(const FfVal& x, const FfVal& y)
   return {sum, x.d_size};
 }
 
-FfVal operator-(const FfVal& x, const FfVal& y)
+FiniteFieldValue operator-(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   Assert(x.d_size == y.d_size)
       << "Size mismatch: " << x.d_size << " != " << y.d_size;
   return {x.d_value - y.d_value, x.d_size};
 }
 
-FfVal operator-(const FfVal& x)
+FiniteFieldValue operator-(const FiniteFieldValue& x)
 {
   return {x.d_size - x.d_value, x.d_size};
 }
 
-FfVal operator*(const FfVal& x, const FfVal& y)
+FiniteFieldValue operator*(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   Assert(x.d_size == y.d_size)
       << "Size mismatch: " << x.d_size << " != " << y.d_size;
@@ -112,12 +112,12 @@ FfVal operator*(const FfVal& x, const FfVal& y)
   return {prod, x.d_size};
 }
 
-FfVal operator/(const FfVal& x, const FfVal& y)
+FiniteFieldValue operator/(const FiniteFieldValue& x, const FiniteFieldValue& y)
 {
   return x * y.recip();
 }
 
-FfVal FfVal::recip() const
+FiniteFieldValue FiniteFieldValue::recip() const
 {
   Assert(!d_value.isZero());
   return {d_value.modInverse(d_size), d_size};
@@ -127,7 +127,7 @@ FfVal FfVal::recip() const
  * Output stream
  * ----------------------------------------------------------------------- */
 
-std::ostream& operator<<(std::ostream& os, const FfVal& ff)
+std::ostream& operator<<(std::ostream& os, const FiniteFieldValue& ff)
 {
   return os << ff.toString();
 }
@@ -136,8 +136,8 @@ std::ostream& operator<<(std::ostream& os, const FfVal& ff)
  * Static helpers.
  * ----------------------------------------------------------------------- */
 
-FfVal FfVal::mkZero(const Integer& size) { return {0, size}; }
+FiniteFieldValue FiniteFieldValue::mkZero(const Integer& size) { return {0, size}; }
 
-FfVal FfVal::mkOne(const Integer& size) { return {1, size}; }
+FiniteFieldValue FiniteFieldValue::mkOne(const Integer& size) { return {1, size}; }
 
 }  // namespace cvc5::internal

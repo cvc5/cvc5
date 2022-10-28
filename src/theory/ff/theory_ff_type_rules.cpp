@@ -16,7 +16,7 @@
 #include "theory/ff/theory_ff_type_rules.h"
 
 #include "util/cardinality.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -36,7 +36,7 @@ TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
                                                   bool _check)
 {
   return nodeManager->mkFiniteFieldType(
-      n.getConst<FfVal>().getFieldSize());
+      n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
 TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
