@@ -975,7 +975,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator(d_equalityEngine);
-  std::vector< Node > cons;
   std::vector< Node > nodes;
   std::map< Node, Node > eqc_cons;
   while( !eqccs_i.isFinished() ){
@@ -988,7 +987,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( ei && !ei->d_constructor.get().isNull() ){
         Node c = ei->d_constructor.get();
-        cons.push_back( c );
         eqc_cons[ eqc ] = c;
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
@@ -1012,7 +1010,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   {
     Node eqc = nodes[index];
     Node neqc;
-    bool addCons = false;
     TypeNode tt = eqc.getType();
     const DType& dt = tt.getDType();
     if (!d_equalityEngine->hasTerm(eqc))
@@ -1044,7 +1041,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
           }
         }
       }
-      addCons = true;
     }
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
@@ -1053,9 +1049,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         return false;
       }
       eqc_cons[ eqc ] = neqc;
-    }
-    if( addCons ){
-      cons.push_back( neqc );
     }
     ++index;
   }

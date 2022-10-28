@@ -1,3 +1,5 @@
+; COMMAND-LINE: -i
+; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
 (declare-datatypes ((C 0)) (((J) (H))))
