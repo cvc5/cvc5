@@ -1809,7 +1809,7 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
       // no constructor
       continue;
     }
-    if (termSet.find(ei->d_constructor.get())!=termSet.end())
+    if (termSet.find(ei->d_constructor.get()) != termSet.end())
     {
       // the constructor is already relevant
       continue;
@@ -1821,7 +1821,7 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     {
       TNode n = *eqc_i;
       ++eqc_i;
-      if (n.getKind()==APPLY_CONSTRUCTOR && termSet.find(n)!=termSet.end())
+      if (n.getKind() == APPLY_CONSTRUCTOR && termSet.find(n) != termSet.end())
       {
         // change the recorded constructor to be a relevant one
         ei->d_constructor = n;
