@@ -26,7 +26,6 @@ int main()
   Solver solver;
   solver.setOption("produce-models", "true");
 
-  // Make single precision floating-point variables
   Sort f5 = solver.mkFiniteFieldSort("5");
   Term a = solver.mkConst(f5, "a");
   Term b = solver.mkConst(f5, "b");
@@ -42,22 +41,27 @@ int main()
       EQUAL,
       {solver.mkTerm(FINITE_FIELD_ADD, {a, solver.mkFiniteFieldElem("-2", f5)}),
        z});
+  // ab - 1 = 0
   solver.assertFormula(inv);
+  // a = 2
   solver.assertFormula(aIsTwo);
 
-  Result r = solver.checkSat();  // result is sat
+  // should be SAT, with b = 2^(-1)
+  Result r = solver.checkSat();
   assert(r.isSat());
 
   cout << "a = " << solver.getValue(a) << endl;
   cout << "b = " << solver.getValue(b) << endl;
 
+  // b = 2
   Term bIsTwo = solver.mkTerm(
       EQUAL,
       {solver.mkTerm(FINITE_FIELD_ADD, {b, solver.mkFiniteFieldElem("-2", f5)}),
        z});
 
+  // should be UNSAT, 2*2 - 1 != 0
   solver.assertFormula(bIsTwo);
 
-  r = solver.checkSat();  // result is sat
+  r = solver.checkSat();
   assert(!r.isSat());
 }

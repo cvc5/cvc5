@@ -84,7 +84,9 @@ class TheoryFiniteFields : public Theory
   TheoryEqNotifyClass d_eqNotify;
 
 #ifdef CVC5_USE_COCOA
-  // Map from field types to sub-theories.
+  /**
+   * Map from field types to sub-theories.
+   */
   std::unordered_map<TypeNode, SubTheory> d_subTheories;
 #endif /* CVC5_USE_COCOA */
 

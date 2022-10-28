@@ -69,7 +69,8 @@ void IncrementalIdeal::pushGenerators(std::vector<CoCoA::RingElem>&& gens)
   d_context->push();
   d_tracer.push();
   std::vector<CoCoA::RingElem> theseGens = d_basis.get();
-  Trace("ff::groebner::push") << "old gen count " << theseGens.size() << std::endl;
+  Trace("ff::groebner::push")
+      << "old gen count " << theseGens.size() << std::endl;
   for (auto& g : gens)
   {
     d_gens.emplace_back(std::move(g));
@@ -81,7 +82,9 @@ void IncrementalIdeal::pushGenerators(std::vector<CoCoA::RingElem>&& gens)
   {
     for (const auto& b : theseGens)
     {
-      Trace("ff::groebner::push") << "gens: " << b << " @ " << CoCoA::RingID(CoCoA::owner(b)) << std::endl;
+      Trace("ff::groebner::push")
+          << "gens: " << b << " @ " << CoCoA::RingID(CoCoA::owner(b))
+          << std::endl;
     }
   }
   CoCoA::ideal ideal = CoCoA::ideal(theseGens);

@@ -254,12 +254,9 @@ void SubTheory::computeBasis(size_t factIndex)
       translate(fact);
       newGens.push_back(d_translationCache.at(fact));
       const auto& b = newGens.back();
-      if (TraceIsOn("ff::groebner::push"))
-      {
-        Trace("ff::groebner::push")
-            << "gens: " << fact << " " << b << " @ "
-            << CoCoA::RingID(CoCoA::owner(b)) << std::endl;
-      }
+      Trace("ff::groebner::push")
+          << "gens: " << fact << " " << b << " @ "
+          << CoCoA::RingID(CoCoA::owner(b)) << std::endl;
     }
 
     // Feed them to the ideal

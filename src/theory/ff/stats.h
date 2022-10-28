@@ -28,13 +28,21 @@ namespace ff {
 
 struct FfStatistics
 {
-  // Number of groebner-basis reductions
+  /**
+   * Number of groebner-basis reductions
+   */
   IntStat d_numReductions;
-  // Time spent in groebner-basis reductions
+  /**
+   * Time spent in groebner-basis reductions
+   */
   TimerStat d_reductionTime;
-  // Time spent in model construction
+  /**
+   * Time spent in model construction
+   */
   TimerStat d_modelConstructionTime;
-  // Number of times that model construction gave an error
+  /**
+   * Number of times that model construction gave an error
+   */
   IntStat d_numConstructionErrors;
 
   FfStatistics(StatisticsRegistry& reg, const std::string& prefix);

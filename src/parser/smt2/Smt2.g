@@ -2127,7 +2127,8 @@ symbol[std::string& id,
   ;
 
 /**
- * Matches a nonempty list of unsigned numerals and returns their unsigned values, capped at 2^32-1.
+ * Matches a nonempty list of unsigned numerals and returns their unsigned
+ * values, capped at 2^32-1.
  * @param numerals the (empty) vector to house the numerals.
  */
 nonemptyNumeralList[std::vector<uint32_t>& numerals]

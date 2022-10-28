@@ -13,8 +13,8 @@
  * A finite-field element, implemented as a wrapper around Integer.
  *
  * TODOs:
- * * consider montgomery form
- * * extend to non-prime fields
+ * * extend to non-prime fields (https://github.com/cvc5/cvc5-wishues/issues/139)
+ * * consider montgomery form (https://github.com/cvc5/cvc5-wishues/issues/140)
  */
 
 #include "cvc5_public.h"

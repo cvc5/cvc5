@@ -37,9 +37,13 @@ if __name__ == "__main__":
         a,
         slv.mkFiniteFieldElem("2", F),
     )
+    # ab - 1 = 0
     slv.assertFormula(inv)
+    # a = 2
     slv.assertFormula(aIsTwo)
     r = slv.checkSat()
+
+    # should be SAT, with b = 2^(-1)
     assert r.isSat()
     print(slv.getValue(a).toPythonObj())
     assert slv.getValue(b).toPythonObj() == -2
@@ -49,6 +53,10 @@ if __name__ == "__main__":
         b,
         slv.mkFiniteFieldElem("2", F),
     )
+
+    # b = 2
     slv.assertFormula(bIsTwo)
     r = slv.checkSat()
+
+    # should be UNSAT, since 2*2 - 1 != 0
     assert not r.isSat()
