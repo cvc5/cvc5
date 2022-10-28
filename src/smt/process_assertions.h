@@ -119,8 +119,7 @@ class ProcessAssertions : protected EnvObj
                               const preprocessing::AssertionPipeline& ap);
   /** apply pass */
   preprocessing::PreprocessingPassResult applyPass(
-      const std::string& pass,
-      preprocessing::AssertionPipeline& ap);
+      const std::string& pass, preprocessing::AssertionPipeline& ap);
 };
 
 }  // namespace smt

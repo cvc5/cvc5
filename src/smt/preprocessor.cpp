@@ -73,7 +73,6 @@ bool Preprocessor::process(preprocessing::AssertionPipeline& ap)
     ap.disableStoreSubstsInAsserts();
   }
 
-
   // process the assertions, return true if no conflict is discovered
   bool noConflict = d_processor.apply(ap);
 
