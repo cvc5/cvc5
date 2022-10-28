@@ -1079,13 +1079,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     }else{
       Trace("dt-cmi") << "Datatypes : assert representative " << it->second << " for " << it->first << std::endl;
       m->assertSkeleton(it->second);
-      // if this was not a relevant term
-      /*
-      if (termSet.find(it->second)==termSet.end())
-      {
-        AlwaysAssert(false);
-      }
-      */
     }
   }
   return true;
@@ -1795,22 +1788,59 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  // Also include the explicit constructor recorded for each equivalence class.
-  // These constructor terms could have been introduced local to datatypes,
-  // and thus must be included in addition to what termSet would otherwise
-  // contain.
+  // Also must include the explicit constructor recorded for each equivalence
+  // class (via EqcInfo). These constructor terms may be introduced local to
+  // datatypes, and thus must be included in addition to what termSet would
+  // otherwise contain.
+  // We furthermore try to change the recorded constructor to be a relevant one
+  // from termSet. This avoids model construction errors where the subfields
+  // of equated relevant and irrelevant constructor terms may not agree in the
+  // model. In other words, all datatype equivalence classes either:
+  // (1) have no (recorded) constructor,
+  // (2) have a single recorded constructor term that is not relevant, which we
+  // add to termSet below,
+  // (3) have (possibly multiple) relevant constructor terms. We ensure the
+  // recorded constructor is one of these.
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
-    TNode eqc = (*eqcs_i);
-    if (eqc.getType().isDatatype())
+    TNode r = (*eqcs_i);
+    ++eqcs_i;
+    if (!r.getType().isDatatype())
     {
-      EqcInfo* ei = getOrMakeEqcInfo(eqc);
-      if (ei && !ei->d_constructor.get().isNull())
+      continue;
+    }
+    EqcInfo* ei = getOrMakeEqcInfo(r);
+    if (!ei || ei->d_constructor.get().isNull())
+    {
+      // no constructor
+      continue;
+    }
+    if (termSet.find(ei->d_constructor.get())!=termSet.end())
+    {
+      // the constructor is already relevant
+      continue;
+    }
+    // find a constructor that is already relevant
+    bool foundCons = false;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
+    while (!eqc_i.isFinished())
+    {
+      TNode n = *eqc_i;
+      ++eqc_i;
+      if (n.getKind()==APPLY_CONSTRUCTOR && termSet.find(n)!=termSet.end())
       {
-        termSet.insert(ei->d_constructor.get());
+        // change the recorded constructor to be a relevant one
+        ei->d_constructor = n;
+        foundCons = true;
+        break;
       }
     }
-    ++eqcs_i;
+    // If there are no constructors that are relevant, we consider the
+    // recorded constructor to be relevant.
+    if (!foundCons)
+    {
+      termSet.insert(ei->d_constructor.get());
+    }
   }
 }
 
