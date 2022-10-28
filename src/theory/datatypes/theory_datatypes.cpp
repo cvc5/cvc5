@@ -1790,12 +1790,13 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
 
   // Also must include the explicit constructor recorded for each equivalence
   // class (via EqcInfo). These constructor terms may be introduced local to
-  // datatypes, and thus must be included in addition to what termSet would
-  // otherwise contain.
+  // datatypes, are included in the model (collectModelValues), and thus must
+  // be included in addition to what termSet would otherwise contain.
   // We furthermore try to change the recorded constructor to be a relevant one
   // from termSet. This avoids model construction errors where the subfields
   // of equated relevant and irrelevant constructor terms may not agree in the
-  // model. In other words, all datatype equivalence classes either:
+  // model (see issue #9042). In other words, this method ensures that all
+  // datatype equivalence classes either:
   // (1) have no (recorded) constructor,
   // (2) have a single recorded constructor term that is not relevant, which we
   // add to termSet below,
@@ -1820,7 +1821,7 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
       // the constructor is already relevant
       continue;
     }
-    // find a constructor that is already relevant
+    // scan the equivalence class
     bool foundCons = false;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
     while (!eqc_i.isFinished())

@@ -568,6 +568,7 @@ set(regress_0_tests
   regress0/datatypes/issue4393-cdt-model.smt2
   regress0/datatypes/issue5280-no-nrec.smt2
   regress0/datatypes/issue8883-sort-inf.smt2
+  regress0/datatypes/issue9042-rel-irrel-cons-model.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
   regress0/datatypes/list-update.smt2
