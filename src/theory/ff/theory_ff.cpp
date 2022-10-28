@@ -82,13 +82,14 @@ void TheoryFiniteFields::postCheck(Effort level)
 {
 #ifdef CVC5_USE_COCOA
   Trace("ff::check") << "ff::check : " << level << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for (auto& subTheory : d_subTheories)
   {
     subTheory.second.postCheck(level);
     if (subTheory.second.inConflict())
     {
       d_im.conflict(
-          NodeManager::currentNM()->mkAnd(subTheory.second.conflict()),
+          nm->mkAnd(subTheory.second.conflict()),
           InferenceId::FF_LEMMA);
     }
   }

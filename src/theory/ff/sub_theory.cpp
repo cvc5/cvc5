@@ -207,7 +207,7 @@ const std::unordered_map<Node, Node>& SubTheory::model() const
 void SubTheory::contextNotifyPop()
 {
   Trace("ff::context") << "Pop " << context()->getLevel() << std::endl;
-  // d_facts is a list of facts recieved that is sync'd with the external
+  // d_facts is a list of facts received that is sync'd with the external
   // context.
   // Now we need to sync up d_updateIndices and d_checkIndices.
 

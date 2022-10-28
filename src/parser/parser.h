@@ -760,7 +760,7 @@ public:
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */
-unsigned stringToUnsigned(const std::string& str);
+unint32_t stringToUnsigned(const std::string& str);
 
 }  // namespace parser
 }  // namespace cvc5
