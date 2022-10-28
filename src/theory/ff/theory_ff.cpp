@@ -94,11 +94,7 @@ void TheoryFiniteFields::postCheck(Effort level)
     }
   }
 #else  /* CVC5_USE_COCOA */
-  // crash if we've seen any theory terms, since we can't solve
-  if (d_subTheories.size())
-  {
-    noCoCoA();
-  }
+  // We've received no facts (or we'd have crashed on notifyFact), so do nothing
 #endif /* CVC5_USE_COCOA */
 }
 
@@ -135,11 +131,7 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
     }
   }
 #else  /* CVC5_USE_COCOA */
-  // crash if we've seen any theory terms, since we can't solve
-  if (d_subTheories.size())
-  {
-    noCoCoA();
-  }
+  // We've received no facts (or we'd have crashed on notifyFact), so do nothing
 #endif /* CVC5_USE_COCOA */
   return true;
 }
