@@ -801,7 +801,7 @@ bool RegExpEntail::regExpIncludes(Node r1,
   bool ret = false;
   Kind k2 = r2.getKind();
   // if the right hand side is a constant string, this is a membership test
-  if (k2==STRING_TO_REGEXP)
+  if (k2 == STRING_TO_REGEXP)
   {
     if (r2[0].isConst())
     {
