@@ -54,7 +54,7 @@ void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
   d_processor.finishInit(d_ppContext.get());
 }
 
-bool Preprocessor::process(Assertions& as, preprocessing::AssertionPipeline& ap)
+bool Preprocessor::process(preprocessing::AssertionPipeline& ap)
 {
   if (ap.size() == 0)
   {
@@ -73,10 +73,9 @@ bool Preprocessor::process(Assertions& as, preprocessing::AssertionPipeline& ap)
     ap.disableStoreSubstsInAsserts();
   }
 
-  // must first refresh the assertions, in the case global declarations is true
-  as.refresh();
+
   // process the assertions, return true if no conflict is discovered
-  bool noConflict = d_processor.apply(as, ap);
+  bool noConflict = d_processor.apply(ap);
 
   // now, post-process the assertions
 
