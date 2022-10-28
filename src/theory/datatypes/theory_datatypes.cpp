@@ -1799,9 +1799,11 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode eqc = (*eqcs_i);
-    if( eqc.getType().isDatatype() ){
-      EqcInfo* ei = getOrMakeEqcInfo( eqc );
-      if( ei && !ei->d_constructor.get().isNull() ){
+    if (eqc.getType().isDatatype())
+    {
+      EqcInfo* ei = getOrMakeEqcInfo(eqc);
+      if (ei && !ei->d_constructor.get().isNull())
+      {
         termSet.insert(ei->d_constructor.get());
       }
     }
