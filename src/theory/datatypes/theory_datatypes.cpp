@@ -1795,7 +1795,10 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  // Also include the explicit constructor recorded for each equivalence class
+  // Also include the explicit constructor recorded for each equivalence class.
+  // These constructor terms could have been introduced local to datatypes,
+  // and thus must be included in addition to what termSet would otherwise
+  // contain.
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode eqc = (*eqcs_i);
