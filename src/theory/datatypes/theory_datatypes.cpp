@@ -1788,7 +1788,7 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  // Also must include the explicit constructor recorded for each equivalence
+  // Also must include certain constructor terms recorded for each equivalence
   // class (via EqcInfo). These constructor terms may be introduced local to
   // datatypes, are included in the model (collectModelValues), and thus must
   // be included in addition to what termSet would otherwise contain.
