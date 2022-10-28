@@ -3346,6 +3346,8 @@ TEST_F(TestApiBlackSolver, proj_issue422)
 {
   Solver slv;
   slv.setOption("sygus-rr-synth-input", "true");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkBitVectorSort(36);
   Sort s2 = slv.getStringSort();
   Term t1 = slv.mkConst(s2, "_x0");
@@ -3376,7 +3378,9 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  slv.push(4);
+  // should terminate with an exception indicating we are done enumerating
+  // rewrite rules.
+  ASSERT_THROW(slv.push(4), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)
