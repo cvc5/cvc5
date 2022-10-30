@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
@@ -547,14 +548,10 @@ Node IntBlaster::translateWithChildren(
     {
       // The preprocessing pass does not support function applications
       // with bound variables.
-      for (Node child : original)
-      {
-        if (child.getKind() == Kind::BOUND_VARIABLE)
-        {
+      if (expr::hasBoundVar(original)) {
           throw OptionException(
               "bv-to-int does not support quantified variables under "
               "uninterpreted functions");
-        }
       }
 
       // Insert the translated application term to the cache
