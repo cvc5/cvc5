@@ -303,6 +303,11 @@ SynthResult SygusSolver::checkSynth(bool isNext)
       checkSynthSolution(as, sol_map);
     }
   }
+  else if (r.getStatus() == Result::UNSAT)
+  {
+    // unsat means no solution
+    sr = SynthResult(SynthResult::NO_SOLUTION);
+  }
   else
   {
     // otherwise, we return "unknown"

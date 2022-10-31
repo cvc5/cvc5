@@ -51,25 +51,6 @@ RewriteResponse TheoryBVRewriter::postRewrite(TNode node) {
   return res;
 }
 
-TrustNode TheoryBVRewriter::expandDefinition(Node node)
-{
-  Trace("bitvector-expandDefinition")
-      << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
-  Node ret;
-  switch (node.getKind())
-  {
-    case kind::BITVECTOR_SDIV:
-    case kind::BITVECTOR_SREM:
-    case kind::BITVECTOR_SMOD: ret = eliminateBVSDiv(node); break;
-    default: break;
-  }
-  if (!ret.isNull() && node != ret)
-  {
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
-  }
-  return TrustNode::null();
-}
-
 RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<BitOfConst>>::apply(node);
@@ -664,6 +645,14 @@ RewriteResponse TheoryBVRewriter::RewriteUaddo(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
+RewriteResponse TheoryBVRewriter::RewriteSaddo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<SaddoEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::RewriteUmulo(TNode node, bool prerewrite)
 {
   Node resultNode =
@@ -676,6 +665,22 @@ RewriteResponse TheoryBVRewriter::RewriteSmulo(TNode node, bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<SmuloEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
+RewriteResponse TheoryBVRewriter::RewriteUsubo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<UsuboEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
+RewriteResponse TheoryBVRewriter::RewriteSsubo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<SsuboEliminate>>::apply(node);
 
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
@@ -738,16 +743,10 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_SLTBV ] = RewriteSltBv;
   d_rewriteTable [ kind::BITVECTOR_ITE ] = RewriteITEBv;
   d_rewriteTable[kind::BITVECTOR_UADDO] = RewriteUaddo;
+  d_rewriteTable[kind::BITVECTOR_SADDO] = RewriteSaddo;
   d_rewriteTable[kind::BITVECTOR_UMULO] = RewriteUmulo;
   d_rewriteTable[kind::BITVECTOR_SMULO] = RewriteSmulo;
+  d_rewriteTable[kind::BITVECTOR_USUBO] = RewriteUsubo;
+  d_rewriteTable[kind::BITVECTOR_SSUBO] = RewriteSsubo;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
-}
-
-Node TheoryBVRewriter::eliminateBVSDiv(TNode node) {
-  Node result = bv::LinearRewriteStrategy <
-    bv::RewriteRule<bv::SremEliminate>,
-    bv::RewriteRule<bv::SdivEliminate>,
-    bv::RewriteRule<bv::SmodEliminate>
-    >::apply(node);
-  return result;
 }
