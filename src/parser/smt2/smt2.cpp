@@ -115,8 +115,11 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_REDOR, "bvredor");
   addOperator(cvc5::BITVECTOR_REDAND, "bvredand");
   addOperator(cvc5::BITVECTOR_UADDO, "bvuaddo");
+  addOperator(cvc5::BITVECTOR_SADDO, "bvsaddo");
   addOperator(cvc5::BITVECTOR_UMULO, "bvumulo");
   addOperator(cvc5::BITVECTOR_SMULO, "bvsmulo");
+  addOperator(cvc5::BITVECTOR_USUBO, "bvusubo");
+  addOperator(cvc5::BITVECTOR_SSUBO, "bvssubo");
 
   addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
@@ -784,6 +787,12 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
 bool Smt2::sygus() const
 {
   return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
+}
+
+bool Smt2::hasGrammars() const
+{
+  return sygus() || d_solver->getOption("produce-abducts") == "true"
+         || d_solver->getOption("produce-interpolants") == "true";
 }
 
 void Smt2::checkThatLogicIsSet()

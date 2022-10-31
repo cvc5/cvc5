@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --sygus-rr-synth-input --tlimit-per=500 --check-models
 ; SCRUBBER: grep -v -E '\('
-; EXPECT: unknown
+; EXIT: 1
+; In this example, a finite grammar is inferred as the set of possible terms in rewrites.
+; We terminate with an exception to indicate that the rewrite rule synthesis finished.
 (set-logic QF_S)
 (declare-fun s () String)
 (declare-fun i () String)

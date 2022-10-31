@@ -473,7 +473,7 @@ namespace cvc5 {
     CVC5_API_CHECK(d_nm == sort.d_nm) << "Given sort is not associated with " \
                                          "the node manager of this solver";   \
     CVC5_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)                     \
-        << "function sort as codomain sort";                                  \
+        << "non-function sort as codomain sort";                                  \
   } while (0)
 
 /* Term checks. ------------------------------------------------------------- */

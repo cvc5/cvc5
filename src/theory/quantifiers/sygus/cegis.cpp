@@ -297,7 +297,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       NodeManager* nm = NodeManager::currentNM();
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       // must guard it
-      expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
+      expn = nm->mkNode(OR, d_parent->getConjecture().negate(), expn.negate());
       d_qim.addPendingLemma(
           expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
@@ -483,12 +483,12 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
              != options::SygusEvalUnfoldMode::NONE)
   {
     // Make the refinement lemma and add it to lems.
-    // This lemma is guarded by the parent's guard, which has the semantics
+    // This lemma is guarded by the parent's conjecture, which has the semantics
     // "this conjecture has a solution", hence this lemma states:
     // if the parent conjecture has a solution, it satisfies the specification
     // for the given concrete point.
     Node rlem = NodeManager::currentNM()->mkNode(
-        OR, d_parent->getGuard().negate(), lem);
+        OR, d_parent->getConjecture().negate(), lem);
     d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
@@ -508,7 +508,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   NodeManager* nm = NodeManager::currentNM();
 
   Node nfalse = nm->mkConst(false);
-  Node neg_guard = d_parent->getGuard().negate();
+  Node neg_guard = d_parent->getConjecture().negate();
   bool ret = false;
 
   for (unsigned r = 0; r < 2; r++)
@@ -694,7 +694,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options().quantifiers.cegisSample
               != options::CegisSampleMode::TRUST)
           {
-            Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
+            Node lem = nm->mkNode(OR, d_parent->getConjecture().negate(), rlem);
             d_qim.addPendingLemma(
                 lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }

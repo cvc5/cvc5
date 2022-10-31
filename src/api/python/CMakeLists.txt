@@ -150,14 +150,25 @@ python_extension_module(cvc5_python_base)
 # installation routine and consists only of a few files that need to go to
 # the right place.
 find_package(CVC5PythonicAPI)
-add_custom_target(
-  cvc5_python_api
+
+set(COPIED_PYTHONIC_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/LICENSE.txt"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/__init__.py"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic.py"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic_printer.py"
+)
+
+add_custom_command(
+  OUTPUT
+    ${COPIED_PYTHONIC_FILES}
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory
     "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
     "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
   DEPENDS cvc5_python_base CVC5PythonicAPI
 )
+
+add_custom_target(cvc5_python_api ALL DEPENDS ${COPIED_PYTHONIC_FILES})
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file

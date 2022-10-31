@@ -53,7 +53,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -210,8 +209,11 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BITVECTOR_ULTBV, internal::Kind::BITVECTOR_ULTBV),
         KIND_ENUM(BITVECTOR_SLTBV, internal::Kind::BITVECTOR_SLTBV),
         KIND_ENUM(BITVECTOR_UADDO, internal::Kind::BITVECTOR_UADDO),
+        KIND_ENUM(BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
         KIND_ENUM(BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
         KIND_ENUM(BITVECTOR_SMULO, internal::Kind::BITVECTOR_SMULO),
+        KIND_ENUM(BITVECTOR_USUBO, internal::Kind::BITVECTOR_USUBO),
+        KIND_ENUM(BITVECTOR_SSUBO, internal::Kind::BITVECTOR_SSUBO),
         KIND_ENUM(BITVECTOR_ITE, internal::Kind::BITVECTOR_ITE),
         KIND_ENUM(BITVECTOR_REDOR, internal::Kind::BITVECTOR_REDOR),
         KIND_ENUM(BITVECTOR_REDAND, internal::Kind::BITVECTOR_REDAND),
@@ -518,8 +520,11 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_ULTBV, BITVECTOR_ULTBV},
         {internal::Kind::BITVECTOR_SLTBV, BITVECTOR_SLTBV},
         {internal::Kind::BITVECTOR_UADDO, BITVECTOR_UADDO},
+        {internal::Kind::BITVECTOR_SADDO, BITVECTOR_SADDO},
         {internal::Kind::BITVECTOR_UMULO, BITVECTOR_UMULO},
         {internal::Kind::BITVECTOR_SMULO, BITVECTOR_SMULO},
+        {internal::Kind::BITVECTOR_USUBO, BITVECTOR_USUBO},
+        {internal::Kind::BITVECTOR_SSUBO, BITVECTOR_SSUBO},
         {internal::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
         {internal::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
         {internal::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
@@ -1214,7 +1219,7 @@ bool Sort::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_type->hasAttribute(internal::expr::VarNameAttr());
+  return d_type->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1223,11 +1228,11 @@ std::string Sort::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_type->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the sort to have a symbol.";
   //////// all checks before this line
-  return d_type->getAttribute(internal::expr::VarNameAttr());
+  return d_type->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2454,7 +2459,7 @@ bool Term::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->hasAttribute(internal::expr::VarNameAttr());
+  return d_node->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2463,11 +2468,11 @@ std::string Term::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_node->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_node->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the term to have a symbol.";
   //////// all checks before this line
-  return d_node->getAttribute(internal::expr::VarNameAttr());
+  return d_node->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
