@@ -11,6 +11,7 @@ This file contains a summary of important user-visible changes.
   * `BITVECTOR_SMULO` signed multiplication overflow detection
   * `BITVECTOR_USUBO` unsigned subtraction overflow detection
   * `BITVECTOR_SSUBO` signed subtraction overflow detection
+  * `BITVECTOR_SDIVO` signed division overflow detection
 
 **Changes**
 
