@@ -215,7 +215,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   // [7] print the check command and term lets
   out << preamble.str();
-  if (options().proof.flattenLfsc)
+  if (options().proof.lfscFlatten)
   {
     // print term lets as definitions
     std::stringstream cparenTmp;
@@ -236,7 +236,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
-    if (options().proof.flattenLfsc)
+    if (options().proof.lfscFlatten)
     {
       out << "(declare ";
       LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
@@ -257,7 +257,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   Trace("lfsc-print-debug") << "; print annotation" << std::endl;
   // [9] print the annotation
-  if (!options().proof.flattenLfsc)
+  if (!options().proof.lfscFlatten)
   {
     out << "(: (holds false)" << std::endl;
     cparen << ")";
@@ -270,7 +270,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // which are already printed above).
   LfscPrintChannelOut lout(out);
 
-  if (options().proof.flattenLfsc)
+  if (options().proof.lfscFlatten)
   {
     // print the proof letification as separate check statements, followed
     // by the main proof.
