@@ -27,6 +27,7 @@
 #include "proof/lfsc/lfsc_util.h"
 #include "proof/print_expr.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -41,15 +42,10 @@ class LfscPrintChannel;
  * It expects to print proof nodes that have been processed by the LFSC
  * proof post processor.
  */
-class LfscPrinter
+class LfscPrinter : protected EnvObj
 {
  public:
-  /**
-   * @param ltp the node converter used for converting terms to LFSC
-   * @param doFlatten if true, we use a style of proof where dagified proofs
-   * are separate check statements.
-   */
-  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten);
+  LfscPrinter(Env& env, LfscNodeConverter& ltp);
   ~LfscPrinter() {}
 
   /**
@@ -149,6 +145,18 @@ class LfscPrinter
                           const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
   /**
+   * Print a plet proof on output channel out, where p is the letified
+   * proof and pid is its identifier for the given name prefix.
+   * The remaining arguments are used for printing p.
+   */
+  void printPLet(LfscPrintChannel* out,
+                 const ProofNode* p,
+                 size_t pid,
+                 const std::string& prefix,
+                 const LetBinding& lbind,
+                 const std::map<const ProofNode*, size_t>& pletMap,
+                 std::map<Node, size_t>& passumeMap);
+  /**
    * Get the arguments for the proof node application. This adds the arguments
    * of the given proof to the vector pargs.
    *
@@ -164,8 +172,6 @@ class LfscPrinter
   //------------------------------ end printing proofs
   /** The term processor */
   LfscNodeConverter& d_tproc;
-  /** Are we flattening the output */
-  bool d_flatten;
   /** The proof traversal callback */
   LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */
@@ -175,6 +181,16 @@ class LfscPrinter
   TypeNode d_boolType;
   /** assumption counter */
   size_t d_assumpCounter;
+  /** Counter for plet definitions for children of trust steps */
+  size_t d_trustChildPletCounter;
+  /** term prefix */
+  std::string d_termLetPrefix;
+  /** assumption prefix */
+  std::string d_assumpPrefix;
+  /** proof letified prefix */
+  std::string d_pletPrefix;
+  /** proof letified trust child prefix */
+  std::string d_pletTrustChildPrefix;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
 };

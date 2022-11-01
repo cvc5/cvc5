@@ -22,6 +22,7 @@
 #include "expr/dtype_selector.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "options/proof_options.h"
 #include "proof/lfsc/lfsc_list_sc_node_converter.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 
@@ -30,8 +31,15 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscNodeConverter& ltp, bool doFlatten)
-    : d_tproc(ltp), d_flatten(doFlatten), d_assumpCounter(0)
+LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp)
+    : EnvObj(env),
+      d_tproc(ltp),
+      d_assumpCounter(0),
+      d_trustChildPletCounter(0),
+      d_termLetPrefix("t"),
+      d_assumpPrefix("a"),
+      d_pletPrefix("p"),
+      d_pletTrustChildPrefix("q")
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();
@@ -207,7 +215,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   // [7] print the check command and term lets
   out << preamble.str();
-  if (d_flatten)
+  if (options().proof.lfscFlatten)
   {
     // print term lets as definitions
     std::stringstream cparenTmp;
@@ -228,10 +236,10 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
-    if (d_flatten)
+    if (options().proof.lfscFlatten)
     {
       out << "(declare ";
-      LfscPrintChannelOut::printAssumeId(out, i);
+      LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
       out << " (holds ";
       printInternal(out, ia, lbind);
       out << "))" << std::endl;
@@ -239,7 +247,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     else
     {
       out << "(# ";
-      LfscPrintChannelOut::printAssumeId(out, i);
+      LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
       out << " (holds ";
       printInternal(out, ia, lbind);
       out << ")" << std::endl;
@@ -249,7 +257,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   Trace("lfsc-print-debug") << "; print annotation" << std::endl;
   // [9] print the annotation
-  if (!d_flatten)
+  if (!options().proof.lfscFlatten)
   {
     out << "(: (holds false)" << std::endl;
     cparen << ")";
@@ -262,7 +270,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // which are already printed above).
   LfscPrintChannelOut lout(out);
 
-  if (d_flatten)
+  if (options().proof.lfscFlatten)
   {
     // print the proof letification as separate check statements, followed
     // by the main proof.
@@ -285,7 +293,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
       if (!isFinal)
       {
         out << "(declare ";
-        LfscPrintChannelOut::printProofId(out, pid);
+        LfscPrintChannelOut::printId(out, pid, d_pletPrefix);
         out << " (holds " << resType.str() << "))" << std::endl;
       }
     }
@@ -421,21 +429,11 @@ void LfscPrinter::printProofLetify(
       itp = pletMap.find(p);
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
-      // print (plet _ _
-      out->printOpenLfscRule(LfscRule::PLET);
-      cparen++;
-      out->printHole();
-      out->printHole();
-      out->printEndLine();
-      // print the letified proof
       pletMap.erase(p);
-      printProofInternal(out, p, lbind, pletMap, passumeMap);
+      printPLet(out, p, pid, d_pletPrefix, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
-      // print the lambda (\ __pX
-      out->printOpenLfscRule(LfscRule::LAMBDA);
-      cparen++;
-      out->printProofId(pid);
-      out->printEndLine();
+      // printPLet opens two parentheses
+      cparen = cparen + 2;
     }
     out->printEndLine();
   }
@@ -445,6 +443,27 @@ void LfscPrinter::printProofLetify(
 
   // print the closing parenthesis
   out->printCloseRule(cparen);
+}
+
+void LfscPrinter::printPLet(LfscPrintChannel* out,
+                            const ProofNode* p,
+                            size_t pid,
+                            const std::string& prefix,
+                            const LetBinding& lbind,
+                            const std::map<const ProofNode*, size_t>& pletMap,
+                            std::map<Node, size_t>& passumeMap)
+{
+  // print (plet _ _
+  out->printOpenLfscRule(LfscRule::PLET);
+  out->printHole();
+  out->printHole();
+  out->printEndLine();
+  // print the letified proof
+  printProofInternal(out, p, lbind, pletMap, passumeMap);
+  // print the lambda (\ __pX
+  out->printOpenLfscRule(LfscRule::LAMBDA);
+  out->printId(pid, prefix);
+  out->printEndLine();
 }
 
 void LfscPrinter::printProofInternal(
@@ -481,7 +500,7 @@ void LfscPrinter::printProofInternal(
       if (pletIt != pletMap.end())
       {
         // a letified proof
-        out->printProofId(pletIt->second);
+        out->printId(pletIt->second, d_pletPrefix);
         continue;
       }
       pit = processingChildren.find(cur);
@@ -499,7 +518,7 @@ void LfscPrinter::printProofInternal(
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
-          out->printAssumeId(passumeIt->second);
+          out->printId(passumeIt->second, d_assumpPrefix);
         }
         else if (isLambda)
         {
@@ -523,7 +542,7 @@ void LfscPrinter::printProofInternal(
           // make the node whose name is the assumption id, where notice that
           // the type of this node does not matter
           std::stringstream pidNodeName;
-          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
+          LfscPrintChannelOut::printId(pidNodeName, pid, d_assumpPrefix);
           // must be an internal symbol so that it is not turned into (bvar ...)
           Node pidNode =
               d_tproc.mkInternalSymbol(pidNodeName.str(), d_boolType);
@@ -561,11 +580,34 @@ void LfscPrinter::printProofInternal(
           }
           else
           {
-            // could not print the rule, trust for now
+            // Could not print the rule, trust for now.
+            // If we are expanding trusted steps, its children are printed as
+            // plet applications that wrap this term, so that all subproofs are
+            // recorded in the proof.
+            size_t cparenTrustChild = 0;
+            if (options().proof.lfscExpandTrust)
+            {
+              const std::vector<std::shared_ptr<ProofNode>>& children =
+                  cur->getChildren();
+              for (const std::shared_ptr<ProofNode>& c : children)
+              {
+                size_t pid = d_trustChildPletCounter;
+                d_trustChildPletCounter++;
+                printPLet(out,
+                          c.get(),
+                          pid,
+                          d_pletTrustChildPrefix,
+                          lbind,
+                          pletMap,
+                          passumeMap);
+                cparenTrustChild = cparenTrustChild + 2;
+              }
+            }
             Node res = d_tproc.convert(cur->getResult());
-            res = lbind.convert(res, "__t", true);
+            res = lbind.convert(res, d_termLetPrefix, true);
             out->printTrust(res, r);
             d_trustWarned.insert(r);
+            out->printCloseRule(cparenTrustChild);
           }
         }
       }
@@ -579,7 +621,7 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       // it has already been converted to internal form, we letify it here
-      Node curni = lbind.convert(curn, "__t", true);
+      Node curni = lbind.convert(curn, d_termLetPrefix, true);
       out->printNode(curni);
     }
     // case 3: printing a type node
@@ -863,7 +905,7 @@ void LfscPrinter::printLetList(std::ostream& out,
     if (asDefs)
     {
       out << "(define ";
-      LfscPrintChannelOut::printId(out, id);
+      LfscPrintChannelOut::printId(out, id, d_termLetPrefix);
       out << " ";
       // do not letify the top term
       printInternal(out, nl, lbind, false);
@@ -872,7 +914,7 @@ void LfscPrinter::printLetList(std::ostream& out,
     else
     {
       out << "(@ ";
-      LfscPrintChannelOut::printId(out, id);
+      LfscPrintChannelOut::printId(out, id, d_termLetPrefix);
       out << " ";
       // do not letify the top term
       printInternal(out, nl, lbind, false);
@@ -892,7 +934,7 @@ void LfscPrinter::printInternal(std::ostream& out,
                                 LetBinding& lbind,
                                 bool letTop)
 {
-  Node nc = lbind.convert(n, "__t", letTop);
+  Node nc = lbind.convert(n, d_termLetPrefix, letTop);
   LfscPrintChannelOut::printNodeInternal(out, nc);
 }
 
