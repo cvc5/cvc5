@@ -665,7 +665,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   std::vector<TypeNode> replacements;  // to hold our final, resolved types
   for (const TypeNode& ut : unresolvedTypes)
   {
-    std::string name = ut.getAttribute(expr::VarNameAttr());
+    std::string name = ut.getName();
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
     if (resolver == nameResolutions.end())

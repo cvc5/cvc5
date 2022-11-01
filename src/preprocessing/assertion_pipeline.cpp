@@ -27,11 +27,8 @@ namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline(Env& env)
     : EnvObj(env),
-      d_realAssertionsEnd(0),
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
-      d_assumptionsStart(0),
-      d_numAssumptions(0),
       d_pppg(nullptr)
 {
 }
@@ -39,31 +36,13 @@ AssertionPipeline::AssertionPipeline(Env& env)
 void AssertionPipeline::clear()
 {
   d_nodes.clear();
-  d_realAssertionsEnd = 0;
-  d_assumptionsStart = 0;
-  d_numAssumptions = 0;
 }
 
 void AssertionPipeline::push_back(Node n,
-                                  bool isAssumption,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
   d_nodes.push_back(n);
-  if (isAssumption)
-  {
-    Assert(pgen == nullptr);
-    if (d_numAssumptions == 0)
-    {
-      d_assumptionsStart = d_nodes.size() - 1;
-    }
-    // Currently, we assume that assumptions are all added one after another
-    // and that we store them in the same vector as the assertions. Once we
-    // split the assertions up into multiple vectors (see issue #2473), we will
-    // not have this limitation anymore.
-    Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
-    d_numAssumptions++;
-  }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
@@ -86,7 +65,7 @@ void AssertionPipeline::pushBackTrusted(TrustNode trn)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, false, trn.getGenerator());
+  push_back(trn.getProven(), false, trn.getGenerator());
 }
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)

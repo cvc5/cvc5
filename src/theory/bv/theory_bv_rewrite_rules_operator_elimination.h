@@ -866,6 +866,32 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<UsuboEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_USUBO);
+}
+
+template <>
+inline Node RewriteRule<UsuboEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UsuboEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node one = utils::mkOne(1);
+
+  Node zextOp = nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(1));
+  Node sub = nm->mkNode(kind::BITVECTOR_SUB,
+                        nm->mkNode(zextOp, node[0]),
+                        nm->mkNode(zextOp, node[1]));
+  uint32_t size = sub.getType().getBitVectorSize();
+
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+  return nm->mkNode(kind::EQUAL, nm->mkNode(extOp, sub), one);
+}
+
+template <>
 inline bool RewriteRule<SsuboEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_SSUBO);
