@@ -141,9 +141,12 @@ class LfscPrinter : protected EnvObj
                           const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
   /**
+   * Print a plet proof on output channel out, where p is the letified
+   * proof and pid is its identifier for the given name prefix.
+   * The remaining arguments are used for printing p.
    */
   void printPLet(LfscPrintChannel* out,
-                 const ProofNode* pn,
+                 const ProofNode* p,
                  size_t pid,
                  const std::string& prefix,
                  const LetBinding& lbind,
