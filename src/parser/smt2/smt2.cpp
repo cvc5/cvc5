@@ -120,6 +120,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_SMULO, "bvsmulo");
   addOperator(cvc5::BITVECTOR_USUBO, "bvusubo");
   addOperator(cvc5::BITVECTOR_SSUBO, "bvssubo");
+  addOperator(cvc5::BITVECTOR_SDIVO, "bvsdivo");
 
   addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
