@@ -17,7 +17,6 @@
 #include <sstream>
 #include <string>
 
-#include "expr/node_manager_attributes.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -217,7 +216,7 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
 {
-  std::string vs = v.getAttribute(expr::VarNameAttr());
+  std::string vs = v.getName();
   toStreamCmdDeclareFunction(out, vs, v.getType());
 }
 
