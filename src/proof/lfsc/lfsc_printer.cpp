@@ -293,7 +293,7 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
       if (!isFinal)
       {
         out << "(declare ";
-        LfscPrintChannelOut::printProofId(out, pid);
+        LfscPrintChannelOut::printId(out, pid, d_pletPrefix);
         out << " (holds " << resType.str() << "))" << std::endl;
       }
     }
