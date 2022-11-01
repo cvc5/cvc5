@@ -142,6 +142,11 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     printType(preambleSymDecl, st);
     preambleSymDecl << "))" << std::endl;
   }
+  // Note that definitions always use their own internal letification, since
+  // their bodies are not part of the main proof. It is possible to share term
+  // letification via global definitions, however, this requires further
+  // analysis to ensure symbols are printed in the correct order. This is
+  // not done for simplicity.
   for (const Node& def : definitions)
   {
     Node si = d_tproc.convert(def[0]);
@@ -210,10 +215,20 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 
   // [7] print the check command and term lets
   out << preamble.str();
-  out << "(check" << std::endl;
-  cparen << ")";
-  // print the term let list
-  printLetList(out, cparen, lbind);
+  if (options().proof.flattenLfsc)
+  {
+    // print term lets as definitions
+    std::stringstream cparenTmp;
+    printLetList(out, cparenTmp, lbind, true);
+  }
+  else
+  {
+    // the outer check statement for the main proof
+    out << "(check" << std::endl;
+    cparen << ")";
+    // print the term let list wrapped around the body of the final proof
+    printLetList(out, cparen, lbind, false);
+  }
 
   Trace("lfsc-print-debug") << "; print asserts" << std::endl;
   // [8] print the assertions, with letification
@@ -221,18 +236,32 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
-    out << "(# ";
-    LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
-    out << " (holds ";
-    printInternal(out, ia, lbind);
-    out << ")" << std::endl;
-    cparen << ")";
+    if (options().proof.flattenLfsc)
+    {
+      out << "(declare ";
+      LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
+      out << " (holds ";
+      printInternal(out, ia, lbind);
+      out << "))" << std::endl;
+    }
+    else
+    {
+      out << "(# ";
+      LfscPrintChannelOut::printId(out, i, d_assumpPrefix);
+      out << " (holds ";
+      printInternal(out, ia, lbind);
+      out << ")" << std::endl;
+      cparen << ")";
+    }
   }
 
   Trace("lfsc-print-debug") << "; print annotation" << std::endl;
   // [9] print the annotation
-  out << "(: (holds false)" << std::endl;
-  cparen << ")";
+  if (!options().proof.flattenLfsc)
+  {
+    out << "(: (holds false)" << std::endl;
+    cparen << ")";
+  }
 
   Trace("lfsc-print-debug") << "; print proof body" << std::endl;
   // [10] print the proof body
@@ -240,8 +269,39 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
   LfscPrintChannelOut lout(out);
-  printProofLetify(&lout, pnBody, lbind, pletList, pletMap, passumeMap);
 
+  if (options().proof.flattenLfsc)
+  {
+    // print the proof letification as separate check statements, followed
+    // by the main proof.
+    for (size_t i = 0; i <= pletList.size(); i++)
+    {
+      bool isFinal = (i == pletList.size());
+      const ProofNode* p = isFinal ? pnBody : pletList[i];
+      Node res = p->getResult();
+      std::stringstream resType;
+      printInternal(resType, d_tproc.convert(res), lbind);
+      out << "(check (: (holds " << resType.str() << ")" << std::endl;
+      itp = pletMap.find(p);
+      Assert(itp != pletMap.end());
+      size_t pid = itp->second;
+      // print the letified proof
+      pletMap.erase(p);
+      printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+      pletMap[p] = pid;
+      out << "))" << std::endl;
+      if (!isFinal)
+      {
+        out << "(declare ";
+        LfscPrintChannelOut::printProofId(out, pid);
+        out << " (holds " << resType.str() << "))" << std::endl;
+      }
+    }
+  }
+  else
+  {
+    printProofLetify(&lout, pnBody, lbind, pletList, pletMap, passumeMap);
+  }
   // [11] print closing parantheses
   out << cparen.str() << std::endl;
 }
@@ -831,7 +891,8 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
 
 void LfscPrinter::printLetList(std::ostream& out,
                                std::ostream& cparen,
-                               LetBinding& lbind)
+                               LetBinding& lbind,
+                               bool asDefs)
 {
   std::vector<Node> letList;
   lbind.letify(letList);
@@ -839,15 +900,27 @@ void LfscPrinter::printLetList(std::ostream& out,
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node nl = letList[i];
-    out << "(@ ";
     size_t id = lbind.getId(nl);
     Assert(id != 0);
-    LfscPrintChannelOut::printId(out, id, d_termLetPrefix);
-    out << " ";
-    // remove, print, insert again
-    printInternal(out, nl, lbind, false);
-    out << std::endl;
-    cparen << ")";
+    if (asDefs)
+    {
+      out << "(define ";
+      LfscPrintChannelOut::printId(out, id, d_termLetPrefix);
+      out << " ";
+      // do not letify the top term
+      printInternal(out, nl, lbind, false);
+      out << ")" << std::endl;
+    }
+    else
+    {
+      out << "(@ ";
+      LfscPrintChannelOut::printId(out, id, d_termLetPrefix);
+      out << " ";
+      // do not letify the top term
+      printInternal(out, nl, lbind, false);
+      out << std::endl;
+      cparen << ")";
+    }
   }
 }
 

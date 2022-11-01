@@ -147,3 +147,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Print the children of trusted proof steps"
+
+[[option]]
+  name       = "flattenLfsc"
+  category   = "expert"
+  long       = "flatten-lfsc"
+  type       = "bool"
+  default    = "false"
+  help       = "Flatten steps in the LFSC proof"
