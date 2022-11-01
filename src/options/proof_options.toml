@@ -139,3 +139,11 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"
+
+[[option]]
+  name       = "flattenLfsc"
+  category   = "expert"
+  long       = "flatten-lfsc"
+  type       = "bool"
+  default    = "false"
+  help       = "Flatten steps in the LFSC proof"

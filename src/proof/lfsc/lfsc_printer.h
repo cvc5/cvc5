@@ -44,7 +44,12 @@ class LfscPrintChannel;
 class LfscPrinter
 {
  public:
-  LfscPrinter(LfscNodeConverter& ltp);
+  /**
+   * @param ltp the node converter used for converting terms to LFSC
+   * @param doFlatten if true, we use a style of proof where dagified proofs
+   * are separate check statements.
+   */
+  LfscPrinter(LfscNodeConverter& ltp, bool doFlatten);
   ~LfscPrinter() {}
 
   /**
@@ -116,9 +121,13 @@ class LfscPrinter
                      bool letTop = true);
   /**
    * print let list, prints definitions of lbind on out in order, and closing
-   * parentheses on cparen.
+   * parentheses on cparen. If asDefs is true, then the definition is printed
+   * as a standalone define statement on out.
    */
-  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind);
+  void printLetList(std::ostream& out,
+                    std::ostream& cparen,
+                    LetBinding& lbind,
+                    bool asDefs = false);
 
   //------------------------------ printing proofs
   /**
@@ -155,6 +164,8 @@ class LfscPrinter
   //------------------------------ end printing proofs
   /** The term processor */
   LfscNodeConverter& d_tproc;
+  /** Are we flattening the output */
+  bool d_flatten;
   /** The proof traversal callback */
   LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */
