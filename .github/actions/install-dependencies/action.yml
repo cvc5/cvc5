@@ -30,9 +30,9 @@ runs:
           flex \
           libfl-dev \
           flexc++
+        python3 -m pip install --user pexpect setuptools toml
         # Add binary path of user site-packages to PATH
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-        python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
