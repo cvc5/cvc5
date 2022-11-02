@@ -36,6 +36,7 @@ AssertionPipeline::AssertionPipeline(Env& env)
 void AssertionPipeline::clear()
 {
   d_nodes.clear();
+  d_iteSkolemMap.clear();
 }
 
 void AssertionPipeline::push_back(Node n,

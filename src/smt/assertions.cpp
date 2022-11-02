@@ -61,18 +61,11 @@ void Assertions::refresh()
   d_globalDefineFunLemmasIndex = numGlobalDefs;
 }
 
-void Assertions::clearCurrent()
-{
-  d_assertions.clear();
-  d_assertions.getIteSkolemMap().clear();
-}
-
 void Assertions::setAssumptions(const std::vector<Node>& assumptions)
 {
   d_assumptions.clear();
   d_assumptions = assumptions;
 
-  Result r(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
