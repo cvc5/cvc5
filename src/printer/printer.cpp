@@ -14,9 +14,9 @@
  */
 #include "printer/printer.h"
 
+#include <sstream>
 #include <string>
 
-#include "expr/node_manager_attributes.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -24,7 +24,6 @@
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
-#include "smt/command.h"
 #include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
@@ -126,6 +125,11 @@ void Printer::toStream(std::ostream& out, const SkolemList& sks) const
 Printer* Printer::getPrinter(std::ostream& out)
 {
   Language lang = options::ioutils::getOutputLanguage(out);
+  return getPrinter(lang);
+}
+
+Printer* Printer::getPrinter(Language lang)
+{
   if (lang == Language::LANG_AUTO)
   {
     lang = Language::LANG_SMTLIB_V2_6;  // default
@@ -137,10 +141,44 @@ Printer* Printer::getPrinter(std::ostream& out)
   return d_printers[static_cast<size_t>(lang)].get();
 }
 
+void Printer::printUnknownCommandStatus(std::ostream& out,
+                                        const std::string& name) const
+{
+  out << "ERROR: don't know how to print " << name << " command status"
+      << std::endl;
+}
+
 void Printer::printUnknownCommand(std::ostream& out,
                                   const std::string& name) const
 {
   out << "ERROR: don't know how to print " << name << " command" << std::endl;
+}
+
+void Printer::toStreamCmdSuccess(std::ostream& out) const
+{
+  printUnknownCommandStatus(out, "success");
+}
+
+void Printer::toStreamCmdInterrupted(std::ostream& out) const
+{
+  printUnknownCommandStatus(out, "interrupted");
+}
+
+void Printer::toStreamCmdUnsupported(std::ostream& out) const
+{
+  printUnknownCommandStatus(out, "unsupported");
+}
+
+void Printer::toStreamCmdFailure(std::ostream& out,
+                                 const std::string& message) const
+{
+  printUnknownCommandStatus(out, "failure");
+}
+
+void Printer::toStreamCmdRecoverableFailure(std::ostream& out,
+                                            const std::string& message) const
+{
+  printUnknownCommandStatus(out, "recoverable-failure");
 }
 
 void Printer::toStreamCmdEmpty(std::ostream& out, const std::string& name) const
@@ -178,7 +216,7 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
 {
-  std::string vs = v.getAttribute(expr::VarNameAttr());
+  std::string vs = v.getName();
   toStreamCmdDeclareFunction(out, vs, v.getType());
 }
 

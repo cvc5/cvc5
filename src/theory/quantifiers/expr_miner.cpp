@@ -55,26 +55,15 @@ Node ExprMiner::convertToSkolem(Node n)
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
-                                  Node query)
-{
-  SubsolverSetupInfo ssi(d_env);
-  initializeChecker(checker, query, ssi);
-}
-
-void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query,
                                   const SubsolverSetupInfo& info)
 {
   Assert (!query.isNull());
-  if (options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
-  {
-    initializeSubsolver(
-        checker, info, true, options().quantifiers.sygusExprMinerCheckTimeout);
-  }
-  else
-  {
-    initializeSubsolver(checker, info);
-  }
+  initializeSubsolver(
+      checker,
+      info,
+      options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser,
+      options().quantifiers.sygusExprMinerCheckTimeout);
   // disable options that would lead to infinite loops
   checker->setOption("sygus-rr-synth-input", "false");
   // Convert bound variables to skolems. This ensures the satisfiability
@@ -83,7 +72,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
   checker->assertFormula(squery);
 }
 
-Result ExprMiner::doCheck(Node query)
+Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
 {
   Node queryr = rewrite(query);
   if (queryr.isConst())
@@ -98,7 +87,7 @@ Result ExprMiner::doCheck(Node query)
     }
   }
   std::unique_ptr<SolverEngine> smte;
-  initializeChecker(smte, query);
+  initializeChecker(smte, query, info);
   return smte->checkSat();
 }
 

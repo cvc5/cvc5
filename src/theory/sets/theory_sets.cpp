@@ -149,6 +149,19 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  if (n.getKind() == SET_MINUS && n[1].getKind() == SET_MINUS
+      && n[1][0] == n[0])
+  {
+    // Note this cannot be a rewrite rule, since it impacts the cardinality
+    // graph. In particular, if we internally inspect
+    // (setminus A (setminus A B)), for instance if we are splitting the Venn
+    // regions of A and (setminus A B), then we should not transform this
+    // to an intersection term.
+    // (setminus A (setminus A B)) = (intersection A B)
+    NodeManager* nm = NodeManager::currentNM();
+    Node intersection = nm->mkNode(SET_INTER, n[0], n[1][1]);
+    return TrustNode::mkTrustRewrite(n, intersection, nullptr);
+  }
   if (nk == SET_COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic
@@ -178,7 +191,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node ret = SetReduction::reduceFoldOperator(n, asserts);
     NodeManager* nm = NodeManager::currentNM();
     Node andNode = nm->mkNode(AND, asserts);
-    d_im.lemma(andNode, InferenceId::BAGS_FOLD);
+    d_im.lemma(andNode, InferenceId::SETS_FOLD);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   if (nk == RELATION_AGGREGATE)

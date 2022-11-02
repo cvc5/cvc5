@@ -46,12 +46,6 @@ class Assertions : protected EnvObj
  public:
   Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
-  /**
-   * Clears out the non-context-dependent data in this class.  Necessary to
-   * clear out our assertion vectors in case someone does a push-assert-pop
-   * without a check-sat.
-   */
-  void clearCurrent();
   /** refresh
    *
    * Ensures that all global declarations have been processed in the current
@@ -70,7 +64,7 @@ class Assertions : protected EnvObj
    *
    * @param assumptions The assumptions of the upcoming check-sat call.
    */
-  void initializeCheckSat(const std::vector<Node>& assumptions);
+  void setAssumptions(const std::vector<Node>& assumptions);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -109,13 +103,6 @@ class Assertions : protected EnvObj
    * on initializeCheckSat.
    */
   std::vector<Node>& getAssumptions();
-  /**
-   * Is the set of assertions globally negated? When this flag is true, the
-   * overall result of check-sat should be inverted.
-   */
-  bool isGlobalNegated() const;
-  /** Flip the global negation flag. */
-  void flipGlobalNegated();
 
   //------------------------------------ for proofs
   /**
@@ -149,12 +136,8 @@ class Assertions : protected EnvObj
    * guaranteed not to have free variables. However, other cases such as
    * assertions from the SyGuS parser may have free variables (say if the
    * input contains an assert or define-fun-rec command).
-   *
-   * @param isAssumption If true, the formula is considered to be an assumption
-   * (this is used to distinguish assertions and assumptions)
    */
   void addFormula(TNode n,
-                  bool isAssumption,
                   bool isFunDef,
                   bool maybeHasFv);
   /** Reference to the abstract values utility */
@@ -176,8 +159,6 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
-  /** Whether we did a global negation of the formula. */
-  bool d_globalNegation;
   /** Assertions in the preprocessing pipeline */
   preprocessing::AssertionPipeline d_assertions;
 };

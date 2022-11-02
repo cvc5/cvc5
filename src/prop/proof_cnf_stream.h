@@ -123,7 +123,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
 
   /** Notify that current propagation inserted at lower level than current.
    *
-   * The proof of the current propagation (d_currPropagationProccessed) will be
+   * The proof of the current propagation (d_currPropagationProcessed) will be
    * saved in d_optClausesPfs, so that it is not potentially lost when the user
    * context is popped.
    */
@@ -222,7 +222,7 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
       d_blocked;
 
   /** The current propagation being processed via this class. */
-  Node d_currPropagationProccessed;
+  Node d_currPropagationProcessed;
   /** User-context-dependent map assertion level to proof nodes.
    *
    * This map is used to update the internal proof of this class when the

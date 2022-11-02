@@ -201,7 +201,7 @@ poly::Polynomial up_to_poly(const poly::UPolynomial& p, poly::Variable var)
 
 TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
 {
-  Rewriter* rewriter = d_slvEngine->getRewriter();
+  Rewriter* rewriter = d_slvEngine->getEnv().getRewriter();
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
@@ -235,7 +235,9 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
   poly::AlgebraicNumber ay = get_ran({-2, 0, 0, 0, 1}, 1, 2);
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
-  coverings::LazardEvaluation lazard;
+  Options opts;
+  Env env(&opts);
+  coverings::LazardEvaluation lazard(env.getStatisticsRegistry());
   lazard.add(x, ax);
   lazard.add(y, ay);
   lazard.add(z, az);

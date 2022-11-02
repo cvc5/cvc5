@@ -38,7 +38,6 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/command.h"
 #include "util/didyoumean.h"
 
 namespace cvc5::internal {
@@ -251,36 +250,6 @@ void OptionsHandler::enableTraceTag(const std::string& flag,
   }
 }
 
-void OptionsHandler::enableDebugTag(const std::string& flag,
-                                    const std::string& optarg)
-{
-  if (!Configuration::isDebugBuild())
-  {
-    throw OptionException("debug tags not available in non-debug builds");
-  }
-  else if (!Configuration::isTracingBuild())
-  {
-    throw OptionException("debug tags not available in non-tracing builds");
-  }
-
-  if (!Configuration::isDebugTag(optarg) && !Configuration::isTraceTag(optarg))
-  {
-    if (optarg == "help")
-    {
-      d_options->writeDriver().showDebugTags = true;
-      showDebugTags("", true);
-      return;
-    }
-
-    throw OptionException(std::string("debug tag ") + optarg
-                          + std::string(" not available.")
-                          + suggestTags(Configuration::getDebugTags(),
-                                        optarg,
-                                        Configuration::getTraceTags()));
-  }
-  TraceChannel.on(optarg);
-}
-
 void OptionsHandler::enableOutputTag(const std::string& flag,
                                      OutputTag optarg)
 {
@@ -419,20 +388,6 @@ void OptionsHandler::showVersion(const std::string& flag, bool value)
 {
   if (!value) return;
   d_options->base.out << Configuration::about() << std::endl;
-}
-
-void OptionsHandler::showDebugTags(const std::string& flag, bool value)
-{
-  if (!value) return;
-  if (!Configuration::isDebugBuild())
-  {
-    throw OptionException("debug tags not available in non-debug builds");
-  }
-  else if (!Configuration::isTracingBuild())
-  {
-    throw OptionException("debug tags not available in non-tracing builds");
-  }
-  printTags(Configuration::getDebugTags());
 }
 
 void OptionsHandler::showTraceTags(const std::string& flag, bool value)

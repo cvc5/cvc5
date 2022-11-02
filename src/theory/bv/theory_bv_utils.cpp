@@ -413,31 +413,6 @@ Node mkDec(TNode t)
 
 /* ------------------------------------------------------------------------- */
 
-Node mkUmulo(TNode t1, TNode t2)
-{
-  unsigned w = getSize(t1);
-  if (w == 1) return mkFalse();
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node uppc;
-  std::vector<Node> tmp;
-
-  uppc = mkExtract(t1, w - 1, w - 1);
-  for (size_t i = 1; i < w; ++i)
-  {
-    tmp.push_back(nm->mkNode(kind::BITVECTOR_AND, mkExtract(t2, i, i), uppc));
-    uppc = nm->mkNode(
-        kind::BITVECTOR_OR, mkExtract(t1, w - 1 - i, w - 1 - i), uppc);
-  }
-  Node zext_t1 = mkConcat(mkZero(1), t1);
-  Node zext_t2 = mkConcat(mkZero(1), t2);
-  Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
-  tmp.push_back(mkExtract(mul, w, w));
-  return nm->mkNode(kind::EQUAL, nm->mkNode(kind::BITVECTOR_OR, tmp), mkOne(1));
-}
-
-/* ------------------------------------------------------------------------- */
-
 Node flattenAnd(std::vector<TNode>& queue)
 {
   TNodeSet nodes;

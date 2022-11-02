@@ -109,6 +109,8 @@ const char* toString(SkolemFunId id)
     case SkolemFunId::SETS_FOLD_UNION: return "SETS_FOLD_UNION";
     case SkolemFunId::SETS_MAP_DOWN_ELEMENT: return "SETS_MAP_DOWN_ELEMENT";
     case SkolemFunId::HO_TYPE_MATCH_PRED: return "HO_TYPE_MATCH_PRED";
+    case SkolemFunId::IEVAL_NONE: return "IEVAL_NONE";
+    case SkolemFunId::IEVAL_SOME: return "IEVAL_SOME";
     default: return "?";
   }
 }
@@ -121,12 +123,12 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id)
 
 SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 
-Node SkolemManager::mkSkolem(Node v,
-                             Node pred,
-                             const std::string& prefix,
-                             const std::string& comment,
-                             int flags,
-                             ProofGenerator* pg)
+Node SkolemManager::mkWitnessSkolem(Node v,
+                                    Node pred,
+                                    const std::string& prefix,
+                                    const std::string& comment,
+                                    int flags,
+                                    ProofGenerator* pg)
 {
   // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);
@@ -219,7 +221,7 @@ Node SkolemManager::skolemize(Node q,
   Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
   // don't use a proof generator, since this may be an intermediate, partially
   // skolemized formula.
-  Node k = mkSkolem(v, pred, prefix, comment, flags, nullptr);
+  Node k = mkWitnessSkolem(v, pred, prefix, comment, flags, nullptr);
   Assert(k.getType() == v.getType());
   TNode tv = v;
   TNode tk = k;

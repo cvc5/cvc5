@@ -18,6 +18,7 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/quantifiers_engine.h"
@@ -44,8 +45,8 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->setOption("incremental", "false");
     d_slvEngine->finishInit();
-    d_arith = static_cast<TheoryArith*>(
-        d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_ARITH]);
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    d_arith = static_cast<TheoryArith*>(te->d_theoryTable[THEORY_ARITH]);
 
     d_realType.reset(new TypeNode(d_nodeManager->realType()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
@@ -53,9 +54,10 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
 
   void fakeTheoryEnginePreprocess(TNode input)
   {
-    Rewriter* rr = d_slvEngine->getRewriter();
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
     Assert(input == rr->rewrite(input));
-    d_slvEngine->getTheoryEngine()->preRegister(input);
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    te->preRegister(input);
   }
 
   Theory::Effort d_level = Theory::EFFORT_FULL;
@@ -68,7 +70,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
 
 TEST_F(TestTheoryWhiteArith, assert)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkConstReal(d_zero);
 
@@ -83,7 +85,7 @@ TEST_F(TestTheoryWhiteArith, assert)
 
 TEST_F(TestTheoryWhiteArith, int_normal_form)
 {
-  Rewriter* rr = d_slvEngine->getRewriter();
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar(*d_intType);
   Node xr = d_nodeManager->mkVar(*d_realType);
   Node c0 = d_nodeManager->mkConstInt(d_zero);

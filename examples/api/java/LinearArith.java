@@ -19,7 +19,7 @@ public class LinearArith
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    try (Solver slv = new Solver())
+    Solver slv = new Solver();
     {
       slv.setLogic("QF_LIRA"); // Set the logic
 

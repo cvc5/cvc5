@@ -59,7 +59,8 @@ TermRegistry::TermRegistry(Env& env,
       d_epg(
           env.isTheoryProofProducing() ? new EagerProofGenerator(
               env, userContext(), "strings::TermRegistry::EagerProofGenerator")
-                                       : nullptr)
+                                       : nullptr),
+      d_inFullEffortCheck(false)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
@@ -225,8 +226,12 @@ void TermRegistry::preRegisterTerm(TNode n)
       }
     }
   }
-  registerTerm(n, 0);
+  if (options().strings.stringEagerReg)
+  {
+    registerTerm(n);
+  }
   TypeNode tn = n.getType();
+  registerType(tn);
   if (tn.isRegExp() && n.isVar())
   {
     std::stringstream ss;
@@ -296,37 +301,41 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
 }
 
-void TermRegistry::registerTerm(Node n, int effort)
+void TermRegistry::registerSubterms(Node n)
 {
-  Trace("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (d_registeredTerms.find(cur) == d_registeredTerms.end())
+    {
+      registerTermInternal(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
+void TermRegistry::registerTerm(Node n)
+{
   if (d_registeredTerms.find(n) != d_registeredTerms.end())
   {
-    Trace("strings-register") << "...already registered" << std::endl;
     return;
   }
-  bool do_register = true;
-  TypeNode tn = n.getType();
-  if (!tn.isStringLike())
-  {
-    if (options().strings.stringEagerLen)
-    {
-      do_register = effort == 0;
-    }
-    else
-    {
-      do_register = effort > 0 || n.getKind() != STRING_CONCAT;
-    }
-  }
-  if (!do_register)
-  {
-    Trace("strings-register") << "...do not register" << std::endl;
-    return;
-  }
-  Trace("strings-register") << "...register" << std::endl;
+  registerTermInternal(n);
+}
+
+void TermRegistry::registerTermInternal(Node n)
+{
+  Assert(d_registeredTerms.find(n) == d_registeredTerms.end());
+  Trace("strings-register")
+      << "TheoryStrings::registerTermInternal() " << n << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
-  registerType(tn);
+  TypeNode tn = n.getType();
   TrustNode regTermLem;
   if (tn.isStringLike())
   {
@@ -374,10 +383,9 @@ void TermRegistry::registerType(TypeNode tn)
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
-    if (!d_state.hasTerm(emp))
-    {
-      preRegisterTerm(emp);
-    }
+    // always preregister and register unconditionally eagerly
+    preRegisterTerm(emp);
+    registerTerm(emp);
   }
 }
 
@@ -645,7 +653,7 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   Node proxy = getProxyVariableFor(n);
   if (proxy.isNull())
   {
-    registerTerm(n, 0);
+    registerTerm(n);
     proxy = getProxyVariableFor(n);
   }
   Assert(!proxy.isNull());
@@ -689,11 +697,24 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
-void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
+void TermRegistry::notifyStartFullEffortCheck()
 {
-  d_theory.collectAssertedTerms(termSet);
+  d_inFullEffortCheck = true;
+  d_relevantTerms.clear();
+  // get the asserted terms
+  std::set<Kind> irrKinds;
+  d_theory.collectAssertedTerms(d_relevantTerms, true, irrKinds);
   // also, get the additionally relevant terms
-  d_theory.computeRelevantTerms(termSet);
+  d_theory.computeRelevantTerms(d_relevantTerms);
+}
+
+void TermRegistry::notifyEndFullEffortCheck() { d_inFullEffortCheck = false; }
+
+const std::set<Node>& TermRegistry::getRelevantTermSet() const
+{
+  // must be in full effort check for relevant terms to be valid
+  Assert(d_inFullEffortCheck);
+  return d_relevantTerms;
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const

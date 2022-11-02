@@ -49,7 +49,7 @@ ${iodecls}$
  * The options are read from the ios object on construction and restored on
  * destruction of the scope.
  */
-class Scope
+class CVC5_EXPORT Scope
 {
  public:
   /** Copy the options from the ios object */

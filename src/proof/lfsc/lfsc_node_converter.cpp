@@ -24,7 +24,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -109,7 +108,7 @@ Node LfscNodeConverter::postConvert(Node n)
     }
     // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
-    Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
+    Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(n)));
     Node tc = typeAsNode(convertType(tn));
     TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
@@ -162,7 +161,7 @@ Node LfscNodeConverter::postConvert(Node n)
     TypeNode intType = nm->integerType();
     TypeNode varType = nm->mkFunctionType({intType, d_sortType}, tn);
     Node var = mkInternalSymbol("var", varType);
-    Node index = nm->mkConstInt(Rational(getOrAssignIndexForVar(n)));
+    Node index = nm->mkConstInt(Rational(getOrAssignIndexForFVar(n)));
     Node tc = typeAsNode(convertType(tn));
     return nm->mkNode(APPLY_UF, var, index, tc);
   }
@@ -632,16 +631,16 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       ss << tn[0];
       op = getSymbolInternal(k, ftype, ss.str());
     }
-    else if (k == SORT_TYPE)
+    else if (k == INSTANTIATED_SORT_TYPE)
     {
-      // Add its uninterpreted sort constructor to the list of declared types.
-      // This is required since the (type) operator is not part of the AST of
-      // the TypeNode.
-      d_declTypes.insert(tn.getUninterpretedSortConstructor());
+      // We don't add to declared types here. The type constructor is already
+      // added to declare types when processing the children of this.
+      // Also, similar to PARAMETRIC_DATATYPE, the type constructor
+      // should be erased from children.
+      targs.erase(targs.begin(), targs.begin() + 1);
+      types.erase(types.begin(), types.begin() + 1);
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-      std::string name;
-      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
-                                                        name);
+      std::string name = tn.getUninterpretedSortConstructor().getName();
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -717,8 +716,7 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name,
 
 std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
-  std::string name;
-  v.getAttribute(expr::VarNameAttr(), name);
+  std::string name = v.getName();
   return getNameForUserNameOfInternal(v.getId(), name);
 }
 
@@ -1262,21 +1260,34 @@ Node LfscNodeConverter::getOperatorOfClosure(Node q,
 Node LfscNodeConverter::getOperatorOfBoundVar(Node cop, Node v)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node x = nm->mkConstInt(Rational(getOrAssignIndexForVar(v)));
+  Node x = nm->mkConstInt(Rational(getOrAssignIndexForBVar(v)));
   Node tc = typeAsNode(convertType(v.getType()));
   return nm->mkNode(APPLY_UF, cop, x, tc);
 }
 
-size_t LfscNodeConverter::getOrAssignIndexForVar(Node v)
+size_t LfscNodeConverter::getOrAssignIndexForFVar(Node fv)
 {
-  Assert(v.isVar());
-  std::map<Node, size_t>::iterator it = d_varIndex.find(v);
-  if (it != d_varIndex.end())
+  Assert(fv.isVar());
+  std::map<Node, size_t>::iterator it = d_fvarIndex.find(fv);
+  if (it != d_fvarIndex.end())
   {
     return it->second;
   }
-  size_t id = d_varIndex.size();
-  d_varIndex[v] = id;
+  size_t id = d_fvarIndex.size();
+  d_fvarIndex[fv] = id;
+  return id;
+}
+
+size_t LfscNodeConverter::getOrAssignIndexForBVar(Node bv)
+{
+  Assert(bv.isVar());
+  std::map<Node, size_t>::iterator it = d_bvarIndex.find(bv);
+  if (it != d_bvarIndex.end())
+  {
+    return it->second;
+  }
+  size_t id = d_bvarIndex.size();
+  d_bvarIndex[bv] = id;
   return id;
 }
 

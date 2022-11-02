@@ -29,22 +29,10 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryBVRewriter : public TheoryRewriter
 {
  public:
-  /**
-   * Temporary hack for devision-by-zero until we refactor theory code from
-   * smt engine.
-   *
-   * @param node
-   *
-   * @return
-   */
-  static Node eliminateBVSDiv(TNode node);
-
   TheoryBVRewriter();
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
-
-  TrustNode expandDefinition(Node node) override;
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
@@ -94,6 +82,13 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUaddo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSaddo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUmulo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSmulo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUsubo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSsubo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSdivo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
 
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);

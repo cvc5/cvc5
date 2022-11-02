@@ -27,6 +27,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
+#include "smt/solver_engine_state.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_ensure_closed.h"
@@ -72,6 +73,7 @@ namespace theory {
   CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_UF)        \
   CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_ARITH)     \
   CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_BV)        \
+  CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_FF)        \
   CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_FP)        \
   CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_ARRAYS)    \
   CVC5_FOR_EACH_THEORY_STATEMENT(cvc5::internal::theory::THEORY_DATATYPES) \
@@ -225,7 +227,6 @@ TheoryEngine::TheoryEngine(Env& env)
       d_decManager(new DecisionManager(userContext())),
       d_relManager(nullptr),
       d_inConflict(context(), false),
-      d_inSatMode(false),
       d_incomplete(context(), false),
       d_incompleteTheory(context(), THEORY_BUILTIN),
       d_incompleteId(context(), IncompleteId::UNKNOWN),
@@ -494,12 +495,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         d_relManager->notifyCandidateModel(getModel());
       }
-      if (!d_inConflict && !needCheck())
-      {
-        // We only mark that we are in "SAT mode". We build the model later only
-        // if the user asks for it via getBuiltModel.
-        d_inSatMode = true;
-      }
     }
 
     Trace("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
@@ -606,15 +601,9 @@ TheoryModel* TheoryEngine::getModel()
 TheoryModel* TheoryEngine::getBuiltModel()
 {
   Assert(d_tc != nullptr);
-  // If this method was called, we should be in SAT mode, and produceModels
-  // should be true.
+  // If this method was called, produceModels should be true.
   AlwaysAssert(options().smt.produceModels);
-  if (!d_inSatMode)
-  {
-    // not available, perhaps due to interuption.
-    return nullptr;
-  }
-  // must build model at this point
+  // we must build model at this point
   if (!d_tc->buildModel())
   {
     return nullptr;
@@ -679,8 +668,6 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
-  // no longer in SAT mode
-  d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
 }
@@ -744,17 +731,10 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
-  theory::TheoryId tid = d_env.theoryOf(atom);
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
-  {
-    stringstream ss;
-    ss << "The logic was specified as " << logicInfo().getLogicString()
-       << ", which doesn't include " << tid
-       << ", but got a preprocessing-time fact for that theory." << endl
-       << "The fact:" << endl
-       << literal;
-    throw LogicException(ss.str());
-  }
+  // This should be implied by the check during ppRewrite, in particular
+  // literal should have been passed to ppRewrite.
+  Assert(isTheoryEnabled(d_env.theoryOf(atom))
+         || d_env.theoryOf(atom) == THEORY_SAT_SOLVER);
 
   Theory::PPAssertStatus solveStatus =
       theoryOf(atom)->ppAssert(tliteral, substitutionOut);
@@ -767,6 +747,20 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
 {
   Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(term);
+  // We check whether the theory is enabled here (instead of during solve),
+  // since there are corner cases where facts may involve terms that belong
+  // to other theories, e.g. equalities between variables belong to UF when
+  // theoryof-mode is `term`.
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
+    stringstream ss;
+    ss << "The logic was specified as " << logicInfo().getLogicString()
+       << ", which doesn't include " << tid
+       << ", but got a preprocessing-time term for that theory." << std::endl
+       << "The term:" << std::endl
+       << term;
+    throw LogicException(ss.str());
+  }
   TrustNode trn = d_theoryTable[tid]->ppRewrite(term, lems);
   // should never introduce a skolem to eliminate an equality
   Assert(lems.empty() || term.getKind() != kind::EQUAL);
@@ -1086,18 +1080,6 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b)
   return d_sharedSolver->getEqualityStatus(a, b);
 }
 
-std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
-{
-  // if we are not in SAT mode, or there is no relevance manager, we fail
-  if (!d_inSatMode || d_relManager == nullptr)
-  {
-    success = false;
-    // return empty set
-    return std::unordered_set<TNode>();
-  }
-  return d_relManager->getRelevantAssertions(success);
-}
-
 void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
 {
   Assert(d_relManager != nullptr);
@@ -1118,6 +1100,18 @@ Node TheoryEngine::getModelValue(TNode var) {
   Assert(d_sharedSolver->isShared(var))
       << "node " << var << " is not shared" << std::endl;
   return theoryOf(d_env.theoryOf(var.getType()))->getModelValue(var);
+}
+
+std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)
+{
+  // if there is no relevance manager, we fail
+  if (d_relManager == nullptr)
+  {
+    success = false;
+    // return empty set
+    return std::unordered_set<TNode>();
+  }
+  return d_relManager->getRelevantAssertions(success);
 }
 
 TrustNode TheoryEngine::getExplanation(TNode node)
@@ -1300,7 +1294,8 @@ void TheoryEngine::lemma(TrustNode tlemma,
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
 
-  Assert(!expr::hasFreeVar(lemma));
+  Assert(!expr::hasFreeVar(lemma))
+      << "Lemma " << lemma << " from " << from << " has a free variable";
 
   // when proofs are enabled, we ensure the trust node has a generator by
   // adding a trust step to the lazy proof maintained by this class

@@ -27,6 +27,7 @@ const char* toString(LfscRule id)
 {
   switch (id)
   {
+    case LfscRule::DEFINITION: return "refl";
     case LfscRule::SCOPE: return "scope";
     case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";

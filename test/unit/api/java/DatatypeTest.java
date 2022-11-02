@@ -37,7 +37,7 @@ class DatatypeTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
@@ -228,7 +228,7 @@ class DatatypeTest
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     cons.addSelector("head", intSort);
     cons.addSelectorSelf("tail");
-    Sort nullSort = d_solver.getNullSort();
+    Sort nullSort = new Sort();
     assertThrows(CVC5ApiException.class, () -> cons.addSelector("null", nullSort));
     dtypeSpec.addConstructor(cons);
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
@@ -325,7 +325,7 @@ class DatatypeTest
     assertEquals(dselTail.getCodomainSort(), dtypeSort);
 
     // possible to construct null datatype declarations if not using solver
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullDatatypeDecl().getName());
+    assertThrows(CVC5ApiException.class, () -> new DatatypeDecl().getName());
   }
 
   @Test
