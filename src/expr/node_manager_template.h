@@ -46,6 +46,7 @@ class BoundVarManager;
 
 class DType;
 class Oracle;
+class Integer;
 class Rational;
 
 namespace expr {
@@ -107,14 +108,6 @@ class NodeManager
    * @returns true if Nodes of Kind k have operators.
    */
   static bool hasOperator(Kind k);
-
-  /**
-   * Initialize the node manager by adding a null node to the pool and filling
-   * the caches for `operatorOf()`. This method must be called before using the
-   * NodeManager. This method may be called multiple times. Subsequent calls to
-   * this method have no effect.
-   */
-  void init();
 
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
@@ -448,6 +441,9 @@ class NodeManager
 
   /** Make the type of bitvectors of size <code>size</code> */
   TypeNode mkBitVectorType(unsigned size);
+
+  /** Make the type of finite field elements modulo <code>modulus</code> */
+  TypeNode mkFiniteFieldType(const Integer& modulus);
 
   /** Make the type of arrays with the given parameterization */
   TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
@@ -879,14 +875,6 @@ class NodeManager
   void poolRemove(expr::NodeValue* nv);
 
   /**
-   * Determine if nv is currently being deleted by the NodeManager.
-   */
-  inline bool isCurrentlyDeleting(const expr::NodeValue* nv) const
-  {
-    return d_nodeUnderDeletion == nv;
-  }
-
-  /**
    * Register a NodeValue as a zombie.
    */
   inline void markForDeletion(expr::NodeValue* nv)
@@ -949,9 +937,10 @@ class NodeManager
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
-   * mkVar("a", type) again, you have two variables.  The NodeManager
-   * version of this is private to avoid internal uses of mkVar() from
-   * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
+   * mkVar("a", type) again, you have two variables.  This method is private to
+   * avoid internal uses of mkVar() from within cvc5. Instead, the SkolemManager
+   * submodule is the interface for constructing internal variables
+   * (see expr/skolem_manager.h).
    */
   Node mkVar(const std::string& name, const TypeNode& type);
 
@@ -964,8 +953,6 @@ class NodeManager
   std::unique_ptr<BoundVarManager> d_bvManager;
 
   NodeValuePool d_nodeValuePool;
-
-  bool d_initialized;
 
   /** The next node identifier */
   size_t d_nextId;
@@ -1027,19 +1014,18 @@ class NodeManager
 }; /* class NodeManager */
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
-                                         TypeNode constituentType) {
-  CheckArgument(!indexType.isNull(), indexType,
-                "unexpected NULL index type");
-  CheckArgument(!constituentType.isNull(), constituentType,
-                "unexpected NULL constituent type");
+                                         TypeNode constituentType)
+{
+  Assert(!indexType.isNull()) << "unexpected NULL index type";
+  Assert(!constituentType.isNull()) << "unexpected NULL constituent type";
   Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
 
-inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
-  CheckArgument(!elementType.isNull(), elementType,
-                "unexpected NULL element type");
+inline TypeNode NodeManager::mkSetType(TypeNode elementType)
+{
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
@@ -1056,14 +1042,14 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
       << "NodeValue already in the pool!";
-  d_nodeValuePool.insert(nv);// FIXME multithreading
+  d_nodeValuePool.insert(nv);
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
       << "NodeValue is not in the pool!";
 
-  d_nodeValuePool.erase(nv);// FIXME multithreading
+  d_nodeValuePool.erase(nv);
 }
 
 inline Kind NodeManager::operatorToKind(TNode n) {

@@ -21,11 +21,15 @@ libcvc5_add_sources(
   bin_heap.h
   bitvector.cpp
   bitvector.h
+  ff_val.cpp
+  ff_val.h
   bool.h
   cardinality.cpp
   cardinality.h
   cardinality_class.cpp
   cardinality_class.h
+  cocoa_globals.cpp
+  cocoa_globals.h
   dense_map.h
   didyoumean.cpp
   didyoumean.h

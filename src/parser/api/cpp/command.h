@@ -19,8 +19,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__COMMAND_H
-#define CVC5__COMMAND_H
+#ifndef CVC5__PARSER__COMMAND_H
+#define CVC5__PARSER__COMMAND_H
 
 #include <iosfwd>
 #include <sstream>
@@ -36,16 +36,11 @@ namespace cvc5 {
 class Solver;
 class Term;
 
+namespace parser {
+
 class Command;
 class CommandStatus;
-
-namespace parser {
 class SymbolManager;
-}
-
-namespace smt {
-class Model;
-}
 
 /**
  * Convert a symbolic expression to string. This method differs from
@@ -69,7 +64,7 @@ class CVC5_EXPORT CommandStatus
 
  public:
   virtual ~CommandStatus() {}
-  void toStream(std::ostream& out) const;
+  virtual void toStream(std::ostream& out) const = 0;
   virtual CommandStatus& clone() const = 0;
 }; /* class CommandStatus */
 
@@ -79,6 +74,7 @@ class CVC5_EXPORT CommandSuccess : public CommandStatus
 
  public:
   static const CommandSuccess* instance() { return s_instance; }
+  void toStream(std::ostream& out) const override;
   CommandStatus& clone() const override
   {
     return const_cast<CommandSuccess&>(*this);
@@ -91,6 +87,7 @@ class CVC5_EXPORT CommandInterrupted : public CommandStatus
 
  public:
   static const CommandInterrupted* instance() { return s_instance; }
+  void toStream(std::ostream& out) const override;
   CommandStatus& clone() const override
   {
     return const_cast<CommandInterrupted&>(*this);
@@ -100,6 +97,7 @@ class CVC5_EXPORT CommandInterrupted : public CommandStatus
 class CVC5_EXPORT CommandUnsupported : public CommandStatus
 {
  public:
+  void toStream(std::ostream& out) const override;
   CommandStatus& clone() const override
   {
     return *new CommandUnsupported(*this);
@@ -108,12 +106,14 @@ class CVC5_EXPORT CommandUnsupported : public CommandStatus
 
 class CVC5_EXPORT CommandFailure : public CommandStatus
 {
-  std::string d_message;
-
  public:
-  CommandFailure(std::string message) : d_message(message) {}
+  CommandFailure(const std::string& message) : d_message(message) {}
+  void toStream(std::ostream& out) const override;
   CommandFailure& clone() const override { return *new CommandFailure(*this); }
   std::string getMessage() const { return d_message; }
+
+ private:
+  std::string d_message;
 }; /* class CommandFailure */
 
 /**
@@ -128,6 +128,7 @@ class CVC5_EXPORT CommandRecoverableFailure : public CommandStatus
 
  public:
   CommandRecoverableFailure(std::string message) : d_message(message) {}
+  void toStream(std::ostream& out) const override;
   CommandRecoverableFailure& clone() const override
   {
     return *new CommandRecoverableFailure(*this);
@@ -138,7 +139,6 @@ class CVC5_EXPORT CommandRecoverableFailure : public CommandStatus
 class CVC5_EXPORT Command
 {
  public:
-
   Command();
   Command(const Command& cmd);
 
@@ -375,7 +375,7 @@ class CVC5_EXPORT DeclareOracleFunCommand : public Command
   Sort getSort() const;
   const std::string& getBinaryName() const;
 
-  void invoke(Solver* solver, parser::SymbolManager* sm) override;
+  void invoke(Solver* solver, SymbolManager* sm) override;
   std::string getCommandName() const override;
   void toStream(std::ostream& out) const override;
 
@@ -749,14 +749,14 @@ class CVC5_EXPORT GetValueCommand : public Command
 {
  protected:
   std::vector<cvc5::Term> d_terms;
-  cvc5::Term d_result;
+  std::vector<cvc5::Term> d_result;
 
  public:
   GetValueCommand(cvc5::Term term);
   GetValueCommand(const std::vector<cvc5::Term>& terms);
 
   const std::vector<cvc5::Term>& getTerms() const;
-  cvc5::Term getResult() const;
+  const std::vector<cvc5::Term>& getResult() const;
   void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
   void printResult(cvc5::Solver* solver, std::ostream& out) const override;
   std::string getCommandName() const override;
@@ -826,7 +826,7 @@ class CVC5_EXPORT BlockModelValuesCommand : public Command
 class CVC5_EXPORT GetProofCommand : public Command
 {
  public:
-  GetProofCommand();
+  GetProofCommand(modes::ProofComponent c = modes::PROOF_COMPONENT_FULL);
 
   void invoke(cvc5::Solver* solver, parser::SymbolManager* sm) override;
 
@@ -838,6 +838,8 @@ class CVC5_EXPORT GetProofCommand : public Command
  private:
   /** the result of the getProof call */
   std::string d_result;
+  /** the requested proof component */
+  modes::ProofComponent d_component;
 }; /* class GetProofCommand */
 
 class CVC5_EXPORT GetInstantiationsCommand : public Command
@@ -869,9 +871,7 @@ class CVC5_EXPORT GetInterpolantCommand : public Command
  public:
   GetInterpolantCommand(const std::string& name, Term conj);
   /** The argument g is the grammar of the interpolation query */
-  GetInterpolantCommand(const std::string& name,
-                        Term conj,
-                        Grammar* g);
+  GetInterpolantCommand(const std::string& name, Term conj, Grammar* g);
 
   /** Get the conjecture of the interpolation query */
   cvc5::Term getConjecture() const;
@@ -1221,6 +1221,7 @@ class CVC5_EXPORT QuitCommand : public Command
   void toStream(std::ostream& out) const override;
 }; /* class QuitCommand */
 
+}  // namespace parser
 }  // namespace cvc5
 
-#endif /* CVC5__COMMAND_H */
+#endif /* CVC5__PARSER__COMMAND_H */

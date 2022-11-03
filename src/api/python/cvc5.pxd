@@ -9,7 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
-from cvc5types cimport BlockModelsMode, LearnedLitType, RoundingMode, UnknownExplanation
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -206,7 +206,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Solver() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
-        Sort getNullSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
         Sort getRoundingModeSort() except +
@@ -312,7 +311,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
                           Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
-        string getProof() except +
+        string getProof(ProofComponent c) except +
         vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
@@ -352,6 +351,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
         Statistics getStatistics() except +
+        string getVersion() except +
 
     cdef cppclass Grammar:
         Grammar() except +

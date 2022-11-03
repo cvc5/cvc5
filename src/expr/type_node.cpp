@@ -14,6 +14,7 @@
  */
 #include "expr/type_node.h"
 
+#include <cmath>
 #include <vector>
 
 #include "expr/dtype_cons.h"
@@ -21,9 +22,12 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
+#include "util/ff_val.h"
+#include "util/integer.h"
 
 using namespace std;
 
@@ -99,8 +103,8 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint()
-           || isRoundingMode())
+  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
+           || isFiniteField())
   {
     ret = CardinalityClass::FINITE;
   }
@@ -197,6 +201,31 @@ CardinalityClass TypeNode::getCardinalityClass()
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
+}
+
+bool TypeNode::isCardinalityLessThan(size_t n)
+{
+  if (isBoolean())
+  {
+    return n > 2;
+  }
+  if (isBitVector())
+  {
+    return std::log2(n) > getBitVectorSize();
+  }
+  if (isFloatingPoint())
+  {
+    return Integer(n) > theory::fp::utils::getCardinality(*this);
+  }
+  if (isRoundingMode())
+  {
+    return n > 5;
+  }
+  if (isFiniteField())
+  {
+    return Integer(n) > getFfSize();
+  }
+  return false;
 }
 
 /** Attribute true for types that are closed enumerable */
@@ -427,9 +456,13 @@ bool TypeNode::isUnresolvedDatatype() const
   return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
+bool TypeNode::hasName() const
+{
+  return hasAttribute(expr::VarNameAttr());
+}
+
 std::string TypeNode::getName() const
 {
-  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
@@ -464,6 +497,13 @@ bool TypeNode::isUninterpretedSortConstructor() const
 bool TypeNode::isFloatingPoint() const
 {
   return getKind() == kind::FLOATINGPOINT_TYPE;
+}
+
+bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const
+{
+  return (getKind() == kind::FLOATINGPOINT_TYPE
+          && getConst<FloatingPointSize>().exponentWidth() == exp
+          && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
 bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
@@ -546,10 +586,28 @@ bool TypeNode::isBitVector(unsigned size) const
           && getConst<BitVectorSize>() == size);
 }
 
+unsigned TypeNode::getFloatingPointExponentSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().exponentWidth();
+}
+
+unsigned TypeNode::getFloatingPointSignificandSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().significandWidth();
+}
+
 uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();
+}
+
+const Integer& TypeNode::getFfSize() const
+{
+  Assert(getKind() == kind::FINITE_FIELD_TYPE);
+  return getConst<FfSize>();
 }
 
 TypeNode TypeNode::getRangeType() const

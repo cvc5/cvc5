@@ -19,12 +19,9 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/node_manager.h"    // for VarNameAttr
 #include "options/language.h"     // for LANG_AST
 #include "options/smt_options.h"  // for unsat cores
 #include "proof/unsat_core.h"
-#include "smt/command.h"
-#include "smt/solver_engine.h"
 
 using namespace std;
 
@@ -46,13 +43,6 @@ void TptpPrinter::toStream(std::ostream& out, Kind k) const
   out << k;
 }
 
-void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
-{
-  options::ioutils::Scope scope(out);
-  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
-  s->toStream(out);
-}/* TptpPrinter::toStream() */
-
 void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
   std::string statusName(m.isKnownSat() ? "FiniteModel"
@@ -66,6 +56,34 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
   }
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
+}
+
+void TptpPrinter::toStreamCmdSuccess(std::ostream& out) const
+{
+  getPrinter(Language::LANG_SMTLIB_V2_6)->toStreamCmdSuccess(out);
+}
+
+void TptpPrinter::toStreamCmdInterrupted(std::ostream& out) const
+{
+  getPrinter(Language::LANG_SMTLIB_V2_6)->toStreamCmdInterrupted(out);
+}
+
+void TptpPrinter::toStreamCmdUnsupported(std::ostream& out) const
+{
+  getPrinter(Language::LANG_SMTLIB_V2_6)->toStreamCmdUnsupported(out);
+}
+
+void TptpPrinter::toStreamCmdFailure(std::ostream& out,
+                                     const std::string& message) const
+{
+  getPrinter(Language::LANG_SMTLIB_V2_6)->toStreamCmdFailure(out, message);
+}
+
+void TptpPrinter::toStreamCmdRecoverableFailure(
+    std::ostream& out, const std::string& message) const
+{
+  getPrinter(Language::LANG_SMTLIB_V2_6)
+      ->toStreamCmdRecoverableFailure(out, message);
 }
 
 void TptpPrinter::toStreamModelSort(std::ostream& out,

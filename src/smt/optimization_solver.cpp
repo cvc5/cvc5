@@ -94,9 +94,10 @@ std::ostream& operator<<(std::ostream& out,
 }
 
 OptimizationSolver::OptimizationSolver(SolverEngine* parent)
-    : d_parent(parent),
+    : EnvObj(parent->getEnv()),
+      d_parent(parent),
       d_optChecker(),
-      d_objectives(parent->getUserContext()),
+      d_objectives(userContext()),
       d_results()
 {
 }
@@ -156,7 +157,7 @@ std::unique_ptr<SolverEngine> OptimizationSolver::createOptCheckerWithTimeout(
   optChecker->setOption("incremental", "true");
   optChecker->setOption("produce-models", "true");
   // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
+  std::vector<Node> p_assertions = parentSMTSolver->getSubstitutedAssertions();
   for (const Node& e : p_assertions)
   {
     optChecker->assertFormula(e);

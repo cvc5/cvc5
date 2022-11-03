@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_UTILS_H
+#define CVC5__THEORY__BV__THEORY_BV_UTILS_H
 
 #include <set>
 #include <unordered_map>
@@ -188,12 +189,6 @@ Node mkInc(TNode t);
 /* Create bit-vector addition node representing the decrement of given node. */
 Node mkDec(TNode t);
 
-/* Unsigned multiplication overflow detection.
- * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
- * overflow detection circuits", 2001.
- * http://ieeexplore.ieee.org/document/987767 */
-Node mkUmulo(TNode t1, TNode t2);
-
 /* Create conjunction.  */
 Node mkConjunction(const std::vector<TNode>& nodes);
 
@@ -205,6 +200,8 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 }
-}
-}
+
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
+#endif

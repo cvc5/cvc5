@@ -20,7 +20,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "smt/solver_engine.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -1263,10 +1262,10 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(Env& env,
-                                     ProofGenerator* pppg,
-                                     rewriter::RewriteDb* rdb,
-                                     bool updateScopedAssumptions)
+ProofPostprocess::ProofPostprocess(Env& env,
+                                   ProofGenerator* pppg,
+                                   rewriter::RewriteDb* rdb,
+                                   bool updateScopedAssumptions)
     : EnvObj(env),
       d_cb(env, pppg, rdb, updateScopedAssumptions),
       // the update merges subproofs
@@ -1276,9 +1275,9 @@ ProofPostproccess::ProofPostproccess(Env& env,
 {
 }
 
-ProofPostproccess::~ProofPostproccess() {}
+ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.
@@ -1294,12 +1293,12 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   if (wasPedanticFailure)
   {
     AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
         << serr.str();
   }
 }
 
-void ProofPostproccess::setEliminateRule(PfRule rule)
+void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
 }
