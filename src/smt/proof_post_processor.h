@@ -51,7 +51,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
-   * 
+   *
    * @param pppg The proof generator that has proofs of preprocessed assertions
    * (derived from input assertions).
    */
@@ -258,8 +258,8 @@ class ProofPostprocess : protected EnvObj
                    rewriter::RewriteDb* rdb,
                    bool updateScopedAssumptions = true);
   ~ProofPostprocess();
-  /** post-process 
-   * 
+  /** post-process
+   *
    * @param pf The proof to process.
    * @param pppg The proof generator for pre-processing proofs.
    */
