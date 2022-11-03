@@ -10,11 +10,8 @@
 # directory for licensing information.
 # #############################################################################
 #
-# A simple start-up/tear-down test for cvc5.
+# A simple test for cvc5's finite field solver.
 #
-# This simple test just makes sure that the public interface is
-# minimally functional.  It is useful as a template to use for other
-# system tests.
 ##
 
 import cvc5
