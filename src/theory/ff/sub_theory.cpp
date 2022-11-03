@@ -275,12 +275,9 @@ void SubTheory::computeBasis(size_t factIndex)
       }
       Trace("ff::conflict") << "conflict " << ideal.trivialCoreIndices().size()
                             << "/" << d_facts.size() << " facts" << std::endl;
-      if (TraceChannel.isOn("ff::conflict"))
-      {
-        Trace("ff::conflict::debug")
-            << "conflict " << NodeManager::currentNM()->mkAnd(d_conflict)
-            << std::endl;
-      }
+      Trace("ff::conflict::debug")
+          << "conflict " << NodeManager::currentNM()->mkAnd(d_conflict)
+          << std::endl;
     }
   }
 }
