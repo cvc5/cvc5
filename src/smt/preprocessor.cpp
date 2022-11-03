@@ -53,7 +53,7 @@ void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
     // now construct preprocess proof generator
     d_pppg = std::make_unique<PreprocessProofGenerator>(
         d_env, userContext(), "smt::PreprocessProofGenerator");
-    d_propagator.enableProofs(userContext(), pppg);
+    d_propagator.enableProofs(userContext(), d_pppg.get());
   }
   
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(

@@ -32,6 +32,7 @@
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
+#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -116,7 +117,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, SmtSolver& smt, ProofScopeMode scopeMode)
 {
   Assertions& as = smt.getAssertions();
-  PreprocessProofGenerator * pppg = smt.getPreprocessor().getPreprocessProofGenerator();
+  PreprocessProofGenerator * pppg = smt.getPreprocessor()->getPreprocessProofGenerator();
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
   Trace("smt-proof")

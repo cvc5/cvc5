@@ -170,7 +170,6 @@ void SolverEngine::finishInit()
     NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
-    PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
     pnm = d_pfManager->getProofNodeManager();
@@ -1313,7 +1312,7 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pfn =
       d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
-  d_ucManager->getUnsatCore(pfn, as, core);
+  d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core);
   if (options().smt.minimalUnsatCores)
   {
     core = reduceUnsatCore(core);
@@ -1828,8 +1827,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
   te->getDifficultyMap(dmap);
   // then ask proof manager to translate dmap in terms of the input
-  Assertions& as = d_smtSolver->getAssertions();
-  d_pfManager->translateDifficultyMap(dmap, as);
+  d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }
 
 void SolverEngine::push()

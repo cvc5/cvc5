@@ -37,6 +37,7 @@ class RewriteDb;
 namespace smt {
 
 class Assertions;
+class SmtSolver;
 class PreprocessProofGenerator;
 class ProofPostprocess;
 

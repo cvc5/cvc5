@@ -253,7 +253,6 @@ class ProofPostprocess : protected EnvObj
    * consuming the proof, it's true by default.
    */
   ProofPostprocess(Env& env,
-                   ProofGenerator* pppg,
                    rewriter::RewriteDb* rdb,
                    bool updateScopedAssumptions = true);
   ~ProofPostprocess();
