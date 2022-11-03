@@ -55,7 +55,7 @@ void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
         d_env, userContext(), "smt::PreprocessProofGenerator");
     d_propagator.enableProofs(userContext(), d_pppg.get());
   }
-  
+
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
       d_env, te, pe, &d_propagator));
 
@@ -132,7 +132,7 @@ void Preprocessor::applySubstitutions(std::vector<Node>& ns)
   }
 }
 
-PreprocessProofGenerator * Preprocessor::getPreprocessProofGenerator()
+PreprocessProofGenerator* Preprocessor::getPreprocessProofGenerator()
 {
   return d_pppg.get();
 }

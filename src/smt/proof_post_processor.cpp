@@ -1276,7 +1276,8 @@ ProofPostprocess::ProofPostprocess(Env& env,
 
 ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostprocess::process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
+                               ProofGenerator* pppg)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.

@@ -88,7 +88,7 @@ class Preprocessor : protected EnvObj
   /** Same as above, for a list of assertions, updating in place */
   void applySubstitutions(std::vector<Node>& ns);
   /** Get the preprocess proof generator */
-  PreprocessProofGenerator * getPreprocessProofGenerator();
+  PreprocessProofGenerator* getPreprocessProofGenerator();
 
  private:
   /** The preprocess proof generator. */

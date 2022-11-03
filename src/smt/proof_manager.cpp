@@ -117,7 +117,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     std::shared_ptr<ProofNode> pfn, SmtSolver& smt, ProofScopeMode scopeMode)
 {
   Assertions& as = smt.getAssertions();
-  PreprocessProofGenerator * pppg = smt.getPreprocessor()->getPreprocessProofGenerator();
+  PreprocessProofGenerator* pppg =
+      smt.getPreprocessor()->getPreprocessProofGenerator();
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
   Trace("smt-proof")
