@@ -80,7 +80,6 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
   if (options().smt.produceProofs)
   {
