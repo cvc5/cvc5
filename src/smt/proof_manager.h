@@ -118,7 +118,8 @@ class PfManager : protected EnvObj
    * Connect proof to assertions
    *
    * Replaces the free assumptions of pfn that correspond to preprocessed
-   * assertions in as with their corresponding proof of preprocessing.
+   * assertions maintained by smt with their corresponding proof of
+   * preprocessing, which is obtained from the preprocessor of smt.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
    * respect to assertions in as. Note this includes equalities of the form
