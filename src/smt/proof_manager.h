@@ -110,7 +110,8 @@ class PfManager : protected EnvObj
    * assumption is the "source" of an assertion.
    *
    * @param dmap Map estimating the difficulty of preprocessed assertions
-   * @param as The input assertions
+   * @param smt The SMT solver that owns the assertions and the preprocess
+   * proof generator.
    */
   void translateDifficultyMap(std::map<Node, Node>& dmap, SmtSolver& smt);
 
