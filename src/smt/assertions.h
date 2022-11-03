@@ -23,13 +23,13 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 class AbstractValues;
+class PreprocessProofGenerator;
 
 /**
  * Contains all information pertaining to the assertions of an SMT engine.
@@ -83,11 +83,6 @@ class Assertions : protected EnvObj
    */
   void addDefineFunDefinition(Node n, bool global);
   /**
-   * Get the assertions pipeline, which contains the set of assertions we are
-   * currently processing.
-   */
-  preprocessing::AssertionPipeline& getAssertionPipeline();
-  /**
    * Get assertions list corresponding to the original list of assertions,
    * before preprocessing. This includes assertions corresponding to define-fun
    * and define-fun-rec.
@@ -103,19 +98,6 @@ class Assertions : protected EnvObj
    * on initializeCheckSat.
    */
   std::vector<Node>& getAssumptions();
-
-  //------------------------------------ for proofs
-  /**
-   * Enable proofs for this assertions class. This must be called
-   * explicitly since we construct the assertions before we know
-   * whether proofs are enabled.
-   *
-   * @param pppg The preprocess proof generator of the proof manager.
-   */
-  void enableProofs(smt::PreprocessProofGenerator* pppg);
-  /** Is proof enabled? */
-  bool isProofEnabled() const;
-  //------------------------------------ end for proofs
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -159,8 +141,6 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
-  /** Assertions in the preprocessing pipeline */
-  preprocessing::AssertionPipeline d_assertions;
 };
 
 }  // namespace smt

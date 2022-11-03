@@ -19,6 +19,7 @@
 #include "options/expr_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"

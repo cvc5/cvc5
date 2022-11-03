@@ -24,6 +24,7 @@
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
+#include "preprocessing/assertion_pipeline.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -53,6 +54,14 @@ class SmtDriver : protected EnvObj
    */
   Result checkSat(const std::vector<Node>& assumptions);
 
+  /**
+   * Refresh the assertions that have been asserted in as. This moves the set of
+   * assertions that have been buffered into as, preprocesses them, pushes them
+   * into the SMT solver, and clears the buffer. We ensure that assertions
+   * are refreshed eagerly during user pushes to ensure that assertions are
+   * only preprocessed in one context.
+   */
+  void refreshAssertions();
  protected:
   /**
    * Check satisfiability next, return the result.
@@ -64,7 +73,7 @@ class SmtDriver : protected EnvObj
    * Otherwise, the returned result is the final one returned by the
    * checkSatisfiability method above.
    */
-  virtual Result checkSatNext() = 0;
+  virtual Result checkSatNext(preprocessing::AssertionPipeline& ap) = 0;
   /**
    * Get the next assertions. This is called immediately after checkSatNext
    * where checkAgain has been set to true. This populates assertions with
@@ -73,7 +82,7 @@ class SmtDriver : protected EnvObj
    * Note that `as` is always the assertions of the underlying solver d_smt
    * currently.
    */
-  virtual void getNextAssertions(Assertions& as) = 0;
+  virtual void getNextAssertions(preprocessing::AssertionPipeline& ap) = 0;
   /** The underlying SMT solver */
   SmtSolver& d_smt;
   /**
@@ -81,6 +90,8 @@ class SmtDriver : protected EnvObj
    * if the checkSatNext method ever sets checkAgain to true.
    */
   ContextManager* d_ctx;
+  /** assertions pipeline */
+  preprocessing::AssertionPipeline d_ap;
 };
 
 /**
@@ -96,9 +107,13 @@ class SmtDriverSingleCall : public SmtDriver
 
  protected:
   /** Check sat next, takes result of underlying SMT solver only */
-  Result checkSatNext() override;
+  Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
   /** Never called */
-  void getNextAssertions(Assertions& as) override;
+  void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
+  /**
+   * The first index in the assertion list that we have not processed yet.
+   */
+  context::CDO<size_t> d_assertionListIndex;
 };
 
 }  // namespace smt

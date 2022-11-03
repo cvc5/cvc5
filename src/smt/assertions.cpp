@@ -39,8 +39,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_absValues(absv),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
-      d_globalDefineFunLemmasIndex(userContext(), 0),
-      d_assertions(env)
+      d_globalDefineFunLemmasIndex(userContext(), 0)
 {
 }
 
@@ -85,11 +84,6 @@ void Assertions::assertFormula(const Node& n)
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
 
-preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
-{
-  return d_assertions;
-}
-
 const context::CDList<Node>& Assertions::getAssertionList() const
 {
   return d_assertionList;
@@ -104,16 +98,16 @@ void Assertions::addFormula(TNode n,
                             bool isFunDef,
                             bool maybeHasFv)
 {
+  if (n.isConst() && n.getConst<bool>())
+  {
+    // true, nothing to do
+    return;
+  }
   // add to assertion list
   d_assertionList.push_back(n);
   if (isFunDef)
   {
     d_assertionListDefs.push_back(n);
-  }
-  if (n.isConst() && n.getConst<bool>())
-  {
-    // true, nothing to do
-    return;
   }
   Trace("smt") << "Assertions::addFormula(" << n
                << ", isFunDef = " << isFunDef << std::endl;
@@ -156,9 +150,6 @@ void Assertions::addFormula(TNode n,
       throw ModalException(se.str().c_str());
     }
   }
-
-  // Add the normalized formula to the queue
-  d_assertions.push_back(n, true);
 }
 
 void Assertions::addDefineFunDefinition(Node n, bool global)
@@ -192,16 +183,6 @@ void Assertions::ensureBoolean(const Node& n)
        << "Its type      : " << type;
     throw TypeCheckingExceptionPrivate(n, ss.str());
   }
-}
-
-void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
-{
-  d_assertions.enableProofs(pppg);
-}
-
-bool Assertions::isProofEnabled() const
-{
-  return d_assertions.isProofEnabled();
 }
 
 }  // namespace smt

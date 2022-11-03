@@ -27,15 +27,13 @@ namespace smt {
 SmtDriverDeepRestarts::SmtDriverDeepRestarts(Env& env,
                                              SmtSolver& smt,
                                              ContextManager* ctx)
-    : SmtDriver(env, smt, ctx)
+    : SmtDriver(env, smt, ctx), d_firstTime(true)
 {
 }
 
-Result SmtDriverDeepRestarts::checkSatNext()
+Result SmtDriverDeepRestarts::checkSatNext(preprocessing::AssertionPipeline& ap)
 {
   d_zll.clear();
-  preprocessing::AssertionPipeline& ap =
-      d_smt.getAssertions().getAssertionPipeline();
   d_smt.preprocess(ap);
   d_smt.assertToInternal(ap);
   Result result = d_smt.checkSatInternal();
@@ -53,18 +51,27 @@ Result SmtDriverDeepRestarts::checkSatNext()
   return result;
 }
 
-void SmtDriverDeepRestarts::getNextAssertions(Assertions& as)
+void SmtDriverDeepRestarts::getNextAssertions(preprocessing::AssertionPipeline& ap)
 {
+  if (d_firstTime)
+  {
+    Assertions& as = d_smt.getAssertions();
+    const context::CDList<Node>& al = as.getAssertionList();
+    for (const Node& a : al)
+    {
+      ap.push_back(a);
+    }
+    return;
+  }
   Trace("deep-restart") << "Have " << d_zll.size()
                         << " zero level learned literals" << std::endl;
-  preprocessing::AssertionPipeline& apr = as.getAssertionPipeline();
   // Copy the preprocessed assertions and skolem map information directly
   const std::vector<Node>& ppAssertions = d_smt.getPreprocessedAssertions();
   for (const Node& a : ppAssertions)
   {
-    apr.push_back(a);
+    ap.push_back(a);
   }
-  preprocessing::IteSkolemMap& ismr = apr.getIteSkolemMap();
+  preprocessing::IteSkolemMap& ismr = ap.getIteSkolemMap();
   const std::unordered_map<size_t, Node>& ppSkolemMap =
       d_smt.getPreprocessedSkolemMap();
   for (const std::pair<const size_t, Node>& k : ppSkolemMap)
@@ -87,7 +94,7 @@ void SmtDriverDeepRestarts::getNextAssertions(Assertions& as)
   for (TNode lit : d_zll)
   {
     Trace("deep-restart-lit") << "Restart learned lit: " << lit << std::endl;
-    apr.push_back(lit);
+    ap.push_back(lit);
     if (Configuration::isAssertionBuild())
     {
       Assert(d_allLearnedLits.find(lit) == d_allLearnedLits.end())

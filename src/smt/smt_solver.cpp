@@ -27,6 +27,7 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
+#include "preprocessing/assertion_pipeline.h"
 
 using namespace std;
 
@@ -153,15 +154,6 @@ Result SmtSolver::checkSatInternal()
   return result;
 }
 
-void SmtSolver::refreshAssertions()
-{
-  // preprocess
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
-  preprocess(ap);
-  // assert to internal
-  assertToInternal(ap);
-}
-
 void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
@@ -224,8 +216,6 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
-  // clear the current assertions
-  ap.clear();
 }
 
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const

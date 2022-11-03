@@ -44,10 +44,12 @@ class SmtDriverDeepRestarts : public SmtDriver
   SmtDriverDeepRestarts(Env& env, SmtSolver& smt, ContextManager* ctx);
 
  protected:
-  Result checkSatNext() override;
-  void getNextAssertions(Assertions& as) override;
+  Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
+  void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
 
  private:
+  /** first time? */
+  bool d_firstTime;
   /** The current learned literals */
   std::vector<Node> d_zll;
   /** All learned literals, used for debugging */
