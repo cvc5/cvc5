@@ -70,11 +70,6 @@ bool Preprocessor::process(preprocessing::AssertionPipeline& ap)
     // nothing to do
     return true;
   }
-  // enable proofs if necessary
-  if (d_pppg)
-  {
-    ap.enableProofs(d_pppg.get());
-  }
   if (d_assertionsProcessed && options().base.incrementalSolving)
   {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a

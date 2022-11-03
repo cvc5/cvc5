@@ -82,6 +82,11 @@ void SmtSolver::finishInit()
   d_propEngine->finishInit();
 
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  
+  if (options().smt.produceProofs)
+  {
+    d_asserts.enableProofs(d_pp.getPreprocessProofGenerator());
+  }
 }
 
 void SmtSolver::resetAssertions()
