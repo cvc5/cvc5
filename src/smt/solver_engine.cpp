@@ -173,10 +173,6 @@ void SolverEngine::finishInit()
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
-    // enable it in the assertions pipeline
-    d_smtSolver->getAssertions().enableProofs(pppg);
-    // enabled proofs in the preprocessor
-    d_smtSolver->getPreprocessor()->enableProofs(pppg);
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -1277,8 +1273,7 @@ void SolverEngine::checkProof()
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
-    Assertions& as = d_smtSolver->getAssertions();
-    d_pfManager->connectProofToAssertions(pePfn, as);
+    d_pfManager->connectProofToAssertions(pePfn, *d_smtSolver.get());
   }
 }
 
@@ -1315,9 +1310,8 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
 
   Assert(pepf != nullptr);
-  Assertions& as = d_smtSolver->getAssertions();
   std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, as);
+      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, as, core);
   if (options().smt.minimalUnsatCores)
@@ -1566,7 +1560,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
-    Assertions& as = d_smtSolver->getAssertions();
     ProofScopeMode scopeMode =
         connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
@@ -1575,7 +1568,7 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
-      p = d_pfManager->connectProofToAssertions(p, as, scopeMode);
+      p = d_pfManager->connectProofToAssertions(p, *d_smtSolver.get(), scopeMode);
     }
   }
   // print all proofs

@@ -111,7 +111,7 @@ class PfManager : protected EnvObj
    * @param dmap Map estimating the difficulty of preprocessed assertions
    * @param as The input assertions
    */
-  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
+  void translateDifficultyMap(std::map<Node, Node>& dmap, SmtSolver& smt);
 
   /**
    * Connect proof to assertions
@@ -126,7 +126,7 @@ class PfManager : protected EnvObj
    */
   std::shared_ptr<ProofNode> connectProofToAssertions(
       std::shared_ptr<ProofNode> pfn,
-      Assertions& as,
+      SmtSolver& smt,
       ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
@@ -135,8 +135,6 @@ class PfManager : protected EnvObj
   ProofNodeManager* getProofNodeManager() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
-  /** Get the proof generator for proofs of preprocessing. */
-  smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
   /**
@@ -155,8 +153,6 @@ class PfManager : protected EnvObj
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The preprocess proof generator. */
-  std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostprocess> d_pfpp;
 }; /* class SolverEngine */

@@ -45,7 +45,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
 {
  public:
   ProofPostprocessCallback(Env& env,
-                           ProofGenerator* pppg,
                            rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
@@ -53,7 +52,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
    */
-  void initializeUpdate();
+  void initializeUpdate(ProofGenerator* pppg);
   /**
    * Set eliminate rule, which adds rule to the list of rules we will eliminate
    * during update. This adds rule to d_elimRules. Supported rules for
@@ -259,7 +258,7 @@ class ProofPostprocess : protected EnvObj
                    bool updateScopedAssumptions = true);
   ~ProofPostprocess();
   /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
+  void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
 
