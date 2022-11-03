@@ -51,6 +51,9 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
+   * 
+   * @param pppg The proof generator that has proofs of preprocessed assertions
+   * (derived from input assertions).
    */
   void initializeUpdate(ProofGenerator* pppg);
   /**
@@ -247,7 +250,6 @@ class ProofPostprocess : protected EnvObj
  public:
   /**
    * @param env The environment we are using
-   * @param pppg The proof generator for pre-processing proofs
    * @param updateScopedAssumptions Whether we post-process assumptions in
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
@@ -256,7 +258,11 @@ class ProofPostprocess : protected EnvObj
                    rewriter::RewriteDb* rdb,
                    bool updateScopedAssumptions = true);
   ~ProofPostprocess();
-  /** post-process */
+  /** post-process 
+   * 
+   * @param pf The proof to process.
+   * @param pppg The proof generator for pre-processing proofs.
+   */
   void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);

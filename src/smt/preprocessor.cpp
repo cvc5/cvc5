@@ -47,10 +47,9 @@ Preprocessor::~Preprocessor() {}
 
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
+  // set up the preprocess proof generator, if necessary
   if (options().smt.produceProofs)
   {
-    // set up the preprocess proof generator, if necessary
-    // now construct preprocess proof generator
     d_pppg = std::make_unique<PreprocessProofGenerator>(
         d_env, userContext(), "smt::PreprocessProofGenerator");
     d_propagator.enableProofs(userContext(), d_pppg.get());
