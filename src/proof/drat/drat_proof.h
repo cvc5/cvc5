@@ -42,7 +42,7 @@ enum DratInstructionKind
  */
 struct DratInstruction
 {
-  DratInstruction(DratInstructionKind kind, prop::SatClause clause);
+  DratInstruction(DratInstructionKind kind, const prop::SatClause& clause);
 
   DratInstructionKind d_kind;
   prop::SatClause d_clause;

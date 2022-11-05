@@ -121,7 +121,7 @@ class CnfStream : protected EnvObj
   bool hasLiteral(TNode node) const;
 
   /**
-   * Returns true iff CNF stream has a mapping for the giving literal
+   * Returns true iff CNF stream has a mapping for the given literal
    * @param literal the literal
    */
   bool hasLiteral(const SatLiteral& literal) const;

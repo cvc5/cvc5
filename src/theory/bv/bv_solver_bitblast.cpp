@@ -352,7 +352,8 @@ void BVSolverBitblast::initSatSolver()
       d_satSolver.get(),
       d_bbRegistrar.get(),
       d_nullContext.get(),
-      /** If we are producing proofs for the SAT solver, we need that all
+      /**
+       * If we are producing proofs for the SAT solver, we need that all
        * literals created in the CNF stream are tracked, which is not the case
        * with FormulaLitPolicy::INTERNAL
        */
@@ -420,7 +421,7 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   registeredAtoms.clear();
 }
 
-std::vector<Node> BVSolverBitblast::convertDratProof(proof::DratProof dratProof)
+std::vector<Node> BVSolverBitblast::convertDratProof(const proof::DratProof& dratProof) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Node cl = nm->mkBoundVar("cl", nm->booleanType());
