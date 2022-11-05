@@ -97,7 +97,7 @@ class BVSolverBitblast : public BVSolver
    * marker of whether it's a clause being added or deleted followed by the
    * Node-level literals.
    */
-  std::vector<Node> convertDratProof(proof::DratProof dratProof);
+  std::vector<Node> convertDratProof(const proof::DratProof& dratProof) const;
 
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<NodeBitblaster> d_bitblaster;

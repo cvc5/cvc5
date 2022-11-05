@@ -25,9 +25,33 @@
 namespace cvc5::internal {
 namespace proof {
 
+// helper functions
+namespace {
+
+void insertSatLiteralIntoClause(prop::SatClause& clause,
+                                const std::string& dratLiteral)
+{
+  int32_t literal = stoi(dratLiteral);
+  clause.emplace_back(prop::SatLiteral(static_cast<uint64_t>(std::abs(literal)), literal < 0));
+}
+
+std::vector<std::string> splitString(const std::string& s, const char delim)
+{
+  std::stringstream ss(s);
+  std::string token;
+  std::vector<std::string> res;
+  while (std::getline(ss, token, delim))
+  {
+    res.push_back(token);
+  }
+  return res;
+}
+
+} // namespace (unnamed) helper functions
+
 // DratInstruction implementation
 DratInstruction::DratInstruction(DratInstructionKind kind,
-                                 prop::SatClause clause)
+                                 const prop::SatClause& clause)
     : d_kind(kind), d_clause(clause)
 {
   // All intialized
@@ -37,52 +61,18 @@ DratInstruction::DratInstruction(DratInstructionKind kind,
 
 DratProof::DratProof() : d_instructions() {}
 
-std::vector<std::string> splitString(std::string s, std::string splitter)
-{
-  std::vector<std::string> lines;
-  size_t pos = 0;
-  std::string token;
-  while ((pos = s.find(splitter)) != std::string::npos)
-  {
-    token = s.substr(0, pos);
-    s.erase(0, pos + splitter.length());
-    if (token.length() > 0)
-    {
-      lines.push_back(token);
-    }
-  }
-  token = s.substr(0, pos);
-  if (token.length() > 0)
-  {
-    lines.push_back(token);
-  }
-  return lines;
-}
-
-void insertSatLiteralIntoClause(prop::SatClause* clause,
-                                std::string dratLiteral)
-{
-  int literal = stoi(dratLiteral);
-  bool negated = literal < 0;
-  if (literal < 0)
-  {
-    literal *= -1;
-  }
-  clause->emplace_back(prop::SatLiteral((uint64_t)literal, negated));
-}
-
 DratProof DratProof::fromPlain(const std::string& s)
 {
   DratProof dratProof;
-  std::string dratLineSplitter = "\n";
+  char dratLineSplitter = '\n';
   std::vector<std::string> lines = splitString(s, dratLineSplitter);
 
   for (const std::string& line : lines)
   {
-    std::string dratColumnSplitter = " ";
+    char dratColumnSplitter = ' ';
     std::vector<std::string> columns = splitString(line, dratColumnSplitter);
     // last line, false derivation
-    if (line == lines[lines.size() - 1] && columns.size() == 1
+    if (line == lines.back() && columns.size() == 1
         && columns[0] == "0")
     {
       dratProof.d_instructions.emplace_back(
@@ -90,7 +80,7 @@ DratProof DratProof::fromPlain(const std::string& s)
       break;
     }
     DratInstructionKind kind = ADDITION;
-    int columnsStart = 0;
+    int32_t columnsStart = 0;
     if (columns[0] == "d")
     {
       // last but one column is the literal, last column is 0
@@ -101,7 +91,7 @@ DratProof DratProof::fromPlain(const std::string& s)
     // last column is 0
     for (std::size_t i = columnsStart, size = columns.size() - 1; i < size; i++)
     {
-      insertSatLiteralIntoClause(&currentClause, columns[i]);
+      insertSatLiteralIntoClause(currentClause, columns[i]);
     }
     if (currentClause.size() > 0)
     {
