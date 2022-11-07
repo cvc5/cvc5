@@ -22,9 +22,11 @@
 #include <unordered_set>
 #include <vector>
 
+#include "context/cdlist.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
@@ -43,7 +45,7 @@ class PreregisterRlv : protected EnvObj
 
   ~PreregisterRlv();
 
-  void notifyFormula(TNode n, std::vector<Node>& toPreregister);
+  void notifyPreRegister(TNode n, std::vector<Node>& toPreregister);
   
   void notifyCheck(std::vector<Node>& toPreregister);
  private:

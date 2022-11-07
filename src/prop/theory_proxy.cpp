@@ -23,6 +23,7 @@
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/parallel_options.h"
+#include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/proof_cnf_stream.h"
@@ -52,7 +53,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_prr(new PreregisterRlv(env)),
+      d_prr(nullptr),
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =
@@ -63,6 +64,10 @@ TheoryProxy::TheoryProxy(Env& env,
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
+  }
+  if (options().prop.preregisterRlv)
+  {
+    d_prr.reset(new PreregisterRlv(env));
   }
 }
 
@@ -147,8 +152,15 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
-  if (options().prop.preregisterRlv)
+  if (d_prr!=nullptr)
   {
+    std::vector<Node> toPreregister;
+    d_prr->notifyCheck(toPreregister);
+    for (const Node& nn : toPreregister)
+    {
+      d_theoryEngine->preRegister(nn);
+    }
+    return;
   }
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
@@ -362,14 +374,17 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n) 
 { 
-  if (options().prop.preregisterRlv)
+  if (d_prr!=nullptr)
   {
-    d_preregistering.push_back(n);
+    std::vector<Node> toPreregister;
+    d_prr->notifyPreRegister(n, toPreregister);
+    for (const Node& nn : toPreregister)
+    {
+      d_theoryEngine->preRegister(nn);
+    }
+    return;
   }
-  else
-  {
-    d_theoryEngine->preRegister(n);
-  }
+  d_theoryEngine->preRegister(n);
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

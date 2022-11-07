@@ -18,11 +18,11 @@
 namespace cvc5::internal {
 namespace prop {
 
-PreregisterRlv::PreregisterRlv(Env& env) : EnvObj(env) {}
+PreregisterRlv::PreregisterRlv(Env& env) : EnvObj(env), d_preregistering(context()), d_prindex(context()) {}
 
 PreregisterRlv::~PreregisterRlv() {}
 
-void PreregisterRlv::notifyFormula(TNode n, std::vector<Node>& toPreregister)
+void PreregisterRlv::notifyPreRegister(TNode n, std::vector<Node>& toPreregister)
 {
 }
 

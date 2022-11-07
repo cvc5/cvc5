@@ -26,6 +26,7 @@
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
+#include "prop/preregister_rlv.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
