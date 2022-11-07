@@ -142,7 +142,7 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {
-  d_theoryEngine->preRegister(getNode(SatLiteral(var)));
+  preRegister(getNode(SatLiteral(var)));
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {

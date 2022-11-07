@@ -80,3 +80,11 @@ name   = "SAT Layer"
   type       = "bool"
   default    = "false"
   help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"
+
+[[option]]
+  name       = "preregisterRlv"
+  category   = "expert"
+  long       = "preregister-rlv"
+  type       = "bool"
+  default    = "false"
+  help       = "only preregister atoms as they become relevant"
