@@ -138,7 +138,7 @@ TEST_F(TestApiBlackSort, isBitVector)
 TEST_F(TestApiBlackSort, isFiniteField)
 {
   ASSERT_TRUE(d_solver.mkFiniteFieldSort("7").isFiniteField());
-  ASSERT_NO_THROW(Sort().isFiniteField(), CVC5ApiException);
+  ASSERT_NO_THROW(Sort().isFiniteField());
 }
 
 TEST_F(TestApiBlackSort, isFloatingPoint)
