@@ -138,7 +138,7 @@ TEST_F(TestApiBlackSort, isBitVector)
 TEST_F(TestApiBlackSort, isFiniteField)
 {
   ASSERT_TRUE(d_solver.mkFiniteFieldSort("7").isFiniteField());
-  ASSERT_NO_THROW(Sort().isFiniteField());
+  ASSERT_NO_THROW(Sort().isFiniteField(), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSort, isFloatingPoint)
@@ -529,7 +529,7 @@ TEST_F(TestApiBlackSort, getFiniteFieldSize)
   Sort ffSort = d_solver.mkFiniteFieldSort("31");
   ASSERT_NO_THROW(ffSort.getFiniteFieldSize());
   ASSERT_EQ(ffSort.getFiniteFieldSize(), "31");
-  ASSERT_THROW(Sort().getFiniteFieldSize());
+  ASSERT_THROW(Sort().getFiniteFieldSize(), CVC5ApiException);
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   ASSERT_THROW(setSort.getFiniteFieldSize(), CVC5ApiException);
 }
