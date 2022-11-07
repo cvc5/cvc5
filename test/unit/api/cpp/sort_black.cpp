@@ -529,6 +529,7 @@ TEST_F(TestApiBlackSort, getFiniteFieldSize)
   Sort ffSort = d_solver.mkFiniteFieldSort("31");
   ASSERT_NO_THROW(ffSort.getFiniteFieldSize());
   ASSERT_EQ(ffSort.getFiniteFieldSize(), "31");
+  ASSERT_THROW(Sort().getFiniteFieldSize());
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   ASSERT_THROW(setSort.getFiniteFieldSize(), CVC5ApiException);
 }

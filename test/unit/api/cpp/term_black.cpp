@@ -929,6 +929,7 @@ TEST_F(TestApiBlackTerm, getFiniteFieldValue)
   Sort fS = d_solver.mkFiniteFieldSort("7");
   Term fV = d_solver.mkFiniteFieldElem("1", fS);
   ASSERT_EQ("1", fV.getFiniteFieldValue());
+  ASSERT_THROW(Term().getFiniteFieldValue());
   Term b1 = d_solver.mkBitVector(8, 15);
   ASSERT_THROW(b1.getFiniteFieldValue(), CVC5ApiException);
 }
