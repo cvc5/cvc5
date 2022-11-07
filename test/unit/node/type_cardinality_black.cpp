@@ -345,8 +345,8 @@ TEST_F(TestNodeBlackTypeCardinality, lessThan)
   ASSERT_FALSE(d_nodeManager->roundingModeType().isCardinalityLessThan(5));
   ASSERT_TRUE(d_nodeManager->roundingModeType().isCardinalityLessThan(6));
   ASSERT_FALSE(
-      d_nodeManager->mkFiniteFieldType(256).isCardinalityLessThan(256));
-  ASSERT_TRUE(d_nodeManager->mkFiniteFieldType(256).isCardinalityLessThan(257));
+      d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(11));
+  ASSERT_TRUE(d_nodeManager->mkFiniteFieldType(11).isCardinalityLessThan(13));
 }
 }  // namespace test
 }  // namespace cvc5::internal
