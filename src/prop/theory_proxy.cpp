@@ -52,6 +52,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
+      d_prr(new PreregisterRlv(env)),
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =
@@ -146,6 +147,9 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+  if (options().prop.preregisterRlv)
+  {
+  }
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
@@ -356,7 +360,17 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
+void TheoryProxy::preRegister(Node n) 
+{ 
+  if (options().prop.preregisterRlv)
+  {
+    d_preregistering.push_back(n);
+  }
+  else
+  {
+    d_theoryEngine->preRegister(n);
+  }
+}
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const

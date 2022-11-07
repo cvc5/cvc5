@@ -260,6 +260,8 @@ libcvc5_add_sources(
   prop/proof_post_processor.h
   prop/prop_engine.cpp
   prop/prop_engine.h
+  prop/preregister_rlv.cpp
+  prop/preregister_rlv.h
   prop/prop_proof_manager.cpp
   prop/prop_proof_manager.h
   prop/registrar.h

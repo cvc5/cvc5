@@ -214,7 +214,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
-
+  
   /**
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
    * all imported and exported lemmas.
@@ -229,6 +229,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+  
+  /** Preregister policy */
+  std::unique_ptr<PreregisterRlv> d_prr;
 
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
