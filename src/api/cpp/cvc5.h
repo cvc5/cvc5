@@ -3715,6 +3715,10 @@ class CVC5_EXPORT Solver
    *
    * @param value The string representation of the constant.
    * @param sort The field sort
+   *
+   * If size is the field size, the constant need not be in the range [0,size).
+   * If it is outsize this range, it will be reduced modulo size before being
+   * constructed.
    */
   Term mkFiniteFieldElem(const std::string& value, const Sort& sort) const;
 
