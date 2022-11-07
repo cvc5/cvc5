@@ -5523,6 +5523,7 @@ Sort Solver::mkFiniteFieldSort(const std::string& modulus) const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   internal::Integer m(modulus, 10);
+  CVC5_API_ARG_CHECK_EXPECTED(m.isProbablePrime(), modulus) << "modulus is prime";
   return Sort(d_nm, d_nm->mkFiniteFieldType(m));
   ////////
   CVC5_API_TRY_CATCH_END;

@@ -13,7 +13,8 @@
  * A finite-field element, implemented as a wrapper around Integer.
  *
  * TODOs:
- * * extend to non-prime fields (https://github.com/cvc5/cvc5-wishues/issues/139)
+ * * extend to non-prime fields
+ * (https://github.com/cvc5/cvc5-wishues/issues/139)
  * * consider montgomery form (https://github.com/cvc5/cvc5-wishues/issues/140)
  */
 
@@ -92,11 +93,15 @@ class FiniteFieldValue
   friend bool operator>(const FiniteFieldValue&, const FiniteFieldValue&);
   friend bool operator>=(const FiniteFieldValue&, const FiniteFieldValue&);
   friend bool operator<=(const FiniteFieldValue&, const FiniteFieldValue&);
-  friend FiniteFieldValue operator+(const FiniteFieldValue&, const FiniteFieldValue&);
-  friend FiniteFieldValue operator-(const FiniteFieldValue&, const FiniteFieldValue&);
+  friend FiniteFieldValue operator+(const FiniteFieldValue&,
+                                    const FiniteFieldValue&);
+  friend FiniteFieldValue operator-(const FiniteFieldValue&,
+                                    const FiniteFieldValue&);
   friend FiniteFieldValue operator-(const FiniteFieldValue&);
-  friend FiniteFieldValue operator*(const FiniteFieldValue&, const FiniteFieldValue&);
-  friend FiniteFieldValue operator/(const FiniteFieldValue&, const FiniteFieldValue&);
+  friend FiniteFieldValue operator*(const FiniteFieldValue&,
+                                    const FiniteFieldValue&);
+  friend FiniteFieldValue operator/(const FiniteFieldValue&,
+                                    const FiniteFieldValue&);
 
   /* Reciprocal. Crashes on 0. */
   FiniteFieldValue recip() const;
@@ -125,13 +130,14 @@ class FiniteFieldValue
 
 struct FfSize
 {
-  FfSize(Integer size) : d_size(size) {}
-  operator const Integer&() const { return d_size; }
-  bool operator==(const FfSize& y) const
+  FfSize(Integer size) : d_size(size)
   {
-    return d_size == y.d_size;
+    // we only support prime fields right now
+    Assert(size.isProbablePrime());
   }
-  
+  operator const Integer&() const { return d_size; }
+  bool operator==(const FfSize& y) const { return d_size == y.d_size; }
+
   Integer d_size;
 }; /* struct FfSize */
 
@@ -148,10 +154,7 @@ struct FiniteFieldValueHashFunction
  */
 struct FfSizeHashFunction
 {
-  size_t operator()(const FfSize& size) const
-  {
-    return size.d_size.hash();
-  }
+  size_t operator()(const FfSize& size) const { return size.d_size.hash(); }
 }; /* struct FiniteFieldValueHashFunction */
 
 /* -----------------------------------------------------------------------
@@ -183,19 +186,23 @@ bool operator>=(const FiniteFieldValue& x, const FiniteFieldValue& y);
 /* Arithmetic operations ------------------------------------------------- */
 
 /* Return a finite field representing the addition (x + y). */
-FiniteFieldValue operator+(const FiniteFieldValue& x, const FiniteFieldValue& y);
+FiniteFieldValue operator+(const FiniteFieldValue& x,
+                           const FiniteFieldValue& y);
 
 /* Return a finite field representing the subtraction (x - y). */
-FiniteFieldValue operator-(const FiniteFieldValue& x, const FiniteFieldValue& y);
+FiniteFieldValue operator-(const FiniteFieldValue& x,
+                           const FiniteFieldValue& y);
 
 /* Return a finite field representing the negation of x. */
 FiniteFieldValue operator-(const FiniteFieldValue& x);
 
 /* Return a finite field representing the multiplication (x * y). */
-FiniteFieldValue operator*(const FiniteFieldValue& x, const FiniteFieldValue& y);
+FiniteFieldValue operator*(const FiniteFieldValue& x,
+                           const FiniteFieldValue& y);
 
 /* Return a finite field representing the division (x / y). */
-FiniteFieldValue operator/(const FiniteFieldValue& x, const FiniteFieldValue& y);
+FiniteFieldValue operator/(const FiniteFieldValue& x,
+                           const FiniteFieldValue& y);
 
 /* -----------------------------------------------------------------------
  * Output stream

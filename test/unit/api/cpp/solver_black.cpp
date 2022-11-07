@@ -186,6 +186,12 @@ TEST_F(TestApiBlackSolver, mkBitVectorSort)
   ASSERT_THROW(d_solver.mkBitVectorSort(0), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, mkFiniteFieldSort)
+{
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("31"));
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("6"), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkFloatingPointSort)
 {
   ASSERT_NO_THROW(d_solver.mkFloatingPointSort(4, 8));
@@ -464,6 +470,25 @@ TEST_F(TestApiBlackSolver, mkBitVector)
   ASSERT_EQ(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
   ASSERT_EQ(d_solver.mkBitVector(8, "-1", 10),
             d_solver.mkBitVector(8, "FF", 16));
+}
+
+TEST_F(TestApiBlackSolver, mkFiniteFieldElem)
+{
+  Sort f = d_solver.mkFiniteFieldSort("7");
+  Sort bv = d_solver.mkBitVectorSort(4);
+
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("0", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("1", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("6", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("8", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-1", f));
+
+  ASSERT_THROW(d_solver.mkFiniteFieldElem("-1", bv), CVC5ApiException);
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("-1", f),
+            d_solver.mkFiniteFieldElem("6", f));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("1", f),
+            d_solver.mkFiniteFieldElem("8", f));
 }
 
 TEST_F(TestApiBlackSolver, mkVar)
