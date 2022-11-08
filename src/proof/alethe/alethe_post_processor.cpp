@@ -1131,145 +1131,15 @@ bool AletheProofPostprocessCallback::update(Node res,
     // ======== Bitvector
     case PfRule::BV_BITBLAST_STEP:
     {
-      switch (res[0].getKind())
-      {
-        case kind::BITVECTOR_ULT:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVULT,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::VARIABLE:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_VAR,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_AND:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVAND,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_OR:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVOR,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_XOR:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVXOR,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_XNOR:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVXNOR,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_NOT:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVNOT,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_ADD:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVADD,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_NEG:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVNEG,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_MULT:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVMULT,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_CONCAT:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_CONCAT,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::CONST_BITVECTOR:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_CONST,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::BITVECTOR_EXTRACT:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_EXTRACT,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        case kind::EQUAL:
-        {
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_BVEQUAL,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-        default:
-        {
-          std::cout << res[0].getKind() << std::endl;
-          return addAletheStep(AletheRule::BV_BITBLAST_STEP_VAR,
-                               res,
-                               nm->mkNode(kind::SEXPR, d_cl, res),
-                               children,
-                               {},
-                               *cdp);
-        }
-      }
+      Assert(s_bvKindToAletheRule.find(res[0].getKind())
+             != s_bvKindToAletheRule.end())
+          << "Bit-blasted kind not supported in Alethe post-processing.";
+      return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
     }
     //================================================= Quantifiers rules
     // ======== Instantiate
