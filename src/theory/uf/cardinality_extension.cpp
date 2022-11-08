@@ -1446,7 +1446,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       // cardinality constraint from user input, set incomplete   
       Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
-      d_im.setIncomplete(IncompleteId::UF_CARD_MODE);
+      d_im.setModelUnsound(IncompleteId::UF_CARD_MODE);
     }
   }
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
