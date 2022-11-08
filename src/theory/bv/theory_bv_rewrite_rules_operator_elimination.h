@@ -935,6 +935,25 @@ inline Node RewriteRule<SsuboEliminate>::apply(TNode node)
                     nm->mkNode(kind::AND, pos_neg, result_neg));
 }
 
+template <>
+inline bool RewriteRule<SdivoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SDIVO);
+}
+
+template <>
+inline Node RewriteRule<SdivoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SdivoEliminate>(" << node << ")"
+                      << std::endl;
+  // Overflow if node[0] = min_signed and node[1] = -1
+  NodeManager* nm = NodeManager::currentNM();
+  uint64_t size = node[0].getType().getBitVectorSize();
+  return nm->mkNode(kind::AND,
+                    nm->mkNode(kind::EQUAL, node[0], utils::mkMinSigned(size)),
+                    nm->mkNode(kind::EQUAL, node[1], utils::mkOnes(size)));
+}
+
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal

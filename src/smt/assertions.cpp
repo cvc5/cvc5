@@ -56,15 +56,9 @@ void Assertions::refresh()
   size_t numGlobalDefs = d_globalDefineFunLemmas.size();
   for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
   {
-    addFormula(d_globalDefineFunLemmas[i], false, true, false);
+    addFormula(d_globalDefineFunLemmas[i], true, false);
   }
   d_globalDefineFunLemmasIndex = numGlobalDefs;
-}
-
-void Assertions::clearCurrent()
-{
-  d_assertions.clear();
-  d_assertions.getIteSkolemMap().clear();
 }
 
 void Assertions::setAssumptions(const std::vector<Node>& assumptions)
@@ -72,14 +66,13 @@ void Assertions::setAssumptions(const std::vector<Node>& assumptions)
   d_assumptions.clear();
   d_assumptions = assumptions;
 
-  Result r(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-    addFormula(n, true, false, false);
+    addFormula(n, false, false);
   }
 }
 
@@ -87,7 +80,7 @@ void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
   bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
-  addFormula(n, false, false, maybeHasFv);
+  addFormula(n, false, maybeHasFv);
 }
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
@@ -108,7 +101,6 @@ const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 }
 
 void Assertions::addFormula(TNode n,
-                            bool isAssumption,
                             bool isFunDef,
                             bool maybeHasFv)
 {
@@ -124,7 +116,6 @@ void Assertions::addFormula(TNode n,
     return;
   }
   Trace("smt") << "Assertions::addFormula(" << n
-               << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
   if (isFunDef)
   {
@@ -167,7 +158,7 @@ void Assertions::addFormula(TNode n,
   }
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption, true);
+  d_assertions.push_back(n, true);
 }
 
 void Assertions::addDefineFunDefinition(Node n, bool global)
@@ -186,7 +177,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
     // definitions currently. Thus, we should check for free variables if the
     // input language is SyGuS.
     bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
-    addFormula(n, false, true, maybeHasFv);
+    addFormula(n, true, maybeHasFv);
   }
 }
 

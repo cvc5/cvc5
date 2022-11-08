@@ -115,50 +115,6 @@ Node mkAssocAnd(const std::vector<Node>& children)
 
 /* -------------------------------------------------------------------------- */
 
-namespace {
-
-/**
- * Ensures the assertions asserted after index 'before' now effectively come
- * before 'real_assertions_end'.
- */
-void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
-                                  size_t before)
-{
-  size_t cur_size = assertionsToPreprocess->size();
-  if (before >= cur_size || assertionsToPreprocess->getRealAssertionsEnd() <= 0
-      || assertionsToPreprocess->getRealAssertionsEnd() >= cur_size)
-  {
-    return;
-  }
-
-  // assertions
-  // original: [0 ... assertionsToPreprocess.getRealAssertionsEnd())
-  //  can be modified
-  // ites skolems [assertionsToPreprocess.getRealAssertionsEnd(), before)
-  //  cannot be moved
-  // added [before, cur_size)
-  //  can be modified
-  Assert(0 < assertionsToPreprocess->getRealAssertionsEnd());
-  Assert(assertionsToPreprocess->getRealAssertionsEnd() <= before);
-  Assert(before < cur_size);
-
-  std::vector<Node> intoConjunction;
-  for (size_t i = before; i < cur_size; ++i)
-  {
-    intoConjunction.push_back((*assertionsToPreprocess)[i]);
-  }
-  assertionsToPreprocess->resize(before);
-  size_t lastBeforeItes = assertionsToPreprocess->getRealAssertionsEnd() - 1;
-  intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
-  Node newLast = mkAssocAnd(intoConjunction);
-  assertionsToPreprocess->replace(lastBeforeItes, newLast);
-  Assert(assertionsToPreprocess->size() == before);
-}
-
-}  // namespace
-
-/* -------------------------------------------------------------------------- */
-
 ITESimp::Statistics::Statistics(StatisticsRegistry& reg)
     : d_arithSubstitutionsAdded(reg.registerInt(
         "preprocessing::passes::ITESimp::ArithSubstitutionsAdded"))
@@ -304,10 +260,6 @@ PreprocessingPassResult ITESimp::applyInternal(
     }
   }
   bool done = doneSimpITE(assertionsToPreprocess);
-  if (nasserts < assertionsToPreprocess->size())
-  {
-    compressBeforeRealAssertions(assertionsToPreprocess, nasserts);
-  }
   return done ? PreprocessingPassResult::NO_CONFLICT
               : PreprocessingPassResult::CONFLICT;
 }

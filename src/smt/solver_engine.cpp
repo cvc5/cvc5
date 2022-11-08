@@ -947,7 +947,7 @@ Node SolverEngine::simplify(const Node& t)
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
-  d_smtSolver->processAssertions();
+  d_smtSolver->refreshAssertions();
   // Substitute out any abstract values in node.
   Node tt = d_absValues->substituteAbstractValues(t);
   // apply substitutions
@@ -1844,7 +1844,7 @@ void SolverEngine::push()
   finishInit();
   d_ctxManager->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
-  d_smtSolver->processAssertions();
+  d_smtSolver->refreshAssertions();
   d_ctxManager->userPush();
 }
 
@@ -1855,7 +1855,7 @@ void SolverEngine::pop()
   d_ctxManager->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
-  d_smtSolver->getAssertions().clearCurrent();
+  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   // clear the learned literals from the preprocessor
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
@@ -1878,7 +1878,7 @@ void SolverEngine::resetAssertions()
 
   Trace("smt") << "SMT resetAssertions()" << endl;
 
-  d_smtSolver->getAssertions().clearCurrent();
+  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   d_ctxManager->notifyResetAssertions();
   // push the state to maintain global context around everything
   d_ctxManager->setup();
