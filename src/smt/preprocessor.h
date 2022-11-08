@@ -62,9 +62,9 @@ class Preprocessor : protected EnvObj
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
    *
-   * @param as The assertions.
+   * @param ap The assertions to preprocess
    */
-  bool process(Assertions& as);
+  bool process(preprocessing::AssertionPipeline& ap);
   /**
    * Clear learned literals from the Boolean propagator.
    */

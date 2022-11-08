@@ -153,26 +153,28 @@ Result SmtSolver::checkSatInternal()
   return result;
 }
 
-void SmtSolver::processAssertions()
+void SmtSolver::refreshAssertions()
 {
   // preprocess
-  preprocess();
+  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
+  preprocess(ap);
   // assert to internal
-  assertToInternal();
+  assertToInternal(ap);
 }
 
-void SmtSolver::preprocess()
+void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
+  // must first refresh the assertions, in the case global declarations is true
+  d_asserts.refresh();
   // process the assertions with the preprocessor
-  d_pp.process(d_asserts);
+  d_pp.process(ap);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
@@ -214,17 +216,16 @@ void SmtSolver::preprocess()
   }
 }
 
-void SmtSolver::assertToInternal()
+void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
 {
   // get the assertions
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
   // clear the current assertions
-  d_asserts.clearCurrent();
+  ap.clear();
 }
 
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const
@@ -262,7 +263,7 @@ void SmtSolver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make
   // the state accurate prior to pushing
-  processAssertions();
+  refreshAssertions();
 }
 
 void SmtSolver::notifyPushPost()

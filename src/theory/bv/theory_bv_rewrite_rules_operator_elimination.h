@@ -866,6 +866,32 @@ inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
 }
 
 template <>
+inline bool RewriteRule<UsuboEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_USUBO);
+}
+
+template <>
+inline Node RewriteRule<UsuboEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UsuboEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node one = utils::mkOne(1);
+
+  Node zextOp = nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(1));
+  Node sub = nm->mkNode(kind::BITVECTOR_SUB,
+                        nm->mkNode(zextOp, node[0]),
+                        nm->mkNode(zextOp, node[1]));
+  uint32_t size = sub.getType().getBitVectorSize();
+
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+  return nm->mkNode(kind::EQUAL, nm->mkNode(extOp, sub), one);
+}
+
+template <>
 inline bool RewriteRule<SsuboEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_SSUBO);
@@ -907,6 +933,25 @@ inline Node RewriteRule<SsuboEliminate>::apply(TNode node)
   return nm->mkNode(kind::OR,
                     nm->mkNode(kind::AND, neg_pos, result_pos),
                     nm->mkNode(kind::AND, pos_neg, result_neg));
+}
+
+template <>
+inline bool RewriteRule<SdivoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SDIVO);
+}
+
+template <>
+inline Node RewriteRule<SdivoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SdivoEliminate>(" << node << ")"
+                      << std::endl;
+  // Overflow if node[0] = min_signed and node[1] = -1
+  NodeManager* nm = NodeManager::currentNM();
+  uint64_t size = node[0].getType().getBitVectorSize();
+  return nm->mkNode(kind::AND,
+                    nm->mkNode(kind::EQUAL, node[0], utils::mkMinSigned(size)),
+                    nm->mkNode(kind::EQUAL, node[1], utils::mkOnes(size)));
 }
 
 }  // namespace bv
