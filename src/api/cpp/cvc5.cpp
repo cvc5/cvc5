@@ -1460,6 +1460,15 @@ bool Sort::isSequence() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Sort::isAbstract() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isAbstract();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::isUninterpretedSort() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1774,6 +1783,19 @@ Sort Sort::getSequenceElementSort() const
   CVC5_API_CHECK(isSequence()) << "Not a sequence sort.";
   //////// all checks before this line
   return Sort(d_nm, d_type->getSequenceElementType());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/* Abstract sort ------------------------------------------------------- */
+
+Kind Sort::getAbstractKind() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isAbstract()) << "Not an abstract sort.";
+  //////// all checks before this line
+  return intToExtKind(d_type->getAbstractKind());
   ////////
   CVC5_API_TRY_CATCH_END;
 }

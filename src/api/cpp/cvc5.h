@@ -578,6 +578,12 @@ class CVC5_EXPORT Sort
   bool isSequence() const;
 
   /**
+   * Determine if this is an abstract sort.
+   * @return True if the sort is a abstract sort.
+   */
+  bool isAbstract() const;
+  
+  /**
    * Determine if this is an uninterpreted sort.
    * @return True if this is an uninterpreted sort.
    */
@@ -778,6 +784,13 @@ class CVC5_EXPORT Sort
    */
   Sort getSequenceElementSort() const;
 
+  /* Abstract sort ------------------------------------------------------- */
+  /**
+   * @return The sort kind of an abstract sort, which denotes the kind of
+   * sorts that this abstract sort represents.
+   */
+  Kind getAbstractKind() const;
+  
   /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
@@ -3388,12 +3401,22 @@ class CVC5_EXPORT Solver
   Sort mkSequenceSort(const Sort& elemSort) const;
 
   /**
-   * Create an abstract sort.
+   * Create an abstract sort. An abstract sort represents a sort for a given
+   * kind whose parameters and arguments are unspecified.
    *
    * The kind k must be the kind of a sort that can be abstracted, i.e. a sort
    * that has parameters or argument sorts. For example, ARRAY_SORT and
    * BITVECTOR_SORT can be passed as the kind k to this method, while
    * INTEGER_SORT and STRING_SORT cannot.
+   * 
+   * @note providing the kind ABSTRACT_SORT as an argument to this method
+   * returns the (fully) unspecified sort, often denoted ?.
+   *
+   * @note providing a kind k that is parameterized by a fixed arity
+   * of argument sorts will return the sort of kind k whose arguments are the
+   * unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will return
+   * the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract kind
+   * is ARRAY_SORT.
    *
    * @param k The kind of the abstract sort
    * @return The abstract sort.
