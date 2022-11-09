@@ -418,6 +418,11 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
+   * @return The kind of the sort.
+   */
+  Kind getKind() const;
+  
+  /**
    * Does this sort have a symbol, that is, a name?
    *
    * For example, uninterpreted sorts and uninterpreted sort constructors have
@@ -580,6 +585,8 @@ class CVC5_EXPORT Sort
   /**
    * Determine if this is an abstract sort.
    * @return True if the sort is a abstract sort.
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   bool isAbstract() const;
 
@@ -788,6 +795,8 @@ class CVC5_EXPORT Sort
   /**
    * @return The sort kind of an abstract sort, which denotes the kind of
    * sorts that this abstract sort represents.
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   Kind getAbstractKind() const;
 
@@ -839,11 +848,6 @@ class CVC5_EXPORT Sort
   std::vector<Sort> getTupleSorts() const;
 
   /* --------------------------------------------------------------------- */
-
-  /**
-   * @return The kind of the sort.
-   */
-  Kind getKind() const;
 
  private:
   /** @return The internal wrapped TypeNode of this sort. */

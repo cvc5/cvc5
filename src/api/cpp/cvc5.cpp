@@ -419,6 +419,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
         KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
         KIND_ENUM(BITVECTOR_SORT, internal::Kind::BITVECTOR_TYPE),
+        KIND_ENUM(BOOLEAN_SORT, internal::Kind::TYPE_CONSTANT),
         KIND_ENUM(DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
         KIND_ENUM(FLOATINGPOINT_SORT, internal::Kind::FLOATINGPOINT_TYPE),
         KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
@@ -1238,6 +1239,30 @@ bool Sort::operator>=(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Kind Sort::getKind() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  internal::Kind tk = d_type->getKind();
+  if (tk == internal::kind::TYPE_CONSTANT)
+  {
+    switch (d_type->getConst<internal::TypeConstant>())
+    {
+      case internal::BOOLEAN_TYPE: return BOOLEAN_SORT; break;
+      case internal::REAL_TYPE: return REAL_SORT; break;
+      case internal::INTEGER_TYPE: return INTEGER_SORT; break;
+      case internal::STRING_TYPE: return STRING_SORT; break;
+      case internal::REGEXP_TYPE: return REGLAN_SORT; break;
+      case internal::ROUNDINGMODE_TYPE: return ROUNDINGMODE_SORT; break;
+      default: return INTERNAL_KIND; break;
+    }
+  }
+  return intToExtKind(tk);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::hasSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1889,30 +1914,6 @@ std::vector<Sort> Sort::getTupleSorts() const
 }
 
 /* --------------------------------------------------------------------- */
-
-Kind Sort::getKind() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  //////// all checks before this line
-  internal::Kind tk = d_type->getKind();
-  if (tk == internal::kind::TYPE_CONSTANT)
-  {
-    switch (d_type->getConst<internal::TypeConstant>())
-    {
-      case internal::BOOLEAN_TYPE: return BOOLEAN_SORT; break;
-      case internal::REAL_TYPE: return REAL_SORT; break;
-      case internal::INTEGER_TYPE: return INTEGER_SORT; break;
-      case internal::STRING_TYPE: return STRING_SORT; break;
-      case internal::REGEXP_TYPE: return REGLAN_SORT; break;
-      case internal::ROUNDINGMODE_TYPE: return ROUNDINGMODE_SORT; break;
-      default: return INTERNAL_KIND; break;
-    }
-  }
-  return intToExtKind(tk);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
 
 /* --------------------------------------------------------------------- */
 

@@ -409,6 +409,25 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSequenceSort(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    mkAbstractSort
+ * Signature: (JLI)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Solver_mkAbstractSort__JLI(
+    JNIEnv* env, jobject, jlong pointer, jint kindValue)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  Kind kind = (Kind)kindValue;
+  Sort* sort = new Sort(solver->mkAbstractSort(kind));
+  return reinterpret_cast<jlong>(sort);
+
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    mkUninterpretedSort
  * Signature: (JLjava/lang/String;)J
  */

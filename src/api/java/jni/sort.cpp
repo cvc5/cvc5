@@ -89,6 +89,21 @@ JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_compareTo(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Sort
+ * Method:    getKind
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getKind(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getKind());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_Sort
  * Method:    hasSymbol
  * Signature: (J)Z
  */
@@ -440,6 +455,22 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isSequence(JNIEnv* env,
   return static_cast<jboolean>(current->isSequence());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    isAbstract
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isAbstract(JNIEnv* env,
+                                                               jobject,
+                                                               jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jboolean>(current->isAbstract());
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
+}
+
 
 /*
  * Class:     io_github_cvc5_Sort
@@ -896,6 +927,22 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSequenceElementSort(
   Sort* current = reinterpret_cast<Sort*>(pointer);
   Sort* retPointer = new Sort(current->getSequenceElementSort());
   return (jlong)retPointer;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+
+/*
+ * Class:     io_github_cvc5_Sort
+ * Method:    getAbstractKind
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getAbstractKind(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Sort* current = reinterpret_cast<Sort*>(pointer);
+  return static_cast<jint>(current->getAbstractKind());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
