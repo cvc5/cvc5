@@ -1048,7 +1048,7 @@ cdef class Solver:
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
         return sort
 
-    def mkAbstractSort(self, Kind k):
+    def mkAbstractSort(self, k):
         """
             Create an abstract sort. An abstract sort represents a sort for a 
             given kind whose parameters and arguments are unspecified.

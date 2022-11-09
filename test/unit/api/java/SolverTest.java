@@ -340,6 +340,16 @@ class SolverTest
   }
 
   @Test
+  void mkAbstractSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(ARRAY_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(BITVECTOR_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(TUPLE_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(SET_SORT));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractSort(BOOLEAN_SORT), CVC5ApiException);
+  }
+
+  @Test
   void mkUninterpretedSort() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkUninterpretedSort("u"));

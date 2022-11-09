@@ -76,7 +76,7 @@ TEST_F(TestApiBlackSort, getKind)
   ASSERT_EQ(arr_sort.getKind(), ARRAY_SORT);
 }
 
-TEST_F(TestApiBlackSort, hasSymbol)
+TEST_F(TestApiBlackSort, hasGetSymbol)
 {
   Sort n;
   Sort b = d_solver.getBooleanSort();
