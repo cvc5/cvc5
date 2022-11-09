@@ -508,10 +508,13 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
 
 TEST_F(TestApiBlackSort, getAbstractKind)
 {
-  ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractKind(), BITVECTOR_SORT);
+  ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractKind(),
+            BITVECTOR_SORT);
   // ?Array is syntax sugar for (Array ? ?)
-  ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(), CVC5ApiException);
-  ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(), ABSTRACT_SORT);
+  ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(),
+               CVC5ApiException);
+  ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(),
+              ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, getSymbol)

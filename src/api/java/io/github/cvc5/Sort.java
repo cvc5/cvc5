@@ -93,7 +93,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native int getKind(long pointer);
-  
+
   /**
    * @return True if the sort has a symbol.
    */
@@ -375,7 +375,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isAbstract(long pointer);
-  
+
   /**
    * Determine if this is an uninterpreted sort.
    * @return True if this is an uninterpreted sort.
@@ -725,7 +725,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native int getAbstractKind(long pointer);
-  
+
   /* Sort constructor sort ----------------------------------------------- */
 
   /**

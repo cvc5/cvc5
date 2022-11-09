@@ -421,7 +421,7 @@ class CVC5_EXPORT Sort
    * @return The kind of the sort.
    */
   Kind getKind() const;
-  
+
   /**
    * Does this sort have a symbol, that is, a name?
    *

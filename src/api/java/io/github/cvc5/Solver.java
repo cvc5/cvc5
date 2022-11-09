@@ -361,7 +361,7 @@ public class Solver implements IPointer
   }
 
   private native long mkAbstractSort(long pointer, int kindValue);
-  
+
   /**
    * Create an uninterpreted sort.
    * @param symbol The name of the sort.

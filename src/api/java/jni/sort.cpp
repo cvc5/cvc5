@@ -471,7 +471,6 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Sort_isAbstract(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
 }
 
-
 /*
  * Class:     io_github_cvc5_Sort
  * Method:    isUninterpretedSort
@@ -930,15 +929,14 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSequenceElementSort(
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
-
 /*
  * Class:     io_github_cvc5_Sort
  * Method:    getAbstractKind
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getAbstractKind(JNIEnv* env,
-                                                        jobject,
-                                                        jlong pointer)
+                                                                jobject,
+                                                                jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);

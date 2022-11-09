@@ -412,8 +412,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkSequenceSort(
  * Method:    mkAbstractSort
  * Signature: (JLI)J
  */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_mkAbstractSort__JLI(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkAbstractSort__JLI(
     JNIEnv* env, jobject, jlong pointer, jint kindValue)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
