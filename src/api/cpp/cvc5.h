@@ -582,7 +582,7 @@ class CVC5_EXPORT Sort
    * @return True if the sort is a abstract sort.
    */
   bool isAbstract() const;
-  
+
   /**
    * Determine if this is an uninterpreted sort.
    * @return True if this is an uninterpreted sort.
@@ -790,7 +790,7 @@ class CVC5_EXPORT Sort
    * sorts that this abstract sort represents.
    */
   Kind getAbstractKind() const;
-  
+
   /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
@@ -3408,7 +3408,7 @@ class CVC5_EXPORT Solver
    * that has parameters or argument sorts. For example, ARRAY_SORT and
    * BITVECTOR_SORT can be passed as the kind k to this method, while
    * INTEGER_SORT and STRING_SORT cannot.
-   * 
+   *
    * @note providing the kind ABSTRACT_SORT as an argument to this method
    * returns the (fully) unspecified sort, often denoted ?.
    *
