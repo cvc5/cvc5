@@ -5528,21 +5528,86 @@ enum Kind : int32_t
   INST_PATTERN_LIST,
 
   /* Sort Kinds ------------------------------------------------------------ */
+  /**
+   * An abstract sort.
+   * 
+   * An abstract sort represents a sort whose parameters or argument sorts are
+   * unspecified. For example, Solver::mkAbstractSort(BITVECTOR_SORT) returns a
+   * sort that represents the sort of bit-vectors whose bit-width is
+   * unspecified.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkAbstractSort(Kind) const
+   */
   ABSTRACT_SORT,
+  /**
+   * An array sort, whose argument sorts are the index and element sorts of the
+   * array.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkArraySort(Sort, Sort) const
+   */
   ARRAY_SORT,
+  /**
+   * A bag sort, whose argument sort is the element sort of the bag.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkBagSort(Sort) const
+   */
   BAG_SORT,
   BOOLEAN_SORT,
+  /**
+   * A bit-vector sort, parameterized by a integer denoting its bit-width.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkBitVectorSort(uint32_t) const
+   */
   BITVECTOR_SORT,
   DATATYPE_SORT,
+  /**
+   * A floating-point sort, parameterized by two integers denoting its
+   * exponent and significand bits.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkFloatingPointSort(uint32_t, uint32_t) const
+   */
   FLOATINGPOINT_SORT,
   FUNCTION_SORT,
   INTEGER_SORT,
   REAL_SORT,
   REGLAN_SORT,
   ROUNDINGMODE_SORT,
+  /**
+   * A sequence sort, whose argument sort is the element sort of the sequence.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkSequenceSort(Sort) const
+   */
   SEQUENCE_SORT,
+  /**
+   * A set sort, whose argument sort is the element sort of the set.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkSetSort(Sort) const
+   */
   SET_SORT,
   STRING_SORT,
+  /**
+   * A tuple sort, whose argument sorts denote the sorts of the subfields
+   * of the tuple.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkTupleSort(const std::vector<Sort>&) const
+   */
+  TUPLE_SORT,
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */

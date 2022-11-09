@@ -3389,8 +3389,16 @@ class CVC5_EXPORT Solver
 
   /**
    * Create an abstract sort.
+   * 
+   * The kind k must be the kind of a sort that can be abstracted, i.e. a sort
+   * that has parameters or argument sorts. For example, ARRAY_SORT and
+   * BITVECTOR_SORT can be passed as the kind k to this method, while
+   * INTEGER_SORT and STRING_SORT cannot.
+   *
    * @param k The kind of the abstract sort
    * @return The abstract sort.
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   Sort mkAbstractSort(Kind k) const;
 

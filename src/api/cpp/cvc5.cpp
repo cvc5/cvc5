@@ -424,6 +424,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
         KIND_ENUM(SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
         KIND_ENUM(SET_SORT, internal::Kind::SET_TYPE),
+        KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
         KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
     };
 
@@ -762,6 +763,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::FUNCTION_TYPE, FUNCTION_SORT},
         {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
         {internal::Kind::SET_TYPE, SET_SORT},
+        {internal::Kind::TUPLE_TYPE, TUPLE_SORT},
         /* ----------------------------------------------------------------- */
         {internal::Kind::LAST_KIND, LAST_KIND},
     };
