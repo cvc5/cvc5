@@ -385,6 +385,16 @@ TEST_F(TestApiBlackSolver, mkSequenceSort)
   ASSERT_NO_THROW(slv.mkSequenceSort(d_solver.getIntegerSort()));
 }
 
+TEST_F(TestApiBlackSolver, mkAbstractSort)
+{
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(ARRAY_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(BITVECTOR_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(TUPLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SET_SORT));
+  ASSERT_THROW(d_solver.mkAbstractSort(BOOLEAN_SORT),
+               CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkUninterpretedSort)
 {
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort("u"));
