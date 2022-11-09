@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A class for singleton operator for sets.
+ * A class for representing abstract types.
  */
 
 #include "cvc5_public.h"

@@ -714,7 +714,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * @return The sort kind of an abstract sort, which denotes the kind of
-   * sorts that this abstract sort represents.
+   * sorts that this abstract sort denotes.
    *
    * @api.note This method is experimental and may change in future versions.
    */

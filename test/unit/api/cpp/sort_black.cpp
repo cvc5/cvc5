@@ -65,7 +65,18 @@ TEST_F(TestApiBlackSort, operators_comparison)
   ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
 }
 
-TEST_F(TestApiBlackSort, hasGetSymbol)
+TEST_F(TestApiBlackSort, getKind)
+{
+  Sort b = d_solver.getBooleanSort();
+  Sort dt_sort = create_datatype_sort();
+  Sort arr_sort =
+      d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
+  ASSERT_EQ(b.getKind(), BOOLEAN_SORT);
+  ASSERT_EQ(dt_sort.getKind(), DATATYPE_SORT);
+  ASSERT_EQ(arr_sort.getKind(), ARRAY_SORT);
+}
+
+TEST_F(TestApiBlackSort, hasSymbol)
 {
   Sort n;
   Sort b = d_solver.getBooleanSort();
@@ -241,6 +252,15 @@ TEST_F(TestApiBlackSort, isSequence)
   Sort seq_sort = d_solver.mkSequenceSort(d_solver.getRealSort());
   ASSERT_TRUE(seq_sort.isSequence());
   ASSERT_NO_THROW(Sort().isSequence());
+}
+
+TEST_F(TestApiBlackSort, isAbstract)
+{
+  ASSERT_TRUE(d_solver.mkAbstractSort(BITVECTOR_SORT).isAbstract());
+  // ?Array is syntax sugar for (Array ? ?)
+  ASSERT_FALSE(d_solver.mkAbstractSort(ARRAY_SORT).isAbstract());
+  ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).isAbstract());
+  ASSERT_NO_THROW(Sort().isAbstract());
 }
 
 TEST_F(TestApiBlackSort, isUninterpreted)
@@ -484,6 +504,14 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_FALSE(bvSort.isSequence());
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC5ApiException);
+}
+
+TEST_F(TestApiBlackSort, getAbstractKind)
+{
+  ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractKind(), BITVECTOR_SORT);
+  // ?Array is syntax sugar for (Array ? ?)
+  ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(), CVC5ApiException);
+  ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(), ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, getSymbol)
