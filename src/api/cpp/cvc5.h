@@ -3405,14 +3405,14 @@ class CVC5_EXPORT Solver
    * kind whose parameters and arguments are unspecified.
    *
    * The kind k must be the kind of a sort that can be abstracted, i.e. a sort
-   * that has parameters or argument sorts. For example, ARRAY_SORT and
+   * that has indices or argument sorts. For example, ARRAY_SORT and
    * BITVECTOR_SORT can be passed as the kind k to this method, while
    * INTEGER_SORT and STRING_SORT cannot.
    *
    * @note providing the kind ABSTRACT_SORT as an argument to this method
    * returns the (fully) unspecified sort, often denoted ?.
    *
-   * @note providing a kind k that is parameterized by a fixed arity
+   * @note providing a kind k that has no indices and a fixed arity
    * of argument sorts will return the sort of kind k whose arguments are the
    * unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will return
    * the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract kind

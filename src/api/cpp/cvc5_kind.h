@@ -5578,9 +5578,37 @@ enum Kind : int32_t
    */
   FLOATINGPOINT_SORT,
   FUNCTION_SORT,
+  /**
+   * The integer sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::getIntegerSort() const
+   */
   INTEGER_SORT,
+  /**
+   * The real sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::getRealSort() const
+   */
   REAL_SORT,
+  /**
+   * The regular language sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::getRegExpSort() const
+   */
   REGLAN_SORT,
+  /**
+   * The rounding mode sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::getRoundingModeSort() const
+   */
   ROUNDINGMODE_SORT,
   /**
    * A sequence sort, whose argument sort is the element sort of the sequence.
@@ -5598,6 +5626,13 @@ enum Kind : int32_t
    *   - Solver::mkSetSort(Sort) const
    */
   SET_SORT,
+  /**
+   * The string sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::getStringSort() const
+   */
   STRING_SORT,
   /**
    * A tuple sort, whose argument sorts denote the sorts of the subfields
@@ -5608,6 +5643,13 @@ enum Kind : int32_t
    *   - Solver::mkTupleSort(const std::vector<Sort>&) const
    */
   TUPLE_SORT,
+  /**
+   * An uninterpreted sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
+   */
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
