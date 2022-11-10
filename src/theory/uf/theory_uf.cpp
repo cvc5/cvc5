@@ -188,7 +188,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         else
         {
           // support for cardinality constraints is not enabled, set incomplete
-          d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+          d_im.setModelUnsound(IncompleteId::UF_CARD_DISABLED);
         }
       }
     }
