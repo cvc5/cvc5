@@ -80,8 +80,11 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  if (options().smt.produceProofs)
+  {
+    d_asserts.enableProofs(d_pp.getPreprocessProofGenerator());
+  }
 }
 
 void SmtSolver::resetAssertions()
@@ -99,6 +102,10 @@ void SmtSolver::resetAssertions()
   d_propEngine->finishInit();
   // must reset the preprocessor as well
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  if (options().smt.produceProofs)
+  {
+    d_asserts.enableProofs(d_pp.getPreprocessProofGenerator());
+  }
 }
 
 void SmtSolver::interrupt()
