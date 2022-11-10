@@ -553,8 +553,9 @@ void TermDbSygus::registerEnumerator(Node e,
   // constructors.
   if (!isActiveGen && usingAnyConst)
   {
-    Assert (d_qim!=nullptr);
-    d_qim->setRefutationUnsound(IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT); 
+    Assert(d_qim != nullptr);
+    d_qim->setRefutationUnsound(
+        IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT);
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
