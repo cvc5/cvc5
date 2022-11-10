@@ -111,7 +111,7 @@ CPP_JAVA_MAPPING = \
         r"std::vector<Sort>": "Sort[]",
         r"std::vector<DatatypeDecl>": "DatatypeDecl[]",
         r"std::string": "String",
-        r"std::optional<std::string>" : "String"
+        r"std::optional<std::string>" : "String",
         r".. note::": "@api.note",
         r".. warning::": "@api.note",
         r"&": "",
