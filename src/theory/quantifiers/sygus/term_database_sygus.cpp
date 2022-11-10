@@ -545,9 +545,16 @@ void TermDbSygus::registerEnumerator(Node e,
       isActiveGen = false;
     }
   }
+  // When we are using smart enumeration, we often do not consider model
+  // values for arguments of any-constant constructors (in sygus_explain.cpp),
+  // hence those blocking lemmas are refutation unsound. For simplicity, we
+  // mark unsound once and for all at the beginning, meaning we do not
+  // answer "infeasible" when using smart enuemration + any-constant
+  // constructors.
   if (!isActiveGen && usingAnyConst)
   {
-    
+    Assert (d_qim!=nullptr);
+    d_qim->setRefutationUnsound(IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT); 
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
