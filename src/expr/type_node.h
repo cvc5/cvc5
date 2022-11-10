@@ -531,10 +531,6 @@ class CVC5_EXPORT TypeNode
   bool isFunctionLike() const;
 
   /**
-   * Is instance of
-   */
-  bool isInstanceOf(TypeNode t) const;
-  /**
    * Get the argument types of a function, datatype constructor,
    * datatype selector, or datatype tester.
    */

@@ -229,7 +229,7 @@ def test_is_sequence(solver):
 
 def test_is_abstract(solver):
   assert solver.mkAbstractSort(Kind.BITVECTOR_SORT).isAbstract()
-  assert !solver.mkAbstractSort(Kind.ARRAY_SORT).isAbstract()
+  assert not solver.mkAbstractSort(Kind.ARRAY_SORT).isAbstract()
   assert solver.mkAbstractSort(Kind.ABSTRACT_SORT).isAbstract()
   Sort(solver).isAbstract()
 

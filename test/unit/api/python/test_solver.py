@@ -798,6 +798,11 @@ def test_mk_term(solver):
         [s_bool, s_bool, s_bool], s_bool))
     solver.mkTerm(Kind.HO_APPLY, t_fun, t_bool, t_bool, t_bool)
     solver.mkTerm(solver.mkOp(Kind.HO_APPLY), t_fun, t_bool, t_bool, t_bool)
+    
+    # cannot make terms from sort kinds
+    with pytest.raises(RuntimeError):
+        solver.mkTerm(Kind.BOOLEAN_SORT)
+    
 
 def test_mk_term_from_op(solver):
     bv32 = solver.mkBitVectorSort(32)

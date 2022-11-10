@@ -5578,8 +5578,9 @@ enum Kind : int32_t
    * A datatype sort.
    *
    * - Create Sort of this Kind with:
- *   - Solver::mkDatatypeSort(DatatypeDecl)
- *   - Solver::mkDatatypeSorts(const std::vector<DatatypeDecl>&)
+   *
+   *   - Solver::mkDatatypeSort(DatatypeDecl)
+   *   - Solver::mkDatatypeSorts(const std::vector<DatatypeDecl>&)
    */
   DATATYPE_SORT,
   /**

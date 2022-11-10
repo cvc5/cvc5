@@ -869,6 +869,9 @@ TEST_F(TestApiBlackSolver, mkTerm)
   ASSERT_NO_THROW(d_solver.mkTerm(HO_APPLY, {t_fun, t_bool, t_bool, t_bool}));
   ASSERT_NO_THROW(d_solver.mkTerm(d_solver.mkOp(HO_APPLY),
                                   {t_fun, t_bool, t_bool, t_bool}));
+
+  // cannot make terms for sort kinds
+  ASSERT_THROW(d_solver.mkTerm(BOOLEAN_SORT, {}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, mkTermFromOp)
