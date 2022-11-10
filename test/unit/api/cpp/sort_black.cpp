@@ -513,7 +513,7 @@ TEST_F(TestApiBlackSort, getAbstractKind)
   // ?Array is syntax sugar for (Array ? ?)
   ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(),
                CVC5ApiException);
-  ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(),
+  ASSERT_EQ(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(),
               ABSTRACT_SORT);
 }
 
