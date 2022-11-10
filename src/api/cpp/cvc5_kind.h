@@ -5634,22 +5634,7 @@ enum Kind : int32_t
    *   - Solver::getStringSort() const
    */
   STRING_SORT,
-  /**
-   * A tuple sort, whose argument sorts denote the sorts of the subfields
-   * of the tuple.
-   *
-   * - Create Sort of this Kind with:
-   *
-   *   - mkTupleSort(const std::vector<Sort>&) const
-   */
   TUPLE_SORT,
-  /**
-   * An uninterpreted sort.
-   *
-   * - Create Sort of this Kind with:
-   *
-   *   - mkUninterpretedSort(const std::optional<std::string>&) const
-   */
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */
