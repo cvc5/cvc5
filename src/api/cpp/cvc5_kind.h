@@ -5558,6 +5558,13 @@ enum Kind : int32_t
    *   - Solver::mkBagSort(Sort) const
    */
   BAG_SORT,
+  /**
+   * The Boolean sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::getBooleanSort() const
+   */
   BOOLEAN_SORT,
   /**
    * A bit-vector sort, parameterized by a integer denoting its bit-width.
@@ -5567,6 +5574,13 @@ enum Kind : int32_t
    *   - Solver::mkBitVectorSort(uint32_t) const
    */
   BITVECTOR_SORT,
+  /**
+   * A datatype sort.
+   *
+   * - Create Sort of this Kind with:
+ *   - Solver::mkDatatypeSort(DatatypeDecl)
+ *   - Solver::mkDatatypeSorts(const std::vector<DatatypeDecl>&)
+   */
   DATATYPE_SORT,
   /**
    * A floating-point sort, parameterized by two integers denoting its
@@ -5577,6 +5591,13 @@ enum Kind : int32_t
    *   - Solver::mkFloatingPointSort(uint32_t, uint32_t) const
    */
   FLOATINGPOINT_SORT,
+  /**
+   * A function sort with given domain sorts and codomain sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkFunctionSort(const std::vector<Sort>&, Sort) const
+   */
   FUNCTION_SORT,
   /**
    * The integer sort.
@@ -5634,7 +5655,22 @@ enum Kind : int32_t
    *   - Solver::getStringSort() const
    */
   STRING_SORT,
+  /**
+   * A tuple sort, whose argument sorts denote the sorts of the subfields
+   * of the tuple.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkTupleSort(const std::vector<Sort>&) const
+   */
   TUPLE_SORT,
+  /**
+   * An uninterpreted sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
+   */
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
   /** Marks the upper-bound of this enumeration. */

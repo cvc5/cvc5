@@ -423,9 +423,14 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
         KIND_ENUM(FLOATINGPOINT_SORT, internal::Kind::FLOATINGPOINT_TYPE),
         KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
+        KIND_ENUM(INTEGER_SORT, internal::Kind::TYPE_CONSTANT),
+        KIND_ENUM(REAL_SORT, internal::Kind::TYPE_CONSTANT),
+        KIND_ENUM(REGLAN_SORT, internal::Kind::TYPE_CONSTANT),
+        KIND_ENUM(ROUNDINGMODE_SORT, internal::Kind::TYPE_CONSTANT),
         KIND_ENUM(SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
         KIND_ENUM(SET_SORT, internal::Kind::SET_TYPE),
         KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
+        KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
         KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
     };
 
