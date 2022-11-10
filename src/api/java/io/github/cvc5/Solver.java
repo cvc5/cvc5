@@ -349,7 +349,7 @@ public class Solver implements IPointer
    * the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract kind
    * is ARRAY_SORT.
    *
-   * @param k The kind of the abstract sort
+   * @param kind The kind of the abstract sort
    * @return The abstract sort.
    *
    * @api.note This method is experimental and may change in future versions.
