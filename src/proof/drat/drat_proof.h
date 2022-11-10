@@ -67,10 +67,10 @@ class DratProof
   /**
    * Converts a plain format DRAT proof to a DratProof instance.
    *
-   * @param s string containing the plain DRAT proof.
+   * @param s file stream containing the plain DRAT proof.
    * @return DratProof instance containing the instructions.
    */
-  static DratProof fromPlain(const std::string& s);
+  static DratProof fromPlain(std::ifstream& s);
 
   /**
    * @return The instructions in this proof.

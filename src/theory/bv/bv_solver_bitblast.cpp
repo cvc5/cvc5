@@ -421,7 +421,8 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   registeredAtoms.clear();
 }
 
-std::vector<Node> BVSolverBitblast::convertDratProof(const proof::DratProof& dratProof) const
+std::vector<Node> BVSolverBitblast::convertDratProof(
+    const proof::DratProof& dratProof) const
 {
   NodeManager* nm = NodeManager::currentNM();
   Node cl = nm->mkBoundVar("cl", nm->booleanType());

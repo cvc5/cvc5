@@ -79,7 +79,7 @@ void CadicalSolver::init()
   d_solver->add(0);
 }
 
-CadicalSolver::~CadicalSolver() {}
+CadicalSolver::~CadicalSolver() { deleteDratFile(); }
 
 /**
  * Terminator class that notifies CaDiCaL to terminate when the resource limit
@@ -215,15 +215,20 @@ void CadicalSolver::setDrat()
   d_solver->trace_proof(d_dratFile, d_tempDratFilePath.c_str());
 }
 
-std::string CadicalSolver::getDrat()
+std::ifstream CadicalSolver::getDrat()
 {
   fclose(d_dratFile);
   d_solver->close_proof_trace();
   std::ifstream dratFile(d_tempDratFilePath, std::ios::binary);
-  d_tempDratFilePath[0] = 0;
-  std::ostringstream dratFileStringStream;
-  dratFileStringStream << dratFile.rdbuf();
-  return dratFileStringStream.str();
+  return dratFile;
+}
+
+void CadicalSolver::deleteDratFile()
+{
+  if (!d_tempDratFilePath.empty())
+  {
+    std::remove(d_tempDratFilePath.c_str());
+  }
 }
 
 CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
