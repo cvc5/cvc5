@@ -415,6 +415,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(INST_ATTRIBUTE, internal::Kind::INST_ATTRIBUTE),
         KIND_ENUM(INST_PATTERN_LIST, internal::Kind::INST_PATTERN_LIST),
         /* Sorts ------------------------------------------------------------ */
+        // Note that this mapping is only given for completeness and is rarely
+        // used since we do not construct sorts based on kinds.
         KIND_ENUM(ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
         KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
         KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
@@ -1253,6 +1255,8 @@ Kind Sort::getKind() const
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   internal::Kind tk = d_type->getKind();
+  // Base types are type constants, which have to be special cased to return
+  // the appropriate kind.
   if (tk == internal::kind::TYPE_CONSTANT)
   {
     switch (d_type->getConst<internal::TypeConstant>())
@@ -1266,6 +1270,7 @@ Kind Sort::getKind() const
       default: return INTERNAL_KIND; break;
     }
   }
+  // otherwise we rely on the mapping
   return intToExtKind(tk);
   ////////
   CVC5_API_TRY_CATCH_END;

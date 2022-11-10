@@ -3414,7 +3414,7 @@ class CVC5_EXPORT Solver
    * INTEGER_SORT and STRING_SORT cannot.
    *
    * @note providing the kind ABSTRACT_SORT as an argument to this method
-   * returns the (fully) unspecified sort, often denoted ?.
+   * returns the (fully) unspecified sort, denoted ?.
    *
    * @note providing a kind k that has no indices and a fixed arity
    * of argument sorts will return the sort of kind k whose arguments are the
