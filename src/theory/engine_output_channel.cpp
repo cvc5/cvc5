@@ -85,10 +85,16 @@ void EngineOutputChannel::requirePhase(TNode n, bool phase)
   d_engine->getPropEngine()->requirePhase(n, phase);
 }
 
-void EngineOutputChannel::setIncomplete(IncompleteId id)
+void EngineOutputChannel::setModelUnsound(IncompleteId id)
 {
-  Trace("theory") << "setIncomplete(" << id << ")" << std::endl;
-  d_engine->setIncomplete(d_theory, id);
+  Trace("theory") << "setModelUnsound(" << id << ")" << std::endl;
+  d_engine->setModelUnsound(d_theory, id);
+}
+
+void EngineOutputChannel::setRefutationUnsound(IncompleteId id)
+{
+  Trace("theory") << "setRefutationUnsound(" << id << ")" << std::endl;
+  d_engine->setRefutationUnsound(d_theory, id);
 }
 
 void EngineOutputChannel::spendResource(Resource r)
