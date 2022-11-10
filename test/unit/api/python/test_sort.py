@@ -63,7 +63,7 @@ def test_operators_comparison(solver):
     solver.getIntegerSort() > Sort(solver)
     solver.getIntegerSort() >= Sort(solver)
 
-def test_get_kind(solver)
+def test_get_kind(solver):
     b = solver.getBooleanSort()
     dt_sort = create_datatype_sort(solver)
     arr_sort = solver.mkArraySort(solver.getRealSort(), solver.getIntegerSort())

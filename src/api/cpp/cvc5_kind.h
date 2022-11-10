@@ -5583,6 +5583,10 @@ enum Kind : int32_t
    */
   DATATYPE_SORT,
   /**
+   * A finite field sort, parameterized by a size.
+   */
+  FINITE_FIELD_SORT,
+  /**
    * A floating-point sort, parameterized by two integers denoting its
    * exponent and significand bits.
    *
@@ -5666,6 +5670,10 @@ enum Kind : int32_t
   TUPLE_SORT,
   /**
    * An uninterpreted sort.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
    */
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */

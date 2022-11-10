@@ -94,6 +94,8 @@ ENUM_JAVA_BOTTOM = \
 """
 
 # mapping from c++ patterns to java
+# The order of this map matters, the earlier rules are applied with higher
+# priority.
 CPP_JAVA_MAPPING = \
     {
         r"\bbool\b": "boolean",
@@ -110,6 +112,7 @@ CPP_JAVA_MAPPING = \
         r"std::vector<Term>": "Term[]",
         r"std::vector<Sort>": "Sort[]",
         r"std::vector<DatatypeDecl>": "DatatypeDecl[]",
+        r"std::optional<std::string>" : "String",
         r"std::string": "String",
         r".. note::": "@api.note",
         r".. warning::": "@api.note",
