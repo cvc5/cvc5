@@ -283,6 +283,16 @@ def test_mk_sequence_sort(solver):
     slv.mkSequenceSort(solver.getIntegerSort())
 
 
+
+def test_mk_sequence_sort(solver):
+    solver.mkAbstractSort(Kind.ARRAY_SORT)
+    solver.mkAbstractSort(Kind.BITVECTOR_SORT)
+    solver.mkAbstractSort(Kind.TUPLE_SORT)
+    solver.mkAbstractSort(Kind.SET_SORT)
+    with pytest.raises(RuntimeError):
+        solver.mkAbstractSort(Kind.BOOLEAN_SORT)
+
+
 def test_mk_uninterpreted_sort(solver):
     solver.mkUninterpretedSort("u")
     solver.mkUninterpretedSort("")

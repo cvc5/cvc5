@@ -63,6 +63,14 @@ def test_operators_comparison(solver):
     solver.getIntegerSort() > Sort(solver)
     solver.getIntegerSort() >= Sort(solver)
 
+def test_get_kind(solver)
+    b = solver.getBooleanSort()
+    dt_sort = create_datatype_sort(solver)
+    arr_sort = solver.mkArraySort(solver.getRealSort(), solver.getIntegerSort())
+    assert b.getKind() == Kind.BOOLEAN_SORT
+    assert dt_sort.getKind()== Kind.DATATYPE_SORT
+    assert arr_sort.getKind()== Kind.ARRAY_SORT
+
 def test_has_get_symbol(solver):
     n = Sort(solver)
     b = solver.getBooleanSort()
@@ -217,6 +225,13 @@ def test_is_sequence(solver):
     seq_sort = solver.mkSequenceSort(solver.getRealSort())
     assert seq_sort.isSequence()
     Sort(solver).isSequence()
+
+
+def test_is_abstract(solver):
+  assert solver.mkAbstractSort(Kind.BITVECTOR_SORT).isAbstract()
+  assert !solver.mkAbstractSort(Kind.ARRAY_SORT).isAbstract()
+  assert solver.mkAbstractSort(Kind.ABSTRACT_SORT).isAbstract()
+  Sort(solver).isAbstract()
 
 
 def test_is_uninterpreted(solver):
@@ -455,6 +470,13 @@ def test_get_sequence_element_sort(solver):
     assert not bvSort.isSequence()
     with pytest.raises(RuntimeError):
         bvSort.getSequenceElementSort()
+
+
+def test_get_abstract_kind(solver):
+    assert solver.mkAbstractSort(Kind.BITVECTOR_SORT).getAbstractKind() == Kind.BITVECTOR_SORT
+    with pytest.raises(RuntimeError):
+        solver.mkAbstractSort(Kind.ARRAY_SORT).getAbstractKind()
+    assert solver.mkAbstractSort(Kind.ABSTRACT_SORT).getAbstractKind() == Kind.ABSTRACT_SORT
 
 
 def test_get_uninterpreted_sort_name(solver):

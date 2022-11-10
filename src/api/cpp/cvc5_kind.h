@@ -5532,7 +5532,7 @@ enum Kind : int32_t
    * An abstract sort.
    * 
    * An abstract sort represents a sort whose parameters or argument sorts are
-   * unspecified. For example, Solver::mkAbstractSort(BITVECTOR_SORT) returns a
+   * unspecified. For example, mkAbstractSort(BITVECTOR_SORT) returns a
    * sort that represents the sort of bit-vectors whose bit-width is
    * unspecified.
    *
@@ -5640,7 +5640,7 @@ enum Kind : int32_t
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkTupleSort(const std::vector<Sort>&) const
+   *   - mkTupleSort(const std::vector<Sort>&) const
    */
   TUPLE_SORT,
   /**
@@ -5648,7 +5648,7 @@ enum Kind : int32_t
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
+   *   - mkUninterpretedSort(const std::optional<std::string>&) const
    */
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
