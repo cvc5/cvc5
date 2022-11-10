@@ -478,10 +478,19 @@ Result PropEngine::checkSat() {
   }
 
   Trace("prop") << "PropEngine::checkSat() => " << result << std::endl;
-  if (result == SAT_VALUE_TRUE && d_theoryProxy->isIncomplete())
+  if (result == SAT_VALUE_TRUE)
+  {
+    if (d_theoryProxy->isModelUnsound())
+    {
+      outputIncompleteReason(UnknownExplanation::INCOMPLETE,
+                             d_theoryProxy->getModelUnsoundId());
+      return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
+    }
+  }
+  else if (d_theoryProxy->isRefutationUnsound())
   {
     outputIncompleteReason(UnknownExplanation::INCOMPLETE,
-                           d_theoryProxy->getIncompleteId());
+                           d_theoryProxy->getRefutationUnsoundId());
     return Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
   }
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);

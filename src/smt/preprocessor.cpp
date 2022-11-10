@@ -48,6 +48,14 @@ Preprocessor::~Preprocessor() {}
 
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
+  // set up the preprocess proof generator, if necessary
+  if (options().smt.produceProofs)
+  {
+    d_pppg = std::make_unique<PreprocessProofGenerator>(
+        d_env, userContext(), "smt::PreprocessProofGenerator");
+    d_propagator.enableProofs(userContext(), d_pppg.get());
+  }
+
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
       d_env, te, pe, &d_propagator));
 
@@ -62,7 +70,6 @@ bool Preprocessor::process(preprocessing::AssertionPipeline& ap)
     // nothing to do
     return true;
   }
-
   if (d_assertionsProcessed && options().base.incrementalSolving)
   {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
@@ -120,10 +127,9 @@ void Preprocessor::applySubstitutions(std::vector<Node>& ns)
   }
 }
 
-void Preprocessor::enableProofs(PreprocessProofGenerator* pppg)
+PreprocessProofGenerator* Preprocessor::getPreprocessProofGenerator()
 {
-  Assert(pppg != nullptr);
-  d_propagator.enableProofs(userContext(), pppg);
+  return d_pppg.get();
 }
 
 }  // namespace smt

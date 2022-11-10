@@ -32,6 +32,7 @@
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
+#include "smt/smt_solver.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -44,12 +45,8 @@ PfManager::PfManager(Env& env)
           static_cast<uint32_t>(options().proof.proofPedantic))),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
-      d_pppg(nullptr),
       d_pfpp(nullptr)
 {
-  // now construct preprocess proof generator
-  d_pppg = std::make_unique<PreprocessProofGenerator>(
-      env, env.getUserContext(), "smt::PreprocessProofGenerator");
   // Now, initialize the proof postprocessor with the environment.
   // By default the post-processor will update all assumptions, which
   // can lead to SCOPE subproofs of the form
@@ -69,7 +66,6 @@ PfManager::PfManager(Env& env)
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp = std::make_unique<ProofPostprocess>(
       env,
-      d_pppg.get(),
       nullptr,
       options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
 
@@ -118,8 +114,11 @@ constexpr typename std::vector<T, Alloc>::size_type erase_if(
 }
 
 std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
-    std::shared_ptr<ProofNode> pfn, Assertions& as, ProofScopeMode scopeMode)
+    std::shared_ptr<ProofNode> pfn, SmtSolver& smt, ProofScopeMode scopeMode)
 {
+  Assertions& as = smt.getAssertions();
+  PreprocessProofGenerator* pppg =
+      smt.getPreprocessor()->getPreprocessProofGenerator();
   // Note this assumes that connectProofToAssertions is only called once per
   // unsat response. This method would need to cache its result otherwise.
   Trace("smt-proof")
@@ -161,7 +160,7 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
   Trace("smt-proof")
       << "SolverEngine::connectProofToAssertions(): postprocess...\n";
   Assert(d_pfpp != nullptr);
-  d_pfpp->process(pfn);
+  d_pfpp->process(pfn, pppg);
 
   switch (scopeMode)
   {
@@ -272,7 +271,7 @@ void PfManager::printProof(std::ostream& out,
 }
 
 void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
-                                       Assertions& as)
+                                       SmtSolver& smt)
 {
   Trace("difficulty-proc") << "Translate difficulty start" << std::endl;
   Trace("difficulty") << "PfManager::translateDifficultyMap" << std::endl;
@@ -301,7 +300,7 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   cdp.addStep(fnode, PfRule::SAT_REFUTATION, ppAsserts, {});
   std::shared_ptr<ProofNode> pf = cdp.getProofFor(fnode);
   Trace("difficulty-proc") << "Get final proof" << std::endl;
-  std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, as);
+  std::shared_ptr<ProofNode> fpf = connectProofToAssertions(pf, smt);
   Trace("difficulty-debug") << "Final proof is " << *fpf.get() << std::endl;
   Assert(fpf->getRule() == PfRule::SCOPE);
   fpf = fpf->getChildren()[0];
@@ -337,11 +336,6 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
 rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
-
-smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
-{
-  return d_pppg.get();
-}
 
 void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
 {

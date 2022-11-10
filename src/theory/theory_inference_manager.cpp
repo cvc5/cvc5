@@ -621,9 +621,14 @@ void TheoryInferenceManager::safePoint(Resource r)
   d_out.safePoint(r);
 }
 
-void TheoryInferenceManager::setIncomplete(IncompleteId id)
+void TheoryInferenceManager::setModelUnsound(IncompleteId id)
 {
-  d_out.setIncomplete(id);
+  d_out.setModelUnsound(id);
+}
+
+void TheoryInferenceManager::setRefutationUnsound(IncompleteId id)
+{
+  d_out.setRefutationUnsound(id);
 }
 
 void TheoryInferenceManager::notifyInConflict()
