@@ -5666,10 +5666,6 @@ enum Kind : int32_t
   TUPLE_SORT,
   /**
    * An uninterpreted sort.
-   *
-   * - Create Sort of this Kind with:
-   *
-   *   - Solver::mkUninterpretedSort(const std::optional<std::string>&) const
    */
   UNINTERPRETED_SORT,
   /* ----------------------------------------------------------------------- */
