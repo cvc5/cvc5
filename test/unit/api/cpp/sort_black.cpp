@@ -514,7 +514,7 @@ TEST_F(TestApiBlackSort, getAbstractKind)
   ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(),
                CVC5ApiException);
   ASSERT_EQ(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(),
-              ABSTRACT_SORT);
+            ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, getSymbol)

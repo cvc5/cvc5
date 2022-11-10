@@ -74,14 +74,13 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getIntegerSort() != new Sort());
     assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(new Sort()));
   }
-  
+
   @Test
   void getKind() throws CVC5ApiException
   {
     Sort b = d_solver.getBooleanSort();
     Sort dt_sort = create_datatype_sort();
-    Sort arr_sort =
-        d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
+    Sort arr_sort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
     assertEquals(b.getKind(), BOOLEAN_SORT);
     assertEquals(dt_sort.getKind(), DATATYPE_SORT);
     assertEquals(arr_sort.getKind(), ARRAY_SORT);

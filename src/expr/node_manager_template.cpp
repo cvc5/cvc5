@@ -570,9 +570,9 @@ bool NodeManager::canAbstractSortKind(Kind k)
 {
   return k == kind::ABSTRACT_TYPE || k == kind::ARRAY_TYPE
          || k == kind::BAG_TYPE || k == kind::BITVECTOR_TYPE
-         || k == kind::TUPLE_TYPE || k == kind::FINITE_FIELD_TYPE || k == kind::FLOATINGPOINT_TYPE
-         || k == kind::FUNCTION_TYPE || k == kind::SEQUENCE_TYPE
-         || k == kind::SET_TYPE;
+         || k == kind::TUPLE_TYPE || k == kind::FINITE_FIELD_TYPE
+         || k == kind::FLOATINGPOINT_TYPE || k == kind::FUNCTION_TYPE
+         || k == kind::SEQUENCE_TYPE || k == kind::SET_TYPE;
 }
 
 TypeNode NodeManager::mkAbstractType(Kind k)
