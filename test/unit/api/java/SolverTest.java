@@ -790,7 +790,7 @@ class SolverTest
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(EQUAL, v2));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(EQUAL, v3));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(DISTINCT, v6));
-    
+
     // cannot make terms from sort kinds
     assertThrows(CVC5ApiException.class, () -> d_solver.mkTerm(BOOLEAN_SORT));
   }
