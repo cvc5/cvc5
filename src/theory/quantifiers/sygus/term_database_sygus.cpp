@@ -410,6 +410,7 @@ void TermDbSygus::registerEnumerator(Node e,
   std::vector<TypeNode> sf_types;
   eti.getSubfieldTypes(sf_types);
   bool sharedSel = options().datatypes.dtSharedSelectors;
+  // whether this enumerator relies on any-constant constructors
   bool usingAnyConst = false;
   // for each type of subfield type of this enumerator
   for (unsigned i = 0, ntypes = sf_types.size(); i < ntypes; i++)
@@ -550,8 +551,9 @@ void TermDbSygus::registerEnumerator(Node e,
   // hence those blocking lemmas are refutation unsound. For simplicity, we
   // mark unsound once and for all at the beginning, meaning we do not
   // answer "infeasible" when using smart enuemration + any-constant
-  // constructors.
-  if (!isActiveGen && usingAnyConst)
+  // constructors. Using --sygus-repair-const on the other hand avoids this
+  // incompleteness, which is checked here.
+  if (!isActiveGen && usingAnyConst && !options().quantifiers.sygusRepairConst)
   {
     Assert(d_qim != nullptr);
     d_qim->setRefutationUnsound(
