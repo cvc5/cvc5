@@ -32,7 +32,8 @@ void insertSatLiteralIntoClause(prop::SatClause& clause,
                                 const std::string& dratLiteral)
 {
   int32_t literal = stoi(dratLiteral);
-  clause.emplace_back(prop::SatLiteral(static_cast<uint64_t>(std::abs(literal)), literal < 0));
+  clause.emplace_back(
+      prop::SatLiteral(static_cast<uint64_t>(std::abs(literal)), literal < 0));
 }
 
 std::vector<std::string> splitString(const std::string& s, const char delim)
@@ -47,7 +48,37 @@ std::vector<std::string> splitString(const std::string& s, const char delim)
   return res;
 }
 
-} // namespace (unnamed) helper functions
+void addFalseDerivationInstruction(std::vector<DratInstruction>& instructions)
+{
+  instructions.emplace_back(ADDITION, prop::SatClause({prop::SatLiteral(0)}));
+}
+
+bool addInstruction(std::vector<DratInstruction>& instructions,
+                    const std::vector<std::string>& columns)
+{
+  DratInstructionKind kind = ADDITION;
+  int32_t columnsStart = 0;
+  if (columns[0] == "d")
+  {
+    // last but one column is the literal, last column is 0
+    kind = DELETION;
+    columnsStart = 1;
+  }
+  prop::SatClause currentClause;
+  // last column is 0
+  for (std::size_t i = columnsStart, size = columns.size() - 1; i < size; i++)
+  {
+    insertSatLiteralIntoClause(currentClause, columns[i]);
+  }
+  if (currentClause.size() > 0)
+  {
+    instructions.emplace_back(kind, currentClause);
+    return true;
+  }
+  return false;
+}
+
+}  // namespace
 
 // DratInstruction implementation
 DratInstruction::DratInstruction(DratInstructionKind kind,
@@ -61,41 +92,23 @@ DratInstruction::DratInstruction(DratInstructionKind kind,
 
 DratProof::DratProof() : d_instructions() {}
 
-DratProof DratProof::fromPlain(const std::string& s)
+DratProof DratProof::fromPlain(std::ifstream& dratEntry)
 {
   DratProof dratProof;
-  char dratLineSplitter = '\n';
-  std::vector<std::string> lines = splitString(s, dratLineSplitter);
 
-  for (const std::string& line : lines)
+  std::string line;
+  while (std::getline(dratEntry, line))
   {
     char dratColumnSplitter = ' ';
     std::vector<std::string> columns = splitString(line, dratColumnSplitter);
     // last line, false derivation
-    if (line == lines.back() && columns.size() == 1
-        && columns[0] == "0")
+    if (dratEntry.peek() == EOF && columns.size() == 1 && columns[0] == "0")
     {
-      dratProof.d_instructions.emplace_back(
-          ADDITION, prop::SatClause({prop::SatLiteral(0)}));
+      addFalseDerivationInstruction(dratProof.d_instructions);
       break;
     }
-    DratInstructionKind kind = ADDITION;
-    int32_t columnsStart = 0;
-    if (columns[0] == "d")
+    if (addInstruction(dratProof.d_instructions, columns))
     {
-      // last but one column is the literal, last column is 0
-      kind = DELETION;
-      columnsStart = 1;
-    }
-    prop::SatClause currentClause;
-    // last column is 0
-    for (std::size_t i = columnsStart, size = columns.size() - 1; i < size; i++)
-    {
-      insertSatLiteralIntoClause(currentClause, columns[i]);
-    }
-    if (currentClause.size() > 0)
-    {
-      dratProof.d_instructions.emplace_back(kind, currentClause);
       continue;
     }
     Unreachable() << "Invalid line in Drat proof: \"" << line << "\""

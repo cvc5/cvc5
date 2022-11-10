@@ -64,7 +64,7 @@ class CadicalSolver : public SatSolver
 
   void setDrat() override;
 
-  std::string getDrat() override;
+  std::ifstream getDrat() override;
 
  private:
   /**
@@ -77,6 +77,10 @@ class CadicalSolver : public SatSolver
    * Note: Split out to not call virtual functions in constructor.
    */
   void init();
+  /**
+   * Deletes the generated DRAT proof file.
+   */
+  void deleteDratFile();
 
   /**
    * Set resource limit.

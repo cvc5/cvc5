@@ -16,3 +16,4 @@
 # \todo document this file
 ##
 cvc5_add_unit_test_black(lfsc_node_converter_black proof)
+cvc5_add_unit_test_black(drat_proof_black proof)

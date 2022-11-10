@@ -125,7 +125,7 @@ public:
    * The production of the DRAT proof must have been enabled (via setDrat), and
    * this method must be called after the solving has finished.
    */
-  virtual std::string getDrat()
+  virtual std::ifstream getDrat()
   {
     Unimplemented() << "getDrat not implemented";
   }
