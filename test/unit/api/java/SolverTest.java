@@ -346,7 +346,7 @@ class SolverTest
     assertDoesNotThrow(() -> d_solver.mkAbstractSort(BITVECTOR_SORT));
     assertDoesNotThrow(() -> d_solver.mkAbstractSort(TUPLE_SORT));
     assertDoesNotThrow(() -> d_solver.mkAbstractSort(SET_SORT));
-    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractSort(BOOLEAN_SORT), CVC5ApiException);
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractSort(BOOLEAN_SORT));
   }
 
   @Test
