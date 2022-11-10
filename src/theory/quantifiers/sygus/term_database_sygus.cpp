@@ -410,6 +410,7 @@ void TermDbSygus::registerEnumerator(Node e,
   std::vector<TypeNode> sf_types;
   eti.getSubfieldTypes(sf_types);
   bool sharedSel = options().datatypes.dtSharedSelectors;
+  bool usingAnyConst = false;
   // for each type of subfield type of this enumerator
   for (unsigned i = 0, ntypes = sf_types.size(); i < ntypes; i++)
   {
@@ -419,17 +420,21 @@ void TermDbSygus::registerEnumerator(Node e,
     SygusTypeInfo& sti = getTypeInfo(stn);
     const DType& dt = stn.getDType();
     int anyC = sti.getAnyConstantConsNum();
-    for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+    if (anyC != -1)
     {
-      bool isAnyC = static_cast<int>(j) == anyC;
-      if (anyC != -1 && !isAnyC)
+      usingAnyConst = true;
+      for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
-        // if we are using the any constant constructor, do not use any
-        // concrete constant
-        Node c_op = sti.getConsNumConst(j);
-        if (!c_op.isNull())
+        bool isAnyC = static_cast<int>(j) == anyC;
+        if (!isAnyC)
         {
-          rm_indices.push_back(j);
+          // if we are using the any constant constructor, do not use any
+          // concrete constant
+          Node c_op = sti.getConsNumConst(j);
+          if (!c_op.isNull())
+          {
+            rm_indices.push_back(j);
+          }
         }
       }
     }
@@ -539,6 +544,10 @@ void TermDbSygus::registerEnumerator(Node e,
       d_enum_var_agnostic[e] = false;
       isActiveGen = false;
     }
+  }
+  if (!isActiveGen && usingAnyConst)
+  {
+    
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
