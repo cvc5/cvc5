@@ -1,0 +1,6 @@
+(set-logic QF_S)
+(set-info :status unsat)
+(declare-fun s () String)
+(assert (str.in_re s (re.* (str.to_re "A"))))
+(assert (not (str.in_re s (re.* (re.union (str.to_re "A") (str.to_re "B"))))))
+(check-sat)

@@ -173,7 +173,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             << "conflict with " << learned_literals[i].getNode() << std::endl;
         assertionsToPreprocess->clear();
         Node n = nm->mkConst<bool>(false);
-        assertionsToPreprocess->push_back(n, false, false, d_llpg.get());
+        assertionsToPreprocess->push_back(n, false, d_llpg.get());
         return PreprocessingPassResult::CONFLICT;
       }
     }
@@ -362,8 +362,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-  Assert(assertionsToPreprocess->getRealAssertionsEnd()
-         <= assertionsToPreprocess->size());
   // Learned literals to conjoin. If proofs are enabled, all these are
   // justified by d_llpg.
   std::vector<Node> learnedLitsToConjoin;
@@ -410,7 +408,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   if (!learnedLitsToConjoin.empty())
   {
-    size_t replIndex = assertionsToPreprocess->getRealAssertionsEnd() - 1;
+    size_t replIndex = assertionsToPreprocess->size() - 1;
     Node newConj = nm->mkAnd(learnedLitsToConjoin);
     Trace("non-clausal-simplify")
         << "non-clausal simplification, reassert: " << newConj << std::endl;

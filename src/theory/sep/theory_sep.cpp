@@ -872,7 +872,7 @@ void TheorySep::postCheck(Effort level)
 
   if (needAddLemma)
   {
-    d_im.setIncomplete(IncompleteId::SEP);
+    d_im.setModelUnsound(IncompleteId::SEP);
   }
   Trace("sep-check") << "Sep::check(): " << level
                      << " done, conflict=" << d_state.isInConflict()
@@ -1180,7 +1180,7 @@ Node TheorySep::getBaseLabel()
   }
   else
   {
-    tn_is_monotonic = d_type_ref.getCardinality().isInfinite();
+    tn_is_monotonic = !d_env.isFiniteType(d_type_ref);
   }
   // add a reference type for maximum occurrences of empty in a constraint
   if (tn_is_monotonic)

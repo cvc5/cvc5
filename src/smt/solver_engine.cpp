@@ -170,13 +170,8 @@ void SolverEngine::finishInit()
     NodeManager::currentNM()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(*d_env.get()));
-    PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // start the unsat core manager
     d_ucManager.reset(new UnsatCoreManager());
-    // enable it in the assertions pipeline
-    d_smtSolver->getAssertions().enableProofs(pppg);
-    // enabled proofs in the preprocessor
-    d_smtSolver->getPreprocessor()->enableProofs(pppg);
     pnm = d_pfManager->getProofNodeManager();
   }
   // enable proof support in the environment/rewriter
@@ -956,7 +951,7 @@ Node SolverEngine::simplify(const Node& t)
   finishInit();
   d_ctxManager->doPendingPops();
   // ensure we've processed assertions
-  d_smtSolver->processAssertions();
+  d_smtSolver->refreshAssertions();
   // Substitute out any abstract values in node.
   Node tt = d_absValues->substituteAbstractValues(t);
   // apply substitutions
@@ -1292,8 +1287,7 @@ void SolverEngine::checkProof()
   if (d_env->getOptions().smt.checkProofs)
   {
     // connect proof to assertions, which will fail if the proof is malformed
-    Assertions& as = d_smtSolver->getAssertions();
-    d_pfManager->connectProofToAssertions(pePfn, as);
+    d_pfManager->connectProofToAssertions(pePfn, *d_smtSolver.get());
   }
 }
 
@@ -1330,11 +1324,10 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   std::shared_ptr<ProofNode> pepf = cdp.getProofFor(fnode);
 
   Assert(pepf != nullptr);
-  Assertions& as = d_smtSolver->getAssertions();
   std::shared_ptr<ProofNode> pfn =
-      d_pfManager->connectProofToAssertions(pepf, as);
+      d_pfManager->connectProofToAssertions(pepf, *d_smtSolver.get());
   std::vector<Node> core;
-  d_ucManager->getUnsatCore(pfn, as, core);
+  d_ucManager->getUnsatCore(pfn, d_smtSolver->getAssertions(), core);
   if (options().smt.minimalUnsatCores)
   {
     core = reduceUnsatCore(core);
@@ -1581,7 +1574,6 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
   // connect proofs to preprocessing, if specified
   if (connectToPreprocess)
   {
-    Assertions& as = d_smtSolver->getAssertions();
     ProofScopeMode scopeMode =
         connectMkOuterScope ? mode == options::ProofFormatMode::LFSC
                                   ? ProofScopeMode::DEFINITIONS_AND_ASSERTIONS
@@ -1590,7 +1582,8 @@ std::string SolverEngine::getProof(modes::ProofComponent c)
     for (std::shared_ptr<ProofNode>& p : ps)
     {
       Assert(p != nullptr);
-      p = d_pfManager->connectProofToAssertions(p, as, scopeMode);
+      p = d_pfManager->connectProofToAssertions(
+          p, *d_smtSolver.get(), scopeMode);
     }
   }
   // print all proofs
@@ -1850,8 +1843,7 @@ void SolverEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
   te->getDifficultyMap(dmap);
   // then ask proof manager to translate dmap in terms of the input
-  Assertions& as = d_smtSolver->getAssertions();
-  d_pfManager->translateDifficultyMap(dmap, as);
+  d_pfManager->translateDifficultyMap(dmap, *d_smtSolver.get());
 }
 
 void SolverEngine::push()
@@ -1859,7 +1851,7 @@ void SolverEngine::push()
   finishInit();
   d_ctxManager->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
-  d_smtSolver->processAssertions();
+  d_smtSolver->refreshAssertions();
   d_ctxManager->userPush();
 }
 
@@ -1870,7 +1862,7 @@ void SolverEngine::pop()
   d_ctxManager->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
-  d_smtSolver->getAssertions().clearCurrent();
+  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   // clear the learned literals from the preprocessor
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
@@ -1893,7 +1885,7 @@ void SolverEngine::resetAssertions()
 
   Trace("smt") << "SMT resetAssertions()" << endl;
 
-  d_smtSolver->getAssertions().clearCurrent();
+  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   d_ctxManager->notifyResetAssertions();
   // push the state to maintain global context around everything
   d_ctxManager->setup();

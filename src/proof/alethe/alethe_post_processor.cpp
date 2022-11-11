@@ -37,6 +37,23 @@ namespace cvc5::internal {
 
 namespace proof {
 
+std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
+  {kind::BITVECTOR_ULT, AletheRule::BV_BITBLAST_STEP_BVULT},
+  {kind::VARIABLE, AletheRule::BV_BITBLAST_STEP_VAR},
+  {kind::BITVECTOR_AND, AletheRule::BV_BITBLAST_STEP_BVAND},
+  {kind::BITVECTOR_OR, AletheRule::BV_BITBLAST_STEP_BVOR},
+  {kind::BITVECTOR_XOR, AletheRule::BV_BITBLAST_STEP_BVXOR},
+  {kind::BITVECTOR_XNOR, AletheRule::BV_BITBLAST_STEP_BVXNOR},
+  {kind::BITVECTOR_NOT, AletheRule::BV_BITBLAST_STEP_BVNOT},
+  {kind::BITVECTOR_ADD, AletheRule::BV_BITBLAST_STEP_BVADD},
+  {kind::BITVECTOR_NEG, AletheRule::BV_BITBLAST_STEP_BVNEG},
+  {kind::BITVECTOR_MULT, AletheRule::BV_BITBLAST_STEP_BVMULT},
+  {kind::BITVECTOR_CONCAT, AletheRule::BV_BITBLAST_STEP_CONCAT},
+  {kind::CONST_BITVECTOR, AletheRule::BV_BITBLAST_STEP_CONST},
+  {kind::BITVECTOR_EXTRACT, AletheRule::BV_BITBLAST_STEP_EXTRACT},
+  {kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
+};
+
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     Env& env, AletheNodeConverter& anc, bool resPivots)
     : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
@@ -1442,9 +1459,23 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
-    return addAletheStep(
-        AletheRule::ALL_SIMPLIFY, res, res, {}, children, *cdp);
-  }*/
+    // ======== Bitvector
+    //
+    // ------------------------ BV_BITBLAST_STEP_BV<KIND>
+    //  (cl (= t bitblast(t)))
+    case PfRule::BV_BITBLAST_STEP:
+    {
+      Assert(s_bvKindToAletheRule.find(res[0].getKind())
+             != s_bvKindToAletheRule.end())
+          << "Bit-blasted kind not supported in Alethe post-processing.";
+      return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    //================================================= Quantifiers rules
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
