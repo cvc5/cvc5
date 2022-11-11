@@ -675,7 +675,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // (i.e. it depends on the model's finite interpretation for uninterpreted
       // sorts). We do not know how to handle this case, we set incomplete.
       // TODO (cvc4-projects #23): how to handle sequence for finite types?
-      d_im.setIncomplete(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
+      d_im.setModelUnsound(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
       return;
     }
   }

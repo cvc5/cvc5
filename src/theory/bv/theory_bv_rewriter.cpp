@@ -685,6 +685,14 @@ RewriteResponse TheoryBVRewriter::RewriteSsubo(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
+RewriteResponse TheoryBVRewriter::RewriteSdivo(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<SdivoEliminate>>::apply(node);
+
+  return RewriteResponse(REWRITE_AGAIN, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_DONE, node);
 }
@@ -748,5 +756,6 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable[kind::BITVECTOR_SMULO] = RewriteSmulo;
   d_rewriteTable[kind::BITVECTOR_USUBO] = RewriteUsubo;
   d_rewriteTable[kind::BITVECTOR_SSUBO] = RewriteSsubo;
+  d_rewriteTable[kind::BITVECTOR_SDIVO] = RewriteSdivo;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
 }
