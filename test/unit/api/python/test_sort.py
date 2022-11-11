@@ -17,7 +17,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Sort
+from cvc5 import Kind, Sort
 
 
 @pytest.fixture
