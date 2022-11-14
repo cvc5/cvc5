@@ -112,7 +112,7 @@ SolverEngine::SolverEngine(const Options* optr)
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_absValues, *d_stats));
   // make the context manager
-  d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state, *d_smtSolver));
+  d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_env.get(), *d_smtSolver));
   // make the quantifier elimination solver
@@ -177,6 +177,9 @@ void SolverEngine::finishInit()
   // enable proof support in the environment/rewriter
   d_env->finishInit(pnm);
 
+  Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
+  d_smtSolver->finishInit();
+
   // make SMT solver driver based on options
   if (options().smt.deepRestartMode != options::DeepRestartMode::NONE)
   {
@@ -190,12 +193,9 @@ void SolverEngine::finishInit()
         new SmtDriverSingleCall(*d_env.get(), *d_smtSolver.get()));
   }
 
-  Trace("smt-debug") << "SolverEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit();
-
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
-  d_ctxManager->setup();
+  d_ctxManager->setup(d_smtDriver.get());
 
   // subsolvers
   if (d_env->getOptions().smt.produceAbducts)
@@ -1870,7 +1870,7 @@ void SolverEngine::resetAssertions()
 
   d_ctxManager->notifyResetAssertions();
   // push the state to maintain global context around everything
-  d_ctxManager->setup();
+  d_ctxManager->setup(d_smtDriver.get());
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();

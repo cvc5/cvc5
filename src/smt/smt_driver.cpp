@@ -30,6 +30,13 @@ namespace smt {
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
     : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
 {
+  // set up proofs, this is done after options are finalized
+  PreprocessProofGenerator* pppg = d_smt.getPreprocessor()->getPreprocessProofGenerator();
+  if (pppg!=nullptr)
+  {
+    d_ap.enableProofs(pppg);
+  }
+  //Assert (pppg!=nullptr || !options().proof
 }
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
@@ -73,7 +80,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
           // finish init to construct new theory/prop engine
           d_smt.finishInit();
           // setup
-          d_ctx->setup();
+          d_ctx->setup(this);
         }
         else
         {
@@ -116,6 +123,28 @@ void SmtDriver::refreshAssertions()
   d_smt.preprocess(d_ap);
   // assert to internal
   d_smt.assertToInternal(d_ap);
+}
+
+void SmtDriver::notifyPushPre()
+{
+  // must preprocess the assertions and push them to the SAT solver, to make
+  // the state accurate prior to pushing
+  refreshAssertions();
+}
+
+void SmtDriver::notifyPushPost()
+{
+  d_smt.pushPropContext();
+}
+
+void SmtDriver::notifyPopPre()
+{
+  d_smt.popPropContext();
+}
+
+void SmtDriver::notifyPostSolve()
+{
+  d_smt.postsolve();
 }
 
 SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
