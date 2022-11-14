@@ -1530,6 +1530,8 @@ set(regress_0_tests
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
+  regress0/strings/simple-include-mem.smt2
+  regress0/strings/simple-include-subrange.smt2
   regress0/strings/simple-nth-fail.smt2
   regress0/strings/std2.6.1.smt2
   regress0/strings/str_unsound_ext_rew_eq.smt2
@@ -2974,6 +2976,7 @@ set(regress_1_tests
   regress1/sygus/proj-issue181.smt2
   regress1/sygus/proj-issue183.smt2
   regress1/sygus/proj-issue185.smt2
+  regress1/sygus/proj-issue222-any-const.sy
   regress1/sygus/proj-issue264.smt2
   regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy

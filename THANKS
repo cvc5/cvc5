@@ -54,3 +54,7 @@ Thanks to:
 - Fabian Wolff in 2016 for fixing several spelling mistakes.
 
 - Justin Xu for contributing to refactoring CVC4's preprocessing infrastructure.
+
+- Vinicius Braga Freire for a modification in the proof printer for dot format,
+  allowing the clusterization of the proof into logic groups. Furthermore,for
+  implementing a built-in Web Assembly compilation method in 2022.
