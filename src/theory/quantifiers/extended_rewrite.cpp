@@ -618,9 +618,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
   std::map<unsigned, std::map<unsigned, Node> > ite_c;
   for (unsigned i = 0; i < nchildren; i++)
   {
-    // only pull ITEs apart if we are aggressive
-    if (n[i].getKind() == itek
-        && (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE)))
+    // these rewrites in this loop are currently classified as not aggressive,
+    // although in previous versions they were classified as aggressive. These
+    // are shown to help in some Kind2 problems.
+    if (n[i].getKind() == itek)
     {
       unsigned ii = hasOp ? i + 1 : i;
       for (unsigned j = 0; j < 2; j++)
@@ -639,45 +640,42 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      if (d_aggr)
+      if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
+          && !n[1 - i].getType().isBoolean() && tn.isBoolean())
       {
-        if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
-            && !n[1 - i].getType().isBoolean() && tn.isBoolean())
+        // always pull variable or constant with binary (theory) predicate
+        // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
+        Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
+        debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
+        return new_ret;
+      }
+      for (unsigned j = 0; j < 2; j++)
+      {
+        Node pullr = ite_c[i][j];
+        if (pullr.isConst() || pullr == n[i][j + 1])
         {
-          // always pull variable or constant with binary (theory) predicate
-          // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-          Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
-          debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
-          return new_ret;
-        }
-        for (unsigned j = 0; j < 2; j++)
-        {
-          Node pullr = ite_c[i][j];
-          if (pullr.isConst() || pullr == n[i][j + 1])
+          // ITE single child elimination
+          // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
+          // implies
+          // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
+          Node new_ret;
+          if (tn.isBoolean() && pullr.isConst())
           {
-            // ITE single child elimination
-            // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
-            // implies
-            // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
-            Node new_ret;
-            if (tn.isBoolean() && pullr.isConst())
-            {
-              // remove false/true child immediately
-              bool pol = pullr.getConst<bool>();
-              std::vector<Node> new_children;
-              new_children.push_back((j == 0) == pol ? n[i][0]
-                                                     : n[i][0].negate());
-              new_children.push_back(ite_c[i][1 - j]);
-              new_ret = nm->mkNode(pol ? OR : AND, new_children);
-              debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
-            }
-            else
-            {
-              new_ret = nm->mkNode(itek, n[i][0], ite_c[i][0], ite_c[i][1]);
-              debugExtendedRewrite(n, new_ret, "ITE single elim");
-            }
-            return new_ret;
+            // remove false/true child immediately
+            bool pol = pullr.getConst<bool>();
+            std::vector<Node> new_children;
+            new_children.push_back((j == 0) == pol ? n[i][0]
+                                                    : n[i][0].negate());
+            new_children.push_back(ite_c[i][1 - j]);
+            new_ret = nm->mkNode(pol ? OR : AND, new_children);
+            debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
           }
+          else
+          {
+            new_ret = nm->mkNode(itek, n[i][0], ite_c[i][0], ite_c[i][1]);
+            debugExtendedRewrite(n, new_ret, "ITE single elim");
+          }
+          return new_ret;
         }
       }
     }

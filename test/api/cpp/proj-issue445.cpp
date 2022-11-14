@@ -24,6 +24,8 @@ int main(void)
 {
   Solver slv;
   slv.setOption("sygus-rr-synth-input", "true");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkUninterpretedSort("_u0");
   Sort s5 = slv.mkUninterpretedSort("_u1");
   Sort s6 = slv.mkUninterpretedSort("_u2");
@@ -37,5 +39,13 @@ int main(void)
   Term t279 = slv.mkTerm(Kind::SEQ_REPLACE_ALL, {t141, t229, t141});
   Term t289 = slv.mkTerm(Kind::SEQ_PREFIX, {t279, t229});
   slv.assertFormula({t289});
-  (void)slv.simplify(t7);
+  // should terminate with an exception indicating we are done enumerating
+  // rewrite rules.
+  try
+  {
+    (void)slv.simplify(t7);
+  }
+  catch (cvc5::CVC5ApiException& e)
+  {
+  }
 }

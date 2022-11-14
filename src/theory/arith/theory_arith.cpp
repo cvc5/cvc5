@@ -258,7 +258,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
+      d_im.setModelUnsound(IncompleteId::ARITH_NL_DISABLED);
     }
     // If we won't be doing a last call effort check (which implies that
     // models will be computed), we must sanity check the integer model

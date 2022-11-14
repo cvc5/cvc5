@@ -19,8 +19,8 @@
 #define CVC5__PROP_PROOF_MANAGER_H
 
 #include "api/cpp/cvc5_types.h"
-
 #include "context/cdlist.h"
+#include "context/cdo.h"
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
@@ -92,6 +92,13 @@ class PropPfManager : protected EnvObj
   void checkProof(const context::CDList<Node>& assertions);
 
  private:
+  /** The proofs of this proof manager, which are saved once requested (note the
+   * cache is for both the request of the full proof (true) or not (false)).
+   *
+   * The proofs are kept in a (user)context-dependent manner because between
+   * satisfiability checks we should discard them.
+   */
+  context::CDHashMap<bool, std::shared_ptr<ProofNode>> d_propProofs;
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostprocess> d_pfpp;
   /**

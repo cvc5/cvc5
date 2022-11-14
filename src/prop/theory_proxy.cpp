@@ -284,18 +284,28 @@ bool TheoryProxy::theoryNeedCheck() const {
   return d_theoryEngine->needCheck();
 }
 
-bool TheoryProxy::isIncomplete() const
+bool TheoryProxy::isModelUnsound() const
 {
-  return d_stopSearch.get() || d_theoryEngine->isIncomplete();
+  return d_stopSearch.get() || d_theoryEngine->isModelUnsound();
 }
 
-theory::IncompleteId TheoryProxy::getIncompleteId() const
+bool TheoryProxy::isRefutationUnsound() const
+{
+  return d_theoryEngine->isRefutationUnsound();
+}
+
+theory::IncompleteId TheoryProxy::getModelUnsoundId() const
 {
   if (d_stopSearch.get())
   {
     return theory::IncompleteId::STOP_SEARCH;
   }
-  return d_theoryEngine->getIncompleteId();
+  return d_theoryEngine->getModelUnsoundId();
+}
+
+theory::IncompleteId TheoryProxy::getRefutationUnsoundId() const
+{
+  return d_theoryEngine->getRefutationUnsoundId();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {
