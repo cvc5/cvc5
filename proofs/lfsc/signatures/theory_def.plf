@@ -332,6 +332,8 @@
 (define bvusubo (# x term (# y term (apply (apply f_bvusubo x) y))))
 (declare f_bvssubo term)
 (define bvssubo (# x term (# y term (apply (apply f_bvssubo x) y))))
+(declare f_bvsdivo term)
+(define bvsdivo (# x term (# y term (apply (apply f_bvsdivo x) y))))
 (declare f_rotate_left (! v mpz term))
 (define rotate_left (# x mpz (# y term (apply (f_rotate_left x) y))))
 (declare f_rotate_right (! v mpz term))

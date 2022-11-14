@@ -1754,7 +1754,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     // note we cannot convert looping word equations into regular expressions if
     // we are handling sequences, since there is no analog for regular
     // expressions over sequences currently
-    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
+    d_im.setModelUnsound(IncompleteId::STRINGS_LOOP_SKIP);
     return ProcessLoopResult::SKIPPED;
   }
 
@@ -1900,7 +1900,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     else if (options().strings.stringProcessLoopMode
              == options::ProcessLoopMode::SIMPLE)
     {
-      d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
+      d_im.setModelUnsound(IncompleteId::STRINGS_LOOP_SKIP);
       return ProcessLoopResult::SKIPPED;
     }
 

@@ -62,9 +62,9 @@ class Preprocessor : protected EnvObj
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
    *
-   * @param as The assertions.
+   * @param ap The assertions to preprocess
    */
-  bool process(Assertions& as);
+  bool process(preprocessing::AssertionPipeline& ap);
   /**
    * Clear learned literals from the Boolean propagator.
    */
@@ -87,16 +87,12 @@ class Preprocessor : protected EnvObj
   Node applySubstitutions(const Node& n);
   /** Same as above, for a list of assertions, updating in place */
   void applySubstitutions(std::vector<Node>& ns);
-  /**
-   * Enable proofs for this preprocessor. This must be called
-   * explicitly since we construct the preprocessor before we know
-   * whether proofs are enabled.
-   *
-   * @param pppg The preprocess proof generator of the proof manager.
-   */
-  void enableProofs(PreprocessProofGenerator* pppg);
+  /** Get the preprocess proof generator */
+  PreprocessProofGenerator* getPreprocessProofGenerator();
 
  private:
+  /** The preprocess proof generator. */
+  std::unique_ptr<PreprocessProofGenerator> d_pppg;
   /**
    * A circuit propagator for non-clausal propositional deduction.
    */

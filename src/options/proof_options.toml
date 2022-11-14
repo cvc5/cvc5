@@ -139,3 +139,19 @@ name   = "Proof"
   type       = "bool"
   default    = "false"
   help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"
+
+[[option]]
+  name       = "lfscExpandTrust"
+  category   = "expert"
+  long       = "lfsc-expand-trust"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the children of trusted proof steps"
+
+[[option]]
+  name       = "lfscFlatten"
+  category   = "expert"
+  long       = "lfsc-flatten"
+  type       = "bool"
+  default    = "false"
+  help       = "Flatten steps in the LFSC proof"
