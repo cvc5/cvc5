@@ -35,8 +35,6 @@ enum UnknownExplanation
   REQUIRES_FULL_CHECK,
   /** Incomplete theory solver. */
   INCOMPLETE,
-  /** Unsound theory solver */
-  UNSOUND,
   /** Time limit reached. */
   TIMEOUT,
   /** Resource limit reached. */
