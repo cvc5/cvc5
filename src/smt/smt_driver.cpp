@@ -31,12 +31,13 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
     : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
 {
   // set up proofs, this is done after options are finalized
-  PreprocessProofGenerator* pppg = d_smt.getPreprocessor()->getPreprocessProofGenerator();
-  if (pppg!=nullptr)
+  PreprocessProofGenerator* pppg =
+      d_smt.getPreprocessor()->getPreprocessProofGenerator();
+  if (pppg != nullptr)
   {
     d_ap.enableProofs(pppg);
   }
-  //Assert (pppg!=nullptr || !options().proof
+  // Assert (pppg!=nullptr || !options().proof
 }
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
@@ -132,20 +133,11 @@ void SmtDriver::notifyPushPre()
   refreshAssertions();
 }
 
-void SmtDriver::notifyPushPost()
-{
-  d_smt.pushPropContext();
-}
+void SmtDriver::notifyPushPost() { d_smt.pushPropContext(); }
 
-void SmtDriver::notifyPopPre()
-{
-  d_smt.popPropContext();
-}
+void SmtDriver::notifyPopPre() { d_smt.popPropContext(); }
 
-void SmtDriver::notifyPostSolve()
-{
-  d_smt.postsolve();
-}
+void SmtDriver::notifyPostSolve() { d_smt.postsolve(); }
 
 SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
     : SmtDriver(env, smt, nullptr), d_assertionListIndex(userContext(), 0)
@@ -159,12 +151,13 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
   return d_smt.checkSatInternal();
 }
 
-void SmtDriverSingleCall::getNextAssertions(preprocessing::AssertionPipeline& ap)
-{  
+void SmtDriverSingleCall::getNextAssertions(
+    preprocessing::AssertionPipeline& ap)
+{
   Assertions& as = d_smt.getAssertions();
   const context::CDList<Node>& al = as.getAssertionList();
   size_t alsize = al.size();
-  for (size_t i = d_assertionListIndex.get(); i<alsize; i++)
+  for (size_t i = d_assertionListIndex.get(); i < alsize; i++)
   {
     ap.push_back(al[i], true);
   }

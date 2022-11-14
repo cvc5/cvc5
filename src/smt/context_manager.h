@@ -68,7 +68,7 @@ class ContextManager : protected EnvObj
    * Setup the context, which makes a single push to maintain a global
    * context around everything.
    */
-  void setup(SmtDriver * smt);
+  void setup(SmtDriver* smt);
   /**
    * Prepare for a shutdown of the SolverEngine, which does pending pops and
    * pops the user context to zero.

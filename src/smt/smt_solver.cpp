@@ -18,6 +18,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
@@ -27,7 +28,6 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
-#include "preprocessing/assertion_pipeline.h"
 
 using namespace std;
 

@@ -21,10 +21,10 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
-#include "preprocessing/assertion_pipeline.h"
 
 namespace cvc5::internal {
 namespace smt {

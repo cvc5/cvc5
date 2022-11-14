@@ -51,7 +51,8 @@ Result SmtDriverDeepRestarts::checkSatNext(preprocessing::AssertionPipeline& ap)
   return result;
 }
 
-void SmtDriverDeepRestarts::getNextAssertions(preprocessing::AssertionPipeline& ap)
+void SmtDriverDeepRestarts::getNextAssertions(
+    preprocessing::AssertionPipeline& ap)
 {
   if (d_firstTime)
   {

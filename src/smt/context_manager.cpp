@@ -27,8 +27,7 @@
 namespace cvc5::internal {
 namespace smt {
 
-ContextManager::ContextManager(Env& env,
-                               SolverEngineState& state)
+ContextManager::ContextManager(Env& env, SolverEngineState& state)
     : EnvObj(env),
       d_state(state),
       d_smt(nullptr),
@@ -69,7 +68,7 @@ void ContextManager::notifyCheckSatResult(bool hasAssumptions)
   }
 }
 
-void ContextManager::setup(SmtDriver * smt)
+void ContextManager::setup(SmtDriver* smt)
 {
   d_smt = smt;
   // push a context
