@@ -132,6 +132,29 @@ option(BUILD_DOCS "Build Api documentation")
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
 
+# Custom flags for WebAssembly compilation
+set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
+set(WASM "OFF" CACHE STRING "Use a specific extension for WebAssembly compilation")
+
+# Make sure no other available value will be assigned to this variable
+if(NOT(WASM STREQUAL "WASM" OR WASM STREQUAL "JS" OR WASM STREQUAL "HTML" OR WASM STREQUAL "OFF"))
+  message(FATAL_ERROR "${WASM} is not a valid wasm flag value.")
+endif()
+
+if(WASM STREQUAL "OFF")
+  set(WASM_FLAGS "")
+  set(CONFIGURE_CMD_WRAPPER "")
+# If it's a wasm compilation, but isn't using the right flags
+elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
+  message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
+else()
+  set(CONFIGURE_CMD_WRAPPER emconfigure)
+  set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
+  string(TOLOWER ".${WASM}" WASM_EXTENSION)
+  set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
+endif()
+
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
 

@@ -1765,6 +1765,23 @@ enum Kind : int32_t
    */
   BITVECTOR_SSUBO,
   /**
+   * Signed division overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_SDIVO,
+  /**
    * Bit-vector extract.
    *
    * - Arity: ``1``

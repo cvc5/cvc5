@@ -11,6 +11,8 @@ This file contains a summary of important user-visible changes.
   * `BITVECTOR_SMULO` signed multiplication overflow detection
   * `BITVECTOR_USUBO` unsigned subtraction overflow detection
   * `BITVECTOR_SSUBO` signed subtraction overflow detection
+  * `BITVECTOR_SDIVO` signed division overflow detection
+- Support for Web Assembly compilation using Emscripten.
 - Support for the theory of (prime-order) finite fields:
   * Sorts are created with
     * C++: `Solver::makeFiniteFieldSort`

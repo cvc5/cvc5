@@ -872,7 +872,7 @@ void TheorySep::postCheck(Effort level)
 
   if (needAddLemma)
   {
-    d_im.setIncomplete(IncompleteId::SEP);
+    d_im.setModelUnsound(IncompleteId::SEP);
   }
   Trace("sep-check") << "Sep::check(): " << level
                      << " done, conflict=" << d_state.isInConflict()

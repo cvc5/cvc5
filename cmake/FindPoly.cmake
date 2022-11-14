@@ -143,6 +143,20 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
+  set(POLY_CC_FLAGS )
+  if(NOT(WASM STREQUAL "OFF"))
+    # The flag -Wall is set as default in cvc5, then these flags bellow make
+    # sure the wasm compilation doesn't abort when compiling LibPoly. At
+    # https://github.com/SRI-CSL/libpoly/blob/d2cc42c492d05b90069e20ba813ee32fef086566/src/upolynomial/factorization.c#L1269-L1274
+    # LibPoly has a variable called enabled_count that is instantiated but its
+    # value is only written, never read. em++ and emcc identify it and throw a
+    # warning that aborts the compilation when only -Wall is activated.
+    set(POLY_CC_FLAGS 
+          -DCMAKE_CXX_FLAGS=-Wno-error=unused-but-set-variable
+          -DCMAKE_C_FLAGS=-Wno-error=unused-but-set-variable
+        )
+  endif()
+
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
@@ -166,6 +180,7 @@ if(NOT Poly_FOUND_SYSTEM)
                -DGMP_INCLUDE_DIR=${GMP_INCLUDE_DIR}
                -DGMP_LIBRARY=${GMP_LIBRARIES}
                -DCMAKE_SKIP_INSTALL_ALL_DEPENDENCY=TRUE
+               ${POLY_CC_FLAGS}
     BUILD_COMMAND ${CMAKE_MAKE_PROGRAM} ${POLY_TARGETS}
     ${POLY_INSTALL_CMD}
     BUILD_BYPRODUCTS ${POLY_BYPRODUCTS}
