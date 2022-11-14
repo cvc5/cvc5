@@ -86,8 +86,11 @@ class SmtDriver : protected EnvObj
   void notifyPostSolve();
   // ----------------------------------- end callbacks from the context manager
  protected:
-  /** Get next assertions */
-  void refreshAssertionsPipeline();
+  /** 
+   * Get the next assertions, store in ap. Refreshes the SMT solver's
+   * assertions and calls the driver-specific getNextAssertions method.
+   */
+  void getNextAssertionsInternal(preprocessing::AssertionPipeline& ap);
   /**
    * Check satisfiability next, return the result.
    *
