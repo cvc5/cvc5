@@ -56,6 +56,9 @@ void SmtDriverDeepRestarts::getNextAssertions(
 {
   if (d_firstTime)
   {
+    // On the first time, we take all assertions. Notice that this driver
+    // does not handle incremental mode yet, so we always take all assertions
+    // here.
     Assertions& as = d_smt.getAssertions();
     const context::CDList<Node>& al = as.getAssertionList();
     for (const Node& a : al)

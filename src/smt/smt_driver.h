@@ -55,11 +55,12 @@ class SmtDriver : protected EnvObj
   Result checkSat(const std::vector<Node>& assumptions);
 
   /**
-   * Refresh the assertions that have been asserted in as. This moves the set of
-   * assertions that have been buffered into as, preprocesses them, pushes them
-   * into the SMT solver, and clears the buffer. We ensure that assertions
-   * are refreshed eagerly during user pushes to ensure that assertions are
-   * only preprocessed in one context.
+   * Refresh the assertions that have been asserted to the underlying SMT
+   * solver. This gets the set of unprocessed assertions of the underlying
+   * SMT solver, preprocesses them, pushes them into the SMT solver.
+   *
+   * We ensure that assertions are refreshed eagerly during user pushes to
+   * ensure that assertions are only preprocessed in one context.
    */
   void refreshAssertions();
   // --------------------------------------- callbacks from the context manager
@@ -103,12 +104,11 @@ class SmtDriver : protected EnvObj
    */
   virtual Result checkSatNext(preprocessing::AssertionPipeline& ap) = 0;
   /**
-   * Get the next assertions. This is called immediately after checkSatNext
-   * where checkAgain has been set to true. This populates assertions with
+   * Get the next assertions. This is called:
+   * (1) immediately before calls to checkSatNext, where we populates ap with
    * those that will be checked on the next call to checkSatNext.
-   *
-   * Note that `as` is always the assertions of the underlying solver d_smt
-   * currently.
+   * (2) in calls to refreshAssertions, where we populate ap with all
+   * assertions that require being pushed to the SAT solver.
    */
   virtual void getNextAssertions(preprocessing::AssertionPipeline& ap) = 0;
   /** The underlying SMT solver */
@@ -136,10 +136,12 @@ class SmtDriverSingleCall : public SmtDriver
  protected:
   /** Check sat next, takes result of underlying SMT solver only */
   Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
-  /** Never called */
+  /** Gets all the assertions we have yet to process */
   void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
   /**
-   * The first index in the assertion list that we have not processed yet.
+   * The first index in the assertion list of the underlying SMT solver that we
+   * have not processed yet. The call to getNextAssertions gets all assertions
+   * starting from this index onward.
    */
   context::CDO<size_t> d_assertionListIndex;
 };
