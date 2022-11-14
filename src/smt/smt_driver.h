@@ -86,7 +86,7 @@ class SmtDriver : protected EnvObj
   void notifyPostSolve();
   // ----------------------------------- end callbacks from the context manager
  protected:
-  /** 
+  /**
    * Get the next assertions, store in ap. Refreshes the SMT solver's
    * assertions and calls the driver-specific getNextAssertions method.
    */
