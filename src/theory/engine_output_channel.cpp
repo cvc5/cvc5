@@ -97,12 +97,6 @@ void EngineOutputChannel::setRefutationUnsound(IncompleteId id)
   d_engine->setRefutationUnsound(d_theory, id);
 }
 
-void EngineOutputChannel::setUnsound(IncompleteId id)
-{
-  Trace("theory") << "setUnsound(" << id << ")" << std::endl;
-  d_engine->setUnsound(d_theory, id);
-}
-
 void EngineOutputChannel::spendResource(Resource r)
 {
   d_engine->spendResource(r);

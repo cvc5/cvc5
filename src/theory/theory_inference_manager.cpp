@@ -631,11 +631,6 @@ void TheoryInferenceManager::setRefutationUnsound(IncompleteId id)
   d_out.setRefutationUnsound(id);
 }
 
-void TheoryInferenceManager::setUnsound(IncompleteId id)
-{
-  d_out.setUnsound(id);
-}
-
 void TheoryInferenceManager::notifyInConflict()
 {
   d_theoryState.notifyInConflict();

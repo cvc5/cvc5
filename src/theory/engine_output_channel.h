@@ -61,8 +61,6 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void setRefutationUnsound(IncompleteId id) override;
 
-  void setUnsound(IncompleteId id) override;
-
   void spendResource(Resource r) override;
 
   /**

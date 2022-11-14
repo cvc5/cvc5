@@ -1097,10 +1097,6 @@ theory::IncompleteId TheoryEngine::getRefutationUnsoundId() const
 {
   return d_refutationUnsoundId.get();
 }
-theory::IncompleteId TheoryEngine::getUnsoundId() const
-{
-  return d_unsoundId.get();
-}
 
 Node TheoryEngine::getModelValue(TNode var) {
   if (var.isConst())
@@ -1492,13 +1488,6 @@ void TheoryEngine::setRefutationUnsound(theory::TheoryId theory,
   d_refutationUnsound = true;
   d_refutationUnsoundTheory = theory;
   d_refutationUnsoundId = id;
-}
-
-void TheoryEngine::setUnsound(theory::TheoryId theory, theory::IncompleteId id)
-{
-  d_unsound = true;
-  d_unsoundTheory = theory;
-  d_unsoundId = id;
 }
 
 TrustNode TheoryEngine::getExplanation(

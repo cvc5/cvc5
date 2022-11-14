@@ -393,15 +393,6 @@ class TheoryInferenceManager : protected EnvObj
    */
   void setRefutationUnsound(IncompleteId id);
   /**
-   * Notification from a theory that it realizes it is unsound at
-   * this user context level. In other words, we cannot answer "unsat" in this
-   * user context.
-   *
-   * Note that we use user context for unsoundness, since typically the source
-   * of unsoundness is a lemma, which are user context dependent.
-   */
-  void setUnsound(IncompleteId id);
-  /**
    * Notify this inference manager that a conflict was sent in this SAT context.
    * This method is called via TheoryEngine when a conflict is sent.
    */

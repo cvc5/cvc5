@@ -308,11 +308,6 @@ theory::IncompleteId TheoryProxy::getRefutationUnsoundId() const
   return d_theoryEngine->getRefutationUnsoundId();
 }
 
-theory::IncompleteId TheoryProxy::getUnsoundId() const
-{
-  return d_theoryEngine->getUnsoundId();
-}
-
 TNode TheoryProxy::getNode(SatLiteral lit) {
   return d_cnfStream->getNode(lit);
 }
