@@ -17,7 +17,6 @@
 #define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
 
 #include "proof/alethe/alethe_node_converter.h"
-#include "proof/alethe/alethe_nosubtype_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof_node_updater.h"
 
@@ -143,87 +142,6 @@ class AletheProofPostprocessCallback : protected EnvObj,
 };
 
 /**
- * Final callback class used by the Alethe converter to add the last step to a
- * proof in the following two cases. The last step should always be printed as
- * (cl).
- *
- * 1. If the last step of a proof which is false is reached it is printed as (cl
- *    false).
- * 2. If one of the assumptions is false it is printed as false.
- *
- * Thus, an additional resolution step with (cl (not true)) has to be added to
- * transfer (cl false) into (cl).
- */
-
-class AletheProofPostprocessNoSubtypeCallback : public ProofNodeUpdaterCallback
-{
- public:
-  AletheProofPostprocessNoSubtypeCallback(ProofNodeManager* pnm);
-  ~AletheProofPostprocessNoSubtypeCallback() {}
-  /** Should proof pn be updated? Yes, since every proof node potentially has a
-   * term with mixed typing.
-   */
-  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    const std::vector<Node>& fa,
-                    bool& continueUpdate) override;
-  /**
-   * This method gets a proof node pn and applies the type coercion to the terms
-   * in the proof node, so that no values that should have type real actually
-   * have type int.
-   */
-  bool update(Node res,
-              PfRule id,
-              const std::vector<Node>& children,
-              const std::vector<Node>& args,
-              CDProof* cdp,
-              bool& continueUpdate) override;
-
-  /** This method checks whether a proof node, after the update above, is
-   * correct, changing it (or not) accordingly.
-   *
-   * The check is done according to the semantic of the rules. For now only
-   * instantiation and congruence reasoning is checked. The goal is to fix lost
-   * connections due to the removal of subtyping. This is done by introducing
-   * new steps.
-   *
-   *  x, y : Real
-   *  z, w : Int
-   *
-   *  f : (Real, Real) -> Real
-   *
-   *
-   *           z = w
-   *           ----------------------- CONG
-   *  x = y    to_real(z) = to_real(w)
-   *  -------------------------------- CONG
-   *  f(x,to_real(z)) = f(y,to_real(w))
-   *  --------------------------------  ??
-   *  f(x,z) = f(y,w)
-   *  Andrew Reynolds:
-   *  x = y  z = w
-   *  --------------
-   *  f(x,z)=f(y,w)
-   *
-   */
-  bool updatePost(Node res,
-                  PfRule id,
-                  const std::vector<Node>& children,
-                  const std::vector<Node>& args,
-                  CDProof* cdp) override;
-
- private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
-  /** The Alethe node converter to remove subtyping */
-  AletheNoSubtypeNodeConverter d_anc;
-
-  /** Rules that may require finalizing. */
-  std::set<AletheRule> d_finalizeRules;
-
-  Node d_cl;
-};
-
-/**
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Alethe calculus.
  */
@@ -238,8 +156,6 @@ class AletheProofPostprocess : protected EnvObj
  private:
   /** The post process callback */
   AletheProofPostprocessCallback d_cb;
-  /** The no subtype callback */
-  AletheProofPostprocessNoSubtypeCallback d_nst;
 };
 
 }  // namespace proof
