@@ -94,7 +94,7 @@ class SmtSolver : protected EnvObj
   void pushPropContext();
   /** Performs a pop on the underlying prop engine. */
   void popPropContext();
-  /** 
+  /**
    * Reset the prop engine trail and call the postsolve method of the
    * underlying TheoryEngine.
    */
