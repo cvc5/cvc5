@@ -49,7 +49,7 @@ Preprocessor::~Preprocessor() {}
 void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
 {
   // set up the preprocess proof generator, if necessary
-  if (options().smt.produceProofs)
+  if (options().smt.produceProofs && d_pppg==nullptr)
   {
     d_pppg = std::make_unique<PreprocessProofGenerator>(
         d_env, userContext(), "smt::PreprocessProofGenerator");

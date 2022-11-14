@@ -68,8 +68,8 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
       bool checkAgain = true;
       do
       {
-        d_ap.clear();
-        getNextAssertions(d_ap);
+        // ensure that d_ap is refreshed
+        refreshAssertionsPipeline();
         // check sat based on the driver strategy
         result = checkSatNext(d_ap);
         // if we were asked to check again
@@ -116,10 +116,19 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   return result;
 }
 
-void SmtDriver::refreshAssertions()
+void SmtDriver::refreshAssertionsPipeline()
 {
   d_ap.clear();
+  // must first refresh the assertions, in the case global declarations is true
+  d_smt.getAssertions().refresh();
+  // get the next assertions based on the implementation of this driver
   getNextAssertions(d_ap);
+}
+
+void SmtDriver::refreshAssertions()
+{
+  // ensure that d_ap is refreshed
+  refreshAssertionsPipeline();
   // preprocess
   d_smt.preprocess(d_ap);
   // assert to internal

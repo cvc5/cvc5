@@ -158,8 +158,6 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
-  // must first refresh the assertions, in the case global declarations is true
-  d_asserts.refresh();
   // process the assertions with the preprocessor
   d_pp.process(ap);
 

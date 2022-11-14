@@ -86,6 +86,8 @@ class SmtDriver : protected EnvObj
   void notifyPostSolve();
   // ----------------------------------- end callbacks from the context manager
  protected:
+  /** Get next assertions */
+  void refreshAssertionsPipeline();
   /**
    * Check satisfiability next, return the result.
    *
