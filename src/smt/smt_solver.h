@@ -90,21 +90,11 @@ class SmtSolver : protected EnvObj
    * if trackPreprocessedAssertions is true.
    */
   const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
-  /**
-   * Notify push post, which is called just after the user context of the state
-   * pushes. This performs a push on the underlying prop engine.
-   */
+  /** Performs a push on the underlying prop engine. */
   void pushPropContext();
-  /**
-   * Notify pop pre, which is called just before the user context of the state
-   * pops. This performs a pop on the underlying prop engine.
-   */
+  /** Performs a pop on the underlying prop engine. */
   void popPropContext();
-  /**
-   * Notify post solve, which is called once per check-sat query. It is
-   * triggered when the first d_state.doPendingPops() is issued after the
-   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
-   */
+  /** Calls the postsolve method of the underlying TheoryEngine. */
   void postsolve();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
