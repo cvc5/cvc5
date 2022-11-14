@@ -60,8 +60,9 @@ void SmtDriverDeepRestarts::getNextAssertions(
     const context::CDList<Node>& al = as.getAssertionList();
     for (const Node& a : al)
     {
-      ap.push_back(a);
+      ap.push_back(a, true);
     }
+    d_firstTime = false;
     return;
   }
   Trace("deep-restart") << "Have " << d_zll.size()
