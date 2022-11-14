@@ -30,14 +30,14 @@ namespace smt {
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
     : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
 {
-  // set up proofs, this is done after options are finalized
+  // set up proofs, this is done after options are finalized, so the
+  // preprocess proof has been setup
   PreprocessProofGenerator* pppg =
       d_smt.getPreprocessor()->getPreprocessProofGenerator();
   if (pppg != nullptr)
   {
     d_ap.enableProofs(pppg);
   }
-  // Assert (pppg!=nullptr || !options().proof
 }
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)

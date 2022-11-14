@@ -67,6 +67,9 @@ class ContextManager : protected EnvObj
   /**
    * Setup the context, which makes a single push to maintain a global
    * context around everything.
+   * 
+   * @param smt The driver that handles notifications from this context
+   * manager
    */
   void setup(SmtDriver* smt);
   /**
