@@ -753,7 +753,8 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
   if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
-    Trace("unsat-core") << "PropEngine::getUnsatCore: via unsat assumptions" << std::endl;
+    Trace("unsat-core") << "PropEngine::getUnsatCore: via unsat assumptions"
+                        << std::endl;
     std::vector<SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
     for (const SatLiteral& lit : unsat_assumptions)
