@@ -18,9 +18,9 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production-temp
+          - name: macos:production
             os: macos-11
-            config: debug --auto-download --python-bindings --editline
+            config: production --auto-download --assertions --python-bindings --editline
             cache-key: production
             strip-bin: strip
             python-bindings: true
