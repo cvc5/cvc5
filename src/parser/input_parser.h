@@ -45,14 +45,6 @@ class CVC5_EXPORT InputParser
  public:
   InputParser(Solver* solver, SymbolManager* sm, bool useOptions);
 
-  /** Parse and return the next command. */
-  Command* nextCommand();
-
-  /** Parse and return the next expression. */
-  Term nextExpression();
-
-  void forceLogic(const std::string& logic);
-
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -65,9 +57,6 @@ class CVC5_EXPORT InputParser
    * @param lang the input language
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
-   * @param lineBuffered whether this Input should be line-buffered
-   * (false, the default, means that the entire Input might be read
-   * before being lexed and parsed)
    */
   void setStreamInput(const std::string& lang,
                       std::istream& input,
@@ -82,17 +71,19 @@ class CVC5_EXPORT InputParser
   void setStringInput(const std::string& lang,
                       const std::string& input,
                       const std::string& name);
+  
+  /** Parse and return the next command. */
+  Command* nextCommand();
+
+  /** Parse and return the next expression. */
+  Term nextExpression();
+
+  //!!! TODO: delete
+  void forceLogic(const std::string& logic);
 
  private:
-  /**
-   * Constructor.
-   *
-   * @param state The parser state to use.
-   * @param input The input to parse. This class takes ownership.
-   */
-  InputParser(Parser* state, Input* input);
-
-  //!!!!!!!!!!!!!! This implementation is deprecated and should be replaced
+  //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
+  // replaced (wishue #142).
   /**  The parser state. */
   std::unique_ptr<Parser> d_state;
   /** The underlying input */
