@@ -216,6 +216,8 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_let_binding.cpp
+  proof/alethe/alethe_let_binding.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp

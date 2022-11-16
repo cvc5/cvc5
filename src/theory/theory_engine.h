@@ -185,8 +185,16 @@ class TheoryEngine : protected EnvObj
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
-  /** Return whether or not we are incomplete (in the current context). */
-  bool isIncomplete() const { return d_incomplete; }
+  /**
+   * Return whether or not we are model unsound (in the current SAT context).
+   * For details, see theory_inference_manager.
+   */
+  bool isModelUnsound() const { return d_modelUnsound; }
+  /**
+   * Return whether or not we are refutation unsound (in the current user
+   * context). For details, see theory_inference_manager.
+   */
+  bool isRefutationUnsound() const { return d_refutationUnsound; }
 
   /**
    * Returns true if we need another round of checking.  If this
@@ -371,8 +379,10 @@ class TheoryEngine : protected EnvObj
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
 
-  /** Get incomplete id, valid immediately after an `unknown` response. */
-  theory::IncompleteId getIncompleteId() const;
+  /** Get incomplete id, valid when isModelUnsound is true. */
+  theory::IncompleteId getModelUnsoundId() const;
+  /** Get unsound id, valid when isRefutationUnsound is true. */
+  theory::IncompleteId getRefutationUnsoundId() const;
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
@@ -408,10 +418,10 @@ class TheoryEngine : protected EnvObj
   /** set in conflict */
   void markInConflict();
 
-  /**
-   * Called by the theories to notify that the current branch is incomplete.
-   */
-  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
+  /** Called by the theories to notify that the current branch is incomplete. */
+  void setModelUnsound(theory::TheoryId theory, theory::IncompleteId id);
+  /** Called by the theories to notify that we are unsound (user-context). */
+  void setRefutationUnsound(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Called by the output channel to propagate literals and facts
@@ -531,13 +541,21 @@ class TheoryEngine : protected EnvObj
   context::CDO<bool> d_inConflict;
 
   /**
-   * True if a theory has notified us of incompleteness (at this
+   * True if a theory has notified us of model unsoundness (at this SAT
+   * context level or below). For details, see theory_inference_manager.
+   */
+  context::CDO<bool> d_modelUnsound;
+  /** The theory and identifier that (most recently) set model unsound */
+  context::CDO<theory::TheoryId> d_modelUnsoundTheory;
+  context::CDO<theory::IncompleteId> d_modelUnsoundId;
+  /**
+   * True if a theory has notified us of refutation unsoundness (at this user
    * context level or below).
    */
-  context::CDO<bool> d_incomplete;
+  context::CDO<bool> d_refutationUnsound;
   /** The theory and identifier that (most recently) set incomplete */
-  context::CDO<theory::TheoryId> d_incompleteTheory;
-  context::CDO<theory::IncompleteId> d_incompleteId;
+  context::CDO<theory::TheoryId> d_refutationUnsoundTheory;
+  context::CDO<theory::IncompleteId> d_refutationUnsoundId;
 
   /**
    * Mapping of propagations from recievers to senders.

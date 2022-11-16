@@ -1,0 +1,7 @@
+(set-logic QF_SLIA)
+(set-info :status sat)
+(declare-fun v () String)
+(declare-fun a () String)
+(assert (not (str.in_re (str.++ v "z") (re.++ (str.to_re "b") (re.* (str.to_re (str.replace_all v v "")))))))
+(assert (str.in_re (str.++ v "z" a) (re.++ (str.to_re "b") (re.* (str.to_re "z")))))
+(check-sat)
