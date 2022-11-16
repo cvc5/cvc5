@@ -14,17 +14,20 @@
  */
 #include "expr/type_node.h"
 
+#include <cmath>
 #include <vector>
 
-#include "expr/datatype_index.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
+#include "util/ff_val.h"
+#include "util/integer.h"
 
 using namespace std;
 
@@ -100,8 +103,8 @@ CardinalityClass TypeNode::getCardinalityClass()
   {
     ret = CardinalityClass::INTERPRETED_ONE;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint()
-           || isRoundingMode())
+  else if (isBoolean() || isBitVector() || isFloatingPoint() || isRoundingMode()
+           || isFiniteField())
   {
     ret = CardinalityClass::FINITE;
   }
@@ -200,6 +203,31 @@ CardinalityClass TypeNode::getCardinalityClass()
   return ret;
 }
 
+bool TypeNode::isCardinalityLessThan(size_t n)
+{
+  if (isBoolean())
+  {
+    return n > 2;
+  }
+  if (isBitVector())
+  {
+    return std::log2(n) > getBitVectorSize();
+  }
+  if (isFloatingPoint())
+  {
+    return Integer(n) > theory::fp::utils::getCardinality(*this);
+  }
+  if (isRoundingMode())
+  {
+    return n > 5;
+  }
+  if (isFiniteField())
+  {
+    return Integer(n) > getFfSize();
+  }
+  return false;
+}
+
 /** Attribute true for types that are closed enumerable */
 struct IsClosedEnumerableTag
 {
@@ -274,57 +302,21 @@ bool TypeNode::isWellFounded() const {
   return kind::isWellFounded(*this);
 }
 
+bool TypeNode::isInteger() const
+{
+  return getKind() == kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == INTEGER_TYPE;
+}
+
+bool TypeNode::isReal() const
+{
+  return getKind() == kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == REAL_TYPE;
+}
+
 bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
-// !!! Note that this will change to isReal() || isInteger() when subtyping is
-// eliminated
-bool TypeNode::isRealOrInt() const { return isReal(); }
-
-bool TypeNode::isSubtypeOf(TypeNode t) const {
-  if(*this == t) {
-    return true;
-  }
-  if (isInteger())
-  {
-    return t.isReal();
-  }
-  if (isFunction() && t.isFunction())
-  {
-    if (!getRangeType().isSubtypeOf(t.getRangeType()))
-    {
-      // range is not subtype, return false
-      return false;
-    }
-    // must have equal arguments
-    std::vector<TypeNode> t0a = getArgTypes();
-    std::vector<TypeNode> t1a = t.getArgTypes();
-    if (t0a.size() != t1a.size())
-    {
-      // different arities
-      return false;
-    }
-    for (size_t i = 0, nargs = t0a.size(); i < nargs; i++)
-    {
-      if (t0a[i] != t1a[i])
-      {
-        // an argument is different
-        return false;
-      }
-    }
-    return true;
-  }
-  // this should only return true for types T1, T2 where we handle equalities between T1 and T2
-  // (more cases go here, if we want to support such cases)
-  return false;
-}
-
-bool TypeNode::isComparableTo(TypeNode t) const {
-  if (*this == t)
-  {
-    return true;
-  }
-  return isSubtypeOf(t) || t.isSubtypeOf(*this);
-}
+bool TypeNode::isRealOrInt() const { return isReal() || isInteger(); }
 
 TypeNode TypeNode::getDatatypeTesterDomainType() const
 {
@@ -336,14 +328,6 @@ TypeNode TypeNode::getSequenceElementType() const
 {
   Assert(isSequence());
   return (*this)[0];
-}
-
-TypeNode TypeNode::getBaseType() const {
-  TypeNode realt = NodeManager::currentNM()->realType();
-  if (isSubtypeOf(realt)) {
-    return realt;
-  }
-  return *this;
 }
 
 std::vector<TypeNode> TypeNode::getArgTypes() const {
@@ -376,10 +360,7 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
   return params;
 }
 
-bool TypeNode::isTuple() const
-{
-  return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
-}
+bool TypeNode::isTuple() const { return getKind() == kind::TUPLE_TYPE; }
 
 bool TypeNode::isRecord() const
 {
@@ -388,34 +369,35 @@ bool TypeNode::isRecord() const
 
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
-  const DType& dt = getDType();
-  Assert(dt.getNumConstructors() == 1);
-  return dt[0].getNumArgs();
+  return getNumChildren();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
-  const DType& dt = getDType();
-  Assert(dt.getNumConstructors() == 1);
-  vector<TypeNode> types;
-  for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
-    types.push_back(dt[0][i].getRangeType());
+  std::vector<TypeNode> args;
+  for (uint32_t i = 0, i_end = getNumChildren(); i < i_end; ++i)
+  {
+    args.push_back((*this)[i]);
   }
-  return types;
+  return args;
 }
 
 /** Is this an instantiated datatype type */
 bool TypeNode::isInstantiatedDatatype() const {
-  if(getKind() == kind::DATATYPE_TYPE) {
+  Kind k = getKind();
+  if (k == kind::DATATYPE_TYPE || k == kind::TUPLE_TYPE)
+  {
     return true;
   }
-  if(getKind() != kind::PARAMETRIC_DATATYPE) {
+  if (k != kind::PARAMETRIC_DATATYPE)
+  {
     return false;
   }
   const DType& dt = (*this)[0].getDType();
-  unsigned n = dt.getNumParameters();
+  size_t n = dt.getNumParameters();
   Assert(n < getNumChildren());
-  for(unsigned i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i)
+  {
     if (dt.getParameter(i) == (*this)[i + 1])
     {
       return false;
@@ -445,8 +427,7 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
   if (k == kind::PARAMETRIC_DATATYPE)
   {
     Assert(params.size() == getNumChildren() - 1);
-    TypeNode cons =
-        nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+    TypeNode cons = (*this)[0];
     std::vector<TypeNode> paramsNodes;
     paramsNodes.push_back(cons);
     for (const TypeNode& t : params)
@@ -475,9 +456,13 @@ bool TypeNode::isUnresolvedDatatype() const
   return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
+bool TypeNode::hasName() const
+{
+  return hasAttribute(expr::VarNameAttr());
+}
+
 std::string TypeNode::getName() const
 {
-  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
@@ -493,22 +478,6 @@ bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
   const DType& dt = (*this)[0].getDType();
   Assert(n < dt.getNumParameters());
   return dt.getParameter(n) != (*this)[n + 1];
-}
-
-TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
-  if (t0 == t1)
-  {
-    return t0;
-  }
-  if (t0.isSubtypeOf(t1))
-  {
-    return t1;
-  }
-  else if (t1.isSubtypeOf(t0))
-  {
-    return t0;
-  }
-  return TypeNode();
 }
 
 /** Is this a sort kind */
@@ -530,12 +499,20 @@ bool TypeNode::isFloatingPoint() const
   return getKind() == kind::FLOATINGPOINT_TYPE;
 }
 
+bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const
+{
+  return (getKind() == kind::FLOATINGPOINT_TYPE
+          && getConst<FloatingPointSize>().exponentWidth() == exp
+          && getConst<FloatingPointSize>().significandWidth() == sig);
+}
+
 bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
 
 bool TypeNode::isDatatype() const
 {
-  return getKind() == kind::DATATYPE_TYPE
-         || getKind() == kind::PARAMETRIC_DATATYPE;
+  Kind k = getKind();
+  return k == kind::DATATYPE_TYPE || k == kind::PARAMETRIC_DATATYPE
+         || k == kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isParametricDatatype() const
@@ -583,19 +560,13 @@ bool TypeNode::isSygusDatatype() const
 
 std::string TypeNode::toString() const {
   std::stringstream ss;
-  d_nv->toStream(ss, -1, 0);
+  toStream(ss);
   return ss.str();
 }
 
 const DType& TypeNode::getDType() const
 {
-  if (getKind() == kind::DATATYPE_TYPE)
-  {
-    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDTypeForIndex(dic.getIndex());
-  }
-  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-  return (*this)[0].getDType();
+  return NodeManager::currentNM()->getDTypeFor(*this);
 }
 
 bool TypeNode::isBag() const
@@ -615,10 +586,28 @@ bool TypeNode::isBitVector(unsigned size) const
           && getConst<BitVectorSize>() == size);
 }
 
+unsigned TypeNode::getFloatingPointExponentSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().exponentWidth();
+}
+
+unsigned TypeNode::getFloatingPointSignificandSize() const
+{
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().significandWidth();
+}
+
 uint32_t TypeNode::getBitVectorSize() const
 {
   Assert(isBitVector());
   return getConst<BitVectorSize>();
+}
+
+const Integer& TypeNode::getFfSize() const
+{
+  Assert(getKind() == kind::FINITE_FIELD_TYPE);
+  return getConst<FfSize>();
 }
 
 TypeNode TypeNode::getRangeType() const

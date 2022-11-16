@@ -22,6 +22,7 @@
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
+#include "theory/sets/set_reduction.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -157,12 +158,6 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_AGAIN, node[0]);
     }
-    else if (node[1].getKind() == kind::SET_MINUS && node[1][0] == node[0])
-    {
-      // (setminus A (setminus A B)) = (intersection A B)
-      Node intersection = nm->mkNode(SET_INTER, node[0], node[1][1]);
-      return RewriteResponse(REWRITE_AGAIN, intersection);
-    }
     else if (node[1].getKind() == kind::SET_UNIVERSE)
     {
       return RewriteResponse(
@@ -223,7 +218,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     // we don't merge non-constant intersections
     break;
-  }  // kind::INTERSECION
+  }  // kind::INTERSECTION
 
   case kind::SET_UNION:
   {
@@ -333,6 +328,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }  // kind::SET_IS_SINGLETON
 
   case SET_MAP: return postRewriteMap(node);
+  case SET_FILTER: return postRewriteFilter(node);
+  case SET_FOLD: return postRewriteFold(node);
 
   case kind::RELATION_TRANSPOSE:
   {
@@ -587,8 +584,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     break;
   }
 
-  default:
-    break;
+  case RELATION_GROUP: return postRewriteGroup(node);
+  case RELATION_AGGREGATE: return postRewriteAggregate(node);
+  case RELATION_PROJECT: return postRewriteProject(node);
+  default: break;
   }
 
   return RewriteResponse(REWRITE_DONE, node);
@@ -608,12 +607,11 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   else if (k == kind::SET_INSERT)
   {
     size_t setNodeIndex =  node.getNumChildren()-1;
-    TypeNode elementType = node[setNodeIndex].getType().getSetElementType();
-    Node insertedElements = nm->mkSingleton(elementType, node[0]);
+    Node insertedElements = nm->mkNode(SET_SINGLETON, node[0]);
 
     for (size_t i = 1; i < setNodeIndex; ++i)
     {
-      Node singleton = nm->mkSingleton(elementType, node[i]);
+      Node singleton = nm->mkNode(SET_SINGLETON, node[i]);
       insertedElements =
           nm->mkNode(kind::SET_UNION, insertedElements, singleton);
     }
@@ -641,11 +639,11 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
   Assert(n.getKind() == kind::SET_MAP);
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n[1].getKind();
-  TypeNode rangeType = n[0].getType().getRangeType();
   switch (k)
   {
     case SET_EMPTY:
     {
+      TypeNode rangeType = n[0].getType().getRangeType();
       // (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
       Node ret = nm->mkConst(EmptySet(nm->mkSetType(rangeType)));
       return RewriteResponse(REWRITE_DONE, ret);
@@ -654,7 +652,7 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
     {
       // (set.map f (set.singleton x)) = (set.singleton (f x))
       Node mappedElement = nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret = nm->mkSingleton(rangeType, mappedElement);
+      Node ret = nm->mkNode(SET_SINGLETON, mappedElement);
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     case SET_UNION:
@@ -668,6 +666,129 @@ RewriteResponse TheorySetsRewriter::postRewriteMap(TNode n)
 
     default: return RewriteResponse(REWRITE_DONE, n);
   }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteFilter(TNode n)
+{
+  Assert(n.getKind() == kind::SET_FILTER);
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = n[1].getKind();
+  switch (k)
+  {
+    case SET_EMPTY:
+    {
+      // (set.filter p (as set.empty (Set T)) = (as set.empty (Set T))
+      return RewriteResponse(REWRITE_DONE, n[1]);
+    }
+    case SET_SINGLETON:
+    {
+      // (set.filter p (set.singleton x)) =
+      //       (ite (p x) (set.singleton x) (as set.empty (Set T)))
+      Node empty = nm->mkConst(EmptySet(n.getType()));
+      Node condition = nm->mkNode(APPLY_UF, n[0], n[1][0]);
+      Node ret = nm->mkNode(ITE, condition, n[1], empty);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+    case SET_UNION:
+    {
+      // (set.filter p (set.union A B)) =
+      //   (set.union (set.filter p A) (set.filter p B))
+      Node a = nm->mkNode(SET_FILTER, n[0], n[1][0]);
+      Node b = nm->mkNode(SET_FILTER, n[0], n[1][1]);
+      Node ret = nm->mkNode(SET_UNION, a, b);
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteFold(TNode n)
+{
+  Assert(n.getKind() == kind::SET_FOLD);
+  NodeManager* nm = NodeManager::currentNM();
+  Node f = n[0];
+  Node t = n[1];
+  Kind k = n[2].getKind();
+  switch (k)
+  {
+    case SET_EMPTY:
+    {
+      // ((set.fold f t (as set.empty (Set T))) = t
+      return RewriteResponse(REWRITE_DONE, t);
+    }
+    case SET_SINGLETON:
+    {
+      // (set.fold f t (set.singleton x)) = (f x t)
+      Node x = n[2][0];
+      Node f_x_t = nm->mkNode(APPLY_UF, f, x, t);
+      return RewriteResponse(REWRITE_AGAIN_FULL, f_x_t);
+    }
+    case SET_UNION:
+    {
+      // (set.fold f t (set.union B C)) = (set.fold f (set.fold f t A) B))
+      Node A = n[2][0];
+      Node B = n[2][1];
+      Node foldA = nm->mkNode(SET_FOLD, f, t, A);
+      Node fold = nm->mkNode(SET_FOLD, f, foldA, B);
+      return RewriteResponse(REWRITE_AGAIN_FULL, fold);
+    }
+
+    default: return RewriteResponse(REWRITE_DONE, n);
+  }
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_GROUP);
+  Node A = n[0];
+  Kind k = A.getKind();
+  if (k == SET_EMPTY || k == SET_SINGLETON)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
+    //    (rel.singleton (as set.empty (Relation T) ))
+    // - ((_ rel.group n1 ... nk) (set.singleton x)) =
+    //      (set.singleton (set.singleton x))
+    Node singleton = nm->mkNode(SET_SINGLETON, A);
+    return RewriteResponse(REWRITE_AGAIN_FULL, singleton);
+  }
+  if (A.isConst())
+  {
+    Node evaluation = RelsUtils::evaluateGroup(n);
+    return RewriteResponse(REWRITE_AGAIN_FULL, evaluation);
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteAggregate(TNode n)
+{
+  Assert(n.getKind() == kind::RELATION_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = RelsUtils::evaluateRelationAggregate(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+
+  return RewriteResponse(REWRITE_DONE, n);
+}
+
+RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
+{
+  Assert(n.getKind() == RELATION_PROJECT);
+  if (n[0].isConst())
+  {
+    Node ret = SetReduction::reduceProjectOperator(n);
+    if (ret != n)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, n);
 }
 
 }  // namespace sets

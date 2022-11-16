@@ -60,10 +60,11 @@ TheoryDatatypes::TheoryDatatypes(Env& env,
       d_functionTerms(context()),
       d_singleton_eq(userContext()),
       d_sygusExtension(nullptr),
-      d_rewriter(env.getEvaluator()),
+      d_rewriter(env.getEvaluator(), env.getOptions()),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_notify(d_im, *this),
+      d_checker(env.getOptions().datatypes.dtSharedSelectors),
       d_cpacb(*this)
 {
 
@@ -122,6 +123,8 @@ void TheoryDatatypes::finishInit()
   // testers are not relevant for model building
   d_valuation.setIrrelevantKind(APPLY_TESTER);
   d_valuation.setIrrelevantKind(DT_SYGUS_BOUND);
+  // selectors don't always evaluate
+  d_valuation.setUnevaluatedKind(APPLY_SELECTOR);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){
@@ -358,8 +361,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
     }
     else
     {
-      nn = rew.size()==0 ? d_true :
-                ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
+      nn = NodeManager::currentNM()->mkAnd(rew);
     }
     if (in != nn)
     {
@@ -418,7 +420,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
     return;
   }
   Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
-  Assert(areEqual(t1, t2));
+  Assert(d_equalityEngine->areEqual(t1, t2));
   TNode trep1 = t1;
   TNode trep2 = t2;
   EqcInfo* eqc2 = getOrMakeEqcInfo(t2);
@@ -461,11 +463,11 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       }
       else
       {
-        Assert(areEqual(cons1, cons2));
+        Assert(d_equalityEngine->areEqual(cons1, cons2));
         // do unification
         for (size_t i = 0, nchild = cons1.getNumChildren(); i < nchild; i++)
         {
-          if (!areEqual(cons1[i], cons2[i]))
+          if (!d_equalityEngine->areEqual(cons1[i], cons2[i]))
           {
             Node eq = cons1[i].eqNode(cons2[i]);
             d_im.addPendingInference(eq, InferenceId::DATATYPES_UNIF, unifEq);
@@ -973,7 +975,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator(d_equalityEngine);
-  std::vector< Node > cons;
   std::vector< Node > nodes;
   std::map< Node, Node > eqc_cons;
   while( !eqccs_i.isFinished() ){
@@ -986,7 +987,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( ei && !ei->d_constructor.get().isNull() ){
         Node c = ei->d_constructor.get();
-        cons.push_back( c );
         eqc_cons[ eqc ] = c;
       }else{
         //if eqc contains a symbol known to datatypes (a selector), then we must assign
@@ -1004,11 +1004,12 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   //unsigned orig_size = nodes.size();
   std::map< TypeNode, int > typ_enum_map;
   std::vector< TypeEnumerator > typ_enum;
-  unsigned index = 0;
-  while( index<nodes.size() ){
+  size_t index = 0;
+  bool shareSel = options().datatypes.dtSharedSelectors;
+  while (index < nodes.size())
+  {
     Node eqc = nodes[index];
     Node neqc;
-    bool addCons = false;
     TypeNode tt = eqc.getType();
     const DType& dt = tt.getDType();
     if (!d_equalityEngine->hasTerm(eqc))
@@ -1025,20 +1026,21 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         Trace("dt-cmi") << pcons[i] << " ";
       }
       Trace("dt-cmi") << std::endl;
-      for( unsigned r=0; r<2; r++ ){
+      for (size_t r = 0; r < 2; r++)
+      {
         if( neqc.isNull() ){
-          for( unsigned i=0; i<pcons.size(); i++ ){
+          for (size_t i = 0, psize = pcons.size(); i < psize; i++)
+          {
             // must try the infinite ones first
             bool cfinite =
                 d_env.isFiniteType(dt[i].getInstantiatedConstructorType(tt));
             if( pcons[i] && (r==1)==cfinite ){
-              neqc = utils::getInstCons(eqc, dt, i);
+              neqc = utils::getInstCons(eqc, dt, i, shareSel);
               break;
             }
           }
         }
       }
-      addCons = true;
     }
     if( !neqc.isNull() ){
       Trace("dt-cmi") << "Assign : " << neqc << std::endl;
@@ -1047,9 +1049,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
         return false;
       }
       eqc_cons[ eqc ] = neqc;
-    }
-    if( addCons ){
-      cons.push_back( neqc );
     }
     ++index;
   }
@@ -1182,7 +1181,8 @@ Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
   }
   //add constructor to equivalence class
   Node k = getTermSkolemFor( n );
-  Node n_ic = utils::getInstCons(k, dt, index);
+  Node n_ic =
+      utils::getInstCons(k, dt, index, options().datatypes.dtSharedSelectors);
   Assert (n_ic == rewrite(n_ic));
   Trace("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
   return n_ic;
@@ -1214,13 +1214,12 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   // instantiate this equivalence class
   eqc->d_inst = true;
   Node tt_cons = getInstantiateCons(tt, dt, index);
-  Node eq;
   if (tt == tt_cons)
   {
     // not necessary
     return false;
   }
-  eq = tt.eqNode(tt_cons);
+  Node eq = tt.eqNode(tt_cons);
   // Determine if the equality must be sent out as a lemma. Notice that
   // we  keep new equalities from the instantiate rule internal
   // as long as they are for datatype constructors that have no arguments that
@@ -1708,35 +1707,12 @@ void TheoryDatatypes::checkSplit()
   }
 }
 
-bool TheoryDatatypes::hasTerm(TNode a) { return d_equalityEngine->hasTerm(a); }
-
-bool TheoryDatatypes::areEqual( TNode a, TNode b ){
-  if( a==b ){
-    return true;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine->areEqual(a, b);
-  }else{
-    return false;
-  }
-}
-
-bool TheoryDatatypes::areDisequal( TNode a, TNode b ){
-  if( a==b ){
-    return false;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine->areDisequal(a, b, false);
-  }else{
-    //TODO : constants here?
-    return false;
-  }
-}
-
 TNode TheoryDatatypes::getRepresentative( TNode a ){
-  if( hasTerm( a ) ){
+  if (d_equalityEngine->hasTerm(a))
+  {
     return d_equalityEngine->getRepresentative(a);
-  }else{
-    return a;
   }
+  return a;
 }
 
 void TheoryDatatypes::printModelDebug( const char* c ){
@@ -1805,20 +1781,60 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 
-  //also include non-singleton dt equivalence classes  TODO : revisit this
+  // Also must include certain constructor terms recorded for each equivalence
+  // class (via EqcInfo). These constructor terms may be introduced local to
+  // datatypes, are included in the model (collectModelValues), and thus must
+  // be included in addition to what termSet would otherwise contain.
+  // We furthermore try to change the recorded constructor to be a relevant one
+  // from termSet. This avoids model construction errors where the subfields
+  // of equated relevant and irrelevant constructor terms may not agree in the
+  // model (see issue #9042). In other words, this method ensures that all
+  // datatype equivalence classes either:
+  // (1) have no (recorded) constructor,
+  // (2) have a single recorded constructor term that is not relevant, which we
+  // add to termSet below,
+  // (3) have (possibly multiple) relevant constructor terms. We ensure the
+  // recorded constructor is one of these.
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     TNode r = (*eqcs_i);
-    if (r.getType().isDatatype())
+    ++eqcs_i;
+    if (!r.getType().isDatatype())
     {
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
-      while (!eqc_i.isFinished())
+      continue;
+    }
+    EqcInfo* ei = getOrMakeEqcInfo(r);
+    if (!ei || ei->d_constructor.get().isNull())
+    {
+      // no constructor
+      continue;
+    }
+    if (termSet.find(ei->d_constructor.get()) != termSet.end())
+    {
+      // the constructor is already relevant
+      continue;
+    }
+    // scan the equivalence class
+    bool foundCons = false;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, d_equalityEngine);
+    while (!eqc_i.isFinished())
+    {
+      TNode n = *eqc_i;
+      ++eqc_i;
+      if (n.getKind() == APPLY_CONSTRUCTOR && termSet.find(n) != termSet.end())
       {
-        termSet.insert(*eqc_i);
-        ++eqc_i;
+        // change the recorded constructor to be a relevant one
+        ei->d_constructor = n;
+        foundCons = true;
+        break;
       }
     }
-    ++eqcs_i;
+    // If there are no constructors that are relevant, we consider the
+    // recorded constructor to be relevant.
+    if (!foundCons)
+    {
+      termSet.insert(ei->d_constructor.get());
+    }
   }
 }
 
@@ -1829,7 +1845,8 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
   bool pol = lit.getKind()!=NOT;
   if( atom.getKind()==APPLY_TESTER ){
     Node n = atom[0];
-    if( hasTerm( n ) ){
+    if (d_equalityEngine->hasTerm(n))
+    {
       Node r = d_equalityEngine->getRepresentative(n);
       EqcInfo * ei = getOrMakeEqcInfo( r, false );
       int l_index = getLabelIndex( ei, r );
@@ -1844,7 +1861,7 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
           Node lbl = getLabel( n );
           Assert(!lbl.isNull());
           exp_c.push_back( lbl );
-          Assert(areEqual(n, lbl[0]));
+          Assert(d_equalityEngine->areEqual(n, lbl[0]));
           eqToExplain = n.eqNode(lbl[0]);
         }
         d_equalityEngine->explainLit(eqToExplain, exp_c);

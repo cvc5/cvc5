@@ -592,9 +592,9 @@ name   = "Arithmetic Theory"
   help       = "whether to use the equality solver in the theory of arithmetic"
 
 [[option]]
-  name       = "arithCongMan"
-  category   = "expert"
-  long       = "arith-cong-man"
+  name       = "arithStaticLearning"
+  category   = "regular"
+  long       = "arith-static-learning"
   type       = "bool"
   default    = "true"
-  help       = "(experimental) whether to use the congruence manager when the equality solver is enabled"
+  help       = "do arithmetic static learning for ite terms based on bounds when static learning is enabled"

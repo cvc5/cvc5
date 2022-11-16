@@ -18,7 +18,6 @@
 #ifdef CVC5_POLY_IMP
 
 #include "expr/node.h"
-#include "expr/node_manager_attributes.h"
 #include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
 
@@ -37,12 +36,16 @@ poly::Variable VariableMapper::operator()(const cvc5::internal::Node& n)
     std::string name;
     if (n.isVar())
     {
-      if (!n.getAttribute(expr::VarNameAttr(), name))
+      if (!n.hasName())
       {
         Trace("poly::conversion")
             << "Variable " << n << " has no name, using ID instead."
             << std::endl;
         name = "v_" + std::to_string(n.getId());
+      }
+      else
+      {
+        name = n.getName();
       }
     }
     else
@@ -88,10 +91,11 @@ cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p, const cvc5::
   return res;
 }
 
-poly::UPolynomial as_poly_upolynomial_impl(const cvc5::internal::Node& n,
+poly::UPolynomial as_poly_upolynomial_impl(cvc5::internal::Node n,
                                            poly::Integer& denominator,
                                            const cvc5::internal::Node& var)
 {
+  if (n.getKind() == Kind::TO_REAL) n = n[0];
   denominator = poly::Integer(1);
   if (n.isVar())
   {
@@ -148,10 +152,11 @@ poly::UPolynomial as_poly_upolynomial(const cvc5::internal::Node& n,
   return as_poly_upolynomial_impl(n, denom, var);
 }
 
-poly::Polynomial as_poly_polynomial_impl(const cvc5::internal::Node& n,
+poly::Polynomial as_poly_polynomial_impl(cvc5::internal::Node n,
                                          poly::Integer& denominator,
                                          VariableMapper& vm)
 {
+  if (n.getKind() == Kind::TO_REAL) n = n[0];
   denominator = poly::Integer(1);
   if (n.isVar())
   {

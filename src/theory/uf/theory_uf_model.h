@@ -48,8 +48,7 @@ public:
   /** getFunctionValue */
   Node getFunctionValue(const std::vector<Node>& args,
                         int index,
-                        Node argDefaultValue,
-                        bool simplify = true);
+                        Node argDefaultValue);
   /** update function */
   void update( TheoryModel* m );
   /** simplify function */

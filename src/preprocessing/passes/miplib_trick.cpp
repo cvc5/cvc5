@@ -25,8 +25,7 @@
 #include "options/base_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt_util/boolean_simplification.h"
+#include "preprocessing/util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -192,8 +191,6 @@ void MipLibTrick::collectBooleanVariables(
 PreprocessingPassResult MipLibTrick::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(assertionsToPreprocess->getRealAssertionsEnd()
-         == assertionsToPreprocess->size());
   Assert(!options().base.incrementalSolving);
 
   // collect Boolean variables
@@ -537,7 +534,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
               Node n = rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
-              TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
+              TrustSubstitutionMap tnullMap(d_env, &fakeContext);
               CVC5_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC5_UNUSED;  // just for assertions
               status = te->solve(tgeq, tnullMap);
@@ -616,9 +613,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   if (!removeAssertions.empty())
   {
     Trace("miplib") << " scrubbing miplib encoding..." << endl;
-    for (size_t i = 0, size = assertionsToPreprocess->getRealAssertionsEnd();
-         i < size;
-         ++i)
+    for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
       Node assertion = (*assertionsToPreprocess)[i];
       if (removeAssertions.find(assertion.getId()) != removeAssertions.end())
@@ -647,7 +642,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   {
     Trace("miplib") << " miplib pass found nothing." << endl;
   }
-  assertionsToPreprocess->updateRealAssertionsEnd();
   return PreprocessingPassResult::NO_CONFLICT;
 }
 

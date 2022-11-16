@@ -66,6 +66,8 @@ class ZeroLevelLearner : protected EnvObj
       modes::LearnedLitType ltype) const;
   /** Get the zero-level assertions that should be used on deep restart */
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
+  /** compute type for learned literal */
+  modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
 
  private:
   static void getAtoms(TNode a,
@@ -73,8 +75,6 @@ class ZeroLevelLearner : protected EnvObj
                        std::unordered_set<Node>& atoms);
   /** Process learned literal */
   void processLearnedLiteral(const Node& lit, modes::LearnedLitType ltype);
-  /** compute type for learned literal */
-  modes::LearnedLitType computeLearnedLiteralType(const Node& lit);
   /** is learnable based on the value of options */
   bool isLearnable(modes::LearnedLitType ltype) const;
   /** get solved */

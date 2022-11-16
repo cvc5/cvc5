@@ -22,13 +22,14 @@
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
+#include "options/parallel_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/skolem_def_manager.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_stats.h"
@@ -56,7 +57,8 @@ TheoryProxy::TheoryProxy(Env& env,
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
       || isOutputOn(OutputTag::LEARNED_LITS)
-      || options().smt.produceLearnedLiterals;
+      || options().smt.produceLearnedLiterals
+      || options().parallel.computePartitions > 0;
   if (trackZeroLevel)
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
@@ -106,6 +108,10 @@ void TheoryProxy::notifyInputFormulas(
     {
       skolem = it->second;
     }
+    if (!skolem.isNull())
+    {
+      notifySkolemDefinition(assertions[i], skolem);
+    }
     notifyAssertion(assertions[i], skolem, false);
   }
 
@@ -117,6 +123,12 @@ void TheoryProxy::notifyInputFormulas(
   }
 }
 
+void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
+{
+  Assert(!skolem.isNull());
+  d_skdm->notifySkolemDefinition(skolem, a);
+}
+
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   if (skolem.isNull())
@@ -125,7 +137,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   }
   else
   {
-    d_skdm->notifySkolemDefinition(skolem, a);
     d_decisionEngine->addSkolemDefinition(a, skolem, isLemma);
   }
 }
@@ -161,10 +172,13 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       // Assertion makes all skolems in assertion active,
       // which triggers their definitions to becoming active.
       std::vector<TNode> activeSkolemDefs;
-      d_skdm->notifyAsserted(assertion, activeSkolemDefs, true);
-      // notify the decision engine of the skolem definitions that have become
-      // active due to the assertion.
-      d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      d_skdm->notifyAsserted(assertion, activeSkolemDefs);
+      if (!activeSkolemDefs.empty())
+      {
+        // notify the decision engine of the skolem definitions that have become
+        // active due to the assertion.
+        d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+      }
     }
   }
   if (!d_stopSearch.get())
@@ -270,9 +284,28 @@ bool TheoryProxy::theoryNeedCheck() const {
   return d_theoryEngine->needCheck();
 }
 
-bool TheoryProxy::isIncomplete() const
+bool TheoryProxy::isModelUnsound() const
 {
-  return d_stopSearch.get() || d_theoryEngine->isIncomplete();
+  return d_stopSearch.get() || d_theoryEngine->isModelUnsound();
+}
+
+bool TheoryProxy::isRefutationUnsound() const
+{
+  return d_theoryEngine->isRefutationUnsound();
+}
+
+theory::IncompleteId TheoryProxy::getModelUnsoundId() const
+{
+  if (d_stopSearch.get())
+  {
+    return theory::IncompleteId::STOP_SEARCH;
+  }
+  return d_theoryEngine->getModelUnsoundId();
+}
+
+theory::IncompleteId TheoryProxy::getRefutationUnsoundId() const
+{
+  return d_theoryEngine->getRefutationUnsoundId();
 }
 
 TNode TheoryProxy::getNode(SatLiteral lit) {
@@ -343,6 +376,15 @@ std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     return d_zll->getLearnedZeroLevelLiterals(ltype);
   }
   return {};
+}
+
+modes::LearnedLitType TheoryProxy::getLiteralType(const Node& lit) const
+{
+  if (d_zll != nullptr)
+  {
+    return d_zll->computeLearnedLiteralType(lit);
+  }
+  return modes::LEARNED_LIT_UNKNOWN;
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiteralsForRestart() const

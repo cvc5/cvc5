@@ -29,10 +29,11 @@
 
 namespace cvc5 {
 
-class Command;
 class Solver;
 
 namespace parser {
+
+class Command;
 
 class Tptp : public Parser {
  private:
@@ -182,6 +183,10 @@ class Tptp : public Parser {
   void addArithmeticOperators();
   /** is the name declared, if so, return the term for that name */
   cvc5::Term isTptpDeclared(const std::string& name);
+  /**
+   * Make APPLY_UF from arguments, which ensures that subyping is not used.
+   */
+  Term makeApplyUf(std::vector<Term>& args);
 
   // In CNF variable are implicitly binded
   // d_freevar collect them

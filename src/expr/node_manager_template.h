@@ -45,6 +45,8 @@ class SkolemManager;
 class BoundVarManager;
 
 class DType;
+class Oracle;
+class Integer;
 class Rational;
 
 namespace expr {
@@ -107,14 +109,6 @@ class NodeManager
    */
   static bool hasOperator(Kind k);
 
-  /**
-   * Initialize the node manager by adding a null node to the pool and filling
-   * the caches for `operatorOf()`. This method must be called before using the
-   * NodeManager. This method may be called multiple times. Subsequent calls to
-   * this method have no effect.
-   */
-  void init();
-
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
@@ -122,15 +116,25 @@ class NodeManager
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
-   * associated with datatypes through the DatatypeIndexConstant class. The
+   * associated with datatypes through the DatatypeIndexAttr attribute. The
    * argument index is intended to be a value taken from that class.
    *
    * Type nodes must access their DTypes through a level of indirection to
    * prevent cycles in the Node AST (as DTypes themselves contain Nodes), which
-   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
-   * which is used as an index to retrieve the DType via this call.
+   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexAttr
+   * attribute which is used as an index to retrieve the DType via this call.
    */
   const DType& getDTypeForIndex(size_t index) const;
+  /**
+   * Get the DType for a type. If tn is a datatype type, then we retrieve its
+   * internal index and use the above method to lookup its datatype.
+   *
+   * If it is a tuple, then we lookup its datatype representation and call
+   * this method on it.
+   */
+  const DType& getDTypeFor(TypeNode tn) const;
+  /** Same as above, for node */
+  const DType& getDTypeFor(Node n) const;
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType(TypeNode tn);
@@ -438,6 +442,9 @@ class NodeManager
   /** Make the type of bitvectors of size <code>size</code> */
   TypeNode mkBitVectorType(unsigned size);
 
+  /** Make the type of finite field elements modulo <code>modulus</code> */
+  TypeNode mkFiniteFieldType(const Integer& modulus);
+
   /** Make the type of arrays with the given parameterization */
   TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
@@ -617,34 +624,6 @@ class NodeManager
   Node mkNullaryOperator(const TypeNode& type, Kind k);
 
   /**
-   * Create a sequence unit from the given element n.
-   * @param t the element type of the returned sequence.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the sequence.
-   * @return a sequence unit constructed from the element n.
-   */
-  Node mkSeqUnit(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a singleton set from the given element n.
-   * @param t the element type of the returned set.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the single element in the singleton.
-   * @return a singleton set constructed from the element n.
-   */
-  Node mkSingleton(const TypeNode& t, const TNode n);
-
-  /**
-   * Create a bag from the given element n along with its multiplicity m.
-   * @param t the element type of the returned bag.
-   *          Note that the type of n needs to be a subtype of t.
-   * @param n the element that is used to to construct the bag
-   * @param m the multiplicity of the element n
-   * @return a bag that contains m occurrences of n.
-   */
-  Node mkBag(const TypeNode& t, const TNode n, const TNode m);
-
-  /**
    * Create a constant of type T.  It will have the appropriate
    * CONST_* kind defined for T.
    */
@@ -677,6 +656,12 @@ class NodeManager
    * CONST_RATIONAL.
    */
   Node mkConstInt(const Rational& r);
+
+  /**
+   * Make constant real or int, which calls one of the above methods based
+   * on whether r is integral.
+   */
+  Node mkConstRealOrInt(const Rational& r);
 
   /**
    * Make constant real or int, which calls one of the above methods based
@@ -724,6 +709,18 @@ class NodeManager
 
   /** Make an unresolved datatype sort */
   TypeNode mkUnresolvedDatatypeSort(const std::string& name, size_t arity = 0);
+
+  /**
+   * Make an oracle node. This returns a constant of kind ORACLE that stores
+   * the given method in an Oracle object. This Oracle can later be obtained by
+   * getOracleFor below.
+   */
+  Node mkOracle(Oracle& o);
+
+  /**
+   * Get the oracle for an oracle node n, which should have kind ORACLE.
+   */
+  const Oracle& getOracleFor(const Node& n) const;
 
  private:
   /**
@@ -793,7 +790,8 @@ class NodeManager
   };
 
   /**
-   * A map of tuple and record types to their corresponding datatype.
+   * A map of tuple types to their corresponding datatype type, which are
+   * TypeNode of kind TUPLE_TYPE.
    */
   class TupleTypeCache
   {
@@ -801,9 +799,10 @@ class NodeManager
     std::map<TypeNode, TupleTypeCache> d_children;
     TypeNode d_data;
     TypeNode getTupleType(NodeManager* nm,
-                          std::vector<TypeNode>& types,
+                          const std::vector<TypeNode>& types,
                           unsigned index = 0);
   };
+  /** Same as above, for records */
   class RecTypeCache
   {
    public:
@@ -876,14 +875,6 @@ class NodeManager
   void poolRemove(expr::NodeValue* nv);
 
   /**
-   * Determine if nv is currently being deleted by the NodeManager.
-   */
-  inline bool isCurrentlyDeleting(const expr::NodeValue* nv) const
-  {
-    return d_nodeUnderDeletion == nv;
-  }
-
-  /**
    * Register a NodeValue as a zombie.
    */
   inline void markForDeletion(expr::NodeValue* nv)
@@ -946,9 +937,10 @@ class NodeManager
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
-   * mkVar("a", type) again, you have two variables.  The NodeManager
-   * version of this is private to avoid internal uses of mkVar() from
-   * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
+   * mkVar("a", type) again, you have two variables.  This method is private to
+   * avoid internal uses of mkVar() from within cvc5. Instead, the SkolemManager
+   * submodule is the interface for constructing internal variables
+   * (see expr/skolem_manager.h).
    */
   Node mkVar(const std::string& name, const TypeNode& type);
 
@@ -961,8 +953,6 @@ class NodeManager
   std::unique_ptr<BoundVarManager> d_bvManager;
 
   NodeValuePool d_nodeValuePool;
-
-  bool d_initialized;
 
   /** The next node identifier */
   size_t d_nextId;
@@ -1016,24 +1006,26 @@ class NodeManager
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType>> d_dtypes;
 
+  /** A list of oracles owned by this node manager */
+  std::vector<std::unique_ptr<Oracle>> d_oracles;
+
   TupleTypeCache d_tt_cache;
   RecTypeCache d_rt_cache;
 }; /* class NodeManager */
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
-                                         TypeNode constituentType) {
-  CheckArgument(!indexType.isNull(), indexType,
-                "unexpected NULL index type");
-  CheckArgument(!constituentType.isNull(), constituentType,
-                "unexpected NULL constituent type");
+                                         TypeNode constituentType)
+{
+  Assert(!indexType.isNull()) << "unexpected NULL index type";
+  Assert(!constituentType.isNull()) << "unexpected NULL constituent type";
   Trace("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
 }
 
-inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
-  CheckArgument(!elementType.isNull(), elementType,
-                "unexpected NULL element type");
+inline TypeNode NodeManager::mkSetType(TypeNode elementType)
+{
+  Assert(!elementType.isNull()) << "unexpected NULL element type";
   Trace("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
@@ -1050,14 +1042,14 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
       << "NodeValue already in the pool!";
-  d_nodeValuePool.insert(nv);// FIXME multithreading
+  d_nodeValuePool.insert(nv);
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
   Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
       << "NodeValue is not in the pool!";
 
-  d_nodeValuePool.erase(nv);// FIXME multithreading
+  d_nodeValuePool.erase(nv);
 }
 
 inline Kind NodeManager::operatorToKind(TNode n) {

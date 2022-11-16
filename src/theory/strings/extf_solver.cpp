@@ -48,7 +48,7 @@ ExtfSolver::ExtfSolver(Env& env,
       d_csolver(cs),
       d_extt(et),
       d_statistics(statistics),
-      d_preproc(d_termReg.getSkolemCache(), &statistics.d_reductions),
+      d_preproc(env, d_termReg.getSkolemCache(), &statistics.d_reductions),
       d_hasExtf(context(), false),
       d_extfInferCache(context()),
       d_reduced(userContext())
@@ -70,6 +70,7 @@ ExtfSolver::ExtfSolver(Env& env,
   d_extt.addFunctionKind(kind::STRING_TO_LOWER);
   d_extt.addFunctionKind(kind::STRING_TO_UPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::STRING_UNIT);
   d_extt.addFunctionKind(kind::SEQ_UNIT);
   d_extt.addFunctionKind(kind::SEQ_NTH);
 
@@ -150,8 +151,8 @@ bool ExtfSolver::doReduction(int effort, Node n)
       return false;
     }
   }
-  else if (k == SEQ_UNIT || k == STRING_IN_REGEXP || k == STRING_TO_CODE
-           || (k == STRING_CONTAINS && pol == 0))
+  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
+           || k == STRING_TO_CODE || (k == STRING_CONTAINS && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
@@ -168,7 +169,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
         return false;
       }
       else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
-               && d_termReg.isHandledUpdate(n))
+               && d_termReg.isHandledUpdateOrSubstr(n))
       {
         // don't need to reduce certain seq.update
         // don't need to reduce certain seq.extract with length 1
@@ -241,7 +242,9 @@ void ExtfSolver::checkExtfReductions(int effort)
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
   // stratifying effort levels are done in doReduction below.
-  std::vector<Node> extf = d_extt.getActive();
+  // We only have to reduce extended functions that are both relevant and
+  // active (see getRelevantActive).
+  std::vector<Node> extf = getRelevantActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
   for (const Node& n : extf)
@@ -747,6 +750,25 @@ bool ExtfSolver::isActiveInModel(Node n) const
     return true;
   }
   return it->second.d_modelActive;
+}
+
+std::vector<Node> ExtfSolver::getRelevantActive() const
+{
+  // get the relevant term set
+  std::vector<Node> extf = d_extt.getActive();
+  const std::set<Node>& relevantTerms = d_termReg.getRelevantTermSet();
+
+  std::vector<Node> res;
+  for (const Node& n : extf)
+  {
+    if (relevantTerms.find(n) == relevantTerms.end())
+    {
+      // not relevant
+      continue;
+    }
+    res.push_back(n);
+  }
+  return res;
 }
 
 bool StringsExtfCallback::getCurrentSubstitution(

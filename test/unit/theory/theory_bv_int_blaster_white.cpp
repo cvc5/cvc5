@@ -39,15 +39,12 @@ class TestTheoryWhiteBvIntblaster : public TestSmtNoFinishInit
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->setOption("produce-models", "true");
     d_slvEngine->finishInit();
-    d_true = d_nodeManager->mkConst<bool>(true);
-    d_one = d_nodeManager->mkConst<Rational>(CONST_RATIONAL, Rational(1));
   }
-  Node d_true;
-  Node d_one;
 };
 
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
 {
+  Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
@@ -57,13 +54,9 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
   Node bv7_4 = d_nodeManager->mkConst<BitVector>(c1);
 
   // translating it to integers should yield 7.
-  Options opts;
-  Env env(d_nodeManager, &opts);
-  env.d_logic.setLogicString("QF_UFBV");
-  env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(bv7_4, lemmas, skolems);
-  Node seven = d_nodeManager->mkConst(CONST_RATIONAL, Rational(7));
+  Node seven = d_nodeManager->mkConstInt(Rational(7));
   ASSERT_EQ(seven, result);
 
   // translating integer constants should not change them
@@ -73,6 +66,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
 
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
 {
+  Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
@@ -82,10 +76,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
   Node bv = d_nodeManager->mkVar("bv1", bvType);
 
   // translating it to integers should yield an integer variable.
-  Options opts;
-  Env env(d_nodeManager, &opts);
-  env.d_logic.setLogicString("QF_UFBV");
-  env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(bv, lemmas, skolems);
   ASSERT_TRUE(result.isVar() && result.getType().isInteger());
@@ -97,6 +87,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
 
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
 {
+  Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
@@ -112,10 +103,6 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
   Node f = d_nodeManager->mkVar("f", funType);
 
   // translating it to integers should yield an Int x Int -> Bool function
-  Options opts;
-  Env env(d_nodeManager, &opts);
-  env.d_logic.setLogicString("QF_UFBV");
-  env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
   Node result = intBlaster.translateNoChildren(f, lemmas, skolems);
   TypeNode resultType = result.getType();
@@ -136,13 +123,10 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
  */
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 {
+  Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
-  Options opts;
-  Env env(d_nodeManager, &opts);
-  env.d_logic.setLogicString("QF_UFBV");
-  env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
 
   // bit-vector variables
@@ -287,13 +271,10 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
  */
 TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 {
+  Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
   std::vector<Node> lemmas;
   std::map<Node, Node> skolems;
-  Options opts;
-  Env env(d_nodeManager, &opts);
-  env.d_logic.setLogicString("QF_UFBV");
-  env.d_logic.lock();
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::BITWISE, 1);
 
   // bit-vector variables

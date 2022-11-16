@@ -24,7 +24,7 @@ LFSC_DIR="$BASE_DIR/lfsc-checker"
 mkdir -p $LFSC_DIR
 
 # download and unpack LFSC
-version="80b6a1b67f819b58f3e80c029a5e22f42d2ab32f"
+version="679f4de66da319a7c36b572cb8b0bcc606b695f8"
 download "https://github.com/cvc5/LFSC/archive/$version.tar.gz" $BASE_DIR/tmp/lfsc.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/lfsc.tgz -C $LFSC_DIR
 

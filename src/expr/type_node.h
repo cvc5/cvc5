@@ -36,6 +36,7 @@ namespace cvc5::internal {
 class NodeManager;
 class Cardinality;
 class DType;
+class Integer;
 
 namespace expr {
   class NodeValue;
@@ -45,9 +46,9 @@ namespace expr {
  * Encapsulation of an NodeValue pointer for Types. The reference count is
  * maintained in the NodeValue.
  */
-class TypeNode {
-
-private:
+class CVC5_EXPORT TypeNode
+{
+ private:
 
   /**
    * The NodeValue has access to the private constructors, so that the
@@ -364,9 +365,10 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out) const
-  {
-    d_nv->toStream(out, -1, 0);
+  inline void toStream(std::ostream& out) const {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    d_nv->toStream(out);
   }
 
   /**
@@ -400,6 +402,13 @@ private:
    * @return the cardinality class
    */
   CardinalityClass getCardinalityClass();
+  /**
+   * Determine if the cardinality of this type is strictly less than `n`.
+   * We do not want to compute the precise cardinality for this for performance
+   * reasons, and will answer false if it is not less than or if we don't know.
+   * @return if the cardinality of this type is strictly less than `n`.
+   */
+  bool isCardinalityLessThan(size_t n);
 
   /** is closed enumerable type
    *
@@ -432,17 +441,6 @@ private:
    */
   bool isWellFounded() const;
 
-  /**
-   * Is this type a subtype of the given type?
-   */
-  bool isSubtypeOf(TypeNode t) const;
-
-  /**
-   * Is this type comparable to the given type (i.e., do they share
-   * a common ancestor in the subtype tree)?
-   */
-  bool isComparableTo(TypeNode t) const;
-
   /** Is this the Boolean type? */
   bool isBoolean() const;
 
@@ -466,6 +464,9 @@ private:
 
   /** Is this an array type? */
   bool isArray() const;
+
+  /** Is this a finite-field type? */
+  bool isFiniteField() const;
 
   /** Is this a Set type? */
   bool isSet() const;
@@ -663,6 +664,9 @@ private:
   /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
 
+  /** Get the field cardinality (order) of this finite-field type. */
+  const Integer& getFfSize() const;
+
   /** Is this a sort kind? */
   bool isUninterpretedSort() const;
 
@@ -674,9 +678,16 @@ private:
 
   /** Is this an unresolved datatype? */
   bool isUnresolvedDatatype() const;
-
   /**
-   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true for
+   * uninterpreted sorts and uninterpreted sort constructors.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getName() const;
 
@@ -687,16 +698,6 @@ private:
    * Asserts that this is an instantiated uninterpreted sort.
    */
   TypeNode getUninterpretedSortConstructor() const;
-
-  /** Get the most general base type of the type */
-  TypeNode getBaseType() const;
-
-  /**
-   * Returns the leastUpperBound in the extended type lattice of the two types.
-   * If this is \top, i.e. there is no inhabited type that contains both,
-   * a TypeNode such that isNull() is true is returned.
-   */
-  static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
 
 private:
 
@@ -877,17 +878,6 @@ inline bool TypeNode::isBoolean() const {
     ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE );
 }
 
-inline bool TypeNode::isInteger() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE );
-}
-
-inline bool TypeNode::isReal() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE ) ||
-    isInteger();
-}
-
 inline bool TypeNode::isString() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == STRING_TYPE;
@@ -906,6 +896,11 @@ inline bool TypeNode::isRoundingMode() const {
 
 inline bool TypeNode::isArray() const {
   return getKind() == kind::ARRAY_TYPE;
+}
+
+inline bool TypeNode::isFiniteField() const
+{
+  return getKind() == kind::FINITE_FIELD_TYPE;
 }
 
 inline TypeNode TypeNode::getArrayIndexType() const {
@@ -968,26 +963,6 @@ inline bool TypeNode::isPredicate() const {
 
 inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
-}
-
-/** Is this a floating-point type of with <code>exp</code> exponent bits
-    and <code>sig</code> significand bits */
-inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return (getKind() == kind::FLOATINGPOINT_TYPE
-          && getConst<FloatingPointSize>().exponentWidth() == exp
-          && getConst<FloatingPointSize>().significandWidth() == sig);
-}
-
-/** Get the exponent size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointExponentSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponentWidth();
-}
-
-/** Get the significand size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointSignificandSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significandWidth();
 }
 
 }  // namespace cvc5::internal

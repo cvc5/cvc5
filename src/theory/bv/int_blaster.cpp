@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
@@ -545,6 +546,14 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::APPLY_UF:
     {
+      // The preprocessing pass does not support function applications
+      // with bound variables.
+      if (expr::hasBoundVar(original)) {
+          throw OptionException(
+              "bv-to-int does not support quantified variables under "
+              "uninterpreted functions");
+      }
+
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
@@ -822,7 +831,7 @@ bool IntBlaster::childrenTypesChanged(Node n)
     {
       TypeNode originalType = child.getType();
       TypeNode newType = d_intblastCache[child].get().getType();
-      if (!newType.isSubtypeOf(originalType))
+      if (newType != originalType)
       {
         result = true;
         break;
@@ -836,7 +845,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
 {
   // If there is no reason to cast, return the
   // original node.
-  if (n.getType().isSubtypeOf(tn))
+  if (n.getType() == tn)
   {
     return n;
   }

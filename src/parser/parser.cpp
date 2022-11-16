@@ -26,9 +26,9 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
+#include "parser/api/cpp/command.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "smt/command.h"
 
 using namespace std;
 
@@ -429,14 +429,6 @@ std::vector<cvc5::Sort> Parser::bindMutualDatatypeTypes(
         }
       }
     }
-
-    // throw exception if any datatype is not well-founded
-    for (unsigned i = 0; i < datatypes.size(); ++i) {
-      const cvc5::Datatype& dt = types[i].getDatatype();
-      if (!dt.isCodatatype() && !dt.isWellFounded()) {
-        throw ParserException(dt.getName() + " is not well-founded");
-      }
-    }
     return types;
   }
   catch (internal::IllegalArgumentException& ie)
@@ -603,6 +595,8 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
     case SYM_VARIABLE: return d_symtab->isBound(name);
     case SYM_SORT:
       return d_symtab->isBoundType(name);
+    case SYM_VERBATIM:
+      Unreachable();
   }
   Assert(false);  // Unhandled(type);
   return false;

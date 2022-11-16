@@ -432,11 +432,6 @@ private:
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
-  /**
-   * Returns true if we need an equality engine, see
-   * Theory::needsEqualityEngine.
-   */
-  bool needsEqualityEngine(EeSetupInfo& esi);
   /** finish initialize */
   void finishInit();
   //--------------------------------- end initialization
@@ -459,11 +454,16 @@ private:
    * non-linear extension) can modify arithModel before it is sent to the model.
    *
    * @param termSet The set of relevant terms
-   * @param arithModel Mapping from terms (of real type) to their values. The
-   * caller should assert equalities to the model for each entry in this map.
+   * @param arithModel Mapping from terms (of int/real type) to their values.
+   * The caller should assert equalities to the model for each entry in this
+   * map.
+   * @param arithModelIllTyped Mapping from terms (of int type) to real values.
+   * This is used for catching cases where this solver mistakenly set an
+   * integer variable to a real.
    */
   void collectModelValues(const std::set<Node>& termSet,
-                          std::map<Node, Node>& arithModel);
+                          std::map<Node, Node>& arithModel,
+                          std::map<Node, Node>& arithModelIllTyped);
 
   void shutdown(){ }
 
@@ -501,12 +501,14 @@ private:
    * any non-linear terms that were unhandled. Note that this class is not
    * responsible for handling non-linear arithmetic. If the owner of this
    * class does not handle non-linear arithmetic in another way, then
-   * setIncomplete should be called on the output channel of TheoryArith.
+   * setModelUnsound should be called on the output channel of TheoryArith.
    */
   bool foundNonlinear() const;
 
   /** get the proof checker of this theory */
   ArithProofRuleChecker* getProofChecker();
+  /** get the congruence manager, if we are using one */
+  ArithCongruenceManager* getCongruenceManager();
 
  private:
   /** The constant zero. */

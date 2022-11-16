@@ -55,6 +55,7 @@ if(CVC5_NEED_HASH_UINT64_T_OVERLOAD)
 endif()
 
 check_include_file(unistd.h HAVE_UNISTD_H)
+check_include_file(sys/wait.h HAVE_SYS_WAIT_H)
 check_include_file_cxx(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
 
 # For Windows builds check if clock_gettime is available via -lpthread

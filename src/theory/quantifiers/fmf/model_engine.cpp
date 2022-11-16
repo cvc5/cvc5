@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/rep_set_iterator.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::context;
@@ -50,6 +51,8 @@ ModelEngine::ModelEngine(Env& env,
 ModelEngine::~ModelEngine() {
 
 }
+
+std::string ModelEngine::identify() const { return "ModelEngine"; }
 
 bool ModelEngine::needsCheck( Theory::Effort e ) {
   return e==Theory::EFFORT_LAST_CALL;
@@ -219,11 +222,10 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max =
-      options().quantifiers.mbqiMode == options::MbqiMode::FMC
-          ? 2
-          : (options().quantifiers.mbqiMode == options::MbqiMode::TRUST ? 0
-                                                                        : 1);
+  options::FmfMbqiMode mode = options().quantifiers.fmfMbqiMode;
+  int e_max = mode == options::FmfMbqiMode::FMC
+                  ? 2
+                  : (mode == options::FmfMbqiMode::TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incompleteQuants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -294,7 +296,7 @@ void ModelEngine::exhaustiveInstantiate(Node q, int effort)
     }
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    QRepBoundExt qrbe(qbi, fm);
+    QRepBoundExt qrbe(d_env, qbi, d_qstate, d_treg, q);
     RepSetIterator riter(fm->getRepSet(), &qrbe);
     if (riter.setQuantifier(q))
     {

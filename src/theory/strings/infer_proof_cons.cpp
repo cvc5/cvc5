@@ -31,12 +31,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-InferProofCons::InferProofCons(context::Context* c,
-                               ProofNodeManager* pnm,
+InferProofCons::InferProofCons(Env& env,
+                               context::Context* c,
                                SequencesStatistics& statistics)
-    : d_pnm(pnm), d_lazyFactMap(c), d_statistics(statistics)
+    : EnvObj(env), d_lazyFactMap(c), d_statistics(statistics)
 {
-  Assert(d_pnm != nullptr);
 }
 
 void InferProofCons::notifyFact(const InferInfo& ii)
@@ -392,6 +391,13 @@ void InferProofCons::convert(InferenceId infer,
         // fail
         break;
       }
+      // get the heads of the equality
+      std::vector<Node> tvec;
+      std::vector<Node> svec;
+      theory::strings::utils::getConcat(mainEqCeq[0], tvec);
+      theory::strings::utils::getConcat(mainEqCeq[1], svec);
+      Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
+      Node s0 = svec[isRev ? svec.size() - 1 : 0];
       // Now, mainEqCeq is an equality t ++ ... == s ++ ... where the
       // inference involved t and s.
       if (infer == InferenceId::STRINGS_N_ENDPOINT_EQ
@@ -427,10 +433,20 @@ void InferProofCons::convert(InferenceId infer,
         // should be a constant conflict
         std::vector<Node> childrenC;
         childrenC.push_back(mainEqCeq);
+        // if it is between sequences, we require the explicit disequality
+        if (mainEqCeq[0].getType().isSequence())
+        {
+          Assert(t0.isConst() && s0.isConst());
+          // We introduce an explicit disequality for the constants
+          Node deq = t0.eqNode(s0).notNode();
+          psb.addStep(PfRule::MACRO_SR_PRED_INTRO, {}, {deq}, deq);
+          Assert(!deq.isNull());
+          childrenC.push_back(deq);
+        }
         std::vector<Node> argsC;
         argsC.push_back(nodeIsRev);
-        Node mainEqC = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
-        if (mainEqC == conc)
+        Node conflict = psb.tryStep(PfRule::CONCAT_CONFLICT, childrenC, argsC);
+        if (conflict == conc)
         {
           useBuffer = true;
           Trace("strings-ipc-core") << "...success!" << std::endl;
@@ -457,12 +473,6 @@ void InferProofCons::convert(InferenceId infer,
       }
       else
       {
-        std::vector<Node> tvec;
-        std::vector<Node> svec;
-        utils::getConcat(mainEqCeq[0], tvec);
-        utils::getConcat(mainEqCeq[1], svec);
-        Node t0 = tvec[isRev ? tvec.size() - 1 : 0];
-        Node s0 = svec[isRev ? svec.size() - 1 : 0];
         bool applySym = false;
         // may need to apply symmetry
         if ((infer == InferenceId::STRINGS_SSPLIT_CST
@@ -653,6 +663,7 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_DEQ_STRINGS_EQ:
     case InferenceId::STRINGS_DEQ_LENS_EQ:
     case InferenceId::STRINGS_DEQ_LENGTH_SP:
+    case InferenceId::STRINGS_UNIT_SPLIT:
     {
       if (conc.getKind() != OR)
       {
@@ -1158,7 +1169,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   Assert(ii->d_conc == fact);
   // make a placeholder proof using STRINGS_INFERENCE, which is reconstructed
   // during post-process
-  CDProof pf(d_pnm);
+  CDProof pf(d_env);
   std::vector<Node> args;
   packArgs(ii->d_conc, ii->getId(), ii->d_idRev, ii->d_premises, args);
   // must flatten

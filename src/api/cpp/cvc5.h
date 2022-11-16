@@ -18,6 +18,7 @@
 #ifndef CVC5__API__CVC5_H
 #define CVC5__API__CVC5_H
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -33,8 +34,6 @@
 #include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
-
-class Command;
 
 namespace main {
 class CommandExecutor;
@@ -61,6 +60,10 @@ class Result;
 class SynthResult;
 class StatisticsRegistry;
 }  // namespace internal
+
+namespace parser {
+class Command;
+}
 
 class Solver;
 class Statistics;
@@ -349,7 +352,7 @@ class Datatype;
  */
 class CVC5_EXPORT Sort
 {
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
   friend class DatatypeSelector;
@@ -826,23 +829,20 @@ class CVC5_EXPORT Sort
   /** @return The internal wrapped TypeNode of this sort. */
   const internal::TypeNode& getTypeNode(void) const;
 
-  /** Helper to convert a set of Sorts to internal TypeNodes. */
-  std::set<internal::TypeNode> static sortSetToTypeNodes(
-      const std::set<Sort>& sorts);
   /** Helper to convert a vector of Sorts to internal TypeNodes. */
   std::vector<internal::TypeNode> static sortVectorToTypeNodes(
       const std::vector<Sort>& sorts);
   /** Helper to convert a vector of internal TypeNodes to Sorts. */
   std::vector<Sort> static typeNodeVectorToSorts(
-      const Solver* slv, const std::vector<internal::TypeNode>& types);
+      internal::NodeManager* nm, const std::vector<internal::TypeNode>& types);
 
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param t The internal type that is to be wrapped by this sort.
    * @return The Sort.
    */
-  Sort(const Solver* slv, const internal::TypeNode& t);
+  Sort(internal::NodeManager* nm, const internal::TypeNode& t);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -851,9 +851,9 @@ class CVC5_EXPORT Sort
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal type wrapped by this sort.
@@ -920,7 +920,7 @@ class CVC5_EXPORT Op
   /**
    * Syntactic equality operator.
    *
-   * @note Both operators must belong to the same solver object.
+   * @note Both operators must belong to the same node manager.
    *
    * @param t The operator to compare to for equality.
    * @return True if both operators are syntactically identical.
@@ -930,7 +930,7 @@ class CVC5_EXPORT Op
   /**
    * Syntactic disequality operator.
    *
-   * @note Both terms must belong to the same solver object.
+   * @note Both terms must belong to the same node manager.
    *
    * @param t The operator to compare to for disequality.
    * @return True if operators differ syntactically.
@@ -972,19 +972,19 @@ class CVC5_EXPORT Op
  private:
   /**
    * Constructor for a single kind (non-indexed operator).
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param k The kind of this Op.
    */
-  Op(const Solver* slv, const Kind k);
+  Op(internal::NodeManager* nm, const Kind k);
 
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node managaer.
    * @param k The kind of this Op.
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
    */
-  Op(const Solver* slv, const Kind k, const internal::Node& n);
+  Op(internal::NodeManager* nm, const Kind k, const internal::Node& n);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1017,9 +1017,9 @@ class CVC5_EXPORT Op
   Term getIndexHelper(size_t index) const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /** The kind of this operator. */
   Kind d_kind;
@@ -1065,7 +1065,7 @@ namespace cvc5 {
  */
 class CVC5_EXPORT Term
 {
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class Datatype;
   friend class DatatypeConstructor;
   friend class DatatypeSelector;
@@ -1088,7 +1088,7 @@ class CVC5_EXPORT Term
   /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
-   * Both terms must belong to the same solver object.
+   * @note Both terms must belong to the same node manager.
    * @param t The term to compare to for equality.
    * @return True if the terms are equal.
    */
@@ -1097,7 +1097,7 @@ class CVC5_EXPORT Term
   /**
    * Syntactic disequality operator.
    * Return true if both terms differ syntactically.
-   * Both terms must belong to the same solver object.
+   * @note Both terms must belong to the same node manager.
    * @param t The term to compare to for disequality.
    * @return True if terms are disequal.
    */
@@ -1311,11 +1311,11 @@ class CVC5_EXPORT Term
 
     /**
      * Constructor
-     * @param slv The associated solver object.
+     * @param nm The associated node manager.
      * @param e A ``std::shared pointer`` to the node that we're iterating over.
      * @param p The position of the iterator (e.g. which child it's on).
      */
-    const_iterator(const Solver* slv,
+    const_iterator(internal::NodeManager* nm,
                    const std::shared_ptr<internal::Node>& e,
                    uint32_t p);
 
@@ -1365,9 +1365,9 @@ class CVC5_EXPORT Term
 
    private:
     /**
-     * The associated solver object.
+     * The associated node manager.
      */
-    const Solver* d_solver;
+    internal::NodeManager* d_nm;
     /** The original node to be iterated over. */
     std::shared_ptr<internal::Node> d_origNode;
     /** Keeps track of the iteration position. */
@@ -1393,51 +1393,60 @@ class CVC5_EXPORT Term
   int32_t getRealOrIntegerValueSign() const;
   /**
    * @return True if the term is an integer value that fits within int32_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integer value.
    */
   bool isInt32Value() const;
   /**
-   * Get the `int32_t` representation of  this integer value.
+   * Get the `int32_t` representation of this integral value.
    * @note Asserts isInt32Value().
    * @return This integer value as a `int32_t`.
    */
   int32_t getInt32Value() const;
   /**
    * @return True if the term is an integer value that fits within uint32_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integral value.
    */
   bool isUInt32Value() const;
   /**
-   * Get the `uint32_t` representation of this integer value.
+   * Get the `uint32_t` representation of this integral value.
    * @note Asserts isUInt32Value().
    * @return This integer value as a `uint32_t`.
    */
   uint32_t getUInt32Value() const;
   /**
    * @return True if the term is an integer value that fits within int64_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integral value.
    */
   bool isInt64Value() const;
   /**
-   * Get the `int64_t` representation of this integer value.
+   * Get the `int64_t` representation of this integral value.
    * @note Asserts isInt64Value().
    * @return This integer value as a `int64_t`.
    */
   int64_t getInt64Value() const;
   /**
    * @return True if the term is an integer value that fits within uint64_t.
+   * Note that this method will return true for integer constants and real
+   * constants that have integral value.
    */
   bool isUInt64Value() const;
   /**
-   * Get the `uint64_t` representation of this integer value.
+   * Get the `uint64_t` representation of this integral value.
    * @note Asserts isUInt64Value().
    * @return This integer value as a `uint64_t`.
    */
   uint64_t getUInt64Value() const;
   /**
-   * @return True if the term is an integer value.
+   * @return True if the term is an integer constant or a real constant that
+   * has an integral value.
    */
   bool isIntegerValue() const;
   /**
    * @note Asserts isIntegerValue().
-   * @return The integer term in (decimal) string representation.
+   * @return The integral term in (decimal) string representation.
    */
   std::string getIntegerValue() const;
 
@@ -1675,37 +1684,37 @@ class CVC5_EXPORT Term
 
  protected:
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
  private:
+  /** Helper method to collect all elements of a set. */
+  static void collectSet(std::set<Term>& set,
+                         const internal::Node& node,
+                         internal::NodeManager* nm);
+  /** Helper method to collect all elements of a sequence. */
+  static void collectSequence(std::vector<Term>& seq,
+                              const internal::Node& node,
+                              internal::NodeManager* nm);
+
+  /**
+   * Constructor.
+   * @param nm The associated node manager.
+   * @param n The internal node that is to be wrapped by this term.
+   * @return The Term.
+   */
+  Term(internal::NodeManager* nm, const internal::Node& n);
+
+  /** @return The internal wrapped Node of this term. */
+  const internal::Node& getNode(void) const;
+
   /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<internal::Node> static termVectorToNodes(
       const std::vector<Term>& terms);
   /** Helper to convert a vector of internal Nodes to Terms. */
   std::vector<Term> static nodeVectorToTerms(
-      const Solver* slv, const std::vector<internal::Node>& nodes);
-
-  /** Helper method to collect all elements of a set. */
-  static void collectSet(std::set<Term>& set,
-                         const internal::Node& node,
-                         const Solver* slv);
-  /** Helper method to collect all elements of a sequence. */
-  static void collectSequence(std::vector<Term>& seq,
-                              const internal::Node& node,
-                              const Solver* slv);
-
-  /**
-   * Constructor.
-   * @param slv The associated solver object.
-   * @param n The internal node that is to be wrapped by this term.
-   * @return The Term.
-   */
-  Term(const Solver* slv, const internal::Node& n);
-
-  /** @return The internal wrapped Node of this term. */
-  const internal::Node& getNode(void) const;
+      internal::NodeManager* nm, const std::vector<internal::Node>& nodes);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1720,11 +1729,6 @@ class CVC5_EXPORT Term
    */
   Kind getKindHelper() const;
 
-  /**
-   * @return True if the current term is a constant integer that is casted into
-   *         real using the operator CAST_TO_REAL, and returns false otherwise
-   */
-  bool isCastedReal() const;
   /**
    * The internal node wrapped by this term.
    * @note This is a ``std::shared_ptr`` rather than a ``std::unique_ptr`` to
@@ -1871,11 +1875,11 @@ class CVC5_EXPORT DatatypeConstructorDecl
  private:
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
-  DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+  DatatypeConstructorDecl(internal::NodeManager* nm, const std::string& name);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1890,9 +1894,9 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isResolved() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal (intermediate) datatype constructor wrapped by this
@@ -1949,6 +1953,12 @@ class CVC5_EXPORT DatatypeDecl
   bool isParametric() const;
 
   /**
+   * Is this datatype declaration resolved (i.e,. has it been used to declare
+   * a datatype already)?
+   */
+  bool isResolved() const;
+
+  /**
    * @return True if this DatatypeDecl is a null object.
    */
   bool isNull() const;
@@ -1964,37 +1974,24 @@ class CVC5_EXPORT DatatypeDecl
  private:
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param name The name of the datatype.
    * @param isCoDatatype True if a codatatype is to be constructed.
    * @return The DatatypeDecl.
    */
-  DatatypeDecl(const Solver* slv,
+  DatatypeDecl(internal::NodeManager* nm,
                const std::string& name,
                bool isCoDatatype = false);
 
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
-   * @param slv The associated solver object.
-   * @param name The name of the datatype.
-   * @param param The sort parameter.
-   * @param isCoDatatype True if a codatatype is to be constructed.
-   */
-  DatatypeDecl(const Solver* slv,
-               const std::string& name,
-               const Sort& param,
-               bool isCoDatatype = false);
-
-  /**
-   * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param name The name of the datatype.
    * @param params A list of sort parameters.
    * @param isCoDatatype True if a codatatype is to be constructed.
    */
-  DatatypeDecl(const Solver* slv,
+  DatatypeDecl(internal::NodeManager* nm,
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
@@ -2009,9 +2006,9 @@ class CVC5_EXPORT DatatypeDecl
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal (intermediate) datatype wrapped by this datatype
@@ -2083,11 +2080,12 @@ class CVC5_EXPORT DatatypeSelector
  private:
   /**
    * Constructor.
-   * @param slv The associated solver object.
+   * @param nm The associated node manager.
    * @param stor The internal datatype selector to be wrapped.
    * @return The DatatypeSelector.
    */
-  DatatypeSelector(const Solver* slv, const internal::DTypeSelector& stor);
+  DatatypeSelector(internal::NodeManager* nm,
+                   const internal::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2096,9 +2094,9 @@ class CVC5_EXPORT DatatypeSelector
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
@@ -2313,18 +2311,18 @@ class CVC5_EXPORT DatatypeConstructor
    private:
     /**
      * Constructor.
-     * @param slv The associated Solver object.
+     * @param nm The associated node manager.
      * @param ctor The internal datatype constructor to iterate over.
      * @param begin True if this is a `begin()` iterator.
      */
-    const_iterator(const Solver* slv,
+    const_iterator(internal::NodeManager* nm,
                    const internal::DTypeConstructor& ctor,
                    bool begin);
 
     /**
-     * The associated solver object.
+     * The associated node manager.
      */
-    const Solver* d_solver;
+    internal::NodeManager* d_nm;
 
     /**
      * A pointer to the list of selectors of the internal datatype
@@ -2353,11 +2351,11 @@ class CVC5_EXPORT DatatypeConstructor
  private:
   /**
    * Constructor.
-   * @param slv The associated solver instance.
+   * @param nm The associated node manager.
    * @param ctor The internal datatype constructor to be wrapped.
    * @return The DatatypeConstructor.
    */
-  DatatypeConstructor(const Solver* slv,
+  DatatypeConstructor(internal::NodeManager* nm,
                       const internal::DTypeConstructor& ctor);
 
   /**
@@ -2374,9 +2372,9 @@ class CVC5_EXPORT DatatypeConstructor
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
@@ -2565,16 +2563,18 @@ class CVC5_EXPORT Datatype
    private:
     /**
      * Constructor.
-     * @param slv The associated Solver object.
+     * @param nm The associated node manager.
      * @param dtype The internal datatype to iterate over.
      * @param begin True if this is a begin() iterator.
      */
-    const_iterator(const Solver* slv, const internal::DType& dtype, bool begin);
+    const_iterator(internal::NodeManager* nm,
+                   const internal::DType& dtype,
+                   bool begin);
 
     /**
-     * The associated solver object.
+     * The associated node manager.
      */
-    const Solver* d_solver;
+    internal::NodeManager* d_nm;
 
     /**
      * A pointer to the list of constructors of the internal datatype
@@ -2603,11 +2603,11 @@ class CVC5_EXPORT Datatype
  private:
   /**
    * Constructor.
-   * @param slv The associated solver instance.
+   * @param nm The associated node manager.
    * @param dtype The internal datatype to be wrapped.
    * @return The Datatype.
    */
-  Datatype(const Solver* slv, const internal::DType& dtype);
+  Datatype(internal::NodeManager* nm, const internal::DType& dtype);
 
   /**
    * Return constructor for name.
@@ -2630,9 +2630,9 @@ class CVC5_EXPORT Datatype
   bool isNullHelper() const;
 
   /**
-   * The associated solver object.
+   * The associated node manager.
    */
-  const Solver* d_solver;
+  internal::NodeManager* d_nm;
 
   /**
    * The internal datatype wrapped by this datatype.
@@ -2708,7 +2708,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC5_EXPORT Grammar
 {
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class Solver;
 
  public:
@@ -2756,7 +2756,7 @@ class CVC5_EXPORT Grammar
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
-  Grammar(const Solver* slv,
+  Grammar(internal::NodeManager* nm,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
@@ -2828,8 +2828,8 @@ class CVC5_EXPORT Grammar
    */
   bool containsFreeVariables(const Term& rule) const;
 
-  /** The solver that created this grammar. */
-  const Solver* d_solver;
+  /** The node manager associated with this grammar. */
+  internal::NodeManager* d_nm;
   /** Input variables to the corresponding function/invariant to synthesize.*/
   std::vector<Term> d_sygusVars;
   /** The non-terminal symbols of this grammar. */
@@ -3218,17 +3218,10 @@ class CVC5_EXPORT Solver
   friend class DriverOptions;
   friend class Grammar;
   friend class Op;
-  friend class cvc5::Command;
+  friend class parser::Command;
   friend class main::CommandExecutor;
   friend class Sort;
   friend class Term;
-
- private:
-  /*
-   * Constructs a solver with the given original options. This should only be
-   * used internally when the Solver is reset.
-   */
-  Solver(std::unique_ptr<internal::Options>&& original);
 
  public:
   /* .................................................................... */
@@ -3255,11 +3248,6 @@ class CVC5_EXPORT Solver
   /* .................................................................... */
   /* Sorts Handling                                                       */
   /* .................................................................... */
-
-  /**
-   * @return Sort null.
-   */
-  Sort getNullSort() const;
 
   /**
    * @return Sort Boolean.
@@ -3456,8 +3444,7 @@ class CVC5_EXPORT Solver
   Term mkTerm(const Op& op, const std::vector<Term>& children = {}) const;
 
   /**
-   * Create a tuple term. Terms are automatically converted if sorts are
-   * compatible.
+   * Create a tuple term, where terms have the provided sorts.
    * @param sorts The sorts of the elements in the tuple.
    * @param terms The elements in the tuple.
    * @return The tuple Term.
@@ -4202,14 +4189,14 @@ class CVC5_EXPORT Solver
   std::map<Term, Term> getDifficulty() const;
 
   /**
-   * Get the refutation proof
+   * Get a proof associated with the most recent call to checkSat.
    *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (get-proof)
+   *     (get-proof :c)
    *
    * Requires to enable option
    * :ref:`produce-proofs <lbl-option-produce-proofs>`.
@@ -4219,9 +4206,13 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return A string representing the proof.
+   * @param c The component of the proof to return
+   * @return A string representing the proof. This takes into account
+   * :ref:`proof-format-mode <lbl-option-proof-format-mode>` when `c` is
+   * `PROOF_COMPONENT_FULL`.
    */
-  std::string getProof() const;
+  std::string getProof(
+      modes::ProofComponent c = modes::PROOF_COMPONENT_FULL) const;
 
   /**
    * Get a list of learned literals that are entailed by the current set of
@@ -4229,9 +4220,11 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    *
+   * @param t The type of learned literals to return
    * @return A list of literals that were learned at top-level.
    */
-  std::vector<Term> getLearnedLiterals() const;
+  std::vector<Term> getLearnedLiterals(
+      modes::LearnedLitType t = modes::LEARNED_LIT_INPUT) const;
 
   /**
    * Get the value of the given term in the current model.
@@ -4449,6 +4442,36 @@ class CVC5_EXPORT Solver
                    const Sort& sort,
                    const std::vector<Term>& initValue) const;
   /**
+   * Declare an oracle function with reference to an implementation.
+   *
+   * Oracle functions have a different semantics with respect to ordinary
+   * declared functions. In particular, for an input to be satisfiable,
+   * its oracle functions are implicitly universally quantified.
+   *
+   * This method is used in part for implementing this command:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   * (declare-oracle-fun <sym> (<sort>*) <sort> <sym>)
+   * \endverbatim
+   *
+   * In particular, the above command is implemented by constructing a
+   * function over terms that wraps a call to binary sym via a text interface.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @param symbol The name of the oracle
+   * @param sorts The sorts of the parameters to this function
+   * @param sort The sort of the return value of this function
+   * @param fn The function that implements the oracle function.
+   * @return The oracle function
+   */
+  Term declareOracleFun(const std::string& symbol,
+                        const std::vector<Sort>& sorts,
+                        const Sort& sort,
+                        std::function<Term(const std::vector<Term>&)> fn) const;
+  /**
    * Pop (a) level(s) from the assertion stack.
    *
    * SMT-LIB:
@@ -4638,7 +4661,7 @@ class CVC5_EXPORT Solver
 
   /**
    * Block the current model values of (at least) the values in terms. Can be
-   * called only if immediately preceded by a SAT or NOT_ENTAILED query.
+   * called only if immediately preceded by a SAT query.
    *
    * SMT-LIB:
    *
@@ -4962,6 +4985,12 @@ class CVC5_EXPORT Solver
   Statistics getStatistics() const;
 
   /**
+   * Print the statistics to the given file descriptor, suitable for usage in
+   * signal handlers.
+   */
+  void printStatisticsSafe(int fd) const;
+
+  /**
    * Determione the output stream for the given tag is enabled. Tags can be
    * enabled with the `output` option (and `-o <tag>` on the command line).
    * Raises an exception when an invalid tag is given.
@@ -4977,29 +5006,46 @@ class CVC5_EXPORT Solver
    */
   std::ostream& getOutput(const std::string& tag) const;
 
+  /**
+   * Get a string representation of the version of this solver.
+   * @return The version string.
+   */
+  std::string getVersion() const;
+
  private:
+  /**
+   * Helper for mk-functions that call d_nm->mkConst().
+   * @param nm The associated node manager.
+   * @pram t The value.
+   */
+  template <typename T>
+  static Term mkValHelper(internal::NodeManager* nm, const T& t);
+  /**
+   * Helper for creating rational values.
+   * @param nm The associated node manager.
+   * @param r The value (either int or real).
+   * @param isInt True to create an integer value.
+   */
+  static Term mkRationalValHelper(internal::NodeManager*,
+                                  const internal::Rational&,
+                                  bool);
+
+  /*
+   * Constructs a solver with the given original options. This should only be
+   * used internally when the Solver is reset.
+   */
+  Solver(std::unique_ptr<internal::Options>&& original);
+
   /** @return The node manager of this solver */
   internal::NodeManager* getNodeManager(void) const;
   /** Reset the API statistics */
   void resetStatistics();
-
-  /**
-   * Print the statistics to the given file descriptor, suitable for usage in
-   * signal handlers.
-   */
-  void printStatisticsSafe(int fd) const;
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /** Helper for creating operators. */
   template <typename T>
   Op mkOpHelper(Kind kind, const T& t) const;
-  /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
-  template <typename T>
-  Term mkValHelper(const T& t) const;
-  /** Helper for making rational values. */
-  Term mkRationalValHelper(const internal::Rational& r,
-                           bool isInt = true) const;
   /** Helper for mkReal functions that take a string as argument. */
   Term mkRealOrIntegerFromStrHelper(const std::string& s,
                                     bool isInt = true) const;
@@ -5022,14 +5068,6 @@ class CVC5_EXPORT Solver
   Term mkCharFromStrHelper(const std::string& s) const;
   /** Get value helper, which accounts for subtyping */
   Term getValueHelper(const Term& term) const;
-
-  /**
-   * Helper function that ensures that a given term is of sort real (as opposed
-   * to being of sort integer).
-   * @param t A term of sort integer or real.
-   * @return A term of sort real.
-   */
-  Term ensureRealSort(const Term& t) const;
 
   /**
    * Create n-ary term of given kind. This handles the cases of left/right
@@ -5077,18 +5115,6 @@ class CVC5_EXPORT Solver
   bool isValidInteger(const std::string& s) const;
 
   /**
-   * If needed, convert this term to a given sort.
-   * 
-   * The sort of the term must be convertible into the target sort.
-   * Currently only Int to Real conversions are supported.
-   *
-   * @param t The term.
-   * @param s The target sort.
-   * @return The term wrapped into a sort conversion if needed.
-   */
-  Term ensureTermSort(const Term& t, const Sort& s) const;
-
-  /**
    * Check that the given term is a valid closed term, which can be used as an
    * argument to, e.g., assert, get-value, block-model-values, etc.
    *
@@ -5106,7 +5132,7 @@ class CVC5_EXPORT Solver
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<internal::Options> d_originalOptions;
   /** The node manager of this solver. */
-  internal::NodeManager* d_nodeMgr;
+  internal::NodeManager* d_nm;
   /** The statistics collected on the Api level. */
   std::unique_ptr<APIStatistics> d_stats;
   /** The SMT engine of this solver. */

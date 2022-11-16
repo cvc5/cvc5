@@ -22,8 +22,8 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/datatypes/tuple_project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "util/rational.h"
 
@@ -87,12 +87,12 @@ TypeNode DatatypeConstructorTypeRule::computeType(NodeManager* nodeManager,
         Trace("typecheck-idt") << "typecheck cons arg: " << childType << " "
                                << (*tchild_it) << std::endl;
         TypeNode argumentType = *tchild_it;
-        if (!childType.isSubtypeOf(argumentType))
+        if (childType != argumentType)
         {
           std::stringstream ss;
           ss << "bad type for constructor argument:\n"
              << "child type:  " << childType << "\n"
-             << "not subtype: " << argumentType << "\n"
+             << "not type: " << argumentType << "\n"
              << "in term : " << n;
           throw TypeCheckingExceptionPrivate(n, ss.str());
         }
@@ -161,7 +161,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(NodeManager* nodeManager,
       Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
       Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getType(check);
-      if (!selType[0].isComparableTo(childType))
+      if (selType[0] != childType)
       {
         Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
                                << childType.getKind() << std::endl;
@@ -203,7 +203,7 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
     {
       Trace("typecheck-idt") << "typecheck test: " << n << std::endl;
       Trace("typecheck-idt") << "test type: " << testType << std::endl;
-      if (!testType[0].isComparableTo(childType))
+      if (testType[0] != childType)
       {
         throw TypeCheckingExceptionPrivate(n, "bad type for tester argument");
       }
@@ -238,12 +238,9 @@ TypeNode DatatypeUpdateTypeRule::computeType(NodeManager* nodeManager,
               "matching failed for update argument of parameterized datatype");
         }
       }
-      else
+      else if (targ != childType)
       {
-        if (!targ.isComparableTo(childType))
-        {
-          throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
-        }
+        throw TypeCheckingExceptionPrivate(n, "bad type for update argument");
       }
     }
   }
@@ -267,7 +264,7 @@ TypeNode DatatypeAscriptionTypeRule::computeType(NodeManager* nodeManager,
     {
       m.addTypesFromDatatype(childType.getDatatypeConstructorRangeType());
     }
-    else if (childType.getKind() == kind::DATATYPE_TYPE)
+    else if (childType.isDatatype())
     {
       m.addTypesFromDatatype(childType);
     }
@@ -368,7 +365,7 @@ TypeNode DtSygusEvalTypeRule::computeType(NodeManager* nodeManager,
     {
       TypeNode vtype = svl[i].getType(check);
       TypeNode atype = n[i + 1].getType(check);
-      if (!vtype.isComparableTo(atype))
+      if (vtype != atype)
       {
         throw TypeCheckingExceptionPrivate(
             n,
@@ -464,14 +461,10 @@ TypeNode MatchTypeRule::computeType(NodeManager* nodeManager,
     {
       retType = currType;
     }
-    else
+    else if (retType != currType)
     {
-      retType = TypeNode::leastCommonTypeNode(retType, currType);
-      if (retType.isNull())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "incomparable types in match case list");
-      }
+      throw TypeCheckingExceptionPrivate(
+          n, "incomparable types in match case list");
     }
   }
   // it is mandatory to check this here to ensure the match is exhaustive
@@ -526,7 +519,7 @@ TypeNode TupleProjectTypeRule::computeType(NodeManager* nm, TNode n, bool check)
 {
   Assert(n.getKind() == kind::TUPLE_PROJECT && n.hasOperator()
          && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
-  TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   if (check)
   {

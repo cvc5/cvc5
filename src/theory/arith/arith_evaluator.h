@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "smt/env.h"
+#include "theory/arith/arith_subs.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -29,8 +30,8 @@ namespace arith {
 
 /**
  * Check if the expression `expr` is zero over the given model.
- * The model may contain real algebraic numbers in standard witness form.
- * The environment is used for rewriting.
+ * The model subs may contain real algebraic numbers in standard
+ * witness form. The environment is used for rewriting.
  *
  * The result is true or false, if the expression could be evaluated. If it
  * could not, possibly in the presence of a transcendental model, the result is
@@ -38,7 +39,7 @@ namespace arith {
  */
 std::optional<bool> isExpressionZero(Env& env,
                                      Node expr,
-                                     const std::map<Node, Node>& model);
+                                     const ArithSubs& subs);
 }
 }  // namespace theory
 }  // namespace cvc5::internal

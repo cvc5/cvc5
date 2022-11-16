@@ -22,17 +22,16 @@
 #include <iostream>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
 #include "options/language.h"
+#include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "test_api.h"
 
+using namespace cvc5::parser;
+
 namespace cvc5::internal {
-
-using namespace parser;
-
 namespace test {
 
 class TestParseBlackParserBuilder : public TestApi

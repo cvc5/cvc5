@@ -35,6 +35,8 @@ libcvc5_add_sources(
   emptyset.h
   emptybag.cpp
   emptybag.h
+  function_array_const.cpp
+  function_array_const.h
   kind_map.h
   match_trie.cpp
   match_trie.h
@@ -60,6 +62,7 @@ libcvc5_add_sources(
   node_traversal.h
   node_value.cpp
   node_value.h
+  oracle.h
   oracle_caller.cpp
   oracle_caller.h
   sequence.cpp
@@ -69,10 +72,6 @@ libcvc5_add_sources(
   skolem_manager.h
   subtype_elim_node_converter.cpp
   subtype_elim_node_converter.h
-  symbol_manager.cpp
-  symbol_manager.h
-  symbol_table.cpp
-  symbol_table.h
   term_canonize.cpp
   term_canonize.h
   term_context.cpp
@@ -86,8 +85,6 @@ libcvc5_add_sources(
   type_matcher.h
   type_node.cpp
   type_node.h
-  datatype_index.h
-  datatype_index.cpp
   dtype.h
   dtype.cpp
   dtype_cons.h

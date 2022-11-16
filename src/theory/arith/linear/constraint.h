@@ -1150,12 +1150,6 @@ class ConstraintDatabase : protected EnvObj
   bool variableDatabaseIsSetup(ArithVar v) const;
   void removeVariable(ArithVar v);
 
-  /** Get an explanation and proof for this constraint from the equality engine
-   */
-  TrustNode eeExplain(ConstraintCP c) const;
-  /** Get an explanation for this constraint from the equality engine */
-  void eeExplain(ConstraintCP c, NodeBuilder& nb) const;
-
   /**
    * Returns a constraint with the variable v, the constraint type t, and a value
    * dominated by r (explained below) if such a constraint exists in the database.
@@ -1255,7 +1249,7 @@ class ConstraintDatabase : protected EnvObj
     IntStat d_unatePropagateCalls;
     IntStat d_unatePropagateImplications;
 
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   } d_statistics;
 
 }; /* ConstraintDatabase */

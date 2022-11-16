@@ -21,6 +21,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
 
@@ -30,9 +31,26 @@ namespace cvc5::internal {
 
 namespace proof {
 
+std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
+  {kind::BITVECTOR_ULT, AletheRule::BV_BITBLAST_STEP_BVULT},
+  {kind::VARIABLE, AletheRule::BV_BITBLAST_STEP_VAR},
+  {kind::BITVECTOR_AND, AletheRule::BV_BITBLAST_STEP_BVAND},
+  {kind::BITVECTOR_OR, AletheRule::BV_BITBLAST_STEP_BVOR},
+  {kind::BITVECTOR_XOR, AletheRule::BV_BITBLAST_STEP_BVXOR},
+  {kind::BITVECTOR_XNOR, AletheRule::BV_BITBLAST_STEP_BVXNOR},
+  {kind::BITVECTOR_NOT, AletheRule::BV_BITBLAST_STEP_BVNOT},
+  {kind::BITVECTOR_ADD, AletheRule::BV_BITBLAST_STEP_BVADD},
+  {kind::BITVECTOR_NEG, AletheRule::BV_BITBLAST_STEP_BVNEG},
+  {kind::BITVECTOR_MULT, AletheRule::BV_BITBLAST_STEP_BVMULT},
+  {kind::BITVECTOR_CONCAT, AletheRule::BV_BITBLAST_STEP_CONCAT},
+  {kind::CONST_BITVECTOR, AletheRule::BV_BITBLAST_STEP_CONST},
+  {kind::BITVECTOR_EXTRACT, AletheRule::BV_BITBLAST_STEP_EXTRACT},
+  {kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
+};
+
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
-    ProofNodeManager* pnm, AletheNodeConverter& anc)
-    : d_pnm(pnm), d_anc(anc)
+    Env& env, AletheNodeConverter& anc, bool resPivots)
+    : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cl = nm->mkBoundVar("cl", nm->sExprType());
@@ -1127,6 +1145,22 @@ bool AletheProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
     }
+    // ======== Bitvector
+    //
+    // ------------------------ BV_BITBLAST_STEP_BV<KIND>
+    //  (cl (= t bitblast(t)))
+    case PfRule::BV_BITBLAST_STEP:
+    {
+      Assert(s_bvKindToAletheRule.find(res[0].getKind())
+             != s_bvKindToAletheRule.end())
+          << "Bit-blasted kind not supported in Alethe post-processing.";
+      return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
     //================================================= Quantifiers rules
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
@@ -1512,9 +1546,8 @@ bool AletheProofPostprocessCallback::updatePost(
       }
       std::vector<Node> new_children = children;
       std::vector<Node> new_args =
-          options::proofAletheResPivots()
-              ? args
-              : std::vector<Node>(args.begin(), args.begin() + 3);
+          d_resPivots ? args
+                      : std::vector<Node>(args.begin(), args.begin() + 3);
       Node trueNode = nm->mkConst(true);
       Node falseNode = nm->mkConst(false);
       bool hasUpdated = false;
@@ -1612,7 +1645,7 @@ bool AletheProofPostprocessCallback::updatePost(
           }
         }
       }
-      if (hasUpdated || !options::proofAletheResPivots())
+      if (hasUpdated || !d_resPivots)
       {
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
@@ -1820,9 +1853,10 @@ bool AletheProofPostprocessCallback::addAletheStepFromOr(
   return addAletheStep(rule, res, conclusion, children, args, cdp);
 }
 
-AletheProofPostprocess::AletheProofPostprocess(ProofNodeManager* pnm,
-                                               AletheNodeConverter& anc)
-    : d_pnm(pnm), d_cb(d_pnm, anc)
+AletheProofPostprocess::AletheProofPostprocess(Env& env,
+                                               AletheNodeConverter& anc,
+                                               bool resPivots)
+    : EnvObj(env), d_cb(env, anc, resPivots)
 {
 }
 
@@ -1831,7 +1865,7 @@ AletheProofPostprocess::~AletheProofPostprocess() {}
 void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Translate proof node
-  ProofNodeUpdater updater(d_pnm, d_cb, false, false);
+  ProofNodeUpdater updater(d_env, d_cb, false, false);
   updater.process(pf->getChildren()[0]);
 
   // In the Alethe proof format the final step has to be (cl). However, after
@@ -1839,7 +1873,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   // required.
   // The function has the additional purpose of sanitizing the attributes of the
   // first SCOPE
-  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", true);
+  CDProof cpf(d_env, nullptr, "ProofNodeUpdater::CDProof", true);
   const std::vector<std::shared_ptr<ProofNode>>& cc = pf->getChildren();
   std::vector<Node> ccn;
   for (const std::shared_ptr<ProofNode>& cp : cc)
@@ -1856,7 +1890,7 @@ void AletheProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 
     // then, update the original proof node based on this one
     Trace("pf-process-debug") << "Update node..." << std::endl;
-    d_pnm->updateNode(pf.get(), npn.get());
+    d_env.getProofNodeManager()->updateNode(pf.get(), npn.get());
     Trace("pf-process-debug") << "...update node finished." << std::endl;
   }
 }

@@ -1,5 +1,7 @@
 ; COMMAND-LINE:
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 (set-logic QF_LIA)
 (set-option :ite-simp true)
 (set-option :simp-ite-compress true)

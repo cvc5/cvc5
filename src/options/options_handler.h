@@ -77,10 +77,8 @@ class OptionsHandler
 
   /** Convert option value to Language enum */
   Language stringToLanguage(const std::string& flag, const std::string& optarg);
-  /** Check that lang is not LANG_AST (not allowed as input language) */
-  void languageIsNotAST(const std::string& flag, Language lang);
-  /** Apply the output language to the default output stream */
-  void applyOutputLanguage(const std::string& flag, Language lang);
+  /** Set the input language. Check that lang is not LANG_AST */
+  void setInputLanguage(const std::string& flag, Language lang);
   /** Apply verbosity to the different output channels */
   void setVerbosity(const std::string& flag, int value);
   /** Decrease verbosity and call setVerbosity */
@@ -93,12 +91,8 @@ class OptionsHandler
   void setStatsDetail(const std::string& flag, bool value);
   /** Enable a particular trace tag */
   void enableTraceTag(const std::string& flag, const std::string& optarg);
-  /** Enable a particular debug tag */
-  void enableDebugTag(const std::string& flag, const std::string& optarg);
   /** Enable a particular output tag */
   void enableOutputTag(const std::string& flag, OutputTag optarg);
-  /** Apply print success flag to the different output channels */
-  void setPrintSuccess(const std::string& flag, bool value);
   /** Pass the resource weight specification to the resource manager */
   void setResourceWeight(const std::string& flag, const std::string& optarg);
 
@@ -107,12 +101,6 @@ class OptionsHandler
   /** Check that the sat solver mode is compatible with other bv options */
   void checkBvSatSolver(const std::string& flag, SatSolverMode m);
 
-  /******************************* expr options *******************************/
-  /** Set ExprSetDepth on all output streams */
-  void setDefaultExprDepth(const std::string& flag, int64_t depth);
-  /** Set ExprDag on all output streams */
-  void setDefaultDagThresh(const std::string& flag, int64_t dag);
-
   /******************************* main options *******************************/
   /** Show the solver build configuration and exit */
   void showConfiguration(const std::string& flag, bool value);
@@ -120,8 +108,6 @@ class OptionsHandler
   void showCopyright(const std::string& flag, bool value);
   /** Show version information and exit */
   void showVersion(const std::string& flag, bool value);
-  /** Show all debug tags and exit */
-  void showDebugTags(const std::string& flag, bool value);
   /** Show all trace tags and exit */
   void showTraceTags(const std::string& flag, bool value);
 

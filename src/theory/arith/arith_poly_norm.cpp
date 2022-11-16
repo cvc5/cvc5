@@ -158,7 +158,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   if (!m.isNull())
   {
     Kind k = m.getKind();
-    Assert(k != CONST_RATIONAL);
+    Assert(k != CONST_RATIONAL && k != CONST_INTEGER);
     if (k == MULT || k == NONLINEAR_MULT)
     {
       vars.insert(vars.end(), m.begin(), m.end());
@@ -188,7 +188,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
     Kind k = cur.getKind();
     if (it == visited.end())
     {
-      if (k == CONST_RATIONAL)
+      if (k == CONST_RATIONAL || k == CONST_INTEGER)
       {
         Rational r = cur.getConst<Rational>();
         if (r.sgn() == 0)
@@ -202,7 +202,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         }
       }
       else if (k == ADD || k == SUB || k == NEG || k == MULT
-               || k == NONLINEAR_MULT)
+               || k == NONLINEAR_MULT || k == TO_REAL)
       {
         visited[cur] = PolyNorm();
         for (const Node& cn : cur)
@@ -229,6 +229,7 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
         case NEG:
         case MULT:
         case NONLINEAR_MULT:
+        case TO_REAL:
           for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             it = visited.find(cur[i]);
@@ -247,7 +248,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
             }
           }
           break;
-        case CONST_RATIONAL: break;
+        case CONST_RATIONAL:
+        case CONST_INTEGER: break;
         default: Unhandled() << "Unhandled polynomial operation " << cur; break;
       }
     }

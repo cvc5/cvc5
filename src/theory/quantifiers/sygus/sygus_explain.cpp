@@ -17,6 +17,7 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "options/datatypes_options.h"
 #include "smt/logic_exception.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -24,7 +25,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace cvc5::internal::kind;
-using namespace std;
 
 namespace cvc5::internal {
 namespace theory {
@@ -116,6 +116,10 @@ Node TermRecBuild::build(unsigned d)
   return NodeManager::currentNM()->mkNode(d_kind[d], children);
 }
 
+SygusExplain::SygusExplain(Env& env, TermDbSygus* tdb) : EnvObj(env), d_tdb(tdb)
+{
+}
+
 void SygusExplain::getExplanationForEquality(Node n,
                                              Node vn,
                                              std::vector<Node>& exp)
@@ -131,7 +135,7 @@ void SygusExplain::getExplanationForEquality(Node n,
 {
   // since builtin types occur in grammar, types are comparable but not
   // necessarily equal
-  Assert(n.getType().isComparableTo(n.getType()));
+  Assert(n.getType() == vn.getType());
   if (n == vn)
   {
     return;
@@ -148,12 +152,12 @@ void SygusExplain::getExplanationForEquality(Node n,
   int i = datatypes::utils::indexOf(vn.getOperator());
   Node tst = datatypes::utils::mkTester(n, i, dt);
   exp.push_back(tst);
-  for (unsigned j = 0; j < vn.getNumChildren(); j++)
+  bool shareSel = options().datatypes.dtSharedSelectors;
+  for (size_t j = 0, vnc = vn.getNumChildren(); j < vnc; j++)
   {
     if (cexc.find(j) == cexc.end())
     {
-      Node sel = NodeManager::currentNM()->mkNode(
-          kind::APPLY_SELECTOR, dt[i].getSelectorInternal(tn, j), n);
+      Node sel = datatypes::utils::applySelector(dt[i], j, shareSel, n);
       getExplanationForEquality(sel, vn[j], exp);
     }
   }
@@ -189,7 +193,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      int& sz)
 {
   Assert(vnr.isNull() || vn != vnr);
-  Assert(n.getType().isComparableTo(vn.getType()));
+  Assert(n.getType() == vn.getType());
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
@@ -246,10 +250,10 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
       vnr_exp = NodeManager::currentNM()->mkConst(true);
     }
   }
-  for (unsigned i = 0; i < vn.getNumChildren(); i++)
+  bool shareSel = options().datatypes.dtSharedSelectors;
+  for (size_t i = 0, vnc = vn.getNumChildren(); i < vnc; i++)
   {
-    Node sel = NodeManager::currentNM()->mkNode(
-        kind::APPLY_SELECTOR, dt[cindex].getSelectorInternal(ntn, i), n);
+    Node sel = datatypes::utils::applySelector(dt[cindex], i, shareSel, n);
     Node vnr_c = vnr.isNull() ? vnr : (vn[i] == vnr[i] ? Node::null() : vnr[i]);
     if (cexc.find(i) == cexc.end())
     {

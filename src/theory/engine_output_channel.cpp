@@ -17,7 +17,6 @@
 
 #include "expr/skolem_manager.h"
 #include "prop/prop_engine.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 
 using namespace cvc5::internal::kind;
@@ -25,27 +24,22 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-EngineOutputChannel::Statistics::Statistics(theory::TheoryId theory)
-    : conflicts(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                    + "conflicts")),
-      propagations(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "propagations")),
-      lemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                 + "lemmas")),
-      requirePhase(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                       + "requirePhase")),
-      restartDemands(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                         + "restartDemands")),
-      trustedConflicts(smtStatisticsRegistry().registerInt(
-          getStatsPrefix(theory) + "trustedConflicts")),
-      trustedLemmas(smtStatisticsRegistry().registerInt(getStatsPrefix(theory)
-                                                        + "trustedLemmas"))
+EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
+                                            theory::TheoryId theory)
+    : conflicts(sr.registerInt(getStatsPrefix(theory) + "conflicts")),
+      propagations(sr.registerInt(getStatsPrefix(theory) + "propagations")),
+      lemmas(sr.registerInt(getStatsPrefix(theory) + "lemmas")),
+      requirePhase(sr.registerInt(getStatsPrefix(theory) + "requirePhase")),
+      trustedConflicts(
+          sr.registerInt(getStatsPrefix(theory) + "trustedConflicts")),
+      trustedLemmas(sr.registerInt(getStatsPrefix(theory) + "trustedLemmas"))
 {
 }
 
-EngineOutputChannel::EngineOutputChannel(TheoryEngine* engine,
+EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
+                                         TheoryEngine* engine,
                                          theory::TheoryId theory)
-    : d_engine(engine), d_statistics(theory), d_theory(theory)
+    : d_engine(engine), d_statistics(sr, theory), d_theory(theory)
 {
 }
 
@@ -83,20 +77,6 @@ void EngineOutputChannel::conflict(TNode conflictNode)
   d_engine->conflict(tConf, d_theory);
 }
 
-void EngineOutputChannel::demandRestart()
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node restartVar = sm->mkDummySkolem(
-      "restartVar",
-      nm->booleanType(),
-      "A boolean variable asserted to be true to force a restart");
-  Trace("theory::restart") << "EngineOutputChannel<" << d_theory
-                           << ">::restart(" << restartVar << ")" << std::endl;
-  ++d_statistics.restartDemands;
-  lemma(restartVar, LemmaProperty::REMOVABLE);
-}
-
 void EngineOutputChannel::requirePhase(TNode n, bool phase)
 {
   Trace("theory") << "EngineOutputChannel::requirePhase(" << n << ", " << phase
@@ -105,10 +85,16 @@ void EngineOutputChannel::requirePhase(TNode n, bool phase)
   d_engine->getPropEngine()->requirePhase(n, phase);
 }
 
-void EngineOutputChannel::setIncomplete(IncompleteId id)
+void EngineOutputChannel::setModelUnsound(IncompleteId id)
 {
-  Trace("theory") << "setIncomplete(" << id << ")" << std::endl;
-  d_engine->setIncomplete(d_theory, id);
+  Trace("theory") << "setModelUnsound(" << id << ")" << std::endl;
+  d_engine->setModelUnsound(d_theory, id);
+}
+
+void EngineOutputChannel::setRefutationUnsound(IncompleteId id)
+{
+  Trace("theory") << "setRefutationUnsound(" << id << ")" << std::endl;
+  d_engine->setRefutationUnsound(d_theory, id);
 }
 
 void EngineOutputChannel::spendResource(Resource r)

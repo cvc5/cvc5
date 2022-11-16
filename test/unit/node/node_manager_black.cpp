@@ -140,7 +140,7 @@ TEST_F(TestNodeBlackNodeManager, mkConst_bool)
 TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 {
   Rational r("3/2");
-  Node n = d_nodeManager->mkConst(CONST_RATIONAL, r);
+  Node n = d_nodeManager->mkConstReal(r);
   ASSERT_EQ(n.getConst<Rational>(), r);
 }
 
@@ -288,7 +288,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 #ifdef CVC5_ASSERTIONS
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   ASSERT_DEATH(d_nodeManager->mkNode(AND, x),
-               "Nodes with kind AND must have at least 2 children");
+               "Nodes with kind `and` must have at least 2 children");
 #endif
 }
 

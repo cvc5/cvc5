@@ -19,6 +19,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
+#include "theory/uf/function_const.h"
 #include "util/integer.h"
 
 using namespace cvc5::internal::kind;
@@ -169,16 +170,21 @@ Node Evaluator::eval(TNode n,
   Node ret =
       evalInternal(n, args, vals, evalAsNode, results).toNode(n.getType());
   // if we failed to evaluate
-  if (ret.isNull() && d_rr != nullptr)
+  if (d_rr != nullptr)
   {
-    // should be stored in the evaluation-as-node map
-    std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
-    Assert(itn != evalAsNode.end());
-    ret = d_rr->rewrite(itn->second);
+    if (ret.isNull())
+    {
+      // should be stored in the evaluation-as-node map
+      std::unordered_map<TNode, Node>::iterator itn = evalAsNode.find(n);
+      Assert(itn != evalAsNode.end());
+      ret = itn->second;
+    }
+    // always rewrite, which can change if the evaluation was not a constant
+    ret = d_rr->rewrite(ret);
   }
   // should be the same as substitution + rewriting, or possibly null if
-  // d_rr is nullptr
-  Assert((ret.isNull() && d_rr == nullptr)
+  // d_rr is nullptr or non-constant
+  Assert(ret.isNull() || !ret.isConst() || d_rr == nullptr
          || ret
                 == d_rr->rewrite(n.substitute(
                     args.begin(), args.end(), vals.begin(), vals.end())));
@@ -325,9 +331,18 @@ EvalResult Evaluator::evalInternal(
         {
           Trace("evaluator") << "Evaluate " << currNode << std::endl;
           TNode op = currNode.getOperator();
-          Assert(evalAsNode.find(op) != evalAsNode.end());
-          // no function can be a valid EvalResult
-          op = evalAsNode[op];
+          if (op.getKind() == kind::FUNCTION_ARRAY_CONST)
+          {
+            // If we have a function constant as the operator, it was not
+            // processed. We require converting to a lambda now.
+            op = uf::FunctionConst::toLambda(op);
+          }
+          else
+          {
+            Assert(evalAsNode.find(op) != evalAsNode.end());
+            // no function can be a valid EvalResult
+            op = evalAsNode[op];
+          }
           Trace("evaluator") << "Operator evaluated to " << op << std::endl;
           if (op.getKind() != kind::LAMBDA)
           {
@@ -357,9 +372,10 @@ EvalResult Evaluator::evalInternal(
 
           // Lambdas are evaluated in a recursive fashion because each
           // evaluation requires different substitutions. We use a fresh cache
-          // since the evaluation of op[1] is under a new substitution and thus
-          // should not be cached. We could alternatively copy evalAsNode to
-          // evalAsNodeC but favor avoiding this copy for performance reasons.
+          // since the evaluation of op[1] is under a new substitution and
+          // thus should not be cached. We could alternatively copy evalAsNode
+          // to evalAsNodeC but favor avoiding this copy for performance
+          // reasons.
           std::unordered_map<TNode, Node> evalAsNodeC;
           std::unordered_map<TNode, EvalResult> resultsC;
           results[currNode] = evalInternal(
@@ -521,7 +537,6 @@ EvalResult Evaluator::evalInternal(
           break;
         }
         case kind::TO_REAL:
-        case kind::CAST_TO_REAL:
         {
           // casting to real is a no-op
           const Rational& x = results[currNode[0]].d_rat;
@@ -583,6 +598,23 @@ EvalResult Evaluator::evalInternal(
           {
             results[currNode] =
                 EvalResult(s.substr(i.toUnsignedInt(), j.toUnsignedInt()));
+          }
+          break;
+        }
+        case kind::SEQ_NTH:
+        {
+          // only strings evaluate
+          Assert (currNode[0].getType().isString());
+          const String& s = results[currNode[0]].d_str;
+          Integer s_len(s.size());
+          Integer i = results[currNode[1]].d_rat.getNumerator();
+          if (i.strictlyNegative() || i >= s_len)
+          {
+            results[currNode] = EvalResult(Rational(-1));
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
           }
           break;
         }

@@ -15,7 +15,6 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
-#include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -259,13 +258,12 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
         }
-        if (avar.hasAttribute(OracleInterfaceAttribute()))
+        // oracles are specified by a distinguished variable kind
+        if (avar.getKind() == kind::ORACLE)
         {
-          qa.d_oracleInterfaceBin =
-              avar.getAttribute(OracleInterfaceAttribute());
+          qa.d_oracle = avar;
           Trace("quant-attr")
-              << "Attribute : oracle interface : " << qa.d_oracleInterfaceBin
-              << " : " << q << std::endl;
+              << "Attribute : oracle interface : " << q << std::endl;
         }
         if (avar.hasAttribute(SygusSideConditionAttribute()))
         {
@@ -280,8 +278,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           // only set the name if there is a value
           if (q[2][i].getNumChildren() > 1)
           {
-            std::string name;
-            q[2][i][1].getAttribute(expr::VarNameAttr(), name);
+            std::string name = q[2][i][1].getName();
             Trace("quant-attr") << "Attribute : quantifier name : " << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid

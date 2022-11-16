@@ -15,7 +15,6 @@
 
 #include "theory/strings/term_registry.h"
 
-#include "expr/attribute.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "printer/smt2/smt2_printer.h"
@@ -39,8 +38,7 @@ namespace strings {
 TermRegistry::TermRegistry(Env& env,
                            Theory& t,
                            SolverState& s,
-                           SequencesStatistics& statistics,
-                           ProofNodeManager* pnm)
+                           SequencesStatistics& statistics)
     : EnvObj(env),
       d_theory(t),
       d_state(s),
@@ -58,11 +56,11 @@ TermRegistry::TermRegistry(Env& env,
       d_proxyVar(userContext()),
       d_proxyVarToLength(userContext()),
       d_lengthLemmaTermsCache(userContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      userContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_epg(
+          env.isTheoryProofProducing() ? new EagerProofGenerator(
+              env, userContext(), "strings::TermRegistry::EagerProofGenerator")
+                                       : nullptr),
+      d_inFullEffortCheck(false)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConstInt(Rational(0));
@@ -89,11 +87,28 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     Node len = nm->mkNode(STRING_LENGTH, t[0]);
     Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
     Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
-    Node code_range =
-        nm->mkNode(AND,
-                   nm->mkNode(GEQ, t, nm->mkConstInt(Rational(0))),
-                   nm->mkNode(LT, t, nm->mkConstInt(Rational(alphaCard))));
+    Node code_range = utils::mkCodeRange(t, alphaCard);
     lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
+  }
+  else if (tk == SEQ_NTH)
+  {
+    if (t[0].getType().isString())
+    {
+      Node s = t[0];
+      Node n = t[1];
+      // start point is greater than or equal zero
+      Node c1 = nm->mkNode(GEQ, n, nm->mkConstInt(0));
+      // start point is less than end of string
+      Node c2 = nm->mkNode(GT, nm->mkNode(STRING_LENGTH, s), n);
+      // check whether this application of seq.nth is defined.
+      Node cond = nm->mkNode(AND, c1, c2);
+      Node code_range = utils::mkCodeRange(t, alphaCard);
+      // the lemma for `seq.nth`
+      lemma = nm->mkNode(ITE, cond, code_range, t.eqNode(nm->mkConstInt(Rational(-1))));
+      // IF: n >=0 AND n < len( s )
+      // THEN: 0 <= (seq.nth s n) < |A|
+      // ELSE: (seq.nth s n) = -1
+    }
   }
   else if (tk == STRING_INDEXOF || tk == STRING_INDEXOF_RE)
   {
@@ -211,8 +226,12 @@ void TermRegistry::preRegisterTerm(TNode n)
       }
     }
   }
-  registerTerm(n, 0);
+  if (options().strings.stringEagerReg)
+  {
+    registerTerm(n);
+  }
   TypeNode tn = n.getType();
+  registerType(tn);
   if (tn.isRegExp() && n.isVar())
   {
     std::stringstream ss;
@@ -282,37 +301,41 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
 }
 
-void TermRegistry::registerTerm(Node n, int effort)
+void TermRegistry::registerSubterms(Node n)
 {
-  Trace("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (d_registeredTerms.find(cur) == d_registeredTerms.end())
+    {
+      registerTermInternal(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
+void TermRegistry::registerTerm(Node n)
+{
   if (d_registeredTerms.find(n) != d_registeredTerms.end())
   {
-    Trace("strings-register") << "...already registered" << std::endl;
     return;
   }
-  bool do_register = true;
-  TypeNode tn = n.getType();
-  if (!tn.isStringLike())
-  {
-    if (options().strings.stringEagerLen)
-    {
-      do_register = effort == 0;
-    }
-    else
-    {
-      do_register = effort > 0 || n.getKind() != STRING_CONCAT;
-    }
-  }
-  if (!do_register)
-  {
-    Trace("strings-register") << "...do not register" << std::endl;
-    return;
-  }
-  Trace("strings-register") << "...register" << std::endl;
+  registerTermInternal(n);
+}
+
+void TermRegistry::registerTermInternal(Node n)
+{
+  Assert(d_registeredTerms.find(n) == d_registeredTerms.end());
+  Trace("strings-register")
+      << "TheoryStrings::registerTermInternal() " << n << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
-  registerType(tn);
+  TypeNode tn = n.getType();
   TrustNode regTermLem;
   if (tn.isStringLike())
   {
@@ -360,10 +383,9 @@ void TermRegistry::registerType(TypeNode tn)
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
-    if (!d_state.hasTerm(emp))
-    {
-      preRegisterTerm(emp);
-    }
+    // always preregister and register unconditionally eagerly
+    preRegisterTerm(emp);
+    registerTerm(emp);
   }
 }
 
@@ -481,7 +503,7 @@ bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
 bool TermRegistry::hasSeqUpdate() const { return d_hasSeqUpdate; }
 
-bool TermRegistry::isHandledUpdate(Node n)
+bool TermRegistry::isHandledUpdateOrSubstr(Node n)
 {
   Assert(n.getKind() == STRING_UPDATE || n.getKind() == STRING_SUBSTR);
   NodeManager* nm = NodeManager::currentNM();
@@ -631,7 +653,7 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   Node proxy = getProxyVariableFor(n);
   if (proxy.isNull())
   {
-    registerTerm(n, 0);
+    registerTerm(n);
     proxy = getProxyVariableFor(n);
   }
   Assert(!proxy.isNull());
@@ -675,11 +697,24 @@ void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
   }
 }
 
-void TermRegistry::getRelevantTermSet(std::set<Node>& termSet)
+void TermRegistry::notifyStartFullEffortCheck()
 {
-  d_theory.collectAssertedTerms(termSet);
+  d_inFullEffortCheck = true;
+  d_relevantTerms.clear();
+  // get the asserted terms
+  std::set<Kind> irrKinds;
+  d_theory.collectAssertedTerms(d_relevantTerms, true, irrKinds);
   // also, get the additionally relevant terms
-  d_theory.computeRelevantTerms(termSet);
+  d_theory.computeRelevantTerms(d_relevantTerms);
+}
+
+void TermRegistry::notifyEndFullEffortCheck() { d_inFullEffortCheck = false; }
+
+const std::set<Node>& TermRegistry::getRelevantTermSet() const
+{
+  // must be in full effort check for relevant terms to be valid
+  Assert(d_inFullEffortCheck);
+  return d_relevantTerms;
 }
 
 Node TermRegistry::mkNConcat(Node n1, Node n2) const

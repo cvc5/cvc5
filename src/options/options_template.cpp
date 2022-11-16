@@ -26,8 +26,6 @@ ${headers_module}$
 
 namespace cvc5::internal
 {
-  thread_local Options* Options::s_current = nullptr;
-
   Options::Options()
       :
 // clang-format off
@@ -39,6 +37,10 @@ ${holder_ref_inits}$
   }
 
   Options::~Options() {}
+
+// clang-format off
+${write_functions}$
+// clang-format on
 
   void Options::copyValues(const Options& options)
   {

@@ -136,11 +136,17 @@ class OutputChannel {
   virtual void requirePhase(TNode n, bool phase) = 0;
 
   /**
-   * Notification from a theory that it realizes it is incomplete at
-   * this context level.  If SAT is later determined by the
+   * Notification from a theory that it realizes it is model unsound at
+   * this SAT context level.  If SAT is later determined by the
    * TheoryEngine, it should actually return an UNKNOWN result.
    */
-  virtual void setIncomplete(IncompleteId id) = 0;
+  virtual void setModelUnsound(IncompleteId id) = 0;
+  /**
+   * Notification from a theory that it realizes it is refutation unsound at
+   * this user context level.  If UNSAT is later determined by the
+   * TheoryEngine, it should actually return an UNKNOWN result.
+   */
+  virtual void setRefutationUnsound(IncompleteId id) = 0;
 
   /**
    * "Spend" a "resource."  The meaning is specific to the context in
@@ -162,12 +168,6 @@ class OutputChannel {
    * This can happen through, for example, the SMT-LIBv2 language.
    */
   virtual void handleUserAttribute(const char* attr, Theory* t) {}
-
-  /** Demands that the search restart from sat search level 0.
-   * Using this leads to non-termination issues.
-   * It is appropriate for prototyping for theories.
-   */
-  virtual void demandRestart() {}
 
   //---------------------------- new proof
   /**

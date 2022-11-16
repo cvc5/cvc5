@@ -38,10 +38,6 @@ typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
 
-inline Node mkRationalNode(const Rational& q){
-  return NodeManager::currentNM()->mkConst(kind::CONST_RATIONAL, q);
-}
-
 inline Node mkBoolNode(bool b){
   return NodeManager::currentNM()->mkConst<bool>(b);
 }
@@ -316,16 +312,6 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec);
 /** print rational approximation of cr with precision prec on trace c */
 void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
 
-/** Arithmetic substitute
- *
- * This computes the substitution n { subs }, but with the caveat
- * that subterms of n that belong to a theory other than arithmetic are
- * not traversed. In other words, terms that belong to other theories are
- * treated as atomic variables. For example:
- *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
- */
-Node arithSubstitute(Node n, const Subs& sub);
-
 /** Make the node u >= a ^ a >= l */
 Node mkBounded(Node l, Node a, Node u);
 
@@ -341,6 +327,38 @@ Node negateProofLiteral(TNode n);
  * The returned type is real if either have type real.
  */
 Node multConstants(const Node& c1, const Node& c2);
+
+/**
+ * Make the equality (= a b) or (= (- a b) zero) if a and b have different
+ * types, where zero has the same type as (- a b).
+ * Use this utility to ensure an equality is properly typed.
+ */
+Node mkEquality(const Node& a, const Node& b);
+
+/**
+ * Ensures that the returned pair has equal type, where a and b have
+ * real or integer type. We add TO_REAL if not.
+ */
+std::pair<Node,Node> mkSameType(const Node& a, const Node& b);
+
+/**
+ * Returns the rewritten form of node, which is a term of the form bv2nat(x).
+ * The return value of this method is the integer sum:
+ *   (+ ite( (= ((_ extract (n-1) (n-1)) x) 1) (^ 2 (n-1)) 0)
+ *      ...
+ *      ite( (= ((_ extract 0 0) x) 1) (^ 2 0) 0))
+ * where n is the bitwidth of x.
+ */
+Node eliminateBv2Nat(TNode node);
+/**
+ * Returns the rewritten form of node, which is a term of the form int2bv(x).
+ * The return value of this method is the concatenation term:
+ *   (bvconcat ite( (>= (mod x (^ 2 n)) (^ 2 (n-1))) (_ bv1 1) (_ bv1 0))
+ *             ...
+ *             ite( (>= (mod x (^ 2 1)) (^ 2 0)) (_ bv1 1) (_ bv1 0)))
+ * where n is the bit-width of x.
+ */
+Node eliminateInt2Bv(TNode node);
 
 }  // namespace arith
 }  // namespace theory

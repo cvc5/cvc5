@@ -18,7 +18,6 @@
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_bitblast_internal.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
@@ -48,13 +47,12 @@ TheoryBV::TheoryBV(Env& env,
   switch (options().bv.bvSolver)
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im, d_pnm));
+      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im));
       break;
 
     default:
       AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
-      d_internal.reset(
-          new BVSolverBitblastInternal(d_env, &d_state, d_im, d_pnm));
+      d_internal.reset(new BVSolverBitblastInternal(d_env, &d_state, d_im));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;

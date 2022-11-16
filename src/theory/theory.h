@@ -215,7 +215,7 @@ class Theory : protected EnvObj
    *
    * The following criteria imply that x -> val is *not* a legal elimination:
    * (1) If x is contained in val,
-   * (2) If the type of val is not a subtype of the type of x,
+   * (2) If the type of val is not the same as the type of x,
    * (3) If val contains an operator that cannot be evaluated, and
    * produceModels is true. For example, x -> sqrt(2) is not a legal
    * elimination if we are producing models. This is because we care about the
@@ -560,14 +560,21 @@ class Theory : protected EnvObj
    *
    * @param termSet The set to add terms to
    * @param includeShared Whether to include the shared terms of the theory
+   * @param irrKind The kinds
    */
   void collectAssertedTerms(std::set<Node>& termSet,
-                            bool includeShared = true) const;
+                            bool includeShared,
+                            const std::set<Kind>& irrKinds) const;
+  /** Same as above, using the irrelevant model kinds for irrKinds.*/
+  void collectAssertedTermsForModel(std::set<Node>& termSet,
+                                    bool includeShared = true) const;
   /**
    * Helper function for collectAssertedTerms, adds all subterms
    * belonging to this theory to termSet.
    */
-  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  void collectTerms(TNode n,
+                    std::set<Node>& termSet,
+                    const std::set<Kind>& irrKinds) const;
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
@@ -662,18 +669,6 @@ class Theory : protected EnvObj
    * the theory.
    */
   virtual void presolve() {}
-
-  /**
-   * A Theory is called with postsolve exactly one time per user
-   * check-sat.  postsolve() is called after the query has completed
-   * (regardless of whether sat, unsat, or unknown), and after any
-   * model-querying related to the query has been performed.
-   * After this call, the theory will not get another check() or
-   * propagate() call until presolve() is called again.  A Theory
-   * cannot raise conflicts, add lemmas, or propagate literals during
-   * postsolve().
-   */
-  virtual void postsolve() {}
 
   /**
    * Notification sent to the theory wheneven the search restarts.
@@ -787,11 +782,10 @@ class Theory : protected EnvObj
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /** Return true if this theory uses central equality engine */
-  bool usesCentralEqualityEngine() const;
-  /** uses central equality engine (static) */
-  static bool usesCentralEqualityEngine(TheoryId id);
-  /** Explains/propagates via central equality engine only */
+  /**
+   * Return true if this theory explains and propagates via central equality
+   * engine only when the theory uses the central equality engine.
+   */
   static bool expUsingCentralEqualityEngine(TheoryId id);
 
  private:

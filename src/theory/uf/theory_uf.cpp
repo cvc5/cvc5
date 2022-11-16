@@ -10,9 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * This is the interface to TheoryUF implementations
- *
- * All implementations of TheoryUF should inherit from this class.
+ * The theory of uninterpreted functions (UF)
  */
 
 #include "theory/uf/theory_uf.h"
@@ -28,9 +26,11 @@
 #include "options/uf_options.h"
 #include "proof/proof_node_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
+#include "theory/uf/conversions_solver.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/lambda_lift.h"
 #include "theory/uf/theory_uf_rewriter.h"
@@ -106,14 +106,18 @@ void TheoryUF::finishInit() {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(d_env, d_state, d_im, *d_lambdaLift.get()));
   }
+  // conversion kinds
+  d_equalityEngine->addFunctionKind(kind::INT_TO_BITVECTOR, true);
+  d_equalityEngine->addFunctionKind(kind::BITVECTOR_TO_NAT, true);
 }
 
 //--------------------------------- standard check
 
 bool TheoryUF::needsCheckLastEffort()
 {
-  // last call effort needed if using finite model finding
-  return d_thss != nullptr;
+  // last call effort needed if using finite model finding or
+  // arithmetic/bit-vector conversions
+  return d_thss != nullptr || d_csolver != nullptr;
 }
 
 void TheoryUF::postCheck(Effort level)
@@ -127,10 +131,15 @@ void TheoryUF::postCheck(Effort level)
   {
     d_thss->check(level);
   }
-  // check with the higher-order extension at full effort
-  if (!d_state.isInConflict() && fullEffort(level))
+  if (!d_state.isInConflict())
   {
-    if (logicInfo().isHigherOrder())
+    // check with conversions solver at last call effort
+    if (d_csolver != nullptr && level == Effort::EFFORT_LAST_CALL)
+    {
+      d_csolver->check();
+    }
+    // check with the higher-order extension at full effort
+    if (fullEffort(level) && logicInfo().isHigherOrder())
     {
       d_ho->check();
     }
@@ -179,7 +188,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         else
         {
           // support for cardinality constraints is not enabled, set incomplete
-          d_im.setIncomplete(IncompleteId::UF_CARD_DISABLED);
+          d_im.setModelUnsound(IncompleteId::UF_CARD_DISABLED);
         }
       }
     }
@@ -195,7 +204,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                       << std::endl;
   Kind k = node.getKind();
   bool isHol = logicInfo().isHigherOrder();
-  if (k == kind::HO_APPLY || (node.isVar() && node.getType().isFunction()))
+  if (k == kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)
     {
@@ -206,7 +215,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       }
       else
       {
-        ss << "Function variables";
+        ss << "Function terms";
       }
       ss << " are only supported with "
             "higher-order logic. Try adding the logic prefix HO_.";
@@ -226,6 +235,14 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
             "the logic prefix HO_.";
       throw LogicException(ss.str());
     }
+  }
+  else if ((k == kind::BITVECTOR_TO_NAT || k == kind::INT_TO_BITVECTOR)
+           && options().uf.eagerArithBvConv)
+  {
+    // eliminate if option specifies to eliminate eagerly
+    Node ret = k == kind::BITVECTOR_TO_NAT ? arith::eliminateBv2Nat(node)
+                                           : arith::eliminateInt2Bv(node);
+    return TrustNode::mkTrustRewrite(node, ret);
   }
   if (isHol)
   {
@@ -277,29 +294,44 @@ void TheoryUF::preRegisterTerm(TNode node)
       d_functionsTerms.push_back(node);
     }
     break;
-  case kind::CARDINALITY_CONSTRAINT:
-  case kind::COMBINED_CARDINALITY_CONSTRAINT:
-    //do nothing
+    case kind::INT_TO_BITVECTOR:
+    case kind::BITVECTOR_TO_NAT:
+    {
+      Assert(!options().uf.eagerArithBvConv);
+      d_equalityEngine->addTerm(node);
+      d_functionsTerms.push_back(node);
+      // initialize the conversions solver if not already done so
+      if (d_csolver == nullptr)
+      {
+        d_csolver.reset(new ConversionsSolver(d_env, d_state, d_im));
+      }
+      // call preregister
+      d_csolver->preRegisterTerm(node);
+    }
     break;
-  case kind::UNINTERPRETED_SORT_VALUE:
-  {
-    // Uninterpreted sort values should only appear in models, and should never
-    // appear in constraints. They are unallowed to ever appear in constraints
-    // since the cardinality of an uninterpreted sort may have an upper bound,
-    // e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2 is a
-    // ill-formed term, as its existence cannot be assumed.  The parser
-    // prevents the user from ever constructing uninterpreted sort values.
-    // However, they may be exported via models to API users. It is thus
-    // possible that these uninterpreted sort values are asserted back in
-    // constraints, hence this check is necessary.
-    throw LogicException(
-        "An uninterpreted constant was preregistered to the UF theory.");
-  }
-  break;
-  default:
-    // Variables etc
-    d_equalityEngine->addTerm(node);
+    case kind::CARDINALITY_CONSTRAINT:
+    case kind::COMBINED_CARDINALITY_CONSTRAINT:
+      // do nothing
+      break;
+    case kind::UNINTERPRETED_SORT_VALUE:
+    {
+      // Uninterpreted sort values should only appear in models, and should
+      // never appear in constraints. They are unallowed to ever appear in
+      // constraints since the cardinality of an uninterpreted sort may have an
+      // upper bound, e.g. if (forall ((x U) (y U)) (= x y)) holds, then @uc_U_2
+      // is a ill-formed term, as its existence cannot be assumed.  The parser
+      // prevents the user from ever constructing uninterpreted sort values.
+      // However, they may be exported via models to API users. It is thus
+      // possible that these uninterpreted sort values are asserted back in
+      // constraints, hence this check is necessary.
+      throw LogicException(
+          "An uninterpreted constant was preregistered to the UF theory.");
+    }
     break;
+    default:
+      // Variables etc
+      d_equalityEngine->addTerm(node);
+      break;
   }
 
   if (logicInfo().isHigherOrder())
@@ -573,7 +605,7 @@ void TheoryUF::computeCareGraph() {
   // temporary keep set for higher-order indexing below
   std::vector<Node> keep;
   std::map<Node, TNodeTrie> index;
-  std::map<TypeNode, TNodeTrie> hoIndex;
+  std::map<TypeNode, TNodeTrie> typeIndex;
   std::map<Node, size_t> arity;
   for (TNode app : d_functionsTerms)
   {
@@ -589,7 +621,8 @@ void TheoryUF::computeCareGraph() {
     }
     if (has_trigger_arg)
     {
-      if (app.getKind() == kind::APPLY_UF)
+      Kind k = app.getKind();
+      if (k == kind::APPLY_UF)
       {
         Node op = app.getOperator();
         index[op].addTerm(app, reps);
@@ -608,17 +641,26 @@ void TheoryUF::computeCareGraph() {
           for (const Node& c : app)
           {
             Node happ = nm->mkNode(kind::HO_APPLY, curr, c);
-            hoIndex[curr.getType()].addTerm(happ, {curr, c});
+            Assert(curr.getType().isFunction());
+            typeIndex[curr.getType()].addTerm(happ, {curr, c});
             curr = happ;
             keep.push_back(happ);
           }
         }
       }
+      else if (k == kind::HO_APPLY || k == kind::BITVECTOR_TO_NAT)
+      {
+        // add it to the typeIndex for the function type if HO_APPLY, or the
+        // bitvector type if bv2nat. The latter ensures that we compute
+        // care pairs based on bv2nat only for bitvectors of the same width.
+        typeIndex[app[0].getType()].addTerm(app, reps);
+      }
       else
       {
-        Assert(app.getKind() == kind::HO_APPLY);
-        // add it to the hoIndex for the function type
-        hoIndex[app[0].getType()].addTerm(app, reps);
+        // case for other operators, e.g. int2bv
+        Node op = app.getOperator();
+        index[op].addTerm(app, reps);
+        arity[op] = reps.size();
       }
     }
   }
@@ -630,12 +672,15 @@ void TheoryUF::computeCareGraph() {
     Assert(arity.find(tt.first) != arity.end());
     nodeTriePathPairProcess(&tt.second, arity[tt.first], d_cpacb);
   }
-  for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
+  for (std::pair<const TypeNode, TNodeTrie>& tt : typeIndex)
   {
+    // functions for HO_APPLY which has arity 2, bitvectors for bv2nat which
+    // has arity one
+    size_t a = tt.first.isFunction() ? 2 : 1;
     Trace("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                          << tt.first << "..." << std::endl;
     // the arity of HO_APPLY is always two
-    nodeTriePathPairProcess(&tt.second, 2, d_cpacb);
+    nodeTriePathPairProcess(&tt.second, a, d_cpacb);
   }
   Trace("uf::sharing") << "TheoryUf::computeCareGraph(): finished."
                        << std::endl;

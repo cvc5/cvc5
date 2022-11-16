@@ -25,7 +25,6 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/ee_setup_info.h"
 #include "theory/ext_theory.h"
 #include "theory/output_channel.h"
@@ -320,7 +319,7 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!val.getType().isSubtypeOf(x.getType()))
+  if (val.getType() != x.getType())
   {
     return false;
   }
@@ -379,14 +378,15 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void Theory::collectAssertedTerms(std::set<Node>& termSet,
-                                  bool includeShared) const
+                                  bool includeShared,
+                                  const std::set<Kind>& irrKinds) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
   {
-    collectTerms(*assert_it, termSet);
+    collectTerms(*assert_it, termSet, irrKinds);
   }
 
   if (includeShared)
@@ -396,15 +396,23 @@ void Theory::collectAssertedTerms(std::set<Node>& termSet,
                                            shared_it_end = shared_terms_end();
     for (; shared_it != shared_it_end; ++shared_it)
     {
-      collectTerms(*shared_it, termSet);
+      collectTerms(*shared_it, termSet, irrKinds);
     }
   }
 }
-
-void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+void Theory::collectAssertedTermsForModel(std::set<Node>& termSet,
+                                          bool includeShared) const
 {
+  // use the irrelevant model kinds from the theory state
   const std::set<Kind>& irrKinds =
       d_theoryState->getModel()->getIrrelevantKinds();
+  collectAssertedTerms(termSet, includeShared, irrKinds);
+}
+
+void Theory::collectTerms(TNode n,
+                          std::set<Node>& termSet,
+                          const std::set<Kind>& irrKinds) const
+{
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -440,6 +448,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
                                         TrustSubstitutionMap& outSubstitutions)
 {
+  Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
@@ -458,23 +467,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
     {
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
-    }
-  }
-  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
-           && in[0][0].getType().isBoolean())
-  {
-    TNode eq = in[0];
-    if (eq[0].isVar())
-    {
-      Node res = eq[0].eqNode(eq[1].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
-    else if (eq[1].isVar())
-    {
-      Node res = eq[1].eqNode(eq[0].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
     }
   }
 
@@ -688,34 +680,9 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-bool Theory::usesCentralEqualityEngine() const
-{
-  return usesCentralEqualityEngine(d_id);
-}
-
-bool Theory::usesCentralEqualityEngine(TheoryId id)
-{
-  if (id == THEORY_BUILTIN)
-  {
-    return true;
-  }
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
-  {
-    return false;
-  }
-  if (id == THEORY_ARITH)
-  {
-    // conditional on whether we are using the equality solver
-    return options::arithEqSolver();
-  }
-  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
-         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
-}
-
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
 {
-  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
+  return id != THEORY_ARITH;
 }
 
 theory::Assertion Theory::get()

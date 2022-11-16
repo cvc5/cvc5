@@ -1,13 +1,62 @@
 This file contains a summary of important user-visible changes.
 
+**New Features**
+
+- API: New API function `Solver::getVersion()`, returns a string representation
+    of the solver version.
+- Support for bit-vector overflow detection operators:
+  * `BITVECTOR_UADDO` unsigned addition overflow detection
+  * `BITVECTOR_SADDO` signed addition overflow detection
+  * `BITVECTOR_UMULO` unsigned multiplication overflow detection
+  * `BITVECTOR_SMULO` signed multiplication overflow detection
+  * `BITVECTOR_USUBO` unsigned subtraction overflow detection
+  * `BITVECTOR_SSUBO` signed subtraction overflow detection
+  * `BITVECTOR_SDIVO` signed division overflow detection
+
+- Support for Web Assembly compilation using Emscripten.
+
+**Changes**
+
+- The (non-standard) operators `BITVECTOR_TO_NAT` and `INT_TO_BITVECTOR` now
+  belong to the UF theory. A logic that includes UF is required to use them.
+- The sort for (non-standard) bit-vector operators `BITVECTOR_REDAND` and
+  `BITVECTOR_REDOR` is now `(_ BitVec 1)` (was Boolean), following the
+  definition of reduction operators in Verilog (their origin).
+- Reenable functionality that allows `(get-model)` commands after answering
+  `unknown` when `:produce-models` is set to `true`. Note that there is no
+  guarantee that building a model succeeds in this case.
+
+cvc5 1.0.2
+==========
+
+**Changes**
+
+- API: Previously, it was not possible to share Sort, Term, Op, Grammar and
+    datatype objects between Solver instances. This is now allowed for solvers
+    that belong to the same thread.
+
 cvc5 1.0.1
 ==========
+
+**New Features**
+
+- Support for cross-compiling an ARM binary of cvc5 on x86 macOS.
+- Support for declaring oracle functions in the API via the method
+  `declareOracleFun`. This allows users to declare functions whose semantics
+  are associated with a provided executable implementation.
 
 **Changes**
 
 - Removed support for non-standard `declare-funs`, `declare-consts`, and
   `declare-sorts` commands.
-
+- The kind for integer constants is now `CONST_INTEGER`, while real constants
+  continue to have kind `CONST_RATIONAL`.
+- Type rules for (dis)equality and if-then-else no longer allow mixing
+  integers and reals. Type rules for other operators like `APPLY_UF` now
+  require their arguments to match the type of the function being applied, and
+  do not assume integer/real subtyping.
+- The API method `mkTuple` no longer supports casting integers to reals when
+  constructing tuples.
 
 cvc5 1.0
 =========

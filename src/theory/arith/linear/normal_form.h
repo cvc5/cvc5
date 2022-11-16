@@ -231,6 +231,7 @@ public:
    Kind k = n.getKind();
    switch (k)
    {
+     case kind::CONST_INTEGER:
      case kind::CONST_RATIONAL: return false;
      case kind::INTS_DIVISION:
      case kind::INTS_MODULUS:
@@ -238,8 +239,8 @@ public:
      case kind::INTS_DIVISION_TOTAL:
      case kind::INTS_MODULUS_TOTAL:
      case kind::DIVISION_TOTAL: return isDivMember(n);
-     case kind::IAND: return isIAndMember(n);
-     case kind::POW2: return isPow2Member(n);
+     case kind::IAND:
+     case kind::POW2:
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:
@@ -254,7 +255,7 @@ public:
      case kind::ARCSECANT:
      case kind::ARCCOTANGENT:
      case kind::SQRT:
-     case kind::PI: return isTranscendentalMember(n);
+     case kind::PI: return areChildrenPolynomialMembers(n);
      case kind::ABS:
      case kind::TO_INTEGER:
        // Treat to_int as a variable; it is replaced in early preprocessing
@@ -265,13 +266,15 @@ public:
  }
 
   static bool isLeafMember(Node n);
-  static bool isIAndMember(Node n);
-  static bool isPow2Member(Node n);
   static bool isDivMember(Node n);
   bool isDivLike() const{
     return isDivMember(getNode());
   }
-  static bool isTranscendentalMember(Node n);
+  /**
+   * Return true if all direct children of n are polynomial members (returns
+   * true for Polynomial::isMember).
+   */
+  static bool areChildrenPolynomialMembers(Node n);
 
   bool isNormalForm() { return isMember(getNode()); }
 
@@ -340,20 +343,24 @@ public:
 
   bool operator==(const Variable& v) const { return getNode() == v.getNode();}
 
-  size_t getComplexity() const;
 };/* class Variable */
 
 class Constant : public NodeWrapper {
 public:
  Constant(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
 
- static bool isMember(Node n) { return n.getKind() == kind::CONST_RATIONAL; }
+ static bool isMember(Node n)
+ {
+   Kind k = n.getKind();
+   return k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER;
+ }
 
  bool isNormalForm() { return isMember(getNode()); }
 
  static Constant mkConstant(Node n)
  {
-   Assert(n.getKind() == kind::CONST_RATIONAL);
+   Assert(n.getKind() == kind::CONST_RATIONAL
+          || n.getKind() == kind::CONST_INTEGER);
    return Constant(n);
  }
 
@@ -422,8 +429,6 @@ public:
     Assert(isIntegral());
     return getValue().getNumerator().length();
   }
-
-  size_t getComplexity() const;
 
 };/* class Constant */
 
@@ -603,7 +608,6 @@ public:
     }
     return true;
   }
-  size_t getComplexity() const;
 
 private:
   bool isSorted(iterator start, iterator end);
@@ -633,9 +637,8 @@ private:
   }
 
   static bool multStructured(Node n) {
-    return n.getKind() ==  kind::MULT &&
-      n[0].getKind() == kind::CONST_RATIONAL &&
-      n.getNumChildren() == 2;
+    return n.getKind() == kind::MULT && n[0].isConst()
+           && n.getNumChildren() == 2;
   }
 
   Monomial(const Constant& c):
@@ -783,7 +786,6 @@ public:
   void print() const;
   static void printList(const std::vector<Monomial>& list);
 
-  size_t getComplexity() const;
 };/* class Monomial */
 
 class SumPair;
@@ -794,7 +796,7 @@ private:
   bool d_singleton;
 
   Polynomial(TNode n) : NodeWrapper(n), d_singleton(Monomial::isMember(n)) {
-    Assert(isMember(getNode()));
+    Assert(isMember(getNode())) << "Bad polynomial member " << n;
   }
 
   static Node makePlusNode(const std::vector<Monomial>& m) {
@@ -906,7 +908,10 @@ public:
     }
   }
 
-  static Polynomial parsePolynomial(Node n) {
+  static Polynomial parsePolynomial(Node n)
+  {
+    // required to remove TO_REAL here since equalities may require casts
+    n = n.getKind() == kind::TO_REAL ? n[0] : n;
     return Polynomial(n);
   }
 
@@ -1121,8 +1126,6 @@ public:
     Assert(isVarList());
     return getHead().getVarList();
   }
-
-  size_t getComplexity() const;
 
   friend class SumPair;
   friend class Comparison;
@@ -1436,8 +1439,6 @@ public:
     Comparison parse = Comparison::parseNormalForm(n);
     return parse.isNormalForm();
   }
-
-  size_t getComplexity() const;
 
   SumPair toSumPair() const;
 

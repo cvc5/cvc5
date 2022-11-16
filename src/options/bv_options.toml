@@ -77,14 +77,6 @@ name   = "Bitvector Theory"
   help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
 
 [[option]]
-  name       = "bvExtractArithRewrite"
-  category   = "expert"
-  long       = "bv-extract-arith"
-  type       = "bool"
-  default    = "false"
-  help       = "enable rewrite pushing extract [i:0] over arithmetic operations (can blow up)"
-
-[[option]]
   name       = "bvIntroducePow2"
   category   = "expert"
   long       = "bv-intro-pow2"
@@ -99,14 +91,6 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "false"
   help       = "simplify formula via Gaussian Elimination if applicable"
-
-[[option]]
-  name       = "bvPrintConstsAsIndexedSymbols"
-  category   = "regular"
-  long       = "bv-print-consts-as-indexed-symbols"
-  type       = "bool"
-  default    = "false"
-  help       = "print bit-vector constants in decimal (e.g. (_ bv1 4)) instead of binary (e.g. #b0001), applies to SMT-LIB 2.x"
 
 [[option]]
   name       = "bvSolver"

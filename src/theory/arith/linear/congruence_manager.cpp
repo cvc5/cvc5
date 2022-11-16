@@ -10,10 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Congruence manager, the interface to the equality engine from the
+ * linear arithmetic solver
  */
 
 #include "theory/arith/linear/congruence_manager.h"
@@ -23,7 +21,6 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/constraint.h"
 #include "theory/arith/linear/partial_model.h"
@@ -38,6 +35,23 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != AND)
+  {
+    return {an};
+  }
+  std::vector<Node> a{};
+  a.reserve(an.getNumChildren());
+  a.insert(a.end(), an.begin(), an.end());
+  return a;
+}
+
 ArithCongruenceManager::ArithCongruenceManager(
     Env& env,
     ConstraintDatabase& cd,
@@ -47,7 +61,6 @@ ArithCongruenceManager::ArithCongruenceManager(
     : EnvObj(env),
       d_inConflict(context()),
       d_raiseConflict(raiseConflict),
-      d_notify(*this),
       d_keepAlive(context()),
       d_propagatations(context()),
       d_explanationMap(context()),
@@ -60,111 +73,43 @@ ArithCongruenceManager::ArithCongruenceManager(
       // Construct d_pfGenEe with the SAT context, since its proof include
       // unclosed assumptions of theory literals.
       d_pfGenEe(new EagerProofGenerator(
-          d_pnm, context(), "ArithCongruenceManager::pfGenEe")),
+          d_env, context(), "ArithCongruenceManager::pfGenEe")),
       // Construct d_pfGenEe with the USER context, since its proofs are closed.
       d_pfGenExplain(new EagerProofGenerator(
-          d_pnm, userContext(), "ArithCongruenceManager::pfGenExplain")),
-      d_pfee(nullptr)
+          d_env, userContext(), "ArithCongruenceManager::pfGenExplain")),
+      d_pfee(nullptr),
+      d_statistics(statisticsRegistry())
 {
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
 
-bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
-{
-  Assert(!options().arith.arithEqSolver);
-  esi.d_notify = &d_notify;
-  esi.d_name = "arithCong::ee";
-  return true;
-}
-
 void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
 {
-  if (options().arith.arithEqSolver)
-  {
-    // use our own copy
-    d_allocEe = std::make_unique<eq::EqualityEngine>(
-        d_env, context(), d_notify, "arithCong::ee", true);
-    d_ee = d_allocEe.get();
-    if (d_pnm != nullptr)
-    {
-      // allocate an internal proof equality engine
-      d_allocPfee = std::make_unique<eq::ProofEqEngine>(d_env, *d_ee);
-      d_ee->setProofEqualityEngine(d_allocPfee.get());
-    }
-  }
-  else
-  {
-    Assert(ee != nullptr);
-    // otherwise, we use the official one
-    d_ee = ee;
-  }
-  // set the congruence kinds on the separate equality engine
-  d_ee->addFunctionKind(kind::NONLINEAR_MULT);
-  d_ee->addFunctionKind(kind::EXPONENTIAL);
-  d_ee->addFunctionKind(kind::SINE);
-  d_ee->addFunctionKind(kind::IAND);
-  d_ee->addFunctionKind(kind::POW2);
+  Assert(ee != nullptr);
+  // otherwise, we use the official one
+  d_ee = ee;
+  // the congruence kinds are already set up
   // the proof equality engine is the one from the equality engine
   d_pfee = d_ee->getProofEqualityEngine();
   // have proof equality engine only if proofs are enabled
   Assert(isProofEnabled() == (d_pfee != nullptr));
 }
 
-ArithCongruenceManager::Statistics::Statistics()
-    : d_watchedVariables(smtStatisticsRegistry().registerInt(
-        "theory::arith::congruence::watchedVariables")),
-      d_watchedVariableIsZero(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::watchedVariableIsZero")),
-      d_watchedVariableIsNotZero(smtStatisticsRegistry().registerInt(
+ArithCongruenceManager::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_watchedVariables(
+        sr.registerInt("theory::arith::congruence::watchedVariables")),
+      d_watchedVariableIsZero(
+          sr.registerInt("theory::arith::congruence::watchedVariableIsZero")),
+      d_watchedVariableIsNotZero(sr.registerInt(
           "theory::arith::congruence::watchedVariableIsNotZero")),
-      d_equalsConstantCalls(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::equalsConstantCalls")),
-      d_propagations(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::propagations")),
-      d_propagateConstraints(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::propagateConstraints")),
-      d_conflicts(smtStatisticsRegistry().registerInt(
-          "theory::arith::congruence::conflicts"))
+      d_equalsConstantCalls(
+          sr.registerInt("theory::arith::congruence::equalsConstantCalls")),
+      d_propagations(sr.registerInt("theory::arith::congruence::propagations")),
+      d_propagateConstraints(
+          sr.registerInt("theory::arith::congruence::propagateConstraints")),
+      d_conflicts(sr.registerInt("theory::arith::congruence::conflicts"))
 {
-}
-
-ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongruenceManager& acm)
-  : d_acm(acm)
-{}
-
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
-    TNode predicate, bool value)
-{
-  Assert(predicate.getKind() == kind::EQUAL);
-  Trace("arith::congruences")
-      << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", "
-      << (value ? "true" : "false") << ")" << std::endl;
-  if (value) {
-    return d_acm.propagate(predicate);
-  }
-  return d_acm.propagate(predicate.notNode());
-}
-
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
-  Trace("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
-  if (value) {
-    return d_acm.propagate(t1.eqNode(t2));
-  } else {
-    return d_acm.propagate(t1.eqNode(t2).notNode());
-  }
-}
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-  Trace("arith::congruences") << "ArithCongruenceNotify::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << std::endl;
-  d_acm.propagate(t1.eqNode(t2));
-}
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
-}
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyMerge(TNode t1,
-                                                                  TNode t2)
-{
-}
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }
 
 void ArithCongruenceManager::raiseConflict(Node conflict,
@@ -462,24 +407,6 @@ bool ArithCongruenceManager::propagate(TNode x){
   return true;
 }
 
-void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumptions) {
-  if (literal.getKind() != kind::NOT) {
-    d_ee->explainEquality(literal[0], literal[1], true, assumptions);
-  } else {
-    d_ee->explainEquality(literal[0][0], literal[0][1], false, assumptions);
-  }
-}
-
-void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s,
-                                           NodeBuilder& nb)
-{
-  std::set<TNode>::const_iterator it = s.begin();
-  std::set<TNode>::const_iterator it_end = s.end();
-  for(; it != it_end; ++it) {
-    nb << *it;
-  }
-}
-
 TrustNode ArithCongruenceManager::explainInternal(TNode internal)
 {
   if (isProofEnabled())
@@ -520,18 +447,6 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   return trn;
 }
 
-void ArithCongruenceManager::explain(TNode external, NodeBuilder& out)
-{
-  Node internal = externalToInternal(external);
-
-  std::vector<TNode> assumptions;
-  explain(internal, assumptions);
-  std::set<TNode> assumptionSet;
-  assumptionSet.insert(assumptions.begin(), assumptions.end());
-
-  enqueueIntoNB(assumptionSet, out);
-}
-
 void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   Assert(!isWatchedVariable(s));
 
@@ -542,8 +457,9 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   ++(d_statistics.d_watchedVariables);
 
   d_watchedVariables.add(s);
-
-  Node eq = x.eqNode(y);
+  // must ensure types are correct, thus, add TO_REAL if necessary here
+  std::pair<Node, Node> p = mkSameType(x, y);
+  Node eq = p.first.eqNode(p.second);
   d_watchedEqualities.set(s, eq);
 }
 
@@ -692,23 +608,6 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
 }
 
 bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
-
-std::vector<Node> andComponents(TNode an)
-{
-  auto nm = NodeManager::currentNM();
-  if (an == nm->mkConst(true))
-  {
-    return {};
-  }
-  else if (an.getKind() != Kind::AND)
-  {
-    return {an};
-  }
-  std::vector<Node> a{};
-  a.reserve(an.getNumChildren());
-  a.insert(a.end(), an.begin(), an.end());
-  return a;
-}
 
 }  // namespace arith
 }  // namespace theory

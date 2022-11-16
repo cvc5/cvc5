@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -168,7 +169,7 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    options::ioutils::applyOutputLang(ss, options().base.outputLanguage);
+    options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
@@ -190,7 +191,8 @@ Node TermDb::getMatchOperator(TNode n)
   if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
       || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
       || k == SET_SINGLETON || k == APPLY_SELECTOR || k == APPLY_TESTER
-      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH)
+      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH
+      || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();

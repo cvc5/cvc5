@@ -50,9 +50,15 @@ Node OracleChecker::evaluateApp(Node app)
   OracleCaller& caller = d_callers.at(f);
 
   // get oracle result
-  Node ret;
-  int runResult;
-  caller.callOracle(app, ret, runResult);
+  std::vector<Node> retv;
+  caller.callOracle(app, retv);
+  if (retv.size() != 1)
+  {
+    Assert(false) << "Failed to evaluate " << app
+                  << " to a single return value, got: " << retv << std::endl;
+    return app;
+  }
+  Node ret = retv[0];
   Assert(!ret.isNull());
   return ret;
 }
@@ -103,7 +109,7 @@ Node OracleChecker::postConvert(Node n)
     }
   }
   // otherwise, always rewrite
-  return Rewriter::rewrite(n);
+  return rewrite(n);
 }
 bool OracleChecker::hasOracles() const { return !d_callers.empty(); }
 bool OracleChecker::hasOracleCalls(Node f) const
@@ -111,7 +117,8 @@ bool OracleChecker::hasOracleCalls(Node f) const
   std::map<Node, OracleCaller>::const_iterator it = d_callers.find(f);
   return it != d_callers.end();
 }
-const std::map<Node, Node>& OracleChecker::getOracleCalls(Node f) const
+const std::map<Node, std::vector<Node>>& OracleChecker::getOracleCalls(
+    Node f) const
 {
   Assert(hasOracleCalls(f));
   std::map<Node, OracleCaller>::const_iterator it = d_callers.find(f);

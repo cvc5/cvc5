@@ -208,23 +208,24 @@ void OracleEngine::checkOwnership(Node q)
   if (Configuration::isAssertionBuild())
   {
     std::vector<Node> inputs, outputs;
-    Node assume, constraint;
-    std::string binName;
-    getOracleInterface(q, inputs, outputs, assume, constraint, binName);
-    Assert(constraint.isConst() && constraint.getConst<bool>())
-        << "Unhandled oracle constraint " << q;
-    CVC5_UNUSED bool isOracleFun = false;
-    if (OracleCaller::isOracleFunctionApp(assume))
+    Node assume, constraint, oracle;
+    if (!getOracleInterface(q, inputs, outputs, assume, constraint, oracle))
     {
-      // predicate case
-      isOracleFun = true;
+      Assert(false) << "Not an oracle interface " << q;
     }
-    else if (assume.getKind() == EQUAL)
+    else
+    {
+      Assert(outputs.size() == 1) << "Unhandled oracle constraint " << q;
+      Assert(constraint.isConst() && constraint.getConst<bool>())
+          << "Unhandled oracle constraint " << q;
+    }
+    CVC5_UNUSED bool isOracleFun = false;
+    if (assume.getKind() == EQUAL)
     {
       for (size_t i = 0; i < 2; i++)
       {
         if (OracleCaller::isOracleFunctionApp(assume[i])
-            && assume[1 - i].isConst())
+            && assume[1 - i] == outputs[0])
         {
           isOracleFun = true;
         }
@@ -240,12 +241,7 @@ std::string OracleEngine::identify() const
   return std::string("OracleEngine");
 }
 
-void OracleEngine::declareOracleFun(Node f, const std::string& binName)
-{
-  OracleInterfaceAttribute oia;
-  f.setAttribute(oia, binName);
-  d_oracleFuns.push_back(f);
-}
+void OracleEngine::declareOracleFun(Node f) { d_oracleFuns.push_back(f); }
 
 std::vector<Node> OracleEngine::getOracleFuns() const
 {
@@ -261,16 +257,14 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
                                      const std::vector<Node>& outputs,
                                      Node assume,
                                      Node constraint,
-                                     const std::string& binName)
+                                     Node oracleNode)
 {
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
+  Assert(oracleNode.getKind() == ORACLE);
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  OracleInterfaceAttribute oia;
-  Node oiVar = sm->mkDummySkolem("oracle-interface", nm->booleanType());
-  oiVar.setAttribute(oia, binName);
-  Node ipl = nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oiVar));
+  Node ipl =
+      nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;
   OracleInputVarAttribute oiva;
   for (Node v : inputs)
@@ -294,7 +288,7 @@ bool OracleEngine::getOracleInterface(Node q,
                                       std::vector<Node>& outputs,
                                       Node& assume,
                                       Node& constraint,
-                                      std::string& binName) const
+                                      Node& oracleNode) const
 {
   QuantAttributes& qa = d_qreg.getQuantAttributes();
   if (qa.isOracleInterface(q))
@@ -303,24 +297,24 @@ bool OracleEngine::getOracleInterface(Node q,
     OracleInputVarAttribute oiva;
     for (const Node& v : q[0])
     {
-      if (v.hasAttribute(oiva))
+      if (v.getAttribute(oiva))
       {
         inputs.push_back(v);
       }
       else
       {
-        Assert(v.hasAttribute(OracleOutputVarAttribute()));
+        Assert(v.getAttribute(OracleOutputVarAttribute()));
         outputs.push_back(v);
       }
     }
     Assert(q[1].getKind() == ORACLE_FORMULA_GEN);
     assume = q[1][0];
-    constraint = q[1][0];
+    constraint = q[1][1];
     Assert(q.getNumChildren() == 3);
     Assert(q[2].getNumChildren() == 1);
-    OracleInterfaceAttribute oia;
-    Assert(q[2][0].hasAttribute(oia));
-    binName = q[2][0].getAttribute(oia);
+    Assert(q[2][0].getNumChildren() == 1);
+    Assert(q[2][0][0].getKind() == ORACLE);
+    oracleNode = q[2][0][0];
     return true;
   }
   return false;

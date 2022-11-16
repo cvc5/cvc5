@@ -24,14 +24,13 @@
 
 namespace cvc5::internal {
 
-LazyCDProofChain::LazyCDProofChain(ProofNodeManager* pnm,
+LazyCDProofChain::LazyCDProofChain(Env& env,
                                    bool cyclic,
                                    context::Context* c,
                                    ProofGenerator* defGen,
                                    bool defRec,
                                    const std::string& name)
-    : CDProof(pnm, c, name, false),
-      d_manager(pnm),
+    : CDProof(env, c, name, false),
       d_cyclic(cyclic),
       d_defRec(defRec),
       d_context(),
@@ -205,7 +204,9 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
       {
         Trace("lazy-cdproofchain")
             << "LazyCDProofChain::getProofFor: marking " << fap.first
-            << " for revisit and for expansion\n";
+            << " for revisit and for expansion (curr: "
+            << assumptionsToExpand[fap.first].size()
+            << ", adding: " << fap.second.size() << ")\n";
         // We always add assumptions to visit so that their last seen occurrence
         // is expanded (rather than the first seen occurrence, if we were not
         // adding assumptions, say, in assumptionsToExpand). This is so because
@@ -255,6 +256,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
           << "\n";
     }
   } while (!visit.empty());
+  ProofNodeManager* pnm = getManager();
   // expand all assumptions marked to be connected
   for (const std::pair<const Node, std::shared_ptr<ProofNode>>& npfn :
        toConnect)
@@ -275,7 +277,7 @@ std::shared_ptr<ProofNode> LazyCDProofChain::getProofFor(Node fact)
     // update each assumption proof node
     for (std::shared_ptr<ProofNode> pfn : it->second)
     {
-      d_manager->updateNode(pfn.get(), npfn.second.get());
+      pnm->updateNode(pfn.get(), npfn.second.get());
     }
   }
   Trace("lazy-cdproofchain") << "===========\n";
@@ -308,7 +310,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
   // note this will rewrite the generator for expected, if any
   d_gens.insert(expected, pg);
   // check if chain is closed if eager checking is on
-  if (options::proofCheck() == options::ProofCheckMode::EAGER)
+  if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";
@@ -328,7 +330,8 @@ void LazyCDProofChain::addLazyStep(Node expected,
       }
       Trace("lazy-cdproofchain") << "\n";
     }
-    pfnEnsureClosedWrt(pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
+    pfnEnsureClosedWrt(
+        options(), pfn.get(), allowedLeaves, "lazy-cdproofchain", ctx);
   }
 }
 

@@ -17,7 +17,6 @@
 
 #include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
@@ -110,8 +109,7 @@ class BBRegistrar : public prop::Registrar
 
 BVSolverBitblast::BVSolverBitblast(Env& env,
                                    TheoryState* s,
-                                   TheoryInferenceManager& inferMgr,
-                                   ProofNodeManager* pnm)
+                                   TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
       d_bitblaster(new NodeBitblaster(env, s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
@@ -120,15 +118,17 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bbInputFacts(context()),
       d_assumptions(context()),
       d_assertions(context()),
-      d_epg(pnm ? new EagerProofGenerator(pnm, userContext(), "") : nullptr),
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(env, userContext(), "")
+                : nullptr),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
       d_propagate(options().bv.bitvectorPropagate),
       d_resetNotify(new NotifyResetAssertions(userContext()))
 {
-  if (pnm != nullptr)
+  if (env.isTheoryProofProducing())
   {
-    d_bvProofChecker.registerTo(pnm->getChecker());
+    d_bvProofChecker.registerTo(env.getProofNodeManager()->getChecker());
   }
 
   initSatSolver();
@@ -331,13 +331,13 @@ void BVSolverBitblast::initSatSolver()
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(),
+          statisticsRegistry(),
           d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(),
+          statisticsRegistry(),
           d_env.getResourceManager(),
           "theory::bv::BVSolverBitblast::"));
   }

@@ -84,7 +84,7 @@ using namespace cvc5::parser;
 
 #include <memory>
 
-#include "smt/command.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
@@ -134,7 +134,7 @@ parseExpr returns [cvc5::parser::tptp::myExpr expr]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [cvc5::Command* cmd = NULL]
+parseCommand returns [cvc5::parser::Command* cmd = NULL]
 @declarations {
   cvc5::Term expr;
   Tptp::FormulaRole fr;
@@ -238,12 +238,11 @@ parseCommand returns [cvc5::Command* cmd = NULL]
     }
   | EOF
     {
-      CommandSequence* seq = new CommandSequence();
       // assert that all distinct constants are distinct
       cvc5::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr));
+        PARSER_STATE->preemptCommand(new AssertCommand(aexpr));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
@@ -254,15 +253,14 @@ parseCommand returns [cvc5::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      seq->addCommand(new SetInfoCommand("filename", filename));
+      PARSER_STATE->preemptCommand(new SetInfoCommand("filename", filename));
       if(PARSER_STATE->hasConjecture()) {
         // note this does not impact how the TPTP status is reported currently
-        seq->addCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
+        PARSER_STATE->preemptCommand(new CheckSatAssumingCommand(SOLVER->mkTrue()));
       } else {
-        seq->addCommand(new CheckSatCommand());
+        PARSER_STATE->preemptCommand(new CheckSatCommand());
       }
-      PARSER_STATE->preemptCommand(seq);
-      cmd = NULL;
+      cmd = nullptr;
     }
   ;
 
@@ -929,7 +927,7 @@ thfQuantifier[cvc5::Kind& kind]
     }
   ;
 
-thfAtomTyping[cvc5::Command*& cmd]
+thfAtomTyping[cvc5::parser::Command*& cmd]
 // for now only supports mapping types (i.e. no applied types)
 @declarations {
   cvc5::Term expr;
@@ -1266,7 +1264,7 @@ thfUnitaryFormula[cvc5::ParseOp& p]
       expr = p1.d_expr;
       PARSER_STATE->popScope();
       // handle lambda case, in which case return type must be flattened and the
-      // auxiliary variables introduced in the proccess must be added no the
+      // auxiliary variables introduced in the process must be added no the
       // variable list
       //
       // see documentation of mkFlatFunctionType for how it's done
@@ -1290,7 +1288,7 @@ thfUnitaryFormula[cvc5::ParseOp& p]
 /* TFF */
 tffFormula[cvc5::Term& expr] : tffLogicFormula[expr];
 
-tffTypedAtom[cvc5::Command*& cmd]
+tffTypedAtom[cvc5::parser::Command*& cmd]
 @declarations {
   cvc5::Term expr;
   cvc5::Sort type;

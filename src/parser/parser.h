@@ -25,20 +25,20 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/symbol_manager.h"
-#include "expr/symbol_table.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
+#include "symbol_table.h"
 
 namespace cvc5 {
 
 // Forward declarations
-class Command;
 class ResourceManager;
 
 namespace parser {
 
+class Command;
 class Input;
 
 /** Types of checks for the symbols */
@@ -76,7 +76,9 @@ enum SymbolType {
   /** Variables */
   SYM_VARIABLE,
   /** Sorts */
-  SYM_SORT
+  SYM_SORT,
+  /** Symbols that should be preserved verbatim */
+  SYM_VERBATIM
 };/* enum SymbolType */
 
 /**
@@ -90,6 +92,8 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
     return out << "SYM_VARIABLE";
   case SYM_SORT:
     return out << "SYM_SORT";
+  case SYM_VERBATIM:
+    return out << "SYM_VERBATIM";
   default:
     return out << "SymbolType!UNKNOWN";
   }
@@ -117,7 +121,7 @@ private:
  /**
   * This current symbol table used by this parser, from symbol manager.
   */
- internal::SymbolTable* d_symtab;
+ internal::parser::SymbolTable* d_symtab;
 
  /**
   * The level of the assertions in the declaration scope.  Things declared

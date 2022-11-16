@@ -29,40 +29,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-Constant Constant::mkConstant(const Rational& rat) {
-  return Constant(mkRationalNode(rat));
-}
-
-size_t Variable::getComplexity() const{
-  return 1u;
-}
-
-size_t VarList::getComplexity() const{
-  if(empty()){
-    return 1;
-  }else if(singleton()){
-    return 1;
-  }else{
-    return size() + 1;
-  }
-}
-
-size_t Monomial::getComplexity() const{
-  return getConstant().getComplexity() + getVarList().getComplexity();
-}
-
-size_t Polynomial::getComplexity() const{
-  size_t cmp = 0;
-  iterator i = begin(), e = end();
-  for(; i != e; ++i){
-    Monomial m = *i;
-    cmp += m.getComplexity();
-  }
-  return cmp;
-}
-
-size_t Constant::getComplexity() const{
-  return getValue().complexity();
+Constant Constant::mkConstant(const Rational& rat)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return Constant(nm->mkConstRealOrInt(rat));
 }
 
 bool Variable::isLeafMember(Node n){
@@ -71,17 +41,6 @@ bool Variable::isLeafMember(Node n){
 }
 
 VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
-
-bool Variable::isIAndMember(Node n)
-{
-  return n.getKind() == kind::IAND && Polynomial::isMember(n[0])
-         && Polynomial::isMember(n[1]);
-}
-
-bool Variable::isPow2Member(Node n)
-{
-  return n.getKind() == kind::POW2 && Polynomial::isMember(n[0]);
-}
 
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
@@ -97,29 +56,17 @@ bool Variable::isDivMember(Node n){
   }
 }
 
-bool Variable::isTranscendentalMember(Node n) {
-  switch(n.getKind()){
-  case kind::EXPONENTIAL:
-  case kind::SINE:
-  case kind::COSINE:
-  case kind::TANGENT:
-  case kind::COSECANT:
-  case kind::SECANT:
-  case kind::COTANGENT:
-  case kind::ARCSINE:
-  case kind::ARCCOSINE:
-  case kind::ARCTANGENT:
-  case kind::ARCCOSECANT:
-  case kind::ARCSECANT:
-  case kind::ARCCOTANGENT:
-  case kind::SQRT: return Polynomial::isMember(n[0]);
-  case kind::PI:
-    return true;
-  default:
-    return false;
+bool Variable::areChildrenPolynomialMembers(Node n)
+{
+  for (const Node& nc : n)
+  {
+    if (!Polynomial::isMember(nc))
+    {
+      return false;
+    }
   }
+  return true;
 }
-
 
 bool VarList::isSorted(iterator start, iterator end) {
   return std::is_sorted(start, end);
@@ -220,13 +167,16 @@ VarList VarList::operator*(const VarList& other) const {
 }
 
 bool Monomial::isMember(TNode n){
-  if(n.getKind() == kind::CONST_RATIONAL) {
+  Kind k = n.getKind();
+  if (k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER)
+  {
     return true;
-  } else if(multStructured(n)) {
-    return VarList::isMember(n[1]);
-  } else {
-    return VarList::isMember(n);
   }
+  else if (multStructured(n))
+  {
+    return VarList::isMember(n[1]);
+  }
+  return VarList::isMember(n);
 }
 
 Monomial Monomial::mkMonomial(const Constant& c, const VarList& vl) {
@@ -249,13 +199,16 @@ Monomial Monomial::mkMonomial(const VarList& vl) {
 }
 
 Monomial Monomial::parseMonomial(Node n) {
-  if(n.getKind() == kind::CONST_RATIONAL) {
+  Kind k = n.getKind();
+  if (k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER)
+  {
     return Monomial(Constant(n));
-  } else if(multStructured(n)) {
-    return Monomial::mkMonomial(Constant(n[0]),VarList::parseVarList(n[1]));
-  } else {
-    return Monomial(VarList::parseVarList(n));
   }
+  else if (multStructured(n))
+  {
+    return Monomial::mkMonomial(Constant(n[0]),VarList::parseVarList(n[1]));
+  }
+  return Monomial(VarList::parseVarList(n));
 }
 Monomial Monomial::operator*(const Rational& q) const {
   if(q.isZero()){
@@ -699,7 +652,10 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
   }
 }
 
-Comparison::Comparison(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
+Comparison::Comparison(TNode n) : NodeWrapper(n)
+{
+  Assert(isNormalForm()) << "Bad comparison normal form: " << n;
+}
 
 SumPair Comparison::toSumPair() const {
   Kind cmpKind = comparisonKind();
@@ -719,8 +675,8 @@ SumPair Comparison::toSumPair() const {
         return SumPair(-p, c);
       }
     }
-  case kind::EQUAL:
-  case kind::DISTINCT:
+    case kind::EQUAL:
+    case kind::DISTINCT:
     {
       Polynomial left = getLeft();
       Polynomial right = getRight();
@@ -758,8 +714,8 @@ Polynomial Comparison::normalizedVariablePart() const {
         return -p;
       }
     }
-  case kind::EQUAL:
-  case kind::DISTINCT:
+    case kind::EQUAL:
+    case kind::DISTINCT:
     {
       Polynomial left = getLeft();
       Polynomial right = getRight();
@@ -798,8 +754,8 @@ DeltaRational Comparison::normalizedDeltaRational() const {
         return DeltaRational(-q, -delta);
       }
     }
-  case kind::EQUAL:
-  case kind::DISTINCT:
+    case kind::EQUAL:
+    case kind::DISTINCT:
     {
       Polynomial right = getRight();
       Monomial firstRight = right.getHead();
@@ -914,33 +870,20 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Polynomial& r) {
     return toNode(kind::GEQ, r, l).notNode();
   case kind::LT:
     return toNode(kind::GT, r, l).notNode();
-  case kind::DISTINCT:
-    return toNode(kind::EQUAL, r, l).notNode();
+  case kind::DISTINCT: return toNode(kind::EQUAL, r, l).notNode();
   default:
     Unreachable();
   }
 }
 
 bool Comparison::rightIsConstant() const {
+  Kind k;
   if(getNode().getKind() == kind::NOT){
-    return getNode()[0][1].getKind() == kind::CONST_RATIONAL;
+    k = getNode()[0][1].getKind();
   }else{
-    return getNode()[1].getKind() == kind::CONST_RATIONAL;
+    k = getNode()[1].getKind();
   }
-}
-
-size_t Comparison::getComplexity() const{
-  switch(comparisonKind()){
-  case kind::CONST_BOOLEAN: return 1;
-  case kind::LT:
-  case kind::LEQ:
-  case kind::DISTINCT:
-  case kind::EQUAL:
-  case kind::GT:
-  case kind::GEQ:
-    return getLeft().getComplexity() +  getRight().getComplexity();
-  default: Unhandled() << comparisonKind(); return -1;
-  }
+  return k == kind::CONST_RATIONAL || k == kind::CONST_INTEGER;
 }
 
 Polynomial Comparison::getLeft() const {
@@ -949,13 +892,21 @@ Polynomial Comparison::getLeft() const {
   switch(k){
   case kind::LT:
   case kind::LEQ:
+    left = getNode()[0][0];
+    Assert(left.getKind() != kind::TO_REAL);
+    break;
   case kind::DISTINCT:
     left = getNode()[0][0];
+    left = left.getKind() == kind::TO_REAL ? left[0] : left;
     break;
   case kind::EQUAL:
+    left = getNode()[0];
+    left = left.getKind() == kind::TO_REAL ? left[0] : left;
+    break;
   case kind::GT:
   case kind::GEQ:
     left = getNode()[0];
+    Assert(left.getKind() != kind::TO_REAL);
     break;
   default: Unhandled() << k;
   }
@@ -968,13 +919,21 @@ Polynomial Comparison::getRight() const {
   switch(k){
   case kind::LT:
   case kind::LEQ:
+    right = getNode()[0][1];
+    Assert(right.getKind() != kind::TO_REAL);
+    break;
   case kind::DISTINCT:
     right = getNode()[0][1];
+    right = right.getKind() == kind::TO_REAL ? right[0] : right;
     break;
   case kind::EQUAL:
+    right = getNode()[1];
+    right = right.getKind() == kind::TO_REAL ? right[0] : right;
+    break;
   case kind::GT:
   case kind::GEQ:
     right = getNode()[1];
+    Assert(right.getKind() != kind::TO_REAL);
     break;
   default: Unhandled() << k;
   }
@@ -1004,8 +963,7 @@ bool Comparison::isNormalForm() const {
     return isNormalGT();
   case kind::GEQ:
     return isNormalGEQ();
-  case kind::EQUAL:
-    return isNormalEquality();
+  case kind::EQUAL: return isNormalEquality();
   case kind::LT:
     return isNormalLT();
   case kind::LEQ:
@@ -1304,7 +1262,9 @@ Node Comparison::mkIntEquality(const Polynomial& p){
 Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomial& r){
 
   //Make this special case fast for sharing!
-  if((k == kind::EQUAL || k == kind::DISTINCT) && l.isVarList() && r.isVarList()){
+  if ((k == kind::EQUAL || k == kind::DISTINCT) && l.isVarList()
+      && r.isVarList())
+  {
     VarList vLeft = l.asVarList();
     VarList vRight = r.asVarList();
 
@@ -1312,7 +1272,8 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
       // return true for equalities and false for disequalities
       return Comparison(k == kind::EQUAL);
     }else{
-      Node eqNode = vLeft < vRight ? toNode( kind::EQUAL, l, r) : toNode( kind::EQUAL, r, l);
+      Node eqNode = vLeft < vRight ? toNode(kind::EQUAL, l, r)
+                                   : toNode(kind::EQUAL, r, l);
       Node forK = (k == kind::DISTINCT) ? eqNode.notNode() : eqNode;
       return Comparison(forK);
     }
@@ -1327,10 +1288,10 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
     Node result = Node::null();
     bool isInteger = diff.allIntegralVariables();
     switch(k){
-    case kind::EQUAL:
-      result = isInteger ? mkIntEquality(diff) : mkRatEquality(diff);
-      break;
-    case kind::DISTINCT:
+      case kind::EQUAL:
+        result = isInteger ? mkIntEquality(diff) : mkRatEquality(diff);
+        break;
+      case kind::DISTINCT:
       {
         Node eq = isInteger ? mkIntEquality(diff) : mkRatEquality(diff);
         result = eq.notNode();
@@ -1377,8 +1338,7 @@ Kind Comparison::comparisonKind(TNode literal){
   case kind::CONST_BOOLEAN:
   case kind::GT:
   case kind::GEQ:
-  case kind::EQUAL:
-    return literal.getKind();
+  case kind::EQUAL: return literal.getKind();
   case  kind::NOT:
     {
       TNode negatedAtom = literal[0];
@@ -1387,8 +1347,7 @@ Kind Comparison::comparisonKind(TNode literal){
         return kind::LEQ;
       case kind::GEQ: //(not (GEQ x c)) <=> (LT x c)
         return kind::LT;
-      case kind::EQUAL:
-        return kind::DISTINCT;
+      case kind::EQUAL: return kind::DISTINCT;
       default:
         return  kind::UNDEFINED_KIND;
       }

@@ -76,11 +76,7 @@ const char* toString(Resource r)
     case Resource::ArithNlCoveringStep: return "ArithNlCoveringStep";
     case Resource::ArithNlLemmaStep: return "ArithNlLemmaStep";
     case Resource::BitblastStep: return "BitblastStep";
-    case Resource::BvEagerAssertStep: return "BvEagerAssertStep";
-    case Resource::BvPropagationStep: return "BvPropagationStep";
-    case Resource::BvSatConflictsStep: return "BvSatConflictsStep";
-    case Resource::BvSatPropagateStep: return "BvSatPropagateStep";
-    case Resource::BvSatSimplifyStep: return "BvSatSimplifyStep";
+    case Resource::BvSatStep: return "BvSatStep";
     case Resource::CnfStep: return "CnfStep";
     case Resource::DecisionStep: return "DecisionStep";
     case Resource::LemmaStep: return "LemmaStep";
@@ -155,6 +151,7 @@ bool setWeight(const std::string& name, uint64_t weight, Weights& weights)
 ResourceManager::ResourceManager(StatisticsRegistry& stats,
                                  const Options& options)
     : d_options(options),
+      d_enabled(true),
       d_perCallTimer(),
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
@@ -279,6 +276,10 @@ bool ResourceManager::limitOn() const
 
 bool ResourceManager::outOfResources() const
 {
+  if (!d_enabled)
+  {
+    return false;
+  }
   if (d_options.base.perCallResourceLimit > 0)
   {
     // Check if per-call resources are exhausted
@@ -300,6 +301,10 @@ bool ResourceManager::outOfResources() const
 
 bool ResourceManager::outOfTime() const
 {
+  if (!d_enabled)
+  {
+    return false;
+  }
   if (d_options.base.perCallMillisecondLimit == 0) return false;
   return d_perCallTimer.expired();
 }

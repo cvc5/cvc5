@@ -9,7 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
-from cvc5types cimport BlockModelsMode, RoundingMode, UnknownExplanation
+from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -206,7 +206,6 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Solver() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
-        Sort getNullSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
         Sort getRoundingModeSort() except +
@@ -312,8 +311,8 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
                           Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
-        string getProof() except +
-        vector[Term] getLearnedLiterals() except +
+        string getProof(ProofComponent c) except +
+        vector[Term] getLearnedLiterals(LearnedLitType type) except +
         vector[Term] getAssertions() except +
         string getInfo(const string& flag) except +
         string getOption(const string& option) except +
@@ -352,6 +351,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         void blockModelValues(const vector[Term]& terms) except +
         string getInstantiations() except +
         Statistics getStatistics() except +
+        string getVersion() except +
 
     cdef cppclass Grammar:
         Grammar() except +
@@ -360,6 +360,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         void addAnyConstant(Term ntSymbol) except +
         void addAnyVariable(Term ntSymbol) except +
         void addRules(Term ntSymbol, vector[Term] rules) except +
+        string toString() except +
 
     cdef cppclass Sort:
         Sort() except +
@@ -400,6 +401,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         vector[Sort] getInstantiatedParameters() except +
+        Sort substitute(const Sort & es, const Sort & reps) except +
         Sort substitute(const vector[Sort] & es, const vector[Sort] & reps) except +
         size_t getDatatypeConstructorArity() except +
         vector[Sort] getDatatypeConstructorDomainSorts() except +
@@ -465,6 +467,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         uint64_t getId() except +
         Kind getKind() except +
         Sort getSort() except +
+        Term substitute(const Term & es, const Term & reps) except +
         Term substitute(const vector[Term] & es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +

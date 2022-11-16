@@ -24,12 +24,24 @@ namespace theory {
 namespace quantifiers {
 
 InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
-    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q)
+    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q), d_ieval(nullptr)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
   // resize must initialize with null nodes
   Assert(d_vals[0].isNull());
+}
+
+void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
+{
+  // should only do this if we are empty
+  Assert(empty());
+  // get the instantiation evaluator and reset it
+  d_ieval = d_tr.getEvaluator(d_quant, tev);
+  if (d_ieval != nullptr)
+  {
+    d_ieval->resetAll();
+  }
 }
 
 void InstMatch::debugPrint( const char* c ){
@@ -90,6 +102,11 @@ void InstMatch::resetAll()
   {
     d_vals[i] = Node::null();
   }
+  // clear information from the evaluator
+  if (d_ieval != nullptr)
+  {
+    d_ieval->resetAll();
+  }
 }
 
 Node InstMatch::get(size_t i) const
@@ -106,6 +123,14 @@ bool InstMatch::set(size_t i, TNode n)
     // if they are equal, we do nothing
     return d_qs.areEqual(d_vals[i], n);
   }
+  if (d_ieval != nullptr)
+  {
+    // if applicable, check if the instantiation evaluator is ok
+    if (!d_ieval->push(d_quant[0][i], n))
+    {
+      return false;
+    }
+  }
   // otherwise, we update the value
   d_vals[i] = n;
   return true;
@@ -114,6 +139,10 @@ bool InstMatch::set(size_t i, TNode n)
 void InstMatch::reset(size_t i)
 {
   Assert(!d_vals[i].isNull());
+  if (d_ieval != nullptr)
+  {
+    d_ieval->pop();
+  }
   d_vals[i] = Node::null();
 }
 

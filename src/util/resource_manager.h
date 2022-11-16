@@ -76,11 +76,7 @@ enum class Resource
   ArithNlCoveringStep,
   ArithNlLemmaStep,
   BitblastStep,
-  BvEagerAssertStep,
-  BvPropagationStep,
-  BvSatConflictsStep,
-  BvSatPropagateStep,
-  BvSatSimplifyStep,
+  BvSatStep,
   CnfStep,
   DecisionStep,
   LemmaStep,
@@ -127,6 +123,8 @@ class ResourceManager
   ResourceManager& operator=(const ResourceManager&) = delete;
   /** Can not be moved. */
   ResourceManager& operator=(ResourceManager&&) = delete;
+
+  void setEnabled(bool enabled) { d_enabled = enabled; }
 
   /** Checks whether any limit is active. */
   bool limitOn() const;
@@ -178,6 +176,13 @@ class ResourceManager
 
  private:
   const Options& d_options;
+
+  /**
+   * If the resource manager is not enabled, then the checks whether we are out
+   * of resources are disabled. Resources are still spent, however.
+   */
+  bool d_enabled;
+
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
 
