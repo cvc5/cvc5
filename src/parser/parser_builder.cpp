@@ -57,12 +57,13 @@ void ParserBuilder::init(cvc5::Solver* solver, SymbolManager* sm)
 Parser* ParserBuilder::build()
 {
   Parser* parser = NULL;
-  
+
   // force the logic prior to building the parser
-  if( d_logicIsForced ) {
+  if (d_logicIsForced)
+  {
     d_symman->forceLogic(d_forcedLogic);
   }
-  
+
   if (d_lang == "LANG_TPTP")
   {
     parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
