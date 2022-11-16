@@ -58,7 +58,8 @@ Parser* ParserBuilder::build()
 {
   Parser* parser = NULL;
 
-  // force the logic prior to building the parser
+  // Force the logic prior to building the parser. This makes a difference for
+  // the TPTP parser, where forced logic is processed upon construction.
   if (d_logicIsForced)
   {
     d_symman->forceLogic(d_forcedLogic);
