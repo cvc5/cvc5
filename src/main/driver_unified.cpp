@@ -238,13 +238,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
           std::unique_ptr<InputParser>(new InputParser(
               pExecutor->getSolver(), pExecutor->getSymbolManager(), true));
       if( inputFromStdin ) {
-        parser->setInput(Input::newStreamInput(
-            solver->getOption("input-language"), cin, filename));
+        parser->setStreamInput(
+            solver->getOption("input-language"), cin, filename);
       }
       else
       {
-        parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"), filename));
+        parser->setFileInput(solver->getOption("input-language"), filename);
       }
 
       PortfolioDriver driver(parser);

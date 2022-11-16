@@ -25,6 +25,7 @@ namespace parser {
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
 {
+  // Allocate an ANTLR parser
   ParserBuilder parserBuilder(solver, sm, useOptions);
   d_state = parserBuilder.build();
 }
@@ -43,10 +44,29 @@ Term InputParser::nextExpression()
 
 void InputParser::forceLogic(const std::string& logic)
 {
+  Trace("parser") << "forceLogic(" << logic << ")" << std::endl;
   d_state->forceLogic(logic);
 }
 
-void InputParser::setInput(Input* input) { d_state->setInput(input); }
+void InputParser::setFileInput(const std::string& lang,
+                            const std::string& filename)
+{
+  d_state->setInput(Input::newFileInput(lang, filename));
+}
+
+void InputParser::setStreamInput(const std::string& lang,
+                              std::istream& input,
+                              const std::string& name)
+{
+  d_state->setInput(Input::newStreamInput(lang, input, name));
+}
+
+void InputParser::setStringInput(const std::string& lang,
+                              const std::string& input,
+                              const std::string& name)
+{
+  d_state->setInput(Input::newStringInput(lang, input, name));
+}
 
 }  // namespace parser
 }  // namespace cvc5

@@ -44,7 +44,6 @@
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/input.h"
 #include "parser/input_parser.h"
 #include "theory/logic_info.h"
 
@@ -319,8 +318,8 @@ restart:
     }
   }
 
-  d_parser->setInput(Input::newStringInput(
-      d_solver->getOption("input-language"), input, INPUT_FILENAME));
+  d_parser->setStringInput(
+      d_solver->getOption("input-language"), input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */
