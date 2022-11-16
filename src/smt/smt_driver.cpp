@@ -28,16 +28,8 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
+    : EnvObj(env), d_smt(smt), d_ctx(ctx)
 {
-  // set up proofs, this is done after options are finalized, so the
-  // preprocess proof has been setup
-  PreprocessProofGenerator* pppg =
-      d_smt.getPreprocessor()->getPreprocessProofGenerator();
-  if (pppg != nullptr)
-  {
-    d_ap.enableProofs(pppg);
-  }
 }
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
@@ -117,20 +109,11 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   return result;
 }
 
-void SmtDriver::getNextAssertionsInternal(preprocessing::AssertionPipeline& ap)
-{
-  ap.clear();
-  // must first refresh the assertions, in the case global declarations is true
-  d_smt.getAssertions().refresh();
-  // get the next assertions based on the implementation of this driver
-  getNextAssertions(ap);
-}
-
 void SmtDriver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make
   // the state accurate prior to pushing
-  refreshAssertions();
+  d_smt.refreshAssertions();
 }
 
 void SmtDriver::notifyPushPost() { d_smt.pushPropContext(); }

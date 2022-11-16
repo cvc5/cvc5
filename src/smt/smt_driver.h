@@ -104,8 +104,6 @@ class SmtDriver : protected EnvObj
    * if the checkSatNext method ever sets checkAgain to true.
    */
   ContextManager* d_ctx;
-  /** assertions pipeline */
-  preprocessing::AssertionPipeline d_ap;
 };
 
 /**
