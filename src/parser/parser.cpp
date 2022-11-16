@@ -75,11 +75,8 @@ const std::string& Parser::getForcedLogic() const
 {
   return d_symman->getForcedLogic();
 }
-bool Parser::logicIsForced() const
-{
-  return d_symman->isLogicForced();
-}
-  
+bool Parser::logicIsForced() const { return d_symman->isLogicForced(); }
+
 cvc5::Term Parser::getVariable(const std::string& name)
 {
   return getSymbol(name, SYM_VARIABLE);

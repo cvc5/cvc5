@@ -456,8 +456,11 @@ void SymbolManager::forceLogic(const std::string& logic)
   d_logicIsForced = true;
   d_forcedLogic = logic;
 }
-  bool SymbolManager::isLogicForced() const { return d_logicIsForced; }
+bool SymbolManager::isLogicForced() const { return d_logicIsForced; }
 
-  const std::string& SymbolManager::getForcedLogic() const { return d_forcedLogic; }
+const std::string& SymbolManager::getForcedLogic() const
+{
+  return d_forcedLogic;
+}
 
 }  // namespace cvc5::parser

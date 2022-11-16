@@ -201,7 +201,7 @@ class CVC5_EXPORT SymbolManager
   /** Get the name of the last abduct or interpolant to synthesize */
   const std::string& getLastSynthName() const;
 
-  /** 
+  /**
    * Force the logic to the given string. Note that this information is
    * context-independent.
    */
@@ -210,6 +210,7 @@ class CVC5_EXPORT SymbolManager
   bool isLogicForced() const;
   /** Get the last string in an above call, valid if logic is forced */
   const std::string& getForcedLogic() const;
+
  private:
   /** The API Solver object. */
   cvc5::Solver* d_solver;

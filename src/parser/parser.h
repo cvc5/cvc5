@@ -243,10 +243,9 @@ public:
   void allowIncludeFile() { d_canIncludeFile = true; }
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
-  
+
   const std::string& getForcedLogic() const;
   bool logicIsForced() const;
-
 
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
