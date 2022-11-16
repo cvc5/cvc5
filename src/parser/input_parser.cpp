@@ -49,21 +49,21 @@ void InputParser::forceLogic(const std::string& logic)
 }
 
 void InputParser::setFileInput(const std::string& lang,
-                            const std::string& filename)
+                               const std::string& filename)
 {
   d_state->setInput(Input::newFileInput(lang, filename));
 }
 
 void InputParser::setStreamInput(const std::string& lang,
-                              std::istream& input,
-                              const std::string& name)
+                                 std::istream& input,
+                                 const std::string& name)
 {
   d_state->setInput(Input::newStreamInput(lang, input, name));
 }
 
 void InputParser::setStringInput(const std::string& lang,
-                              const std::string& input,
-                              const std::string& name)
+                                 const std::string& input,
+                                 const std::string& name)
 {
   d_state->setInput(Input::newStringInput(lang, input, name));
 }

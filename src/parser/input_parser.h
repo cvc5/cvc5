@@ -35,7 +35,7 @@ class SymbolManager;
 /**
  * This class is the main interface for retrieving commands and expressions
  * from an input using a parser.
- * 
+ *
  * It currently uses a (deprecated) implementation which relies on ANTLR.
  */
 class CVC5_EXPORT InputParser
@@ -44,7 +44,7 @@ class CVC5_EXPORT InputParser
 
  public:
   InputParser(Solver* solver, SymbolManager* sm, bool useOptions);
-  
+
   /** Parse and return the next command. */
   Command* nextCommand();
 
@@ -54,12 +54,11 @@ class CVC5_EXPORT InputParser
   void forceLogic(const std::string& logic);
 
   /** Set the input for the given file.
-    *
-    * @param lang the input language
-    * @param filename the input filename
-    */
-  void setFileInput(const std::string& lang,
-                             const std::string& filename);
+   *
+   * @param lang the input language
+   * @param filename the input filename
+   */
+  void setFileInput(const std::string& lang, const std::string& filename);
 
   /** Set the input for the given stream.
    *
@@ -71,8 +70,8 @@ class CVC5_EXPORT InputParser
    * before being lexed and parsed)
    */
   void setStreamInput(const std::string& lang,
-                               std::istream& input,
-                               const std::string& name);
+                      std::istream& input,
+                      const std::string& name);
 
   /** Set the input for the given string
    *
@@ -81,8 +80,9 @@ class CVC5_EXPORT InputParser
    * @param name the name of the stream, for use in error messages
    */
   void setStringInput(const std::string& lang,
-                               const std::string& input,
-                               const std::string& name);
+                      const std::string& input,
+                      const std::string& name);
+
  private:
   /**
    * Constructor.
