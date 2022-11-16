@@ -16,8 +16,10 @@
 #include "proof/alethe/alethe_printer.h"
 
 #include <iostream>
+#include <sstream>
 #include <unordered_map>
 
+#include "options/expr_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5::internal {
