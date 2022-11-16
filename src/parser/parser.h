@@ -123,16 +123,6 @@ private:
   */
  internal::parser::SymbolTable* d_symtab;
 
- /**
-  * The level of the assertions in the declaration scope.  Things declared
-  * after this level are bindings from e.g. a let, a quantifier, or a
-  * lambda.
-  */
- size_t d_assertionLevel;
-
- /** How many anonymous functions we've created. */
- size_t d_anonymousFunctionCount;
-
  /** Are we done */
  bool d_done;
 

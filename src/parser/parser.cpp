@@ -41,8 +41,6 @@ Parser::Parser(cvc5::Solver* solver,
                bool parseOnly)
     : d_symman(sm),
       d_symtab(sm->getSymbolTable()),
-      d_assertionLevel(0),
-      d_anonymousFunctionCount(0),
       d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
