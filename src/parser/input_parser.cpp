@@ -45,12 +45,14 @@ Term InputParser::nextExpression()
 void InputParser::forceLogic(const std::string& logic)
 {
   Trace("parser") << "forceLogic(" << logic << ")" << std::endl;
+  //!!! TODO: delete
   d_state->forceLogic(logic);
 }
 
 void InputParser::setFileInput(const std::string& lang,
                                const std::string& filename)
 {
+  Trace("parser") << "setFileInput(" << lang << ", " << filename << ")" << std::endl;
   d_state->setInput(Input::newFileInput(lang, filename));
 }
 
@@ -58,6 +60,7 @@ void InputParser::setStreamInput(const std::string& lang,
                                  std::istream& input,
                                  const std::string& name)
 {
+  Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")" << std::endl;
   d_state->setInput(Input::newStreamInput(lang, input, name));
 }
 
@@ -65,6 +68,7 @@ void InputParser::setStringInput(const std::string& lang,
                                  const std::string& input,
                                  const std::string& name)
 {
+  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")" << std::endl;
   d_state->setInput(Input::newStringInput(lang, input, name));
 }
 
