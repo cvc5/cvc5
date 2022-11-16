@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
@@ -35,6 +35,10 @@ class SymbolManager;
 /**
  * This class is the main interface for retrieving commands and expressions
  * from an input using a parser.
+ * 
+ * After construction, it is expected that an input is first set via e.g.
+ * setFileInput, setStreamInput, or setStringInput. Then, the methods
+ * nextCommand and nextExpression can be invoked to parse the input.
  *
  * It currently uses a (deprecated) implementation which relies on ANTLR.
  */
