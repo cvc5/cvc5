@@ -330,11 +330,6 @@ public:
                      const std::vector<cvc5::Sort>& params);
 
   /**
-   * Returns arity of a (parameterized) sort, given a name and args.
-   */
-  size_t getArity(const std::string& sort_name);
-
-  /**
    * Checks if a symbol has been declared.
    * @param name the symbol name
    * @param type the symbol type
@@ -377,18 +372,6 @@ public:
   cvc5::Term bindVar(const std::string& name,
                      const cvc5::Sort& type,
                      bool doOverload = false);
-
-  /**
-   * Create a set of new cvc5 variable expressions of the given type.
-   *
-   * For each name, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the
-   * new expression.
-   */
-  std::vector<cvc5::Term> bindVars(const std::vector<std::string> names,
-                                   const cvc5::Sort& type,
-                                   bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
@@ -605,17 +588,11 @@ public:
    */
   void preemptCommand(Command* cmd);
 
-  /** Is the symbol bound to a boolean variable? */
-  bool isBoolean(const std::string& name);
-
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
    * selector.
    */
   bool isFunctionLike(cvc5::Term fun);
-
-  /** Is the symbol bound to a predicate? */
-  bool isPredicate(const std::string& name);
 
   /** Parse and return the next command. */
   Command* nextCommand();

@@ -66,7 +66,7 @@ Tptp::Tptp(cvc5::Solver* solver,
     }
   }
   d_hasConjecture = false;
-  // handle forced logic immediately
+  // Handle forced logic immediately.
   if (sm->isLogicForced())
   {
     preemptCommand(new SetBenchmarkLogicCommand(sm->getForcedLogic()));
