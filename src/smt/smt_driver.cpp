@@ -74,7 +74,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
           // finish init to construct new theory/prop engine
           d_smt.finishInit();
           // setup
-          d_ctx->setup();
+          d_ctx->setup(this);
         }
         else
         {
