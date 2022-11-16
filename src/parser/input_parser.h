@@ -49,8 +49,9 @@ class CVC5_EXPORT InputParser
   Term nextExpression();
 
   void setInput(Input* input);
-  
+
   void forceLogic(const std::string& logic);
+
  private:
   /**
    * Constructor.

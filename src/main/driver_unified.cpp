@@ -234,7 +234,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
         solver->setOption("wf-checking", "false");
       }
 
-      std::unique_ptr<InputParser> parser = std::unique_ptr<InputParser>(new InputParser(pExecutor->getSolver(), pExecutor->getSymbolManager(), true));
+      std::unique_ptr<InputParser> parser =
+          std::unique_ptr<InputParser>(new InputParser(
+              pExecutor->getSolver(), pExecutor->getSymbolManager(), true));
       if( inputFromStdin ) {
         parser->setInput(Input::newStreamInput(
             solver->getOption("input-language"), cin, filename));
