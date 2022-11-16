@@ -109,6 +109,11 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   return result;
 }
 
+void SmtDriver::refreshAssertions()
+{
+  d_smt.refreshAssertions();
+}
+
 void SmtDriver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make

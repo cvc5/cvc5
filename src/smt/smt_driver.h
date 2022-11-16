@@ -53,6 +53,16 @@ class SmtDriver : protected EnvObj
    * temporary assertions.
    */
   Result checkSat(const std::vector<Node>& assumptions);
+
+  /**
+   * Refresh the assertions that have been asserted to the underlying SMT
+   * solver. This gets the set of unprocessed assertions of the underlying
+   * SMT solver, preprocesses them, pushes them into the SMT solver.
+   *
+   * We ensure that assertions are refreshed eagerly during user pushes to
+   * ensure that assertions are only preprocessed in one context.
+   */
+  void refreshAssertions();
   // --------------------------------------- callbacks from the context manager
   /**
    * Notify push pre, which is called just before the user context of the state
