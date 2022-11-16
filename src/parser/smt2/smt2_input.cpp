@@ -21,7 +21,7 @@
 
 #include "base/check.h"
 #include "parser/input.h"
-#include "parser/parser.h"  //ok
+#include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"

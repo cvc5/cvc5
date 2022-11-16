@@ -96,7 +96,6 @@ class Parser;
  * appropriate type.
  *
  * This class is deprecated and used only for the ANTLR parser.
- *
  */
 class AntlrInput : public Input {
   /** The token lookahead used to lex and parse the input. This should usually be equal to
