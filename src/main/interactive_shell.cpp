@@ -93,14 +93,14 @@ InteractiveShell::InteractiveShell(Solver* solver,
       d_isInteractive(isInteractive),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, sm, true);
-  /* Create parser with bogus input. */
-  d_parser.reset(parserBuilder.build());
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
     sm->forceLogic(tmp.getLogicString());
   }
+  ParserBuilder parserBuilder(solver, sm, true);
+  /* Create parser with bogus input. */
+  d_parser.reset(parserBuilder.build());
 
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
