@@ -72,7 +72,10 @@ class CVC5_EXPORT InputParser
                       const std::string& input,
                       const std::string& name);
 
-  /** Parse and return the next command. */
+  /**
+   * Parse and return the next command.
+   * NOTE: currently memory management of commands is handled internally.
+   */
   Command* nextCommand();
 
   /** Parse and return the next expression. */
