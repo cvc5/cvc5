@@ -17,75 +17,70 @@
 
 #include "base/output.h"
 #include "parser/input.h"
-#include "parser/parser.h"
-#include "smt/command.h"
+#include "parser/parser_builder.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 namespace parser {
 
+  /*
+std::unique_ptr<InputParser> Parser::parseFile(const std::string& fname,
+                                               bool useMmap)
+{
+  d_input = Input::newFileInput(d_lang, fname, useMmap);
+  d_input->setParser(*this);
+  d_done = false;
+  return std::unique_ptr<InputParser>(new InputParser(this, d_input));
+}
+
+std::unique_ptr<InputParser> Parser::parseStream(const std::string& name,
+                                                 std::istream& stream)
+{
+  d_input = Input::newStreamInput(d_lang, stream, name);
+  d_input->setParser(*this);
+  d_done = false;
+  return std::unique_ptr<InputParser>(new InputParser(this, d_input));
+}
+
+std::unique_ptr<InputParser> Parser::parseString(const std::string& name,
+                                                 const std::string& str)
+{
+  d_input = Input::newStringInput(d_lang, str, name);
+  d_input->setParser(*this);
+  d_done = false;
+  return std::unique_ptr<InputParser>(new InputParser(this, d_input));
+}
+*/
+
+InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
+{
+  ParserBuilder parserBuilder(
+      solver, sm, useOptions);
+  d_state = parserBuilder.build();
+}
+
 Command* InputParser::nextCommand()
 {
-  Debug("parser") << "nextCommand()" << std::endl;
-  Command* cmd = nullptr;
-  if (d_state->hasCommand())
-  {
-    cmd = d_state->getNextCommand();
-    d_state->setDone(cmd == nullptr);
-  }
-  else
-  {
-    try
-    {
-      cmd = d_input->parseCommand();
-      d_state->preemptCommand(cmd);
-      cmd = d_state->getNextCommand();
-      d_state->setDone(cmd == nullptr);
-    }
-    catch (ParserException& e)
-    {
-      d_state->setDone();
-      throw;
-    }
-    catch (std::exception& e)
-    {
-      d_state->setDone();
-      d_input->parseError(e.what());
-    }
-  }
-  Debug("parser") << "nextCommand() => " << cmd << std::endl;
-  return cmd;
+  Trace("parser") << "nextCommand()" << std::endl;
+  return d_state->nextCommand();
 }
 
-api::Term InputParser::nextExpression()
+Term InputParser::nextExpression()
 {
-  Debug("parser") << "nextExpression()" << std::endl;
-  api::Term result;
-  if (!d_state->done())
-  {
-    try
-    {
-      result = d_input->parseExpr();
-      d_state->setDone(result.isNull());
-    }
-    catch (ParserException& e)
-    {
-      d_state->setDone();
-      throw;
-    }
-    catch (std::exception& e)
-    {
-      d_state->setDone();
-      d_input->parseError(e.what());
-    }
-  }
-  Debug("parser") << "nextExpression() => " << result << std::endl;
-  return result;
+  Trace("parser") << "nextExpression()" << std::endl;
+  return d_state->nextExpression();
 }
 
-InputParser::InputParser(Parser* state, Input* input)
-    : d_state(state), d_input(input)
+void InputParser::forceLogic(const std::string& logic)
 {
+  d_state->forceLogic(logic);
 }
+
+void InputParser::setInput(Input* input)
+{
+  d_state->setInput(input);
+}
+
 
 }  // namespace parser
 }  // namespace cvc5

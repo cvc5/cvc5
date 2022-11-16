@@ -22,15 +22,15 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
+#include "parser/parser.h"
 
 namespace cvc5 {
-
-class Command;
-
 namespace parser {
 
+class Command;
 class Input;
 class Parser;
+class SymbolManager;
 
 /**
  * This class is the main interface for retrieving commands and expressions
@@ -41,12 +41,16 @@ class CVC5_EXPORT InputParser
   friend Parser;
 
  public:
+  InputParser(Solver* solver, SymbolManager* sm, bool useOptions);
   /** Parse and return the next command. */
   Command* nextCommand();
 
   /** Parse and return the next expression. */
-  api::Term nextExpression();
+  Term nextExpression();
 
+  void setInput(Input* input);
+  
+  void forceLogic(const std::string& logic);
  private:
   /**
    * Constructor.
@@ -57,7 +61,7 @@ class CVC5_EXPORT InputParser
   InputParser(Parser* state, Input* input);
 
   /** The parser state */
-  Parser* d_state;
+  std::unique_ptr<Parser> d_state;
 
   /** The underlying input */
   std::unique_ptr<Input> d_input;

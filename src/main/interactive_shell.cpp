@@ -45,8 +45,7 @@
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
+#include "parser/input_parser.h"
 #include "theory/logic_info.h"
 
 using namespace std;
@@ -93,9 +92,8 @@ InteractiveShell::InteractiveShell(Solver* solver,
       d_isInteractive(isInteractive),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
-  d_parser.reset(parserBuilder.build());
+  d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
