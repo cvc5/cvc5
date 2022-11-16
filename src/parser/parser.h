@@ -151,16 +151,6 @@ private:
   */
  bool d_canIncludeFile;
 
- /**
-  * Whether the logic has been forced with --force-logic.
-  */
- bool d_logicIsForced;
-
- /**
-  * The logic, if d_logicIsForced == true.
-  */
- std::string d_forcedLogic;
-
  /** The set of operators available in the current logic. */
  std::set<cvc5::Kind> d_logicOperators;
 
@@ -253,15 +243,14 @@ public:
   void allowIncludeFile() { d_canIncludeFile = true; }
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
+  
+  const std::string& getForcedLogic() const;
+  bool logicIsForced() const;
+
 
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
-
-  virtual void forceLogic(const std::string& logic);
-
-  const std::string& getForcedLogic() const { return d_forcedLogic; }
-  bool logicIsForced() const { return d_logicIsForced; }
 
   /**
    * Gets the variable currently bound to name.

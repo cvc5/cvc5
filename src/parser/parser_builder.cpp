@@ -80,7 +80,7 @@ Parser* ParserBuilder::build()
   }
 
   if( d_logicIsForced ) {
-    parser->forceLogic(d_forcedLogic);
+    d_symman->forceLogic(d_forcedLogic);
   }
 
   return parser;

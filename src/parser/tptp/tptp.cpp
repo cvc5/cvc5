@@ -504,12 +504,6 @@ void Tptp::setHol()
   d_solver->setLogic("HO_UF");
 }
 
-void Tptp::forceLogic(const std::string& logic)
-{
-  Parser::forceLogic(logic);
-  preemptCommand(new SetBenchmarkLogicCommand(logic));
-}
-
 void Tptp::addFreeVar(cvc5::Term var)
 {
   Assert(cnf());

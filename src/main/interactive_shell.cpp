@@ -99,7 +99,7 @@ InteractiveShell::InteractiveShell(Solver* solver,
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_parser->forceLogic(tmp.getLogicString());
+    sm->forceLogic(tmp.getLogicString());
   }
 
 #if HAVE_LIBEDITLINE

@@ -48,8 +48,6 @@ Parser::Parser(cvc5::Solver* solver,
       d_strictMode(strictMode),
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
-      d_logicIsForced(false),
-      d_forcedLogic(),
       d_solver(solver)
 {
 }
@@ -73,14 +71,15 @@ cvc5::Term Parser::getSymbol(const std::string& name, SymbolType type)
   // Functions share var namespace
   return d_symtab->lookup(name);
 }
-
-void Parser::forceLogic(const std::string& logic)
+const std::string& Parser::getForcedLogic() const
 {
-  Assert(!d_logicIsForced);
-  d_logicIsForced = true;
-  d_forcedLogic = logic;
+  return d_symman->getForcedLogic();
 }
-
+bool Parser::logicIsForced() const
+{
+  return d_symman->isLogicForced();
+}
+  
 cvc5::Term Parser::getVariable(const std::string& name)
 {
   return getSymbol(name, SYM_VARIABLE);
