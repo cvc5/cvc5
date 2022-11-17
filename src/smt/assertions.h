@@ -46,12 +46,6 @@ class Assertions : protected EnvObj
  public:
   Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
-  /**
-   * Clears out the non-context-dependent data in this class.  Necessary to
-   * clear out our assertion vectors in case someone does a push-assert-pop
-   * without a check-sat.
-   */
-  void clearCurrent();
   /** refresh
    *
    * Ensures that all global declarations have been processed in the current
@@ -119,8 +113,6 @@ class Assertions : protected EnvObj
    * @param pppg The preprocess proof generator of the proof manager.
    */
   void enableProofs(smt::PreprocessProofGenerator* pppg);
-  /** Is proof enabled? */
-  bool isProofEnabled() const;
   //------------------------------------ end for proofs
  private:
   /**

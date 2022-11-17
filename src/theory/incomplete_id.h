@@ -24,7 +24,11 @@ namespace cvc5::internal {
 namespace theory {
 
 /**
- * Reasons for incompleteness in cvc5.
+ * Reasons for answering "unknown" in cvc5.
+ *
+ * Note that this enumeration is used both for marking incomplete in a
+ * SAT context, and marking unsound in a user context, both of which may
+ * imply that we are "unknown".
  */
 enum class IncompleteId
 {
@@ -34,8 +38,12 @@ enum class IncompleteId
   ARITH_NL,
   // incomplete due to lack of a complete quantifiers strategy
   QUANTIFIERS,
-  // we failed to verify the correctness of a candidate solution in SyGuS
+  // (refutation unsound) we failed to verify the correctness of a candidate
+  // solution in SyGuS and blocked it to make progress
   QUANTIFIERS_SYGUS_NO_VERIFY,
+  // (refutation unsound) we are generalizing any-constants when blocking with
+  // smart enumeration
+  QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT,
   // incomplete due to counterexample-guided instantiation not being complete
   QUANTIFIERS_CEGQI,
   // incomplete due to finite model finding not being complete
