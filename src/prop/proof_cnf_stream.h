@@ -139,6 +139,11 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   /** Retrieve the proofs for clauses derived from lemmas */
   std::vector<std::shared_ptr<ProofNode>> getLemmaClausesProofs();
 
+  /** Retrieve the clauses derived from the input */
+  std::vector<Node> getInputClauses();
+  /** Retrieve the clauses derived from lemmas */
+  std::vector<Node> getLemmaClauses();
+
  private:
   /**
    * Same as above, except that uses the saved d_removable flag. It calls the
