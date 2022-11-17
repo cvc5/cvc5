@@ -178,6 +178,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
+    d_theoryEngine->preRegister(assertion);
     // now, assert to theory engine
     d_theoryEngine->assertFact(assertion);
     if (d_dmNeedsActiveDefs)
@@ -394,7 +395,7 @@ void TheoryProxy::preRegister(Node n)
     }
     return;
   }
-  d_theoryEngine->preRegister(n);
+  //d_theoryEngine->preRegister(n);
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

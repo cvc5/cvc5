@@ -1,7 +1,7 @@
 ; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --bv-solver=bitblast
 (set-option :incremental false)
-(set-info :status unsat)
+;(set-info :status unsat)
 (set-logic QF_AUFBV)
 (declare-fun start2 () (_ BitVec 32))
 (declare-fun start1 () (_ BitVec 32))
