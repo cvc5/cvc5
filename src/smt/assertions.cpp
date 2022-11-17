@@ -98,16 +98,16 @@ void Assertions::addFormula(TNode n,
                             bool isFunDef,
                             bool maybeHasFv)
 {
-  if (n.isConst() && n.getConst<bool>())
-  {
-    // true, nothing to do
-    return;
-  }
   // add to assertion list
   d_assertionList.push_back(n);
   if (isFunDef)
   {
     d_assertionListDefs.push_back(n);
+  }
+  if (n.isConst() && n.getConst<bool>())
+  {
+    // true, nothing to do
+    return;
   }
   Trace("smt") << "Assertions::addFormula(" << n
                << ", isFunDef = " << isFunDef << std::endl;
