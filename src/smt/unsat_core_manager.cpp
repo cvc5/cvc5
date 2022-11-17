@@ -34,15 +34,17 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
   Trace("unsat-core") << "UCManager::getUnsatCore: free assumptions: "
                       << fassumps << "\n";
   const context::CDList<Node>& al = as.getAssertionList();
+  std::unordered_set<Node> coreSet;
   for (const Node& a : al)
   {
     Trace("unsat-core") << "is assertion " << a << " there?\n";
     if (std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end())
     {
       Trace("unsat-core") << "\tyes\n";
-      core.push_back(a);
+      coreSet.insert(a);
     }
   }
+  core.insert(core.end(), coreSet.begin(), coreSet.end());
   if (TraceIsOn("unsat-core"))
   {
     Trace("unsat-core") << "UCManager::getUnsatCore():\n";
