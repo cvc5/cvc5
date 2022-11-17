@@ -46,6 +46,7 @@ class PreregisterRlv : protected EnvObj
   ~PreregisterRlv();
 
   void notifyPreRegister(TNode n, std::vector<Node>& toPreregister);
+  void notifyAsserted(TNode n, std::vector<Node>& toPreregister);
   
   void notifyCheck(std::vector<Node>& toPreregister);
  private:

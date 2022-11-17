@@ -198,6 +198,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   modes::LearnedLitType getLiteralType(const Node& lit) const;
 
  private:
+  void preRegisterToTheory(const std::vector<Node>& toPreregister);
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
 

@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status sat)
 (declare-sort U 0)
 (declare-datatypes ((T 0) (D 0)) (((E) (o (b Bool)) (I (t Int)) (i (v D))) ((i (v U)))))
 (declare-datatypes ((H 0)) (((M (h T)))))

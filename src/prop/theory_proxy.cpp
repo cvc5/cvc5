@@ -156,11 +156,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   {
     std::vector<Node> toPreregister;
     d_prr->notifyCheck(toPreregister);
-    for (const Node& nn : toPreregister)
-    {
-      d_theoryEngine->preRegister(nn);
-    }
-    return;
+    preRegisterToTheory(toPreregister);
   }
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
@@ -178,8 +174,14 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
-    d_theoryEngine->preRegister(assertion);
+    if (d_prr!=nullptr)
+    {
+      std::vector<Node> toPreregister;
+      d_prr->notifyAsserted(assertion, toPreregister);
+      preRegisterToTheory(toPreregister);
+    }
     // now, assert to theory engine
+    Trace("ajr-temp") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
     if (d_dmNeedsActiveDefs)
     {
@@ -389,13 +391,20 @@ void TheoryProxy::preRegister(Node n)
   {
     std::vector<Node> toPreregister;
     d_prr->notifyPreRegister(n, toPreregister);
-    for (const Node& nn : toPreregister)
-    {
-      d_theoryEngine->preRegister(nn);
-    }
+    preRegisterToTheory(toPreregister);
     return;
   }
-  //d_theoryEngine->preRegister(n);
+  Trace("ajr-temp") << "preregister: " << n << std::endl;
+  d_theoryEngine->preRegister(n);
+}
+
+void TheoryProxy::preRegisterToTheory(const std::vector<Node>& toPreregister)
+{
+  for (const Node& n : toPreregister)
+  {
+    Trace("ajr-temp") << "preregister: " << n << std::endl;
+    d_theoryEngine->preRegister(n);
+  }
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

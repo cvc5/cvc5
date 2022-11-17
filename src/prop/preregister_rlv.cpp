@@ -22,6 +22,12 @@ PreregisterRlv::PreregisterRlv(Env& env) : EnvObj(env), d_preregistering(context
 
 PreregisterRlv::~PreregisterRlv() {}
 
+void PreregisterRlv::notifyAsserted(TNode n, std::vector<Node>& toPreregister)
+{
+  Node natom = n.getKind()==kind::NOT ? n[0] : n;
+  toPreregister.push_back(natom);
+}
+
 void PreregisterRlv::notifyPreRegister(TNode n, std::vector<Node>& toPreregister)
 {
 }
