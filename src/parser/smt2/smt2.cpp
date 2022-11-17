@@ -33,8 +33,10 @@ namespace parser {
 Smt2::Smt2(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
-           bool parseOnly)
+           bool parseOnly,
+           bool isSygus)
     : Parser(solver, sm, strictMode, parseOnly),
+      d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
@@ -787,7 +789,7 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
 
 bool Smt2::sygus() const
 {
-  return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
+  return d_isSygus;
 }
 
 bool Smt2::hasGrammars() const

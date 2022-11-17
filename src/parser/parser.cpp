@@ -871,17 +871,6 @@ std::wstring Parser::processAdHocStringEsc(const std::string& s)
   return res;
 }
 
-cvc5::Term Parser::mkStringConstant(const std::string& s)
-{
-  if (d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6")
-  {
-    return d_solver->mkString(s, true);
-  }
-  // otherwise, we must process ad-hoc escape sequences
-  std::wstring str = processAdHocStringEsc(s);
-  return d_solver->mkString(str);
-}
-
 cvc5::Term Parser::mkCharConstant(const std::string& s)
 {
   Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
