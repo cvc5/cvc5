@@ -65,7 +65,7 @@ TheoryProxy::TheoryProxy(Env& env,
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
-  if (options().prop.preRegisterMode!=options::PreRegisterMode::EAGER)
+  if (options().prop.preRegisterMode != options::PreRegisterMode::EAGER)
   {
     d_prr.reset(new PreregisterRlv(env));
   }
