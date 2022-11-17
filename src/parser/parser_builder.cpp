@@ -56,7 +56,7 @@ void ParserBuilder::init(cvc5::Solver* solver, SymbolManager* sm)
 
 std::unique_ptr<Parser> ParserBuilder::build()
 {
-  std::unique_ptr<Parser> parser = NULL;
+  std::unique_ptr<Parser> parser;
   if (d_lang == "LANG_TPTP")
   {
     parser.reset(new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly));
