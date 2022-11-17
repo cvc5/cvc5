@@ -22,10 +22,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include "context/cdlist.h"
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
@@ -47,8 +47,9 @@ class PreregisterRlv : protected EnvObj
 
   void notifyPreRegister(TNode n, std::vector<Node>& toPreregister);
   void notifyAsserted(TNode n, std::vector<Node>& toPreregister);
-  
+
   void notifyCheck(std::vector<Node>& toPreregister);
+
  private:
   /** Queue of asserted facts */
   NodeList d_preregistering;

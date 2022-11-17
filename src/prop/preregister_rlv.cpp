@@ -18,24 +18,25 @@
 namespace cvc5::internal {
 namespace prop {
 
-PreregisterRlv::PreregisterRlv(Env& env) : EnvObj(env), d_preregistering(context()), d_prindex(context()) {}
+PreregisterRlv::PreregisterRlv(Env& env)
+    : EnvObj(env), d_preregistering(context()), d_prindex(context())
+{
+}
 
 PreregisterRlv::~PreregisterRlv() {}
 
 void PreregisterRlv::notifyAsserted(TNode n, std::vector<Node>& toPreregister)
 {
-  Node natom = n.getKind()==kind::NOT ? n[0] : n;
+  Node natom = n.getKind() == kind::NOT ? n[0] : n;
   toPreregister.push_back(natom);
 }
 
-void PreregisterRlv::notifyPreRegister(TNode n, std::vector<Node>& toPreregister)
+void PreregisterRlv::notifyPreRegister(TNode n,
+                                       std::vector<Node>& toPreregister)
 {
 }
 
-void PreregisterRlv::notifyCheck(std::vector<Node>& toPreregister)
-{
-}
+void PreregisterRlv::notifyCheck(std::vector<Node>& toPreregister) {}
 
 }  // namespace prop
 }  // namespace cvc5::internal
-

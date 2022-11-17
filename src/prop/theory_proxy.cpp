@@ -152,7 +152,7 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
-  if (d_prr!=nullptr)
+  if (d_prr != nullptr)
   {
     std::vector<Node> toPreregister;
     d_prr->notifyCheck(toPreregister);
@@ -174,7 +174,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
-    if (d_prr!=nullptr)
+    if (d_prr != nullptr)
     {
       std::vector<Node> toPreregister;
       d_prr->notifyAsserted(assertion, toPreregister);
@@ -385,9 +385,9 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::preRegister(Node n) 
-{ 
-  if (d_prr!=nullptr)
+void TheoryProxy::preRegister(Node n)
+{
+  if (d_prr != nullptr)
   {
     std::vector<Node> toPreregister;
     d_prr->notifyPreRegister(n, toPreregister);

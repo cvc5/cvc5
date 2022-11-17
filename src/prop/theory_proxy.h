@@ -25,8 +25,8 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
-#include "prop/registrar.h"
 #include "prop/preregister_rlv.h"
+#include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
@@ -219,7 +219,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
-  
+
   /**
    * Set of all lemmas that have been "shared" in the portfolio---i.e.,
    * all imported and exported lemmas.
@@ -234,7 +234,7 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
-  
+
   /** Preregister policy */
   std::unique_ptr<PreregisterRlv> d_prr;
 

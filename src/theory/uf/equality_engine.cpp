@@ -1942,7 +1942,7 @@ void EqualityEngine::propagate() {
     // If constants are being merged we're done
     if (d_isConstant[t1classId] && d_isConstant[t2classId]) {
       // When merging constants we are inconsistent, hence done
-          Trace("ajr-temp") << "Done " << d_name << " 2" << std::endl;
+      Trace("ajr-temp") << "Done " << d_name << " 2" << std::endl;
       d_done = true;
       // But in order to keep invariants (edges = 2*equalities) we put an equalities in
       // Note that we can explain this merge as we have a graph edge
@@ -1989,7 +1989,7 @@ void EqualityEngine::propagate() {
       d_assertedEqualities.push_back(Equality(t2classId, t1classId));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
       if (!merge(node2, node1, triggers)) {
-          Trace("ajr-temp") << "Done " << d_name << " 3" << std::endl;
+        Trace("ajr-temp") << "Done " << d_name << " 3" << std::endl;
         d_done = true;
       }
     } else {
@@ -1999,8 +1999,8 @@ void EqualityEngine::propagate() {
       d_assertedEqualities.push_back(Equality(t1classId, t2classId));
       d_assertedEqualitiesCount = d_assertedEqualitiesCount + 1;
     if (!merge(node1, node2, triggers)) {
-          Trace("ajr-temp") << "Done " << d_name << " 4" << std::endl;
-        d_done = true;
+      Trace("ajr-temp") << "Done " << d_name << " 4" << std::endl;
+      d_done = true;
       }
     }
 
@@ -2038,7 +2038,7 @@ void EqualityEngine::propagate() {
               if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                      triggerInfo.d_polarity))
               {
-          Trace("ajr-temp") << "Done " << d_name << " 5" << std::endl;
+                Trace("ajr-temp") << "Done " << d_name << " 5" << std::endl;
                 d_done = true;
               }
             }
@@ -2049,7 +2049,7 @@ void EqualityEngine::propagate() {
             if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                    triggerInfo.d_polarity))
             {
-          Trace("ajr-temp") << "Done " << d_name << " 6" << std::endl;
+              Trace("ajr-temp") << "Done " << d_name << " 6" << std::endl;
               d_done = true;
             }
           }
@@ -2059,7 +2059,7 @@ void EqualityEngine::propagate() {
           if (!d_notify->eqNotifyTriggerPredicate(triggerInfo.d_trigger,
                                                  triggerInfo.d_polarity))
           {
-          Trace("ajr-temp") << "Done " << d_name << " 7" << std::endl;
+            Trace("ajr-temp") << "Done " << d_name << " 7" << std::endl;
             d_done = true;
           }
         }
@@ -2251,7 +2251,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
         && !d_notify->eqNotifyTriggerTermEquality(
                tag, t, d_nodes[triggerId], true))
     {
-          Trace("ajr-temp") << "Done " << d_name << " 7" << std::endl;
+      Trace("ajr-temp") << "Done " << d_name << " 7" << std::endl;
       d_done = true;
     }
   } else {
