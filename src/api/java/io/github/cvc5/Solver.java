@@ -336,11 +336,11 @@ public class Solver implements IPointer
    * kind whose parameters and arguments are unspecified.
    *
    * The kind k must be the kind of a sort that can be abstracted, i.e. a sort
-   * that has indices or argument sorts. For example, ARRAY_SORT and
-   * BITVECTOR_SORT can be passed as the kind k to this method, while
-   * INTEGER_SORT and STRING_SORT cannot.
+   * that has indices or argument sorts. For example, {@link Kind#ARRAY_SORT} and
+   *  {@link Kind#BITVECTOR_SORT} can be passed as the kind k to this method, while
+   *  {@link Kind#INTEGER_SORT} and  {@link Kind#STRING_SORT} cannot.
    *
-   * @api.note providing the kind ABSTRACT_SORT as an argument to this method
+   * @api.note providing the kind  {@link Kind#ABSTRACT_SORT} as an argument to this method
    * returns the (fully) unspecified sort, often denoted ?.
    *
    * @api.note providing a kind k that has no indices and a fixed arity
