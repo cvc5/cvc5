@@ -82,9 +82,19 @@ name   = "SAT Layer"
   help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"
 
 [[option]]
-  name       = "preregisterRlv"
+  name       = "preRegisterMode"
   category   = "expert"
-  long       = "preregister-rlv"
-  type       = "bool"
-  default    = "false"
-  help       = "only preregister atoms as they become relevant"
+  long       = "preregister-mode=MODE"
+  type       = "PreRegisterMode"
+  default    = "EAGER"
+  help       = "Modes for when to preregister literals."
+  help_mode  = "Modes for when to preregister literals."
+[[option.mode.EAGER]]
+  name = "eager"
+  help = "Preregister literals when they are registered as literals in the SAT solver."
+[[option.mode.LAZY]]
+  name = "lazy"
+  help = "Preregister literals when they are asserted."
+[[option.mode.RELEVANT]]
+  name = "rlv"
+  help = "Preregister literals when they become relevant."
