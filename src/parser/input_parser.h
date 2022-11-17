@@ -85,9 +85,6 @@ class CVC5_EXPORT InputParser
   /** Parse and return the next expression. */
   Term nextExpression();
 
-  //!!! TODO: delete
-  void forceLogic(const std::string& logic);
-
  private:
   //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
   // replaced (wishue #142).

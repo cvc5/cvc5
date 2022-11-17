@@ -42,13 +42,6 @@ Term InputParser::nextExpression()
   return d_state->nextExpression();
 }
 
-void InputParser::forceLogic(const std::string& logic)
-{
-  Trace("parser") << "forceLogic(" << logic << ")" << std::endl;
-  //!!! TODO: delete
-  d_state->forceLogic(logic);
-}
-
 void InputParser::setFileInput(const std::string& lang,
                                const std::string& filename)
 {
