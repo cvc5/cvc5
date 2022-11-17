@@ -787,10 +787,7 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
   return d_allocGrammars.back().get();
 }
 
-bool Smt2::sygus() const
-{
-  return d_isSygus;
-}
+bool Smt2::sygus() const { return d_isSygus; }
 
 bool Smt2::hasGrammars() const
 {
