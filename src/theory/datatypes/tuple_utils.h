@@ -26,12 +26,47 @@ class TupleUtils
 {
  public:
   /**
+   *
+   * @param n a node to print in the message if TypeCheckingExceptionPrivate
+   * exception is thrown
+   * @param tupleType the type of the tuple
+   * @param indices a list of indices for projection
+   * @throw an exception if one of the indices in node n is greater than the
+   * expected tuple's length
+   */
+  static void checkTypeIndices(Node n,
+                               TypeNode tupleType,
+                               const std::vector<uint32_t> indices);
+  /**
+   * @param tupleType1 tuple type
+   * @param tupleType2 tuple type
+   * @return the type of concatenation of tupleType1, tupleType2
+   */
+  static TypeNode concatTupleTypes(TypeNode tupleType1, TypeNode tupleType2);
+
+  /**
    * @param tuple a node of tuple type
    * @param n_th the index of the element to be extracted, and must satisfy the
    * constraint 0 <= n_th < length of tuple.
    * @return tuple element at index n_th
    */
   static Node nthElementOfTuple(Node tuple, int n_th);
+
+  /**
+   * @param indices a list of indices for projected elements
+   * @param tuple a node of tuple type
+   * @return the projection of the tuple with the specified indices
+   */
+  static Node getTupleProjection(const std::vector<uint32_t>& indices,
+                                 Node tuple);
+
+  /**
+   * @param indices a list of indices for projected elements
+   * @param tupleType the type of the original tuple
+   * @return the type of the projected tuple
+   */
+  static TypeNode getTupleProjectionType(const std::vector<uint32_t>& indices,
+                                         TypeNode tupleType);
 
   /**
    * @param tuple a tuple node of the form (tuple a_1 ... a_n)
@@ -45,6 +80,18 @@ class TupleUtils
    * @return the vector [a_1, ... a_n, b_1, ... b_n]
    */
   static std::vector<Node> getTupleElements(Node tuple1, Node tuple2);
+
+  /**
+   * @param indices a list of indices for projected elements n_1, ..., n_k
+   * @param tuple1 a constant tuple node
+   * @param tuple2 a constant tuple node
+   * @return a boolean representing the equality of
+   * ((_ tuple.projection n_1 ... n_k) tuple1) and
+   * ((_ tuple.projection n_1 ... n_k) tuple2).
+   */
+  static bool sameProjection(const std::vector<uint32_t>& indices,
+                             Node tuple1,
+                             Node tuple2);
 
   /**
    * construct a tuple from a list of elements

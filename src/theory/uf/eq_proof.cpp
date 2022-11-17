@@ -18,6 +18,7 @@
 #include "base/configuration.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
 
 namespace cvc5::internal {
@@ -979,12 +980,27 @@ Node EqProof::addToProof(CDProof* p,
   // Equalities due to theory reasoning
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
-    Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
-           && d_node[1].isConst())
+    Assert(!d_node.isNull()
+           && ((d_node.getKind() == kind::EQUAL && d_node[1].isConst())
+               || (d_node.getKind() == kind::NOT
+                   && d_node[0].getKind() == kind::EQUAL
+                   && d_node[0][0].isConst() && d_node[0][1].isConst())))
         << ". Conclusion " << d_node << " from " << d_id
-        << " was expected to be (= (f t1 ... tn) c)\n";
+        << " was expected to be (= (f t1 ... tn) c) or (not (= c1 c2))\n";
     Assert(!assumptions.count(d_node))
         << "Conclusion " << d_node << " from " << d_id << " is an assumption\n";
+    // The step has the form (not (= c1 c2)). We conclude it via
+    // MACRO_SR_PRED_INTRO and turn it into an equality with false, so that the
+    // rest of the reconstruction works
+    if (d_children.empty())
+    {
+      Node conclusion =
+          d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+      p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, {}, {d_node});
+      p->addStep(conclusion, PfRule::FALSE_INTRO, {d_node}, {});
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // The step has the form
     //  [(= t1 c1)] ... [(= tn cn)]
     //  ------------------------
@@ -1331,7 +1347,7 @@ Node EqProof::addToProof(CDProof* p,
     }
   }
   std::vector<Node> children(arity + 1);
-  // Proccess transitivity matrix to (possibly) generate transitivity steps for
+  // Process transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
   for (unsigned i = 0; i <= arity; ++i)
   {
@@ -1439,12 +1455,50 @@ Node EqProof::addToProof(CDProof* p,
   // rewriting
   if (!CDProof::isSame(conclusion, d_node))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: add "
+    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a"
                           << PfRule::MACRO_SR_PRED_TRANSFORM
-                          << " step to flatten rebuilt conclusion "
-                          << conclusion << "into " << d_node << "\n";
-    p->addStep(
-        d_node, PfRule::MACRO_SR_PRED_TRANSFORM, {conclusion}, {d_node}, true);
+                          << " step the rebuilt conclusion "
+                          << conclusion << " into " << d_node << "\n";
+    Node res = p->getManager()->getChecker()->checkDebug(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {conclusion},
+        {d_node},
+        Node::null(),
+        "eqproof-conv");
+    // If rewriting was not able to flatten the rebuilt conclusion into the
+    // original one, we give up and use a TRUST_FLATTENING_REWRITE step,
+    // generating a proof for the original conclusion d_node such as
+    //
+    //     Converted EqProof
+    //  ----------------------      ------------------- TRUST_FLATTENING_REWRITE
+    //     conclusion               conclusion = d_node
+    // ------------------------------------------------------- EQ_RESOLVE
+    //                       d_node
+    //
+    //
+    //  If rewriting was able to do it, however, we just add the macro step.
+    if (res.isNull())
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: adding a trust flattening rewrite step\n";
+      Node bridgeEq = conclusion.eqNode(d_node);
+      p->addStep(bridgeEq,
+                 PfRule::TRUST_FLATTENING_REWRITE,
+                 {},
+                 {bridgeEq});
+      p->addStep(d_node,
+                 PfRule::EQ_RESOLVE,
+                 {conclusion, bridgeEq},
+                 {});
+    }
+    else
+    {
+      p->addStep(d_node,
+                 PfRule::MACRO_SR_PRED_TRANSFORM,
+                 {conclusion},
+                 {d_node},
+                 true);
+    }
   }
   visited[d_node] = d_node;
   return d_node;

@@ -22,6 +22,7 @@
 #include <iostream>
 #include <memory>
 #include <new>
+#include <optional>
 
 #include "api/cpp/cvc5.h"
 #include "base/configuration.h"
@@ -31,11 +32,12 @@
 #include "main/interactive_shell.h"
 #include "main/main.h"
 #include "main/options.h"
+#include "main/portfolio_driver.h"
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
+#include "parser/api/cpp/command.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -77,7 +79,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   }
   for (const auto& name : {"show-config",
                            "copyright",
-                           "show-debug-tags",
                            "show-trace-tags",
                            "version"})
   {
@@ -103,10 +104,16 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
   // If no file supplied we will read from standard input
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
-  // if we're reading from stdin on a TTY, default to interactive mode
+  // If we're reading from stdin, use interactive mode if stdin-input-per-line
+  // is true, or if we are a TTY.
   if (!solver->getOptionInfo("interactive").setByUser)
   {
-    solver->setOption("interactive", (inputFromStdin && isatty(fileno(stdin))) ? "true" : "false");
+    bool inputPerLine =
+        solver->getOptionInfo("stdin-input-per-line").boolValue();
+    solver->setOption(
+        "interactive",
+        (inputFromStdin && (inputPerLine || isatty(fileno(stdin)))) ? "true"
+                                                                    : "false");
   }
 
   // Auto-detect input language by filename extension
@@ -161,7 +168,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    std::unique_ptr<cvc5::Command> cmd;
     bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
@@ -169,30 +175,50 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       {
         solver->setOption("incremental", "true");
       }
+      // We use the interactive shell when piping from stdin, even some cases
+      // where the input stream is not a TTY. We do this to avoid memory issues
+      // involving tokens that span multiple lines.
+      // We compute whether the interactive shell is actually interactive
+      // (via isatty). If we are not interactive, we disable certain output
+      // information, e.g. for querying the user.
+      bool isInteractive = isatty(fileno(stdin));
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager(),
                              dopts.in(),
-                             dopts.out());
+                             dopts.out(),
+                             isInteractive);
 
-      auto& out = solver->getDriverOptions().out();
-      out << Configuration::getPackageName() << " "
-          << Configuration::getVersionString();
-      if (Configuration::isGitBuild())
+      if (isInteractive)
       {
-        out << " [" << Configuration::getGitInfo() << "]";
+        auto& out = solver->getDriverOptions().out();
+        out << Configuration::getPackageName() << " "
+            << Configuration::getVersionString();
+        if (Configuration::isGitBuild())
+        {
+          out << " [" << Configuration::getGitInfo() << "]";
+        }
+        out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
+            << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
+            << std::endl
+            << Configuration::copyright() << std::endl;
       }
-      out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
-          << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
-          << std::endl
-          << Configuration::copyright() << std::endl;
 
-      while(true) {
-        cmd.reset(shell.readCommand());
-        if (cmd == nullptr)
+      bool quit = false;
+      while (!quit)
+      {
+        std::optional<InteractiveShell::CmdSeq> cmds = shell.readCommand();
+        if (!cmds)
+        {
           break;
-        status = pExecutor->doCommand(cmd) && status;
-        if (cmd->interrupted()) {
-          break;
+        }
+        for (std::unique_ptr<cvc5::parser::Command>& cmd : *cmds)
+        {
+          status = pExecutor->doCommand(cmd) && status;
+          if (cmd->interrupted())
+          {
+            quit = true;
+            break;
+          }
         }
       }
     }
@@ -222,37 +248,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
             Input::newFileInput(solver->getOption("input-language"), filename));
       }
 
-      bool interrupted = false;
-      while (status)
-      {
-        if (interrupted) {
-          dopts.out() << cvc5::CommandInterrupted();
-          pExecutor->reset();
-          break;
-        }
-        cmd.reset(parser->nextCommand());
-        if (cmd == nullptr) break;
-
-        status = pExecutor->doCommand(cmd);
-        if (cmd->interrupted() && status == 0) {
-          interrupted = true;
-          break;
-        }
-
-        if (dynamic_cast<cvc5::QuitCommand*>(cmd.get()) != nullptr)
-        {
-          break;
-        }
-      }
-    }
-
-    cvc5::Result result;
-    if(status) {
-      result = pExecutor->getResult();
-      returnValue = 0;
-    } else {
-      // there was some kind of error
-      returnValue = 1;
+      PortfolioDriver driver(parser);
+      returnValue = driver.solve(pExecutor) ? 0 : 1;
     }
 
 #ifdef CVC5_COMPETITION_MODE

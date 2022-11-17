@@ -42,7 +42,7 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
@@ -198,13 +198,13 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.from_set (singleton (SetSingletonOp Int) x)) = (bag x 1)
+   *  - (bag.from_set (set.singleton x)) = (bag x 1)
    */
   BagsRewriteResponse rewriteFromSet(const TNode& n) const;
 
   /**
    *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (singleton (SetSingletonOp T) x)
+   *  - (bag.to_set (bag x n)) = (set.singleton x)
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;
@@ -246,6 +246,8 @@ class BagsRewriter : public TheoryRewriter
    *  where f: T1 -> T2 -> T2
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
+  BagsRewriteResponse postRewritePartition(const TNode& n) const;
+  BagsRewriteResponse postRewriteAggregate(const TNode& n) const;
   /**
    *  rewrites for n include:
    *  - (bag.product A (as bag.empty T2)) = (as bag.empty T)
@@ -262,6 +264,11 @@ class BagsRewriter : public TheoryRewriter
   NodeManager* d_nm;
   Node d_zero;
   Node d_one;
+  /**
+   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
+   * be removed.
+   */
+  Rewriter* d_rewriter;
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */

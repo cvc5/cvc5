@@ -1,5 +1,5 @@
-; COMMAND-LINE: --fmf-bound
-; EXPECT: unknown
+; COMMAND-LINE: --fmf-bound --mbqi
+; EXPECT: unsat
 (set-logic ALL)
 (declare-sort a 0) 
 (declare-datatypes ((prod 0)) (((Pair (gx a) (gy a))))) 

@@ -18,7 +18,6 @@
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
 #include "proof/eager_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -32,14 +31,10 @@ namespace datatypes {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
-      d_ipc(isProofEnabled()
-                ? new InferProofCons(context(), env.getProofNodeManager())
-                : nullptr),
-      d_lemPg(isProofEnabled()
-                  ? new EagerProofGenerator(env.getProofNodeManager(),
-                                            userContext(),
-                                            "datatypes::lemPg")
-                  : nullptr)
+      d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
+      d_lemPg(isProofEnabled() ? new EagerProofGenerator(
+                  env, userContext(), "datatypes::lemPg")
+                               : nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -53,10 +48,11 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma)
 {
-  // if we are forcing the inference to be processed as a lemma, or if the
-  // inference must be sent as a lemma based on the policy in
-  // mustCommunicateFact.
-  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
+  // if we are forcing the inference to be processed as a lemma, if the
+  // dtInferAsLemmas option is set, or if the inference must be sent as a lemma
+  // based on the policy in mustCommunicateFact.
+  if (forceLemma || options().datatypes.dtInferAsLemmas
+      || DatatypesInference::mustCommunicateFact(conc, exp))
   {
     d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
@@ -109,8 +105,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
   std::shared_ptr<InferProofCons> ipcl;
   if (isProofEnabled())
   {
-    ipcl =
-        std::make_shared<InferProofCons>(nullptr, d_env.getProofNodeManager());
+    ipcl = std::make_shared<InferProofCons>(d_env, nullptr);
   }
   conc = prepareDtInference(conc, exp, id, ipcl.get());
   // send it as a lemma

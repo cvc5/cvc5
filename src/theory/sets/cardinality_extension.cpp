@@ -639,7 +639,11 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     }
     // now recurse on parents (to ensure their normal will be computed after
     // this eqc)
-    exp.push_back(eqc.eqNode(n));
+    bool needExp = (eqc != n);
+    if (needExp)
+    {
+      exp.push_back(eqc.eqNode(n));
+    }
     for (const std::pair<Node, Node>& cpnc : d_cardParent[n])
     {
       Trace("sets-cycle-debug") << "Traverse card parent " << eqc << " -> "
@@ -650,7 +654,10 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         return;
       }
     }
-    exp.pop_back();
+    if (needExp)
+    {
+      exp.pop_back();
+    }
   }
   curr.pop_back();
   // parents now processed, can add to ordered list
@@ -1075,7 +1082,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // the current members of this finite type.
 
           Node slack = sm->mkDummySkolem("slack", elementType);
-          Node singleton = nm->mkSingleton(elementType, slack);
+          Node singleton = nm->mkNode(SET_SINGLETON, slack);
           els.push_back(singleton);
           d_finite_type_slack_elements[elementType].push_back(slack);
           Trace("sets-model") << "Added slack element " << slack << " to set "
@@ -1083,8 +1090,8 @@ void CardinalityExtension::mkModelValueElementsFor(
         }
         else
         {
-          els.push_back(nm->mkSingleton(
-              elementType, sm->mkDummySkolem("msde", elementType)));
+          els.push_back(nm->mkNode(SET_SINGLETON,
+                                   sm->mkDummySkolem("msde", elementType)));
         }
       }
     }

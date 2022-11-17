@@ -26,7 +26,15 @@ name   = "SMT Layer"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
 [[option]]
-  name       = "doStaticLearning"
+  name       = "simplificationBoolConstProp"
+  category   = "expert"
+  long       = "simplification-bcp"
+  type       = "bool"
+  default    = "false"
+  help       = "apply Boolean constant propagation as a substituion during simplification"
+
+[[option]]
+  name       = "staticLearning"
   category   = "regular"
   long       = "static-learning"
   type       = "bool"
@@ -134,7 +142,7 @@ name   = "SMT Layer"
   help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
-  name       = "unsatCores"
+  name       = "produceUnsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
@@ -166,6 +174,14 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+
+[[option]]
+  name       = "printUnsatCoresFull"
+  category   = "regular"
+  long       = "print-unsat-cores-full"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing unsat cores, include unlabeled assertions"
 
 [[option]]
   name       = "checkUnsatCores"
@@ -345,7 +361,7 @@ name   = "SMT Layer"
   help = "Do not translate bit-vectors to integers"
 [[option.mode.SUM]]
   name = "sum"
-  help = "Generate a sum expression for each bvand instance, based on the value in --solbv-bv-as-int-granularity"
+  help = "Generate a sum expression for each bvand instance, based on the value in --solve-bv-as-int-granularity"
 [[option.mode.IAND]]
   name = "iand"
   help = "Translate bvand to the iand operator (experimental)"
@@ -396,6 +412,7 @@ name   = "SMT Layer"
   long       = "solve-int-as-bv=N"
   type       = "uint64_t"
   default    = "0"
+  maximum    = "4294967295"
   help       = "attempt to solve a pure integer satisfiable problem by bitblasting in sufficient bitwidth (experimental)"
 
 [[option]]
@@ -407,7 +424,7 @@ name   = "SMT Layer"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
-  name       = "interpolants"
+  name       = "produceInterpolants"
   category   = "regular"
   long       = "produce-interpolants"
   type       = "bool"
@@ -461,3 +478,37 @@ name   = "SMT Layer"
   type       = "bool"
   default    = "false"
   help       = "checks whether produced solutions to get-abduct are correct"
+
+[[option]]
+  name       = "deepRestartMode"
+  category   = "expert"
+  long       = "deep-restart=MODE"
+  type       = "DeepRestartMode"
+  default    = "NONE"
+  help       = "mode for deep restarts"
+  help_mode  = "Mode for deep restarts"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use deep restart"
+[[option.mode.INPUT]]
+  name = "input"
+  help = "learn literals that appear in the input"
+[[option.mode.INPUT_AND_SOLVABLE]]
+  name = "input-and-solvable"
+  help = "learn literals that appear in the input and those that can be solved for variables that appear in the input"
+[[option.mode.INPUT_AND_PROP]]
+  name = "input-and-prop"
+  help = "learn literals that appear in the input and those that can be solved for variables, or correspond to constant propagations for terms that appear in the input"
+[[option.mode.ALL]]
+  name = "all"
+  help = "learn all literals"
+
+[[option]]
+  name       = "deepRestartFactor"
+  category   = "expert"
+  long       = "deep-restart-factor=F"
+  type       = "double"
+  default    = "3.0"
+  minimum    = "0.0"
+  maximum    = "1000.0"
+  help       = "sets the threshold for average assertions per literal before a deep restart"

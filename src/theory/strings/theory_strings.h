@@ -168,6 +168,8 @@ class TheoryStrings : public Theory {
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;
+  /** notify shared term */
+  void notifySharedTerm(TNode n) override;
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
@@ -313,6 +315,12 @@ class TheoryStrings : public Theory {
    * we have built, so that unique debug names can be assigned.
    */
   size_t d_absModelCounter;
+  /**
+   * For model building, a counter on the number of gaps constructed for
+   * string terms due to array reasoning. This is to allocate unique unspecified
+   * characters.
+   */
+  size_t d_strGapModelCounter;
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
 };/* class TheoryStrings */

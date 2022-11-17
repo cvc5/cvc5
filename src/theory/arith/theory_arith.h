@@ -21,6 +21,7 @@
 #include "theory/arith/arith_preprocess.h"
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/arith_subs.h"
 #include "theory/arith/branch_and_bound.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/pp_rewrite_eq.h"
@@ -34,7 +35,10 @@ class NonlinearExtension;
 }
 
 class EqualitySolver;
+
+namespace linear {
 class TheoryArithPrivate;
+}
 
 /**
  * Implementation of linear and non-linear integer and real arithmetic.
@@ -42,7 +46,7 @@ class TheoryArithPrivate;
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-  friend class TheoryArithPrivate;
+  friend class linear::TheoryArithPrivate;
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
@@ -132,7 +136,13 @@ class TheoryArith : public Theory {
    * Update d_arithModelCache (if it is empty right now) using the given
    * termSet.
    */
-  void updateModelCache(const std::set<Node>& termSet);
+  void updateModelCacheInternal(const std::set<Node>& termSet);
+  /**
+   * Finalized model cache. Called after d_arithModelCache is finalized during
+   * a full effort check. It computes d_arithModelCacheSubs/Vars, which are
+   * used during theory combination, for getEqualityStatus.
+   */
+  void finalizeModelCache();
   /**
    * Perform a sanity check on the model that all integer variables are assigned
    * to integer values. If an integer variables is assigned to a non-integer
@@ -157,7 +167,7 @@ class TheoryArith : public Theory {
   /** The equality solver */
   std::unique_ptr<EqualitySolver> d_eqSolver;
   /** The (old) linear arithmetic solver */
-  TheoryArithPrivate* d_internal;
+  linear::TheoryArithPrivate* d_internal;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear
@@ -180,6 +190,10 @@ class TheoryArith : public Theory {
    * used to augment the TheoryModel.
    */
   std::map<Node, Node> d_arithModelCache;
+  /** Component of the above that was ill-typed */
+  std::map<Node, Node> d_arithModelCacheIllTyped;
+  /** The above model cache, in substitution form. */
+  ArithSubs d_arithModelCacheSubs;
   /** Is the above map computed? */
   bool d_arithModelCacheSet;
 

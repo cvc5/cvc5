@@ -37,7 +37,7 @@ class DatatypeTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
@@ -56,6 +56,48 @@ class DatatypeTest
     assertThrows(CVC5ApiException.class, () -> d.getConstructor(2));
     assertDoesNotThrow(() -> consConstr.getTerm());
     assertDoesNotThrow(() -> nilConstr.getTerm());
+  }
+
+  @Test
+  void isNull() throws CVC5ApiException
+  {
+    // creating empty (null) objects.
+    DatatypeDecl dtypeSpec = null;
+    DatatypeConstructorDecl cons = null;
+    Datatype d = null;
+    DatatypeConstructor consConstr = null;
+    DatatypeSelector sel = null;
+
+    // verifying that the objects are considered null.
+    assertNull(dtypeSpec);
+    assertNull(cons);
+    assertNull(d);
+    assertNull(consConstr);
+    assertNull(sel);
+
+    // changing the objects to be non-null
+    dtypeSpec = d_solver.mkDatatypeDecl("list");
+    cons = d_solver.mkDatatypeConstructorDecl("cons");
+    cons.addSelector("head", d_solver.getIntegerSort());
+    dtypeSpec.addConstructor(cons);
+    assertEquals(dtypeSpec.getNumConstructors(), 1);
+    assertFalse(dtypeSpec.isParametric());
+    Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
+    d = listSort.getDatatype();
+    consConstr = d.getConstructor(0);
+    sel = consConstr.getSelector(0);
+
+    // verifying that the new objects are non-null
+    assertFalse(dtypeSpec.isNull());
+    assertFalse(cons.isNull());
+    assertFalse(d.isNull());
+    assertFalse(consConstr.isNull());
+    assertFalse(sel.isNull());
+
+    cons.toString();
+    sel.toString();
+    consConstr.toString();
+    d.toString();
   }
 
   @Test
@@ -186,7 +228,7 @@ class DatatypeTest
     DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
     cons.addSelector("head", intSort);
     cons.addSelectorSelf("tail");
-    Sort nullSort = d_solver.getNullSort();
+    Sort nullSort = new Sort();
     assertThrows(CVC5ApiException.class, () -> cons.addSelector("null", nullSort));
     dtypeSpec.addConstructor(cons);
     DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
@@ -283,7 +325,7 @@ class DatatypeTest
     assertEquals(dselTail.getCodomainSort(), dtypeSort);
 
     // possible to construct null datatype declarations if not using solver
-    assertThrows(CVC5ApiException.class, () -> d_solver.getNullDatatypeDecl().getName());
+    assertThrows(CVC5ApiException.class, () -> new DatatypeDecl().getName());
   }
 
   @Test

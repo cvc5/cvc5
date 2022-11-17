@@ -29,6 +29,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::QUANTIFIERS: return "QUANTIFIERS";
     case IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY:
       return "QUANTIFIERS_SYGUS_NO_VERIFY";
+    case IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT:
+      return "QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT";
     case IncompleteId::QUANTIFIERS_CEGQI: return "QUANTIFIERS_CEGQI";
     case IncompleteId::QUANTIFIERS_FMF: return "QUANTIFIERS_FMF";
     case IncompleteId::QUANTIFIERS_RECORDED_INST:
@@ -38,6 +40,7 @@ const char* toString(IncompleteId i)
     case IncompleteId::QUANTIFIERS_SYGUS_SOLVED:
       return "QUANTIFIERS_SYGUS_SOLVED";
     case IncompleteId::SEP: return "SEP";
+    case IncompleteId::SETS_HO_CARD: return "SETS_HO_CARD";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";
     case IncompleteId::STRINGS_LOOP_SKIP: return "STRINGS_LOOP_SKIP";
     case IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY:
@@ -47,6 +50,7 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_HO_EXT_DISABLED: return "UF_HO_EXT_DISABLED";
     case IncompleteId::UF_CARD_DISABLED: return "UF_CARD_DISABLED";
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
+    case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
     default: return "?IncompleteId?";
   }

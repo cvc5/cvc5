@@ -30,9 +30,9 @@
 namespace cvc5::internal {
 namespace proof {
 
-DotPrinter::DotPrinter()
-    : d_lbind(options::defaultDagThresh() ? options::defaultDagThresh() + 1
-                                          : 0),
+DotPrinter::DotPrinter(Env& env)
+    : EnvObj(env),
+      d_lbind(options().printer.dagThresh ? options().printer.dagThresh + 1 : 0),
       d_ruleID(0)
 {
   const std::string acronyms[5] = {"SAT", "CNF", "TL", "PP", "IN"};
@@ -197,15 +197,17 @@ void DotPrinter::print(std::ostream& out, const ProofNode* pn)
   std::map<size_t, uint64_t> proofLet;
   std::map<size_t, uint64_t> firstScopeLet;
   std::unordered_map<const ProofNode*, bool> cfaMap;
+  std::vector<size_t> ancestorHashs;
 
   DotPrinter::printInternal(out,
                             pn,
                             proofLet,
                             firstScopeLet,
                             cfaMap,
+                            ancestorHashs,
                             ProofNodeClusterType::NOT_DEFINED);
 
-  if (options::printDotClusters())
+  if (options().proof.printDotClusters)
   {
     // Print the sub-graphs
     for (unsigned i = 0; i < 5; i++)
@@ -222,40 +224,58 @@ uint64_t DotPrinter::printInternal(
     std::map<size_t, uint64_t>& pfLetClosed,
     std::map<size_t, uint64_t>& pfLetOpen,
     std::unordered_map<const ProofNode*, bool>& cfaMap,
+    std::vector<size_t>& ancestorHashs,
     ProofNodeClusterType parentType)
 {
   uint64_t currentRuleID = d_ruleID;
 
   // Print DAG option enabled
-  if (options::proofDotDAG())
+  if (options().proof.printDotAsDAG)
   {
     ProofNodeHashFunction hasher;
     size_t currentHash = hasher(pn);
-    auto openProofIt = pfLetOpen.find(currentHash);
 
-    if (openProofIt != pfLetOpen.end())
-    {
-      return openProofIt->second;
-    }
+    std::vector<size_t>::iterator oldEnd = ancestorHashs.end();
+    // Search if the current hash is in the vector
+    std::vector<size_t>::iterator it =
+        std::find(ancestorHashs.begin(), ancestorHashs.end(), currentHash);
 
-    auto proofIt = pfLetClosed.find(currentHash);
-    // If this node has been already saved to the global cache of closed proof
-    // nodes
-    if (proofIt != pfLetClosed.end())
+    // Register the current proof node hash in the ancestor vector
+    ancestorHashs.push_back(currentHash);
+
+    // we only consider sharing when this would not introduce a cycle, which
+    // would be the case if this hash is occurring under a proof node with the
+    // same hash (this can happen since our hash computation only takes into
+    // account the immediate descendants of a proof node, the limit of hash
+    // representation notwithstanding)
+    if (it == oldEnd)
     {
-      Assert(!expr::containsAssumption(pn, cfaMap));
-      return proofIt->second;
+      auto openProofIt = pfLetOpen.find(currentHash);
+
+      if (openProofIt != pfLetOpen.end())
+      {
+        return openProofIt->second;
+      }
+
+      auto proofIt = pfLetClosed.find(currentHash);
+      // If this node has been already saved to the global cache of closed proof
+      // nodes
+      if (proofIt != pfLetClosed.end())
+      {
+        Assert(!expr::containsAssumption(pn, cfaMap));
+        return proofIt->second;
+      }
+      // If this proof node is closed, we add it to the global cache
+      if (!expr::containsAssumption(pn, cfaMap))
+      {
+        pfLetClosed[currentHash] = currentRuleID;
+      }
+      pfLetOpen[currentHash] = currentRuleID;
     }
-    // If this proof node is closed, we add it to the global cache
-    if (!expr::containsAssumption(pn, cfaMap))
-    {
-      pfLetClosed[currentHash] = currentRuleID;
-    }
-    pfLetOpen[currentHash] = currentRuleID;
   }
 
   ProofNodeClusterType proofNodeType = ProofNodeClusterType::NOT_DEFINED;
-  if (options::printDotClusters())
+  if (options().proof.printDotClusters)
   {
     // Define the type of this node
     proofNodeType = defineProofNodeType(pn, parentType);
@@ -282,22 +302,36 @@ uint64_t DotPrinter::printInternal(
                                      pfLetClosed,
                                      thisScopeLet,
                                      cfaMap,
+                                     ancestorHashs,
                                      proofNodeType);
     out << "\t" << childId << " -> " << currentRuleID << ";\n";
+    if (options().proof.printDotAsDAG)
+    {
+      ancestorHashs.pop_back();
+    }
   }
   else
   {
     const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
     for (const std::shared_ptr<ProofNode>& c : children)
     {
-      uint64_t childId = printInternal(
-          out, c.get(), pfLetClosed, pfLetOpen, cfaMap, proofNodeType);
+      uint64_t childId = printInternal(out,
+                                       c.get(),
+                                       pfLetClosed,
+                                       pfLetOpen,
+                                       cfaMap,
+                                       ancestorHashs,
+                                       proofNodeType);
       out << "\t" << childId << " -> " << currentRuleID << ";\n";
+      if (options().proof.printDotAsDAG)
+      {
+        ancestorHashs.pop_back();
+      }
     }
   }
 
   // If it's a scope, then remove from the stack
-  if (isSCOPE(r) && options::printDotClusters())
+  if (isSCOPE(r) && options().proof.printDotClusters)
   {
     d_scopesArgs.pop_back();
   }
@@ -341,7 +375,7 @@ ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
     return ProofNodeClusterType::FIRST_SCOPE;
   }
   // If the rule is in the SAT range and the last node was: FF or SAT
-  if (isSat(rule) && last <= ProofNodeClusterType::SAT)
+  if (last <= ProofNodeClusterType::SAT && isSat(rule))
   {
     return ProofNodeClusterType::SAT;
   }
@@ -362,8 +396,8 @@ ProofNodeClusterType DotPrinter::defineProofNodeType(const ProofNode* pn,
     {
       return ProofNodeClusterType::CNF;
     }
-    // If the first rule after a CNF is a scope
-    if (isSCOPE(rule))
+    // If the first rule after a CNF is in the TL range
+    if (isTheoryLemma(rule))
     {
       return ProofNodeClusterType::THEORY_LEMMA;
     }
@@ -424,6 +458,12 @@ inline bool DotPrinter::isCNF(const PfRule& rule)
 inline bool DotPrinter::isSCOPE(const PfRule& rule)
 {
   return PfRule::SCOPE == rule;
+}
+
+inline bool DotPrinter::isTheoryLemma(const PfRule& rule)
+{
+  return rule == PfRule::SCOPE || rule == PfRule::THEORY_LEMMA
+         || (PfRule::CNF_ITE_NEG3 < rule && rule < PfRule::LFSC_RULE);
 }
 
 inline bool DotPrinter::isASSUME(const PfRule& rule)

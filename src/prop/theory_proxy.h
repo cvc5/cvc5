@@ -24,9 +24,11 @@
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
+#include "theory/incomplete_id.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
@@ -70,6 +72,13 @@ class TheoryProxy : protected EnvObj, public Registrar
   void presolve();
 
   /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
+  /**
    * Notifies this module of the input assertions.
    * @param assertion The preprocessed input assertions,
    * @param skolemMap Map from indices in assertion to the Skolem they are
@@ -78,8 +87,13 @@ class TheoryProxy : protected EnvObj, public Registrar
   void notifyInputFormulas(const std::vector<Node>& assertions,
                            std::unordered_map<size_t, Node>& skolemMap);
   /**
+   * Notify that lem is a skolem definition for the given skolem. This is called
+   * before pushing the lemma to the SAT solver.
+   */
+  void notifySkolemDefinition(Node lem, TNode skolem);
+  /**
    * Notify a lemma or input assertion, possibly corresponding to a skolem
-   * definition.
+   * definition. This is called after pushing the lemma to the SAT solver.
    */
   void notifyAssertion(Node lem,
                        TNode skolem = TNode::null(),
@@ -117,8 +131,14 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   bool theoryNeedCheck() const;
 
-  /** Is incomplete */
-  bool isIncomplete() const;
+  /** Is model unsound */
+  bool isModelUnsound() const;
+  /** Is refutation unsound */
+  bool isRefutationUnsound() const;
+  /** Get model unsound id, valid when isModelUnsound is true. */
+  theory::IncompleteId getModelUnsoundId() const;
+  /** Get unsound id, valid when isRefutationUnsound is true. */
+  theory::IncompleteId getRefutationUnsoundId() const;
 
   /**
    * Notifies of a new variable at a decision level.
@@ -169,7 +189,12 @@ class TheoryProxy : protected EnvObj, public Registrar
   void preRegister(Node n) override;
 
   /** Get the zero-level assertions */
-  std::vector<Node> getLearnedZeroLevelLiterals() const;
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
+  /** Get literal type using ZLL utility */
+  modes::LearnedLitType getLiteralType(const Node& lit) const;
 
  private:
   /** The prop engine we are using. */
@@ -208,6 +233,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
 
+  /** Whether we have been requested to stop the search */
+  context::CDO<bool> d_stopSearch;
 }; /* class TheoryProxy */
 
 }  // namespace prop

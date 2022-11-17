@@ -1,5 +1,5 @@
-; DISABLE-TESTER: proof
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 ; timeout with unsat cores
 (set-logic ALL)
 (set-info :smt-lib-version 2.6)

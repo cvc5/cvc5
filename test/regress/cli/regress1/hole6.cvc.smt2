@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)

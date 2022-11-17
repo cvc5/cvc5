@@ -18,6 +18,7 @@
 #ifdef CVC5_POLY_IMP
 
 #include "proof/lazy_tree_proof_generator.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/indexed_root_predicate.h"
 
@@ -91,12 +92,12 @@ Node mkIRP(const Node& var,
 
 }  // namespace
 
-CoveringsProofGenerator::CoveringsProofGenerator(context::Context* ctx,
-                                                 ProofNodeManager* pnm)
-    : d_pnm(pnm), d_proofs(pnm, ctx), d_current(nullptr)
+CoveringsProofGenerator::CoveringsProofGenerator(Env& env,
+                                                 context::Context* ctx)
+    : EnvObj(env), d_proofs(env, ctx), d_current(nullptr)
 {
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
-  d_zero = NodeManager::currentNM()->mkConst(CONST_RATIONAL, Rational(0));
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
 }
 
 void CoveringsProofGenerator::startNewProof()
@@ -155,7 +156,8 @@ void CoveringsProofGenerator::addDirect(Node var,
     // Excludes a single point only
     auto ids = getRootIDs(roots, get_lower(interval));
     Assert(ids.first == ids.second);
-    res.emplace_back(mkIRP(var, Kind::EQUAL, d_zero, ids.first, poly, vm));
+    res.emplace_back(
+        mkIRP(var, Kind::EQUAL, mkZero(var.getType()), ids.first, poly, vm));
   }
   else
   {

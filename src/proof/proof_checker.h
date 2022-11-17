@@ -21,80 +21,20 @@
 #include <map>
 
 #include "expr/node.h"
-#include "proof/proof_rule.h"
+#include "options/proof_options.h"
+#include "proof/proof_rule_checker.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 
-class ProofChecker;
-class ProofNode;
-
 namespace rewriter {
 class RewriteDb;
 }
-
-/** A virtual base class for checking a proof rule */
-class ProofRuleChecker
-{
- public:
-  ProofRuleChecker() {}
-  virtual ~ProofRuleChecker() {}
-  /**
-   * This checks a single step in a proof.
-   *
-   * Return the formula that is proven by a proof node with the given id,
-   * premises and arguments, or null if such a proof node is not well-formed.
-   *
-   * Note that the input/output of this method expects to be terms in *Skolem
-   * form*, which is passed to checkInternal below. Rule checkers may
-   * convert premises to witness form when necessary.
-   *
-   * @param id The id of the proof node to check
-   * @param children The premises of the proof node to check. These are nodes
-   * corresponding to the conclusion (ProofNode::getResult) of the children
-   * of the proof node we are checking in Skolem form.
-   * @param args The arguments of the proof node to check
-   * @return The conclusion of the proof node, in Skolem form, if successful or
-   * null if such a proof node is malformed.
-   */
-  Node check(PfRule id,
-             const std::vector<Node>& children,
-             const std::vector<Node>& args);
-
-  /** get an index from a node, return false if we fail */
-  static bool getUInt32(TNode n, uint32_t& i);
-  /** get a Boolean from a node, return false if we fail */
-  static bool getBool(TNode n, bool& b);
-  /** get a Kind from a node, return false if we fail */
-  static bool getKind(TNode n, Kind& k);
-  /** Make a Kind into a node */
-  static Node mkKindNode(Kind k);
-
-  /** Register all rules owned by this rule checker into pc. */
-  virtual void registerTo(ProofChecker* pc) {}
-
- protected:
-  /**
-   * This checks a single step in a proof.
-   *
-   * @param id The id of the proof node to check
-   * @param children The premises of the proof node to check. These are nodes
-   * corresponding to the conclusion (ProofNode::getResult) of the children
-   * of the proof node we are checking.
-   * @param args The arguments of the proof node to check
-   * @return The conclusion of the proof node if successful or null if such a
-   * proof node is malformed.
-   */
-  virtual Node checkInternal(PfRule id,
-                             const std::vector<Node>& children,
-                             const std::vector<Node>& args) = 0;
-};
-
 /** Statistics class */
 class ProofCheckerStatistics
 {
  public:
-  ProofCheckerStatistics();
+  ProofCheckerStatistics(StatisticsRegistry& sr);
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
@@ -105,7 +45,8 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(bool eagerCheck,
+  ProofChecker(StatisticsRegistry& sr,
+               options::ProofCheckMode pcMode,
                uint32_t pclevel = 0,
                rewriter::RewriteDb* rdb = nullptr);
   ~ProofChecker() {}
@@ -193,8 +134,8 @@ class ProofChecker
   std::map<PfRule, ProofRuleChecker*> d_checker;
   /** Maps proof trusted rules to their pedantic level */
   std::map<PfRule, uint32_t> d_plevel;
-  /** Whether we check for pedantic failures eagerly */
-  bool d_eagerCheck;
+  /** The proof checking mode */
+  options::ProofCheckMode d_pcMode;
   /** The pedantic level of this checker */
   uint32_t d_pclevel;
   /** Pointer to the rewrite database */

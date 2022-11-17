@@ -17,13 +17,16 @@
 
 include(deps-helper)
 
-find_path(GMP_INCLUDE_DIR NAMES gmp.h gmpxx.h)
+find_path(GMP_INCLUDE_DIR NAMES gmp.h)
+find_path(GMPXX_INCLUDE_DIR NAMES gmpxx.h)
 find_library(GMP_LIBRARIES NAMES gmp)
+find_library(GMPXX_LIBRARIES NAMES gmpxx)
 
 set(GMP_FOUND_SYSTEM FALSE)
-if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
+if(GMP_INCLUDE_DIR AND GMPXX_INCLUDE_DIR AND GMP_LIBRARIES AND GMPXX_LIBRARIES)
   set(GMP_FOUND_SYSTEM TRUE)
 
+  # Attempt to retrieve the version from gmp.h
   function(getversionpart OUTPUT FILENAME DESC)
     file(STRINGS ${FILENAME} RES REGEX "^#define __GNU_MP_${DESC}[ \\t]+.*")
     string(REGEX MATCH "[0-9]+" RES "${RES}")
@@ -35,11 +38,28 @@ if(GMP_INCLUDE_DIR AND GMP_LIBRARIES)
   getversionpart(MAJOR "${GMP_INCLUDE_DIR}/gmp.h" "VERSION")
   getversionpart(MINOR "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_MINOR")
   getversionpart(PATCH "${GMP_INCLUDE_DIR}/gmp.h" "VERSION_PATCHLEVEL")
-  set(GMP_VERSION
-      "${MAJOR}.${MINOR}.${PATCH}"
-  )
 
-  check_system_version("GMP")
+  if(MAJOR AND MINOR AND PATCH)
+    set(GMP_VERSION
+        "${MAJOR}.${MINOR}.${PATCH}"
+    )
+  else()
+    set(GMP_VERSION "(unknown version)")
+  endif()
+
+  # This test checks whether GMP is usable and whether the version is new
+  # enough
+  try_compile(GMP_USABLE "${DEPS_BASE}/try_compile/GMP-EP"
+    "${CMAKE_CURRENT_LIST_DIR}/deps-utils/gmp-test.cpp"
+    CMAKE_FLAGS
+      "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+      "-DINCLUDE_DIRECTORIES=${GMP_INCLUDE_DIR}"
+    LINK_LIBRARIES ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
+  )
+  if(NOT GMP_USABLE)
+    message(VERBOSE "System version for GMP does not work in the selected configuration. Maybe we are cross-compiling?")
+    set(GMP_FOUND_SYSTEM FALSE)
+  endif()
 endif()
 
 if(NOT GMP_FOUND_SYSTEM)
@@ -65,15 +85,40 @@ if(NOT GMP_FOUND_SYSTEM)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
   endif()
 
+  set(CONFIGURE_OPTS "")
+  set(CONFIGURE_ENV "")
+  if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
+    set(CONFIGURE_OPTS
+      --host=${TOOLCHAIN_PREFIX}
+      --build=${CMAKE_HOST_SYSTEM_PROCESSOR})
 
+    set(CONFIGURE_ENV ${CMAKE_COMMAND} -E
+      env "CC_FOR_BUILD=cc")
+    if (CMAKE_CROSSCOMPILING_MACOS)
+      set(CONFIGURE_ENV
+        ${CONFIGURE_ENV}
+        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
+        env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+    endif()
+  endif()
+
+  # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
+  # that cross-compilation works (as suggested in the GMP documentation).
+  # Without the `--build` flag, `configure` may fail for cross-compilation
+  # builds for Windows if Wine is installed.
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
     URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
-      <SOURCE_DIR>/configure ${LINK_OPTS} --prefix=<INSTALL_DIR>
-      --with-pic --enable-cxx --host=${TOOLCHAIN_PREFIX}
+      ${CONFIGURE_ENV}
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
+          ${LINK_OPTS}
+          --prefix=<INSTALL_DIR>
+          --with-pic
+          --enable-cxx
+          ${CONFIGURE_OPTS}
     BUILD_BYPRODUCTS ${GMP_LIBRARIES}
   )
 endif()
@@ -91,7 +136,7 @@ else()
 endif()
 set_target_properties(GMP PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
-  INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
 )
 
 mark_as_advanced(GMP_FOUND)

@@ -21,7 +21,8 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/rep_set.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/theory_model.h"
 
 namespace cvc5::internal {
@@ -40,22 +41,26 @@ class FirstOrderModel;
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m);
+  QRepBoundExt(Env& env,
+               QuantifiersBoundInference& qbi,
+               QuantifiersState& qs,
+               TermRegistry& tr,
+               TNode q);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
-                       unsigned i,
+                       size_t i,
                        std::vector<Node>& elements) override;
   /** reset index */
   bool resetIndex(RepSetIterator* rsi,
                   Node owner,
-                  unsigned i,
+                  size_t i,
                   bool initial,
                   std::vector<Node>& elements) override;
   /** initialize representative set for type */
   bool initializeRepresentativesForType(TypeNode tn) override;
   /** get variable order */
-  bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
+  bool getVariableOrder(Node owner, std::vector<size_t>& varOrder) override;
 
  private:
   /** Reference to the quantifiers bound inference */
@@ -63,7 +68,9 @@ class QRepBoundExt : public RepBoundExt
   /** Pointer to the quantifiers model */
   FirstOrderModel* d_model;
   /** indices that are bound integer enumeration */
-  std::map<unsigned, bool> d_bound_int;
+  std::map<size_t, bool> d_bound_int;
+  /** An instantiation match */
+  InstMatch d_instMatch;
 };
 
 }  // namespace quantifiers

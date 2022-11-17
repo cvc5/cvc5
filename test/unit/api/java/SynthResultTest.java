@@ -35,13 +35,13 @@ class SynthResultTest
   @AfterEach
   void tearDown()
   {
-    d_solver.close();
+    Context.deletePointers();
   }
 
   @Test
   void isNull()
   {
-    SynthResult res_null = d_solver.getNullSynthResult();
+    SynthResult res_null = new SynthResult();
     assertTrue(res_null.isNull());
     assertFalse(res_null.hasSolution());
     assertFalse(res_null.hasNoSolution());
@@ -60,12 +60,13 @@ class SynthResultTest
     assertTrue(res.hasSolution());
     assertFalse(res.hasNoSolution());
     assertFalse(res.isUnknown());
+    assertEquals(res.toString(), "(SOLUTION)");
   }
 
   @Test
   void hasNoSolution()
   {
-    SynthResult res_null = d_solver.getNullSynthResult();
+    SynthResult res_null = new SynthResult();
     assertFalse(res_null.hasSolution());
   }
 

@@ -40,7 +40,8 @@ JustificationStrategy::JustificationStrategy(Env& env)
       d_decisionStopOnly(options().decision.decisionMode
                          == options::DecisionMode::STOPONLY),
       d_jhSkMode(options().decision.jhSkolemMode),
-      d_jhSkRlvMode(options().decision.jhSkolemRlvMode)
+      d_jhSkRlvMode(options().decision.jhSkolemRlvMode),
+      d_stats(statisticsRegistry())
 {
 }
 

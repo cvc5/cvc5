@@ -18,6 +18,8 @@
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 
+#include <cmath>
+
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
@@ -28,15 +30,24 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
+Node TheoryBuiltinRewriter::blastDistinct(TNode in)
+{
   Assert(in.getKind() == kind::DISTINCT);
 
-  if(in.getNumChildren() == 2) {
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (in[0].getType().isCardinalityLessThan(in.getNumChildren()))
+  {
+    // Cardinality of type does not allow to find distinct values for all
+    // children of this node.
+    return nm->mkConst<bool>(false);
+  }
+
+  if (in.getNumChildren() == 2)
+  {
     // if this is the case exactly 1 != pair will be generated so the
     // AND is not required
-    Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, in[0], in[1]);
-    Node neq = NodeManager::currentNM()->mkNode(kind::NOT, eq);
-    return neq;
+    return nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, in[0], in[1]));
   }
 
   // assume that in.getNumChildren() > 2 => diseqs.size() > 1
@@ -44,13 +55,12 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
   for(TNode::iterator i = in.begin(); i != in.end(); ++i) {
     TNode::iterator j = i;
     while(++j != in.end()) {
-      Node eq = NodeManager::currentNM()->mkNode(kind::EQUAL, *i, *j);
-      Node neq = NodeManager::currentNM()->mkNode(kind::NOT, eq);
+      Node eq = nm->mkNode(kind::EQUAL, *i, *j);
+      Node neq = nm->mkNode(kind::NOT, eq);
       diseqs.push_back(neq);
     }
   }
-  Node out = NodeManager::currentNM()->mkNode(kind::AND, diseqs);
-  return out;
+  return nm->mkNode(kind::AND, diseqs);
 }
 
 RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
@@ -90,10 +100,10 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
         Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
                                  << node[1][1 - i] << std::endl;
         // also must be a legal elimination: the other side of the equality
-        // cannot contain the variable, and it must be a subtype of the
+        // cannot contain the variable, and it must be the same type as the
         // variable
         if (!expr::hasSubterm(node[1][1 - i], node[0][0])
-            && node[1][i].getType().isSubtypeOf(node[0][0].getType()))
+            && node[1][i].getType() == node[0][0].getType())
         {
           return node[1][1 - i];
         }

@@ -141,8 +141,6 @@ class Instantiate : public QuantifiersUtil
    * manager
    * @param pfArg an additional node to add to the arguments of the INSTANTIATE
    * step
-   * @param mkRep whether to take the representatives of the terms in the
-   * range of the substitution m,
    * @param doVts whether we must apply virtual term substitution to the
    * instantiation lemma.
    *
@@ -162,7 +160,6 @@ class Instantiate : public QuantifiersUtil
                         std::vector<Node>& terms,
                         InferenceId id,
                         Node pfArg = Node::null(),
-                        bool mkRep = false,
                         bool doVts = false);
   /**
    * Same as above, but we also compute a vector failMask indicating which
@@ -192,9 +189,13 @@ class Instantiate : public QuantifiersUtil
                                std::vector<bool>& failMask,
                                InferenceId id,
                                Node pfArg = Node::null(),
-                               bool mkRep = false,
                                bool doVts = false,
                                bool expFull = true);
+  /**
+   * Ensure each term in terms is the chosen representative for its
+   * corresponding variable in q.
+   */
+  void processInstantiationRep(Node q, std::vector<Node>& terms);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms, with virtual
@@ -208,11 +209,8 @@ class Instantiate : public QuantifiersUtil
    *
    * Returns true if and only if the instantiation already was added or
    * recorded by this class.
-   *   modEq : whether to check for duplication modulo equality
    */
-  bool existsInstantiation(Node q,
-                           const std::vector<Node>& terms,
-                           bool modEq = false);
+  bool existsInstantiation(Node q, const std::vector<Node>& terms);
   //--------------------------------------general utilities
   /** get instantiation
    *
@@ -292,20 +290,19 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 
- private:
-  /** record instantiation, return true if it was not a duplicate */
-  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
-  /** remove instantiation from the cache */
-  bool removeInstantiationInternal(Node q, const std::vector<Node>& terms);
   /**
    * Ensure that n has type tn, return a term equivalent to it for that type
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
+
+ private:
+  /** record instantiation, return true if it was not a duplicate */
+  bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
   /** Get or make the instantiation list for quantified formula q */
   InstLemmaList* getOrMkInstLemmaList(TNode q);
 

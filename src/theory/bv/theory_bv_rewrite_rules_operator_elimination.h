@@ -15,7 +15,8 @@
 
 #include "cvc5_private.h"
 
-#pragma once
+#ifndef CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
+#define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_OPERATOR_ELIMINATION_H
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -262,40 +263,6 @@ inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
   Node result = utils::mkConcat(left, right);
 
   return result;
-}
-
-template <>
-inline bool RewriteRule<BVToNatEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::BITVECTOR_TO_NAT);
-}
-
-template <>
-inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<BVToNatEliminate>(" << node << ")" << std::endl;
-
-  //if( node[0].isConst() ){
-    //TODO? direct computation instead of term construction+rewriting
-  //}
-  return utils::eliminateBv2Nat(node);
-}
-
-template <>
-inline bool RewriteRule<IntToBVEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::INT_TO_BITVECTOR);
-}
-
-template <>
-inline Node RewriteRule<IntToBVEliminate>::apply(TNode node)
-{
-  Trace("bv-rewrite") << "RewriteRule<IntToBVEliminate>(" << node << ")" << std::endl;
-
-  //if( node[0].isConst() ){
-    //TODO? direct computation instead of term construction+rewriting
-  //}
-  return utils::eliminateInt2Bv(node);
 }
 
 template <>
@@ -683,11 +650,14 @@ inline bool RewriteRule<RedorEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RedorEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
-  unsigned size = utils::getSize(node[0]); 
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkConst( size, 0 ) );
-  return result.negate();
+  unsigned size = utils::getSize(node[0]);
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      kind::BITVECTOR_NOT,
+      nm->mkNode(kind::BITVECTOR_COMP, a, utils::mkConst(size, 0)));
 }
 
 template <>
@@ -699,13 +669,292 @@ inline bool RewriteRule<RedandEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<RedandEliminate>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")"
+                      << std::endl;
   TNode a = node[0];
-  unsigned size = utils::getSize(node[0]); 
-  Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, utils::mkOnes( size ) );
+  unsigned size = utils::getSize(node[0]);
+  Node result = NodeManager::currentNM()->mkNode(
+      kind::BITVECTOR_COMP, a, utils::mkOnes(size));
   return result;
 }
 
+template <>
+inline bool RewriteRule<UaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UADDO);
 }
+
+template <>
+inline Node RewriteRule<UaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  Node bvZero = utils::mkZero(1);
+  Node bvOne = utils::mkOne(1);
+
+  Node add = nm->mkNode(kind::BITVECTOR_ADD,
+                        utils::mkConcat(bvZero, node[0]),
+                        utils::mkConcat(bvZero, node[1]));
+
+  uint32_t size = add.getType().getBitVectorSize();
+  return nm->mkNode(
+      kind::EQUAL, utils::mkExtract(add, size - 1, size - 1), bvOne);
 }
+
+template <>
+inline bool RewriteRule<SaddoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SADDO);
+}
+
+template <>
+inline Node RewriteRule<SaddoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SaddoEliminate>(" << node << ")"
+                      << std::endl;
+
+  // Overflow occurs if
+  //  1) negative + negative = positive
+  //  2) positive + positive = negative
+
+  NodeManager* nm = NodeManager::currentNM();
+  uint32_t size = node[0].getType().getBitVectorSize();
+  Node zero = utils::mkZero(1);
+  Node one = utils::mkOne(1);
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+  Node sign0 = nm->mkNode(extOp, node[0]);
+  Node sign1 = nm->mkNode(extOp, node[1]);
+  Node add = nm->mkNode(kind::BITVECTOR_ADD, node[0], node[1]);
+  Node signa = nm->mkNode(extOp, add);
+
+  Node both_neg = nm->mkNode(kind::AND,
+                             nm->mkNode(kind::EQUAL, sign0, one),
+                             nm->mkNode(kind::EQUAL, sign1, one));
+  Node both_pos = nm->mkNode(kind::AND,
+                             nm->mkNode(kind::EQUAL, sign0, zero),
+                             nm->mkNode(kind::EQUAL, sign1, zero));
+
+  Node result_neg = nm->mkNode(kind::EQUAL, signa, one);
+  Node result_pos = nm->mkNode(kind::EQUAL, signa, zero);
+
+  return nm->mkNode(kind::OR,
+                    nm->mkNode(kind::AND, both_neg, result_pos),
+                    nm->mkNode(kind::AND, both_pos, result_neg));
+}
+
+template <>
+inline bool RewriteRule<UmuloEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UMULO);
+}
+
+template <>
+inline Node RewriteRule<UmuloEliminate>::apply(TNode node)
+{
+  /* Unsigned multiplication overflow detection.
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767 */
+
+  Trace("bv-rewrite") << "RewriteRule<UmuloEliminate>(" << node << ")"
+                      << std::endl;
+
+  uint32_t size = node[0].getType().getBitVectorSize();
+
+  if (size == 1)
+  {
+    return utils::mkFalse();
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node uppc;
+  std::vector<Node> tmp;
+
+  uppc = utils::mkExtract(node[0], size - 1, size - 1);
+  for (size_t i = 1; i < size; ++i)
+  {
+    tmp.push_back(
+        nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(node[1], i, i), uppc));
+    uppc = nm->mkNode(kind::BITVECTOR_OR,
+                      utils::mkExtract(node[0], size - 1 - i, size - 1 - i),
+                      uppc);
+  }
+  Node bvZero = utils::mkZero(1);
+  Node zext_t1 = utils::mkConcat(bvZero, node[0]);
+  Node zext_t2 = utils::mkConcat(bvZero, node[1]);
+  Node mul = nm->mkNode(kind::BITVECTOR_MULT, zext_t1, zext_t2);
+  tmp.push_back(utils::mkExtract(mul, size, size));
+  return nm->mkNode(
+      kind::EQUAL, nm->mkNode(kind::BITVECTOR_OR, tmp), utils::mkOne(1));
+}
+
+template <>
+inline bool RewriteRule<SmuloEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SMULO);
+}
+
+template <>
+inline Node RewriteRule<SmuloEliminate>::apply(TNode node)
+{
+  /* Signed multiplication overflow detection.
+   * See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+   * overflow detection circuits", 2001.
+   * http://ieeexplore.ieee.org/document/987767 */
+
+  Trace("bv-rewrite") << "RewriteRule<SmuloEliminate>(" << node << ")"
+                      << std::endl;
+
+  uint32_t size = node[0].getType().getBitVectorSize();
+  NodeManager* nm = NodeManager::currentNM();
+  Node one = utils::mkOne(1);
+
+  if (size == 1)
+  {
+    return nm->mkNode(
+        kind::EQUAL, nm->mkNode(kind::BITVECTOR_AND, node[0], node[1]), one);
+  }
+
+  Node sextOp1 = nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(1));
+  Node mul = nm->mkNode(kind::BITVECTOR_MULT,
+                        nm->mkNode(sextOp1, node[0]),
+                        nm->mkNode(sextOp1, node[1]));
+
+  if (size == 2)
+  {
+    return nm->mkNode(kind::EQUAL,
+                      nm->mkNode(kind::BITVECTOR_XOR,
+                                 utils::mkExtract(mul, size, size),
+                                 utils::mkExtract(mul, size - 1, size - 1)),
+                      one);
+  }
+
+  Node sextOpN =
+      nm->mkConst<BitVectorSignExtend>(BitVectorSignExtend(size - 1));
+  Node sign0 = utils::mkExtract(node[0], size - 1, size - 1);
+  Node sign1 = utils::mkExtract(node[1], size - 1, size - 1);
+  Node xor0 =
+      nm->mkNode(kind::BITVECTOR_XOR, node[0], nm->mkNode(sextOpN, sign0));
+  Node xor1 =
+      nm->mkNode(kind::BITVECTOR_XOR, node[1], nm->mkNode(sextOpN, sign1));
+
+  Node ppc = utils::mkExtract(xor0, size - 2, size - 2);
+  Node res = nm->mkNode(kind::BITVECTOR_AND, utils::mkExtract(xor1, 1, 1), ppc);
+  for (uint32_t i = 1; i < size - 2; ++i)
+  {
+    ppc = nm->mkNode(kind::BITVECTOR_OR,
+                     ppc,
+                     utils::mkExtract(xor0, size - 2 - i, size - 2 - i));
+    res = nm->mkNode(
+        kind::BITVECTOR_OR,
+        res,
+        nm->mkNode(
+            kind::BITVECTOR_AND, utils::mkExtract(xor1, i + 1, i + 1), ppc));
+  }
+  return nm->mkNode(
+      kind::EQUAL,
+      nm->mkNode(kind::BITVECTOR_OR,
+                 res,
+                 nm->mkNode(kind::BITVECTOR_XOR,
+                            utils::mkExtract(mul, size, size),
+                            utils::mkExtract(mul, size - 1, size - 1))),
+      one);
+}
+
+template <>
+inline bool RewriteRule<UsuboEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_USUBO);
+}
+
+template <>
+inline Node RewriteRule<UsuboEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UsuboEliminate>(" << node << ")"
+                      << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node one = utils::mkOne(1);
+
+  Node zextOp = nm->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(1));
+  Node sub = nm->mkNode(kind::BITVECTOR_SUB,
+                        nm->mkNode(zextOp, node[0]),
+                        nm->mkNode(zextOp, node[1]));
+  uint32_t size = sub.getType().getBitVectorSize();
+
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+  return nm->mkNode(kind::EQUAL, nm->mkNode(extOp, sub), one);
+}
+
+template <>
+inline bool RewriteRule<SsuboEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SSUBO);
+}
+
+template <>
+inline Node RewriteRule<SsuboEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SsuboEliminate>(" << node << ")"
+                      << std::endl;
+
+  // Overflow occurs if
+  //  1) negative - positive = positive
+  //  2) postive - negative = negative
+
+  NodeManager* nm = NodeManager::currentNM();
+  uint32_t size = node[0].getType().getBitVectorSize();
+  Node one = utils::mkOne(1);
+  Node zero = utils::mkZero(1);
+
+  Node extOp =
+      nm->mkConst<BitVectorExtract>(BitVectorExtract(size - 1, size - 1));
+
+  Node sign0 = nm->mkNode(extOp, node[0]);
+  Node sign1 = nm->mkNode(extOp, node[1]);
+  Node sub = nm->mkNode(kind::BITVECTOR_SUB, node[0], node[1]);
+  Node signs = nm->mkNode(extOp, sub);
+
+  Node neg_pos = nm->mkNode(kind::AND,
+                            nm->mkNode(kind::EQUAL, sign0, one),
+                            nm->mkNode(kind::EQUAL, sign1, zero));
+  Node pos_neg = nm->mkNode(kind::AND,
+                            nm->mkNode(kind::EQUAL, sign0, zero),
+                            nm->mkNode(kind::EQUAL, sign1, one));
+
+  Node result_neg = nm->mkNode(kind::EQUAL, signs, one);
+  Node result_pos = nm->mkNode(kind::EQUAL, signs, zero);
+
+  return nm->mkNode(kind::OR,
+                    nm->mkNode(kind::AND, neg_pos, result_pos),
+                    nm->mkNode(kind::AND, pos_neg, result_neg));
+}
+
+template <>
+inline bool RewriteRule<SdivoEliminate>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_SDIVO);
+}
+
+template <>
+inline Node RewriteRule<SdivoEliminate>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<SdivoEliminate>(" << node << ")"
+                      << std::endl;
+  // Overflow if node[0] = min_signed and node[1] = -1
+  NodeManager* nm = NodeManager::currentNM();
+  uint64_t size = node[0].getType().getBitVectorSize();
+  return nm->mkNode(kind::AND,
+                    nm->mkNode(kind::EQUAL, node[0], utils::mkMinSigned(size)),
+                    nm->mkNode(kind::EQUAL, node[1], utils::mkOnes(size)));
+}
+
+}  // namespace bv
+}  // namespace theory
 }  // namespace cvc5::internal
+#endif

@@ -16,6 +16,9 @@
 #
 # Output is to standard out.
 #
+# Required to disable this option for bash >=5.2 to avoid automatically
+# replacing & by the substituted text.
+shopt -u patsub_replacement
 
 copyright=2010-2022
 
@@ -265,8 +268,8 @@ $2 ${class};"
 
 template <>
 ${class} const& NodeValue::getConst< ${class} >() const {
-  AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
-                 \"Improper kind for getConst<${class}>()\");
+  //AssertArgument(getKind() == ::cvc5::internal::kind::$1, *this,
+  //               \"Improper kind for getConst<${class}>()\");
   // To support non-inlined CONSTANT-kinded NodeValues (those that are
   // \"constructed\" when initially checking them against the NodeManager
   // pool), we must check d_nchildren here.

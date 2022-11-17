@@ -17,6 +17,7 @@
 
 #include "expr/emptybag.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
@@ -41,8 +42,8 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
-    : d_statistics(statistics)
+BagsRewriter::BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics)
+    : d_rewriter(r), d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -67,7 +68,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
   }
   else if (BagsUtils::areChildrenConstants(n))
   {
-    Node value = BagsUtils::evaluate(n);
+    Node value = BagsUtils::evaluate(d_rewriter, n);
     response = BagsRewriteResponse(value, Rewrite::CONSTANT_EVALUATION);
   }
   else
@@ -92,7 +93,9 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case BAG_MAP: response = postRewriteMap(n); break;
       case BAG_FILTER: response = postRewriteFilter(n); break;
       case BAG_FOLD: response = postRewriteFold(n); break;
+      case BAG_PARTITION: response = postRewritePartition(n); break;
       case TABLE_PRODUCT: response = postRewriteProduct(n); break;
+      case TABLE_AGGREGATE: response = postRewriteAggregate(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -208,7 +211,7 @@ BagsRewriteResponse BagsRewriter::rewriteDuplicateRemoval(const TNode& n) const
   {
     // (bag.duplicate_removal (bag x n)) = (bag x 1)
     //  where n is a positive constant
-    Node bag = d_nm->mkBag(n[0][0].getType(), n[0][0], d_one);
+    Node bag = d_nm->mkNode(BAG_MAKE, n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::DUPLICATE_REMOVAL_BAG_MAKE);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -474,9 +477,8 @@ BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
   Assert(n.getKind() == BAG_FROM_SET);
   if (n[0].getKind() == SET_SINGLETON)
   {
-    // (bag.from_set (set.singleton (SetSingletonOp Int) x)) = (bag x 1)
-    TypeNode type = n[0].getType().getSetElementType();
-    Node bag = d_nm->mkBag(type, n[0][0], d_one);
+    // (bag.from_set (set.singleton x)) = (bag x 1)
+    Node bag = d_nm->mkNode(BAG_MAKE, n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -488,9 +490,9 @@ BagsRewriteResponse BagsRewriter::rewriteToSet(const TNode& n) const
   if (n[0].getKind() == BAG_MAKE && n[0][1].isConst()
       && n[0][1].getConst<Rational>().sgn() == 1)
   {
-    // (bag.to_set (bag x n)) = (set.singleton (SetSingletonOp T) x)
+    // (bag.to_set (bag x n)) = (set.singleton x)
     // where n is a positive constant and T is the type of the bag's elements
-    Node set = d_nm->mkSingleton(n[0][0].getType(), n[0][0]);
+    Node set = d_nm->mkNode(SET_SINGLETON, n[0][0]);
     return BagsRewriteResponse(set, Rewrite::TO_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -547,8 +549,7 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     {
       // (bag.map f (bag x y)) = (bag (apply f x) y)
       Node mappedElement = d_nm->mkNode(APPLY_UF, n[0], n[1][0]);
-      Node ret =
-          d_nm->mkBag(n[0].getType().getRangeType(), mappedElement, n[1][1]);
+      Node ret = d_nm->mkNode(BAG_MAKE, mappedElement, n[1][1]);
       return BagsRewriteResponse(ret, Rewrite::MAP_BAG_MAKE);
     }
 
@@ -645,6 +646,36 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
     }
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
+{
+  Assert(n.getKind() == kind::BAG_PARTITION);
+  if (n[1].isConst())
+  {
+    Node ret = BagsUtils::evaluateBagPartition(d_rewriter, n);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::PARTITION_CONST);
+    }
+  }
+
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
+{
+  Assert(n.getKind() == kind::TABLE_AGGREGATE);
+  if (n[1].isConst() && n[2].isConst())
+  {
+    Node ret = BagsUtils::evaluateTableAggregate(d_rewriter, n);
+    if (ret != n)
+    {
+      return BagsRewriteResponse(ret, Rewrite::AGGREGATE_CONST);
+    }
+  }
+
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

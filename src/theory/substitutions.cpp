@@ -31,7 +31,7 @@ SubstitutionMap::SubstitutionMap(context::Context* context)
 {
 }
 
-std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions()
+std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions() const
 {
   std::unordered_map<Node, Node> subs;
   for (const auto& sub : d_substitutions)
@@ -102,12 +102,14 @@ Node SubstitutionMap::internalSubstitute(TNode t,
     {
       // Children have been processed, so substitute
       NodeBuilder builder(current.getKind());
-      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         builder << Node(cache[current.getOperator()]);
       }
-      for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
-        Assert(cache.find(current[i]) != cache.end());
-        builder << Node(cache[current[i]]);
+      for (const Node& nc : current)
+      {
+        Assert(cache.find(nc) != cache.end());
+        builder << Node(cache[nc]);
       }
       // Mark the substitution and continue
       Node result = builder;
@@ -178,6 +180,8 @@ Node SubstitutionMap::internalSubstitute(TNode t,
 
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
+  // don't check type equal here, since this utility may be used in conversions
+  // that change the types of terms
   Trace("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
   Assert(d_substitutions.find(x) == d_substitutions.end());
 

@@ -485,19 +485,17 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
   {
     // If x is less than t based on an ordering, then we use { x -> t } as a
     // substitution to the children of ite( x = t ^ C, s, t ) below.
-    std::vector<Node> vars;
-    std::vector<Node> subs;
-    inferSubstitution(n[0], vars, subs, true);
+    Subs subs;
+    inferSubstitution(n[0], subs, true);
 
-    if (!vars.empty())
+    if (!subs.empty())
     {
       // reverse substitution to opposite child
       // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r
       // We can use ordinary substitute since the result of the substitution
       // is not being returned. In other words, nn is only being used to query
       // whether the second branch is a generalization of the first.
-      Node nn =
-          t2.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node nn = subs.apply(t2);
       if (nn != t2)
       {
         nn = d_rew.rewrite(nn);
@@ -511,7 +509,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
       // ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
       // must use partial substitute here, to avoid substitution into witness
       std::map<Kind, bool> rkinds;
-      nn = partialSubstitute(t1, vars, subs, rkinds);
+      nn = partialSubstitute(t1, subs, rkinds);
       nn = d_rew.rewrite(nn);
       if (nn != t1)
       {
@@ -620,9 +618,10 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
   std::map<unsigned, std::map<unsigned, Node> > ite_c;
   for (unsigned i = 0; i < nchildren; i++)
   {
-    // only pull ITEs apart if we are aggressive
-    if (n[i].getKind() == itek
-        && (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE)))
+    // these rewrites in this loop are currently classified as not aggressive,
+    // although in previous versions they were classified as aggressive. These
+    // are shown to help in some Kind2 problems.
+    if (n[i].getKind() == itek)
     {
       unsigned ii = hasOp ? i + 1 : i;
       for (unsigned j = 0; j < 2; j++)
@@ -641,45 +640,42 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
         debugExtendedRewrite(n, ite_c[i][0], "ITE dual invariant");
         return ite_c[i][0];
       }
-      if (d_aggr)
+      if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
+          && !n[1 - i].getType().isBoolean() && tn.isBoolean())
       {
-        if (nchildren == 2 && (n[1 - i].isVar() || n[1 - i].isConst())
-            && !n[1 - i].getType().isBoolean() && tn.isBoolean())
+        // always pull variable or constant with binary (theory) predicate
+        // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
+        Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
+        debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
+        return new_ret;
+      }
+      for (unsigned j = 0; j < 2; j++)
+      {
+        Node pullr = ite_c[i][j];
+        if (pullr.isConst() || pullr == n[i][j + 1])
         {
-          // always pull variable or constant with binary (theory) predicate
-          // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-          Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
-          debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
-          return new_ret;
-        }
-        for (unsigned j = 0; j < 2; j++)
-        {
-          Node pullr = ite_c[i][j];
-          if (pullr.isConst() || pullr == n[i][j + 1])
+          // ITE single child elimination
+          // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
+          // implies
+          // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
+          Node new_ret;
+          if (tn.isBoolean() && pullr.isConst())
           {
-            // ITE single child elimination
-            // f( t1..s1..tn ) ---> t  where t is a constant or s1 itself
-            // implies
-            // f( t1..ite( A, s1, s2 )..tn ) ---> ite( A, t, f( t1..s2..tn ) )
-            Node new_ret;
-            if (tn.isBoolean() && pullr.isConst())
-            {
-              // remove false/true child immediately
-              bool pol = pullr.getConst<bool>();
-              std::vector<Node> new_children;
-              new_children.push_back((j == 0) == pol ? n[i][0]
-                                                     : n[i][0].negate());
-              new_children.push_back(ite_c[i][1 - j]);
-              new_ret = nm->mkNode(pol ? OR : AND, new_children);
-              debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
-            }
-            else
-            {
-              new_ret = nm->mkNode(itek, n[i][0], ite_c[i][0], ite_c[i][1]);
-              debugExtendedRewrite(n, new_ret, "ITE single elim");
-            }
-            return new_ret;
+            // remove false/true child immediately
+            bool pol = pullr.getConst<bool>();
+            std::vector<Node> new_children;
+            new_children.push_back((j == 0) == pol ? n[i][0]
+                                                    : n[i][0].negate());
+            new_children.push_back(ite_c[i][1 - j]);
+            new_ret = nm->mkNode(pol ? OR : AND, new_children);
+            debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
           }
+          else
+          {
+            new_ret = nm->mkNode(itek, n[i][0], ite_c[i][0], ite_c[i][1]);
+            debugExtendedRewrite(n, new_ret, "ITE single elim");
+          }
+          return new_ret;
         }
       }
     }
@@ -1064,11 +1060,10 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
       if (!eq.isNull())
       {
         // see if it corresponds to a substitution
-        std::vector<Node> vars;
-        std::vector<Node> subs;
-        if (inferSubstitution(eq, vars, subs))
+        Subs subs;
+        if (inferSubstitution(eq, subs))
         {
-          Assert(vars.size() == 1);
+          Assert(subs.size() == 1);
           std::vector<Node> children;
           bool childrenChanged = false;
           // apply to all other children
@@ -1080,7 +1075,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
               // Substitution is only applicable to compatible kinds. We always
               // use the partialSubstitute method to avoid substitution into
               // witness terms.
-              ccs = partialSubstitute(ccs, vars, subs, bcp_kinds);
+              ccs = partialSubstitute(ccs, subs, bcp_kinds);
               childrenChanged = childrenChanged || n[j] != ccs;
             }
             children.push_back(ccs);
@@ -1610,16 +1605,12 @@ Node ExtendedRewriter::partialSubstitute(
 }
 
 Node ExtendedRewriter::partialSubstitute(
-    Node n,
-    const std::vector<Node>& vars,
-    const std::vector<Node>& subs,
-    const std::map<Kind, bool>& rkinds) const
+    Node n, const Subs& subs, const std::map<Kind, bool>& rkinds) const
 {
-  Assert(vars.size() == subs.size());
   std::map<Node, Node> assign;
-  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  for (size_t i = 0, nvars = subs.size(); i < nvars; i++)
   {
-    assign[vars[i]] = subs[i];
+    assign[subs.d_vars[i]] = subs.d_subs[i];
   }
   return partialSubstitute(n, assign, rkinds);
 }
@@ -1632,17 +1623,14 @@ Node ExtendedRewriter::solveEquality(Node n) const
   return Node::null();
 }
 
-bool ExtendedRewriter::inferSubstitution(Node n,
-                                         std::vector<Node>& vars,
-                                         std::vector<Node>& subs,
-                                         bool usePred) const
+bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
 {
   if (n.getKind() == AND)
   {
     bool ret = false;
     for (const Node& nc : n)
     {
-      bool cret = inferSubstitution(nc, vars, subs, usePred);
+      bool cret = inferSubstitution(nc, subs, usePred);
       ret = ret || cret;
     }
     return ret;
@@ -1660,8 +1648,7 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     {
       if (n[i].isConst())
       {
-        vars.push_back(n[1 - i]);
-        subs.push_back(n[i]);
+        subs.add(n[1 - i], n[i]);
         return true;
       }
       if (n[i].isVar())
@@ -1685,11 +1672,9 @@ bool ExtendedRewriter::inferSubstitution(Node n,
           Assert(TermUtil::isNegate(n[i].getKind()));
           r2 = TermUtil::mkNegate(n[i].getKind(), r2);
         }
-        // TODO (#1706) : union find
-        if (std::find(vars.begin(), vars.end(), r1) == vars.end())
+        if (!subs.contains(r1))
         {
-          vars.push_back(r1);
-          subs.push_back(r2);
+          subs.add(r1, r2);
           return true;
         }
       }
@@ -1698,8 +1683,9 @@ bool ExtendedRewriter::inferSubstitution(Node n,
   if (usePred)
   {
     bool negated = n.getKind() == NOT;
-    vars.push_back(negated ? n[0] : n);
-    subs.push_back(negated ? d_false : d_true);
+    Node var = negated ? n[0] : n;
+    Node s = NodeManager::currentNM()->mkConst(!negated);
+    subs.add(var, s);
     return true;
   }
   return false;

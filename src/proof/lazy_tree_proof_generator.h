@@ -23,6 +23,7 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace detail {
@@ -124,13 +125,13 @@ struct TreeProofNode
  * To explicitly finish proof construction, we need to call closeChild() one
  * additional time.
  */
-class LazyTreeProofGenerator : public ProofGenerator
+class LazyTreeProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const LazyTreeProofGenerator& ltpg);
 
-  LazyTreeProofGenerator(ProofNodeManager* pnm,
+  LazyTreeProofGenerator(Env& env,
                          const std::string& name = "LazyTreeProofGenerator");
 
   std::string identify() const override { return d_name; }
@@ -192,8 +193,6 @@ class LazyTreeProofGenerator : public ProofGenerator
              const std::string& prefix,
              const detail::TreeProofNode& pn) const;
 
-  /** The ProofNodeManager used for constructing ProofNodes */
-  ProofNodeManager* d_pnm;
   /** The trace to the current node */
   std::vector<detail::TreeProofNode*> d_stack;
   /** The root node of the proof tree */

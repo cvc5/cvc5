@@ -1,6 +1,10 @@
 ; COMMAND-LINE: --produce-models --model-cores=simple
-; COMMAND-LINE: --produce-models --model-core=non-implied
+; SCRUBBER: sed 's/(define-fun.*/define-fun/g'
 ; EXPECT: sat
+; EXPECT: (
+; EXPECT: define-fun
+; EXPECT: define-fun
+; EXPECT: )
 (set-logic QF_UFLIA)
 (declare-fun x () Int)
 (declare-fun y () Int)
@@ -9,3 +13,4 @@
 (assert (= (f x) 0))
 (assert (or (> z 5) (> y 5)))
 (check-sat)
+(get-model)

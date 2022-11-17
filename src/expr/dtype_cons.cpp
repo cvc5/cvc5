@@ -240,21 +240,21 @@ TypeNode DTypeConstructor::getArgType(size_t index) const
   return (*this)[index].getType().getDatatypeSelectorRangeType();
 }
 
-Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
-                                           size_t index) const
+Node DTypeConstructor::getSelector(size_t index) const
 {
   Assert(isResolved());
   Assert(index < getNumArgs());
-  if (options::dtSharedSelectors())
-  {
-    computeSharedSelectors(domainType);
-    Assert(d_sharedSelectors[domainType].size() == getNumArgs());
-    return d_sharedSelectors[domainType][index];
-  }
-  else
-  {
-    return d_args[index]->getSelector();
-  }
+  return d_args[index]->getSelector();
+}
+
+Node DTypeConstructor::getSharedSelector(TypeNode domainType,
+                                         size_t index) const
+{
+  Assert(isResolved());
+  Assert(index < getNumArgs());
+  computeSharedSelectors(domainType);
+  Assert(d_sharedSelectors[domainType].size() == getNumArgs());
+  return d_sharedSelectors[domainType][index];
 }
 
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
@@ -643,15 +643,21 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     children.push_back(
         doParametricSubstitution((*i), paramTypes, paramReplacements));
   }
-  for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
+  if (range.getKind() == INSTANTIATED_SORT_TYPE)
   {
-    if (paramTypes[i].getUninterpretedSortConstructorArity()
-        == origChildren.size())
+    // paramTypes contains a list of uninterpreted sort constructors.
+    // paramReplacements contains a list of instantiated parametric datatypes.
+    // If range is (INSTANTIATED_SORT_TYPE c T1 ... Tn), and
+    //    paramTypes[i] is c
+    //    paramReplacements[i] is (PARAMETRIC_DATATYPE d S1 ... Sn)
+    // then we return (PARAMETRIC_DATATYPE d T'1 ... T'n) where T'1 ...T'n
+    // is the result of recursively processing T1 ... Tn.
+    for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
     {
-      TypeNode tn = paramTypes[i].instantiate(origChildren);
-      if (range == tn)
+      if (paramTypes[i] == origChildren[0])
       {
-        TypeNode tret = paramReplacements[i].instantiate(children);
+        std::vector<TypeNode> params(children.begin() + 1, children.end());
+        TypeNode tret = paramReplacements[i].instantiate(params);
         return tret;
       }
     }

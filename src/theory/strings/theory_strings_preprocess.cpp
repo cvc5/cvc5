@@ -35,9 +35,10 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(SkolemCache* sc,
+StringsPreprocess::StringsPreprocess(Env& env,
+                                     SkolemCache* sc,
                                      HistogramStat<Kind>* statReductions)
-    : d_sc(sc), d_statReductions(statReductions)
+    : EnvObj(env), d_sc(sc), d_statReductions(statReductions)
 {
 }
 
@@ -47,7 +48,8 @@ StringsPreprocess::~StringsPreprocess(){
 
 Node StringsPreprocess::reduce(Node t,
                                std::vector<Node>& asserts,
-                               SkolemCache* sc)
+                               SkolemCache* sc,
+                               size_t alphaCard)
 {
   Trace("strings-preprocess-debug")
       << "StringsPreprocess::reduce: " << t << std::endl;
@@ -358,11 +360,10 @@ Node StringsPreprocess::reduce(Node t,
     Node xPlusOne = nm->mkNode(ADD, x, one);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, leni));
-    Node sx = nm->mkNode(STRING_SUBSTR, itost, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, xPlusOne);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
-    Node c = nm->mkNode(SUB, nm->mkNode(STRING_TO_CODE, sx), c0);
+    Node c = nm->mkNode(SUB, mkCodePointAtIndex(itost, x), c0);
 
     Node ten = nm->mkConstInt(Rational(10));
     Node eq = ux1.eqNode(nm->mkNode(ADD, c, nm->mkNode(MULT, ten, ux)));
@@ -427,10 +428,7 @@ Node StringsPreprocess::reduce(Node t,
     Node kc1 = nm->mkNode(GEQ, k, zero);
     Node kc2 = nm->mkNode(LT, k, lens);
     Node c0 = nm->mkNode(STRING_TO_CODE, nm->mkConst(String("0")));
-    Node codeSk = nm->mkNode(
-        SUB,
-        nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, s, k, one)),
-        c0);
+    Node codeSk = nm->mkNode(SUB, mkCodePointAtIndex(s, k), c0);
     Node ten = nm->mkConstInt(Rational(10));
     Node kc3 = nm->mkNode(
         OR, nm->mkNode(LT, codeSk, zero), nm->mkNode(GEQ, codeSk, ten));
@@ -455,10 +453,9 @@ Node StringsPreprocess::reduce(Node t,
     Node x = SkolemCache::mkIndexVar(t);
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode(AND, nm->mkNode(GEQ, x, zero), nm->mkNode(LT, x, lens));
-    Node sx = nm->mkNode(STRING_SUBSTR, s, x, one);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(ADD, x, one));
-    Node c = nm->mkNode(SUB, nm->mkNode(STRING_TO_CODE, sx), c0);
+    Node c = nm->mkNode(SUB, mkCodePointAtIndex(s, x), c0);
 
     Node eq = ux1.eqNode(nm->mkNode(ADD, c, nm->mkNode(MULT, ten, ux)));
     Node cb = nm->mkNode(AND, nm->mkNode(GEQ, c, zero), nm->mkNode(LT, c, ten));
@@ -513,27 +510,29 @@ Node StringsPreprocess::reduce(Node t,
     // nodes for the case where `seq.nth` is defined.
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 = sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
-    Node unit = nm->mkSeqUnit(t.getType(), skt);
+    Node unit = utils::mkUnit(s.getType(), skt);
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, unit, sk2));
     // length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
     Node b13 = nm->mkNode(EQUAL, lsk2, nm->mkNode(SUB, lt0, t12));
-    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    std::vector<Node> bchildren { b11, b12, b13 };
+    if (s.getType().isString())
+    {
+      Node crange = utils::mkCodeRange(skt, alphaCard);
+      bchildren.push_back(crange);
+    }
+    Node b1 = nm->mkNode(AND, bchildren);
 
-    // nodes for the case where `seq.nth` is undefined.
-    Node uf = SkolemCache::mkSkolemSeqNth(s.getType(), "Uf");
-    Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
-
-    // the full ite, split on definedness of `seq.nth`
-    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+    // the lemma for `seq.nth`
+    Node lemma = nm->mkNode(IMPLIES, cond, b1);
 
     // assert:
-    // IF    n >=0 AND n < len( s )
-    // THEN: s = sk1 ++ unit(skt) ++ sk2 AND
-    //       len( sk1 ) = n AND
-    //       ( len( sk2 ) = len( s )- (n+1)
-    // ELSE: skt = Uf(s, n), where Uf is a cached skolem function.
+    // n >=0 AND n < len( s )
+    // IMPLIES: s = sk1 ++ unit(skt) ++ sk2 AND
+    //          len( sk1 ) = n AND
+    //          len( sk2 ) = len( s )- (n+1)
+    // We also ensure skt is a valid code point if s is of type String
     asserts.push_back(lemma);
     retNode = skt;
   }
@@ -861,8 +860,8 @@ Node StringsPreprocess::reduce(Node t,
     Node i = SkolemCache::mkIndexVar(t);
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
 
-    Node ci = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, x, i, one));
-    Node ri = nm->mkNode(STRING_TO_CODE, nm->mkNode(STRING_SUBSTR, r, i, one));
+    Node ci = mkCodePointAtIndex(x, i);
+    Node ri = mkCodePointAtIndex(r, i);
 
     Node lb =
         nm->mkConstInt(Rational(t.getKind() == STRING_TO_UPPER ? 97 : 65));
@@ -1011,7 +1010,7 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
 {
   size_t prev_asserts = asserts.size();
   // call the static reduce routine
-  Node retNode = reduce(t, asserts, d_sc);
+  Node retNode = reduce(t, asserts, d_sc, options().strings.stringsAlphaCard);
   if( t!=retNode ){
     Trace("strings-preprocess") << "StringsPreprocess::simplify: " << t << " -> " << retNode << std::endl;
     if (!asserts.empty())
@@ -1066,11 +1065,24 @@ Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
       if( changed ){
         tmp = NodeManager::currentNM()->mkNode( t.getKind(), cc );
       }
-      retNode = simplify(tmp, asserts);
+      // We cannot statically reduce seq.nth due to it being partial function.
+      // Reducing it here would violate the functional property of seq.nth.
+      if (tmp.getKind() != SEQ_NTH)
+      {
+        retNode = simplify(tmp, asserts);
+      }
     }
     d_visited[t] = retNode;
     return retNode;
   }
+}
+Node StringsPreprocess::mkCodePointAtIndex(Node x, Node i)
+{
+  // We use (SEQ_NTH, x, i) instead of
+  // (STRING_TO_CODE, (STRING_SUBSTR, x, i, 1)) here. The former may be
+  // converted to the latter during preprocessing based on our options.
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(SEQ_NTH, x, i);
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)

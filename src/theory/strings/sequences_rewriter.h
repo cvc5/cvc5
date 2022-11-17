@@ -132,8 +132,6 @@ class SequencesRewriter : public TheoryRewriter
  public:
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
-  /** Expand definition */
-  TrustNode expandDefinition(Node n) override;
 
   /** rewrite equality
    *

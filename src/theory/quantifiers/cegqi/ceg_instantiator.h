@@ -346,8 +346,11 @@ class CegInstantiator : protected EnvObj
    * returns CEG_PARTIALLY_HANDLED, then it may be worthwhile to handle the
    * quantified formula using cegqi, however other strategies should also be
    * tried.
+   *
+   * @param cegqiAll Whether we apply CEQGI to all quantifiers (option
+   * options::cegqiAll).
    */
-  static CegHandledStatus isCbqiQuant(Node q);
+  static CegHandledStatus isCbqiQuant(Node q, bool cegqiAll);
   //------------------------------------ end static queries
  private:
   /** The quantified formula of this instantiator */

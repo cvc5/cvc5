@@ -44,13 +44,27 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 find_package(PythonExtensions REQUIRED)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
+   CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
+  # On macOS, find_package(PythonLibs ...) does not find the Python include
+  # directory or library when they were installed via homebrew.
+  # find_package(Python ...) is more robust, but only available on newer
+  # versions of CMake. If we are compiling cvc5 on macOS and we have a newer
+  # version of CMake available, we try to use find_package(Python ...) to find
+  # the paths.
+  find_package(Python COMPONENTS Development)
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+  set(PYTHON_LIBRARY "${Python_LIBRARIES}")
+endif()
+
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
 
 configure_file(genenums.py.in genenums.py)
 
-# Generate cvc5kinds.{pxd,pyx}
+# Generate cvc5kinds.{pxd,pxi}
 set(GENERATED_KINDS_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxi"
@@ -136,14 +150,25 @@ python_extension_module(cvc5_python_base)
 # installation routine and consists only of a few files that need to go to
 # the right place.
 find_package(CVC5PythonicAPI)
-add_custom_target(
-  cvc5_python_api
+
+set(COPIED_PYTHONIC_FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/LICENSE.txt"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/__init__.py"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic.py"
+  "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic/cvc5_pythonic_printer.py"
+)
+
+add_custom_command(
+  OUTPUT
+    ${COPIED_PYTHONIC_FILES}
   COMMAND
     ${CMAKE_COMMAND} -E copy_directory
     "${CVC5PythonicAPI_BASEDIR}/cvc5_pythonic_api"
     "${CMAKE_CURRENT_BINARY_DIR}/cvc5/pythonic"
   DEPENDS cvc5_python_base CVC5PythonicAPI
 )
+
+add_custom_target(cvc5_python_api ALL DEPENDS ${COPIED_PYTHONIC_FILES})
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file

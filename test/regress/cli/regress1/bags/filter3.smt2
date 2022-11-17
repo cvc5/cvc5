@@ -5,6 +5,6 @@
 (declare-fun B () (Bag Int))
 (define-fun p ((x Int)) Bool (> x 1))
 (assert (= B (bag.filter p A)))
-(assert (= (bag.count 3 B) 57))
+(assert (= (bag.count 3 A) 57))
 (assert (= (bag.count 3 B) 58))
 (check-sat)

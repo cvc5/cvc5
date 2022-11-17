@@ -20,7 +20,6 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
@@ -37,9 +36,15 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
+QuantInfo::QuantInfo(Env& env,
+                     QuantifiersState& qs,
+                     TermRegistry& tr,
+                     QuantConflictFind* p,
+                     Node q)
     : EnvObj(env),
+      d_qs(qs),
       d_parent(p),
+      d_instMatch(env, qs, tr, q),
       d_mg(nullptr),
       d_q(q),
       d_unassigned_nvar(0),
@@ -62,7 +67,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
   registerNode( qn, true, true );
 
   Trace("qcf-qregister") << "- Make match gen structure..." << std::endl;
-  d_mg.reset(new MatchGen(p, this, qn));
+  d_mg = std::make_unique<MatchGen>(d_env, p, this, qn);
 
   if( d_mg->isValid() ){
     for (size_t j = q[0].getNumChildren(), nvars = d_vars.size(); j < nvars;
@@ -77,7 +82,7 @@ QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
         }
         if (!is_tsym || options().quantifiers.cbqiTConstraint)
         {
-          d_var_mg[j] = std::make_unique<MatchGen>(p, this, d_vars[j], true);
+          d_var_mg[j] = std::make_unique<MatchGen>(d_env, p, this, d_vars[j], true);
         }
         if( !d_var_mg[j] || !d_var_mg[j]->isValid() ){
           Trace("qcf-invalid")
@@ -283,6 +288,11 @@ bool QuantInfo::reset_round()
     d_match[i] = TNode::null();
     d_match_term[i] = TNode::null();
   }
+  d_instMatch.resetAll();
+  ieval::TermEvaluatorMode tev = d_parent->atConflictEffort()
+                                     ? ieval::TermEvaluatorMode::CONFLICT
+                                     : ieval::TermEvaluatorMode::PROP;
+  d_instMatch.setEvaluatorMode(tev);
   d_vars_set.clear();
   d_curr_var_deq.clear();
   d_tconstraints.clear();
@@ -369,7 +379,7 @@ bool QuantInfo::getCurrentCanBeEqual(size_t v, TNode n, bool chDiseq)
     else if (chDiseq && !isVar(n) && !isVar(cv))
     {
       // they must actually be disequal if we are looking for conflicts
-      if (!d_parent->areDisequal(n, cv))
+      if (!d_qs.areDisequal(n, cv))
       {
         // TODO : check for entailed disequal
         return false;
@@ -611,16 +621,33 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   Trace("qcf-match-debug") << "-- bind : " << v << " -> " << n << ", checked "
                            << d_curr_var_deq[v].size() << " disequalities"
                            << std::endl;
-  if (isGround)
+  if (isGround && d_vars[v].getKind() == BOUND_VARIABLE)
   {
-    if (d_vars[v].getKind() == BOUND_VARIABLE)
+    // Set the inst match object if this corresponds to an original variable
+    if (v < d_q[0].getNumChildren())
     {
-      d_vars_set.insert(v);
-      Trace("qcf-match-debug")
-          << "---- now bound " << d_vars_set.size() << " / "
-          << d_q[0].getNumChildren() << " base variables." << std::endl;
+      // we overwrite, so we must reset/set here
+      if (!d_instMatch.get(v).isNull())
+      {
+        d_instMatch.reset(v);
+      }
+      if (!d_instMatch.set(v, n))
+      {
+        return false;
+      }
     }
+    d_vars_set.insert(v);
+    Trace("qcf-match-debug")
+        << "---- now bound " << d_vars_set.size() << " / "
+        << d_q[0].getNumChildren() << " base variables." << std::endl;
   }
+  // Note that assigning to a variable that an original variable is equal to
+  // should trigger the match object. For example, if we have auxiliary
+  // variable k and original variable x where x <-> k currently, and we set
+  // k -> t, then we should notify the match object that x -> t. However,
+  // this is not done, as it would require more complex bookkeeping. Overall,
+  // this means that we may fail in some rare cases to eagerly recognize when a
+  // substitution is entailed.
   d_match[v] = n;
   return true;
 }
@@ -628,10 +655,20 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
 void QuantInfo::unsetMatch(size_t v)
 {
   Trace("qcf-match-debug") << "-- unbind : " << v << std::endl;
-  if( d_vars[v].getKind()==BOUND_VARIABLE && d_vars_set.find( v )!=d_vars_set.end() ){
+  if (d_vars[v].getKind() == BOUND_VARIABLE
+      && d_vars_set.find(v) != d_vars_set.end())
+  {
     d_vars_set.erase( v );
+    // Reset the inst match object if this corresponds to an original variable
+    if (v < d_q[0].getNumChildren())
+    {
+      if (!d_instMatch.get(v).isNull())
+      {
+        d_instMatch.reset(v);
+      }
+    }
   }
-  d_match[ v ] = TNode::null();
+  d_match[v] = TNode::null();
 }
 
 bool QuantInfo::isMatchSpurious()
@@ -650,6 +687,15 @@ bool QuantInfo::isMatchSpurious()
 
 bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
 {
+  if (options().quantifiers.ievalMode != options::IevalMode::OFF)
+  {
+    // We rely on the instantiation evaluator. When the instantiation evaluator
+    // is enabled, this method (almost) always returns false. The code may
+    // return true based on minor differences in the entailment tests, which
+    // would allow us in very rare cases to recognize when an instantiation
+    // is spurious.
+    return false;
+  }
   if (options().quantifiers.cbqiEagerTest)
   {
     EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
@@ -1110,8 +1156,9 @@ void QuantInfo::debugPrintMatch(const char* c) const
   }
 }
 
-MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
-    : d_tgt(),
+MatchGen::MatchGen(Env& env, QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
+    : EnvObj(env), 
+      d_tgt(),
       d_tgt_orig(),
       d_wasSet(),
       d_n(),
@@ -1177,7 +1224,7 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
         for( unsigned i=0; i<d_n.getNumChildren(); i++ ){
           if( d_n.getKind()!=FORALL || i==1 ){
             std::unique_ptr<MatchGen> mg =
-                std::make_unique<MatchGen>(p, qi, d_n[i], false);
+                std::make_unique<MatchGen>(d_env, p, qi, d_n[i], false);
             if (!mg->isValid())
             {
               setInvalid();
@@ -1196,7 +1243,7 @@ MatchGen::MatchGen(QuantConflictFind* p, QuantInfo* qi, Node n, bool isVar)
           Assert(d_n.getType().isBoolean());
           d_type = typ_bool_var;
         }
-        else if (d_n.getKind() == EQUAL || options::cbqiTConstraint())
+        else if (d_n.getKind() == EQUAL || options().quantifiers.cbqiTConstraint)
         {
           for (unsigned i = 0; i < d_n.getNumChildren(); i++)
           {
@@ -1302,7 +1349,7 @@ void MatchGen::determineVariableOrder(std::vector<size_t>& bvars)
               << vu_count[i] << std::endl;
           int score0 = 0;//has_nested[i] ? 0 : 1;
           int score;
-          if (!options::cbqiVoExp())
+          if (!options().quantifiers.cbqiVoExp)
           {
             score = vu_count[i];
           }
@@ -1450,7 +1497,7 @@ void MatchGen::reset(bool tgt)
       d_child_counter = 0;
     }
   }
-  else if (d_qi->isBaseMatchComplete() && options::cbqiEagerTest())
+  else if (d_qi->isBaseMatchComplete() && options().quantifiers.cbqiEagerTest)
   {
     d_use_children = false;
     d_child_counter = 0;
@@ -1946,7 +1993,7 @@ bool MatchGen::doMatching()
           {
             d_qni.push_back(it);
             // set the match
-            if (it->first.getType().isComparableTo(d_qi->d_var_types[repVar])
+            if (it->first.getType() == d_qi->d_var_types[repVar]
                 && d_qi->setMatch(d_qni_bound[index], it->first, true, true))
             {
               Trace("qcf-match-debug")
@@ -2124,6 +2171,7 @@ QuantConflictFind::QuantConflictFind(Env& env,
                                      QuantifiersRegistry& qr,
                                      TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
+      d_statistics(statisticsRegistry()),
       d_conflict(context(), false),
       d_effort(EFFORT_INVALID)
 {
@@ -2148,7 +2196,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   Trace("qcf-qregister")
       << "- Get relevant equality/disequality pairs, calculate flattening..."
       << std::endl;
-  d_qinfo[q].reset(new QuantInfo(d_env, this, q));
+  d_qinfo[q].reset(new QuantInfo(d_env, d_qstate, d_treg, this, q));
 
   // debug print
   if (TraceIsOn("qcf-qregister"))
@@ -2224,8 +2272,8 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
-inline QuantConflictFind::Effort QcfEffortEnd() {
-  return options::cbqiMode() == options::QcfMode::PROP_EQ
+inline QuantConflictFind::Effort QcfEffortEnd(options::QcfMode m) {
+  return m == options::QcfMode::PROP_EQ
              ? QuantConflictFind::EFFORT_PROP_EQ
              : QuantConflictFind::EFFORT_CONFLICT;
 }
@@ -2275,16 +2323,17 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   bool isConflict = false;
   FirstOrderModel* fm = d_treg.getModel();
-  unsigned nquant = fm->getNumAssertedQuantifiers();
+  size_t nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
-  for (unsigned e = QcfEffortStart(), end = QcfEffortEnd(); e <= end; ++e)
+  unsigned end = QcfEffortEnd(options().quantifiers.cbqiMode);
+  for (unsigned e = QcfEffortStart(); e <= end; ++e)
   {
     // set the effort (data member for convienence of access)
     d_effort = static_cast<Effort>(e);
     Trace("qcf-check") << "Checking quantified formulas at effort " << e
                        << "..." << std::endl;
     // for each quantified formula
-    for (unsigned i = 0; i < nquant; i++)
+    for (size_t i = 0; i < nquant; i++)
     {
       Node q = fm->getAssertedQuantifier(i, true);
       if (d_qreg.hasOwnership(q, this)
@@ -2544,11 +2593,10 @@ void QuantConflictFind::debugPrintQuantBody(const char* c,
   Trace(c) << ")";
 }
 
-QuantConflictFind::Statistics::Statistics()
-    : d_inst_rounds(
-        smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
-      d_entailment_checks(smtStatisticsRegistry().registerInt(
-          "QuantConflictFind::Entailment_Checks"))
+QuantConflictFind::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_inst_rounds(sr.registerInt("QuantConflictFind::Inst_Rounds")),
+      d_entailment_checks(
+          sr.registerInt("QuantConflictFind::Entailment_Checks"))
 {
 }
 

@@ -45,15 +45,17 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
 {
  public:
   ProofPostprocessCallback(Env& env,
-                           ProofGenerator* pppg,
                            rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
+   *
+   * @param pppg The proof generator that has proofs of preprocessed assertions
+   * (derived from input assertions).
    */
-  void initializeUpdate();
+  void initializeUpdate(ProofGenerator* pppg);
   /**
    * Set eliminate rule, which adds rule to the list of rules we will eliminate
    * during update. This adds rule to d_elimRules. Supported rules for
@@ -76,8 +78,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  private:
   /** Common constants */
   Node d_true;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The witness form proof generator */
@@ -245,23 +245,25 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
-class ProofPostproccess : protected EnvObj
+class ProofPostprocess : protected EnvObj
 {
  public:
   /**
    * @param env The environment we are using
-   * @param pppg The proof generator for pre-processing proofs
    * @param updateScopedAssumptions Whether we post-process assumptions in
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
    */
-  ProofPostproccess(Env& env,
-                    ProofGenerator* pppg,
-                    rewriter::RewriteDb* rdb,
-                    bool updateScopedAssumptions = true);
-  ~ProofPostproccess();
-  /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
+  ProofPostprocess(Env& env,
+                   rewriter::RewriteDb* rdb,
+                   bool updateScopedAssumptions = true);
+  ~ProofPostprocess();
+  /** post-process
+   *
+   * @param pf The proof to process.
+   * @param pppg The proof generator for pre-processing proofs.
+   */
+  void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
 

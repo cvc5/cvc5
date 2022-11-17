@@ -15,13 +15,16 @@
 
 #include "theory/quantifiers/inst_match.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-InstMatch::InstMatch(TNode q)
+InstMatch::InstMatch(Env& env, QuantifiersState& qs, TermRegistry& tr, TNode q)
+    : EnvObj(env), d_qs(qs), d_tr(tr), d_quant(q), d_ieval(nullptr)
 {
   d_vals.resize(q[0].getNumChildren());
   Assert(!d_vals.empty());
@@ -29,17 +32,15 @@ InstMatch::InstMatch(TNode q)
   Assert(d_vals[0].isNull());
 }
 
-InstMatch::InstMatch( InstMatch* m ) {
-  d_vals.insert( d_vals.end(), m->d_vals.begin(), m->d_vals.end() );
-}
-
-void InstMatch::add(InstMatch& m)
+void InstMatch::setEvaluatorMode(ieval::TermEvaluatorMode tev)
 {
-  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
+  // should only do this if we are empty
+  Assert(empty());
+  // get the instantiation evaluator and reset it
+  d_ieval = d_tr.getEvaluator(d_quant, tev);
+  if (d_ieval != nullptr)
   {
-    if( d_vals[i].isNull() ){
-      d_vals[i] = m.d_vals[i];
-    }
+    d_ieval->resetAll();
   }
 }
 
@@ -52,8 +53,28 @@ void InstMatch::debugPrint( const char* c ){
   }
 }
 
-bool InstMatch::isComplete() {
-  for (Node& v : d_vals)
+void InstMatch::toStream(std::ostream& out) const
+{
+  out << "INST_MATCH( ";
+  bool printed = false;
+  for (size_t i = 0, size = d_vals.size(); i < size; i++)
+  {
+    if (!d_vals[i].isNull())
+    {
+      if (printed)
+      {
+        out << ", ";
+      }
+      out << i << " -> " << d_vals[i];
+      printed = true;
+    }
+  }
+  out << " )";
+}
+
+bool InstMatch::isComplete() const
+{
+  for (const Node& v : d_vals)
   {
     if (v.isNull())
     {
@@ -63,8 +84,9 @@ bool InstMatch::isComplete() {
   return true;
 }
 
-bool InstMatch::empty() {
-  for (Node& v : d_vals)
+bool InstMatch::empty() const
+{
+  for (const Node& v : d_vals)
   {
     if (!v.isNull())
     {
@@ -74,9 +96,16 @@ bool InstMatch::empty() {
   return true;
 }
 
-void InstMatch::clear() {
-  for( unsigned i=0; i<d_vals.size(); i++ ){
+void InstMatch::resetAll()
+{
+  for (size_t i = 0, nvals = d_vals.size(); i < nvals; i++)
+  {
     d_vals[i] = Node::null();
+  }
+  // clear information from the evaluator
+  if (d_ieval != nullptr)
+  {
+    d_ieval->resetAll();
   }
 }
 
@@ -86,20 +115,38 @@ Node InstMatch::get(size_t i) const
   return d_vals[i];
 }
 
-void InstMatch::setValue(size_t i, TNode n)
+bool InstMatch::set(size_t i, TNode n)
 {
   Assert(i < d_vals.size());
-  d_vals[i] = n;
-}
-bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
-{
-  Assert(i < d_vals.size());
-  if( !d_vals[i].isNull() ){
-    return qs.areEqual(d_vals[i], n);
+  if (!d_vals[i].isNull())
+  {
+    // if they are equal, we do nothing
+    return d_qs.areEqual(d_vals[i], n);
   }
+  if (d_ieval != nullptr)
+  {
+    // if applicable, check if the instantiation evaluator is ok
+    if (!d_ieval->push(d_quant[0][i], n))
+    {
+      return false;
+    }
+  }
+  // otherwise, we update the value
   d_vals[i] = n;
   return true;
 }
+
+void InstMatch::reset(size_t i)
+{
+  Assert(!d_vals[i].isNull());
+  if (d_ieval != nullptr)
+  {
+    d_ieval->pop();
+  }
+  d_vals[i] = Node::null();
+}
+
+const std::vector<Node>& InstMatch::get() const { return d_vals; }
 
 }  // namespace quantifiers
 }  // namespace theory

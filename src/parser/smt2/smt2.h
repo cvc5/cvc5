@@ -18,6 +18,7 @@
 #ifndef CVC5__PARSER__SMT2_H
 #define CVC5__PARSER__SMT2_H
 
+#include <optional>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -31,10 +32,11 @@
 
 namespace cvc5 {
 
-class Command;
 class Solver;
 
 namespace parser {
+
+class Command;
 
 class Smt2 : public Parser
 {
@@ -100,7 +102,12 @@ class Smt2 : public Parser
 
   bool isOperatorEnabled(const std::string& name) const;
 
+  /** Parse block models mode */
   modes::BlockModelsMode getBlockModelsMode(const std::string& mode);
+  /** Parse learned literal type */
+  modes::LearnedLitType getLearnedLitType(const std::string& mode);
+  /** Parse proof component */
+  modes::ProofComponent getProofComponent(const std::string& pc);
 
   bool isTheoryEnabled(internal::theory::TheoryId theory) const;
 
@@ -227,6 +234,13 @@ class Smt2 : public Parser
 
   /** Are we using a sygus language? */
   bool sygus() const;
+
+  /**
+   * Are we using SyGuS grammars? This is true if the input is the SyGuS
+   * language or if produce-abducts or produce-interpolants is true. Enables
+   * grammar-specific token `Constant`.
+   */
+  bool hasGrammars() const;
 
   void checkThatLogicIsSet();
 
@@ -382,6 +396,20 @@ class Smt2 : public Parser
    */
   cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
   //------------------------- end processing parse operators
+
+  /**
+   * Handles a push command.
+   *
+   * @return An instance of `PushCommand`
+   */
+  std::unique_ptr<Command> handlePush(std::optional<uint32_t> nscopes);
+  /**
+   * Handles a pop command.
+   *
+   * @return An instance of `PopCommand`
+   */
+  std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
+
  private:
 
   void addArithmeticOperators();

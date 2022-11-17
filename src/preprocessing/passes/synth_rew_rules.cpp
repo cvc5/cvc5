@@ -21,15 +21,18 @@
 #include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -395,8 +398,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
-  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(
-      datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(datatypes);
   Trace("srs-input") << "...finished." << std::endl;
   Assert(types.size() == datatypes.size());
   std::map<Node, TypeNode> subtermTypes;
@@ -440,8 +442,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // set that this is a sygus datatype
     sdttl.initializeDatatype(t, sygusVarList, false, false);
     DType dttl = sdttl.getDatatype();
-    TypeNode tlt =
-        nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+    TypeNode tlt = nm->mkDatatypeType(dttl);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
     Trace("srs-input") << printer::smt2::Smt2Printer::sygusGrammarString(tlt)
@@ -473,19 +474,33 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     synthConj.push_back(body);
   }
   Node trueNode = nm->mkConst(true);
-  Node res =
-      synthConj.empty()
-          ? trueNode
-          : (synthConj.size() == 1 ? synthConj[0] : nm->mkNode(AND, synthConj));
+  Node res = nm->mkAnd(synthConj);
 
   Trace("srs-input") << "got : " << res << std::endl;
   Trace("srs-input") << "...finished." << std::endl;
 
-  assertionsToPreprocess->replace(0, res);
-  for (unsigned i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
+  // use a separate subsolver
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeQuantifiers().sygus = true;
+  subOptions.writeQuantifiers().sygusRewSynthInput = false;
+  subOptions.writeQuantifiers().sygusRewSynth = true;
+  // we should not use the extended rewriter, since we are interested
+  // in rewrites that are not in the main rewriter
+  if (!subOptions.datatypes.sygusRewriterWasSetByUser)
   {
-    assertionsToPreprocess->replace(i, trueNode);
+    subOptions.writeDatatypes().sygusRewriter =
+        options::SygusRewriterMode::BASIC;
   }
+  smt::SetDefaults::disableChecking(subOptions);
+  theory::SubsolverSetupInfo ssi(d_env, subOptions);
+  theory::checkWithSubsolver(res, ssi);
+
+  // If we terminate the above check, then we throw a logic exception now.
+  // Note that typically the above call will be non-terminating, as it will
+  // enumerate rewrite rules ad infinitum, but it is possible to reach this
+  // line if a finite grammar is inferred above.
+  throw Exception("Finished synthesizing rewrite rules.");
 
   return PreprocessingPassResult::NO_CONFLICT;
 }

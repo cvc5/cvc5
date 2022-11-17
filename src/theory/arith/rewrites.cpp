@@ -39,6 +39,7 @@ const char* toString(Rewrite r)
     case Rewrite::INT_EXT_CONST: return "INT_EXT_CONST";
     case Rewrite::INT_EXT_INT: return "INT_EXT_INT";
     case Rewrite::INT_EXT_PI: return "INT_EXT_PI";
+    case Rewrite::INT_EXT_TO_REAL: return "INT_EXT_TO_REAL";
     default: return "?";
   }
 }

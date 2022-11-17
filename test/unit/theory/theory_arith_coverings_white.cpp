@@ -201,19 +201,18 @@ poly::Polynomial up_to_poly(const poly::UPolynomial& p, poly::Variable var)
 
 TEST_F(TestTheoryWhiteArithCoverings, lazard_simp)
 {
-  Rewriter* rewriter = d_slvEngine->getRewriter();
+  Rewriter* rewriter = d_slvEngine->getEnv().getRewriter();
   Node a = d_nodeManager->mkVar(*d_realType);
   Node c = d_nodeManager->mkVar(*d_realType);
   Node orig = d_nodeManager->mkAnd(std::vector<Node>{
-      d_nodeManager->mkNode(
-          Kind::EQUAL, a, d_nodeManager->mkConst(CONST_RATIONAL, d_zero)),
+      d_nodeManager->mkNode(Kind::EQUAL, a, d_nodeManager->mkConstReal(d_zero)),
       d_nodeManager->mkNode(
           Kind::EQUAL,
           d_nodeManager->mkNode(
               Kind::ADD,
               d_nodeManager->mkNode(Kind::NONLINEAR_MULT, a, c),
-              d_nodeManager->mkConst(CONST_RATIONAL, d_one)),
-          d_nodeManager->mkConst(CONST_RATIONAL, d_zero))});
+              d_nodeManager->mkConstReal(d_one)),
+          d_nodeManager->mkConstReal(d_zero))});
 
   {
     Node rewritten = rewriter->rewrite(orig);
@@ -236,7 +235,9 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
   poly::AlgebraicNumber ay = get_ran({-2, 0, 0, 0, 1}, 1, 2);
   poly::AlgebraicNumber az = get_ran({-3, 0, 1}, 1, 2);
 
-  coverings::LazardEvaluation lazard;
+  Options opts;
+  Env env(&opts);
+  coverings::LazardEvaluation lazard(env.getStatisticsRegistry());
   lazard.add(x, ax);
   lazard.add(y, ay);
   lazard.add(z, az);
@@ -251,7 +252,7 @@ TEST_F(TestTheoryWhiteArithCoverings, lazard_eval)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -273,7 +274,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_1)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -306,7 +307,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_2)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -329,7 +330,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_3)
 TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   poly::Variable x = cac.getConstraints().varMapper()(make_real_variable("x"));
   poly::Variable y = cac.getConstraints().varMapper()(make_real_variable("y"));
@@ -354,7 +355,7 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_4)
 void test_delta(const std::vector<Node>& a)
 {
   Options opts;
-  Env env(NodeManager::currentNM(), &opts);
+  Env env(&opts);
   coverings::CDCAC cac(env, {});
   cac.reset();
   for (const Node& n : a)
@@ -384,11 +385,11 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 {
   Options opts;
   // enable proofs
-  opts.smt.proofMode = options::ProofMode::FULL;
-  opts.smt.produceProofs = true;
-  Env env(NodeManager::currentNM(), &opts);
-  opts.handler().setDefaultDagThresh("--dag-thresh", 0);
+  opts.writeSmt().proofMode = options::ProofMode::FULL;
+  opts.writeSmt().produceProofs = true;
+  Env env(&opts);
   smt::PfManager pfm(env);
+  env.finishInit(pfm.getProofNodeManager());
   EXPECT_TRUE(env.isTheoryProofProducing());
   // register checkers that we need
   builtin::BuiltinProofRuleChecker btchecker(env);
@@ -426,10 +427,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_cdcac_proof_1)
 TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
 {
   std::vector<Node> a;
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node mone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node fifth = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2));
+  Node zero = d_nodeManager->mkConstReal(Rational(0));
+  Node one = d_nodeManager->mkConstReal(Rational(1));
+  Node mone = d_nodeManager->mkConstReal(Rational(-1));
+  Node fifth = d_nodeManager->mkConstReal(Rational(1, 2));
   Node g = make_real_variable("g");
   Node l = make_real_variable("l");
   Node q = make_real_variable("q");
@@ -449,10 +450,10 @@ TEST_F(TestTheoryWhiteArithCoverings, test_delta_one)
 TEST_F(TestTheoryWhiteArithCoverings, test_delta_two)
 {
   std::vector<Node> a;
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
-  Node one = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1));
-  Node mone = d_nodeManager->mkConst(CONST_RATIONAL, Rational(-1));
-  Node fifth = d_nodeManager->mkConst(CONST_RATIONAL, Rational(1, 2));
+  Node zero = d_nodeManager->mkConstReal(Rational(0));
+  Node one = d_nodeManager->mkConstReal(Rational(1));
+  Node mone = d_nodeManager->mkConstReal(Rational(-1));
+  Node fifth = d_nodeManager->mkConstReal(Rational(1, 2));
   Node g = make_real_variable("g");
   Node l = make_real_variable("l");
   Node q = make_real_variable("q");

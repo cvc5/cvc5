@@ -255,7 +255,7 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   const DType& ldt = listType.getDType();
   Node updater = ldt[0][0].getUpdater();
   Node gt = d_nodeManager->mkGroundTerm(listType);
-  Node zero = d_nodeManager->mkConst(CONST_RATIONAL, Rational(0));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
   Node truen = d_nodeManager->mkConst(true);
   // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);
@@ -464,64 +464,6 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_NE(pairIntInt, pairIntReal);
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
-
-  ASSERT_TRUE(pairRealReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isComparableTo(pairIntInt));
-
-  ASSERT_TRUE(pairRealReal.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isSubtypeOf(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isSubtypeOf(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isSubtypeOf(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isSubtypeOf(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isSubtypeOf(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isSubtypeOf(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isSubtypeOf(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isSubtypeOf(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isSubtypeOf(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isSubtypeOf(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isSubtypeOf(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isSubtypeOf(pairIntInt));
-
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairRealReal, pairRealReal),
-            pairRealReal);
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairIntReal, pairRealReal).isNull());
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairRealInt, pairRealReal).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntInt, pairRealReal).isNull());
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairRealReal, pairRealInt).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntReal, pairRealInt).isNull());
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairRealInt, pairRealInt),
-            pairRealInt);
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntInt, pairRealInt).isNull());
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairRealReal, pairIntReal).isNull());
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntReal, pairIntReal),
-            pairIntReal);
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairRealInt, pairIntReal).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntInt, pairIntReal).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairRealReal, pairIntInt).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntReal, pairIntInt).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairRealInt, pairIntInt).isNull());
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
 }  // namespace cvc5::internal

@@ -25,7 +25,6 @@
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/decision_manager.h"
@@ -79,7 +78,7 @@ TheoryArrays::TheoryArrays(Env& env,
           name + "number of setModelVal conflicts")),
       d_ppEqualityEngine(d_env, userContext(), name + "pp", true),
       d_ppFacts(userContext()),
-      d_rewriter(env.getRewriter(), d_pnm),
+      d_rewriter(env),
       d_state(env, valuation),
       d_im(env, *this, d_state),
       d_literalsToPropagate(context()),
@@ -87,7 +86,7 @@ TheoryArrays::TheoryArrays(Env& env,
       d_isPreRegistered(context()),
       d_mayEqualEqualityEngine(d_env, context(), name + "mayEqual", true),
       d_notify(*this),
-      d_infoMap(context(), name),
+      d_infoMap(statisticsRegistry(), context(), name),
       d_mergeQueue(context()),
       d_mergeInProgress(false),
       d_RowQueue(context()),
@@ -301,8 +300,8 @@ TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
     if (k == kind::EQ_RANGE)
     {
       std::stringstream ss;
-      ss << "Term of kind " << k
-         << " not supported in default mode, try --arrays-exp";
+      ss << "Term of kind `" << k
+         << "` not supported in default mode, try `--arrays-exp`.";
       throw LogicException(ss.str());
     }
   }
@@ -1000,8 +999,12 @@ void TheoryArrays::computeCareGraph()
         temp->push_back(r1);
       }
       else {
-        // We don't know the model value for x.  Just do brute force examination of all pairs of reads
-        for (unsigned j = 0; j < size; ++j) {
+        // We don't know the model value for x.  Just do brute force examination of all pairs of reads.
+        // Note that we have to loop over *all* reads here, not just subsequent reads, because there
+        // may be an earlier read that *does* have a model value.  So if we don't check here, the two
+        // reads won't get compared.
+        for (unsigned j = 0; j < size; ++j)
+        {
           TNode r2 = d_reads[j];
           Assert(d_equalityEngine->hasTerm(r2));
           checkPair(r1,r2);

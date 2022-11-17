@@ -21,8 +21,7 @@
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
 
 using namespace cvc5::internal::kind;
@@ -75,7 +74,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
              || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
+      Node zero = nm->mkConstInt(Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::GT, mult, zero), args[1]}),
@@ -94,7 +93,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
       Node lhs = args[1][0];
       Node rhs = args[1][1];
-      Node zero = nm->mkConstRealOrInt(mult.getType(), Rational(0));
+      Node zero = nm->mkConstInt(Rational(0));
       return nm->mkNode(Kind::IMPLIES,
                         nm->mkAnd(std::vector<Node>{
                             nm->mkNode(Kind::LT, mult, zero), args[1]}),

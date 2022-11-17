@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rep_set_iterator.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -645,7 +646,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
-    if (options().quantifiers.mbqiMode == options::MbqiMode::NONE)
+    if (options().quantifiers.fmfMbqiMode == options::FmfMbqiMode::NONE)
     {
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
@@ -745,11 +746,9 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       // just add the instance
       d_triedLemmas++;
-      if (instq->addInstantiation(f,
-                                  inst,
-                                  InferenceId::QUANTIFIERS_INST_FMF_FMC,
-                                  Node::null(),
-                                  true))
+      instq->processInstantiationRep(f, inst);
+      if (instq->addInstantiation(
+              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, Node::null()))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -827,16 +826,20 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
-  RepBoundFmcEntry(QuantifiersBoundInference& qbi,
+  RepBoundFmcEntry(Env& env,
+                   QuantifiersBoundInference& qbi,
+                   QuantifiersState& qs,
+                   TermRegistry& tr,
+                   TNode q,
                    Node e,
-                   FirstOrderModelFmc* f)
-      : QRepBoundExt(qbi, f), d_entry(e), d_fm(f)
+                   FirstOrderModelFmc* fmc)
+      : QRepBoundExt(env, qbi, qs, tr, q), d_entry(e), d_fm(fmc)
   {
   }
   ~RepBoundFmcEntry() {}
   /** set bound */
   virtual RsiEnumType setBound(Node owner,
-                               unsigned i,
+                               size_t i,
                                std::vector<Node>& elements) override
   {
     if (!d_fm->isStar(d_entry[i]))
@@ -863,7 +866,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
   QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
-  RepBoundFmcEntry rbfe(qbi, c, fm);
+  RepBoundFmcEntry rbfe(d_env, qbi, d_qstate, d_treg, f, c, d_fm.get());
   RepSetIterator riter(fm->getRepSet(), &rbfe);
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
@@ -898,11 +901,11 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
+        ie->processInstantiationRep(f, inst);
         if (ie->addInstantiation(f,
                                  inst,
                                  InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH,
-                                 Node::null(),
-                                 true))
+                                 Node::null()))
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
@@ -920,7 +923,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       Trace("fmc-exh-debug") << std::endl;
       int index = riter.increment();
       Trace("fmc-exh-debug") << "Incremented index " << index << std::endl;
-      if( !riter.isFinished() ){
+      if (!options().quantifiers.fmfBoundBlast && !riter.isFinished())
+      {
         if (index >= 0 && riter.d_index[index] > 0 && addedLemmas > 0
             && riter.d_enum_type[index] == ENUM_CUSTOM)
         {
@@ -1302,7 +1306,8 @@ bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & co
   return true;
 }
 
-Node FullModelChecker::mkCond( std::vector< Node > & cond ) {
+Node FullModelChecker::mkCond(const std::vector<Node>& cond)
+{
   return NodeManager::currentNM()->mkNode(APPLY_UF, cond);
 }
 

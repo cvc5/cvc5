@@ -31,6 +31,7 @@ namespace bags {
 enum class Rewrite : uint32_t
 {
   NONE,  // no rewrite happened
+  AGGREGATE_CONST,
   BAG_MAKE_COUNT_NEGATIVE,
   CARD_DISJOINT,
   CARD_BAG_MAKE,
@@ -60,6 +61,7 @@ enum class Rewrite : uint32_t
   MAP_BAG_MAKE,
   MAP_UNION_DISJOINT,
   MEMBER,
+  PARTITION_CONST,
   PRODUCT_EMPTY,
   REMOVE_FROM_UNION,
   REMOVE_MIN,

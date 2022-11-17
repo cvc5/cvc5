@@ -32,52 +32,55 @@ TEST_F(TestUtilWhiteArrayStoreAll, store_all)
   TypeNode usort = d_nodeManager->mkSort("U");
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                            d_nodeManager->realType()),
-                d_nodeManager->mkConst(CONST_RATIONAL, Rational(9, 2)));
+                d_nodeManager->mkConstReal(Rational(9, 2)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkSort("U"), usort),
                 d_nodeManager->mkConst(UninterpretedSortValue(usort, 0)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
                                            d_nodeManager->realType()),
-                d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
+                d_nodeManager->mkConstReal(Rational(0)));
   ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
                                            d_nodeManager->integerType()),
-                d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)));
+                d_nodeManager->mkConstInt(Rational(0)));
 }
 
 TEST_F(TestUtilWhiteArrayStoreAll, type_errors)
 {
-  ASSERT_THROW(ArrayStoreAll(d_nodeManager->integerType(),
+  ASSERT_DEATH(ArrayStoreAll(d_nodeManager->integerType(),
                              d_nodeManager->mkConst(UninterpretedSortValue(
                                  d_nodeManager->mkSort("U"), 0))),
-               IllegalArgumentException);
-  ASSERT_THROW(
-      ArrayStoreAll(d_nodeManager->integerType(),
-                    d_nodeManager->mkConst(CONST_RATIONAL, Rational(9, 2))),
-      IllegalArgumentException);
-  ASSERT_THROW(
+               "can only be created for array types");
+  ASSERT_DEATH(ArrayStoreAll(d_nodeManager->integerType(),
+                             d_nodeManager->mkConstReal(Rational(9, 2))),
+               "can only be created for array types");
+  ASSERT_DEATH(
       ArrayStoreAll(d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                d_nodeManager->mkSort("U")),
-                    d_nodeManager->mkConst(CONST_RATIONAL, Rational(9, 2))),
-      IllegalArgumentException);
+                    d_nodeManager->mkConstReal(Rational(9, 2))),
+      "does not match constituent type of array type");
+  ASSERT_DEATH(ArrayStoreAll(
+                   d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(8),
+                                              d_nodeManager->realType()),
+                   d_nodeManager->mkConstInt(Rational(0))),
+               "does not match constituent type of array type");
 }
 
 TEST_F(TestUtilWhiteArrayStoreAll, const_error)
 {
   TypeNode usort = d_nodeManager->mkSort("U");
-  ASSERT_THROW(ArrayStoreAll(d_nodeManager->mkArrayType(
+  ASSERT_DEATH(ArrayStoreAll(d_nodeManager->mkArrayType(
                                  d_nodeManager->mkSort("U"), usort),
                              d_nodeManager->mkVar(usort)),
-               IllegalArgumentException);
-  ASSERT_THROW(
+               "requires a constant expression");
+  ASSERT_DEATH(
       ArrayStoreAll(d_nodeManager->integerType(),
                     d_nodeManager->mkVar("x", d_nodeManager->integerType())),
-      IllegalArgumentException);
-  ASSERT_THROW(
-      ArrayStoreAll(d_nodeManager->integerType(),
-                    d_nodeManager->mkNode(
-                        kind::ADD,
-                        d_nodeManager->mkConst(CONST_RATIONAL, Rational(1)),
-                        d_nodeManager->mkConst(CONST_RATIONAL, Rational(0)))),
-      IllegalArgumentException);
+      "array store-all constants can only be created for array types");
+  ASSERT_DEATH(ArrayStoreAll(d_nodeManager->integerType(),
+                             d_nodeManager->mkNode(
+                                 kind::ADD,
+                                 d_nodeManager->mkConstInt(Rational(1)),
+                                 d_nodeManager->mkConstInt(Rational(0)))),
+               "array store-all constants can only be created for array types");
 }
 }  // namespace test
 }  // namespace cvc5::internal

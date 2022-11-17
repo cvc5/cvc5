@@ -184,6 +184,14 @@ name   = "Quantifiers"
   default    = "false"
   help       = "do global negation of input formula"
 
+[[option]]
+  name       = "mbqi"
+  category   = "expert"
+  long       = "mbqi"
+  type       = "bool"
+  default    = "false"
+  help       = "use model-based quantifier instantiation"
+
 #### E-matching options
 
 [[option]]
@@ -441,6 +449,29 @@ name   = "Quantifiers"
   help       = "instantiation rounds quantifiers takes (>=1) before allowing theory combination to happen"
 
 [[option]]
+  name       = "printInstMode"
+  category   = "common"
+  long       = "print-inst=MODE"
+  type       = "PrintInstMode"
+  default    = "LIST"
+  help       = "print format for printing instantiations"
+  help_mode  = "Print format for printing instantiations."
+[[option.mode.LIST]]
+  name = "list"
+  help = "Print the list of instantiations per quantified formula, when non-empty."
+[[option.mode.NUM]]
+  name = "num"
+  help = "Print the total number of instantiations per quantified formula, when non-zero."
+
+[[option]]
+  name       = "printInstFull"
+  category   = "regular"
+  long       = "print-inst-full"
+  type       = "bool"
+  default    = "true"
+  help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
   name       = "instMaxLevel"
   category   = "expert"
   long       = "inst-max-level=N"
@@ -602,10 +633,10 @@ name   = "Quantifiers"
   help       = "find models for recursively defined functions, assumes functions are admissible, allows empty type when function is irrelevant"
 
 [[option]]
-  name       = "mbqiMode"
+  name       = "fmfMbqiMode"
   category   = "expert"
-  long       = "mbqi=MODE"
-  type       = "MbqiMode"
+  long       = "fmf-mbqi=MODE"
+  type       = "FmfMbqiMode"
   default    = "FMC"
   help       = "choose mode for model-based quantifier instantiation"
   help_mode  = "Model-based quantifier instantiation modes."
@@ -658,6 +689,14 @@ name   = "Quantifiers"
   type       = "int64_t"
   default    = "1000"
   help       = "the maximum cardinality of an interpreted type for which exhaustive enumeration in finite model finding is attempted"
+
+[[option]]
+  name       = "fmfBoundBlast"
+  category   = "expert"
+  long       = "fmf-bound-blast"
+  type       = "bool"
+  default    = "false"
+  help       = "send all instantiations for bounded ranges in a single round"
 
 ### Conflict-based instantiation options
 
@@ -740,6 +779,24 @@ name   = "Quantifiers"
   default    = "true"
   help       = "do not consider instances of quantified formulas that are currently entailed"
 
+[[option]]
+  name       = "ievalMode"
+  category   = "regular"
+  long       = "ieval=MODE"
+  type       = "IevalMode"
+  default    = "OFF"
+  help       = "mode for using instantiation evaluation"
+  help_mode  = "Mode for using instantiation evaluation."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use instantiation evaluation."
+[[option.mode.USE]]
+  name = "use"
+  help = "Use instantiation evaluation."
+[[option.mode.USE_LEARN]]
+  name = "use-learn"
+  help = "Use instantiation evaluation, and generalize learning."
+
 ### Induction options
 
 [[option]]
@@ -783,30 +840,6 @@ name   = "Quantifiers"
   help       = "number of conjectures to generate per instantiation round"
 
 [[option]]
-  name       = "conjectureFilterActiveTerms"
-  category   = "expert"
-  long       = "conjecture-filter-active-terms"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on active terms"
-
-[[option]]
-  name       = "conjectureFilterCanonical"
-  category   = "expert"
-  long       = "conjecture-filter-canonical"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on canonicity"
-
-[[option]]
-  name       = "conjectureFilterModel"
-  category   = "expert"
-  long       = "conjecture-filter-model"
-  type       = "bool"
-  default    = "true"
-  help       = "filter based on model"
-
-[[option]]
   name       = "conjectureGenGtEnum"
   category   = "expert"
   long       = "conjecture-gen-gt-enum=N"
@@ -840,6 +873,24 @@ name   = "Quantifiers"
   type       = "bool"
   default    = "false"
   help       = "support SyGuS commands"
+
+[[option]]
+  name       = "sygusOut"
+  category   = "regular"
+  long       = "sygus-out=MODE"
+  type       = "SygusSolutionOutMode"
+  default    = "STANDARD"
+  help       = "output mode for sygus"
+  help_mode  = "Modes for sygus solution output."
+[[option.mode.STATUS]]
+  name = "status"
+  help = "Print only status for check-synth calls."
+[[option.mode.STATUS_AND_DEF]]
+  name = "status-and-def"
+  help = "Print status followed by definition corresponding to solution."
+[[option.mode.STANDARD]]
+  name = "sygus-standard"
+  help = "Print based on SyGuS standard."
 
 [[option]]
   name       = "cegqiSingleInvMode"
@@ -1211,8 +1262,8 @@ name   = "Quantifiers"
   category   = "expert"
   long       = "sygus-verify-inst-max-rounds=N"
   type       = "int64_t"
-  default    = "3"
-  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 3)"
+  default    = "10"
+  help       = "maximum number of instantiation rounds for sygus verification calls (-1 == no limit, default is 10)"
 
 [[option]]
   name       = "sygusVerifyTimeout"

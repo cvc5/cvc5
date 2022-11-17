@@ -395,11 +395,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
     }
   }
   // Make the refinement lemma and add it to lems. This lemma is guarded by the
-  // parent's guard, which has the semantics "this conjecture has a solution",
-  // hence this lemma states: if the parent conjecture has a solution, it
-  // satisfies the specification for the given concrete point.
+  // parent's conjecture, hence this lemma states: if the parent conjecture has
+  // a solution, it satisfies the specification for the given concrete point.
   Node rlem =
-      NodeManager::currentNM()->mkNode(OR, d_parent->getGuard().negate(), plem);
+      NodeManager::currentNM()->mkNode(OR, d_parent->getConjecture().negate(), plem);
   d_qim.addPendingLemma(rlem,
                         InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_REFINEMENT);
 }
@@ -487,8 +486,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       sdt.initializeDatatype(nm->integerType(), bvl, false, false);
       std::vector<DType> datatypes;
       datatypes.push_back(sdt.getDatatype());
-      std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(
-          datatypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+      std::vector<TypeNode> dtypes = nm->mkMutualDatatypeTypes(datatypes);
       d_virtual_enum = sm->mkDummySkolem("_ve", dtypes[0]);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);

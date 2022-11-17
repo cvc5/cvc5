@@ -23,6 +23,7 @@
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
+#include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -90,7 +91,10 @@ void SygusInterpol::createVariables(bool needsShared)
     }
   }
   // make the sygus variable list
-  d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+  if (!d_vlvsShared.empty())
+  {
+    d_ibvlShared = nm->mkNode(kind::BOUND_VAR_LIST, d_vlvsShared);
+  }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
@@ -100,7 +104,7 @@ void SygusInterpol::getIncludeCons(
     std::map<TypeNode, std::unordered_set<Node>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Assert(options().smt.interpolants);
+  Assert(options().smt.produceInterpolants);
   // ASSUMPTIONS
   if (options().smt.interpolantsMode == options::InterpolantsMode::ASSUMPTIONS)
   {
@@ -189,6 +193,7 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     getIncludeCons(axioms, conj, include_cons);
     std::unordered_set<Node> terms_irrelevant;
     itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
+        options(),
         NodeManager::currentNM()->booleanType(),
         d_ibvlShared,
         "interpolation_grammar",
@@ -234,12 +239,15 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
-  itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+  if (!d_ibvlShared.isNull())
+  {
+    itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
+  }
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
-  Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms);
+  Node Fa = nm->mkAnd(axioms);
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")
@@ -290,7 +298,11 @@ bool SygusInterpol::findInterpol(SolverEngine* subSolver,
 
   // get the grammar type for the interpolant
   Node igdtbv = itp.getAttribute(SygusSynthFunVarListAttribute());
-  Assert(!igdtbv.isNull());
+  // could have no variables, in which case there is nothing to do
+  if (igdtbv.isNull())
+  {
+    return true;
+  }
   Assert(igdtbv.getKind() == kind::BOUND_VAR_LIST);
   // convert back to original
   // must replace formal arguments of itp with the free variables in the
@@ -327,12 +339,12 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   d_itp = mkPredicate(name);
   mkSygusConjecture(d_itp, axioms, conj);
 
-  initializeSubsolver(d_subSolver, d_env);
-  // get the logic
-  LogicInfo l = d_subSolver->getLogicInfo().getUnlockedCopy();
-  // enable everything needed for sygus
-  l.enableSygus();
-  d_subSolver->setLogic(l);
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeQuantifiers().sygus = true;
+  smt::SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
+  initializeSubsolver(d_subSolver, ssi);
 
   for (const Node& var : d_vars)
   {

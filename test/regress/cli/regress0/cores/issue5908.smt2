@@ -1,7 +1,8 @@
-; COMMAND-LINE: -i -q
+; COMMAND-LINE: -i
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
+(set-logic ALL)
 (declare-fun a () Int)
 (declare-fun b () Int)
 (declare-fun c () Int)

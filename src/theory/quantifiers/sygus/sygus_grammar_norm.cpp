@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "expr/dtype_cons.h"
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
@@ -39,7 +38,8 @@ namespace quantifiers {
 bool OpPosTrie::getOrMakeType(TypeNode tn,
                               TypeNode& unres_tn,
                               const std::vector<unsigned>& op_pos,
-                              unsigned ind)
+                              unsigned ind,
+                              bool useIndexedName)
 {
   if (ind == op_pos.size())
   {
@@ -53,10 +53,14 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
     }
     /* Creating unresolved type */
     std::stringstream ss;
-    ss << tn << "_";
-    for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
+    ss << tn;
+    if (useIndexedName)
     {
-      ss << "_" << std::to_string(op_pos[i]);
+      ss << "_";
+      for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
+      {
+        ss << "_" << std::to_string(op_pos[i]);
+      }
     }
     d_unres_tn = NodeManager::currentNM()->mkUnresolvedDatatypeSort(ss.str());
     Trace("sygus-grammar-normalize-trie")
@@ -65,7 +69,8 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
     return false;
   }
   /* Go to next node */
-  return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
+  return d_children[op_pos[ind]].getOrMakeType(
+      tn, unres_tn, op_pos, ind + 1, useIndexedName);
 }
 
 SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
@@ -74,9 +79,7 @@ SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
 }
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
-    : d_tn(src_tn),
-      d_unres_tn(unres_tn),
-      d_sdt(unres_tn.getAttribute(expr::VarNameAttr()))
+    : d_tn(src_tn), d_unres_tn(unres_tn), d_sdt(unres_tn.getName())
 {
 }
 
@@ -389,7 +392,11 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Checks if unresolved type already created (and returns) or creates it
    * (and then proceeds to definition) */
   std::sort(op_pos.begin(), op_pos.end());
-  if (d_tries[tn].getOrMakeType(tn, unres_tn, op_pos))
+  // only need to include indices if we are normalizing the grammar, otherwise
+  // we will not get name clashes since the constructed datatypes are 1-1 with
+  // the original.
+  if (d_tries[tn].getOrMakeType(
+          tn, unres_tn, op_pos, 0, options().quantifiers.sygusGrammarNorm))
   {
     if (TraceIsOn("sygus-grammar-normalize-trie"))
     {
@@ -526,8 +533,8 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     Trace("sygus-grammar-normalize-build") << "\n";
   }
   Assert(d_dt_all.size() == d_unres_t_all.size());
-  std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
-      d_dt_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types =
+      NodeManager::currentNM()->mkMutualDatatypeTypes(d_dt_all);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

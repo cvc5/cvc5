@@ -20,7 +20,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
-#include "smt/solver_engine.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/bv/bitblast/bitblast_proof_generator.h"
@@ -37,20 +36,19 @@ namespace cvc5::internal {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
-                                                   ProofGenerator* pppg,
                                                    rewriter::RewriteDb* rdb,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
-      d_pnm(env.getProofNodeManager()),
-      d_pppg(pppg),
+      d_pppg(nullptr),
       d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-void ProofPostprocessCallback::initializeUpdate()
+void ProofPostprocessCallback::initializeUpdate(ProofGenerator* pppg)
 {
+  d_pppg = pppg;
   d_assumpToProof.clear();
   d_wfAssumptions.clear();
 }
@@ -316,6 +314,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   std::vector<Node> childrenResArgs;
   Node resPlaceHolder;
   size_t nextGuardedElimPos = eliminators[0];
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
   do
   {
     size_t start = lastElim + 1;
@@ -333,11 +332,11 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
                            args.begin() + (2 * end) + 1);
     Trace("smt-proof-pp-debug2") << "\tres children: " << childrenRes << "\n";
     Trace("smt-proof-pp-debug2") << "\tres args: " << childrenResArgs << "\n";
-    resPlaceHolder = d_pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
-                                                     childrenRes,
-                                                     childrenResArgs,
-                                                     Node::null(),
-                                                     "");
+    resPlaceHolder = pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
+                                                   childrenRes,
+                                                   childrenResArgs,
+                                                   Node::null(),
+                                                   "");
     Trace("smt-proof-pp-debug2")
         << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("smt-proof-pp-debug2") << "-------\n";
@@ -347,7 +346,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     // to be handled by the caller
     if (end < children.size() - 1)
     {
-      lastClause = d_pnm->getChecker()->checkDebug(
+      lastClause = pnm->getChecker()->checkDebug(
           PfRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
       if (!lastClause.isNull())
       {
@@ -666,9 +665,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   else if (id == PfRule::MACRO_RESOLUTION
            || id == PfRule::MACRO_RESOLUTION_TRUST)
   {
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // first generate the naive chain_resolution
     std::vector<Node> chainResArgs{args.begin() + 1, args.end()};
-    Node chainConclusion = d_pnm->getChecker()->checkDebug(
+    Node chainConclusion = pnm->getChecker()->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, chainResArgs, Node::null(), "");
     Trace("smt-proof-pp-debug") << "Original conclusion: " << args[0] << "\n";
     Trace("smt-proof-pp-debug")
@@ -886,10 +886,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
               << "......updated to " << var << " -> " << ss
               << " based on previous substitution" << std::endl;
           // make the proof for the tranitivity step
-          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
+          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_env);
           pfs.push_back(pf);
           // prove the updated substitution
-          TConvProofGenerator tcg(d_pnm,
+          TConvProofGenerator tcg(d_env,
                                   nullptr,
                                   TConvPolicy::ONCE,
                                   TConvCachePolicy::NEVER,
@@ -934,7 +934,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // should be implied by the substitution now
     TConvPolicy tcpolicy = ida == MethodId::SBA_FIXPOINT ? TConvPolicy::FIXPOINT
                                                          : TConvPolicy::ONCE;
-    TConvProofGenerator tcpg(d_pnm,
+    TConvProofGenerator tcpg(d_env,
                              nullptr,
                              tcpolicy,
                              TConvCachePolicy::NEVER,
@@ -952,19 +952,49 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node ts = builtin::BuiltinProofRuleChecker::applySubstitution(
         t, children, ids, ida);
     Node eqq = t.eqNode(ts);
+    // should have the same conclusion, if not, then tcpg does not agree with
+    // the substitution.
     if (eq != eqq)
     {
-      pfn = nullptr;
-    }
-    // should give a proof, if not, then tcpg does not agree with the
-    // substitution.
-    if (pfn == nullptr)
-    {
-      warning() << "resort to TRUST_SUBS" << std::endl
-                << eq << std::endl
-                << eqq << std::endl
-                << "from " << children << " applied to " << t << std::endl;
-      cdp->addStep(eqq, PfRule::TRUST_SUBS, {}, {eqq});
+      // this can happen in very rare cases where e.g. x -> a; f(x) -> b
+      // and t*{x -> a} = t*{x -> a}*{f(x) -> b} != t*{x -> a, f(x) -> b}
+      if (ida == MethodId::SBA_SEQUENTIAL && vsList.size() > 1)
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to sequential reconstruction" << std::endl;
+        // just do the naive sequential reconstruction,
+        // (SUBS F1 ... Fn t) ---> (TRANS (SUBS F1 t) ... (SUBS Fn tn))
+        Node curr = t;
+        std::vector<Node> transChildren;
+        for (size_t i = 0, nvs = vsList.size(); i < nvs; i++)
+        {
+          size_t ii = nvs - 1 - i;
+          TNode var = vsList[ii];
+          TNode subs = ssList[ii];
+          Node next = curr.substitute(var, subs);
+          if (next != curr)
+          {
+            Node eqo = curr.eqNode(next);
+            transChildren.push_back(eqo);
+            // ensure the proof for the substitution exists
+            addProofForSubsStep(var, subs, fromList[ii], cdp);
+            // do the single step SUBS on curr with the default arguments
+            cdp->addStep(eqo, PfRule::SUBS, {var.eqNode(subs)}, {curr});
+            curr = next;
+          }
+        }
+        Assert(curr == ts);
+        cdp->addStep(eqq, PfRule::TRANS, transChildren, {});
+      }
+      else
+      {
+        Trace("smt-proof-pp-debug")
+            << "resort to TRUST_SUBS" << std::endl
+            << eq << std::endl
+            << eqq << std::endl
+            << "from " << children << " applied to " << t << std::endl;
+        cdp->addStep(eqq, PfRule::TRUST_SUBS, children, {eqq});
+      }
     }
     else
     {
@@ -1052,11 +1082,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(!args.empty());
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     // try to replay theory rewrite
     // first, check that maybe its just an evaluation step
-    ProofChecker* pc = d_pnm->getChecker();
-    Node ceval =
-        pc->checkDebug(PfRule::EVALUATE, {}, {eq[0]}, eq, "smt-proof-pp-debug");
+    ProofChecker* pc = pnm->getChecker();
+    Node ceval = pc->checkDebug(
+        PfRule::EVALUATE, {}, {eq[0]}, Node::null(), "smt-proof-pp-debug");
     if (!ceval.isNull() && ceval == eq)
     {
       cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
@@ -1077,8 +1108,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       Trace("macro::arith") << "   args: " << args << std::endl;
     }
     Assert(args.size() == children.size());
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
     NodeManager* nm = NodeManager::currentNM();
-    ProofStepBuffer steps{d_pnm->getChecker()};
+    ProofStepBuffer steps{pnm->getChecker()};
 
     // Scale all children, accumulating
     std::vector<Node> scaledRels;
@@ -1088,9 +1120,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       TNode scalar = args[i];
       bool isPos = scalar.getConst<Rational>() > 0;
       Node scalarCmp =
-          nm->mkNode(isPos ? GT : LT,
-                     scalar,
-                     nm->mkConstRealOrInt(scalar.getType(), Rational(0)));
+          nm->mkNode(isPos ? GT : LT, scalar, nm->mkConstInt(Rational(0)));
       // (= scalarCmp true)
       Node scalarCmpOrTrue = steps.tryStep(PfRule::EVALUATE, {}, {scalarCmp});
       Assert(!scalarCmpOrTrue.isNull());
@@ -1136,7 +1166,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::BV_BITBLAST)
   {
-    bv::BBProof bb(d_env, nullptr, d_pnm, true);
+    bv::BBProof bb(d_env, nullptr, true);
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
     bb.bbAtom(eq[0]);
@@ -1232,27 +1262,26 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostproccess::ProofPostproccess(Env& env,
-                                     ProofGenerator* pppg,
-                                     rewriter::RewriteDb* rdb,
-                                     bool updateScopedAssumptions)
+ProofPostprocess::ProofPostprocess(Env& env,
+                                   rewriter::RewriteDb* rdb,
+                                   bool updateScopedAssumptions)
     : EnvObj(env),
-      d_cb(env, pppg, rdb, updateScopedAssumptions),
+      d_cb(env, rdb, updateScopedAssumptions),
       // the update merges subproofs
-      d_updater(
-          env.getProofNodeManager(), d_cb, options().proof.proofPpMerge),
-      d_finalCb(env.getProofNodeManager()),
-      d_finalizer(env.getProofNodeManager(), d_finalCb)
+      d_updater(env, d_cb, options().proof.proofPpMerge),
+      d_finalCb(env),
+      d_finalizer(env, d_finalCb)
 {
 }
 
-ProofPostproccess::~ProofPostproccess() {}
+ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf,
+                               ProofGenerator* pppg)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.
-  d_cb.initializeUpdate();
+  d_cb.initializeUpdate(pppg);
   // now, process
   d_updater.process(pf);
   // take stats and check pedantic
@@ -1264,12 +1293,12 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   if (wasPedanticFailure)
   {
     AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
         << serr.str();
   }
 }
 
-void ProofPostproccess::setEliminateRule(PfRule rule)
+void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
 }

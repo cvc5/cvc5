@@ -114,6 +114,13 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_SGE, "bvsge");
   addOperator(cvc5::BITVECTOR_REDOR, "bvredor");
   addOperator(cvc5::BITVECTOR_REDAND, "bvredand");
+  addOperator(cvc5::BITVECTOR_UADDO, "bvuaddo");
+  addOperator(cvc5::BITVECTOR_SADDO, "bvsaddo");
+  addOperator(cvc5::BITVECTOR_UMULO, "bvumulo");
+  addOperator(cvc5::BITVECTOR_SMULO, "bvsmulo");
+  addOperator(cvc5::BITVECTOR_USUBO, "bvusubo");
+  addOperator(cvc5::BITVECTOR_SSUBO, "bvssubo");
+  addOperator(cvc5::BITVECTOR_SDIVO, "bvsdivo");
 
   addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
@@ -258,6 +265,9 @@ void Smt2::addSepOperators() {
 void Smt2::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
+  Sort tupleSort = d_solver->mkTupleSort({});
+  defineType("Relation", d_solver->mkSetSort(tupleSort), true);
+  defineType("Table", d_solver->mkBagSort(tupleSort), true);
   defineVar("true", d_solver->mkTrue(), true);
   defineVar("false", d_solver->mkFalse(), true);
   addOperator(cvc5::AND, "and");
@@ -311,6 +321,62 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
   }
   parseError(std::string("Unknown block models mode `") + mode + "'");
   return modes::BlockModelsMode::LITERALS;
+}
+
+modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
+{
+  if (mode == "preprocess_solved")
+  {
+    return modes::LEARNED_LIT_PREPROCESS_SOLVED;
+  }
+  else if (mode == "preprocess")
+  {
+    return modes::LEARNED_LIT_PREPROCESS;
+  }
+  else if (mode == "input")
+  {
+    return modes::LEARNED_LIT_INPUT;
+  }
+  else if (mode == "solvable")
+  {
+    return modes::LEARNED_LIT_SOLVABLE;
+  }
+  else if (mode == "constant_prop")
+  {
+    return modes::LEARNED_LIT_CONSTANT_PROP;
+  }
+  else if (mode == "internal")
+  {
+    return modes::LEARNED_LIT_INTERNAL;
+  }
+  parseError(std::string("Unknown learned literal type `") + mode + "'");
+  return modes::LEARNED_LIT_UNKNOWN;
+}
+
+modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
+{
+  if (pc == "raw_preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_RAW_PREPROCESS;
+  }
+  else if (pc == "preprocess")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_PREPROCESS;
+  }
+  else if (pc == "sat")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_SAT;
+  }
+  else if (pc == "theory_lemmas")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_THEORY_LEMMAS;
+  }
+  else if (pc == "full")
+  {
+    return modes::ProofComponent::PROOF_COMPONENT_FULL;
+  }
+  parseError(std::string("Unknown proof component `") + pc + "'");
+  return modes::ProofComponent::PROOF_COMPONENT_FULL;
 }
 
 bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
@@ -586,7 +652,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
   {
-    defineVar("set.empty", d_solver->mkEmptySet(d_solver->getNullSort()));
+    defineVar("set.empty", d_solver->mkEmptySet(Sort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("set.universe",
@@ -604,6 +670,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::SET_CHOOSE, "set.choose");
     addOperator(cvc5::SET_IS_SINGLETON, "set.is_singleton");
     addOperator(cvc5::SET_MAP, "set.map");
+    addOperator(cvc5::SET_FILTER, "set.filter");
+    addOperator(cvc5::SET_FOLD, "set.fold");
     addOperator(cvc5::RELATION_JOIN, "rel.join");
     addOperator(cvc5::RELATION_PRODUCT, "rel.product");
     addOperator(cvc5::RELATION_TRANSPOSE, "rel.transpose");
@@ -614,7 +682,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
-    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->getNullSort()));
+    defineVar("bag.empty", d_solver->mkEmptyBag(Sort()));
     addOperator(cvc5::BAG_UNION_MAX, "bag.union_max");
     addOperator(cvc5::BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(cvc5::BAG_INTER_MIN, "bag.inter_min");
@@ -633,7 +701,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_MAP, "bag.map");
     addOperator(cvc5::BAG_FILTER, "bag.filter");
     addOperator(cvc5::BAG_FOLD, "bag.fold");
+    addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
+    addOperator(cvc5::BAG_PARTITION, "table.group");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
@@ -718,6 +788,12 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
 bool Smt2::sygus() const
 {
   return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
+}
+
+bool Smt2::hasGrammars() const
+{
+  return sygus() || d_solver->getOption("produce-abducts") == "true"
+         || d_solver->getOption("produce-interpolants") == "true";
 }
 
 void Smt2::checkThatLogicIsSet()
@@ -1123,7 +1199,11 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT)
+  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
+           || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
+           || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
+           || p.d_kind == cvc5::RELATION_AGGREGATE
+           || p.d_kind == cvc5::RELATION_PROJECT)
   {
     cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
     Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
@@ -1143,17 +1223,39 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   }
   else if (isBuiltinOperator)
   {
-    if (!isHoEnabled() && (kind == cvc5::EQUAL || kind == cvc5::DISTINCT))
+    if (kind == cvc5::EQUAL || kind == cvc5::DISTINCT)
     {
+      bool isReal = false;
       // need hol if these operators are applied over function args
-      for (std::vector<cvc5::Term>::iterator i = args.begin(); i != args.end();
-           ++i)
+      for (const Term& i : args)
       {
-        if ((*i).getSort().isFunction())
+        Sort s = i.getSort();
+        if (!isHoEnabled())
         {
-          parseError(
-              "Cannot apply equality to functions unless logic is prefixed by "
-              "HO_.");
+          if (s.isFunction())
+          {
+            parseError(
+                "Cannot apply equality to functions unless logic is prefixed "
+                "by HO_.");
+          }
+        }
+        if (s.isReal())
+        {
+          isReal = true;
+        }
+      }
+      // If strict mode is not enabled, we are permissive for Int and Real
+      // subtyping. Note that other arithmetic operators and relations are
+      // already permissive, e.g. <=, +.
+      if (isReal && !strictModeEnabled())
+      {
+        for (Term& i : args)
+        {
+          Sort s = i.getSort();
+          if (s.isInteger())
+          {
+            i = d_solver->mkTerm(cvc5::TO_REAL, {i});
+          }
         }
       }
     }
@@ -1191,14 +1293,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                       << std::endl;
       return ret;
     }
-    if (kind == cvc5::SET_SINGLETON && args.size() == 1)
-    {
-      cvc5::Term ret = d_solver->mkTerm(cvc5::SET_SINGLETON, {args[0]});
-      Trace("parser") << "applyParseOp: return set.singleton " << ret
-                      << std::endl;
-      return ret;
-    }
-    else if (kind == cvc5::CARDINALITY_CONSTRAINT)
+    if (kind == cvc5::CARDINALITY_CONSTRAINT)
     {
       if (args.size() != 2)
       {
@@ -1263,17 +1358,72 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return ret;
 }
 
+std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(push).  Maybe you want (push 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    pushScope(true);
+  }
+  return std::make_unique<PushCommand>(*nscopes);
+}
+
+std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
+{
+  checkThatLogicIsSet();
+
+  if (!nscopes)
+  {
+    if (strictModeEnabled())
+    {
+      parseError(
+          "Strict compliance mode demands an integer to be provided to "
+          "(pop).  Maybe you want (pop 1)?");
+    }
+    nscopes = 1;
+  }
+
+  for (uint32_t i = 0; i < *nscopes; i++)
+  {
+    popScope();
+  }
+  return std::make_unique<PopCommand>(*nscopes);
+}
+
 void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
-  if (getSymbolManager()->setExpressionName(expr, name, false)
-      == NamingResult::ERROR_IN_BINDER)
+  NamingResult nr = getSymbolManager()->setExpressionName(expr, name, false);
+  if (nr == NamingResult::ERROR_IN_BINDER)
   {
     parseError(
         "Cannot name a term in a binder (e.g., quantifiers, definitions)");
   }
-  // define the variable
+  // define the variable. This needs to be done here so that in the rest of the
+  // command we can use this name, which is required by the semantics of :named.
+  //
+  // Note that as we are defining the name to the expression here, names never
+  // show up in "-o raw-benchmark" nor in proofs. To be able to do it it'd be
+  // necessary to not define this variable here and create a
+  // DefineFunctionCommand with the binding, so that names are handled as
+  // defined functions. However, these commands would need to be processed
+  // *before* the rest of the command in which the :named attribute appears, so
+  // the name can be defined in the rest of the command. This would greatly
+  // complicate the design of the parser and provide little gain, so we opt to
+  // handle :named as a macro processed directly in the parser.
   defineVar(name, expr);
   // set the last named term, which ensures that we catch when assertions are
   // named
@@ -1295,10 +1445,7 @@ cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
 
 bool Smt2::isConstInt(const cvc5::Term& t)
 {
-  cvc5::Kind k = t.getKind();
-  // !!! Note when arithmetic subtyping is eliminated, this will update to
-  // CONST_INTEGER.
-  return k == cvc5::CONST_RATIONAL && t.getSort().isInteger();
+  return t.getKind() == cvc5::CONST_INTEGER;
 }
 
 }  // namespace parser

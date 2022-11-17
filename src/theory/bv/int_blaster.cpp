@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
@@ -261,7 +262,6 @@ Node IntBlaster::translateWithChildren(
   Assert(oldKind != kind::BITVECTOR_REPEAT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
-  Assert(oldKind != kind::BITVECTOR_COMP);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
@@ -274,6 +274,17 @@ Node IntBlaster::translateWithChildren(
   // Store the translated node
   Node returnNode;
 
+   /**
+    * higher order logic allows comparing between functions
+    * The translation does not support this,
+    * as the translated functions may be different outside
+    * of the bounds that were relevant for the original
+    * bit-vectors.
+    */
+   if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
+   {
+     throw OptionException("bv-to-int does not support higher order logic ");
+   }
   // Translate according to the kind of the original node.
   switch (oldKind)
   {
@@ -517,6 +528,17 @@ Node IntBlaster::translateWithChildren(
                        d_zero);
       break;
     }
+    case kind::BITVECTOR_COMP:
+    {
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::EQUAL,
+                                    translated_children[0],
+                                    translated_children[1]),
+                       d_one,
+                       d_zero);
+      break;
+    }
     case kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
@@ -524,17 +546,14 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::APPLY_UF:
     {
-      /**
-       * higher order logic allows comparing between functions
-       * The translation does not support this,
-       * as the translated functions may be different outside
-       * of the bounds that were relevant for the original
-       * bit-vectors.
-       */
-      if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
-      {
-        throw OptionException("bv-to-int does not support higher order logic ");
+      // The preprocessing pass does not support function applications
+      // with bound variables.
+      if (expr::hasBoundVar(original)) {
+          throw OptionException(
+              "bv-to-int does not support quantified variables under "
+              "uninterpreted functions");
       }
+
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
@@ -666,7 +685,6 @@ Node IntBlaster::translateNoChildren(Node original,
 
   // The translation is done differently for variables (bound or free)  and
   // constants (values)
-  Assert(original.isVar() || original.isConst() || original.isNullaryOp());
   if (original.isVar())
   {
     if (original.getType().isBitVector())
@@ -719,7 +737,7 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value) or a nullary op (e.g., PI)
+    // original is a constant (value) or an operator with no arguments (e.g., PI)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
@@ -730,7 +748,7 @@ Node IntBlaster::translateNoChildren(Node original,
     }
     else
     {
-      // Other constants or nullary ops stay the same.
+      // Other constants or operators stay the same.
       translation = original;
     }
   }
@@ -807,13 +825,17 @@ bool IntBlaster::childrenTypesChanged(Node n)
   bool result = false;
   for (const Node& child : n)
   {
-    TypeNode originalType = child.getType();
-    Assert(d_intblastCache.find(child) != d_intblastCache.end());
-    TypeNode newType = d_intblastCache[child].get().getType();
-    if (!newType.isSubtypeOf(originalType))
+    // the child's type has changed only if it has been
+    // processed already
+    if (d_intblastCache.find(child) != d_intblastCache.end())
     {
-      result = true;
-      break;
+      TypeNode originalType = child.getType();
+      TypeNode newType = d_intblastCache[child].get().getType();
+      if (newType != originalType)
+      {
+        result = true;
+        break;
+      }
     }
   }
   return result;
@@ -823,7 +845,7 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
 {
   // If there is no reason to cast, return the
   // original node.
-  if (n.getType().isSubtypeOf(tn))
+  if (n.getType() == tn)
   {
     return n;
   }

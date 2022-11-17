@@ -20,6 +20,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "options/proof_options.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
@@ -36,8 +37,20 @@ class RewriteDb;
 namespace smt {
 
 class Assertions;
+class SmtSolver;
 class PreprocessProofGenerator;
-class ProofPostproccess;
+class ProofPostprocess;
+
+/** Modes for global Proof scopes introducing definitions and assertions. */
+enum class ProofScopeMode
+{
+  /** No global scopes. Open proof. */
+  NONE,
+  /** Proof closed by a unified scope introducing definitions and assertions. */
+  UNIFIED,
+  /** Proof closed by 2 nested scopes introducing definitions and assertions. */
+  DEFINITIONS_AND_ASSERTIONS,
+};
 
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
@@ -78,22 +91,11 @@ class PfManager : protected EnvObj
   PfManager(Env& env);
   ~PfManager();
   /**
-   * Print the proof on the given output stream.
-   *
-   * The argument pfn is the proof for false in the current context.
-   *
-   * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in as. Note this includes equalities of the form
-   * (= f (lambda (...) t)) which originate from define-fun commands for f.
-   * These are considered assertions in the final proof.
+   * Print the proof on the given output stream in the given format.
    */
   void printProof(std::ostream& out,
-                  std::shared_ptr<ProofNode> pfn,
-                  Assertions& as);
-  /**
-   * Check proof, same as above, without printing.
-   */
-  void checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
+                  std::shared_ptr<ProofNode> fp,
+                  options::ProofFormatMode mode);
 
   /**
    * Translate difficulty map. This takes a mapping dmap from preprocessed
@@ -108,17 +110,27 @@ class PfManager : protected EnvObj
    * assumption is the "source" of an assertion.
    *
    * @param dmap Map estimating the difficulty of preprocessed assertions
-   * @param as The input assertions
+   * @param smt The SMT solver that owns the assertions and the preprocess
+   * proof generator.
    */
-  void translateDifficultyMap(std::map<Node, Node>& dmap, Assertions& as);
+  void translateDifficultyMap(std::map<Node, Node>& dmap, SmtSolver& smt);
 
   /**
-   * Get final proof.
+   * Connect proof to assertions
    *
-   * The argument pfn is the proof for false in the current context.
+   * Replaces the free assumptions of pfn that correspond to preprocessed
+   * assertions maintained by smt with their corresponding proof of
+   * preprocessing, which is obtained from the preprocessor of smt.
+   *
+   * Throws an assertion failure if pg cannot provide a closed proof with
+   * respect to assertions in as. Note this includes equalities of the form
+   * (= f (lambda (...) t)) which originate from define-fun commands for f.
+   * These are considered assertions in the final proof.
    */
-  std::shared_ptr<ProofNode> getFinalProof(std::shared_ptr<ProofNode> pfn,
-                                           Assertions& as);
+  std::shared_ptr<ProofNode> connectProofToAssertions(
+      std::shared_ptr<ProofNode> pfn,
+      SmtSolver& smt,
+      ProofScopeMode scopeMode = ProofScopeMode::UNIFIED);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -126,37 +138,26 @@ class PfManager : protected EnvObj
   ProofNodeManager* getProofNodeManager() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
   rewriter::RewriteDb* getRewriteDatabase() const;
-  /** Get the proof generator for proofs of preprocessing. */
-  smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
   /**
-   * Set final proof, which initializes d_finalProof to the given proof node of
-   * false, postprocesses it, and stores it in d_finalProof.
-   */
-  void setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as);
-  /**
    * Get assertions from the assertions
    */
-  void getAssertions(Assertions& as,
-                     std::vector<Node>& assertions);
+  void getAssertions(Assertions& as, std::vector<Node>& assertions);
+  /**
+   * Get definitions and assertions from the assertions
+   */
+  void getDefinitionsAndAssertions(Assertions& as,
+                                   std::vector<Node>& definitions,
+                                   std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The preprocess proof generator. */
-  std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
-  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
-
-  /**
-   * The final proof produced by the SMT engine.
-   * Combines the proofs of preprocessing, prop engine and theory engine, to be
-   * connected by setFinalProof().
-   */
-  std::shared_ptr<ProofNode> d_finalProof;
+  std::unique_ptr<smt::ProofPostprocess> d_pfpp;
 }; /* class SolverEngine */
 
 }  // namespace smt

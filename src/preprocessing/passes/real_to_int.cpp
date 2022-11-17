@@ -106,8 +106,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               {
                 if (!cc.isNull())
                 {
-                  c = rewrite(
-                      NodeManager::currentNM()->mkNode(kind::MULT, c, cc));
+                  c = nm->mkConstInt(c.getConst<Rational>()
+                                     * cc.getConst<Rational>());
                 }
               }
               Assert(c.getType().isInteger());
@@ -151,9 +151,20 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
       {
         bool childChanged = false;
         std::vector<Node> children;
-        for (unsigned i = 0; i < n.getNumChildren(); i++)
+        Kind k = n.getKind();
+        // we change Real equalities to Int equalities
+        bool preserveTypes = k != EQUAL && (kindToTheoryId(k) != THEORY_ARITH);
+        for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
+          // must preserve types if we don't belong to arithmetic, cast back
+          if (preserveTypes)
+          {
+            if (!n[i].getType().isInteger() && nc.getType().isInteger())
+            {
+              nc = nm->mkNode(TO_REAL, nc);
+            }
+          }
           childChanged = childChanged || nc != n[i];
           children.push_back(nc);
         }
@@ -163,7 +174,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           {
             children.insert(children.begin(), n.getOperator());
           }
-          ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+          ret = nm->mkNode(k, children);
         }
       }
     }
@@ -185,11 +196,15 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
-          var_eq.push_back(n.eqNode(ret));
+          Node retToReal = nm->mkNode(kind::TO_REAL, ret);
+          var_eq.push_back(n.eqNode(retToReal));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
           // assertions when necessary.
-          d_preprocContext->addSubstitution(n, ret);
+          // The model value for the Real variable n we are eliminating is
+          // (to_real k), where k is the Int skolem whose unpurified form is
+          // (to_int n).
+          d_preprocContext->addSubstitution(n, retToReal);
         }
       }
     }

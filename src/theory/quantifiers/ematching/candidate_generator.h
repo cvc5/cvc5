@@ -18,6 +18,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
 #define CVC5__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
 
+#include "smt/env_obj.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -54,9 +55,10 @@ namespace inst {
  *  }while( !cand.isNull() );
  *
  */
-class CandidateGenerator {
+class CandidateGenerator : protected EnvObj
+{
  public:
-  CandidateGenerator(QuantifiersState& qs, TermRegistry& tr);
+  CandidateGenerator(Env& env, QuantifiersState& qs, TermRegistry& tr);
   virtual ~CandidateGenerator(){}
   /** reset instantiation round
    *
@@ -97,7 +99,10 @@ class CandidateGeneratorQE : public CandidateGenerator
   friend class CandidateGeneratorQEDisequal;
 
  public:
-  CandidateGeneratorQE(QuantifiersState& qs, TermRegistry& tr, Node pat);
+  CandidateGeneratorQE(Env& env,
+                       QuantifiersState& qs,
+                       TermRegistry& tr,
+                       Node pat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -154,7 +159,10 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
    * mpat is an equality that we are matching to equalities in the equivalence
    * class of false
    */
-  CandidateGeneratorQELitDeq(QuantifiersState& qs, TermRegistry& tr, Node mpat);
+  CandidateGeneratorQELitDeq(Env& env,
+                             QuantifiersState& qs,
+                             TermRegistry& tr,
+                             Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -194,7 +202,10 @@ class CandidateGeneratorQEAll : public CandidateGenerator
   std::string identify() const override { return "CandidateGeneratorQEAll"; }
 
  public:
-  CandidateGeneratorQEAll(QuantifiersState& qs, TermRegistry& tr, Node mpat);
+  CandidateGeneratorQEAll(Env& env,
+                          QuantifiersState& qs,
+                          TermRegistry& tr,
+                          Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -212,7 +223,8 @@ class CandidateGeneratorQEAll : public CandidateGenerator
 class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorConsExpand(QuantifiersState& qs,
+  CandidateGeneratorConsExpand(Env& env,
+                               QuantifiersState& qs,
                                TermRegistry& tr,
                                Node mpat);
   /** reset */
@@ -239,7 +251,10 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 class CandidateGeneratorSelector : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr, Node mpat);
+  CandidateGeneratorSelector(Env& env,
+                             QuantifiersState& qs,
+                             TermRegistry& tr,
+                             Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /**
@@ -255,8 +270,6 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
  protected:
   /** the selector operator */
   Node d_selOp;
-  /** the UF operator */
-  Node d_ufOp;
 };
 
 }  // namespace inst

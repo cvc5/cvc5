@@ -40,6 +40,8 @@ class LfscNodeConverter : public NodeConverter
   Node preConvert(Node n) override;
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
+  /** convert type at pre-order traversal */
+  TypeNode preConvertType(TypeNode tn) override;
   /** convert type at post-order traversal */
   TypeNode postConvertType(TypeNode tn) override;
   /**
@@ -88,10 +90,15 @@ class LfscNodeConverter : public NodeConverter
    */
   Node getOperatorOfBoundVar(Node cop, Node v);
   /**
-   * Get the variable index for variable v, or assign a fresh index if it is
-   * not yet assigned.
+   * Get the variable index for free variable fv, or assign a fresh index if it
+   * is not yet assigned.
    */
-  size_t getOrAssignIndexForVar(Node v);
+  size_t getOrAssignIndexForFVar(Node fv);
+  /**
+   * Get the variable index for bound variable bv, or assign a fresh index if it
+   * is not yet assigned.
+   */
+  size_t getOrAssignIndexForBVar(Node bv);
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The
@@ -121,6 +128,9 @@ class LfscNodeConverter : public NodeConverter
   const std::unordered_set<TypeNode>& getDeclaredTypes() const;
 
  private:
+  /** get name for a Node/TypeNode whose id is id and whose name is name */
+  std::string getNameForUserNameOfInternal(uint64_t id,
+                                           const std::string& name);
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
@@ -169,17 +179,23 @@ class LfscNodeConverter : public NodeConverter
   std::unordered_set<Node> d_symbols;
   /**
    * Mapping from user symbols to the (list of) symbols with that name. This
-   * is used to resolve symbol overloading, which is forbidden in LFSC.
+   * is used to resolve symbol overloading, which is forbidden in LFSC. We use
+   * Node identifiers, since this map is used for both Node and TypeNode.
    */
-  std::map<std::string, std::vector<Node> > d_userSymbolList;
+  std::map<std::string, std::vector<uint64_t> > d_userSymbolList;
   /** symbols to builtin kinds*/
   std::map<Node, Kind> d_symbolToBuiltinKind;
   /** arrow type constructor */
   TypeNode d_arrow;
   /** the type of LFSC sorts, which can appear in terms */
   TypeNode d_sortType;
-  /** Used for getting unique index for variable */
-  std::map<Node, size_t> d_varIndex;
+  /** Used for getting unique index for free variable */
+  std::map<Node, size_t> d_fvarIndex;
+  // We use different maps for free and bound variables to ensure that the
+  // indices of bound variables appearing in definitions do not depend on the
+  // order in which free variables appear in assertions/proof.
+  /** Used for getting unique index for bound variable */
+  std::map<Node, size_t> d_bvarIndex;
   /** Cache for typeAsNode */
   std::map<TypeNode, Node> d_typeAsNode;
   /** Used for interpreted builtin parametric sorts */

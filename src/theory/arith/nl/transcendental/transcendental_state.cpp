@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
@@ -43,13 +44,13 @@ TranscendentalState::TranscendentalState(Env& env,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConstReal(Rational(-1));
+  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
+  d_neg_one = NodeManager::currentNM()->mkConstInt(Rational(-1));
   if (d_env.isTheoryProofProducing())
   {
-    d_proof.reset(new CDProofSet<CDProof>(
-        d_env.getProofNodeManager(), d_env.getUserContext(), "nl-trans"));
+    d_proof.reset(
+        new CDProofSet<CDProof>(d_env, d_env.getUserContext(), "nl-trans"));
     d_proofChecker.reset(new TranscendentalProofRuleChecker());
     d_proofChecker->registerTo(d_env.getProofNodeManager()->getChecker());
   }

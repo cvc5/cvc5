@@ -52,16 +52,6 @@ name   = "Driver"
   help       = "seed for random number generator"
 
 [[option]]
-  name       = "showDebugTags"
-  category   = "expert"
-  long       = "show-debug-tags"
-  type       = "bool"
-  default    = "false"
-  predicates = ["showDebugTags"]
-  alternate  = false
-  help       = "show all available tags for debugging"
-
-[[option]]
   name       = "showTraceTags"
   category   = "expert"
   long       = "show-trace-tags"
@@ -158,3 +148,35 @@ name   = "Driver"
   type       = "bool"
   default    = "false"
   help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "usePortfolio"
+  category   = "expert"
+  long       = "use-portfolio"
+  type       = "bool"
+  default    = "false"
+  help       = "Use internal portfolio mode based on the logic"
+
+[[option]]
+  name       = "portfolioJobs"
+  category   = "expert"
+  long       = "portfolio-jobs=n"
+  type       = "uint64_t"
+  default    = "1"
+  help       = "Number of parallel jobs the portfolio engine can run"
+
+[[option]]
+  name       = "printSuccess"
+  category   = "common"
+  long       = "print-success"
+  type       = "bool"
+  default    = "false"
+  help       = "print the \"success\" output required of SMT-LIBv2"
+
+[[option]]
+  name       = "stdinInputPerLine"
+  category   = "expert"
+  long       = "stdin-input-per-line"
+  type       = "bool"
+  default    = "false"
+  help       = "when piping from stdin, feed the input to the parser one line at a time. This avoids potential memory issues when parsing tokens split over multiple lines."

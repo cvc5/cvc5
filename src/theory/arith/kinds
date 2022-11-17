@@ -109,14 +109,7 @@ parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root p
 
 operator IS_INTEGER 1 "term-is-integer predicate (parameter is a real-sorted term)"
 operator TO_INTEGER 1 "convert term to integer by the floor function (parameter is a real-sorted term)"
-operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term; this is a no-op in cvc5, as integer is a subtype of real)"
-
-# CAST_TO_REAL is added to distinguish between integers casted to reals internally, and
-# integers casted to reals or using the API \
-# Solver::mkReal(int val) would return an internal node (CAST_TO_REAL val), but in the api it appears as term (val) \
-# Solver::mkTerm(TO_REAL, Solver::mkInteger(int val)) would return both term and node (TO_REAL val) \
-# This way, we avoid having 2 nested TO_REAL nodess as a result of Solver::mkTerm(TO_REAL, Solver::mkReal(int val))
-operator CAST_TO_REAL 1 "cast term to real same as TO_REAL, but it is used internally, whereas TO_REAL is accessible in the API"
+operator TO_REAL 1 "cast term to real (parameter is an integer-sorted term)"
 
 typerule ADD ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule MULT ::cvc5::internal::theory::arith::ArithOperatorTypeRule
@@ -140,10 +133,9 @@ typerule GEQ ::cvc5::internal::theory::arith::ArithRelationTypeRule
 typerule INDEXED_ROOT_PREDICATE_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule INDEXED_ROOT_PREDICATE ::cvc5::internal::theory::arith::IndexedRootPredicateTypeRule
 
-typerule TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule CAST_TO_REAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule TO_INTEGER ::cvc5::internal::theory::arith::ArithOperatorTypeRule
-typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
+typerule TO_REAL "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule TO_INTEGER "SimpleTypeRule<RInteger, ARealOrInteger>"
+typerule IS_INTEGER "SimpleTypeRule<RBool, ARealOrInteger>"
 
 typerule ABS ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
@@ -155,22 +147,22 @@ typerule DIVISION_TOTAL ::cvc5::internal::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 typerule INTS_MODULUS_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 
-typerule EXPONENTIAL "SimpleTypeRule<RReal, AReal>"
-typerule SINE "SimpleTypeRule<RReal, AReal>"
-typerule COSINE "SimpleTypeRule<RReal, AReal>"
-typerule TANGENT "SimpleTypeRule<RReal, AReal>"
-typerule COSECANT "SimpleTypeRule<RReal, AReal>"
-typerule SECANT "SimpleTypeRule<RReal, AReal>"
-typerule COTANGENT "SimpleTypeRule<RReal, AReal>"
-typerule ARCSINE "SimpleTypeRule<RReal, AReal>"
-typerule ARCCOSINE "SimpleTypeRule<RReal, AReal>"
-typerule ARCTANGENT "SimpleTypeRule<RReal, AReal>"
-typerule ARCCOSECANT "SimpleTypeRule<RReal, AReal>"
-typerule ARCSECANT "SimpleTypeRule<RReal, AReal>"
-typerule ARCCOTANGENT "SimpleTypeRule<RReal, AReal>"
+typerule EXPONENTIAL "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule SINE "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule COSINE "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule TANGENT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule COSECANT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule SECANT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule COTANGENT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule ARCSINE "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule ARCCOSINE "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule ARCTANGENT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule ARCCOSECANT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule ARCSECANT "SimpleTypeRule<RReal, ARealOrInteger>"
+typerule ARCCOTANGENT "SimpleTypeRule<RReal, ARealOrInteger>"
 typerule POW2 "SimpleTypeRule<RInteger, AInteger>"
 
-typerule SQRT "SimpleTypeRule<RReal, AReal>"
+typerule SQRT "SimpleTypeRule<RReal, ARealOrInteger>"
 
 nullaryoperator PI "pi"
 

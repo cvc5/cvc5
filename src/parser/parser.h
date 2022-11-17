@@ -25,21 +25,20 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
-#include "expr/kind.h"
-#include "expr/symbol_manager.h"
-#include "expr/symbol_table.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
+#include "symbol_table.h"
 
 namespace cvc5 {
 
 // Forward declarations
-class Command;
 class ResourceManager;
 
 namespace parser {
 
+class Command;
 class Input;
 
 /** Types of checks for the symbols */
@@ -77,7 +76,9 @@ enum SymbolType {
   /** Variables */
   SYM_VARIABLE,
   /** Sorts */
-  SYM_SORT
+  SYM_SORT,
+  /** Symbols that should be preserved verbatim */
+  SYM_VERBATIM
 };/* enum SymbolType */
 
 /**
@@ -91,6 +92,8 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
     return out << "SYM_VARIABLE";
   case SYM_SORT:
     return out << "SYM_SORT";
+  case SYM_VERBATIM:
+    return out << "SYM_VERBATIM";
   default:
     return out << "SymbolType!UNKNOWN";
   }
@@ -118,17 +121,7 @@ private:
  /**
   * This current symbol table used by this parser, from symbol manager.
   */
- internal::SymbolTable* d_symtab;
-
- /**
-  * The level of the assertions in the declaration scope.  Things declared
-  * after this level are bindings from e.g. a let, a quantifier, or a
-  * lambda.
-  */
- size_t d_assertionLevel;
-
- /** How many anonymous functions we've created. */
- size_t d_anonymousFunctionCount;
+ internal::parser::SymbolTable* d_symtab;
 
  /** Are we done */
  bool d_done;
@@ -147,16 +140,6 @@ private:
   * e.g. the online version.)
   */
  bool d_canIncludeFile;
-
- /**
-  * Whether the logic has been forced with --force-logic.
-  */
- bool d_logicIsForced;
-
- /**
-  * The logic, if d_logicIsForced == true.
-  */
- std::string d_forcedLogic;
 
  /** The set of operators available in the current logic. */
  std::set<cvc5::Kind> d_logicOperators;
@@ -251,14 +234,12 @@ public:
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
 
+  const std::string& getForcedLogic() const;
+  bool logicIsForced() const;
+
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
-
-  virtual void forceLogic(const std::string& logic);
-
-  const std::string& getForcedLogic() const { return d_forcedLogic; }
-  bool logicIsForced() const { return d_logicIsForced; }
 
   /**
    * Gets the variable currently bound to name.
@@ -339,11 +320,6 @@ public:
                      const std::vector<cvc5::Sort>& params);
 
   /**
-   * Returns arity of a (parameterized) sort, given a name and args.
-   */
-  size_t getArity(const std::string& sort_name);
-
-  /**
    * Checks if a symbol has been declared.
    * @param name the symbol name
    * @param type the symbol type
@@ -386,18 +362,6 @@ public:
   cvc5::Term bindVar(const std::string& name,
                      const cvc5::Sort& type,
                      bool doOverload = false);
-
-  /**
-   * Create a set of new cvc5 variable expressions of the given type.
-   *
-   * For each name, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the
-   * new expression.
-   */
-  std::vector<cvc5::Term> bindVars(const std::vector<std::string> names,
-                                   const cvc5::Sort& type,
-                                   bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
@@ -614,17 +578,11 @@ public:
    */
   void preemptCommand(Command* cmd);
 
-  /** Is the symbol bound to a boolean variable? */
-  bool isBoolean(const std::string& name);
-
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
    * selector.
    */
   bool isFunctionLike(cvc5::Term fun);
-
-  /** Is the symbol bound to a predicate? */
-  bool isPredicate(const std::string& name);
 
   /** Parse and return the next command. */
   Command* nextCommand();

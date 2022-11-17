@@ -18,12 +18,13 @@
 #include "base/modal_exception.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "expr/subtype_elim_node_converter.h"
+#include "smt/smt_driver.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/string.h"
-#include "expr/subtype_elim_node_converter.h"
 
 using namespace cvc5::internal::theory;
 using namespace cvc5::internal::kind;
@@ -38,8 +39,7 @@ QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
 
 QuantElimSolver::~QuantElimSolver() {}
 
-Node QuantElimSolver::getQuantifierElimination(Assertions& as,
-                                               Node q,
+Node QuantElimSolver::getQuantifierElimination(Node q,
                                                bool doFull,
                                                bool isInternalSubsolver)
 {
@@ -72,8 +72,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
-  Result r =
-      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne.notNode()});
+  // use a single call driver
+  SmtDriverSingleCall sdsc(d_env, d_smtSolver);
+  Result r = sdsc.checkSat(std::vector<Node>{ne.notNode()});
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.getStatus() != Result::UNSAT)
   {
