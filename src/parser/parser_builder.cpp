@@ -57,6 +57,14 @@ void ParserBuilder::init(cvc5::Solver* solver, SymbolManager* sm)
 std::unique_ptr<Parser> ParserBuilder::build()
 {
   std::unique_ptr<Parser> parser;
+
+  // Force the logic prior to building the parser. This makes a difference for
+  // the TPTP parser, where forced logic is processed upon construction.
+  if (d_logicIsForced)
+  {
+    d_symman->forceLogic(d_forcedLogic);
+  }
+
   if (d_lang == "LANG_TPTP")
   {
     parser.reset(new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly));
@@ -79,9 +87,6 @@ std::unique_ptr<Parser> ParserBuilder::build()
     parser->disallowIncludeFile();
   }
 
-  if( d_logicIsForced ) {
-    parser->forceLogic(d_forcedLogic);
-  }
 
   return parser;
 }

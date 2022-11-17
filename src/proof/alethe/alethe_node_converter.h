@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
-#define CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#define CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"

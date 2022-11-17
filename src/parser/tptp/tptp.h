@@ -51,8 +51,6 @@ class Tptp : public Parser {
   bool hol() const;
   void setHol();
 
-  void forceLogic(const std::string& logic) override;
-
   void addFreeVar(cvc5::Term var);
   std::vector<cvc5::Term> getFreeVar();
 

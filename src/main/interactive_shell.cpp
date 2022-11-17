@@ -91,13 +91,13 @@ InteractiveShell::InteractiveShell(Solver* solver,
       d_isInteractive(isInteractive),
       d_quit(false)
 {
-  /* Create parser with bogus input. */
-  d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_parser->forceLogic(tmp.getLogicString());
+    sm->forceLogic(tmp.getLogicString());
   }
+  /* Create parser with bogus input. */
+  d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
 
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
