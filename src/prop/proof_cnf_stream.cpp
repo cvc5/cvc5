@@ -63,6 +63,27 @@ bool ProofCnfStream::isBlocked(std::shared_ptr<ProofNode> pfn)
   return d_blocked.contains(pfn);
 }
 
+std::vector<Node> ProofCnfStream::getInputClauses()
+{
+  std::vector<Node> cls;
+  for (const Node& c : d_inputClauses)
+  {
+    cls.push_back(c);
+  }
+  return cls;
+}
+
+std::vector<Node> ProofCnfStream::getLemmaClauses()
+{
+  std::vector<Node> cls;
+  for (const Node& c : d_lemmaClauses)
+  {
+    cls.push_back(c);
+  }
+
+  return cls;
+}
+
 std::vector<std::shared_ptr<ProofNode>> ProofCnfStream::getInputClausesProofs()
 {
   std::vector<std::shared_ptr<ProofNode>> pfs;
