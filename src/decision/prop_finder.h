@@ -20,6 +20,7 @@
 
 #include "context/cdo.h"
 #include "decision/justify_cache.h"
+#include "decision/justify_info.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -33,12 +34,10 @@ class PropFindInfo
 {
  public:
   PropFindInfo(context::Context* c);
-  /** This node */
-  Node d_node;
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /** Parent list */
-  context::CDList<PropFindInfo*> d_parentList;
+  context::CDList<JustifyNode> d_parentList;
 };
 
 /**
@@ -61,7 +60,8 @@ class PropFinder : protected EnvObj
 
  private:
   /** Set relevant */
-  void setRelevant(TNode n, std::vector<TNode>& toPreregister);
+  void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
+  void updateRelevantInternal(TNode n, prop::SatValue val, std::vector<TNode>& toPreregister);
   /** mk or get PropFindInfo */
   PropFindInfo* getOrMkInfo(TNode n);
   /** The state */

@@ -46,6 +46,7 @@ class JustifyCache
    * in the SAT solver if it is not already cached.
    */
   prop::SatValue lookupValue(TNode n);
+  bool hasValue(TNode n);
   /**
    * Set justified
    */

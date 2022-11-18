@@ -45,7 +45,7 @@ void PropFinder::addAssertion(TNode n,
     // skolem definitions handled dynamically
     return;
   }
-  setRelevant(n, toPreregister);
+  updateRelevant(n, toPreregister);
 }
 
 void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
@@ -53,54 +53,71 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
 {
   for (TNode d : defs)
   {
-    setRelevant(d, toPreregister);
+    updateRelevant(d, toPreregister);
   }
 }
 
-void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
+void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
-  prop::SatValue currVal = d_jcache.lookupValue(natom);
-  if (currVal != SAT_VALUE_UNKNOWN)
+  if (d_jcache.hasValue(natom))
   {
     // already justified, we are done
     return;
   }
-  // child, parent, desired polarity
-  // invariant: all child in this vector are not justified
-  std::vector<std::tuple<TNode, TNode, prop::SatValue> > toVisit;
-  toVisit.emplace_back(natom, d_null, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
-  std::tuple<TNode, TNode, prop::SatValue> t;
+  updateRelevantInternal(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE, toPreregister);
+}
+
+void PropFinder::updateRelevantInternal(TNode n, prop::SatValue val, std::vector<TNode>& toPreregister)
+{
+  // (child, desired polarity), parent
+  std::vector<std::pair<JustifyNode, TNode> > toVisit;
+  toVisit.emplace_back(JustifyNode(n, val), d_null);
+  std::pair<JustifyNode, TNode> t;
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
       it;
   TNode curr;
+  prop::SatValue currVal;
   TNode parent;
   Kind ck;
   do
   {
     t = toVisit.back();
     toVisit.pop_back();
-    curr = std::get<0>(t);
-    parent = std::get<1>(t);
-    currVal = std::get<2>(t);
+    curr = t.first.first;
+    currVal = t.first.second;
+    parent = t.second;
     ck = curr.getKind();
     Assert(ck != kind::NOT);
     Assert(curr.getType().isBoolean());
+    it = d_pstate.find(curr);
+    // impact of looking at current node: the value we computed, and which
+    // children we should watch.
+    prop::SatValue jval = SAT_VALUE_UNKNOWN;
+    std::vector<JustifyNode> watchChildren;
     if (ck == AND || ck == OR)
     {
-      if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
+      bool childValForce = ((ck == AND) == (currVal == SAT_VALUE_FALSE));
+      // see if already justified?
+      for (TNode c : curr)
       {
-        // see if already justified?
-        for (TNode c : curr)
+        bool cpol = c.getKind()!=AND;
+        TNode catom = cpol ? c : c[0];
+        prop::SatValue cval = d_jcache.lookupValue(c);
+        if (cval==SAT_VALUE_UNKNOWN)
         {
+          // watch all children if child value is forcing
+          if (childValForce || watchChildren.empty())
+          {
+            watchChildren.emplace_back(catom, cpol ? currVal : invertValue(currVal));
+          }
         }
-      }
-      else
-      {
-        // just look at the first non-justified child
-        for (TNode c : curr)
+        else if (childValForce && cval!=currVal)
         {
+          // value is forced
+          jval = currVal;
+          break;
         }
       }
     }
@@ -118,6 +135,20 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
       // its a theory atom, preregister it
       toPreregister.push_back(curr);
     }
+    if (jval!=SAT_VALUE_UNKNOWN)
+    {
+      // value is forced
+      d_jcache.setValue(curr, jval);
+      // notify parents?
+    }
+    else
+    {
+      // process watch children
+      for (const JustifyNode& wc : watchChildren)
+      {
+        toVisit.emplace_back(wc, curr);
+      }
+    }
   } while (!toVisit.empty());
 }
 
@@ -127,6 +158,17 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   TNode natom = pol ? n : n[0];
   // set justified
   d_jcache.setValue(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
+  // update relevance on parents, if any
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
+      it = d_pstate.find(natom);
+  if (it!=d_pstate.end())
+  {
+    for (const JustifyNode& p : it->second->d_parentList)
+    {
+      updateRelevantInternal(p.first, p.second, toPreregister);
+    }
+  }
+/*
   // then, visit parents recursively
   // node, assigned value
   std::vector<TNode> toVisit;
@@ -167,6 +209,7 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
     }
 
   } while (!toVisit.empty());
+*/
 }
 
 PropFindInfo* PropFinder::getOrMkInfo(TNode n) { return nullptr; }
