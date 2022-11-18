@@ -510,13 +510,15 @@ bool JustificationStrategy::needsActiveSkolemDefs() const
 void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
   Trace("jh-assert") << "notifyActiveSkolemDefs: " << defs << std::endl;
-  Assert(d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT);
-  // assertion processed makes all skolems in assertion active,
-  // which triggers their definitions to becoming relevant
-  insertToAssertionList(defs, true);
-  // NOTE: if we had a notifyAsserted callback, we could update tracking
-  // triggers, pop stack to where a child implied that a node on the current
-  // stack is justified.
+  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
+  {
+    // assertion processed makes all skolems in assertion active,
+    // which triggers their definitions to becoming relevant
+    insertToAssertionList(defs, true);
+    // NOTE: if we had a notifyAsserted callback, we could update tracking
+    // triggers, pop stack to where a child implied that a node on the current
+    // stack is justified.
+  }
 }
 
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,

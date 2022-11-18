@@ -47,13 +47,13 @@ TheoryProxy::TheoryProxy(Env& env,
       d_propEngine(propEngine),
       d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
-      d_dmNeedsActiveDefs(d_decisionEngine->needsActiveSkolemDefs()),
+      d_trackActiveSkDefs(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_prr(nullptr),
+      d_prr(new PreregisterRlv(env, theoryEngine)),
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =
@@ -65,9 +65,9 @@ TheoryProxy::TheoryProxy(Env& env,
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
-  if (options().prop.preRegisterMode != options::PreRegisterMode::EAGER)
+  if (d_decisionEngine->needsActiveSkolemDefs() || d_prr->needsActiveSkolemDefs())
   {
-    d_prr.reset(new PreregisterRlv(env));
+    d_trackActiveSkDefs = true;
   }
 }
 
@@ -145,6 +145,7 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
   {
     d_decisionEngine->addSkolemDefinition(a, skolem, isLemma);
   }
+  d_prr->notifyAssertion(a, skolem, isLemma);
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {
@@ -152,12 +153,6 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
-  if (d_prr != nullptr)
-  {
-    std::vector<Node> toPreregister;
-    d_prr->notifyCheck(toPreregister);
-    preRegisterToTheory(toPreregister);
-  }
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
@@ -174,16 +169,12 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
-    if (d_prr != nullptr)
-    {
-      std::vector<Node> toPreregister;
-      d_prr->notifyAsserted(assertion, toPreregister);
-      preRegisterToTheory(toPreregister);
-    }
+    // notify the preregister utility
+    d_prr->notifyAsserted(assertion);
     // now, assert to theory engine
     Trace("ajr-temp") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
-    if (d_dmNeedsActiveDefs)
+    if (d_trackActiveSkDefs)
     {
       Assert(d_skdm != nullptr);
       Trace("sat-rlv-assert")
@@ -197,6 +188,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
         d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+        d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
       }
     }
   }
@@ -387,24 +379,7 @@ void TheoryProxy::getSkolems(TNode node,
 
 void TheoryProxy::preRegister(Node n)
 {
-  if (d_prr != nullptr)
-  {
-    std::vector<Node> toPreregister;
-    d_prr->notifyPreRegister(n, toPreregister);
-    preRegisterToTheory(toPreregister);
-    return;
-  }
-  Trace("ajr-temp") << "preregister: " << n << std::endl;
-  d_theoryEngine->preRegister(n);
-}
-
-void TheoryProxy::preRegisterToTheory(const std::vector<Node>& toPreregister)
-{
-  for (const Node& n : toPreregister)
-  {
-    Trace("ajr-temp") << "preregister: " << n << std::endl;
-    d_theoryEngine->preRegister(n);
-  }
+  d_prr->notifyPreRegister(n);
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

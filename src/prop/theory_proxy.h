@@ -198,7 +198,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   modes::LearnedLitType getLiteralType(const Node& lit) const;
 
  private:
-  void preRegisterToTheory(const std::vector<Node>& toPreregister);
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
 
@@ -212,7 +211,7 @@ class TheoryProxy : protected EnvObj, public Registrar
    * Whether the decision engine needs notification of active skolem
    * definitions, see DecisionEngine::needsActiveSkolemDefs.
    */
-  bool d_dmNeedsActiveDefs;
+  bool d_trackActiveSkDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;

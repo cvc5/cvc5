@@ -32,6 +32,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class TheoryEngine;
+
 namespace prop {
 
 /**
@@ -41,20 +44,24 @@ class PreregisterRlv : protected EnvObj
   using NodeList = context::CDList<TNode>;
 
  public:
-  PreregisterRlv(Env& env);
+  PreregisterRlv(Env& env, TheoryEngine * te);
 
   ~PreregisterRlv();
-
-  void notifyPreRegister(TNode n, std::vector<Node>& toPreregister);
-  void notifyAsserted(TNode n, std::vector<Node>& toPreregister);
-
-  void notifyCheck(std::vector<Node>& toPreregister);
-
+  
+  /** Do we need to be informed of activated skolem definitions? */
+  bool needsActiveSkolemDefs() const;
+  /** Notify assertion */
+  void notifyAssertion(TNode n, TNode skolem, bool isLemma);
+  void notifyActiveSkolemDefs(std::vector<TNode>& defs);
+  /** Notify that n is preregistered by SAT solver */
+  void notifyPreRegister(TNode n);
+  /** Notify that n is asserted from SAT solver */
+  void notifyAsserted(TNode n);
  private:
-  /** Queue of asserted facts */
-  NodeList d_preregistering;
-  /** Index we have processed? */
-  context::CDO<size_t> d_prindex;
+  /** pre-register to theory */
+  void preRegisterToTheory(const std::vector<Node>& toPreregister);
+  /** Theory engine */
+  TheoryEngine * d_theoryEngine;
 };
 
 }  // namespace prop

@@ -15,28 +15,71 @@
 
 #include "prop/preregister_rlv.h"
 
+#include "theory/theory_engine.h"
+#include "options/prop_options.h"
+
 namespace cvc5::internal {
 namespace prop {
 
-PreregisterRlv::PreregisterRlv(Env& env)
-    : EnvObj(env), d_preregistering(context()), d_prindex(context())
+PreregisterRlv::PreregisterRlv(Env& env, TheoryEngine * te)
+    : EnvObj(env), d_theoryEngine(te)
 {
 }
 
 PreregisterRlv::~PreregisterRlv() {}
 
-void PreregisterRlv::notifyAsserted(TNode n, std::vector<Node>& toPreregister)
+bool PreregisterRlv::needsActiveSkolemDefs() const
 {
+  return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;
+}
+
+void PreregisterRlv::notifyAssertion(TNode n, TNode skolem, bool isLemma)
+{
+  if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
+  {
+    return;
+  }
+  // TODO
+}
+
+void PreregisterRlv::notifyActiveSkolemDefs(std::vector<TNode>& defs)
+{
+  if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
+  {
+    return;
+  }
+  // TODO
+}
+
+void PreregisterRlv::notifyPreRegister(TNode n)
+{
+  // if eager policy, send immediately
+  if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
+  {
+    d_theoryEngine->preRegister(n);
+  }
+}
+
+void PreregisterRlv::notifyAsserted(TNode n)
+{  
+  // if eager, we've already preregistered it
+  if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
+  {
+    return;
+  }
+  // otherwise, we always ensure it is preregistered now
   Node natom = n.getKind() == kind::NOT ? n[0] : n;
-  toPreregister.push_back(natom);
+  d_theoryEngine->preRegister(natom);
 }
 
-void PreregisterRlv::notifyPreRegister(TNode n,
-                                       std::vector<Node>& toPreregister)
+void PreregisterRlv::preRegisterToTheory(const std::vector<Node>& toPreregister)
 {
+  for (const Node& n : toPreregister)
+  {
+    Trace("ajr-temp") << "preregister: " << n << std::endl;
+    d_theoryEngine->preRegister(n);
+  }
 }
-
-void PreregisterRlv::notifyCheck(std::vector<Node>& toPreregister) {}
 
 }  // namespace prop
 }  // namespace cvc5::internal
