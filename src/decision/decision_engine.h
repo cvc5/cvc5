@@ -31,11 +31,10 @@ class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(Env& env);
+  DecisionEngine(Env& env,
+                 prop::CDCLTSatSolverInterface* ss,
+                 prop::CnfStream* cs);
   virtual ~DecisionEngine() {}
-
-  /** Finish initialize */
-  void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 
   /** Presolve, called at the beginning of each check-sat call */
   virtual void presolve() {}
@@ -49,17 +48,14 @@ class DecisionEngine : protected EnvObj
 
   /** Is the DecisionEngine in a state where it has solved everything? */
   virtual bool isDone() = 0;
-
   /**
-   * Notify this class that assertion is an (input) assertion, not corresponding
-   * to a skolem definition.
+   * If skolem is null, notify this class that assertion is an (input)
+   * assertion, not corresponding to a skolem definition.
+   *
+   * If skolem is non-null, notify this class that lem is the skolem definition
+   * for skolem, which is a part of the current assertions.
    */
-  virtual void addAssertion(TNode assertion, bool isLemma) = 0;
-  /**
-   * Notify this class that lem is the skolem definition for skolem, which is
-   * a part of the current assertions.
-   */
-  virtual void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) = 0;
+  virtual void addAssertion(TNode lem, TNode skolem, bool isLemma) = 0;
   /**
    * Notify this class that the list of lemmas defs are now active in the
    * current SAT context.
@@ -74,14 +70,10 @@ class DecisionEngine : protected EnvObj
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
   virtual prop::SatLiteral getNextInternal(bool& stopSearch) = 0;
-  /** Pointer to the SAT context */
-  context::Context* d_context;
-  /** Pointer to resource manager for associated SolverEngine */
-  ResourceManager* d_resourceManager;
-  /** Pointer to the CNF stream */
-  prop::CnfStream* d_cnfStream;
   /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
+  /** Pointer to the CNF stream */
+  prop::CnfStream* d_cnfStream;
 };
 
 /**
@@ -93,8 +85,7 @@ class DecisionEngineEmpty : public DecisionEngine
  public:
   DecisionEngineEmpty(Env& env);
   bool isDone() override;
-  void addAssertion(TNode assertion, bool isLemma) override;
-  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
+  void addAssertion(TNode lem, TNode skolem, bool isLemma) override;
 
  protected:
   prop::SatLiteral getNextInternal(bool& stopSearch) override;

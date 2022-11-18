@@ -27,6 +27,7 @@
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "prop/theory_preregistrar.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
@@ -60,13 +61,12 @@ class TheoryProxy : protected EnvObj, public Registrar
   TheoryProxy(Env& env,
               PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm);
 
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CnfStream* cnfStream);
+  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
@@ -203,14 +203,14 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The CNF engine we are using. */
   CnfStream* d_cnfStream;
 
-  /** The decision engine we are using. */
-  decision::DecisionEngine* d_decisionEngine;
+  /** The decision engine we will be using */
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
    * Whether the decision engine needs notification of active skolem
    * definitions, see DecisionEngine::needsActiveSkolemDefs.
    */
-  bool d_dmNeedsActiveDefs;
+  bool d_trackActiveSkDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
@@ -232,6 +232,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+
+  /** Preregister policy */
+  std::unique_ptr<TheoryPreregistrar> d_prr;
 
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;

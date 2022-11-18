@@ -19,16 +19,11 @@
 namespace cvc5::internal {
 namespace decision {
 
-DecisionEngine::DecisionEngine(Env& env)
-    : EnvObj(env), d_cnfStream(nullptr), d_satSolver(nullptr)
+DecisionEngine::DecisionEngine(Env& env,
+                               prop::CDCLTSatSolverInterface* ss,
+                               prop::CnfStream* cs)
+    : EnvObj(env), d_satSolver(ss), d_cnfStream(cs)
 {
-}
-
-void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
-                                prop::CnfStream* cs)
-{
-  d_satSolver = ss;
-  d_cnfStream = cs;
 }
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
@@ -37,14 +32,12 @@ prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
   return getNextInternal(stopSearch);
 }
 
-DecisionEngineEmpty::DecisionEngineEmpty(Env& env) : DecisionEngine(env) {}
-bool DecisionEngineEmpty::isDone() { return false; }
-void DecisionEngineEmpty::addAssertion(TNode assertion, bool isLemma) {}
-void DecisionEngineEmpty::addSkolemDefinition(TNode lem,
-                                              TNode skolem,
-                                              bool isLemma)
+DecisionEngineEmpty::DecisionEngineEmpty(Env& env)
+    : DecisionEngine(env, nullptr, nullptr)
 {
 }
+bool DecisionEngineEmpty::isDone() { return false; }
+void DecisionEngineEmpty::addAssertion(TNode lem, TNode skolem, bool isLemma) {}
 prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
 {
   return prop::undefSatLiteral;

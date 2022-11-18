@@ -117,7 +117,9 @@ class JustificationStrategy : public DecisionEngine
 {
  public:
   /** Constructor */
-  JustificationStrategy(Env& env);
+  JustificationStrategy(Env& env,
+                        prop::CDCLTSatSolverInterface* ss,
+                        prop::CnfStream* cs);
 
   /** Presolve, called at the beginning of each check-sat call */
   void presolve() override;
@@ -140,17 +142,14 @@ class JustificationStrategy : public DecisionEngine
    * propositionally satisfied by the current assignment.
    */
   bool isDone() override;
-
   /**
-   * Notify this class that assertion is an (input) assertion, not corresponding
-   * to a skolem definition.
+   * If skolem is null, notify this class that assertion is an (input)
+   * assertion, not corresponding to a skolem definition.
+   *
+   * If skolem is non-null, notify this class that lem is the skolem definition
+   * for skolem, which is a part of the current assertions.
    */
-  void addAssertion(TNode assertion, bool isLemma) override;
-  /**
-   * Notify this class that lem is the skolem definition for skolem, which is
-   * a part of the current assertions.
-   */
-  void addSkolemDefinition(TNode lem, TNode skolem, bool isLemma) override;
+  void addAssertion(TNode lem, TNode skolem, bool isLemma) override;
   /**
    * Notify this class that the list of lemmas defs are now active in the
    * current SAT context. This is triggered when a literal lit is sent to
