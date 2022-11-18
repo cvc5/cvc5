@@ -35,7 +35,7 @@ void TheoryPreregistrar::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
     d_propFinder.reset(new decision::PropFinder(d_env, ss, cs));
   }
 }
-  
+
 bool TheoryPreregistrar::needsActiveSkolemDefs() const
 {
   return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;

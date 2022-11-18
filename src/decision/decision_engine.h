@@ -31,7 +31,9 @@ class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
+  DecisionEngine(Env& env,
+                 prop::CDCLTSatSolverInterface* ss,
+                 prop::CnfStream* cs);
   virtual ~DecisionEngine() {}
 
   /** Presolve, called at the beginning of each check-sat call */

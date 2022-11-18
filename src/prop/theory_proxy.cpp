@@ -19,13 +19,13 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "decision/justification_strategy.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/parallel_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
-#include "decision/justification_strategy.h"
 #include "prop/cnf_stream.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -73,12 +73,14 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cnfStream)
 {
-  // make the decision engine, which requires pointers to the SAT solver and CNF stream
+  // make the decision engine, which requires pointers to the SAT solver and CNF
+  // stream
   options::DecisionMode dmode = options().decision.decisionMode;
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
-    d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cnfStream));
+    d_decisionEngine.reset(
+        new decision::JustificationStrategy(d_env, ss, cnfStream));
   }
   else
   {

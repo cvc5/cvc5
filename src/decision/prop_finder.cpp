@@ -19,8 +19,13 @@ namespace cvc5::internal {
 namespace decision {
 
 PropFindInfo::PropFindInfo(context::Context* c) : d_parentList(c) {}
-  
-PropFinder::PropFinder(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs) : EnvObj(env), d_satSolver(ss), d_cnfStream(cs), d_pstate(context()) {}
+
+PropFinder::PropFinder(Env& env,
+                       prop::CDCLTSatSolverInterface* ss,
+                       prop::CnfStream* cs)
+    : EnvObj(env), d_satSolver(ss), d_cnfStream(cs), d_pstate(context())
+{
+}
 
 PropFinder::~PropFinder() {}
 
@@ -35,7 +40,6 @@ void PropFinder::addAssertion(TNode n,
     return;
   }
   // TODO
-  
 }
 
 void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,

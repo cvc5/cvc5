@@ -18,12 +18,12 @@
 #ifndef CVC5__DECISION__PROP_FINDER_H
 #define CVC5__DECISION__PROP_FINDER_H
 
+#include "decision/justify_info.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
-#include "decision/justify_info.h"
 
 namespace cvc5::internal {
 namespace decision {
@@ -55,7 +55,8 @@ class PropFinder : protected EnvObj
                               std::vector<TNode>& toPreregister);
   /** Notify that n is asserted from SAT solver */
   void notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
-private:
+
+ private:
   /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
   /** Pointer to the CNF stream */
