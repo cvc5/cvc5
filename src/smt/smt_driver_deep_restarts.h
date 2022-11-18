@@ -42,6 +42,7 @@ class SmtDriverDeepRestarts : public SmtDriver
 {
  public:
   SmtDriverDeepRestarts(Env& env, SmtSolver& smt, ContextManager* ctx);
+  virtual ~SmtDriverDeepRestarts(){}
 
  protected:
   Result checkSatNext(preprocessing::AssertionPipeline& ap) override;

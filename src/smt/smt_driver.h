@@ -44,7 +44,7 @@ class SmtDriver : protected EnvObj
 {
  public:
   SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx);
-
+  virtual ~SmtDriver(){}
   /**
    * Check satisfiability. This invokes the algorithm given by this driver
    * for checking satisfiability.
@@ -132,6 +132,7 @@ class SmtDriverSingleCall : public SmtDriver
 {
  public:
   SmtDriverSingleCall(Env& env, SmtSolver& smt);
+  virtual ~SmtDriverSingleCall(){}
 
  protected:
   /** Check sat next, takes result of underlying SMT solver only */
@@ -143,7 +144,7 @@ class SmtDriverSingleCall : public SmtDriver
    * have not processed yet. The call to getNextAssertions gets all assertions
    * starting from this index onward.
    */
-  context::CDO<unsigned> d_assertionListIndex;
+  context::CDO<size_t> d_assertionListIndex;
 };
 
 }  // namespace smt
