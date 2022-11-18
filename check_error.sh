@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd build
+
 git checkout main
 make clean; ccache -C; make -j15 &> ~/main.log
 
