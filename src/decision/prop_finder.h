@@ -32,7 +32,10 @@ class PropFindInfo
 {
  public:
   PropFindInfo(context::Context* c);
-  
+  /** This node */
+  Node d_node;
+  /** Parent list */
+  context::CDList<std::shared_ptr<PropFindInfo> > d_parentList;
 };
 
 /**
@@ -40,7 +43,7 @@ class PropFindInfo
 class PropFinder : protected EnvObj
 {
  public:
-  PropFinder(Env& env);
+  PropFinder(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
   ~PropFinder();
   /** Notify assertion */
   void addAssertion(TNode n,
@@ -53,6 +56,11 @@ class PropFinder : protected EnvObj
   /** Notify that n is asserted from SAT solver */
   void notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 private:
+  /** Pointer to the SAT solver */
+  prop::CDCLTSatSolverInterface* d_satSolver;
+  /** Pointer to the CNF stream */
+  prop::CnfStream* d_cnfStream;
+  /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
 };
 

@@ -24,14 +24,18 @@ namespace prop {
 TheoryPreregistrar::TheoryPreregistrar(Env& env, TheoryEngine* te)
     : EnvObj(env), d_theoryEngine(te)
 {
-  if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
-  {
-    d_propFinder.reset(new decision::PropFinder(env));
-  }
 }
 
 TheoryPreregistrar::~TheoryPreregistrar() {}
 
+void TheoryPreregistrar::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+{
+  if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
+  {
+    d_propFinder.reset(new decision::PropFinder(d_env, ss, cs));
+  }
+}
+  
 bool TheoryPreregistrar::needsActiveSkolemDefs() const
 {
   return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;
