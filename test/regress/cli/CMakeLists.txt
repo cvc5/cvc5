@@ -2758,6 +2758,7 @@ set(regress_1_tests
   regress1/strings/issue8981-2-strings-deq-ext-nth.smt2
   regress1/strings/issue9003-deq-split.smt2
   regress1/strings/issue9040-re-inter-comp.smt2
+  regress1/strings/issue9269-rei-nconst.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

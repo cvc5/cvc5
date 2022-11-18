@@ -29,7 +29,7 @@
 namespace cvc5::internal {
 namespace smt {
 
-class SmtSolver;
+class SmtDriver;
 class SolverEngineState;
 
 /**
@@ -39,7 +39,7 @@ class SolverEngineState;
 class ContextManager : protected EnvObj
 {
  public:
-  ContextManager(Env& env, SolverEngineState& state, SmtSolver& smt);
+  ContextManager(Env& env, SolverEngineState& state);
   ~ContextManager() {}
   /**
    * Notify that we are resetting the assertions, called when a reset-assertions
@@ -67,8 +67,11 @@ class ContextManager : protected EnvObj
   /**
    * Setup the context, which makes a single push to maintain a global
    * context around everything.
+   *
+   * @param smt The driver that handles notifications from this context
+   * manager
    */
-  void setup();
+  void setup(SmtDriver* smt);
   /**
    * Prepare for a shutdown of the SolverEngine, which does pending pops and
    * pops the user context to zero.
@@ -123,8 +126,8 @@ class ContextManager : protected EnvObj
   void internalPop(bool immediate = false);
   /** Reference to the SolverEngineState */
   SolverEngineState& d_state;
-  /** Reference to the SmtSolver */
-  SmtSolver& d_smt;
+  /** Pointer to the SmtDriver */
+  SmtDriver* d_smt;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
   /** Number of internal pops that have been deferred. */

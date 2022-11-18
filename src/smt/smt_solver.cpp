@@ -266,28 +266,21 @@ Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 Assertions& SmtSolver::getAssertions() { return d_asserts; }
 
-void SmtSolver::notifyPushPre()
-{
-  // must preprocess the assertions and push them to the SAT solver, to make
-  // the state accurate prior to pushing
-  refreshAssertions();
-}
-
-void SmtSolver::notifyPushPost()
+void SmtSolver::pushPropContext()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
   Assert(d_propEngine != nullptr);
   d_propEngine->push();
 }
 
-void SmtSolver::notifyPopPre()
+void SmtSolver::popPropContext()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
   Assert(d_propEngine != nullptr);
   d_propEngine->pop();
 }
 
-void SmtSolver::notifyPostSolve()
+void SmtSolver::postsolve()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
