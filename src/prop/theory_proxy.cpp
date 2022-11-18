@@ -53,7 +53,6 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_prr(nullptr),
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =
@@ -85,11 +84,8 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
   {
     d_decisionEngine.reset(new decision::DecisionEngineEmpty(d_env));
   }
-  // make the theory preregistrar
-  d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  if (d_decisionEngine->needsActiveSkolemDefs()
-      || d_prr->needsActiveSkolemDefs())
+  if (d_decisionEngine->needsActiveSkolemDefs())
   {
     d_trackActiveSkDefs = true;
   }
@@ -158,8 +154,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   // notify the decision engine
   d_decisionEngine->addAssertion(a, skolem, isLemma);
-  // notify the preregistrar
-  d_prr->addAssertion(a, skolem, isLemma);
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {
@@ -183,8 +177,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
-    // notify the preregister utility
-    d_prr->notifyAsserted(assertion);
     // now, assert to theory engine
     Trace("ajr-temp") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
@@ -202,7 +194,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
         d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
-        d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
       }
     }
   }
@@ -391,7 +382,7 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::preRegister(Node n) { d_prr->notifyPreRegister(n); }
+void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const
