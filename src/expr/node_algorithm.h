@@ -260,6 +260,10 @@ bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 /** Is the top symbol of cur a Boolean connective? */
 bool isBooleanConnective(TNode cur);
 
+/** Is n a theory atom? */
+bool isTheoryAtom(TNode cur);
+
+
 }  // namespace expr
 }  // namespace cvc5::internal
 

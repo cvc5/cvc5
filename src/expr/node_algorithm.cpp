@@ -864,5 +864,13 @@ bool isBooleanConnective(TNode cur)
          || (k == kind::EQUAL && cur[0].getType().isBoolean());
 }
 
+bool isTheoryAtom(TNode n)
+{
+  Kind k = n.getKind();
+  Assert(k != kind::NOT);
+  return k != kind::AND && k != kind::OR && k != kind::IMPLIES && k != kind::ITE && k != kind::XOR
+         && (k != kind::EQUAL || !n[0].getType().isBoolean());
+}
+
 }  // namespace expr
 }  // namespace cvc5::internal

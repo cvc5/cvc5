@@ -219,8 +219,6 @@ class JustificationStrategy : public DecisionEngine
   prop::SatValue lookupValue(TNode n);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
-  /** Is n a theory atom? */
-  static bool isTheoryAtom(TNode n);
   /** The assertions, which are user-context dependent. */
   AssertionList d_assertions;
   /** The skolem assertions */

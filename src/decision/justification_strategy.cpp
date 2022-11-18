@@ -16,6 +16,7 @@
 #include "decision/justification_strategy.h"
 
 #include "prop/skolem_def_manager.h"
+#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::prop;
@@ -158,7 +159,7 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
       {
         bool nextPol = next.first.getKind() != kind::NOT;
         TNode nextAtom = nextPol ? next.first : next.first[0];
-        if (isTheoryAtom(nextAtom))
+        if (expr::isTheoryAtom(nextAtom))
         {
           // should be assigned a literal
           Assert(d_cnfStream->hasLiteral(nextAtom));
@@ -228,7 +229,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Kind ck = curr.getKind();
   // the current node should be a non-theory literal and not have double
   // negation, due to our invariants of what is pushed onto the stack
-  Assert(!isTheoryAtom(curr));
+  Assert(!expr::isTheoryAtom(curr));
   Assert(ck != NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
@@ -422,7 +423,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
   {
-    Assert(!isTheoryAtom(curr));
+    Assert(!expr::isTheoryAtom(curr));
     // add to justify if so
     d_justified.insert(curr, value);
     // update the last child value, which will be used by the parent of the
@@ -463,7 +464,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   // via its theory literal subterms. This is the case because the justification
   // heuristic is not the only source of decisions, as the theory may request
   // them.
-  if (isTheoryAtom(atom))
+  if (expr::isTheoryAtom(atom))
   {
     SatLiteral nsl = d_cnfStream->getLiteral(atom);
     prop::SatValue val = d_satSolver->value(nsl);
@@ -551,7 +552,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       }
       toProcess.insert(toProcess.begin() + index, negc.begin(), negc.end());
     }
-    else if (!isTheoryAtom(currAtom))
+    else if (!expr::isTheoryAtom(currAtom))
     {
       al.addAssertion(curr);
       // take stats
@@ -642,15 +643,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
 
 bool JustificationStrategy::isTheoryLiteral(TNode n)
 {
-  return isTheoryAtom(n.getKind() == NOT ? n[0] : n);
-}
-
-bool JustificationStrategy::isTheoryAtom(TNode n)
-{
-  Kind k = n.getKind();
-  Assert(k != NOT);
-  return k != AND && k != OR && k != IMPLIES && k != ITE && k != XOR
-         && (k != EQUAL || !n[0].getType().isBoolean());
+  return expr::isTheoryAtom(n.getKind() == NOT ? n[0] : n);
 }
 
 }  // namespace decision
