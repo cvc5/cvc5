@@ -49,7 +49,7 @@ class JustifyCache
   /**
    * Set justified
    */
-  void setJustified(const Node& n, prop::SatValue value);
+  void setValue(const Node& n, prop::SatValue value);
 
  private:
   /** Mapping from non-negated nodes to their SAT value */
