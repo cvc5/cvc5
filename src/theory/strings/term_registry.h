@@ -193,6 +193,10 @@ class TermRegistry : protected EnvObj
    * @return Proxy variable for `n`
    */
   Node ensureProxyVariableFor(Node n);
+  /**
+   * get code proxy lemma
+   */
+  Node getCodeProxyLemma(Node n);
 
   /**
    * This method attempts to (partially) remove trivial parts of an explanation

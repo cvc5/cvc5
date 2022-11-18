@@ -660,6 +660,23 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   return proxy;
 }
 
+Node TermRegistry::getCodeProxyLemma(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node cc = nm->mkNode(kind::STRING_TO_CODE, n);
+  cc = rewrite(cc);
+  Assert(cc.isConst());
+  Node cp = ensureProxyVariableFor(n);
+  Node vc = nm->mkNode(STRING_TO_CODE, cp);
+  if (!d_state.areEqual(cc, vc))
+  {
+    // don't register (apply eager reduce) to the code term
+    d_registeredTerms.insert(vc);
+    return cc.eqNode(vc);
+  }
+  return Node::null();
+}
+
 void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
 {
   if (n.getKind() == AND)

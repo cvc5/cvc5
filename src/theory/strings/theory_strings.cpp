@@ -1124,22 +1124,34 @@ void TheoryStrings::checkCodes()
       }
 
       NormalForm& nfe = d_csolver.getNormalForm(eqc);
+      Node c;
       if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
       {
-        Node c = nfe.d_nf[0];
+        c = nfe.d_nf[0];
+      }
+      else if (nfe.d_nf.empty())
+      {
+        c = Word::mkEmptyWord(eqc.getType());
+      }
+      if (!c.isNull())
+      {
         Trace("strings-code-debug") << "Get proxy variable for " << c
                                     << std::endl;
-        Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
-        cc = rewrite(cc);
-        Assert(cc.isConst());
-        Node cp = d_termReg.ensureProxyVariableFor(c);
-        Node vc = nm->mkNode(STRING_TO_CODE, cp);
-        if (!d_state.areEqual(cc, vc))
+        Node codeProxyLem = d_termReg.getCodeProxyLemma(c);
+        if (!codeProxyLem.isNull())
         {
           std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
+          d_im.sendInference(
+              emptyVec, codeProxyLem, InferenceId::STRINGS_CODE_PROXY);
         }
-        const_codes.push_back(vc);
+        // only relevant in comparisons if length is 1 (e.g. it has a valid
+        // code point)
+        if (Word::getLength(c) == 1)
+        {
+          Node v = d_termReg.ensureProxyVariableFor(c);
+          Node vc = nm->mkNode(STRING_TO_CODE, v);
+          const_codes.push_back(vc);
+        }
       }
       else
       {
@@ -1147,7 +1159,11 @@ void TheoryStrings::checkCodes()
         if (ei && !ei->d_codeTerm.get().isNull())
         {
           Node vc = nm->mkNode(kind::STRING_TO_CODE, ei->d_codeTerm.get());
-          nconst_codes.push_back(vc);
+          // only relevant in comparisons if not already equal to negative one
+          if (!d_state.areEqual(vc, d_neg_one))
+          {
+            nconst_codes.push_back(vc);
+          }
         }
       }
     }
@@ -1167,7 +1183,7 @@ void TheoryStrings::checkCodes()
       {
         Trace("strings-code-debug")
             << "Compare codes : " << c1 << " " << c2 << std::endl;
-        if (!d_state.areDisequal(c1, c2) && !d_state.areEqual(c1, d_neg_one))
+        if (!d_state.areDisequal(c1, c2))
         {
           Node eq_no = c1.eqNode(d_neg_one);
           Node deq = c1.eqNode(c2).negate();
