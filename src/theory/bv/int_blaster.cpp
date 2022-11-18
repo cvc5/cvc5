@@ -43,7 +43,7 @@ namespace cvc5::internal {
 namespace {
 
 // A helper function to compute 2^b as a Rational
-Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
+Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
 

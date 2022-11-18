@@ -29,7 +29,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-static Rational intpow2(uint64_t b)
+static Rational intpow2(uint32_t b)
 {
   return Rational(Integer(2).pow(b), Integer(1));
 }

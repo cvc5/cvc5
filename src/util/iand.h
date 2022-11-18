@@ -27,9 +27,9 @@ namespace cvc5::internal {
 
 struct IntAnd
 {
-  unsigned d_size;
-  IntAnd(unsigned size) : d_size(size) {}
-  operator unsigned() const { return d_size; }
+  uint32_t d_size;
+  IntAnd(uint32_t size) : d_size(size) {}
+  operator uint32_t() const { return d_size; }
 }; /* struct IntAnd */
 
 /* -----------------------------------------------------------------------

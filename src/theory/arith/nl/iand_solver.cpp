@@ -92,7 +92,7 @@ void IAndSolver::checkInitialRefine()
       }
       d_initRefine.insert(i);
       Node op = i.getOperator();
-      size_t bsize = op.getConst<IntAnd>().d_size;
+      uint32_t bsize = op.getConst<IntAnd>().d_size;
       Node twok = nm->mkConstInt(Rational(Integer(2).pow(bsize)));
       Node arg0Mod = nm->mkNode(kind::INTS_MODULUS, i[0], twok);
       Node arg1Mod = nm->mkNode(kind::INTS_MODULUS, i[1], twok);
@@ -235,7 +235,7 @@ Node IAndSolver::valueBasedLemma(Node i)
   Node x = i[0];
   Node y = i[1];
 
-  size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
+  uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
   Node twok = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
   Node valX = d_model.computeConcreteModelValue(x);
   Node valY = d_model.computeConcreteModelValue(y);
