@@ -54,19 +54,17 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
   }
 }
 
-void PropFinder::setRelevant(TNode n,
-                                        std::vector<TNode>& toPreregister)
+void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
 {
   // child, parent, desired polarity
-  std::vector< std::tuple<TNode, TNode, prop::SatValue> > toVisit;
+  std::vector<std::tuple<TNode, TNode, prop::SatValue> > toVisit;
   toVisit.emplace_back(n, d_null, SAT_VALUE_TRUE);
   std::tuple<TNode, TNode, prop::SatValue> curr;
   do
   {
     curr = toVisit.back();
     toVisit.pop_back();
-  }
-  while (!toVisit.empty());
+  } while (!toVisit.empty());
 }
 
 void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)

@@ -58,7 +58,7 @@ class PropFinder : protected EnvObj
 
  private:
   /** Set relevant */
-  void setRelevant(TNode n, std::vector<TNode>& toPreregister); 
+  void setRelevant(TNode n, std::vector<TNode>& toPreregister);
   /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
   /** Pointer to the CNF stream */
