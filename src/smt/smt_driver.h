@@ -143,7 +143,7 @@ class SmtDriverSingleCall : public SmtDriver
    * have not processed yet. The call to getNextAssertions gets all assertions
    * starting from this index onward.
    */
-  context::CDO<size_t> d_assertionListIndex;
+  context::CDO<unsigned> d_assertionListIndex;
 };
 
 }  // namespace smt
