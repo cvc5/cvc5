@@ -73,7 +73,8 @@ void TheoryPreregistrar::notifyAsserted(TNode n)
   d_theoryEngine->preRegister(natom);
 }
 
-void TheoryPreregistrar::preRegisterToTheory(const std::vector<Node>& toPreregister)
+void TheoryPreregistrar::preRegisterToTheory(
+    const std::vector<Node>& toPreregister)
 {
   for (const Node& n : toPreregister)
   {

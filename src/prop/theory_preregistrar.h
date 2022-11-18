@@ -28,9 +28,9 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
+#include "decision/prop_finder.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
-#include "decision/prop_finder.h"
 
 namespace cvc5::internal {
 

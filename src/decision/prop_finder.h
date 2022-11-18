@@ -35,9 +35,13 @@ class PropFinder : protected EnvObj
   PropFinder(Env& env);
   ~PropFinder();
   /** Notify assertion */
-  void addAssertion(TNode n, TNode skolem, bool isLemma, std::vector<TNode>& toPreregister);
+  void addAssertion(TNode n,
+                    TNode skolem,
+                    bool isLemma,
+                    std::vector<TNode>& toPreregister);
   /** Notify active skolem definitions */
-  void notifyActiveSkolemDefs(std::vector<TNode>& defs, std::vector<TNode>& toPreregister);
+  void notifyActiveSkolemDefs(std::vector<TNode>& defs,
+                              std::vector<TNode>& toPreregister);
   /** Notify that n is asserted from SAT solver */
   void notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 };

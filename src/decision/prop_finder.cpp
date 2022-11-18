@@ -22,11 +22,15 @@ PropFinder::PropFinder(Env& env) : EnvObj(env) {}
 
 PropFinder::~PropFinder() {}
 
-void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma, std::vector<TNode>& toPreregister)
+void PropFinder::addAssertion(TNode n,
+                              TNode skolem,
+                              bool isLemma,
+                              std::vector<TNode>& toPreregister)
 {
 }
 
-void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs, std::vector<TNode>& toPreregister)
+void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
+                                        std::vector<TNode>& toPreregister)
 {
 }
 
