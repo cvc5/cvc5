@@ -178,7 +178,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       }
     }
     // now, assert to theory engine
-    Trace("ajr-temp") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
     if (d_trackActiveSkDefs)
     {
