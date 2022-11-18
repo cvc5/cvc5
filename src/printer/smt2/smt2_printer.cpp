@@ -203,7 +203,7 @@ void Smt2Printer::toStream(std::ostream& out,
       Kind atk = at.getKind();
       out << "?";
       // note that the fully abstract type (where atk is ABSTRACT_TYPE) is
-      // printed simply as "?", not e.g. "?Abstract"
+      // printed simply as "?", not, e.g., "?Abstract"
       if (atk != kind::ABSTRACT_TYPE)
       {
         out << smtKindString(atk);

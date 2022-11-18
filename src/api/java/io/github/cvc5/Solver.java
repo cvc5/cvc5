@@ -335,19 +335,19 @@ public class Solver implements IPointer
    * Create an abstract sort. An abstract sort represents a sort for a given
    * kind whose parameters and arguments are unspecified.
    *
-   * The kind k must be the kind of a sort that can be abstracted, i.e. a sort
+   * The kind {@code k} must be the kind of a sort that can be abstracted, i.e., a sort
    * that has indices or argument sorts. For example, {@link Kind#ARRAY_SORT} and
-   *  {@link Kind#BITVECTOR_SORT} can be passed as the kind k to this method, while
+   *  {@link Kind#BITVECTOR_SORT} can be passed as the kind {@code k} to this method, while
    *  {@link Kind#INTEGER_SORT} and  {@link Kind#STRING_SORT} cannot.
    *
-   * @api.note providing the kind  {@link Kind#ABSTRACT_SORT} as an argument to this method
-   * returns the (fully) unspecified sort, often denoted ?.
+   * @api.note Providing the kind  {@link Kind#ABSTRACT_SORT} as an argument to this method
+   * returns the (fully) unspecified sort, often denoted {@code ?}.
    *
-   * @api.note providing a kind k that has no indices and a fixed arity
-   * of argument sorts will return the sort of kind k whose arguments are the
-   * unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will return
-   * the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract kind
-   * is ARRAY_SORT.
+   * @api.note Providing a kind {@code k} that has no indices and a fixed arity
+   * of argument sorts will return the sort of kind {@ code k} whose arguments
+   * are the unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will 
+   * return the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract
+   * kind is {@link Kind#ABSTRACT_SORT}.
    *
    * @param kind The kind of the abstract sort
    * @return The abstract sort.

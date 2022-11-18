@@ -5532,7 +5532,7 @@ enum Kind : int32_t
    * An abstract sort.
    * 
    * An abstract sort represents a sort whose parameters or argument sorts are
-   * unspecified. For example, mkAbstractSort(BITVECTOR_SORT) returns a
+   * unspecified. For example, `mkAbstractSort(BITVECTOR_SORT)` returns a
    * sort that represents the sort of bit-vectors whose bit-width is
    * unspecified.
    *
@@ -5567,7 +5567,7 @@ enum Kind : int32_t
    */
   BOOLEAN_SORT,
   /**
-   * A bit-vector sort, parameterized by a integer denoting its bit-width.
+   * A bit-vector sort, parameterized by an integer denoting its bit-width.
    *
    * - Create Sort of this Kind with:
    *
@@ -5589,7 +5589,7 @@ enum Kind : int32_t
   FINITE_FIELD_SORT,
   /**
    * A floating-point sort, parameterized by two integers denoting its
-   * exponent and significand bits.
+   * exponent and significand bit-widths.
    *
    * - Create Sort of this Kind with:
    *

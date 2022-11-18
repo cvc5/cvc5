@@ -1053,21 +1053,24 @@ cdef class Solver:
             Create an abstract sort. An abstract sort represents a sort for a 
             given kind whose parameters and arguments are unspecified.
             
-            The kind k must be the kind of a sort that can be abstracted, i.e. 
+            The kind ``k`` must be the kind of a sort that can be abstracted, i.e., 
             a sort that has indices or argument sorts. For example, ARRAY_SORT
-            and BITVECTOR_SORT can be passed as the kind k to this method, while
-            INTEGER_SORT and STRING_SORT cannot.
+            and :py:obj:`BITVECTOR_SORT <Kind.BITVECTOR_SORT>` can be
+            passed as the kind ``k`` to this method, while
+            :py:obj:`INTEGER_SORT <Kind.INTEGER_SORT>` and
+            :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
             
             .. note::
-            providing the kind ABSTRACT_SORT as an argument to this method
-            returns the (fully) unspecified sort, denoted ?.
+            Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
+            as an argument to this method returns the (fully) unspecified sort,
+            denoted ``?``.
             
             .. note::
-            providing a kind k of sort that has no indices and a fixed arity of
-            argument sorts will return the sort of kind k whose arguments are
-            the unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will
-            return the sort (ARRAY_SORT ? ?) instead of the abstract sort whose
-            abstract kind is ARRAY_SORT.
+            Providing a kind ``k`` of sort that has no indices and a fixed arity of
+            argument sorts will return the sort of kind ``k`` whose arguments are
+            the unspecified sort. For example, ``mkAbstractSort(ARRAY_SORT)`` will
+            return the sort ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
+            abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
             
             :param k: The kind of the abstract sort
             :return: The abstract sort.
