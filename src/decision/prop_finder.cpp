@@ -59,19 +59,35 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
   // child, parent, desired polarity
   std::vector<std::tuple<TNode, TNode, prop::SatValue> > toVisit;
   toVisit.emplace_back(n, d_null, SAT_VALUE_TRUE);
-  std::tuple<TNode, TNode, prop::SatValue> curr;
+  std::tuple<TNode, TNode, prop::SatValue> t;
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator it;
+  TNode curr;
   do
   {
-    curr = toVisit.back();
+    t = toVisit.back();
     toVisit.pop_back();
+    curr = std::get<0>(t);
+    d_pstate.find(curr);
   } while (!toVisit.empty());
 }
 
 void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
-  // TODO
-  Node natom = n.getKind() == kind::NOT ? n[0] : n;
-  toPreregister.push_back(natom);
+  bool pol = n.getKind() != kind::NOT;
+  Node natom = pol ? n : n[0];
+  // node, assigned value
+  std::vector<std::pair<TNode, bool> > toVisit;
+  toVisit.emplace_back(natom, pol);
+  std::pair<TNode, bool> t;
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator it;
+  TNode curr;
+  do
+  {
+    t = toVisit.back();
+    toVisit.pop_back();
+    curr = std::get<0>(t);
+    d_pstate.find(curr);
+  } while (!toVisit.empty());
 }
 
 }  // namespace decision
