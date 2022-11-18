@@ -76,7 +76,10 @@ TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
 
-void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
+void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cnfStream) { 
+  d_cnfStream = cnfStream; 
+  d_decisionEngine->finishInit(ss, cnfStream);
+}
 
 void TheoryProxy::presolve()
 {

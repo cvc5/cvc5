@@ -18,16 +18,8 @@
 #ifndef CVC5__PROP__THEORY_PREREGISTRAR_H
 #define CVC5__PROP__THEORY_PREREGISTRAR_H
 
-#include <iosfwd>
-#include <unordered_set>
 #include <vector>
 
-#include "context/cdhashmap.h"
-#include "context/cdhashset.h"
-#include "context/cdinsert_hashmap.h"
-#include "context/cdlist.h"
-#include "context/cdo.h"
-#include "context/context.h"
 #include "decision/prop_finder.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
@@ -39,20 +31,19 @@ class TheoryEngine;
 namespace prop {
 
 /**
+ * Implements the policy for preregistration to TheoryEngine based on
+ * notifications from the SAT solver.
  */
 class TheoryPreregistrar : protected EnvObj
 {
-  using NodeList = context::CDList<TNode>;
-
  public:
   TheoryPreregistrar(Env& env, TheoryEngine* te);
-
   ~TheoryPreregistrar();
-
   /** Do we need to be informed of activated skolem definitions? */
   bool needsActiveSkolemDefs() const;
   /** Notify assertion */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
+  /** Notify that skolem definitions have become active */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /** Notify that n is preregistered by SAT solver */
   void notifyPreRegister(TNode n);
@@ -61,7 +52,7 @@ class TheoryPreregistrar : protected EnvObj
 
  private:
   /** pre-register to theory */
-  void preRegisterToTheory(const std::vector<Node>& toPreregister);
+  void preRegisterToTheory(const std::vector<TNode>& toPreregister);
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
   /** Propagation finder */

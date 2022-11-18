@@ -24,6 +24,10 @@ namespace prop {
 TheoryPreregistrar::TheoryPreregistrar(Env& env, TheoryEngine* te)
     : EnvObj(env), d_theoryEngine(te)
 {
+  if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
+  {
+    d_propFinder.reset(new decision::PropFinder(env));
+  }
 }
 
 TheoryPreregistrar::~TheoryPreregistrar() {}
@@ -35,20 +39,22 @@ bool TheoryPreregistrar::needsActiveSkolemDefs() const
 
 void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
-  if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
+  if (d_propFinder != nullptr)
   {
-    return;
+    std::vector<TNode> toPreregister;
+    d_propFinder->addAssertion(n, skolem, isLemma, toPreregister);
+    preRegisterToTheory(toPreregister);
   }
-  // TODO
 }
 
 void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
-  if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
+  if (d_propFinder != nullptr)
   {
-    return;
+    std::vector<TNode> toPreregister;
+    d_propFinder->notifyActiveSkolemDefs(defs, toPreregister);
+    preRegisterToTheory(toPreregister);
   }
-  // TODO
 }
 
 void TheoryPreregistrar::notifyPreRegister(TNode n)
@@ -67,6 +73,14 @@ void TheoryPreregistrar::notifyAsserted(TNode n)
   {
     return;
   }
+  // if we are using the propagation finder, use it
+  if (d_propFinder != nullptr)
+  {
+    std::vector<TNode> toPreregister;
+    d_propFinder->notifyAsserted(n, toPreregister);
+    preRegisterToTheory(toPreregister);
+    return;
+  }
   // otherwise, we always ensure it is preregistered now, which does nothing
   // if it is already preregistered
   Node natom = n.getKind() == kind::NOT ? n[0] : n;
@@ -74,11 +88,10 @@ void TheoryPreregistrar::notifyAsserted(TNode n)
 }
 
 void TheoryPreregistrar::preRegisterToTheory(
-    const std::vector<Node>& toPreregister)
+    const std::vector<TNode>& toPreregister)
 {
-  for (const Node& n : toPreregister)
+  for (TNode n : toPreregister)
   {
-    Trace("ajr-temp") << "preregister: " << n << std::endl;
     d_theoryEngine->preRegister(n);
   }
 }

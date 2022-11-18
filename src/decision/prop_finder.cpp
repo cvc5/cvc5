@@ -27,15 +27,20 @@ void PropFinder::addAssertion(TNode n,
                               bool isLemma,
                               std::vector<TNode>& toPreregister)
 {
+  // TODO
 }
 
 void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
                                         std::vector<TNode>& toPreregister)
 {
+  // TODO
 }
 
-void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
+void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
+  // TODO
+  Node natom = n.getKind() == kind::NOT ? n[0] : n;
+  toPreregister.push_back(natom);
 }
 
 }  // namespace decision
