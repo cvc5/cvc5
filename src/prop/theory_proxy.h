@@ -22,6 +22,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
+#include "decision/decision_engine.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
@@ -32,7 +33,6 @@
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "util/resource_manager.h"
-#include "decision/decision_engine.h"
 
 namespace cvc5::internal {
 
