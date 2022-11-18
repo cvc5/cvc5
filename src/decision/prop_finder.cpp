@@ -66,10 +66,13 @@ void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
     // already justified, we are done
     return;
   }
-  updateRelevantInternal(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE, toPreregister);
+  updateRelevantInternal(
+      natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE, toPreregister);
 }
 
-void PropFinder::updateRelevantInternal(TNode n, prop::SatValue val, std::vector<TNode>& toPreregister)
+void PropFinder::updateRelevantInternal(TNode n,
+                                        prop::SatValue val,
+                                        std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent
   std::vector<std::pair<JustifyNode, TNode> > toVisit;
@@ -102,18 +105,19 @@ void PropFinder::updateRelevantInternal(TNode n, prop::SatValue val, std::vector
       // see if already justified?
       for (TNode c : curr)
       {
-        bool cpol = c.getKind()!=AND;
+        bool cpol = c.getKind() != AND;
         TNode catom = cpol ? c : c[0];
         prop::SatValue cval = d_jcache.lookupValue(c);
-        if (cval==SAT_VALUE_UNKNOWN)
+        if (cval == SAT_VALUE_UNKNOWN)
         {
           // watch all children if child value is forcing
           if (childValForce || watchChildren.empty())
           {
-            watchChildren.emplace_back(catom, cpol ? currVal : invertValue(currVal));
+            watchChildren.emplace_back(catom,
+                                       cpol ? currVal : invertValue(currVal));
           }
         }
-        else if (childValForce && cval!=currVal)
+        else if (childValForce && cval != currVal)
         {
           // value is forced
           jval = currVal;
@@ -135,7 +139,7 @@ void PropFinder::updateRelevantInternal(TNode n, prop::SatValue val, std::vector
       // its a theory atom, preregister it
       toPreregister.push_back(curr);
     }
-    if (jval!=SAT_VALUE_UNKNOWN)
+    if (jval != SAT_VALUE_UNKNOWN)
     {
       // value is forced
       d_jcache.setValue(curr, jval);
@@ -161,55 +165,52 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // update relevance on parents, if any
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
       it = d_pstate.find(natom);
-  if (it!=d_pstate.end())
+  if (it != d_pstate.end())
   {
     for (const JustifyNode& p : it->second->d_parentList)
     {
       updateRelevantInternal(p.first, p.second, toPreregister);
     }
   }
-/*
-  // then, visit parents recursively
-  // node, assigned value
-  std::vector<TNode> toVisit;
-  toVisit.emplace_back(natom);
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
-      it;
-  TNode curr;
-  Kind ck;
-  do
-  {
-    curr = toVisit.back();
-    toVisit.pop_back();
-    d_pstate.find(curr);
-    if (d_pstate.find(curr) == d_pstate.end())
+  /*
+    // then, visit parents recursively
+    // node, assigned value
+    std::vector<TNode> toVisit;
+    toVisit.emplace_back(natom);
+    context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo>
+    >::const_iterator it; TNode curr; Kind ck; do
     {
-      // not watching it
-      continue;
-    }
-    ck = curr.getKind();
-    Assert(ck != kind::NOT);
-    if (ck == AND || ck == OR)
-    {
-      if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
+      curr = toVisit.back();
+      toVisit.pop_back();
+      d_pstate.find(curr);
+      if (d_pstate.find(curr) == d_pstate.end())
+      {
+        // not watching it
+        continue;
+      }
+      ck = curr.getKind();
+      Assert(ck != kind::NOT);
+      if (ck == AND || ck == OR)
+      {
+        if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
+        {
+        }
+        else
+        {
+        }
+      }
+      else if (ck == IMPLIES)
       {
       }
-      else
+      else if (ck == ITE)
       {
       }
-    }
-    else if (ck == IMPLIES)
-    {
-    }
-    else if (ck == ITE)
-    {
-    }
-    else if (ck == EQUAL || ck == XOR)
-    {
-    }
+      else if (ck == EQUAL || ck == XOR)
+      {
+      }
 
-  } while (!toVisit.empty());
-*/
+    } while (!toVisit.empty());
+  */
 }
 
 PropFindInfo* PropFinder::getOrMkInfo(TNode n) { return nullptr; }

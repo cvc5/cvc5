@@ -61,7 +61,9 @@ class PropFinder : protected EnvObj
  private:
   /** Set relevant */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
-  void updateRelevantInternal(TNode n, prop::SatValue val, std::vector<TNode>& toPreregister);
+  void updateRelevantInternal(TNode n,
+                              prop::SatValue val,
+                              std::vector<TNode>& toPreregister);
   /** mk or get PropFindInfo */
   PropFindInfo* getOrMkInfo(TNode n);
   /** The state */
