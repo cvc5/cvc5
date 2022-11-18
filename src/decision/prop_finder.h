@@ -38,7 +38,7 @@ class PropFindInfo
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /** Parent list */
-  context::CDList<std::shared_ptr<PropFindInfo> > d_parentList;
+  context::CDList<PropFindInfo* > d_parentList;
 };
 
 /**
@@ -62,6 +62,8 @@ class PropFinder : protected EnvObj
  private:
   /** Set relevant */
   void setRelevant(TNode n, std::vector<TNode>& toPreregister);
+  /** mk or get PropFindInfo */
+  PropFindInfo* getOrMkInfo(TNode n);
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
   /** Null node */

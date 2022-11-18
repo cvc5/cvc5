@@ -59,19 +59,69 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
 
 void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
 {
+  bool pol = n.getKind() != kind::NOT;
+  TNode natom = pol ? n : n[0];
+  prop::SatValue currVal = d_jcache.lookupValue(natom);
+  if (currVal!=SAT_VALUE_UNKNOWN)
+  {
+    // already justified, we are done
+    return;
+  }
   // child, parent, desired polarity
+  // invariant: all child in this vector are not justified
   std::vector<std::tuple<TNode, TNode, prop::SatValue> > toVisit;
-  toVisit.emplace_back(n, d_null, SAT_VALUE_TRUE);
+  toVisit.emplace_back(natom, d_null, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
   std::tuple<TNode, TNode, prop::SatValue> t;
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
       it;
   TNode curr;
+  TNode parent;
+  Kind ck;
   do
   {
     t = toVisit.back();
     toVisit.pop_back();
     curr = std::get<0>(t);
-    d_pstate.find(curr);
+    parent = std::get<1>(t);
+    currVal = std::get<2>(t);
+    ck = curr.getKind();
+    Assert (ck!=kind::NOT);
+    Assert (curr.getType().isBoolean());
+    if (ck == AND || ck == OR)
+    {
+      if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
+      {
+        // see if already justified?
+        for (TNode c : curr)
+        {
+          
+        }
+      }
+      else
+      {
+        // just look at the first non-justified child
+        for (TNode c : curr)
+        {
+          
+        }
+      }
+    }
+    else if (ck == IMPLIES)
+    {
+      
+    }
+    else if (ck == ITE)
+    {
+      
+    }
+    else if (ck==EQUAL || ck==XOR)
+    {
+    }
+    else
+    {
+      // its a theory atom, preregister it
+      toPreregister.push_back(curr);
+    }
   } while (!toVisit.empty());
 }
 
@@ -88,6 +138,7 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
       it;
   TNode curr;
+  Kind ck;
   do
   {
     curr = toVisit.back();
@@ -98,8 +149,35 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
       // not watching it
       continue;
     }
+    ck = curr.getKind();
+    Assert (ck!=kind::NOT);
+    if (ck == AND || ck == OR)
+    {
+      if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
+      {
+      }
+      else
+      {
+      }
+    }
+    else if (ck == IMPLIES)
+    {
+      
+    }
+    else if (ck == ITE)
+    {
+      
+    }
+    else if (ck==EQUAL || ck==XOR)
+    {
+    }
 
   } while (!toVisit.empty());
+}
+
+PropFindInfo* PropFinder::getOrMkInfo(TNode n)
+{
+  return nullptr;
 }
 
 }  // namespace decision
