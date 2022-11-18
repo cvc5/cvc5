@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
-#include "prop/preregister_rlv.h"
+#include "prop/theory_preregistrar.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
@@ -235,7 +235,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   std::unique_ptr<ZeroLevelLearner> d_zll;
 
   /** Preregister policy */
-  std::unique_ptr<PreregisterRlv> d_prr;
+  std::unique_ptr<TheoryPreregistrar> d_prr;
 
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;

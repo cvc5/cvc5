@@ -10,10 +10,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Preregister relevant formulas
+ * Preregister policy
  */
 
-#include "prop/preregister_rlv.h"
+#include "prop/theory_preregistrar.h"
 
 #include "options/prop_options.h"
 #include "theory/theory_engine.h"
@@ -21,19 +21,19 @@
 namespace cvc5::internal {
 namespace prop {
 
-PreregisterRlv::PreregisterRlv(Env& env, TheoryEngine* te)
+TheoryPreregistrar::TheoryPreregistrar(Env& env, TheoryEngine* te)
     : EnvObj(env), d_theoryEngine(te)
 {
 }
 
-PreregisterRlv::~PreregisterRlv() {}
+TheoryPreregistrar::~TheoryPreregistrar() {}
 
-bool PreregisterRlv::needsActiveSkolemDefs() const
+bool TheoryPreregistrar::needsActiveSkolemDefs() const
 {
   return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;
 }
 
-void PreregisterRlv::addAssertion(TNode n, TNode skolem, bool isLemma)
+void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
   if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
   {
@@ -42,7 +42,7 @@ void PreregisterRlv::addAssertion(TNode n, TNode skolem, bool isLemma)
   // TODO
 }
 
-void PreregisterRlv::notifyActiveSkolemDefs(std::vector<TNode>& defs)
+void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
   if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
   {
@@ -51,7 +51,7 @@ void PreregisterRlv::notifyActiveSkolemDefs(std::vector<TNode>& defs)
   // TODO
 }
 
-void PreregisterRlv::notifyPreRegister(TNode n)
+void TheoryPreregistrar::notifyPreRegister(TNode n)
 {
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
@@ -60,19 +60,20 @@ void PreregisterRlv::notifyPreRegister(TNode n)
   }
 }
 
-void PreregisterRlv::notifyAsserted(TNode n)
+void TheoryPreregistrar::notifyAsserted(TNode n)
 {
   // if eager, we've already preregistered it
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
     return;
   }
-  // otherwise, we always ensure it is preregistered now
+  // otherwise, we always ensure it is preregistered now, which does nothing
+  // if it is already preregistered
   Node natom = n.getKind() == kind::NOT ? n[0] : n;
   d_theoryEngine->preRegister(natom);
 }
 
-void PreregisterRlv::preRegisterToTheory(const std::vector<Node>& toPreregister)
+void TheoryPreregistrar::preRegisterToTheory(const std::vector<Node>& toPreregister)
 {
   for (const Node& n : toPreregister)
   {

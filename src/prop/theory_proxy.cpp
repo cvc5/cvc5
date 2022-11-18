@@ -53,7 +53,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_prr(new PreregisterRlv(env, theoryEngine)),
+      d_prr(new TheoryPreregistrar(env, theoryEngine)),
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =

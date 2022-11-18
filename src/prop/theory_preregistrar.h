@@ -10,13 +10,13 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Preregister relevant formulas
+ * Preregister policy
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROP__PREREGISTER_RLV_H
-#define CVC5__PROP__PREREGISTER_RLV_H
+#ifndef CVC5__PROP__THEORY_PREREGISTRAR_H
+#define CVC5__PROP__THEORY_PREREGISTRAR_H
 
 #include <iosfwd>
 #include <unordered_set>
@@ -30,6 +30,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
+#include "decision/prop_finder.h"
 
 namespace cvc5::internal {
 
@@ -39,14 +40,14 @@ namespace prop {
 
 /**
  */
-class PreregisterRlv : protected EnvObj
+class TheoryPreregistrar : protected EnvObj
 {
   using NodeList = context::CDList<TNode>;
 
  public:
-  PreregisterRlv(Env& env, TheoryEngine* te);
+  TheoryPreregistrar(Env& env, TheoryEngine* te);
 
-  ~PreregisterRlv();
+  ~TheoryPreregistrar();
 
   /** Do we need to be informed of activated skolem definitions? */
   bool needsActiveSkolemDefs() const;
@@ -63,6 +64,8 @@ class PreregisterRlv : protected EnvObj
   void preRegisterToTheory(const std::vector<Node>& toPreregister);
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
+  /** Propagation finder */
+  std::unique_ptr<decision::PropFinder> d_propFinder;
 };
 
 }  // namespace prop
