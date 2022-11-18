@@ -37,9 +37,10 @@ namespace prop {
 class TheoryPreregistrar : protected EnvObj
 {
  public:
-  TheoryPreregistrar(Env& env, TheoryEngine* te,
-                 CDCLTSatSolverInterface* ss,
-                 CnfStream* cs);
+  TheoryPreregistrar(Env& env,
+                     TheoryEngine* te,
+                     CDCLTSatSolverInterface* ss,
+                     CnfStream* cs);
   ~TheoryPreregistrar();
   /** Do we need to be informed of activated skolem definitions? */
   bool needsActiveSkolemDefs() const;

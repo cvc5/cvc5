@@ -79,8 +79,7 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
   if (dmode == options::DecisionMode::JUSTIFICATION
       || dmode == options::DecisionMode::STOPONLY)
   {
-    d_decisionEngine.reset(
-        new decision::JustificationStrategy(d_env, ss, cs));
+    d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cs));
   }
   else
   {
