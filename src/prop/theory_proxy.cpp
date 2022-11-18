@@ -53,7 +53,7 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_prr(new TheoryPreregistrar(env, theoryEngine)),
+      d_prr(nullptr),
       d_stopSearch(false, userContext())
 {
   bool trackZeroLevel =
@@ -71,7 +71,7 @@ TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
 
-void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cnfStream)
+void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
   // make the decision engine, which requires pointers to the SAT solver and CNF
   // stream
@@ -80,18 +80,21 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cnfStream)
       || dmode == options::DecisionMode::STOPONLY)
   {
     d_decisionEngine.reset(
-        new decision::JustificationStrategy(d_env, ss, cnfStream));
+        new decision::JustificationStrategy(d_env, ss, cs));
   }
   else
   {
     d_decisionEngine.reset(new decision::DecisionEngineEmpty(d_env));
   }
+  // make the theory preregistrar
+  d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
+  // compute if we need to track skolem definitions
   if (d_decisionEngine->needsActiveSkolemDefs()
       || d_prr->needsActiveSkolemDefs())
   {
     d_trackActiveSkDefs = true;
   }
-  d_cnfStream = cnfStream;
+  d_cnfStream = cs;
 }
 
 void TheoryProxy::presolve()

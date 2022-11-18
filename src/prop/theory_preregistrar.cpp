@@ -21,20 +21,18 @@
 namespace cvc5::internal {
 namespace prop {
 
-TheoryPreregistrar::TheoryPreregistrar(Env& env, TheoryEngine* te)
+TheoryPreregistrar::TheoryPreregistrar(Env& env, TheoryEngine* te,
+                 CDCLTSatSolverInterface* ss,
+                 CnfStream* cs)
     : EnvObj(env), d_theoryEngine(te)
-{
-}
-
-TheoryPreregistrar::~TheoryPreregistrar() {}
-
-void TheoryPreregistrar::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
   if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
   {
     d_propFinder.reset(new decision::PropFinder(d_env, ss, cs));
   }
 }
+
+TheoryPreregistrar::~TheoryPreregistrar() {}
 
 bool TheoryPreregistrar::needsActiveSkolemDefs() const
 {
