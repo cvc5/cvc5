@@ -57,12 +57,16 @@ class PropFinder : protected EnvObj
   void notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 
  private:
+  /** Set relevant */
+  void setRelevant(TNode n, std::vector<TNode>& toPreregister); 
   /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
   /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
+  /** Null node */
+  TNode d_null;
 };
 
 }  // namespace decision
