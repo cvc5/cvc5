@@ -15,13 +15,13 @@
 
 #include "prop/preregister_rlv.h"
 
-#include "theory/theory_engine.h"
 #include "options/prop_options.h"
+#include "theory/theory_engine.h"
 
 namespace cvc5::internal {
 namespace prop {
 
-PreregisterRlv::PreregisterRlv(Env& env, TheoryEngine * te)
+PreregisterRlv::PreregisterRlv(Env& env, TheoryEngine* te)
     : EnvObj(env), d_theoryEngine(te)
 {
 }
@@ -61,7 +61,7 @@ void PreregisterRlv::notifyPreRegister(TNode n)
 }
 
 void PreregisterRlv::notifyAsserted(TNode n)
-{  
+{
   // if eager, we've already preregistered it
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {

@@ -79,7 +79,8 @@ Parser* ParserBuilder::build()
     parser->disallowIncludeFile();
   }
 
-  if( d_logicIsForced ) {
+  if (d_logicIsForced)
+  {
     parser->forceLogic(d_forcedLogic);
   }
 

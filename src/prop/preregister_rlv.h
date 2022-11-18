@@ -44,10 +44,10 @@ class PreregisterRlv : protected EnvObj
   using NodeList = context::CDList<TNode>;
 
  public:
-  PreregisterRlv(Env& env, TheoryEngine * te);
+  PreregisterRlv(Env& env, TheoryEngine* te);
 
   ~PreregisterRlv();
-  
+
   /** Do we need to be informed of activated skolem definitions? */
   bool needsActiveSkolemDefs() const;
   /** Notify assertion */
@@ -57,11 +57,12 @@ class PreregisterRlv : protected EnvObj
   void notifyPreRegister(TNode n);
   /** Notify that n is asserted from SAT solver */
   void notifyAsserted(TNode n);
+
  private:
   /** pre-register to theory */
   void preRegisterToTheory(const std::vector<Node>& toPreregister);
   /** Theory engine */
-  TheoryEngine * d_theoryEngine;
+  TheoryEngine* d_theoryEngine;
 };
 
 }  // namespace prop

@@ -65,7 +65,8 @@ TheoryProxy::TheoryProxy(Env& env,
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
-  if (d_decisionEngine->needsActiveSkolemDefs() || d_prr->needsActiveSkolemDefs())
+  if (d_decisionEngine->needsActiveSkolemDefs()
+      || d_prr->needsActiveSkolemDefs())
   {
     d_trackActiveSkDefs = true;
   }
@@ -377,10 +378,7 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::preRegister(Node n)
-{
-  d_prr->notifyPreRegister(n);
-}
+void TheoryProxy::preRegister(Node n) { d_prr->notifyPreRegister(n); }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const

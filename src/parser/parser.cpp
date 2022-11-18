@@ -172,14 +172,16 @@ cvc5::Sort Parser::getSort(const std::string& name,
   return t;
 }
 
-size_t Parser::getArity(const std::string& sort_name) {
+size_t Parser::getArity(const std::string& sort_name)
+{
   checkDeclaration(sort_name, CHECK_DECLARED, SYM_SORT);
   Assert(isDeclared(sort_name, SYM_SORT));
   return d_symtab->lookupArity(sort_name);
 }
 
 /* Returns true if name is bound to a boolean variable. */
-bool Parser::isBoolean(const std::string& name) {
+bool Parser::isBoolean(const std::string& name)
+{
   cvc5::Term expr = getVariable(name);
   return !expr.isNull() && expr.getSort().isBoolean();
 }
@@ -195,7 +197,8 @@ bool Parser::isFunctionLike(cvc5::Term fun)
 }
 
 /* Returns true if name is bound to a function returning boolean. */
-bool Parser::isPredicate(const std::string& name) {
+bool Parser::isPredicate(const std::string& name)
+{
   cvc5::Term expr = getVariable(name);
   return !expr.isNull() && expr.getSort().isPredicate();
 }
@@ -235,7 +238,8 @@ std::vector<cvc5::Term> Parser::bindVars(const std::vector<std::string> names,
                                          bool doOverload)
 {
   std::vector<cvc5::Term> vars;
-  for (unsigned i = 0; i < names.size(); ++i) {
+  for (unsigned i = 0; i < names.size(); ++i)
+  {
     vars.push_back(bindVar(names[i], type, doOverload));
   }
   return vars;
