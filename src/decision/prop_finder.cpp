@@ -21,7 +21,10 @@ using namespace cvc5::internal::prop;
 namespace cvc5::internal {
 namespace decision {
 
-PropFindInfo::PropFindInfo(context::Context* c) : d_childIndex(c, 0), d_parentList(c) {}
+PropFindInfo::PropFindInfo(context::Context* c)
+    : d_childIndex(c, 0), d_parentList(c)
+{
+}
 
 PropFinder::PropFinder(Env& env,
                        prop::CDCLTSatSolverInterface* ss,
@@ -60,7 +63,8 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
   std::vector<std::tuple<TNode, TNode, prop::SatValue> > toVisit;
   toVisit.emplace_back(n, d_null, SAT_VALUE_TRUE);
   std::tuple<TNode, TNode, prop::SatValue> t;
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator it;
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
+      it;
   TNode curr;
   do
   {
@@ -81,19 +85,20 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // node, assigned value
   std::vector<TNode> toVisit;
   toVisit.emplace_back(natom);
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator it;
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
+      it;
   TNode curr;
   do
   {
     curr = toVisit.back();
     toVisit.pop_back();
     d_pstate.find(curr);
-    if (d_pstate.find(curr)==d_pstate.end())
+    if (d_pstate.find(curr) == d_pstate.end())
     {
       // not watching it
       continue;
     }
-    
+
   } while (!toVisit.empty());
 }
 
