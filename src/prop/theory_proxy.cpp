@@ -25,6 +25,7 @@
 #include "options/parallel_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
+#include "decision/justification_strategy.h"
 #include "prop/cnf_stream.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -41,12 +42,11 @@ namespace prop {
 TheoryProxy::TheoryProxy(Env& env,
                          PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
-                         decision::DecisionEngine* decisionEngine,
                          SkolemDefManager* skdm)
     : EnvObj(env),
       d_propEngine(propEngine),
       d_cnfStream(nullptr),
-      d_decisionEngine(decisionEngine),
+      d_decisionEngine(nullptr),
       d_trackActiveSkDefs(false),
       d_theoryEngine(theoryEngine),
       d_queue(context()),
@@ -65,11 +65,6 @@ TheoryProxy::TheoryProxy(Env& env,
   {
     d_zll = std::make_unique<ZeroLevelLearner>(env, theoryEngine);
   }
-  if (d_decisionEngine->needsActiveSkolemDefs()
-      || d_prr->needsActiveSkolemDefs())
-  {
-    d_trackActiveSkDefs = true;
-  }
 }
 
 TheoryProxy::~TheoryProxy() {
@@ -78,8 +73,23 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cnfStream)
 {
+  // make the decision engine, which requires pointers to the SAT solver and CNF stream
+  options::DecisionMode dmode = options().decision.decisionMode;
+  if (dmode == options::DecisionMode::JUSTIFICATION
+      || dmode == options::DecisionMode::STOPONLY)
+  {
+    d_decisionEngine.reset(new decision::JustificationStrategy(d_env, ss, cnfStream));
+  }
+  else
+  {
+    d_decisionEngine.reset(new decision::DecisionEngineEmpty(d_env));
+  }
+  if (d_decisionEngine->needsActiveSkolemDefs()
+      || d_prr->needsActiveSkolemDefs())
+  {
+    d_trackActiveSkDefs = true;
+  }
   d_cnfStream = cnfStream;
-  d_decisionEngine->finishInit(ss, cnfStream);
 }
 
 void TheoryProxy::presolve()

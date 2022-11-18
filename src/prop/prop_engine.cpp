@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "decision/justification_strategy.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
@@ -83,24 +82,13 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   context::UserContext* userContext = d_env.getUserContext();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
 
-  options::DecisionMode dmode = options().decision.decisionMode;
-  if (dmode == options::DecisionMode::JUSTIFICATION
-      || dmode == options::DecisionMode::STOPONLY)
-  {
-    d_decisionEngine.reset(new decision::JustificationStrategy(env));
-  }
-  else
-  {
-    d_decisionEngine.reset(new decision::DecisionEngineEmpty(env));
-  }
-
   d_satSolver =
       SatSolverFactory::createCDCLTMinisat(d_env, statisticsRegistry());
 
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
   d_theoryProxy = new TheoryProxy(
-      d_env, this, d_theoryEngine, d_decisionEngine.get(), d_skdm.get());
+      d_env, this, d_theoryEngine, d_skdm.get());
   d_cnfStream = new CnfStream(env,
                               d_satSolver,
                               d_theoryProxy,
@@ -146,7 +134,6 @@ void PropEngine::finishInit()
 
 PropEngine::~PropEngine() {
   Trace("prop") << "Destructing the PropEngine" << std::endl;
-  d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_satSolver;
   delete d_theoryProxy;

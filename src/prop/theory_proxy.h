@@ -61,7 +61,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   TheoryProxy(Env& env,
               PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm);
 
   ~TheoryProxy();
@@ -204,8 +203,8 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The CNF engine we are using. */
   CnfStream* d_cnfStream;
 
-  /** The decision engine we are using. */
-  decision::DecisionEngine* d_decisionEngine;
+  /** The decision engine we will be using */
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
    * Whether the decision engine needs notification of active skolem

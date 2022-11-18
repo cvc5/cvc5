@@ -31,11 +31,8 @@ class DecisionEngine : protected EnvObj
 {
  public:
   /** Constructor */
-  DecisionEngine(Env& env);
+  DecisionEngine(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
   virtual ~DecisionEngine() {}
-
-  /** Finish initialize */
-  void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 
   /** Presolve, called at the beginning of each check-sat call */
   virtual void presolve() {}
@@ -71,14 +68,10 @@ class DecisionEngine : protected EnvObj
  protected:
   /** Get next internal, the engine-specific implementation of getNext */
   virtual prop::SatLiteral getNextInternal(bool& stopSearch) = 0;
-  /** Pointer to the SAT context */
-  context::Context* d_context;
-  /** Pointer to resource manager for associated SolverEngine */
-  ResourceManager* d_resourceManager;
-  /** Pointer to the CNF stream */
-  prop::CnfStream* d_cnfStream;
   /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
+  /** Pointer to the CNF stream */
+  prop::CnfStream* d_cnfStream;
 };
 
 /**

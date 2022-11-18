@@ -117,7 +117,7 @@ class JustificationStrategy : public DecisionEngine
 {
  public:
   /** Constructor */
-  JustificationStrategy(Env& env);
+  JustificationStrategy(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 
   /** Presolve, called at the beginning of each check-sat call */
   void presolve() override;

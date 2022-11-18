@@ -397,9 +397,6 @@ class PropEngine : protected EnvObj
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** The decision engine we will be using */
-  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
-
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
 

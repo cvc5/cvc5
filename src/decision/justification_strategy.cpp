@@ -23,8 +23,8 @@ using namespace cvc5::internal::prop;
 namespace cvc5::internal {
 namespace decision {
 
-JustificationStrategy::JustificationStrategy(Env& env)
-    : DecisionEngine(env),
+JustificationStrategy::JustificationStrategy(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs)
+    : DecisionEngine(env, ss, cs),
       d_assertions(
           userContext(),
           context(),
