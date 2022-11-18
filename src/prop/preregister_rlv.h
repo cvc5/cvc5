@@ -51,7 +51,7 @@ class PreregisterRlv : protected EnvObj
   /** Do we need to be informed of activated skolem definitions? */
   bool needsActiveSkolemDefs() const;
   /** Notify assertion */
-  void notifyAssertion(TNode n, TNode skolem, bool isLemma);
+  void addAssertion(TNode n, TNode skolem, bool isLemma);
   void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /** Notify that n is preregistered by SAT solver */
   void notifyPreRegister(TNode n);

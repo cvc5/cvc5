@@ -138,15 +138,10 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
-  if (skolem.isNull())
-  {
-    d_decisionEngine->addAssertion(a, isLemma);
-  }
-  else
-  {
-    d_decisionEngine->addSkolemDefinition(a, skolem, isLemma);
-  }
-  d_prr->notifyAssertion(a, skolem, isLemma);
+  // notify the decision engine
+  d_decisionEngine->addAssertion(a, skolem, isLemma);
+  // notify the preregistrar
+  d_prr->addAssertion(a, skolem, isLemma);
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {

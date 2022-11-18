@@ -33,7 +33,7 @@ bool PreregisterRlv::needsActiveSkolemDefs() const
   return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;
 }
 
-void PreregisterRlv::notifyAssertion(TNode n, TNode skolem, bool isLemma)
+void PreregisterRlv::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
   if (options().prop.preRegisterMode != options::PreRegisterMode::RELEVANT)
   {
