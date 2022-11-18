@@ -15,8 +15,8 @@
 
 #include "decision/justification_strategy.h"
 
-#include "prop/skolem_def_manager.h"
 #include "expr/node_algorithm.h"
+#include "prop/skolem_def_manager.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::prop;

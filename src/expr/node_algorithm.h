@@ -263,7 +263,6 @@ bool isBooleanConnective(TNode cur);
 /** Is n a theory atom? */
 bool isTheoryAtom(TNode cur);
 
-
 }  // namespace expr
 }  // namespace cvc5::internal
 

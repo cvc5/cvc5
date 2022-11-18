@@ -19,10 +19,10 @@
 #define CVC5__DECISION__JUSTIFY_CACHE_H
 
 #include "context/cdinsert_hashmap.h"
+#include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "expr/node.h"
 
 namespace cvc5::internal {
 namespace decision {
@@ -33,9 +33,9 @@ class JustifyCache
 {
  public:
   /** Constructor */
-  JustifyCache(context::Context * c,
-                        prop::CDCLTSatSolverInterface* ss,
-                        prop::CnfStream* cs);
+  JustifyCache(context::Context* c,
+               prop::CDCLTSatSolverInterface* ss,
+               prop::CnfStream* cs);
   /**
    * Returns the value TRUE/FALSE for n, or UNKNOWN otherwise.
    *
@@ -50,6 +50,7 @@ class JustifyCache
    * Set justified
    */
   void setJustified(const Node& n, prop::SatValue value);
+
  private:
   /** Mapping from non-negated nodes to their SAT value */
   context::CDInsertHashMap<Node, prop::SatValue> d_justified;
