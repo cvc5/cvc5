@@ -480,12 +480,9 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
-void JustificationStrategy::addAssertion(TNode lem,
-                                                TNode skolem,
-                                                bool isLemma)
+void JustificationStrategy::addAssertion(TNode lem, TNode skolem, bool isLemma)
 {
-  Trace("jh-assert") << "addAssertion " << lem << " / " << skolem
-                     << std::endl;
+  Trace("jh-assert") << "addAssertion " << lem << " / " << skolem << std::endl;
   if (skolem.isNull())
   {
     std::vector<TNode> toProcess;
