@@ -38,7 +38,7 @@ class PropFindInfo
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /** Parent list */
-  context::CDList<PropFindInfo* > d_parentList;
+  context::CDList<PropFindInfo*> d_parentList;
 };
 
 /**

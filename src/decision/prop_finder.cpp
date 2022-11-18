@@ -62,7 +62,7 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
   prop::SatValue currVal = d_jcache.lookupValue(natom);
-  if (currVal!=SAT_VALUE_UNKNOWN)
+  if (currVal != SAT_VALUE_UNKNOWN)
   {
     // already justified, we are done
     return;
@@ -85,8 +85,8 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
     parent = std::get<1>(t);
     currVal = std::get<2>(t);
     ck = curr.getKind();
-    Assert (ck!=kind::NOT);
-    Assert (curr.getType().isBoolean());
+    Assert(ck != kind::NOT);
+    Assert(curr.getType().isBoolean());
     if (ck == AND || ck == OR)
     {
       if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
@@ -94,7 +94,6 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
         // see if already justified?
         for (TNode c : curr)
         {
-          
         }
       }
       else
@@ -102,19 +101,16 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
         // just look at the first non-justified child
         for (TNode c : curr)
         {
-          
         }
       }
     }
     else if (ck == IMPLIES)
     {
-      
     }
     else if (ck == ITE)
     {
-      
     }
-    else if (ck==EQUAL || ck==XOR)
+    else if (ck == EQUAL || ck == XOR)
     {
     }
     else
@@ -150,7 +146,7 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
       continue;
     }
     ck = curr.getKind();
-    Assert (ck!=kind::NOT);
+    Assert(ck != kind::NOT);
     if (ck == AND || ck == OR)
     {
       if ((ck == AND) == (currVal == SAT_VALUE_FALSE))
@@ -162,23 +158,18 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
     }
     else if (ck == IMPLIES)
     {
-      
     }
     else if (ck == ITE)
     {
-      
     }
-    else if (ck==EQUAL || ck==XOR)
+    else if (ck == EQUAL || ck == XOR)
     {
     }
 
   } while (!toVisit.empty());
 }
 
-PropFindInfo* PropFinder::getOrMkInfo(TNode n)
-{
-  return nullptr;
-}
+PropFindInfo* PropFinder::getOrMkInfo(TNode n) { return nullptr; }
 
 }  // namespace decision
 }  // namespace cvc5::internal
