@@ -18,7 +18,8 @@
 #ifndef CVC5__DECISION__PROP_FINDER_H
 #define CVC5__DECISION__PROP_FINDER_H
 
-#include "decision/justify_info.h"
+#include "context/cdo.h"
+#include "decision/justify_cache.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -34,6 +35,8 @@ class PropFindInfo
   PropFindInfo(context::Context* c);
   /** This node */
   Node d_node;
+  /** The last child we looked up */
+  context::CDO<size_t> d_childIndex;
   /** Parent list */
   context::CDList<std::shared_ptr<PropFindInfo> > d_parentList;
 };
@@ -59,14 +62,12 @@ class PropFinder : protected EnvObj
  private:
   /** Set relevant */
   void setRelevant(TNode n, std::vector<TNode>& toPreregister);
-  /** Pointer to the SAT solver */
-  prop::CDCLTSatSolverInterface* d_satSolver;
-  /** Pointer to the CNF stream */
-  prop::CnfStream* d_cnfStream;
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
   /** Null node */
   TNode d_null;
+  /** A justification cache */
+  JustifyCache d_jcache;
 };
 
 }  // namespace decision

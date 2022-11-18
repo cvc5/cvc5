@@ -21,12 +21,12 @@ using namespace cvc5::internal::prop;
 namespace cvc5::internal {
 namespace decision {
 
-PropFindInfo::PropFindInfo(context::Context* c) : d_parentList(c) {}
+PropFindInfo::PropFindInfo(context::Context* c) : d_childIndex(c, 0), d_parentList(c) {}
 
 PropFinder::PropFinder(Env& env,
                        prop::CDCLTSatSolverInterface* ss,
                        prop::CnfStream* cs)
-    : EnvObj(env), d_satSolver(ss), d_cnfStream(cs), d_pstate(context())
+    : EnvObj(env), d_pstate(context()), d_jcache(context(), ss, cs)
 {
 }
 
@@ -74,19 +74,26 @@ void PropFinder::setRelevant(TNode n, std::vector<TNode>& toPreregister)
 void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
-  Node natom = pol ? n : n[0];
+  TNode natom = pol ? n : n[0];
+  // set justified
+  d_jcache.setValue(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
+  // then, visit parents recursively
   // node, assigned value
-  std::vector<std::pair<TNode, bool> > toVisit;
-  toVisit.emplace_back(natom, pol);
-  std::pair<TNode, bool> t;
+  std::vector<TNode> toVisit;
+  toVisit.emplace_back(natom);
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator it;
   TNode curr;
   do
   {
-    t = toVisit.back();
+    curr = toVisit.back();
     toVisit.pop_back();
-    curr = std::get<0>(t);
     d_pstate.find(curr);
+    if (d_pstate.find(curr)==d_pstate.end())
+    {
+      // not watching it
+      continue;
+    }
+    
   } while (!toVisit.empty());
 }
 

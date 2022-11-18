@@ -86,7 +86,7 @@ void TheoryPreregistrar::notifyAsserted(TNode n)
   }
   // otherwise, we always ensure it is preregistered now, which does nothing
   // if it is already preregistered
-  Node natom = n.getKind() == kind::NOT ? n[0] : n;
+  TNode natom = n.getKind() == kind::NOT ? n[0] : n;
   d_theoryEngine->preRegister(natom);
 }
 
