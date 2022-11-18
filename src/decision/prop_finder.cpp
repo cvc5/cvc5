@@ -18,7 +18,9 @@
 namespace cvc5::internal {
 namespace decision {
 
-PropFinder::PropFinder(Env& env) : EnvObj(env) {}
+PropFindInfo::PropFindInfo(context::Context* c) {}
+  
+PropFinder::PropFinder(Env& env) : EnvObj(env), d_pstate(context()) {}
 
 PropFinder::~PropFinder() {}
 
@@ -27,7 +29,13 @@ void PropFinder::addAssertion(TNode n,
                               bool isLemma,
                               std::vector<TNode>& toPreregister)
 {
+  if (!skolem.isNull())
+  {
+    // skolem definitions handled dynamically
+    return;
+  }
   // TODO
+  
 }
 
 void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,

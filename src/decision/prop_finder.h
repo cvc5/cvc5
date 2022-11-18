@@ -23,9 +23,17 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
+#include "decision/justify_info.h"
 
 namespace cvc5::internal {
 namespace decision {
+
+class PropFindInfo
+{
+ public:
+  PropFindInfo(context::Context* c);
+  
+};
 
 /**
  */
@@ -44,6 +52,8 @@ class PropFinder : protected EnvObj
                               std::vector<TNode>& toPreregister);
   /** Notify that n is asserted from SAT solver */
   void notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
+private:
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
 };
 
 }  // namespace decision
