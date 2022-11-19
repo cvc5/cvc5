@@ -36,8 +36,7 @@
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "parser/api/cpp/command.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
+#include "parser/input_parser.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -235,17 +234,15 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
         solver->setOption("wf-checking", "false");
       }
 
-      ParserBuilder parserBuilder(
-          pExecutor->getSolver(), pExecutor->getSymbolManager(), true);
-      std::unique_ptr<Parser> parser(parserBuilder.build());
+      std::unique_ptr<InputParser> parser(new InputParser(
+              pExecutor->getSolver(), pExecutor->getSymbolManager(), true));
       if( inputFromStdin ) {
-        parser->setInput(Input::newStreamInput(
-            solver->getOption("input-language"), cin, filename));
+        parser->setStreamInput(
+            solver->getOption("input-language"), cin, filename);
       }
       else
       {
-        parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"), filename));
+        parser->setFileInput(solver->getOption("input-language"), filename);
       }
 
       PortfolioDriver driver(parser);

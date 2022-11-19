@@ -38,6 +38,9 @@ namespace parser {
 
 class Command;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Smt2 : public Parser
 {
   friend class ParserBuilder;
