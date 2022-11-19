@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <string>
 
 #include "proof/drat/drat_proof.h"
@@ -51,7 +52,7 @@ TEST_F(TestDratProof, ident_sanitize)
               dratProof.getInstructions()[i].d_clause);
     ASSERT_EQ(instructions[i].d_kind, dratProof.getInstructions()[i].d_kind);
   }
-  std::remove(fileName.c_str());
+  std::filesystem::remove(fileName.c_str());
 }
 
 }  // namespace test
