@@ -17,6 +17,8 @@
 
 #include "prop/cadical.h"
 
+#include <filesystem>
+
 #include "base/check.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
@@ -227,7 +229,7 @@ void CadicalSolver::deleteDratFile()
 {
   if (!d_tempDratFilePath.empty())
   {
-    std::remove(d_tempDratFilePath.c_str());
+    std::filesystem::remove(d_tempDratFilePath.c_str());
   }
 }
 
