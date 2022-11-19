@@ -51,6 +51,8 @@ class BBProof : protected EnvObj
   void getBBTerm(TNode node, Bits& bits) const;
   /** Collect model values for all relevant terms given in 'relevantTerms'. */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& relevantTerms);
+  /** Checks whether node is a variable introduced via `makeVariable`.*/
+  bool isVariable(TNode node);
 
   BitblastProofGenerator* getProofGenerator();
 

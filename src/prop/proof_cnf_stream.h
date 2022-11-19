@@ -100,6 +100,12 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
   bool hasLiteral(TNode node) const;
 
   /**
+   * Returns true iff CNF stream has a mapping for the given literal
+   * @param literal the literal
+   */
+  bool hasLiteral(const SatLiteral& literal) const;
+
+  /**
    * Returns the literal that represents the given node in the SAT CNF
    * representation.
    */
@@ -109,6 +115,13 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * Returns the Boolean variables from the input problem.
    */
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
+
+  /**
+   * Get the node that is represented by the given SatLiteral.
+   * @param literal the literal from the sat solver
+   * @return the actual node
+   */
+  TNode getNode(const SatLiteral& literal);
 
   /**
    * Blocks a proof, so that it is not further updated by a post processor of
