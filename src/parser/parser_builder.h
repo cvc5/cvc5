@@ -77,7 +77,7 @@ class CVC5_EXPORT ParserBuilder
   ParserBuilder(cvc5::Solver* solver, SymbolManager* sm, bool useOptions);
 
   /** Build the parser, using the current settings. */
-  Parser* build();
+  std::unique_ptr<Parser> build();
 
   /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);

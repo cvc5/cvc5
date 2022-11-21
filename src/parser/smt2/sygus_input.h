@@ -29,6 +29,9 @@ namespace cvc5::parser {
 class Command;
 class Smt2;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class SygusInput : public AntlrInput {
   typedef AntlrInput super;
 
