@@ -22,7 +22,7 @@ namespace cvc5::internal {
 namespace decision {
 
 PropFindInfo::PropFindInfo(context::Context* c)
-    : d_rval(c), d_jval(SAT_VALUE_UNKNOWN), d_childIndex(c, 0), d_parentList(c)
+    : d_rval(c, SAT_VALUE_UNKNOWN), d_jval(c, SAT_VALUE_UNKNOWN), d_childIndex(c, 0), d_parentList(c)
 {
 }
 
@@ -90,6 +90,7 @@ void PropFinder::updateRelevantInternal(TNode n,
                                         prop::SatValue val,
                                         std::vector<TNode>& toPreregister)
 {
+#if 0
   std::vector<std::pair<TNode, bool>> queueNotifyParent;
   // (child, desired polarity), parent
   // NOTE: we only push downwards in this method
@@ -190,6 +191,7 @@ void PropFinder::updateRelevantInternal(TNode n,
     }
     else if (ck == ITE)
     {
+      // watch condition, unless it has a value?
     }
     else if (ck == EQUAL || ck == XOR)
     {
@@ -231,10 +233,12 @@ void PropFinder::updateRelevantInternal(TNode n,
     }
   } while (!toVisit.empty());
   // TODO: process parent notifies
+#endif
 }
 
 void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
+#if 0
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
   // set justified
@@ -251,12 +255,14 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
       notifyParentInternal(p.first, p.second ? pol : !pol);
     }
   }
+#endif
 }
 
 
 // TODO: queue is argument?
 void PropFinder::notifyParentInternal(TNode n, bool childVal)
 {
+#if 0
   std::vector<std::pair<TNode, prop::SatValue>> queueUpdateRelevant;
   // notify values: node to notify, child's value
   // this method only pushes upwards to parents
@@ -316,6 +322,7 @@ void PropFinder::notifyParentInternal(TNode n, bool childVal)
       // notify parents
     }
   }
+#endif
 }
 
 PropFindInfo* PropFinder::getInfo(TNode n)

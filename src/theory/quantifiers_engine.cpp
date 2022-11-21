@@ -183,7 +183,7 @@ void QuantifiersEngine::ppNotifyAssertions(
     quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
     {
-      sye->preregisterAssertion(a);
+      sye->ppNotifyAssertion(a);
     }
   }
   /* The SyGuS instantiation module needs a global view of all available
