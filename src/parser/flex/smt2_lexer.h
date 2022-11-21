@@ -47,6 +47,27 @@ class Smt2Lexer
 {
  public:
   Smt2Lexer();
+  /** Set the input for the given file.
+   *
+   * @param filename the input filename
+   */
+  void setFileInput(const std::string& filename);
+
+  /** Set the input for the given stream.
+   *
+   * @param input the input stream
+   * @param name the name of the stream, for use in error messages
+   */
+  void setStreamInput(std::istream& input,
+                      const std::string& name);
+
+  /** Set the input for the given string
+   *
+   * @param input the input string
+   * @param name the name of the stream, for use in error messages
+   */
+  void setStringInput(const std::string& input,
+                      const std::string& name);
   // Core functions
   // Advance to the next token (pop from stack)
   Token next_token();
@@ -70,8 +91,8 @@ class Smt2Lexer
 
  private:
   FlexLexer* d_lexer;
-  // Name of current file
-  std::string d_filename;
+  /** Name of current file */
+  std::string d_inputName;
   // The buffer. 0 is first, then 1.
   Token d_peeked[2];
   // Used to initialize d_span.

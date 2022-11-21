@@ -10,6 +10,7 @@
 #include <sstream>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 #define YY_USER_ACTION add_columns(yyleng);
 
 %}
@@ -22,7 +23,7 @@
 %}
 
 
-"mp_add"        return Token::SET_LOGIC;
+"set-logic"        return Token::SET_LOGIC;
 
 ";"    {
         int c;
@@ -43,6 +44,29 @@ Smt2Lexer::Smt2Lexer() : d_lexer(nullptr)
 {
 }
 
+void Smt2Lexer::setFileInput(const std::string& filename)
+{
+  d_inputName = filename;
+  std::ifstream fs;
+  fs.open(filename, std::fstream::in);
+  // TODO: make unique ptr
+  d_lexer = new yyFlexLexer(&fs);
+}
+
+void Smt2Lexer::setStreamInput(std::istream& input,
+                    const std::string& name)
+{
+  d_inputName = name;
+  // TODO: make unique ptr
+  d_lexer = new yyFlexLexer(&input);
+}
+
+void Smt2Lexer::setStringInput(const std::string& input,
+                    const std::string& name)
+{
+  d_inputName = name;
+  // TODO
+}
 
 /*
 void reinsert_token(Token t)
@@ -108,9 +132,9 @@ Token Smt2Lexer::next_token()
 
 void Smt2Lexer::report_error(const std::string &msg)
 {
-  if (d_filename.length())
+  if (d_inputName.length())
   {
-    std::cerr << "Error: " << d_filename << " at " << d_span;
+    std::cerr << "Error: " << d_inputName << " at " << d_span;
   }
   std::cerr << std::endl << msg << std::endl;
   exit(1);

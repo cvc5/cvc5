@@ -28,6 +28,7 @@ namespace parser {
 
 enum class Token
 {
+  EOF = 0,
   ALPHA,
   ASSERT_TOK,
   ASSUME_TOK,

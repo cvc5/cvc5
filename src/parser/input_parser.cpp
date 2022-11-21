@@ -19,6 +19,7 @@
 #include "parser/api/cpp/command.h"
 #include "parser/input.h"
 #include "parser/parser_builder.h"
+#include "parser/flex/smt2_lexer.h"
 
 namespace cvc5 {
 namespace parser {
@@ -47,6 +48,15 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
+  Smt2Lexer slex;
+  slex.setFileInput(filename);
+  Token t;
+  while ((t = slex.next_token()) != Token::EOF)
+  {
+    Trace("ajr-temp") << c << std::endl;
+  }
+  return;
+  
   d_state->setInput(Input::newFileInput(lang, filename));
 }
 
