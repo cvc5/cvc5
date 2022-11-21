@@ -385,7 +385,7 @@ std::string AletheProofPrinter::printInternal(
       steps_before_subproof = steps;
 
   // In case the rule is an anchor it is printed before its children.
-  if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
+  if (arule >= AletheRule::ANCHOR_SUBPROOF && arule <= AletheRule::ANCHOR_SKO_EX)
   {
     // Print anchor
     std::string current_t =
@@ -406,11 +406,12 @@ std::string AletheProofPrinter::printInternal(
     // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
     //
     // Note that since these are variables there is no need to letify.
-    if (arule == AletheRule::ANCHOR_BIND)
+    if (arule >= AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
+        Assert(args[j].getKind() == kind::EQUAL);
         out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
             << args[j][1] << ")" << (j != args.size() - 1 ? " " : "");
       }

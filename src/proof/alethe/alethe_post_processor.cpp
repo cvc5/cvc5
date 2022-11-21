@@ -451,7 +451,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                                *cdp);
         }
       }
-      Unreachable() << "Theory lemma not representable with LIA_GENERIC: " << res;
+      Unreachable() << "Theory lemma not representable with LIA_GENERIC: "
+                    << res;
       return addAletheStep(AletheRule::HOLE,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
@@ -519,9 +520,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       return addAletheStep(AletheRule::RESOLUTION_OR,
                            res,
-                           res == d_false
-                               ? nm->mkNode(kind::SEXPR, d_cl)
-                               : nm->mkNode(kind::SEXPR, d_cl, res),
+                           res == d_false ? nm->mkNode(kind::SEXPR, d_cl)
+                                          : nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
                            newArgs,
                            *cdp);
@@ -694,20 +694,20 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       success &= addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
 
-      return success &=
-             addAletheStep(AletheRule::RESOLUTION,
-                           res,
-                           // res == d_false ? nm->mkNode(kind::SEXPR, d_cl)
-                           //                : nm->mkNode(kind::SEXPR, d_cl, res),
-                           nm->mkNode(kind::SEXPR, d_cl, res),
-                           {vp1, children[1], child1},
-                           options().proof.proofAletheResPivots
-                               ? std::vector<Node>{children[1],
-                                                   d_false,
-                                                   children[0],
-                                                   d_false}
-                               : std::vector<Node>(),
-                           *cdp);
+      return success &= addAletheStep(
+                 AletheRule::RESOLUTION,
+                 res,
+                 // res == d_false ? nm->mkNode(kind::SEXPR, d_cl)
+                 //                : nm->mkNode(kind::SEXPR, d_cl, res),
+                 nm->mkNode(kind::SEXPR, d_cl, res),
+                 {vp1, children[1], child1},
+                 options().proof.proofAletheResPivots
+                     ? std::vector<Node>{children[1],
+                                         d_false,
+                                         children[0],
+                                         d_false}
+                     : std::vector<Node>(),
+                 *cdp);
     }
     // ======== Modus ponens
     // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
@@ -1457,7 +1457,8 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
     }
     //================================================= Skolems rules
-    //================================================= Quantifiers/Skolems rules
+    //================================================= Quantifiers/Skolems
+    //rules
     // ======== Skolem intro
     case PfRule::SKOLEM_INTRO:
     {
@@ -1482,63 +1483,135 @@ bool AletheProofPostprocessCallback::update(Node res,
     // See proof_rule.h for documentation on the SKOLEMIZE rule. This
     // comment uses variable names as introduced there.
     //
-    // If the conclusion is of the form F*sigma = not G:
+    // Either a positive existential or a negative forall is skolemized. First
+    // thing is to build the Alethe skolemization step which introduces a valid
+    // equality:
     //
-    //  ------------------------------------------------ SKO_EX
-    //   (= (exists ((x1 T1) ... (xn Tn)) F) (F*sigma))
+    //                      ---------------- REFL
+    //                       (= F F*sigma')
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_n
+    //          (= (exists ((xn Tn)) F) F*sigma')
+    // -----------------------------------------------
+    //                       ...
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_2
+    //   (= (exists ((x2 T1) ... (xn Tn)) F) F*sigma')
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_1
+    //   (= (exists ((x1 T1) ... (xn Tn)) F) F*sigma')
     //
-    //  Then, apply the cvc5 rule EQ_RESOLVE to obtain F*sigma from this.
+    // where sigma' is the cumulative substitution built from sigma1...sigma_n,
+    // and each sigma_i replaces xi by the choice term (epsilon ((xi Ti))
+    // (exists ((xi+1 Ti+1) ... (xn+1 Tn+1)) F)).
     //
-    // Otherwise, if the child has the form (not (exist
-    // case PfRule::SKOLEMIZE:
-    // {
-    // TODO: Add ANCHOR, map skolemized variable to substitutions skv_1
-    // SkolemManager::getWitnessForm
-    // Get choice term that corresponds to skv_1
-    // F*sigma needs to be changed s.t. all occurences of skv_1 are replaced
-    // with the choice term LOOK AT LEAN for replacement
-    // NodeConverter will eventually be changed to do this
-    // LeanNodeConverter
-    // choice terms itself might contain skv variables
-    // getSkolemTermVectors then I can get skolems
+    // Then, we apply the equivalence elimination reasoning to obtain F*sigma
+    // from the premise:
     //
-    /*if (res.getKind() != kind::NOT)
+    //  ---------------- EQUIV_POS2
+    //     VP1              (= (exists (...) F) F*sigma')       (exists (...) F)
+    //  ------------------------------------------------------------- RESOLUTION
+    //                           F*sigma'
+    //
+    // VP1 :
+    //  (cl (not (= (exists (...) F) F*sigma')) (not (exists (...) F)) F*sigma')
+    //
+    // Note that F*sigma' is equivalent to F*sigma once its skolem terms are
+    // lifted to choice terms by the node converter.
+    //
+    // The case for negative forall is analagous except the rules are
+    // ANCHOR_SKO_FORALL and the one concluding the desired equivalence is
+    // followed by a congruence step to wrap a the equality terms under a
+    // negation, i.e., (not ...).
+    case PfRule::SKOLEMIZE:
     {
-      Node choice;
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0], res));
-      return addAletheStep(AletheRule::SKO_EX, vp1, vp1, {}, {}, *cdp)
-             && cdp->addStep(
-                 res, PfRule::EQ_RESOLVE, {vp1, children[0]}, args);
-    }*/
-    /*if (res.getKind() == kind::NOT)
-    {
-      std::cout << "children " << children << std::endl;
-      std::cout << "res " << res << std::endl;
-      std::cout << "skv_1 " << args << std::endl;
-      Node temp = SkolemManager::getWitnessForm(res);
-      std::cout << "children[0] " << children[0]
-                << SkolemManager::getWitnessForm(children[0]) << std::endl;
-      std::cout << "children[0][0][0][0] " << children[0][0][0][0] << "    "
-                << SkolemManager::getWitnessForm(children[0][0][0][0])
-                << std::endl;
-      std::cout << "children[0][0][1] " << children[0][0][1]
-                << SkolemManager::getWitnessForm(children[0][0][1])
-                << std::endl;
-      Node vp1 = nm->mkNode(
-          kind::SEXPR, d_cl, nm->mkNode(kind::EQUAL, children[0][0], res));
-      return addAletheStep(
-                 AletheRule::ANCHOR_SKO_FORALL, vp1, vp1, {}, {}, *cdp)
-             && addAletheStep(AletheRule::RESOLUTION,
-                              res,
-                              nm->mkNode(kind::SEXPR, d_cl, res),
-                              {vp1, children[0]},
-                              {},
-                              *cdp);
+      AletheRule skoRule;
+      bool isExists;
+      Node quant, skolemized;
+      Kind quantKind;
+      if (children[0].getKind() == kind::EXISTS)
+      {
+        isExists = true;
+        skoRule = AletheRule::ANCHOR_SKO_EX;
+        quant = children[0];
+        skolemized = res;
+        quantKind = kind::EXISTS;
+      }
+      else
+      {
+        isExists = false;
+        skoRule = AletheRule::ANCHOR_SKO_FORALL;
+        quant = children[0][0];
+        skolemized = res[0];
+        quantKind = kind::FORALL;
+      }
+      // add rfl step for final replacement
+      Node curPremise =
+          nm->mkNode(kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
+      addAletheStep(
+          AletheRule::REFL, curPremise, curPremise, {}, {curPremise}, *cdp);
+      std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
+      for (size_t size = quant[0].getNumChildren(), i = size; i > 0; --i)
+      {
+        // build i-th anchor step, whose argument will be the i-th variable
+        // mapped to a choice term for that variable over the quantifier over
+        // i+1-th to n-th variable over the quant body.
+        Node ithBVars = nm->mkNode(
+            kind::BOUND_VAR_LIST,
+            std::vector<Node>{bVars.begin() + (size - i), bVars.end()});
+        Node curSkolemizing =
+            i == 1 ? quant[1]
+                   : nm->mkNode(quantKind,
+                                nm->mkNode(kind::BOUND_VAR_LIST, ithBVars),
+                                quant[1]);
+        if (!isExists)
+        {
+          curSkolemizing = curSkolemizing.notNode();
+        }
+        Node ithChoice =
+            nm->mkNode(kind::WITNESS,
+                       nm->mkNode(kind::BOUND_VAR_LIST, quant[0][i - 1]),
+                       curSkolemizing);
+        Node conclusion =
+            nm->mkNode(kind::SEXPR,
+                       d_cl,
+                       d_anc.convert(curSkolemizing.eqNode(skolemized)));
+        addAletheStep(skoRule,
+                      conclusion,
+                      conclusion,
+                      {curPremise},
+                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice))},
+                      *cdp);
+        // update premise
+        curPremise = conclusion;
+      }
+      // add congruence step with NOT for the forall case
+      if (!isExists)
+      {
+        Node conclusion = nm->mkNode(
+            kind::SEXPR,
+            d_cl,
+            (curPremise[1][0].notNode()).eqNode(curPremise[1][1].notNode()));
+        addAletheStep(
+            AletheRule::CONG, conclusion, conclusion, {curPremise}, {}, *cdp);
+        curPremise = conclusion;
+      }
+      // now equality resolution reasoning
+      Node vp1 =
+          nm->mkNode(kind::SEXPR,
+                     {d_cl,
+                      nm->mkNode(kind::SEXPR, d_cl, curPremise[1].notNode()),
+                      children[0].notNode(),
+                      res});
+      addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
+      addAletheStep(
+          AletheRule::RESOLUTION,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          {vp1, curPremise, children[0]},
+          options().proof.proofAletheResPivots
+              ? std::vector<Node>{curPremise[1], d_false, children[0], d_false}
+              : std::vector<Node>(),
+          *cdp);
+      return true;
     }
-    return addAletheStep(
-        AletheRule::ALL_SIMPLIFY, res, res, {}, children, *cdp);
-  }*/
     // ======== Instantiate
     // See proof_rule.h for documentation on the INSTANTIATE rule. This
     // comment uses variable names as introduced there.
