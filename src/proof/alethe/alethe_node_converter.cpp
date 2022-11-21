@@ -134,10 +134,9 @@ Node AletheNodeConverter::convert(Node n)
         }
         case kind::FORALL:
         {
-          if (nChildren == 3)
-          {
-            res = nm->mkNode(kind::FORALL, children[0], children[1]);
-          }
+          res = nChildren == 3
+                    ? nm->mkNode(kind::FORALL, children[0], children[1])
+                    : Node(cur);
           break;
         }
         default:
