@@ -14,14 +14,16 @@
 
 namespace cvc5 {
 namespace parser {
-  
-struct Location {
+
+struct Location
+{
   Location() : d_line(1), d_column(1) {}
   uint32_t line;
   uint32_t column;
 };
 
-struct Span {
+struct Span
+{
   Location start;
   Location end;
 };
@@ -43,41 +45,42 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
 // Currrent lexer
 class Smt2Lexer
 {
-public:
-Smt2Lexer();
-// Core functions
-// Advance to the next token (pop from stack)
-Token next_token();
-// Add a token back into the stream (push to stack)
-void reinsert_token(Token t);
-// String corresponding to the last token (old top of stack)
-const char* token_str();
-// Span of last token pulled from underlying lexer (old top of stack)
-extern Span d_span;
-// Used to report errors, with the current source location attached.
-void report_error(const std::string&);
+ public:
+  Smt2Lexer();
+  // Core functions
+  // Advance to the next token (pop from stack)
+  Token next_token();
+  // Add a token back into the stream (push to stack)
+  void reinsert_token(Token t);
+  // String corresponding to the last token (old top of stack)
+  const char* token_str();
+  // Span of last token pulled from underlying lexer (old top of stack)
+  extern Span d_span;
+  // Used to report errors, with the current source location attached.
+  void report_error(const std::string&);
 
-// Derived functions
-// Expect a token `t` as the next one. Error o.w.
-void eat_token(Token t);
-// Interpret the next token as an identifier (even if it isn't) and return its string
-std::string prefix_id();
-// Error. Got `t`, expected `info`.
-void unexpected_token_error(Token t, const std::string& info);
-private:
-FlexLexer* d_lexer;
-// Name of current file
-std::string d_filename;
-// The buffer. 0 is first, then 1.
-Token d_peeked[2];
-// Used to initialize d_span.
-void init_d_span();
-// Sets the spans start to its current end.
-void bump_span();
-// Add columns or lines to the end location of the span.
-void add_columns(uint32_t columns);
-void add_lines(uint32_t lines);
+  // Derived functions
+  // Expect a token `t` as the next one. Error o.w.
+  void eat_token(Token t);
+  // Interpret the next token as an identifier (even if it isn't) and return its
+  // string
+  std::string prefix_id();
+  // Error. Got `t`, expected `info`.
+  void unexpected_token_error(Token t, const std::string& info);
 
+ private:
+  FlexLexer* d_lexer;
+  // Name of current file
+  std::string d_filename;
+  // The buffer. 0 is first, then 1.
+  Token d_peeked[2];
+  // Used to initialize d_span.
+  void init_d_span();
+  // Sets the spans start to its current end.
+  void bump_span();
+  // Add columns or lines to the end location of the span.
+  void add_columns(uint32_t columns);
+  void add_lines(uint32_t lines);
 };
 
 }  // namespace parser

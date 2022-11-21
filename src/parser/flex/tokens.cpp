@@ -19,7 +19,7 @@
 
 namespace cvc5 {
 namespace parser {
-  
+
 std::ostream& operator<<(std::ostream& o, Token t)
 {
   switch (t)
@@ -28,14 +28,22 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::ASSERT_TOK: o << "ASSERT_TOK"; break;
     case Token::ASSUME_TOK: o << "ASSUME_TOK"; break;
     case Token::AS_TOK: o << "AS_TOK"; break;
-    case Token::ATTRIBUTE_INST_ADD_TO_POOL_TOK: o << "ATTRIBUTE_INST_ADD_TO_POOL_TOK"; break;
+    case Token::ATTRIBUTE_INST_ADD_TO_POOL_TOK:
+      o << "ATTRIBUTE_INST_ADD_TO_POOL_TOK";
+      break;
     case Token::ATTRIBUTE_INST_LEVEL: o << "ATTRIBUTE_INST_LEVEL"; break;
     case Token::ATTRIBUTE_NAMED_TOK: o << "ATTRIBUTE_NAMED_TOK"; break;
-    case Token::ATTRIBUTE_NO_PATTERN_TOK: o << "ATTRIBUTE_NO_PATTERN_TOK"; break;
+    case Token::ATTRIBUTE_NO_PATTERN_TOK:
+      o << "ATTRIBUTE_NO_PATTERN_TOK";
+      break;
     case Token::ATTRIBUTE_PATTERN_TOK: o << "ATTRIBUTE_PATTERN_TOK"; break;
     case Token::ATTRIBUTE_POOL_TOK: o << "ATTRIBUTE_POOL_TOK"; break;
-    case Token::ATTRIBUTE_QUANTIFIER_ID_TOK: o << "ATTRIBUTE_QUANTIFIER_ID_TOK"; break;
-    case Token::ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK: o << "ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK"; break;
+    case Token::ATTRIBUTE_QUANTIFIER_ID_TOK:
+      o << "ATTRIBUTE_QUANTIFIER_ID_TOK";
+      break;
+    case Token::ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK:
+      o << "ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK";
+      break;
     case Token::ATTRIBUTE_TOK: o << "ATTRIBUTE_TOK"; break;
     case Token::BINARY_LITERAL: o << "BINARY_LITERAL"; break;
     case Token::BLOCK_MODEL_TOK: o << "BLOCK_MODEL_TOK"; break;
@@ -78,13 +86,17 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::GET_INFO_TOK: o << "GET_INFO_TOK"; break;
     case Token::GET_INTERPOL_NEXT_TOK: o << "GET_INTERPOL_NEXT_TOK"; break;
     case Token::GET_INTERPOL_TOK: o << "GET_INTERPOL_TOK"; break;
-    case Token::GET_LEARNED_LITERALS_TOK: o << "GET_LEARNED_LITERALS_TOK"; break;
+    case Token::GET_LEARNED_LITERALS_TOK:
+      o << "GET_LEARNED_LITERALS_TOK";
+      break;
     case Token::GET_MODEL_TOK: o << "GET_MODEL_TOK"; break;
     case Token::GET_OPTION_TOK: o << "GET_OPTION_TOK"; break;
     case Token::GET_PROOF_TOK: o << "GET_PROOF_TOK"; break;
     case Token::GET_QE_DISJUNCT_TOK: o << "GET_QE_DISJUNCT_TOK"; break;
     case Token::GET_QE_TOK: o << "GET_QE_TOK"; break;
-    case Token::GET_UNSAT_ASSUMPTIONS_TOK: o << "GET_UNSAT_ASSUMPTIONS_TOK"; break;
+    case Token::GET_UNSAT_ASSUMPTIONS_TOK:
+      o << "GET_UNSAT_ASSUMPTIONS_TOK";
+      break;
     case Token::GET_UNSAT_CORE_TOK: o << "GET_UNSAT_CORE_TOK"; break;
     case Token::GET_VALUE_TOK: o << "GET_VALUE_TOK"; break;
     case Token::HEX_DIGIT: o << "HEX_DIGIT"; break;
@@ -121,7 +133,9 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::SYGUS_CONSTANT_TOK: o << "SYGUS_CONSTANT_TOK"; break;
     case Token::SYGUS_VARIABLE_TOK: o << "SYGUS_VARIABLE_TOK"; break;
     case Token::SYMBOL_CHAR: o << "SYMBOL_CHAR"; break;
-    case Token::SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE: o << "SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE"; break;
+    case Token::SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE:
+      o << "SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE";
+      break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
     case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;
     case Token::TABLE_AGGREGATE_TOK: o << "TABLE_AGGREGATE_TOK"; break;
@@ -131,8 +145,12 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::TESTER_TOK: o << "TESTER_TOK"; break;
     case Token::TUPLE_CONST_TOK: o << "TUPLE_CONST_TOK"; break;
     case Token::TUPLE_PROJECT_TOK: o << "TUPLE_PROJECT_TOK"; break;
-    case Token::UNTERMINATED_QUOTED_SYMBOL: o << "UNTERMINATED_QUOTED_SYMBOL"; break;
-    case Token::UNTERMINATED_STRING_LITERAL: o << "UNTERMINATED_STRING_LITERAL"; break;
+    case Token::UNTERMINATED_QUOTED_SYMBOL:
+      o << "UNTERMINATED_QUOTED_SYMBOL";
+      break;
+    case Token::UNTERMINATED_STRING_LITERAL:
+      o << "UNTERMINATED_STRING_LITERAL";
+      break;
     case Token::UPDATE_TOK: o << "UPDATE_TOK"; break;
     case Token::WHITESPACE: o << "WHITESPACE"; break;
     default: return o << "Unknown Token: " << unsigned(t);
