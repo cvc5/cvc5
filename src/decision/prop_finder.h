@@ -33,11 +33,20 @@ namespace decision {
 class PropFindInfo
 {
  public:
-  PropFindInfo(context::Context* c);
+  PropFindInfo(context::Context* c, prop::SatValue rv);
+  /** The relevant value */
+  context::CDO<prop::SatValue> d_rval;
+  /** The justified value */
+  context::CDO<prop::SatValue> d_jval;
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
-  /** Parent list */
-  context::CDList<JustifyNode> d_parentList;
+  /** 
+   * Parent list, the node we are a child of, the second in pair is our
+   * polarity, e.g. false means we are a negated child.
+   */
+  context::CDList<std::pair<Node, bool>> d_parentList;
+  /** Has justified */
+  bool hasJustified() const;
 };
 
 /**
@@ -64,8 +73,13 @@ class PropFinder : protected EnvObj
   void updateRelevantInternal(TNode n,
                               prop::SatValue val,
                               std::vector<TNode>& toPreregister);
+  void notifyParentInternal(TNode n, bool childVal);
   /** mk or get PropFindInfo */
-  PropFindInfo* getOrMkInfo(TNode n);
+  PropFindInfo* getInfo(TNode n);
+  /** mk or get PropFindInfo */
+  PropFindInfo* mkInfo(TNode n, prop::SatValue rv);
+  /** mk or get PropFindInfo */
+  PropFindInfo* getOrMkInfo(TNode n, prop::SatValue rv);
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
   /** Null node */
