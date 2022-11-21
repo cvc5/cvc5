@@ -1,0 +1,149 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Definitions of SMT2 tokens.
+ */
+
+#include "cvc5parser_private.h"
+
+#ifndef CVC5__PARSER__TOKENS_H
+#define CVC5__PARSER__TOKENS_H
+
+#include <optional>
+#include <sstream>
+#include <stack>
+#include <string>
+
+namespace cvc5 {
+namespace parser {
+
+enum class Token
+{
+  ALPHA,
+  ASSERT_TOK,
+  ASSUME_TOK,
+  AS_TOK,
+  ATTRIBUTE_INST_ADD_TO_POOL_TOK,
+  ATTRIBUTE_INST_LEVEL,
+  ATTRIBUTE_NAMED_TOK,
+  ATTRIBUTE_NO_PATTERN_TOK,
+  ATTRIBUTE_PATTERN_TOK,
+  ATTRIBUTE_POOL_TOK,
+  ATTRIBUTE_QUANTIFIER_ID_TOK,
+  ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK,
+  ATTRIBUTE_TOK,
+  BINARY_LITERAL,
+  BLOCK_MODEL_TOK,
+  BLOCK_MODEL_VALUES_TOK,
+  CHAR_TOK,
+  CHECK_SAT_ASSUMING_TOK,
+  CHECK_SAT_TOK,
+  CHECK_SYNTH_NEXT_TOK,
+  CHECK_SYNTH_TOK,
+  COMMENT,
+  CONSTRAINT_TOK,
+  CONST_TOK,
+  DECIMAL_LITERAL,
+  DECLARE_CODATATYPES_TOK,
+  DECLARE_CODATATYPE_TOK,
+  DECLARE_CONST_TOK,
+  DECLARE_DATATYPES_TOK,
+  DECLARE_DATATYPE_TOK,
+  DECLARE_FUN_TOK,
+  DECLARE_HEAP,
+  DECLARE_POOL,
+  DECLARE_SORT_TOK,
+  DECLARE_VAR_TOK,
+  DEFINE_CONST_TOK,
+  DEFINE_FUNS_REC_TOK,
+  DEFINE_FUN_REC_TOK,
+  DEFINE_FUN_TOK,
+  DEFINE_SORT_TOK,
+  DIGIT,
+  ECHO_TOK,
+  EXISTS_TOK,
+  EXIT_TOK,
+  FMF_CARD_TOK,
+  FORALL_TOK,
+  GET_ABDUCT_NEXT_TOK,
+  GET_ABDUCT_TOK,
+  GET_ASSERTIONS_TOK,
+  GET_ASSIGNMENT_TOK,
+  GET_DIFFICULTY_TOK,
+  GET_INFO_TOK,
+  GET_INTERPOL_NEXT_TOK,
+  GET_INTERPOL_TOK,
+  GET_LEARNED_LITERALS_TOK,
+  GET_MODEL_TOK,
+  GET_OPTION_TOK,
+  GET_PROOF_TOK,
+  GET_QE_DISJUNCT_TOK,
+  GET_QE_TOK,
+  GET_UNSAT_ASSUMPTIONS_TOK,
+  GET_UNSAT_CORE_TOK,
+  GET_VALUE_TOK,
+  HEX_DIGIT,
+  HEX_LITERAL,
+  HO_ARROW_TOK,
+  HO_LAMBDA_TOK,
+  INCLUDE_TOK,
+  INDEX_TOK,
+  INTEGER_LITERAL,
+  INV_CONSTRAINT_TOK,
+  KEYWORD,
+  LET_TOK,
+  LPAREN_TOK,
+  MATCH_TOK,
+  NUMERAL,
+  PAR_TOK,
+  POP_TOK,
+  PUSH_TOK,
+  QUOTED_SYMBOL,
+  RELATION_AGGREGATE_TOK,
+  RELATION_GROUP_TOK,
+  RELATION_PROJECT_TOK,
+  RESET_ASSERTIONS_TOK,
+  RESET_TOK,
+  RPAREN_TOK,
+  SET_COMPREHENSION_TOK,
+  SET_FEATURE_TOK,
+  SET_INFO_TOK,
+  SET_LOGIC_TOK,
+  SET_OPTION_TOK,
+  SIMPLE_SYMBOL,
+  SIMPLIFY_TOK,
+  STRING_LITERAL,
+  SYGUS_CONSTANT_TOK,
+  SYGUS_VARIABLE_TOK,
+  SYMBOL_CHAR,
+  SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE,
+  SYNTH_FUN_TOK,
+  SYNTH_INV_TOK,
+  TABLE_AGGREGATE_TOK,
+  TABLE_GROUP_TOK,
+  TABLE_JOIN_TOK,
+  TABLE_PROJECT_TOK,
+  TESTER_TOK,
+  TUPLE_CONST_TOK,
+  TUPLE_PROJECT_TOK,
+  UNTERMINATED_QUOTED_SYMBOL,
+  UNTERMINATED_STRING_LITERAL,
+  UPDATE_TOK,
+  WHITESPACE
+};
+
+std::ostream& operator<<(std::ostream& o, Token t);
+
+}  // namespace parser
+}  // namespace cvc5
+
+#endif /* CVC5__PARSER__SMT2_H */
