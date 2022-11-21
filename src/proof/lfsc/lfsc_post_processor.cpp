@@ -402,10 +402,13 @@ bool LfscProofPostprocessCallback::update(Node res,
   return true;
 }
 
-void LfscProofPostprocessCallback::updateCong(Node res, const std::vector<Node>& children, CDProof* cdp, Node startOp)
+void LfscProofPostprocessCallback::updateCong(Node res,
+                                              const std::vector<Node>& children,
+                                              CDProof* cdp,
+                                              Node startOp)
 {
   Node currEq;
-  size_t i =0;
+  size_t i = 0;
   size_t nchildren = children.size();
   if (!startOp.isNull())
   {
@@ -420,7 +423,7 @@ void LfscProofPostprocessCallback::updateCong(Node res, const std::vector<Node>&
   }
   Node curL = currEq[0];
   Node curR = currEq[1];
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (; i < nchildren; i++)
   {
     // CONG rules for each child
