@@ -63,6 +63,8 @@ set(libcvc5parser_src_files
   tptp/tptp.h
   tptp/tptp_input.cpp
   tptp/tptp_input.h
+  flex/tokens.cpp
+  flex/tokens.h
 )
 
 #-----------------------------------------------------------------------------#
