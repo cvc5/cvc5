@@ -33,7 +33,7 @@ namespace decision {
 class PropFindInfo
 {
  public:
-  PropFindInfo(context::Context* c, prop::SatValue rv);
+  PropFindInfo(context::Context* c);
   /** The relevant value */
   context::CDO<prop::SatValue> d_rval;
   /** The justified value */
@@ -77,15 +77,17 @@ class PropFinder : protected EnvObj
   /** mk or get PropFindInfo */
   PropFindInfo* getInfo(TNode n);
   /** mk or get PropFindInfo */
-  PropFindInfo* mkInfo(TNode n, prop::SatValue rv);
+  PropFindInfo* mkInfo(TNode n);
   /** mk or get PropFindInfo */
-  PropFindInfo* getOrMkInfo(TNode n, prop::SatValue rv);
+  PropFindInfo* getOrMkInfo(TNode n);
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
   /** Null node */
   TNode d_null;
   /** A justification cache */
   JustifyCache d_jcache;
+  /** */
+  static prop::SatValue relevantUnion(prop::SatValue r1, prop::SatValue r2);
 };
 
 }  // namespace decision

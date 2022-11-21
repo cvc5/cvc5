@@ -21,8 +21,8 @@ using namespace cvc5::internal::prop;
 namespace cvc5::internal {
 namespace decision {
 
-PropFindInfo::PropFindInfo(context::Context* c, prop::SatValue rv)
-    : d_rval(c, rv), d_jval(SAT_VALUE_UNKNOWN), d_childIndex(c, 0), d_parentList(c)
+PropFindInfo::PropFindInfo(context::Context* c)
+    : d_rval(c), d_jval(SAT_VALUE_UNKNOWN), d_childIndex(c, 0), d_parentList(c)
 {
 }
 
@@ -116,10 +116,20 @@ void PropFinder::updateRelevantInternal(TNode n,
     ck = curr.getKind();
     // get the info for curr, if it exists
     currInfo = getInfo(curr);
-    // check if we've already justified it
-    if (currInfo!=nullptr && currInfo->hasJustified())
+    if (currInfo!=nullptr)
     {
-      continue;
+      if (currInfo->hasJustified())
+      {
+        // the value of this node has already been justified
+        continue;
+      }
+      prevRVal = currInfo->d_rval.get();
+      currRVal = relevantUnion(currRVal, prevRVal);
+      if (currRVal==prevRVal)
+      {
+        // we've already marked this node with the given relevance
+        continue;
+      }
     }
     Assert(ck != kind::NOT);
     Assert(curr.getType().isBoolean());
@@ -151,6 +161,7 @@ void PropFinder::updateRelevantInternal(TNode n,
             // watch all children if we are watching all, or watch one otherwise
             if (watchAll || watchChildren.empty())
             {
+              prop::SatValue childRVal = (ck==IMPLIES && 
               watchChildren.emplace_back(JustifyNode(curr[i], childRVal), curr);
               nextIndex = i;
             }
@@ -177,21 +188,24 @@ void PropFinder::updateRelevantInternal(TNode n,
         }
       }
     }
-    else if (ck == IMPLIES)
-    {
-    }
     else if (ck == ITE)
     {
     }
     else if (ck == EQUAL || ck == XOR)
     {
-      // if first time seeing this, watch both children
+      // if first time seeing this, watch both children?
     }
     else
     {
       // its a theory atom, preregister it
       toPreregister.push_back(curr);
+      continue;
     }
+    if (currInfo==nullptr)
+    {
+      currInfo = mkInfo(curr);
+    }
+    currInfo->d_rval = currRVal;
     // process the parent
     if (!parent.isNull())
     {
@@ -314,23 +328,27 @@ PropFindInfo* PropFinder::getInfo(TNode n)
   return nullptr;
 }
 
-PropFindInfo* PropFinder::mkInfo(TNode n, prop::SatValue rv)
+PropFindInfo* PropFinder::mkInfo(TNode n)
 {
   Assert (d_pstate.find(n)==d_pstate.end());
-  std::shared_ptr<PropFindInfo> pi = std::make_shared<PropFindInfo>(context(), rv);
+  std::shared_ptr<PropFindInfo> pi = std::make_shared<PropFindInfo>(context());
   d_pstate.insert(n, pi);
   return pi.get();
 }
 
-PropFindInfo* PropFinder::getOrMkInfo(TNode n, prop::SatValue rv)
+PropFindInfo* PropFinder::getOrMkInfo(TNode n)
 { 
   PropFindInfo* pi = getInfo(n);
   if (pi!=nullptr)
   {
-    // TODO: update relevant value here?
     return pi;
   }
-  return mkInfo(n, rv);
+  return mkInfo(n);
+}
+
+prop::SatValue PropFinder::relevantUnion(prop::SatValue r1, prop::SatValue r2)
+{
+  return r1==r2 ? r1 : SAT_VALUE_UNKNOWN;
 }
 
 }  // namespace decision
