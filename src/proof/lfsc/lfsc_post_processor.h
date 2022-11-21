@@ -78,6 +78,8 @@ class LfscProofPostprocessCallback : protected EnvObj,
                    const std::vector<Node>& args);
   /** Make chained form of a term */
   Node mkChain(Kind k, const std::vector<Node>& children);
+  /** */
+  void updateCong(Node res, const std::vector<Node>& children, CDProof* cdp, Node startOp);
   /** Make fresh dummy predicate */
   static Node mkDummyPredicate();
 };
