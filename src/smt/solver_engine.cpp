@@ -1328,31 +1328,6 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   return UnsatCore(core);
 }
 
-void SolverEngine::assertToSubsolver(SolverEngine& subsolver,
-                                     const std::vector<Node>& core,
-                                     const std::unordered_set<Node>& defs,
-                                     const std::unordered_set<Node>& removed)
-{
-  for (const Node& f : core)
-  {
-    // check if it is excluded
-    if (removed.find(f) != removed.end())
-    {
-      continue;
-    }
-    // check if it is a function definition
-    if (defs.find(f) != defs.end())
-    {
-      if (f.getKind() == kind::EQUAL && f[0].isVar())
-      {
-        subsolver.defineFunction(f[0], f[1]);
-        continue;
-      }
-    }
-    subsolver.assertFormula(f);
-  }
-}
-
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
   Assert(options().smt.produceUnsatCores)

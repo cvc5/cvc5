@@ -973,10 +973,6 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-  void assertToSubsolver(SolverEngine& subsolver,
-                         const std::vector<Node>& core,
-                         const std::unordered_set<Node>& defs,
-                         const std::unordered_set<Node>& removed);
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */
