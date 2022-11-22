@@ -20,6 +20,7 @@
 namespace cvc5 {
 namespace parser {
 
+/** File input class */
 class FlexFileInput : public FlexInput
 {
  public:
@@ -28,8 +29,9 @@ class FlexFileInput : public FlexInput
     d_fs.open(filename, std::fstream::in);
     if (!d_fs.is_open())
     {
-      // TODO: error
-      exit(1);
+      std::stringstream ss;
+      ss << "Could not open file " << filename << " for reading.";
+      FlexInput::reportError(ss.str());
     }
   }
   std::istream& getStream() override { return d_fs; }
@@ -65,6 +67,11 @@ std::unique_ptr<FlexInput> FlexInput::mkStringInput(const std::string& input)
 {
   // TODO
   return nullptr;
+}
+
+void FlexInput::reportError(const std::string&)
+{
+  // TODO
 }
 
 }  // namespace parser

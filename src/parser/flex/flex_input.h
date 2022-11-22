@@ -27,6 +27,9 @@ namespace cvc5 {
 namespace parser {
 
 /**
+ * Wrapper to setup the necessary information for constructing a flex Lexer.
+ * 
+ * Currently this is std::istream& obtainable via getStream.
  */
 class FlexInput
 {
@@ -54,10 +57,8 @@ class FlexInput
   static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
   /** get stream */
   virtual std::istream& getStream() = 0;
-
- private:
-  // Used to report errors, with the current source location attached.
-  static void report_error(const std::string&);
+  /** Generic error report */
+  static void reportError(const std::string&);
 };
 
 }  // namespace parser
