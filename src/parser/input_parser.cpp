@@ -49,13 +49,16 @@ void InputParser::setFileInput(const std::string& lang,
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
   Smt2Lexer slex;
+  Trace("ajr-temp") << "Set file to " << filename << std::endl;
   slex.setFileInput(filename);
+  Trace("ajr-temp") << "Get tokens" << std::endl;
   Token t;
-  while ((t = slex.next_token()) != Token::EOF)
+  while ((t = slex.next_token()) != Token::EOF_TOK)
   {
-    Trace("ajr-temp") << c << std::endl;
+    Trace("ajr-temp") << t << std::endl;
   }
-  return;
+  Trace("ajr-temp") << "Finished" << std::endl;
+  exit(1);
   
   d_state->setInput(Input::newFileInput(lang, filename));
 }

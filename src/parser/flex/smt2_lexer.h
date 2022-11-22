@@ -1,3 +1,20 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * SMT lexer
+ */
+
+#include "cvc5parser_public.h"
+
 #ifndef CVC5__PARSER__LEXER_H
 #define CVC5__PARSER__LEXER_H
 
@@ -9,6 +26,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <fstream>
 
 #include "parser/flex/tokens.h"
 
@@ -18,14 +36,14 @@ namespace parser {
 struct Location
 {
   Location() : d_line(1), d_column(1) {}
-  uint32_t line;
-  uint32_t column;
+  uint32_t d_line;
+  uint32_t d_column;
 };
 
 struct Span
 {
-  Location start;
-  Location end;
+  Location d_start;
+  Location d_end;
 };
 
 std::ostream& operator<<(std::ostream& o, const Location& l);
@@ -75,8 +93,6 @@ class Smt2Lexer
   void reinsert_token(Token t);
   // String corresponding to the last token (old top of stack)
   const char* token_str();
-  // Span of last token pulled from underlying lexer (old top of stack)
-  extern Span d_span;
   // Used to report errors, with the current source location attached.
   void report_error(const std::string&);
 
@@ -88,8 +104,10 @@ class Smt2Lexer
   std::string prefix_id();
   // Error. Got `t`, expected `info`.
   void unexpected_token_error(Token t, const std::string& info);
-
- private:
+  /** lexer in scope */
+  static Smt2Lexer * s_inScope;
+  // Span of last token pulled from underlying lexer (old top of stack)
+  Span d_span;
   FlexLexer* d_lexer;
   /** Name of current file */
   std::string d_inputName;
@@ -102,6 +120,8 @@ class Smt2Lexer
   // Add columns or lines to the end location of the span.
   void add_columns(uint32_t columns);
   void add_lines(uint32_t lines);
+  /** stream */
+  std::ifstream d_fs;
 };
 
 }  // namespace parser

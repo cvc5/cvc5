@@ -13,7 +13,7 @@
  * Definitions of SMT2 tokens.
  */
 
-#include "cvc5parser_private.h"
+#include "cvc5parser_public.h"
 
 #ifndef CVC5__PARSER__TOKENS_H
 #define CVC5__PARSER__TOKENS_H
@@ -26,9 +26,9 @@
 namespace cvc5 {
 namespace parser {
 
-enum class Token
+enum Token : int
 {
-  EOF = 0,
+  EOF_TOK = 0,
   ALPHA,
   ASSERT_TOK,
   ASSUME_TOK,

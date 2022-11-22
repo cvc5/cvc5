@@ -17,6 +17,7 @@ find_package(ANTLR3 3.4 REQUIRED)
 
 # Java runtime is required for ANTLR
 find_package(Java COMPONENTS Runtime REQUIRED)
+find_package(FLEX REQUIRED)
 
 #-----------------------------------------------------------------------------#
 # libcvc5parser source files
@@ -65,10 +66,16 @@ set(libcvc5parser_src_files
   tptp/tptp_input.h
   flex/tokens.cpp
   flex/tokens.h
+  flex/smt2_lexer.cpp
+  flex/smt2_lexer.h
 )
 
 #-----------------------------------------------------------------------------#
 # Generate parsers for all supported languages
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/flex)
+flex_target(Lexer flex/smt2_lexer.flex ${CMAKE_CURRENT_BINARY_DIR}/flex/smt2_lexer.cpp)
+add_library (objlib OBJECT ${srcfiles} ${FLEX_Lexer_OUTPUTS})
 
 foreach(lang Smt2 Tptp)
   string(TOLOWER ${lang} lang_dir)
