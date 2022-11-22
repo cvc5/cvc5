@@ -23,6 +23,7 @@
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
 #include "parser/parser.h"
+#include "parser/flex/flex_parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -93,6 +94,7 @@ class CVC5_EXPORT InputParser
   /** The underlying input */
   std::unique_ptr<Input> d_input;
   //!!!!!!!!!!!!!!
+  std::unique_ptr<FlexParser> d_fparser;
 };
 
 }  // namespace parser

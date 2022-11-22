@@ -26,20 +26,35 @@ namespace parser {
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
 {
-  // Allocate an ANTLR parser
-  ParserBuilder parserBuilder(solver, sm, useOptions);
-  d_state = parserBuilder.build();
+  if (options().parser.flexParser)
+  {
+    // TODO: build parser state object?
+  }
+  else
+  {
+    // Allocate an ANTLR parser
+    ParserBuilder parserBuilder(solver, sm, useOptions);
+    d_state = parserBuilder.build();
+  }
 }
 
 Command* InputParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
+  if (options().parser.flexParser)
+  {
+    return d_fparser->nextCommand();
+  }
   return d_state->nextCommand();
 }
 
 Term InputParser::nextExpression()
 {
   Trace("parser") << "nextExpression()" << std::endl;
+  if (options().parser.flexParser)
+  {
+    return d_fparser->nextExpression();
+  }
   return d_state->nextExpression();
 }
 
@@ -48,19 +63,28 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  Smt2Lexer slex;
-  Trace("ajr-temp") << "Set file to " << filename << std::endl;
-  slex.setFileInput(filename);
-  Trace("ajr-temp") << "Get tokens" << std::endl;
-  Token t;
-  while ((t = slex.nextToken()) != Token::EOF_TOK)
+  if (options().parser.flexParser)
   {
-    Trace("ajr-temp") << "token: " << t << std::endl;
+    d_fparser = FlexParser::mkFlexParser(lang);
+    d_fparser->setFileInput(filename);
+    /*
+    Smt2Lexer slex;
+    Trace("ajr-temp") << "Set file to " << filename << std::endl;
+    slex.setFileInput(filename);
+    Trace("ajr-temp") << "Get tokens" << std::endl;
+    Token t;
+    while ((t = slex.nextToken()) != Token::EOF_TOK)
+    {
+      Trace("ajr-temp") << "token: " << t << std::endl;
+    }
+    Trace("ajr-temp") << "Finished" << std::endl;
+    exit(1);
+    */
   }
-  Trace("ajr-temp") << "Finished" << std::endl;
-  exit(1);
-
-  d_state->setInput(Input::newFileInput(lang, filename));
+  else
+  {
+    d_state->setInput(Input::newFileInput(lang, filename));
+  }
 }
 
 void InputParser::setStreamInput(const std::string& lang,
@@ -69,7 +93,15 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_state->setInput(Input::newStreamInput(lang, input, name));
+  if (options().parser.flexParser)
+  {
+    d_fparser = FlexParser::mkFlexParser(lang);
+    d_fparser->setStreamInput(input, name);
+  }
+  else
+  {
+    d_state->setInput(Input::newStreamInput(lang, input, name));
+  }
 }
 
 void InputParser::setStringInput(const std::string& lang,
@@ -78,7 +110,15 @@ void InputParser::setStringInput(const std::string& lang,
 {
   Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  d_state->setInput(Input::newStringInput(lang, input, name));
+  if (options().parser.flexParser)
+  {
+    d_fparser = FlexParser::mkFlexParser(lang);
+    d_fparser->setStringInput(input, name);
+  }
+  else
+  {
+    d_state->setInput(Input::newStringInput(lang, input, name));
+  }
 }
 
 }  // namespace parser

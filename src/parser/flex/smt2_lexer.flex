@@ -126,37 +126,14 @@ Smt2Lexer* Smt2Lexer::s_inScope = nullptr;
 
 Smt2Lexer::Smt2Lexer() : Lexer(), d_lexer(nullptr)
 {
+  // FIXME: hack
   s_inScope = this;
 }
 
-void Smt2Lexer::setFileInput(const std::string& filename)
+void Smt2Lexer::initialize(std::istream& input, const std::string& inputName)
 {
-  d_inputName = filename;
-  d_fs.open(filename, std::fstream::in);
-  if (!d_fs.is_open())
-  {
-    report_error(std::string("Could not open file \"") + filename
-                 + std::string("\" for reading.\n"));
-  }
-  // TODO: make unique ptr
-  d_lexer = new yyFlexLexer(&d_fs);
-  init_d_span();
-}
-
-void Smt2Lexer::setStreamInput(std::istream& input,
-                    const std::string& name)
-{
-  d_inputName = name;
-  // TODO: make unique ptr
-  d_lexer = new yyFlexLexer(&input);
-  init_d_span();
-}
-
-void Smt2Lexer::setStringInput(const std::string& input,
-                    const std::string& name)
-{
-  d_inputName = name;
-  // TODO
+  d_inputName = inputName;
+  d_lexer = new yyFlexLexer(input);
   init_d_span();
 }
 

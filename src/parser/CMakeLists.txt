@@ -70,6 +70,8 @@ set(libcvc5parser_src_files
   flex/tokens.h
   flex/smt2_lexer.cpp
   flex/smt2_lexer.h
+  flex/smt2_parser.cpp
+  flex/smt2_parser.h
 )
 
 #-----------------------------------------------------------------------------#
