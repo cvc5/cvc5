@@ -98,6 +98,8 @@ class Assertions : protected EnvObj
    * that correspond to definitions (define-fun or define-fun-rec).
    */
   const context::CDList<Node>& getAssertionListDefinitions() const;
+  /** Get the set corresponding to the above */
+  std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
