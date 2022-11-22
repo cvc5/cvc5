@@ -67,19 +67,6 @@ void InputParser::setFileInput(const std::string& lang,
   {
     d_fparser = FlexParser::mkFlexParser(lang);
     d_fparser->setFileInput(filename);
-    /*
-    Smt2Lexer slex;
-    Trace("ajr-temp") << "Set file to " << filename << std::endl;
-    slex.setFileInput(filename);
-    Trace("ajr-temp") << "Get tokens" << std::endl;
-    Token t;
-    while ((t = slex.nextToken()) != Token::EOF_TOK)
-    {
-      Trace("ajr-temp") << "token: " << t << std::endl;
-    }
-    Trace("ajr-temp") << "Finished" << std::endl;
-    exit(1);
-    */
   }
   else
   {

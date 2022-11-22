@@ -23,6 +23,15 @@ Smt2Parser::Smt2Parser(bool isSygus) : d_isSygus(isSygus) {}
 void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
 {
   d_lex.initialize(s, inputName);
+
+  Trace("ajr-temp") << "Get tokens" << std::endl;
+  Token t;
+  while ((t = d_lex.nextToken()) != Token::EOF_TOK)
+  {
+    Trace("ajr-temp") << "token: " << t << std::endl;
+  }
+  Trace("ajr-temp") << "Finished" << std::endl;
+  exit(1);
 }
 
 Command* Smt2Parser::nextCommand()
