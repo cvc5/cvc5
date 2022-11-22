@@ -15,8 +15,8 @@
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__LEXER_H
-#define CVC5__PARSER__LEXER_H
+#ifndef CVC5__PARSER__SMT2_LEXER_H
+#define CVC5__PARSER__SMT2_LEXER_H
 
 // Super hack
 // https://stackoverflow.com/a/40665154/4917890
@@ -28,7 +28,7 @@
 #include <iosfwd>
 #include <string>
 
-#include "parser/flex/tokens.h"
+#include "parser/flex/lexer.h"
 
 namespace cvc5 {
 namespace parser {
@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
 
 // Private components
 // Currrent lexer
-class Smt2Lexer
+class Smt2Lexer : public Lexer
 {
  public:
   Smt2Lexer();
@@ -87,8 +87,6 @@ class Smt2Lexer
   // Core functions
   // Advance to the next token (pop from stack)
   Token next_token();
-  // Add a token back into the stream (push to stack)
-  void reinsert_token(Token t);
   // String corresponding to the last token (old top of stack)
   const char* token_str();
   // Used to report errors, with the current source location attached.
@@ -104,22 +102,10 @@ class Smt2Lexer
   void unexpected_token_error(Token t, const std::string& info);
   /** lexer in scope */
   static Smt2Lexer* s_inScope;
-  // Span of last token pulled from underlying lexer (old top of stack)
-  Span d_span;
+  /** Allocated flex lexer */
   FlexLexer* d_lexer;
   /** Name of current file */
   std::string d_inputName;
-  // The buffer. 0 is first, then 1.
-  Token d_peeked[2];
-  // Used to initialize d_span.
-  void init_d_span();
-  // Sets the spans start to its current end.
-  void bump_span();
-  // Add columns or lines to the end location of the span.
-  void add_columns(uint32_t columns);
-  void add_lines(uint32_t lines);
-  /** stream */
-  std::ifstream d_fs;
 };
 
 }  // namespace parser

@@ -124,7 +124,7 @@ namespace parser {
 
 Smt2Lexer* Smt2Lexer::s_inScope = nullptr;
 
-Smt2Lexer::Smt2Lexer() : d_lexer(nullptr)
+Smt2Lexer::Smt2Lexer() : Lexer(), d_lexer(nullptr)
 {
   s_inScope = this;
 }
@@ -160,25 +160,6 @@ void Smt2Lexer::setStringInput(const std::string& input,
   init_d_span();
 }
 
-/*
-void reinsert_token(Token t)
-{
-  if (d_peeked[0] == TokenErr)
-  {
-    d_peeked[0] = t;
-  }
-  else if (d_peeked[1] == TokenErr)
-  {
-    d_peeked[1] = d_peeked[0];
-    d_peeked[0] = t;
-  }
-  else
-  {
-    assert(false);
-  }
-}
-*/
-
 const char* Smt2Lexer::token_str()
 {
   return d_lexer->YYText();
@@ -187,39 +168,6 @@ const char* Smt2Lexer::token_str()
 Token Smt2Lexer::next_token()
 {
   return Token(d_lexer->yylex());
-  /*
-  Token t;
-  if (d_peeked[0] == TokenErr)
-  {
-    t = Token(d_lexer->yylex());
-  }
-  else
-  {
-    t = d_peeked[0];
-    d_peeked[0] = d_peeked[1];
-    d_peeked[1] = TokenErr;
-  }
-    switch (t) {
-      case Token::Provided: {
-        t = Token::Caret;
-        break;
-      }
-      case Token::Forall: {
-        t = Token::Bang;
-        break;
-      }
-      case Token::Lam: {
-        t = Token::ReverseSolidus;
-        break;
-      }
-      case Token::Let: {
-        t = Token::At;
-        break;
-      }
-      default: break;
-    }
-  return t;
-  */
 }
 
 void Smt2Lexer::report_error(const std::string &msg)
@@ -255,36 +203,6 @@ void Smt2Lexer::eat_token(Token t)
     o << "Expected a " << t << ", but got a " << tt << ", `" << d_lexer->YYText() << "`";
     unexpected_token_error(tt, o.str());
   }
-}
-
-void Smt2Lexer::init_d_span()
-{
-    d_span.d_start.d_line = 1;
-    d_span.d_start.d_column = 1;
-    d_span.d_end.d_line = 1;
-    d_span.d_end.d_column = 1;
-}
-void Smt2Lexer::bump_span()
-{
-    d_span.d_start.d_line = d_span.d_end.d_line;
-    d_span.d_start.d_column = d_span.d_end.d_column;
-}
-void Smt2Lexer::add_columns(uint32_t columns)
-{
-    d_span.d_end.d_column += columns;
-}
-void Smt2Lexer::add_lines(uint32_t lines)
-{
-    d_span.d_end.d_line += lines;
-    d_span.d_end.d_column = 1;
-}
-std::ostream& operator<<(std::ostream& o, const Location& l)
-{
-    return o << l.d_line << ":" << l.d_column;
-}
-std::ostream& operator<<(std::ostream& o, const Span& l)
-{
-    return o << l.d_start << "-" << l.d_end;
 }
 
 }
