@@ -21,8 +21,8 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "context/cdhashmap_forward.h"
 #include "cvc5_export.h"
@@ -272,9 +272,7 @@ class CVC5_EXPORT SolverEngine
                       Node formula,
                       bool global = false);
   /** Same as above, with lambda */
-  void defineFunction(Node func,
-                      Node lambda,
-                      bool global = false);
+  void defineFunction(Node func, Node lambda, bool global = false);
 
   /**
    * Define functions recursive
@@ -975,7 +973,10 @@ class CVC5_EXPORT SolverEngine
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Node>& ns,
                              const std::string& src) const;
-                             void assertToSubsolver(SolverEngine& subsolver, const std::vector<Node>& core, const std::unordered_set<Node>& defs, const std::unordered_set<Node>& removed);
+  void assertToSubsolver(SolverEngine& subsolver,
+                         const std::vector<Node>& core,
+                         const std::unordered_set<Node>& defs,
+                         const std::unordered_set<Node>& removed);
   /* Members -------------------------------------------------------------- */
 
   /** Solver instance that owns this SolverEngine instance. */

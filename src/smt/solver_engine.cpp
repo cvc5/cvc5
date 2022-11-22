@@ -524,9 +524,7 @@ void SolverEngine::defineFunction(Node func,
   defineFunction(func, def, global);
 }
 
-void SolverEngine::defineFunction(Node func,
-                    Node lambda,
-                    bool global)
+void SolverEngine::defineFunction(Node func, Node lambda, bool global)
 {
   // A define-fun is treated as a (higher-order) assertion. It is provided
   // to the assertions object. It will be added as a top-level substitution
@@ -1327,7 +1325,10 @@ UnsatCore SolverEngine::getUnsatCoreInternal()
   return UnsatCore(core);
 }
 
-void SolverEngine::assertToSubsolver(SolverEngine& subsolver, const std::vector<Node>& core, const std::unordered_set<Node>& defs, const std::unordered_set<Node>& removed)
+void SolverEngine::assertToSubsolver(SolverEngine& subsolver,
+                                     const std::vector<Node>& core,
+                                     const std::unordered_set<Node>& defs,
+                                     const std::unordered_set<Node>& removed)
 {
   for (const Node& f : core)
   {
@@ -1337,9 +1338,9 @@ void SolverEngine::assertToSubsolver(SolverEngine& subsolver, const std::vector<
       continue;
     }
     // check if it is a function definition
-    if (defs.find(f)!=defs.end())
+    if (defs.find(f) != defs.end())
     {
-      if (f.getKind()==kind::EQUAL && f[0].isVar())
+      if (f.getKind() == kind::EQUAL && f[0].isVar())
       {
         subsolver.defineFunction(f[0], f[1]);
         continue;
@@ -1348,7 +1349,7 @@ void SolverEngine::assertToSubsolver(SolverEngine& subsolver, const std::vector<
     subsolver.assertFormula(f);
   }
 }
-    
+
 std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
 {
   Assert(options().smt.produceUnsatCores)
@@ -1357,7 +1358,8 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
   d_env->verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
                     << std::endl;
   std::unordered_set<Node> removed;
-  std::unordered_set<Node> adefs = d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
+  std::unordered_set<Node> adefs =
+      d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
   for (const Node& skip : core)
   {
     std::unique_ptr<SolverEngine> coreChecker;
@@ -1386,8 +1388,8 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
       {
         d_env->warning()
             << "SolverEngine::reduceUnsatCore(): could not reduce unsat core "
-              "due to "
-              "unknown result.";
+               "due to "
+               "unknown result.";
       }
     }
   }
@@ -1429,7 +1431,8 @@ void SolverEngine::checkUnsatCore()
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;
   // set up the subsolver
-  std::unordered_set<Node> adefs = d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
+  std::unordered_set<Node> adefs =
+      d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
   std::unordered_set<Node> removed;
   assertToSubsolver(*coreChecker.get(), core.getCore(), adefs, removed);
   Result r;
