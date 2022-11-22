@@ -24,7 +24,8 @@
 namespace cvc5 {
 namespace parser {
 
-InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions) : d_solver(solver), d_sm(sm), d_useOptions(useOptions)
+InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
+    : d_solver(solver), d_sm(sm), d_useOptions(useOptions)
 {
   d_useFlex = solver->getOptionInfo("flex-parser").boolValue();
   if (d_useFlex)

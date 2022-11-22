@@ -87,9 +87,9 @@ class CVC5_EXPORT InputParser
 
  private:
   /** Solver */
-  Solver * d_solver;
+  Solver* d_solver;
   /** Symbol manager */
-  SymbolManager * d_sm;
+  SymbolManager* d_sm;
   /** use options */
   bool d_useOptions;
   //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be

@@ -20,7 +20,10 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2Parser::Smt2Parser(Solver* solver, SymbolManager* sm, bool isSygus) : FlexParser(solver, sm), d_isSygus(isSygus) {}
+Smt2Parser::Smt2Parser(Solver* solver, SymbolManager* sm, bool isSygus)
+    : FlexParser(solver, sm), d_isSygus(isSygus)
+{
+}
 
 void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
 {

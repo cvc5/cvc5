@@ -20,7 +20,10 @@
 namespace cvc5 {
 namespace parser {
 
-FlexParser::FlexParser(Solver* solver, SymbolManager* sm) : d_solver(solver), d_sm(sm) {}
+FlexParser::FlexParser(Solver* solver, SymbolManager* sm)
+    : d_solver(solver), d_sm(sm)
+{
+}
 
 void FlexParser::setFileInput(const std::string& filename)
 {
@@ -41,7 +44,9 @@ void FlexParser::setStringInput(const std::string& input,
   initializeInput(d_flexInput->getStream(), name);
 }
 
-std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang, Solver* solver, SymbolManager* sm)
+std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
+                                                     Solver* solver,
+                                                     SymbolManager* sm)
 {
   std::unique_ptr<FlexParser> parser;
   if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")

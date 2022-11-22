@@ -18,10 +18,10 @@
 #ifndef CVC5__PARSER__FLEX_INPUT_H
 #define CVC5__PARSER__FLEX_INPUT_H
 
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
-#include <memory>
 
 namespace cvc5 {
 namespace parser {
