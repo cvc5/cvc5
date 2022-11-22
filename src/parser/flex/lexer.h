@@ -66,7 +66,8 @@ class Lexer : public yyFlexLexer
   // Interpret the next token as an identifier (even if it isn't) and return its
   // string
   std::string prefix_id();
-protected:
+
+ protected:
   // Used to report errors, with the current source location attached.
   void report_error(const std::string&);
   // Used to initialize d_span.
