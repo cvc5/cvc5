@@ -24,9 +24,9 @@
 #include <FlexLexer.h>
 #endif
 
+#include <fstream>
 #include <iosfwd>
 #include <string>
-#include <fstream>
 
 #include "parser/flex/tokens.h"
 
@@ -76,16 +76,14 @@ class Smt2Lexer
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
    */
-  void setStreamInput(std::istream& input,
-                      const std::string& name);
+  void setStreamInput(std::istream& input, const std::string& name);
 
   /** Set the input for the given string
    *
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  void setStringInput(const std::string& input,
-                      const std::string& name);
+  void setStringInput(const std::string& input, const std::string& name);
   // Core functions
   // Advance to the next token (pop from stack)
   Token next_token();
@@ -105,7 +103,7 @@ class Smt2Lexer
   // Error. Got `t`, expected `info`.
   void unexpected_token_error(Token t, const std::string& info);
   /** lexer in scope */
-  static Smt2Lexer * s_inScope;
+  static Smt2Lexer* s_inScope;
   // Span of last token pulled from underlying lexer (old top of stack)
   Span d_span;
   FlexLexer* d_lexer;

@@ -17,9 +17,9 @@
 
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
+#include "parser/flex/smt2_lexer.h"
 #include "parser/input.h"
 #include "parser/parser_builder.h"
-#include "parser/flex/smt2_lexer.h"
 
 namespace cvc5 {
 namespace parser {
@@ -59,7 +59,7 @@ void InputParser::setFileInput(const std::string& lang,
   }
   Trace("ajr-temp") << "Finished" << std::endl;
   exit(1);
-  
+
   d_state->setInput(Input::newFileInput(lang, filename));
 }
 
