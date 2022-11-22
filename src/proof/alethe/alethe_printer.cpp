@@ -412,8 +412,13 @@ std::string AletheProofPrinter::printInternal(
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
         Assert(args[j].getKind() == kind::EQUAL);
-        out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
-            << args[j][1] << ")" << (j != args.size() - 1 ? " " : "");
+        // if the rhs is a variable, it must be declared first
+        if (args[j][1].getKind() == kind::BOUND_VARIABLE)
+        {
+          out << "(" << args[j][1] << " " << args[j][1].getType() << ") ";
+        }
+        out << "(:= " << args[j][0] << " " << args[j][1] << ")"
+            << (j != args.size() - 1 ? " " : "");
       }
       out << ")";
     }
@@ -451,7 +456,7 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
-  if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
+  if (arule >= AletheRule::ANCHOR_SUBPROOF && arule <= AletheRule::ANCHOR_SKO_EX)
   {
     Trace("alethe-printer") << "... print anchor node " << pfn->getResult()
                             << " " << arule << " / " << args << std::endl;
