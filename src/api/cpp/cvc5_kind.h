@@ -1307,23 +1307,6 @@ enum Kind : int32_t
    */
   BITVECTOR_UDIV,
   /**
-   * Unsigned multiplication overflow detection.
-   *
-   * - Arity: ``2``
-   *
-   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   */
-  BITVECTOR_UMULO,
-  /**
    * Unsigned bit-vector remainder.
    *
    * Remainder from unsigned bit-vector division. If the modulus is zero, the
@@ -1364,23 +1347,6 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_SDIV,
-  /**
-   * Signed multiplication overflow detection.
-   *
-   * - Arity: ``2``
-   *
-   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
-   *
-   * - Create Term of this Kind with:
-   *
-   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
-   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
-   *
-   * - Create Op of this kind with:
-   *
-   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
-   */
-  BITVECTOR_SMULO,
   /**
    * Signed bit-vector remainder (sign follows dividend).
    *
@@ -1696,6 +1662,125 @@ enum Kind : int32_t
    *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
    */
   BITVECTOR_REDAND,
+  /**
+   * Unsigned addition overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_UADDO,
+  /**
+   * Signed addition overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_SADDO,
+  /**
+   * Unsigned multiplication overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_UMULO,
+  /**
+   * Signed multiplication overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_SMULO,
+  /**
+   * Unsigned subtraction overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_USUBO,
+  /**
+   * Signed subtraction overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_SSUBO,
+  /**
+   * Signed division overflow detection.
+   *
+   * - Arity: ``2``
+   *
+   *   - ``1..2:`` Terms of bit-vector Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  BITVECTOR_SDIVO,
   /**
    * Bit-vector extract.
    *

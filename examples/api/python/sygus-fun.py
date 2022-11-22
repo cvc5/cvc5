@@ -57,8 +57,8 @@ if __name__ == "__main__":
   g = slv.mkGrammar([x, y], [start, start_bool])
 
   # bind each non-terminal to its rules
-  g.addRules(start, {zero, one, x, y, plus, minus, ite})
-  g.addRules(start_bool, {And, Not, leq})
+  g.addRules(start, [zero, one, x, y, plus, minus, ite])
+  g.addRules(start_bool, [And, Not, leq])
 
   # declare the functions-to-synthesize. Optionally, provide the grammar
   # constraints

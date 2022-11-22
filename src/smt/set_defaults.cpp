@@ -888,8 +888,7 @@ bool SetDefaults::isSygus(const Options& opts) const
   if (!d_isInternalSubsolver)
   {
     if (opts.smt.produceAbducts || opts.smt.produceInterpolants
-        || opts.quantifiers.sygusInference
-        || opts.quantifiers.sygusRewSynthInput)
+        || opts.quantifiers.sygusInference)
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       return true;
@@ -1290,6 +1289,10 @@ void SetDefaults::widenLogic(LogicInfo& logic, const Options& opts) const
       // eliminated altogether (or otherwise fail at preprocessing).
       || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
           && opts.smt.solveIntAsBV == 0)
+      // If arithmetic and bv are enabled, it is possible to use bv2nat and
+      // int2bv, which require the UF theory.
+      || (logic.isTheoryEnabled(THEORY_ARITH)
+          && logic.isTheoryEnabled(THEORY_BV))
       // FP requires UF since there are multiple operators that are partially
       // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
       // details).
@@ -1646,19 +1649,6 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     // should use full effort cbqi for single invocation and repair const
     opts.writeQuantifiers().cegqiFullEffort = true;
-  }
-  if (opts.quantifiers.sygusRewSynthInput)
-  {
-    // If we are using synthesis rewrite rules from input, we use
-    // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
-    // details on this technique.
-    opts.writeQuantifiers().sygusRewSynth = true;
-    // we should not use the extended rewriter, since we are interested
-    // in rewrites that are not in the main rewriter
-    if (!opts.datatypes.sygusRewriterWasSetByUser)
-    {
-      opts.writeDatatypes().sygusRewriter = options::SygusRewriterMode::BASIC;
-    }
   }
   // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
   // is one that is specialized for returning a single solution. Non-basic

@@ -54,17 +54,25 @@ void ParserBuilder::init(cvc5::Solver* solver, SymbolManager* sm)
   d_forcedLogic = "";
 }
 
-Parser* ParserBuilder::build()
+std::unique_ptr<Parser> ParserBuilder::build()
 {
-  Parser* parser = NULL;
+  std::unique_ptr<Parser> parser;
+
+  // Force the logic prior to building the parser. This makes a difference for
+  // the TPTP parser, where forced logic is processed upon construction.
+  if (d_logicIsForced)
+  {
+    d_symman->forceLogic(d_forcedLogic);
+  }
+
   if (d_lang == "LANG_TPTP")
   {
-    parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
+    parser.reset(new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly));
   }
   else
   {
     Assert(d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6");
-    parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
+    parser.reset(new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly));
   }
 
   if( d_checksEnabled ) {
@@ -79,9 +87,6 @@ Parser* ParserBuilder::build()
     parser->disallowIncludeFile();
   }
 
-  if( d_logicIsForced ) {
-    parser->forceLogic(d_forcedLogic);
-  }
 
   return parser;
 }

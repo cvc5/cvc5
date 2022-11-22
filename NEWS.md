@@ -3,7 +3,17 @@ This file contains a summary of important user-visible changes.
 **New Features**
 
 - API: New API function `Solver::getVersion()`, returns a string representation
-       of the solver version.
+    of the solver version.
+- Support for bit-vector overflow detection operators:
+  * `BITVECTOR_UADDO` unsigned addition overflow detection
+  * `BITVECTOR_SADDO` signed addition overflow detection
+  * `BITVECTOR_UMULO` unsigned multiplication overflow detection
+  * `BITVECTOR_SMULO` signed multiplication overflow detection
+  * `BITVECTOR_USUBO` unsigned subtraction overflow detection
+  * `BITVECTOR_SSUBO` signed subtraction overflow detection
+  * `BITVECTOR_SDIVO` signed division overflow detection
+
+- Support for Web Assembly compilation using Emscripten.
 
 **Changes**
 
@@ -22,8 +32,8 @@ cvc5 1.0.2
 **Changes**
 
 - API: Previously, it was not possible to share Sort, Term, Op, Grammar and
-       datatype objects between Solver instances. This is now allowed for
-       solvers that belong to the same thread.
+    datatype objects between Solver instances. This is now allowed for solvers
+    that belong to the same thread.
 
 cvc5 1.0.1
 ==========

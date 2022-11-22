@@ -402,7 +402,7 @@ Result::Status NonlinearExtension::modelBasedRefinement(
         Trace("nl-ext") << "...failed to send lemma in "
                            "NonLinearExtension, set incomplete"
                         << std::endl;
-        d_containing.getOutputChannel().setIncomplete(IncompleteId::ARITH_NL);
+        d_containing.getOutputChannel().setModelUnsound(IncompleteId::ARITH_NL);
         return Result::UNKNOWN;
       }
     }

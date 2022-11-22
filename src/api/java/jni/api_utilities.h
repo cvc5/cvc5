@@ -153,7 +153,6 @@ inline std::map<jlong, std::vector<jobject> > globalReferences;
  * @return the result of calling IOracle.compute(terms)
  */
 cvc5::Term applyOracle(JNIEnv* env,
-                       jobject solverRef,
                        jobject oracleRef,
                        const std::vector<cvc5::Term>& terms);
 

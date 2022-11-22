@@ -62,15 +62,10 @@ void LfscPrintChannelOut::printCloseRule(size_t nparen)
   }
 }
 
-void LfscPrintChannelOut::printProofId(size_t id)
+void LfscPrintChannelOut::printId(size_t id, const std::string& prefix)
 {
   d_out << " ";
-  printProofId(d_out, id);
-}
-void LfscPrintChannelOut::printAssumeId(size_t id)
-{
-  d_out << " ";
-  printAssumeId(d_out, id);
+  printId(d_out, id, prefix);
 }
 
 void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
@@ -116,19 +111,11 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrintChannelOut::printId(std::ostream& out, size_t id)
+void LfscPrintChannelOut::printId(std::ostream& out,
+                                  size_t id,
+                                  const std::string& prefix)
 {
-  out << "__t" << id;
-}
-
-void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id)
-{
-  out << "__p" << id;
-}
-
-void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
-{
-  out << "__a" << id;
+  out << prefix << id;
 }
 
 void LfscPrintChannelOut::cleanSymbols(std::string& s)

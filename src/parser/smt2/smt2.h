@@ -38,6 +38,9 @@ namespace parser {
 
 class Command;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Smt2 : public Parser
 {
   friend class ParserBuilder;
@@ -234,6 +237,13 @@ class Smt2 : public Parser
 
   /** Are we using a sygus language? */
   bool sygus() const;
+
+  /**
+   * Are we using SyGuS grammars? This is true if the input is the SyGuS
+   * language or if produce-abducts or produce-interpolants is true. Enables
+   * grammar-specific token `Constant`.
+   */
+  bool hasGrammars() const;
 
   void checkThatLogicIsSet();
 

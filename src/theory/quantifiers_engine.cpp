@@ -26,6 +26,7 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_modules.h"
@@ -104,6 +105,7 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(qim.getInstantiate());
   d_util.push_back(tr.getTermPools());
+  d_util.push_back(tr.getInstEvaluatorManager());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -249,15 +251,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   d_qim.reset();
-  bool setIncomplete = false;
-  IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
+  bool setModelUnsound = false;
+  IncompleteId setModelUnsoundId = IncompleteId::QUANTIFIERS;
   if (options().quantifiers.instMaxRounds >= 0
       && d_numInstRoundsLemma
              >= static_cast<uint32_t>(options().quantifiers.instMaxRounds))
   {
     needsCheck = false;
-    setIncomplete = true;
-    setIncompleteId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
+    setModelUnsound = true;
+    setModelUnsoundId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
   }
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
@@ -414,35 +416,37 @@ void QuantifiersEngine::check( Theory::Effort e ){
             //sources of incompleteness
             for (QuantifiersUtil*& util : d_util)
             {
-              if (!util->checkComplete(setIncompleteId))
+              if (!util->checkComplete(setModelUnsoundId))
               {
                 Trace("quant-engine-debug") << "Set incomplete because utility "
                                             << util->identify().c_str()
                                             << " was incomplete." << std::endl;
-                setIncomplete = true;
+                setModelUnsound = true;
               }
             }
             if (d_qstate.isInConflict())
             {
               // we reported a conflicting lemma, should return
-              setIncomplete = true;
+              setModelUnsound = true;
             }
             //if we have a chance not to set incomplete
-            if( !setIncomplete ){
+            if (!setModelUnsound)
+            {
               //check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
               {
-                if (!mdl->checkComplete(setIncompleteId))
+                if (!mdl->checkComplete(setModelUnsoundId))
                 {
                   Trace("quant-engine-debug")
                       << "Set incomplete because module "
                       << mdl->identify().c_str() << " was incomplete."
                       << std::endl;
-                  setIncomplete = true;
+                  setModelUnsound = true;
                   break;
                 }
               }
-              if( !setIncomplete ){
+              if (!setModelUnsound)
+              {
                 //look at individual quantified formulas, one module must claim completeness for each one
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
                   bool hasCompleteM = false;
@@ -461,7 +465,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                   }
                   if( !hasCompleteM ){
                     Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
-                    setIncomplete = true;
+                    setModelUnsound = true;
                     break;
                   }else{
                     Assert(qmd != NULL);
@@ -470,8 +474,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 }
               }
             }
-            //if setIncomplete = false, we will answer SAT, otherwise we will run at quant_e QEFFORT_LAST_CALL
-            if( !setIncomplete ){
+            // if setModelUnsound = false, we will answer SAT, otherwise we will
+            // run at quant_e QEFFORT_LAST_CALL
+            if (!setModelUnsound)
+            {
               break;
             }
           }
@@ -500,9 +506,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //SAT case
   if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
   {
-    if( setIncomplete ){
+    if (setModelUnsound)
+    {
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      d_qim.setIncomplete(setIncompleteId);
+      d_qim.setModelUnsound(setModelUnsoundId);
     }
     //output debug stats
     d_qim.getInstantiate()->debugPrintModel();

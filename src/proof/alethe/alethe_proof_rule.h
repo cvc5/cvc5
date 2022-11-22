@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_RULE_H
-#define CVC4__PROOF__ALETHE_PROOF_RULE_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H
 
 #include <iostream>
 
@@ -401,6 +401,23 @@ enum class AletheRule : uint32_t
   // where set representation of F1 and F2 are the same and the number of
   // literals in C2 is the same of that of C1.
   REORDERING,
+  // ======== bitvector
+  //  > i. (cl (= t bbt(t)))
+  BV_BITBLAST_STEP_VAR,
+  BV_BITBLAST_STEP_BVAND,
+  BV_BITBLAST_STEP_BVOR,
+  BV_BITBLAST_STEP_BVXOR,
+  BV_BITBLAST_STEP_BVXNOR,
+  BV_BITBLAST_STEP_BVNOT,
+  BV_BITBLAST_STEP_BVADD,
+  BV_BITBLAST_STEP_BVNEG,
+  BV_BITBLAST_STEP_BVMULT,
+  BV_BITBLAST_STEP_BVULE,
+  BV_BITBLAST_STEP_BVULT,
+  BV_BITBLAST_STEP_EXTRACT,
+  BV_BITBLAST_STEP_BVEQUAL,
+  BV_BITBLAST_STEP_CONCAT,
+  BV_BITBLAST_STEP_CONST,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
@@ -430,4 +447,4 @@ AletheRule getAletheRule(Node n);
 
 }  // namespace cvc5::internal
 
-#endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */
+#endif /* CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H */
