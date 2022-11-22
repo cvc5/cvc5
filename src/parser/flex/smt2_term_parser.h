@@ -18,6 +18,7 @@
 #ifndef CVC5__PARSER__SMT2_TERM_PARSER_H
 #define CVC5__PARSER__SMT2_TERM_PARSER_H
 
+#include "api/cpp/cvc5.h"
 #include "parser/flex/smt2_lexer.h"
 
 namespace cvc5 {

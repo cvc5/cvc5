@@ -24,6 +24,8 @@
 namespace cvc5 {
 namespace parser {
 
+class Command;
+
 /**
  */
 class Smt2CmdParser
@@ -34,13 +36,13 @@ class Smt2CmdParser
   /**
    * Parse and return the next command.
    */
-  Command* nextCommand() override;
+  Command* nextCommand();
 
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The term parser */
-  Smt2TermParser& d_tparser
+  Smt2TermParser& d_tparser;
 };
 
 }  // namespace parser
