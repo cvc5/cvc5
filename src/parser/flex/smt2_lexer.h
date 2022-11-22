@@ -35,11 +35,13 @@ namespace parser {
 
 /**
  */
-class Smt2Lexer : public Lexer
+class Smt2Lexer : public Lexer, yyFlexLexer
 {
  public:
   Smt2Lexer();
   virtual ~Smt2Lexer() {}
+  /** Inherited from yyFlexLexer */
+  int yylex() override;
   /** initialize */
   void initialize(std::istream& input, const std::string& inputName) override;
   // Core functions
@@ -55,10 +57,6 @@ class Smt2Lexer : public Lexer
   std::string prefix_id();
   // Error. Got `t`, expected `info`.
   void unexpected_token_error(Token t, const std::string& info);
-  /** lexer in scope */
-  static Smt2Lexer* s_inScope;
-  /** Allocated flex lexer */
-  FlexLexer* d_lexer;
 };
 
 }  // namespace parser

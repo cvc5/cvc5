@@ -1,15 +1,20 @@
 
+%{
+#include "parser/flex/smt2_lexer.h"
+%}
+
 %option noyywrap
 %option nounput
 %option full
 %option c++
+%option yyclass="cvc5::parser::Smt2Lexer"
 
 %{
 #include "parser/flex/smt2_lexer.h"
 #include <sstream>
 #include <cassert>
 #include <iostream>
-#define YY_USER_ACTION lex->add_columns(yyleng);
+#define YY_USER_ACTION add_columns(yyleng);
 
 %}
 
@@ -20,8 +25,7 @@ ws          [ \t\f]+
 %%
 
 %{
-  cvc5::parser::Smt2Lexer* lex = cvc5::parser::Smt2Lexer::s_inScope;
-  lex->bump_span();
+  bump_span();
 %}
 
 "assert"   return cvc5::parser::ASSERT_TOK;
@@ -102,55 +106,51 @@ ws          [ \t\f]+
 "is"   return cvc5::parser::TESTER_TOK;
 "update"   return cvc5::parser::UPDATE_TOK;
 
-{ws}            lex->bump_span();
-{nl}            lex->add_lines(yyleng); lex->bump_span();
+{ws}            bump_span();
+{nl}            add_lines(yyleng); bump_span();
 
 ";"    {
           int c;
           while((c = yyinput()) != 0)
           {
             if(c == '\n') {
-                lex->add_lines(1);
-                lex->bump_span();
+                add_lines(1);
+                bump_span();
                 break;
             }
           }
         }
 %%
-//. { cvc5::parser::Smt2Lexer::s_inScope->undefined_token_error(); }
 
 namespace cvc5 {
 namespace parser {
 
-Smt2Lexer* Smt2Lexer::s_inScope = nullptr;
 
-Smt2Lexer::Smt2Lexer() : Lexer(), d_lexer(nullptr)
+Smt2Lexer::Smt2Lexer() : Lexer(), yyFlexLexer()
 {
-  // FIXME: hack
-  s_inScope = this;
 }
 
 void Smt2Lexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
-  d_lexer = new yyFlexLexer(&input);
+  yyrestart(input);
   init_d_span();
 }
 
 const char* Smt2Lexer::token_str()
 {
-  return d_lexer->YYText();
+  return YYText();
 }
 
 Token Smt2Lexer::nextToken()
 {
-  return Token(d_lexer->yylex());
+  return Token(yylex());
 }
 
 void Smt2Lexer::unexpected_token_error(Token t, const std::string& info)
 {
   std::ostringstream o{};
-  o << "Scanned token " << t << ", `" << d_lexer->YYText() << "`, which is invalid in this position";
+  o << "Scanned token " << t << ", `" << YYText() << "`, which is invalid in this position";
   if (info.length()) {
     o << std::endl << "Note: " << info;
   }
@@ -159,7 +159,7 @@ void Smt2Lexer::unexpected_token_error(Token t, const std::string& info)
 
 std::string Smt2Lexer::prefix_id() {
   nextToken();
-  return d_lexer->YYText();
+  return YYText();
 }
 
 void Smt2Lexer::eat_token(Token t)
@@ -167,7 +167,7 @@ void Smt2Lexer::eat_token(Token t)
   auto tt = nextToken();
   if (t != tt) {
     std::ostringstream o{};
-    o << "Expected a " << t << ", but got a " << tt << ", `" << d_lexer->YYText() << "`";
+    o << "Expected a " << t << ", but got a " << tt << ", `" << YYText() << "`";
     unexpected_token_error(tt, o.str());
   }
 }
