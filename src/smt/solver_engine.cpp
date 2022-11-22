@@ -521,11 +521,14 @@ void SolverEngine::defineFunction(Node func,
     def = nm->mkNode(
         kind::LAMBDA, nm->mkNode(kind::BOUND_VAR_LIST, formals), def);
   }
-  defineFunction(func, def, global);
+  Node feq = func.eqNode(def);
+  d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
 }
 
 void SolverEngine::defineFunction(Node func, Node lambda, bool global)
 {
+  finishInit();
+  d_ctxManager->doPendingPops();
   // A define-fun is treated as a (higher-order) assertion. It is provided
   // to the assertions object. It will be added as a top-level substitution
   // within this class, possibly multiple times if global is true.
