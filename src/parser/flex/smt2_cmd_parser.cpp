@@ -25,12 +25,12 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex, Smt2TermParser& tparser)
 {
 }
 
-Command* Smt2CmdParser::nextCommand() { 
+Command* Smt2CmdParser::nextCommand()
+{
   d_lex.eat_token(Token::LPAREN_TOK);
   Token t = d_lex.nextToken();
   switch (t)
   {
-
     default:
       // TODO: error
       break;
