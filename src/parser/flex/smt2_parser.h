@@ -18,11 +18,9 @@
 #ifndef CVC5__PARSER__SMT2_PARSER_H
 #define CVC5__PARSER__SMT2_PARSER_H
 
-#include <optional>
-#include <sstream>
-#include <stack>
-#include <string>
+#include "api/cpp/cvc5.h"
 #include "parser/flex/smt2_lexer.h"
+#include "parser/flex/flex_parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -32,20 +30,19 @@ namespace parser {
 class Smt2Parser : public FlexParser
 {
  public:
-  Smt2Parser(bool isSygus);
+  Smt2Parser(Solver* solver, SymbolManager* sm, bool isSygus);
   virtual ~Smt2Parser() {}
   /**
    * Parse and return the next command.
-   * NOTE: currently memory management of commands is handled internally.
    */
   Command* nextCommand() override;
 
   /** Parse and return the next expression. */
   Term nextExpression() override;
 
- private:
+ protected:
   /** initialize input */
-  void initializeInput(std::istream& s, const std::string& inputName);
+  void initializeInput(std::istream& s, const std::string& inputName) override;
   /** Is sygus? */
   bool d_isSygus;
   /** The lexer */

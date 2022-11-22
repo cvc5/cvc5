@@ -24,9 +24,10 @@
 namespace cvc5 {
 namespace parser {
 
-InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
+InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions) : d_solver(solver), d_sm(sm), d_useOptions(useOptions)
 {
-  if (options().parser.flexParser)
+  d_useFlex = solver->getOptionInfo("flex-parser").boolValue();
+  if (d_useFlex)
   {
     // TODO: build parser state object?
   }
@@ -41,7 +42,7 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
 Command* InputParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
-  if (options().parser.flexParser)
+  if (d_useFlex)
   {
     return d_fparser->nextCommand();
   }
@@ -51,7 +52,7 @@ Command* InputParser::nextCommand()
 Term InputParser::nextExpression()
 {
   Trace("parser") << "nextExpression()" << std::endl;
-  if (options().parser.flexParser)
+  if (d_useFlex)
   {
     return d_fparser->nextExpression();
   }
@@ -63,9 +64,9 @@ void InputParser::setFileInput(const std::string& lang,
 {
   Trace("parser") << "setFileInput(" << lang << ", " << filename << ")"
                   << std::endl;
-  if (options().parser.flexParser)
+  if (d_useFlex)
   {
-    d_fparser = FlexParser::mkFlexParser(lang);
+    d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
     d_fparser->setFileInput(filename);
   }
   else
@@ -80,9 +81,9 @@ void InputParser::setStreamInput(const std::string& lang,
 {
   Trace("parser") << "setStreamInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  if (options().parser.flexParser)
+  if (d_useFlex)
   {
-    d_fparser = FlexParser::mkFlexParser(lang);
+    d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
     d_fparser->setStreamInput(input, name);
   }
   else
@@ -97,9 +98,9 @@ void InputParser::setStringInput(const std::string& lang,
 {
   Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
-  if (options().parser.flexParser)
+  if (d_useFlex)
   {
-    d_fparser = FlexParser::mkFlexParser(lang);
+    d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
     d_fparser->setStringInput(input, name);
   }
   else

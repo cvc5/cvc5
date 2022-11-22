@@ -133,7 +133,7 @@ Smt2Lexer::Smt2Lexer() : Lexer(), d_lexer(nullptr)
 void Smt2Lexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
-  d_lexer = new yyFlexLexer(input);
+  d_lexer = new yyFlexLexer(&input);
   init_d_span();
 }
 

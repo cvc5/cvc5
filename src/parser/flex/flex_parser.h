@@ -18,21 +18,22 @@
 #ifndef CVC5__PARSER__FLEX_PARSER_H
 #define CVC5__PARSER__FLEX_PARSER_H
 
-#include <optional>
-#include <sstream>
-#include <stack>
-#include <string>
 #include "parser/flex/flex_input.h"
+#include "api/cpp/cvc5.h"
+#include <memory>
 
 namespace cvc5 {
 namespace parser {
+
+class Command;
+class SymbolManager;
 
 /**
  */
 class FlexParser
 {
  public:
-  FlexParser();
+  FlexParser(Solver* solver, SymbolManager* sm);
   virtual ~FlexParser() {}
   /** Set the input for the given file.
    *
@@ -64,12 +65,16 @@ class FlexParser
   virtual Term nextExpression() = 0;
 
   /** make flex parser from language string */
-  static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang);
+  static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang, Solver* solver, SymbolManager* sm);
 
  protected:
   /** initialize input */
   virtual void initializeInput(std::istream& s,
                                const std::string& inputName) = 0;
+  /** Solver */
+  Solver * d_solver;
+  /** Symbol manager */
+  SymbolManager * d_sm;
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
 };

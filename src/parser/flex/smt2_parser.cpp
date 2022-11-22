@@ -15,10 +15,12 @@
 
 #include "parser/flex/smt2_parser.h"
 
+#include "base/output.h"
+
 namespace cvc5 {
 namespace parser {
 
-Smt2Parser::Smt2Parser(bool isSygus) : d_isSygus(isSygus) {}
+Smt2Parser::Smt2Parser(Solver* solver, SymbolManager* sm, bool isSygus) : FlexParser(solver, sm), d_isSygus(isSygus) {}
 
 void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
 {
@@ -42,6 +44,7 @@ Command* Smt2Parser::nextCommand()
 
 Term Smt2Parser::nextExpression()
 {
+  Term t;
   // TODO
   return t;
 }

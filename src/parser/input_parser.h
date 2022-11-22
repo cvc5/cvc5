@@ -29,7 +29,6 @@ namespace cvc5 {
 namespace parser {
 
 class Command;
-class Input;
 class Parser;
 class SymbolManager;
 
@@ -87,6 +86,12 @@ class CVC5_EXPORT InputParser
   Term nextExpression();
 
  private:
+  /** Solver */
+  Solver * d_solver;
+  /** Symbol manager */
+  SymbolManager * d_sm;
+  /** use options */
+  bool d_useOptions;
   //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
   // replaced (wishue #142).
   /**  The parser state. */
@@ -95,6 +100,8 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<Input> d_input;
   //!!!!!!!!!!!!!!
   std::unique_ptr<FlexParser> d_fparser;
+  /** whether to use flex */
+  bool d_useFlex;
 };
 
 }  // namespace parser

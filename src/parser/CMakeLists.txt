@@ -66,12 +66,16 @@ set(libcvc5parser_src_files
   tptp/tptp_input.h
   flex/lexer.cpp
   flex/lexer.h
-  flex/tokens.cpp
-  flex/tokens.h
+  flex/flex_input.cpp
+  flex/flex_input.h
+  flex/flex_parser.cpp
+  flex/flex_parser.h
   flex/smt2_lexer.cpp
   flex/smt2_lexer.h
   flex/smt2_parser.cpp
   flex/smt2_parser.h
+  flex/tokens.cpp
+  flex/tokens.h
 )
 
 #-----------------------------------------------------------------------------#

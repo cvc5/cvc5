@@ -13,7 +13,9 @@
  * Definitions of SMT2 tokens.
  */
 
-#include "flex/parser/flex_input.h"
+#include "parser/flex/flex_input.h"
+
+#include <fstream>
 
 namespace cvc5 {
 namespace parser {
@@ -39,19 +41,19 @@ class FlexFileInput : public FlexInput
 
 FlexInput::FlexInput() {}
 
-std::unique_ptr<FlexInput> FlexInput::setFileInput(const std::string& filename)
+std::unique_ptr<FlexInput> FlexInput::mkFileInput(const std::string& filename)
 {
-  std::unique_ptr<FlexFileInput> finput(filename);
+  std::unique_ptr<FlexFileInput> finput(new FlexFileInput(filename));
   return finput;
 }
 
-std::unique_ptr<FlexInput> FlexInput::setStreamInput(std::istream& input)
+std::unique_ptr<FlexInput> FlexInput::mkStreamInput(std::istream& input)
 {
   // TODO
   return nullptr;
 }
 
-std::unique_ptr<FlexInput> FlexInput::setStringInput(const std::string& input)
+std::unique_ptr<FlexInput> FlexInput::mkStringInput(const std::string& input)
 {
   // TODO
   return nullptr;

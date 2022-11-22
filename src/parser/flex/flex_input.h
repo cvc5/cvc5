@@ -21,6 +21,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <memory>
 
 namespace cvc5 {
 namespace parser {
@@ -36,21 +37,21 @@ class FlexInput
    *
    * @param filename the input filename
    */
-  static FlexInput* mkFileInput(const std::string& filename);
+  static std::unique_ptr<FlexInput> mkFileInput(const std::string& filename);
 
   /** Set the input for the given stream.
    *
    * @param input the input stream
    * @param name the name of the stream, for use in error messages
    */
-  static FlexInput* mkStreamInput(std::istream& input);
+  static std::unique_ptr<FlexInput> mkStreamInput(std::istream& input);
 
   /** Set the input for the given string
    *
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  static FlexInput* mkStringInput(const std::string& input);
+  static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
   /** get stream */
   virtual std::istream& getStream() = 0;
 

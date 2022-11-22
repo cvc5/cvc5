@@ -20,38 +20,38 @@
 namespace cvc5 {
 namespace parser {
 
-FlexParser::FlexParser() {}
+FlexParser::FlexParser(Solver* solver, SymbolManager* sm) : d_solver(solver), d_sm(sm) {}
 
 void FlexParser::setFileInput(const std::string& filename)
 {
-  d_flexInput = FileInput::mkFileInput(filename);
+  d_flexInput = FlexInput::mkFileInput(filename);
   initializeInput(d_flexInput->getStream(), filename);
 }
 
 void FlexParser::setStreamInput(std::istream& input, const std::string& name)
 {
-  d_flexInput = FileInput::mkStreamInput(input);
+  d_flexInput = FlexInput::mkStreamInput(input);
   initializeInput(d_flexInput->getStream(), name);
 }
 
 void FlexParser::setStringInput(const std::string& input,
                                 const std::string& name)
 {
-  d_flexInput = FileInput::mkStringInput(input);
+  d_flexInput = FlexInput::mkStringInput(input);
   initializeInput(d_flexInput->getStream(), name);
 }
 
-std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang)
+std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang, Solver* solver, SymbolManager* sm)
 {
-  std::unique_ptr<Parser> parser;
-  if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6"s)
+  std::unique_ptr<FlexParser> parser;
+  if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")
   {
-    parser.reset(new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly));
+    bool isSygus = (lang == "LANG_SYGUS_V2");
+    parser.reset(new Smt2Parser(solver, sm, isSygus));
   }
   else if (lang == "LANG_TPTP")
   {
-    Assert(d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6");
-    parser.reset(new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly));
+    // TODO
   }
   return parser;
 }
