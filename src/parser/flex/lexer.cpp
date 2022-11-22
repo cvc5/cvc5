@@ -1,5 +1,27 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Base class lexer
+ */
+
 #include "parser/flex/lexer.h"
 
+#include <sstream>
+#include <cassert>
+#include <iostream>
+
+namespace cvc5 {
+namespace parser {
+  
 Lexer::Lexer()
 {
 }

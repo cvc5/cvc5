@@ -165,19 +165,9 @@ const char* Smt2Lexer::token_str()
   return d_lexer->YYText();
 }
 
-Token Smt2Lexer::next_token()
+Token Smt2Lexer::nextToken()
 {
   return Token(d_lexer->yylex());
-}
-
-void Smt2Lexer::report_error(const std::string &msg)
-{
-  if (d_inputName.length())
-  {
-    std::cerr << "Error: " << d_inputName << " at " << d_span;
-  }
-  std::cerr << std::endl << msg << std::endl;
-  exit(1);
 }
 
 void Smt2Lexer::unexpected_token_error(Token t, const std::string& info)
@@ -191,13 +181,13 @@ void Smt2Lexer::unexpected_token_error(Token t, const std::string& info)
 }
 
 std::string Smt2Lexer::prefix_id() {
-  next_token();
+  nextToken();
   return d_lexer->YYText();
 }
 
 void Smt2Lexer::eat_token(Token t)
 {
-  auto tt = next_token();
+  auto tt = nextToken();
   if (t != tt) {
     std::ostringstream o{};
     o << "Expected a " << t << ", but got a " << tt << ", `" << d_lexer->YYText() << "`";

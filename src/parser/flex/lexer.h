@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * SMT lexer
+ * Base class lexer
  */
 
 #include "cvc5parser_public.h"
@@ -47,13 +47,12 @@ class Lexer
 {
  public:
   Lexer();
+  virtual ~Lexer(){}
 
   virtual Token nextToken() = 0;
   
-  // Span of last token pulled from underlying lexer (old top of stack)
-  Span d_span;
-  /** Name of current file */
-  std::string d_inputName;
+  // Used to report errors, with the current source location attached.
+  void report_error(const std::string&);
   // Used to initialize d_span.
   void init_d_span();
   // Sets the spans start to its current end.
@@ -61,6 +60,10 @@ class Lexer
   // Add columns or lines to the end location of the span.
   void add_columns(uint32_t columns);
   void add_lines(uint32_t lines);
+  // Span of last token pulled from underlying lexer (old top of stack)
+  Span d_span;
+  /** Name of current file */
+  std::string d_inputName;
   /** FIXME file stream */
   std::ifstream d_fs;
 };
