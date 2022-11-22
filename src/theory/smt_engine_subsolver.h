@@ -131,16 +131,16 @@ Result checkWithSubsolver(Node query,
 
 /**
  * Assert formulas in core to subsolver.
- * 
+ *
  * @param subsolver The subsolver to assert to
  * @param core The formulas to assert
  * @param defs The subset of core that are function definitions
  * @param removed The subset of core that should be excluded from consideration.
  */
 void assertToSubsolver(SolverEngine& subsolver,
-                        const std::vector<Node>& core,
-                        const std::unordered_set<Node>& defs,
-                        const std::unordered_set<Node>& removed);
+                       const std::vector<Node>& core,
+                       const std::unordered_set<Node>& defs,
+                       const std::unordered_set<Node>& removed);
 /**
  * Assuming smt has just been called to check-sat and returned "SAT", this
  * method adds the model for d_vars to mvs.

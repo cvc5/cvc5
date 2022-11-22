@@ -162,11 +162,10 @@ Result checkWithSubsolver(Node query,
   return r;
 }
 
-
 void assertToSubsolver(SolverEngine& subsolver,
-                                     const std::vector<Node>& core,
-                                     const std::unordered_set<Node>& defs,
-                                     const std::unordered_set<Node>& removed)
+                       const std::vector<Node>& core,
+                       const std::unordered_set<Node>& defs,
+                       const std::unordered_set<Node>& removed)
 {
   for (const Node& f : core)
   {
