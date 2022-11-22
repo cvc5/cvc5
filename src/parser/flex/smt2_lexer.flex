@@ -9,15 +9,19 @@
 #include <sstream>
 #include <cassert>
 #include <iostream>
-//#define YY_USER_ACTION cvc5::parser::Smt2Lexer::s_inScope->add_columns(yyleng);
+#define YY_USER_ACTION lex->add_columns(yyleng);
 
 %}
+
+nl          [\n]+
+ws          [ \t\f]+
 
 
 %%
 
 %{
-    //cvc5::parser::Smt2Lexer::s_inScope->bump_span();
+  cvc5::parser::Smt2Lexer* lex = cvc5::parser::Smt2Lexer::s_inScope;
+  lex->bump_span();
 %}
 
 "assert"   return cvc5::parser::ASSERT_TOK;
@@ -98,19 +102,22 @@
 "is"   return cvc5::parser::TESTER_TOK;
 "update"   return cvc5::parser::UPDATE_TOK;
 
+{ws}            lex->bump_span();
+{nl}            lex->add_lines(yyleng); lex->bump_span();
+
 ";"    {
           int c;
           while((c = yyinput()) != 0)
           {
             if(c == '\n') {
-                cvc5::parser::Smt2Lexer::s_inScope->add_lines(1);
-                cvc5::parser::Smt2Lexer::s_inScope->bump_span();
+                lex->add_lines(1);
+                lex->bump_span();
                 break;
             }
           }
         }
-
 %%
+//. { cvc5::parser::Smt2Lexer::s_inScope->undefined_token_error(); }
 
 namespace cvc5 {
 namespace parser {

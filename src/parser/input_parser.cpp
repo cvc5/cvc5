@@ -55,7 +55,7 @@ void InputParser::setFileInput(const std::string& lang,
   Token t;
   while ((t = slex.next_token()) != Token::EOF_TOK)
   {
-    Trace("ajr-temp") << t << std::endl;
+    Trace("ajr-temp") << "token: " <<  t << std::endl;
   }
   Trace("ajr-temp") << "Finished" << std::endl;
   exit(1);

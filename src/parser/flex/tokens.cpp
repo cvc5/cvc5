@@ -154,7 +154,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
       break;
     case Token::UPDATE_TOK: o << "UPDATE_TOK"; break;
     case Token::WHITESPACE: o << "WHITESPACE"; break;
-    default: return o << "Unknown Token: " << unsigned(t);
+    default: o << "Unknown Token (" << unsigned(t) << ")"; break;
   }
   return o;
 }
