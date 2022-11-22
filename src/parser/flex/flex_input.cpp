@@ -39,18 +39,26 @@ class FlexFileInput : public FlexInput
   std::ifstream d_fs;
 };
 
+class FlexStreamInput : public FlexInput
+{
+ public:
+  FlexStreamInput(std::istream& input) : FlexInput(), d_input(input) {}
+  std::istream& getStream() override { return d_input; }
+ private:
+  /** Reference to stream */
+  std::istream& d_input;
+};
+
 FlexInput::FlexInput() {}
 
 std::unique_ptr<FlexInput> FlexInput::mkFileInput(const std::string& filename)
 {
-  std::unique_ptr<FlexFileInput> finput(new FlexFileInput(filename));
-  return finput;
+  return std::unique_ptr<FlexInput>(new FlexFileInput(filename));
 }
 
 std::unique_ptr<FlexInput> FlexInput::mkStreamInput(std::istream& input)
 {
-  // TODO
-  return nullptr;
+  return std::unique_ptr<FlexInput>(new FlexStreamInput(input));
 }
 
 std::unique_ptr<FlexInput> FlexInput::mkStringInput(const std::string& input)
