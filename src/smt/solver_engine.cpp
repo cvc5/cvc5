@@ -1405,11 +1405,9 @@ void SolverEngine::checkUnsatCore()
   theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
-    Node assertionAfterExpansion = tls.apply(*i);
     d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
-                      << *i << ", expanded to " << assertionAfterExpansion
-                      << std::endl;
-    coreChecker->assertFormula(assertionAfterExpansion);
+                      << *i <<  std::endl;
+    coreChecker->assertFormula(*i);
   }
   Result r;
   try
