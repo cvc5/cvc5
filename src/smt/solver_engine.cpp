@@ -1340,7 +1340,9 @@ std::vector<Node> SolverEngine::reduceUnsatCore(const std::vector<Node>& core)
     {
       if (ucAssertion != skip && removed.find(ucAssertion) == removed.end())
       {
-        coreChecker->assertFormula(ucAssertion);
+        Node assertionAfterExpansion =
+            d_smtSolver->getPreprocessor()->applySubstitutions(ucAssertion);
+        coreChecker->assertFormula(assertionAfterExpansion);
       }
     }
     Result r;
@@ -1402,7 +1404,6 @@ void SolverEngine::checkUnsatCore()
 
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;
-  theory::TrustSubstitutionMap& tls = d_env->getTopLevelSubstitutions();
   for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
   {
     d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core member "
