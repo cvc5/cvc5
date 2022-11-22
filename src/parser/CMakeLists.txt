@@ -40,6 +40,8 @@ set(libcvc5parser_src_files
   bounded_token_factory.h
   input.cpp
   input.h
+  input_parser.cpp
+  input_parser.h
   line_buffer.cpp
   line_buffer.h
   parse_op.cpp

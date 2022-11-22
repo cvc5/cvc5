@@ -197,17 +197,17 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   }
 }
 
-bool CegSingleInv::solve()
+Result CegSingleInv::solve()
 {
   if (d_single_inv.isNull())
   {
     // not using single invocation techniques
-    return false;
+    return Result(Result::UNKNOWN);
   }
   if (d_isSolved)
   {
     // already solved, probably via a call to solveTrivial.
-    return true;
+    return Result(Result::UNSAT);
   }
   Trace("sygus-si") << "Solve using single invocation..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -239,12 +239,15 @@ bool CegSingleInv::solve()
   Result::Status res = r.getStatus();
   if (res != Result::UNSAT)
   {
-    warning() << "Warning : the single invocation solver determined the SyGuS "
-                 "conjecture"
-              << (res == Result::SAT ? " is" : " may be") << " infeasible"
-              << std::endl;
+    if (res != Result::SAT)
+    {
+      warning()
+          << "Warning : the single invocation solver determined the SyGuS "
+             "conjecture may be infeasible"
+          << std::endl;
+    }
     // conjecture is infeasible or unknown
-    return false;
+    return res;
   }
   // now, get the instantiations
   std::vector<Node> qs;
@@ -288,7 +291,7 @@ bool CegSingleInv::solve()
   }
   // set the solution
   setSolution();
-  return true;
+  return res;
 }
 
 //TODO: use term size?

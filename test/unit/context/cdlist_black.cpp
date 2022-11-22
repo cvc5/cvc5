@@ -28,11 +28,22 @@ using namespace context;
 
 namespace test {
 
-struct DtorSensitiveObject
+class TestObject
 {
-  bool& d_dtorCalled;
-  DtorSensitiveObject(bool& dtorCalled) : d_dtorCalled(dtorCalled) {}
-  ~DtorSensitiveObject() { d_dtorCalled = true; }
+ public:
+  // Test support for elements without default constructor
+  TestObject() = delete;
+
+  TestObject(bool* cleanupCalled) : d_cleanupCalled(cleanupCalled) {}
+
+  bool* d_cleanupCalled;
+};
+
+class TestCleanup
+{
+ public:
+  TestCleanup() {}
+  void operator()(TestObject& o) { (*o.d_cleanupCalled) = true; }
 };
 
 class TestContextBlackCDList : public TestContext
@@ -91,14 +102,14 @@ TEST_F(TestContextBlackCDList, destructor_called)
   bool shouldAlsoRemainFalse = false;
   bool aThirdFalse = false;
 
-  CDList<DtorSensitiveObject> listT(d_context.get(), true);
-  CDList<DtorSensitiveObject> listF(d_context.get(), false);
+  CDList<TestObject, TestCleanup> listT(d_context.get(), true, TestCleanup());
+  CDList<TestObject, TestCleanup> listF(d_context.get(), false, TestCleanup());
 
-  DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
-  DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
-  DtorSensitiveObject alsoFlipToTrueDSO(alsoFlipToTrue);
-  DtorSensitiveObject shouldAlsoRemainFalseDSO(shouldAlsoRemainFalse);
-  DtorSensitiveObject aThirdFalseDSO(aThirdFalse);
+  TestObject shouldRemainFalseDSO(&shouldRemainFalse);
+  TestObject shouldFlipToTrueDSO(&shouldFlipToTrue);
+  TestObject alsoFlipToTrueDSO(&alsoFlipToTrue);
+  TestObject shouldAlsoRemainFalseDSO(&shouldAlsoRemainFalse);
+  TestObject aThirdFalseDSO(&aThirdFalse);
 
   listT.push_back(shouldAlsoRemainFalseDSO);
   listF.push_back(shouldAlsoRemainFalseDSO);

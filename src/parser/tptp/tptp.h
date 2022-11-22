@@ -35,6 +35,9 @@ namespace parser {
 
 class Command;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Tptp : public Parser {
  private:
   friend class ParserBuilder;
