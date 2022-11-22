@@ -71,7 +71,10 @@ void Lexer::initialize(std::istream& input, const std::string& inputName)
 
 const char* Lexer::token_str() { return YYText(); }
 
-Token Lexer::nextToken() { return Token(yylex()); }
+Token Lexer::nextToken() {
+  // Call the derived yylex() and convert it to a token
+  return Token(yylex()); 
+}
 
 void Lexer::unexpected_token_error(Token t, const std::string& info)
 {
@@ -91,7 +94,7 @@ std::string Lexer::prefix_id()
   return YYText();
 }
 
-void Lexer::eat_token(Token t)
+void Lexer::eatToken(Token t)
 {
   auto tt = nextToken();
   if (t != tt)

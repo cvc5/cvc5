@@ -27,7 +27,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex, Smt2TermParser& tparser)
 
 Command* Smt2CmdParser::nextCommand()
 {
-  d_lex.eat_token(Token::LPAREN_TOK);
+  d_lex.eatToken(Token::LPAREN_TOK);
   Token t = d_lex.nextToken();
   switch (t)
   {
@@ -35,7 +35,7 @@ Command* Smt2CmdParser::nextCommand()
       // TODO: error
       break;
   }
-  d_lex.eat_token(Token::RPAREN_TOK);
+  d_lex.eatToken(Token::RPAREN_TOK);
   return nullptr;
 }
 
