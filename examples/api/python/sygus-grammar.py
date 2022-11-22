@@ -45,28 +45,28 @@ if __name__ == "__main__":
   plus = slv.mkTerm(Kind.ADD, x, start)
 
   # create the grammar object
-  g1 = slv.mkGrammar({x}, {start})
-  g2 = slv.mkGrammar({x}, {start})
-  g3 = slv.mkGrammar({x}, {start})
+  g1 = slv.mkGrammar([x], [start])
+  g2 = slv.mkGrammar([x], [start])
+  g3 = slv.mkGrammar([x], [start])
 
   # bind each non-terminal to its rules
-  g1.addRules(start, {neg_x, plus})
-  g2.addRules(start, {neg_x, plus})
-  g3.addRules(start, {neg_x, plus})
+  g1.addRules(start, [neg_x, plus])
+  g2.addRules(start, [neg_x, plus])
+  g3.addRules(start, [neg_x, plus])
 
   # add parameters as rules for the start symbol. Similar to "(Variable Int)"
   g2.addAnyVariable(start)
 
   # declare the functions-to-synthesize
-  id1 = slv.synthFun("id1", {x}, integer, g1)
-  id2 = slv.synthFun("id2", {x}, integer, g2)
+  id1 = slv.synthFun("id1", [x], integer, g1)
+  id2 = slv.synthFun("id2", [x], integer, g2)
 
   g3.addRule(start, zero)
 
-  id3 = slv.synthFun("id3", {x}, integer, g3)
+  id3 = slv.synthFun("id3", [x], integer, g3)
 
   # g1 is reusable as long as it remains unmodified after first use
-  id4 = slv.synthFun("id4", {x}, integer, g1)
+  id4 = slv.synthFun("id4", [x], integer, g1)
 
   # declare universal variables.
   varX = slv.declareSygusVar("x", integer)
