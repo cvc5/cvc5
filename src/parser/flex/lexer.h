@@ -47,11 +47,12 @@ class Lexer
 {
  public:
   Lexer();
-  virtual ~Lexer(){}
+  virtual ~Lexer() {}
   /** get next token */
   virtual Token nextToken() = 0;
   /** initialize */
-  virtual void initialize(std::istream& input, const std::string& inputName) = 0;
+  virtual void initialize(std::istream& input,
+                          const std::string& inputName) = 0;
   // Used to report errors, with the current source location attached.
   void report_error(const std::string&);
   // Used to initialize d_span.

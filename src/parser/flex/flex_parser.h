@@ -33,7 +33,7 @@ class FlexParser
 {
  public:
   FlexParser();
-  virtual ~FlexParser(){}
+  virtual ~FlexParser() {}
   /** Set the input for the given file.
    *
    * @param filename the input filename
@@ -62,12 +62,14 @@ class FlexParser
 
   /** Parse and return the next expression. */
   virtual Term nextExpression() = 0;
-  
+
   /** make flex parser from language string */
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang);
-protected:
+
+ protected:
   /** initialize input */
-  virtual void initializeInput(std::istream& s, const std::string& inputName) = 0;
+  virtual void initializeInput(std::istream& s,
+                               const std::string& inputName) = 0;
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
 };

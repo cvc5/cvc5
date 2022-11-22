@@ -39,7 +39,7 @@ class Smt2Lexer : public Lexer
 {
  public:
   Smt2Lexer();
-  virtual ~Smt2Lexer(){}
+  virtual ~Smt2Lexer() {}
   /** initialize */
   void initialize(std::istream& input, const std::string& inputName) override;
   // Core functions

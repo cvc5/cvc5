@@ -24,14 +24,14 @@
 
 namespace cvc5 {
 namespace parser {
-  
+
 /**
  */
 class FlexInput
 {
  public:
   FlexInput();
-  virtual ~FlexInput(){}
+  virtual ~FlexInput() {}
   /** Set the input for the given file.
    *
    * @param filename the input filename
@@ -53,7 +53,8 @@ class FlexInput
   static FlexInput* mkStringInput(const std::string& input);
   /** get stream */
   virtual std::istream& getStream() = 0;
-private:
+
+ private:
   // Used to report errors, with the current source location attached.
   static void report_error(const std::string&);
 };

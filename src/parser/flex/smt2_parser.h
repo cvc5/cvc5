@@ -26,14 +26,14 @@
 
 namespace cvc5 {
 namespace parser {
-  
+
 /**
  */
 class Smt2Parser : public FlexParser
 {
  public:
   Smt2Parser(bool isSygus);
-  virtual ~Smt2Parser(){}
+  virtual ~Smt2Parser() {}
   /**
    * Parse and return the next command.
    * NOTE: currently memory management of commands is handled internally.
@@ -42,7 +42,8 @@ class Smt2Parser : public FlexParser
 
   /** Parse and return the next expression. */
   Term nextExpression() override;
-private:
+
+ private:
   /** initialize input */
   void initializeInput(std::istream& s, const std::string& inputName);
   /** Is sygus? */

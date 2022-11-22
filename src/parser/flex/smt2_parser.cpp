@@ -18,10 +18,7 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2Parser::Smt2Parser(bool isSygus) : d_isSygus(isSygus)
-{
-  
-}
+Smt2Parser::Smt2Parser(bool isSygus) : d_isSygus(isSygus) {}
 
 void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
 {

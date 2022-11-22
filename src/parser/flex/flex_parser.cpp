@@ -20,10 +20,7 @@
 namespace cvc5 {
 namespace parser {
 
-FlexParser::FlexParser()
-{
-  
-}
+FlexParser::FlexParser() {}
 
 void FlexParser::setFileInput(const std::string& filename)
 {
@@ -37,7 +34,8 @@ void FlexParser::setStreamInput(std::istream& input, const std::string& name)
   initializeInput(d_flexInput->getStream(), name);
 }
 
-void FlexParser::setStringInput(const std::string& input, const std::string& name)
+void FlexParser::setStringInput(const std::string& input,
+                                const std::string& name)
 {
   d_flexInput = FileInput::mkStringInput(input);
   initializeInput(d_flexInput->getStream(), name);
@@ -50,7 +48,7 @@ std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang)
   {
     parser.reset(new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly));
   }
-  else if (lang == "LANG_TPTP" )
+  else if (lang == "LANG_TPTP")
   {
     Assert(d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6");
     parser.reset(new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly));
