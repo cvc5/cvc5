@@ -46,6 +46,7 @@ class FlexStreamInput : public FlexInput
  public:
   FlexStreamInput(std::istream& input) : FlexInput(), d_input(input) {}
   std::istream& getStream() override { return d_input; }
+
  private:
   /** Reference to stream */
   std::istream& d_input;

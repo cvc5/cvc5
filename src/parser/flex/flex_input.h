@@ -28,7 +28,7 @@ namespace parser {
 
 /**
  * Wrapper to setup the necessary information for constructing a flex Lexer.
- * 
+ *
  * Currently this is std::istream& obtainable via getStream.
  */
 class FlexInput
