@@ -1581,7 +1581,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         addAletheStep(skoRule,
                       conclusion,
                       conclusion,
-                      {},
+                      {curPremise},
                       {d_anc.convert(quant[0][i - 1].eqNode(ithChoice))},
                       *cdp);
         // update premise
