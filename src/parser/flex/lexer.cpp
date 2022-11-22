@@ -22,7 +22,16 @@
 namespace cvc5 {
 namespace parser {
 
-Lexer::Lexer() {}
+std::ostream& operator<<(std::ostream& o, const Location& l)
+{
+  return o << l.d_line << ":" << l.d_column;
+}
+std::ostream& operator<<(std::ostream& o, const Span& l)
+{
+  return o << l.d_start << "-" << l.d_end;
+}
+
+Lexer::Lexer() : yyFlexLexer() {}
 
 void Lexer::report_error(const std::string& msg)
 {
@@ -52,13 +61,47 @@ void Lexer::add_lines(uint32_t lines)
   d_span.d_end.d_line += lines;
   d_span.d_end.d_column = 1;
 }
-std::ostream& operator<<(std::ostream& o, const Location& l)
+
+void Lexer::initialize(std::istream& input, const std::string& inputName)
 {
-  return o << l.d_line << ":" << l.d_column;
+  d_inputName = inputName;
+  yyrestart(input);
+  init_d_span();
 }
-std::ostream& operator<<(std::ostream& o, const Span& l)
+
+const char* Lexer::token_str()
 {
-  return o << l.d_start << "-" << l.d_end;
+  return YYText();
+}
+
+Token Lexer::nextToken()
+{
+  return Token(yylex());
+}
+
+void Lexer::unexpected_token_error(Token t, const std::string& info)
+{
+  std::ostringstream o{};
+  o << "Scanned token " << t << ", `" << YYText() << "`, which is invalid in this position";
+  if (info.length()) {
+    o << std::endl << "Note: " << info;
+  }
+  report_error(o.str());
+}
+
+std::string Lexer::prefix_id() {
+  nextToken();
+  return YYText();
+}
+
+void Lexer::eat_token(Token t)
+{
+  auto tt = nextToken();
+  if (t != tt) {
+    std::ostringstream o{};
+    o << "Expected a " << t << ", but got a " << tt << ", `" << YYText() << "`";
+    unexpected_token_error(tt, o.str());
+  }
 }
 
 }  // namespace parser

@@ -37,7 +37,7 @@ void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
   Token t;
   while ((t = d_lex.nextToken()) != Token::EOF_TOK)
   {
-    Trace("ajr-temp") << "token: " << t << std::endl;
+    Trace("ajr-temp") << "Token: " << t << std::endl;
   }
   Trace("ajr-temp") << "Finished" << std::endl;
   exit(1);

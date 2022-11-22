@@ -126,51 +126,10 @@ namespace cvc5 {
 namespace parser {
 
 
-Smt2Lexer::Smt2Lexer() : Lexer(), yyFlexLexer()
+Smt2Lexer::Smt2Lexer() : Lexer()
 {
 }
 
-void Smt2Lexer::initialize(std::istream& input, const std::string& inputName)
-{
-  d_inputName = inputName;
-  yyrestart(input);
-  init_d_span();
-}
-
-const char* Smt2Lexer::token_str()
-{
-  return YYText();
-}
-
-Token Smt2Lexer::nextToken()
-{
-  return Token(yylex());
-}
-
-void Smt2Lexer::unexpected_token_error(Token t, const std::string& info)
-{
-  std::ostringstream o{};
-  o << "Scanned token " << t << ", `" << YYText() << "`, which is invalid in this position";
-  if (info.length()) {
-    o << std::endl << "Note: " << info;
-  }
-  report_error(o.str());
-}
-
-std::string Smt2Lexer::prefix_id() {
-  nextToken();
-  return YYText();
-}
-
-void Smt2Lexer::eat_token(Token t)
-{
-  auto tt = nextToken();
-  if (t != tt) {
-    std::ostringstream o{};
-    o << "Expected a " << t << ", but got a " << tt << ", `" << YYText() << "`";
-    unexpected_token_error(tt, o.str());
-  }
-}
 
 }
 }

@@ -18,12 +18,6 @@
 #ifndef CVC5__PARSER__SMT2_LEXER_H
 #define CVC5__PARSER__SMT2_LEXER_H
 
-// Super hack
-// https://stackoverflow.com/a/40665154/4917890
-#if !defined(yyFlexLexerOnce)
-#include <FlexLexer.h>
-#endif
-
 #include <fstream>
 #include <iosfwd>
 #include <string>
@@ -35,28 +29,13 @@ namespace parser {
 
 /**
  */
-class Smt2Lexer : public Lexer, yyFlexLexer
+class Smt2Lexer : public Lexer
 {
  public:
   Smt2Lexer();
   virtual ~Smt2Lexer() {}
   /** Inherited from yyFlexLexer */
   int yylex() override;
-  /** initialize */
-  void initialize(std::istream& input, const std::string& inputName) override;
-  // Core functions
-  // Advance to the next token (pop from stack)
-  Token nextToken() override;
-  // String corresponding to the last token (old top of stack)
-  const char* token_str();
-  // Derived functions
-  // Expect a token `t` as the next one. Error o.w.
-  void eat_token(Token t);
-  // Interpret the next token as an identifier (even if it isn't) and return its
-  // string
-  std::string prefix_id();
-  // Error. Got `t`, expected `info`.
-  void unexpected_token_error(Token t, const std::string& info);
 };
 
 }  // namespace parser
