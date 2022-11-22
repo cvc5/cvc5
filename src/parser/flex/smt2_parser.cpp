@@ -21,7 +21,11 @@ namespace cvc5 {
 namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver, SymbolManager* sm, bool isSygus)
-    : FlexParser(solver, sm), d_isSygus(isSygus), d_lex(), d_termParser(d_lex), d_cmdParser(d_lex, d_termParser)
+    : FlexParser(solver, sm),
+      d_isSygus(isSygus),
+      d_lex(),
+      d_termParser(d_lex),
+      d_cmdParser(d_lex, d_termParser)
 {
 }
 
@@ -39,15 +43,9 @@ void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
   exit(1);
 }
 
-Command* Smt2Parser::nextCommand()
-{
-  return d_cmdParser.nextCommand();
-}
+Command* Smt2Parser::nextCommand() { return d_cmdParser.nextCommand(); }
 
-Term Smt2Parser::nextExpression()
-{
-  return d_termParser.nextExpression();
-}
+Term Smt2Parser::nextExpression() { return d_termParser.nextExpression(); }
 
 }  // namespace parser
 }  // namespace cvc5

@@ -17,15 +17,14 @@
 
 namespace cvc5 {
 namespace parser {
-  
-Smt2TermParser::Smt2TermParser(Smt2Lexer& lex) : d_lex(lex){}
+
+Smt2TermParser::Smt2TermParser(Smt2Lexer& lex) : d_lex(lex) {}
 
 Term Smt2TermParser::nextExpression()
 {
   Term t;
   return t;
 }
-  
+
 }  // namespace parser
 }  // namespace cvc5
-
