@@ -182,6 +182,11 @@ std::string TheoryStrings::identify() const
 
 bool TheoryStrings::propagateLit(TNode literal)
 {
+  if (d_state.hasPendingConflict())
+  {
+    // pending conflict also implies we are done
+    return false;
+  }
   return d_im.propagateLit(literal);
 }
 
