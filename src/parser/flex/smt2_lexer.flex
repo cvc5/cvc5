@@ -10,12 +10,7 @@
 %option yyclass="cvc5::parser::Smt2Lexer"
 
 %{
-#include "parser/flex/smt2_lexer.h"
-#include <sstream>
-#include <cassert>
-#include <iostream>
 #define YY_USER_ACTION add_columns(yyleng);
-
 %}
 
 nl          [\n]+
@@ -125,11 +120,9 @@ ws          [ \t\f]+
 namespace cvc5 {
 namespace parser {
 
-
 Smt2Lexer::Smt2Lexer() : Lexer()
 {
 }
-
 
 }
 }
