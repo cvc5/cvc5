@@ -29,7 +29,6 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "main/command_executor.h"
-#include "parser/parser.h"
 
 using namespace cvc5::parser;
 
@@ -41,7 +40,7 @@ enum SolveStatus : int
   STATUS_UNSOLVED = 1,
 };
 
-bool ExecutionContext::solveContinuous(parser::Parser* parser,
+bool ExecutionContext::solveContinuous(parser::InputParser* parser,
                                        bool stopAtSetLogic)
 {
   std::unique_ptr<Command> cmd;
@@ -83,7 +82,7 @@ bool ExecutionContext::solveContinuous(parser::Parser* parser,
 }
 
 std::vector<std::unique_ptr<Command>> ExecutionContext::parseCommands(
-    parser::Parser* parser)
+    parser::InputParser* parser)
 {
   std::vector<std::unique_ptr<Command>> res;
   while (true)
@@ -239,7 +238,7 @@ class PortfolioProcessPool
   };
 
  public:
-  PortfolioProcessPool(ExecutionContext& ctx, parser::Parser* parser)
+  PortfolioProcessPool(ExecutionContext& ctx, parser::InputParser* parser)
       : d_ctx(ctx),
         d_parser(parser),
         d_maxJobs(ctx.solver().getOptionInfo("portfolio-jobs").uintValue()),
@@ -397,7 +396,7 @@ class PortfolioProcessPool
   }
 
   ExecutionContext& d_ctx;
-  parser::Parser* d_parser;
+  parser::InputParser* d_parser;
   /** All jobs. */
   std::vector<Job> d_jobs;
   /** The id of the next job to be started within d_jobs */

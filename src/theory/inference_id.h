@@ -390,6 +390,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  // infeasible determined by single-invocation solver
+  QUANTIFIERS_SYGUS_SI_INFEASIBLE,
   // unif+pi symmetry breaking between multiple enumerators
   QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB,
   // unif+pi separation lemma
@@ -424,6 +426,8 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_PBE_EXCLUDE,
   // a lemma generated while constructing a candidate solution for PBE
   QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL,
+  // complete enumeration lemma
+  QUANTIFIERS_SYGUS_COMPLETE_ENUM,
   //-------------------- dynamic splitting
   // a dynamic split from quantifiers
   QUANTIFIERS_DSPLIT,
