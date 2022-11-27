@@ -39,14 +39,15 @@ ParserState::ParserState(cvc5::Solver* solver,
                SymbolManager* sm,
                bool strictMode,
                bool parseOnly)
-    : d_symman(sm),
+    : 
+      d_solver(solver),
+      d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
       d_parseOnly(parseOnly),
-      d_canIncludeFile(true),
-      d_solver(solver)
+      d_canIncludeFile(true)
 {
 }
 
@@ -331,7 +332,7 @@ std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
       const std::string& name = dt.getName();
       Trace("parser-idt") << "define " << name << " as " << t << std::endl;
       if (isDeclared(name, SYM_SORT)) {
-        throw ParserStateException(name + " already declared");
+        throw ParserException(name + " already declared");
       }
       if (dt.isParametric())
       {
@@ -357,7 +358,7 @@ std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
           defineVar(constructorName, constructor, doOverload);
           consNames.insert(constructorName);
         }else{
-          throw ParserStateException(constructorName + " already declared in this datatype");
+          throw ParserException(constructorName + " already declared in this datatype");
         }
         std::string testerName;
         if (getTesterName(constructor, testerName))
@@ -383,7 +384,7 @@ std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
             defineVar(selectorName, selector, doOverload);
             selNames.insert(selectorName);
           }else{
-            throw ParserStateException(selectorName + " already declared in this datatype");
+            throw ParserException(selectorName + " already declared in this datatype");
           }
         }
       }
@@ -392,7 +393,7 @@ std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
   }
   catch (internal::IllegalArgumentException& ie)
   {
-    throw ParserStateException(ie.getMessage());
+    throw ParserException(ie.getMessage());
   }
 }
 
@@ -606,6 +607,21 @@ void ParserState::checkFunctionLike(cvc5::Term fun)
 }
 
 void ParserState::addOperator(cvc5::Kind kind) { d_logicOperators.insert(kind); }
+
+void ParserState::warning(const std::string& msg) { 
+  // FIXME
+  //d_input->warning(msg); 
+}
+
+void ParserState::parseError(const std::string& msg) { 
+  // FIXME
+  //d_input->parseError(msg);
+}
+void ParserState::unexpectedEOF(const std::string& msg)
+{
+  // FIXME
+  //d_input->parseError(msg, true);
+}
 
 void ParserState::attributeNotSupported(const std::string& attr) {
   if (d_attributesWarnedAbout.find(attr) == d_attributesWarnedAbout.end()) {

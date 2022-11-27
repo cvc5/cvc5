@@ -15,8 +15,8 @@
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__PARSER_H
-#define CVC5__PARSER__PARSER_H
+#ifndef CVC5__PARSER__PARSER_STATE_H
+#define CVC5__PARSER__PARSER_STATE_H
 
 #include <list>
 #include <memory>
@@ -106,63 +106,8 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  *
  * This class is deprecated and used only for the ANTLR parser.
  */
-class CVC5_EXPORT Parser
+class CVC5_EXPORT ParserState
 {
-private:
- /**
-  * Reference to the symbol manager, which manages the symbol table used by
-  * this parser.
-  */
- SymbolManager* d_symman;
-
- /**
-  * This current symbol table used by this parser, from symbol manager.
-  */
- internal::parser::SymbolTable* d_symtab;
-
- /** Are we done */
- bool d_done;
-
- /** Are semantic checks enabled during parsing? */
- bool d_checksEnabled;
-
- /** Are we parsing in strict mode? */
- bool d_strictMode;
-
- /** Are we only parsing? */
- bool d_parseOnly;
-
- /**
-  * Can we include files?  (Set to false for security purposes in
-  * e.g. the online version.)
-  */
- bool d_canIncludeFile;
-
- /** The set of operators available in the current logic. */
- std::set<cvc5::Kind> d_logicOperators;
-
- /** The set of attributes already warned about. */
- std::set<std::string> d_attributesWarnedAbout;
-
- /**
-  * "Preemption commands": extra commands implied by subterms that
-  * should be issued before the currently-being-parsed command is
-  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-  *
-  * Owns the memory of the Commands in the queue.
-  */
- std::list<Command*> d_commandQueue;
-
- /** Lookup a symbol in the given namespace (as specified by the type).
-  * Only returns a symbol if it is not overloaded, returns null otherwise.
-  */
- cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
-
-protected:
- /** The API Solver object. */
- cvc5::Solver* d_solver;
-
-
 public:
  /**
   * Create a parser state.
@@ -569,17 +514,14 @@ public:
   bool isFunctionLike(cvc5::Term fun);
 
   /** Issue a warning to the user. */
-  void warning(const std::string& msg) { d_input->warning(msg); }
+  void warning(const std::string& msg);
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
 
   /** Raise a parse error with the given message. */
-  inline void parseError(const std::string& msg) { d_input->parseError(msg); }
+  void parseError(const std::string& msg);
   /** Unexpectedly encountered an EOF */
-  inline void unexpectedEOF(const std::string& msg)
-  {
-    d_input->parseError(msg, true);
-  }
+  void unexpectedEOF(const std::string& msg);
 
   /**
    * If we are parsing only, don't raise an exception; if we are not,
@@ -690,6 +632,59 @@ public:
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::wstring processAdHocStringEsc(const std::string& s);
+
+protected:
+ /** The API Solver object. */
+ cvc5::Solver* d_solver;
+private:
+ /**
+  * Reference to the symbol manager, which manages the symbol table used by
+  * this parser.
+  */
+ SymbolManager* d_symman;
+
+ /**
+  * This current symbol table used by this parser, from symbol manager.
+  */
+ internal::parser::SymbolTable* d_symtab;
+
+ /** Are we done */
+ bool d_done;
+
+ /** Are semantic checks enabled during parsing? */
+ bool d_checksEnabled;
+
+ /** Are we parsing in strict mode? */
+ bool d_strictMode;
+
+ /** Are we only parsing? */
+ bool d_parseOnly;
+
+ /**
+  * Can we include files?  (Set to false for security purposes in
+  * e.g. the online version.)
+  */
+ bool d_canIncludeFile;
+
+ /** The set of operators available in the current logic. */
+ std::set<cvc5::Kind> d_logicOperators;
+
+ /** The set of attributes already warned about. */
+ std::set<std::string> d_attributesWarnedAbout;
+
+ /**
+  * "Preemption commands": extra commands implied by subterms that
+  * should be issued before the currently-being-parsed command is
+  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+  *
+  * Owns the memory of the Commands in the queue.
+  */
+ std::list<Command*> d_commandQueue;
+
+ /** Lookup a symbol in the given namespace (as specified by the type).
+  * Only returns a symbol if it is not overloaded, returns null otherwise.
+  */
+ cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
 }; /* class Parser */
 
 }  // namespace parser
