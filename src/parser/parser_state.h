@@ -42,60 +42,58 @@ class Command;
 class Input;
 
 /** Types of checks for the symbols */
-enum DeclarationCheck {
+enum DeclarationCheck
+{
   /** Enforce that the symbol has been declared */
   CHECK_DECLARED,
   /** Enforce that the symbol has not been declared */
   CHECK_UNDECLARED,
   /** Don't check anything */
   CHECK_NONE
-};/* enum DeclarationCheck */
+}; /* enum DeclarationCheck */
 
 /**
  * Returns a string representation of the given object (for
  * debugging).
  */
 inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
-  switch(check) {
-  case CHECK_NONE:
-    return out << "CHECK_NONE";
-  case CHECK_DECLARED:
-    return out << "CHECK_DECLARED";
-  case CHECK_UNDECLARED:
-    return out << "CHECK_UNDECLARED";
-  default:
-    return out << "DeclarationCheck!UNKNOWN";
+inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check)
+{
+  switch (check)
+  {
+    case CHECK_NONE: return out << "CHECK_NONE";
+    case CHECK_DECLARED: return out << "CHECK_DECLARED";
+    case CHECK_UNDECLARED: return out << "CHECK_UNDECLARED";
+    default: return out << "DeclarationCheck!UNKNOWN";
   }
 }
 
 /**
  * Types of symbols. Used to define namespaces.
  */
-enum SymbolType {
+enum SymbolType
+{
   /** Variables */
   SYM_VARIABLE,
   /** Sorts */
   SYM_SORT,
   /** Symbols that should be preserved verbatim */
   SYM_VERBATIM
-};/* enum SymbolType */
+}; /* enum SymbolType */
 
 /**
  * Returns a string representation of the given object (for
  * debugging).
  */
 inline std::ostream& operator<<(std::ostream& out, SymbolType type);
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
-  switch(type) {
-  case SYM_VARIABLE:
-    return out << "SYM_VARIABLE";
-  case SYM_SORT:
-    return out << "SYM_SORT";
-  case SYM_VERBATIM:
-    return out << "SYM_VERBATIM";
-  default:
-    return out << "SymbolType!UNKNOWN";
+inline std::ostream& operator<<(std::ostream& out, SymbolType type)
+{
+  switch (type)
+  {
+    case SYM_VARIABLE: return out << "SYM_VARIABLE";
+    case SYM_SORT: return out << "SYM_SORT";
+    case SYM_VERBATIM: return out << "SYM_VERBATIM";
+    default: return out << "SymbolType!UNKNOWN";
   }
 }
 
@@ -108,25 +106,25 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  */
 class CVC5_EXPORT ParserState
 {
-public:
- /**
-  * Create a parser state.
-  *
-  * @attention The parser takes "ownership" of the given
-  * input and will delete it on destruction.
-  *
-  * @param solver solver API object
-  * @param symm reference to the symbol manager
-  * @param input the parser input
-  * @param strictMode whether to incorporate strict(er) compliance checks
-  * @param parseOnly whether we are parsing only (and therefore certain checks
-  * need not be performed, like those about unimplemented features, @see
-  * unimplementedFeature())
-  */
- ParserState(cvc5::Solver* solver,
-        SymbolManager* sm,
-        bool strictMode = false,
-        bool parseOnly = false);
+ public:
+  /**
+   * Create a parser state.
+   *
+   * @attention The parser takes "ownership" of the given
+   * input and will delete it on destruction.
+   *
+   * @param solver solver API object
+   * @param symm reference to the symbol manager
+   * @param input the parser input
+   * @param strictMode whether to incorporate strict(er) compliance checks
+   * @param parseOnly whether we are parsing only (and therefore certain checks
+   * need not be performed, like those about unimplemented features, @see
+   * unimplementedFeature())
+   */
+  ParserState(cvc5::Solver* solver,
+              SymbolManager* sm,
+              bool strictMode = false,
+              bool parseOnly = false);
 
   virtual ~ParserState();
 
@@ -134,28 +132,23 @@ public:
   cvc5::Solver* getSolver() const;
 
   /** Deletes and replaces the current parser input. */
-  void setInput()  {
-    d_done = false;
-  }
+  void setInput() { d_done = false; }
 
   /**
    * Check if we are done -- either the end of input has been reached, or some
    * error has been encountered.
    * @return true if parser is done
    */
-  inline bool done() const {
-    return d_done;
-  }
+  inline bool done() const { return d_done; }
 
   /** Sets the done flag */
-  inline void setDone(bool done = true) {
-    d_done = done;
-  }
+  inline void setDone(bool done = true) { d_done = done; }
 
   /** Enable semantic checks during parsing. */
   void enableChecks() { d_checksEnabled = true; }
 
-  /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
+  /** Disable semantic checks during parsing. Disabling checks may lead to
+   * crashes on bad inputs. */
   void disableChecks() { d_checksEnabled = false; }
 
   /** Enable strict parsing, according to the language standards. */
@@ -183,7 +176,8 @@ public:
    *
    * @param name the name of the variable
    * @return the variable expression
-   * Only returns a variable if its name is not overloaded, returns null otherwise.
+   * Only returns a variable if its name is not overloaded, returns null
+   * otherwise.
    */
   cvc5::Term getVariable(const std::string& name);
 
@@ -192,18 +186,21 @@ public:
    *
    * @param name the name of the variable
    * @return the variable expression
-   * Only returns a function if its name is not overloaded, returns null otherwise.
+   * Only returns a function if its name is not overloaded, returns null
+   * otherwise.
    */
   cvc5::Term getFunction(const std::string& name);
 
   /**
-   * Returns the expression that name should be interpreted as, based on the current binding.
+   * Returns the expression that name should be interpreted as, based on the
+   * current binding.
    *
    * The symbol name should be declared.
-   * This creates the expression that the string "name" should be interpreted as.
-   * Typically this corresponds to a variable, but it may also correspond to
+   * This creates the expression that the string "name" should be interpreted
+   * as. Typically this corresponds to a variable, but it may also correspond to
    * a nullary constructor or a defined function.
-   * Only returns an expression if its name is not overloaded, returns null otherwise.
+   * Only returns an expression if its name is not overloaded, returns null
+   * otherwise.
    */
   virtual cvc5::Term getExpressionForName(const std::string& name);
 
@@ -402,8 +399,8 @@ public:
    * declarations.
    *
    * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. Else, if
-   * doOverload is false, the existing expression is shadowed by the new
+   * exists, then if doOverload is true, we create overloaded operators. Else,
+   * if doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
   std::vector<cvc5::Sort> bindMutualDatatypeTypes(
@@ -539,7 +536,8 @@ public:
    */
   inline void unimplementedFeature(const std::string& msg)
   {
-    if(!d_parseOnly) {
+    if (!d_parseOnly)
+    {
       parseError("Unimplemented feature: " + msg);
     }
   }
@@ -586,7 +584,7 @@ public:
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
-  */
+   */
   cvc5::Term getOverloadedConstantForType(const std::string& name, cvc5::Sort t)
   {
     return d_symtab->getOverloadedConstantForType(name, t);
@@ -633,58 +631,59 @@ public:
    */
   std::wstring processAdHocStringEsc(const std::string& s);
 
-protected:
- /** The API Solver object. */
- cvc5::Solver* d_solver;
-private:
- /**
-  * Reference to the symbol manager, which manages the symbol table used by
-  * this parser.
-  */
- SymbolManager* d_symman;
+ protected:
+  /** The API Solver object. */
+  cvc5::Solver* d_solver;
 
- /**
-  * This current symbol table used by this parser, from symbol manager.
-  */
- internal::parser::SymbolTable* d_symtab;
+ private:
+  /**
+   * Reference to the symbol manager, which manages the symbol table used by
+   * this parser.
+   */
+  SymbolManager* d_symman;
 
- /** Are we done */
- bool d_done;
+  /**
+   * This current symbol table used by this parser, from symbol manager.
+   */
+  internal::parser::SymbolTable* d_symtab;
 
- /** Are semantic checks enabled during parsing? */
- bool d_checksEnabled;
+  /** Are we done */
+  bool d_done;
 
- /** Are we parsing in strict mode? */
- bool d_strictMode;
+  /** Are semantic checks enabled during parsing? */
+  bool d_checksEnabled;
 
- /** Are we only parsing? */
- bool d_parseOnly;
+  /** Are we parsing in strict mode? */
+  bool d_strictMode;
 
- /**
-  * Can we include files?  (Set to false for security purposes in
-  * e.g. the online version.)
-  */
- bool d_canIncludeFile;
+  /** Are we only parsing? */
+  bool d_parseOnly;
 
- /** The set of operators available in the current logic. */
- std::set<cvc5::Kind> d_logicOperators;
+  /**
+   * Can we include files?  (Set to false for security purposes in
+   * e.g. the online version.)
+   */
+  bool d_canIncludeFile;
 
- /** The set of attributes already warned about. */
- std::set<std::string> d_attributesWarnedAbout;
+  /** The set of operators available in the current logic. */
+  std::set<cvc5::Kind> d_logicOperators;
 
- /**
-  * "Preemption commands": extra commands implied by subterms that
-  * should be issued before the currently-being-parsed command is
-  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-  *
-  * Owns the memory of the Commands in the queue.
-  */
- std::list<Command*> d_commandQueue;
+  /** The set of attributes already warned about. */
+  std::set<std::string> d_attributesWarnedAbout;
 
- /** Lookup a symbol in the given namespace (as specified by the type).
-  * Only returns a symbol if it is not overloaded, returns null otherwise.
-  */
- cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
+  /**
+   * "Preemption commands": extra commands implied by subterms that
+   * should be issued before the currently-being-parsed command is
+   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   *
+   * Owns the memory of the Commands in the queue.
+   */
+  std::list<Command*> d_commandQueue;
+
+  /** Lookup a symbol in the given namespace (as specified by the type).
+   * Only returns a symbol if it is not overloaded, returns null otherwise.
+   */
+  cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
 }; /* class Parser */
 
 }  // namespace parser
