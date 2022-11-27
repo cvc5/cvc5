@@ -30,6 +30,7 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "symbol_table.h"
+#include "parser/parser_state.h"
 
 namespace cvc5 {
 
@@ -40,64 +41,6 @@ namespace parser {
 
 class Command;
 class Input;
-
-/** Types of checks for the symbols */
-enum DeclarationCheck {
-  /** Enforce that the symbol has been declared */
-  CHECK_DECLARED,
-  /** Enforce that the symbol has not been declared */
-  CHECK_UNDECLARED,
-  /** Don't check anything */
-  CHECK_NONE
-};/* enum DeclarationCheck */
-
-/**
- * Returns a string representation of the given object (for
- * debugging).
- */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
-  switch(check) {
-  case CHECK_NONE:
-    return out << "CHECK_NONE";
-  case CHECK_DECLARED:
-    return out << "CHECK_DECLARED";
-  case CHECK_UNDECLARED:
-    return out << "CHECK_UNDECLARED";
-  default:
-    return out << "DeclarationCheck!UNKNOWN";
-  }
-}
-
-/**
- * Types of symbols. Used to define namespaces.
- */
-enum SymbolType {
-  /** Variables */
-  SYM_VARIABLE,
-  /** Sorts */
-  SYM_SORT,
-  /** Symbols that should be preserved verbatim */
-  SYM_VERBATIM
-};/* enum SymbolType */
-
-/**
- * Returns a string representation of the given object (for
- * debugging).
- */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type);
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
-  switch(type) {
-  case SYM_VARIABLE:
-    return out << "SYM_VARIABLE";
-  case SYM_SORT:
-    return out << "SYM_SORT";
-  case SYM_VERBATIM:
-    return out << "SYM_VERBATIM";
-  default:
-    return out << "SymbolType!UNKNOWN";
-  }
-}
 
 /**
  * This class encapsulates all of the state of a parser, including the
