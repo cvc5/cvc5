@@ -47,7 +47,8 @@ ws          [ \t\f]+
 "declare-datatypes"   return cvc5::parser::DECLARE_DATATYPES_TOK;
 "declare-datatype"   return cvc5::parser::DECLARE_DATATYPE_TOK;
 "declare-fun"   return cvc5::parser::DECLARE_FUN_TOK;
-"declare-sort"   return cvc5::parser::DECLARE_SORT_TOK;
+"declare-heap"   return cvc5::parser::DECLARE_HEAP_TOK;
+"declare-pool"   return cvc5::parser::DECLARE_POOL_TOK;
 "declare-var"   return cvc5::parser::DECLARE_VAR_TOK;
 "define-const"   return cvc5::parser::DEFINE_CONST_TOK;
 "define-funs-rec"   return cvc5::parser::DEFINE_FUNS_REC_TOK;
