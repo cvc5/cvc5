@@ -96,13 +96,13 @@ private:
   * Owns the memory of the Commands in the queue.
   */
  std::list<Command*> d_commandQueue;
- 
- /** Memory allocation for included files */
-  class IncludeFileCache;
-  std::unique_ptr<IncludeFileCache> d_incCache;
 
-  /** Get the include file cache */
-  IncludeFileCache * getIncludeFileCache();
+ /** Memory allocation for included files */
+ class IncludeFileCache;
+ std::unique_ptr<IncludeFileCache> d_incCache;
+
+ /** Get the include file cache */
+ IncludeFileCache* getIncludeFileCache();
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
