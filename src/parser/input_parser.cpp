@@ -28,16 +28,13 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
     : d_solver(solver), d_sm(sm), d_useOptions(useOptions)
 {
   d_useFlex = solver->getOptionInfo("flex-parser").boolValue();
-  if (d_useFlex)
-  {
-    // TODO: build parser state object?
-  }
-  else
+  if (!d_useFlex)
   {
     // Allocate an ANTLR parser
     ParserBuilder parserBuilder(solver, sm, useOptions);
     d_state = parserBuilder.build();
   }
+  // if flex, don't make anything yet
 }
 
 Command* InputParser::nextCommand()

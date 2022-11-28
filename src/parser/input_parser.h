@@ -92,6 +92,8 @@ class CVC5_EXPORT InputParser
   SymbolManager* d_sm;
   /** use options */
   bool d_useOptions;
+  /** whether to use flex */
+  bool d_useFlex;
   //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
   // replaced (wishue #142).
   /**  The parser state. */
@@ -99,9 +101,9 @@ class CVC5_EXPORT InputParser
   /** The underlying input */
   std::unique_ptr<Input> d_input;
   //!!!!!!!!!!!!!!
+  //!!!!!!!!!!!!!! new implementation
   std::unique_ptr<FlexParser> d_fparser;
-  /** whether to use flex */
-  bool d_useFlex;
+  //!!!!!!!!!!!!!!
 };
 
 }  // namespace parser

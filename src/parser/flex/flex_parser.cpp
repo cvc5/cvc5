@@ -52,7 +52,8 @@ std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
   if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")
   {
     bool isSygus = (lang == "LANG_SYGUS_V2");
-    parser.reset(new Smt2Parser(solver, sm, isSygus));
+    bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
+    parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
   }
   else if (lang == "LANG_TPTP")
   {

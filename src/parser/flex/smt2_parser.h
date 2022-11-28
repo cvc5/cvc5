@@ -23,6 +23,7 @@
 #include "parser/flex/smt2_cmd_parser.h"
 #include "parser/flex/smt2_lexer.h"
 #include "parser/flex/smt2_term_parser.h"
+#include "parser/smt2/smt2_state.h"
 
 namespace cvc5 {
 namespace parser {
@@ -32,7 +33,8 @@ namespace parser {
 class Smt2Parser : public FlexParser
 {
  public:
-  Smt2Parser(Solver* solver, SymbolManager* sm, bool isSygus);
+  Smt2Parser(Solver* solver, SymbolManager* sm,
+            bool strictMode = false, bool isSygus = false);
   virtual ~Smt2Parser() {}
   /**
    * Parse and return the next command.
@@ -49,6 +51,8 @@ class Smt2Parser : public FlexParser
   bool d_isSygus;
   /** The lexer */
   Smt2Lexer d_lex;
+  /** The state */
+  Smt2State d_state;
   /** Term parser */
   Smt2TermParser d_termParser;
   /** Command parser */
