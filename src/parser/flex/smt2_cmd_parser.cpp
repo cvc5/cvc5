@@ -15,8 +15,8 @@
 
 #include "parser/flex/smt2_cmd_parser.h"
 
-#include "parser/api/cpp/command.h"
 #include "base/output.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 namespace parser {
@@ -56,22 +56,28 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DECLARE_FUN_TOK: break;
     case Token::DECLARE_HEAP: break;
     case Token::DECLARE_POOL: break;
-    case Token::DECLARE_SORT_TOK: 
+    case Token::DECLARE_SORT_TOK:
     {
       d_state.checkThatLogicIsSet();
       d_state.checkLogicAllowsFreeSorts();
-      const std::string& name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_SORT);
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
       d_state.checkUserSymbol(name);
-      unsigned arity;// = AntlrInput::tokenToUnsigned(n);
-      Trace("parser") << "declare sort: '" << name << "' arity=" << arity << std::endl;
-      if(arity == 0) {
+      unsigned arity;  // = AntlrInput::tokenToUnsigned(n);
+      Trace("parser") << "declare sort: '" << name << "' arity=" << arity
+                      << std::endl;
+      if (arity == 0)
+      {
         Sort type = d_state.mkSort(name);
         cmd.reset(new DeclareSortCommand(name, 0, type));
-      } else {
+      }
+      else
+      {
         Sort type = d_state.mkSortConstructor(name, arity);
         cmd.reset(new DeclareSortCommand(name, arity, type));
       }
-    }break;
+    }
+    break;
     case Token::DECLARE_VAR_TOK: break;
     case Token::DEFINE_CONST_TOK: break;
     case Token::DEFINE_FUN_TOK: break;
@@ -85,7 +91,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::GET_ASSERTIONS_TOK: break;
     case Token::GET_ASSIGNMENT_TOK: break;
     case Token::GET_DIFFICULTY_TOK: break;
-    case Token::GET_INFO_TOK: 
+    case Token::GET_INFO_TOK:
     {
       const std::string& key = d_tparser.parseKeyword();
       cmd.reset(new GetInfoCommand(key));

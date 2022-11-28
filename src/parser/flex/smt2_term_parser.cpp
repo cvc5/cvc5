@@ -35,10 +35,7 @@ const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
   return "";
 }
 
-const std::string& Smt2TermParser::parseKeyword()
-{
-  return "";
-}
+const std::string& Smt2TermParser::parseKeyword() { return ""; }
 
 }  // namespace parser
 }  // namespace cvc5
