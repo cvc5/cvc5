@@ -170,6 +170,8 @@ class TptpState : public ParserState
   cvc5::Term mkDecimal(
       std::string& snum, std::string& sden, bool pos, size_t exp, bool posE);
 
+  /** Get TPTP directory */
+  const std::string& getTptpDir() const;
  private:
   void addArithmeticOperators();
   /** is the name declared, if so, return the term for that name */
