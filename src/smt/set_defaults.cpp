@@ -322,16 +322,14 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   //
   // We also must enable stringExp if reElim is aggressive, since this
   // introduces bounded quantifiers during preprocessing.
-  if ((!logic.hasEverything() && logic.isTheoryEnabled(THEORY_STRINGS))
-      || opts.strings.regExpElim == options::RegExpElimMode::AGG)
+  if (logic.isTheoryEnabled(THEORY_STRINGS))
   {
     // If the user explicitly set a logic that includes strings, but is not
     // the generic "ALL" logic, then enable stringsExp.
     opts.writeStrings().stringExp = true;
-    Trace("smt") << "Turning stringExp on since logic does not have everything "
-                    "and string theory is enabled\n";
+    Trace("smt") << "Turning stringExp on since strings are enabled\n";
   }
-  if (opts.strings.stringExp || !opts.strings.stringLazyPreproc)
+  if (opts.strings.stringExp)
   {
     // We require quantifiers since extended functions reduce using them.
     if (!logic.isQuantified())
