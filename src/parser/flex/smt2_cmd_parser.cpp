@@ -121,7 +121,19 @@ Command* Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     break;
-    case Token::DECLARE_POOL: break;
+    case Token::DECLARE_POOL: 
+    { d_state.checkThatLogicIsSet();
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+    d_state.checkUserSymbol(name);
+    Sort t = d_tparser.parseSort();
+      std::vector<Term> terms = d_tparser.parseTermList();
+     Trace("parser") << "declare pool: '" << name << "'" << std::endl;
+      Term pool = d_state.getSolver()->declarePool(name, t, terms);
+      d_state.defineVar(name, pool);
+      cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
+    }
+    break;
     case Token::DECLARE_SORT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -144,7 +156,17 @@ Command* Smt2CmdParser::parseNextCommand()
       }
     }
     break;
-    case Token::DECLARE_VAR_TOK: break;
+    case Token::DECLARE_VAR_TOK: 
+    { d_state.checkThatLogicIsSet(); 
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+     d_state.checkUserSymbol(name); 
+     Sort t = d_tparser.parseSort();
+      Term var = d_state.getSolver()->declareSygusVar(name, t);
+      d_state.defineVar(name, var);
+      cmd.reset(new DeclareSygusVarCommand(name, var, t));
+    }
+    break;
     case Token::DEFINE_CONST_TOK:
     {
       d_state.checkThatLogicIsSet();
