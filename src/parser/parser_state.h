@@ -18,9 +18,9 @@
 #ifndef CVC5__PARSER__PARSER_STATE_H
 #define CVC5__PARSER__PARSER_STATE_H
 
+#include <list>
 #include <memory>
 #include <string>
-#include <list>
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"

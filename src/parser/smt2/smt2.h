@@ -28,8 +28,8 @@
 #include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "theory/logic_info.h"
 #include "parser/smt2/smt2_state.h"
+#include "theory/logic_info.h"
 
 namespace cvc5 {
 
@@ -417,7 +417,7 @@ class Smt2 : public Parser
 
   /** Get the state */
   Smt2State& getState();
-  
+
  private:
 
   void addArithmeticOperators();

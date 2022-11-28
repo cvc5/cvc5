@@ -29,8 +29,8 @@
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "parser/parser_utils.h"
 #include "parser/parser_state.h"
+#include "parser/parser_utils.h"
 #include "symbol_table.h"
 
 namespace cvc5 {
