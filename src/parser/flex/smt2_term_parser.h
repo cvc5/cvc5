@@ -47,7 +47,7 @@ class Smt2TermParser
   std::vector<std::pair<std::string, Sort> > parseSortedVarList();
   /** Parse symbol */
   std::string parseSymbol(DeclarationCheck check = CHECK_NONE,
-                                 SymbolType type = SYM_SORT);
+                          SymbolType type = SYM_SORT);
   /**
    * Parses ':X', returns 'X'
    */
@@ -63,9 +63,9 @@ class Smt2TermParser
       const std::vector<std::string>& dnames,
       const std::vector<size_t>& arities);
   /**
-  * Matches a string, and (optionally) strips off the quotes/unescapes the
-  * string when `unescape` is set to true.
-  */
+   * Matches a string, and (optionally) strips off the quotes/unescapes the
+   * string when `unescape` is set to true.
+   */
   std::string parseStr(bool unescape);
 
  protected:

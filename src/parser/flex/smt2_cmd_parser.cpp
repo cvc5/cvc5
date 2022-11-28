@@ -112,8 +112,7 @@ Command* Smt2CmdParser::parseNextCommand()
       d_state.checkThatLogicIsSet();
       std::vector<std::string> dnames;
       std::vector<size_t> arities;
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
       dnames.push_back(name);
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
       std::vector<DatatypeDecl> dts =
@@ -134,8 +133,7 @@ Command* Smt2CmdParser::parseNextCommand()
       while (true)
       {
         d_lex.eatToken(Token::LPAREN_TOK);
-        std::string name =
-            d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+        std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
         size_t arity = d_tparser.parseIntegerNumeral();
         dnames.push_back(name);
         arities.push_back(arity);
@@ -215,8 +213,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       d_state.checkThatLogicIsSet();
       d_state.checkLogicAllowsFreeSorts();
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
       d_state.checkUserSymbol(name);
       size_t arity = d_tparser.parseIntegerNumeral();
       Trace("parser") << "declare sort: '" << name << "' arity=" << arity
@@ -236,8 +233,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DECLARE_VAR_TOK:
     {
       d_state.checkThatLogicIsSet();
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
       Term var = d_state.getSolver()->declareSygusVar(name, t);
@@ -248,8 +244,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DEFINE_CONST_TOK:
     {
       d_state.checkThatLogicIsSet();
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
       Term e = d_tparser.parseTerm();
@@ -264,7 +259,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DEFINE_FUN_REC_TOK: break;
     case Token::DEFINE_FUNS_REC_TOK: break;
     case Token::DEFINE_SORT_TOK: break;
-    case Token::ECHO_TOK: 
+    case Token::ECHO_TOK:
     {
       // TODO: optional
       bool readStr = true;
@@ -277,7 +272,8 @@ Command* Smt2CmdParser::parseNextCommand()
       {
         cmd.reset(new EchoCommand());
       }
-    }break;
+    }
+    break;
     case Token::EXIT_TOK:
     {
       cmd.reset(new QuitCommand());
@@ -286,8 +282,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::GET_ABDUCT_TOK:
     {
       d_state.checkThatLogicIsSet();
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       Term t = d_tparser.parseTerm();
       // TODO: optional
       std::vector<Term> emptyVarList;
@@ -328,8 +323,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::GET_INTERPOL_TOK:
     {
       d_state.checkThatLogicIsSet();
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       Term t = d_tparser.parseTerm();
       // TODO: optional
       std::vector<Term> emptyVarList;
@@ -421,8 +415,7 @@ Command* Smt2CmdParser::parseNextCommand()
       std::vector<std::string> names;
       for (size_t i = 0; i < 4; i++)
       {
-        std::string name =
-            d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+        std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
         names.push_back(name);
       }
       d_state.checkThatLogicIsSet();
@@ -527,8 +520,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::SYNTH_INV_TOK:
     {
       d_state.checkThatLogicIsSet();
-      std::string name =
-          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       std::vector<std::pair<std::string, Sort> > sortedVarNames =
           d_tparser.parseSortedVarList();
       Sort range;

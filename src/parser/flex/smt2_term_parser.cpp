@@ -59,8 +59,7 @@ std::vector<std::pair<std::string, Sort> > Smt2TermParser::parseSortedVarList()
   return varList;
 }
 
-std::string Smt2TermParser::parseSymbol(DeclarationCheck check,
-                                               SymbolType type)
+std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 {
   return "";
 }
@@ -84,10 +83,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
   return dts;
 }
 
-std::string Smt2TermParser::parseStr(bool unescape)
-{
-  return "";
-}
+std::string Smt2TermParser::parseStr(bool unescape) { return ""; }
 
 }  // namespace parser
 }  // namespace cvc5
