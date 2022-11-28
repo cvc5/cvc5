@@ -22,6 +22,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "parser/flex/flex_input.h"
+#include "parser/parser_state.h"
 
 namespace cvc5 {
 namespace parser {
@@ -31,7 +32,7 @@ class SymbolManager;
 
 /**
  */
-class FlexParser
+class FlexParser : public ParserStateCallback
 {
  public:
   FlexParser(Solver* solver, SymbolManager* sm);
@@ -55,7 +56,20 @@ class FlexParser
    * @param name the name of the stream, for use in error messages
    */
   void setStringInput(const std::string& input, const std::string& name);
-
+  
+  /** Issue a warning to the user. */
+  void warning(const std::string& msg) override;
+  /** Raise a parse error with the given message. */
+  void parseError(const std::string& msg) override;
+  /** Unexpectedly encountered an EOF */
+  void unexpectedEOF(const std::string& msg) override;
+  /**
+   * Preempt the next returned command with other ones; used to
+   * support the :named attribute in SMT-LIBv2, which implicitly
+   * inserts a new command before the current one. Also used in TPTP
+   * because function and predicate symbols are implicitly declared.
+   */
+  void preemptCommand(Command* cmd) override;
   /**
    * Parse and return the next command.
    * NOTE: currently memory management of commands is handled internally.
@@ -69,7 +83,6 @@ class FlexParser
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
                                                   Solver* solver,
                                                   SymbolManager* sm);
-
  protected:
   /** initialize input */
   virtual void initializeInput(std::istream& s,

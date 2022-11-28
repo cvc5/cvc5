@@ -44,6 +44,26 @@ void FlexParser::setStringInput(const std::string& input,
   initializeInput(d_flexInput->getStream(), name);
 }
 
+void FlexParser::warning(const std::string& msg)
+{
+  
+}
+
+void FlexParser::parseError(const std::string& msg)
+{
+  
+}
+
+void FlexParser::unexpectedEOF(const std::string& msg)
+{
+  
+}
+
+void FlexParser::preemptCommand(Command* cmd)
+{
+  
+}
+
 std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
                                                      Solver* solver,
                                                      SymbolManager* sm)
