@@ -43,6 +43,9 @@ class Smt2TermParser
   Sort parseSort();
   /** Parses parentheses-enclosed sort list */
   std::vector<Sort> parseSortList();
+  /** Parse parentheses-enclosed sorted variable list */
+  std::vector<std::pair<std::string, Sort> > parseSortedVarList();
+  /** Parse symbol */
   const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
                                  SymbolType type = SYM_SORT);
   /**
@@ -50,7 +53,9 @@ class Smt2TermParser
    */
   const std::string& parseKeyword();
   /** Parse grammar */
-  Grammar* parseGrammar();
+  Grammar* parseGrammar(
+             const std::vector<Term>& sygusVars,
+             const std::string& fun);
   /** Parse integer numeral */
   size_t parseIntegerNumeral();
   /** Parse datatype def */
@@ -58,7 +63,6 @@ class Smt2TermParser
       bool isCo,
       const std::vector<std::string>& dnames,
       const std::vector<size_t>& arities);
-
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
