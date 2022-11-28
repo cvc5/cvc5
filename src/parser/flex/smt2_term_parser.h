@@ -50,7 +50,7 @@ class Smt2TermParser
                           SymbolType type = SYM_SORT);
   /** Parse parentheses-enclosed sorted variable list */
   std::vector<std::string> parseSymbolList(DeclarationCheck check = CHECK_NONE,
-                          SymbolType type = SYM_SORT);
+                                           SymbolType type = SYM_SORT);
   /**
    * Parses ':X', returns 'X'
    */

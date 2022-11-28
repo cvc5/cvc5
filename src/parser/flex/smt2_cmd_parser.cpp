@@ -255,19 +255,22 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionCommand(name, t, e));
     }
     break;
-    case Token::DEFINE_FUN_TOK: { 
-      d_state.checkThatLogicIsSet(); 
-      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_VARIABLE);
-     d_state.checkUserSymbol(name); 
+    case Token::DEFINE_FUN_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      d_state.checkUserSymbol(name);
       std::vector<std::pair<std::string, Sort> > sortedVarNames =
           d_tparser.parseSortedVarList();
-          Sort t = d_tparser.parseSort();
-     /* add variables to parser state before parsing term */
+      Sort t = d_tparser.parseSort();
+      /* add variables to parser state before parsing term */
       Trace("parser") << "define fun: '" << name << "'" << std::endl;
       std::vector<Sort> sorts;
-      if( sortedVarNames.size() > 0 ) {
+      if (sortedVarNames.size() > 0)
+      {
         sorts.reserve(sortedVarNames.size());
-        for(const std::pair<std::string, Sort>& i : sortedVarNames) {
+        for (const std::pair<std::string, Sort>& i : sortedVarNames)
+        {
           sorts.push_back(i.second);
         }
       }
@@ -283,7 +286,8 @@ Command* Smt2CmdParser::parseNextCommand()
       }
       std::vector<Term> terms = d_state.bindBoundVars(sortedVarNames);
       Term expr = d_tparser.parseTerm();
-      if( !flattenVars.empty() ){
+      if (!flattenVars.empty())
+      {
         // if this function has any implicit variables flattenVars,
         // we apply the body of the definition to the flatten vars
         expr = d_state.mkHoApply(expr, flattenVars);
@@ -298,11 +302,13 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::DEFINE_FUN_REC_TOK: break;
     case Token::DEFINE_FUNS_REC_TOK: break;
-    case Token::DEFINE_SORT_TOK: 
-    { d_state.checkThatLogicIsSet();
-    std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_SORT);
-    d_state.checkUserSymbol(name);
-    std::vector<std::string> snames = d_tparser.parseSymbolList(CHECK_UNDECLARED,SYM_SORT);
+    case Token::DEFINE_SORT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+      d_state.checkUserSymbol(name);
+      std::vector<std::string> snames =
+          d_tparser.parseSymbolList(CHECK_UNDECLARED, SYM_SORT);
       d_state.pushScope();
       std::vector<Sort> sorts;
       for (const std::string& sname : snames)

@@ -65,11 +65,10 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 }
 
 std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
-                        SymbolType type)
+                                                         SymbolType type)
 {
-  
 }
-  
+
 std::string Smt2TermParser::parseKeyword() { return ""; }
 
 Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
