@@ -288,7 +288,7 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new ResetAssertionsCommand());
     }
     break;
-    case Token::SET_FEATURE_TOK: 
+    case Token::SET_FEATURE_TOK:
     {
       const std::string& key = d_tparser.parseKeyword();
       Term s = d_tparser.parseSymbolicExpr();
@@ -304,7 +304,7 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new EmptyCommand());
     }
     break;
-    case Token::SET_INFO_TOK: 
+    case Token::SET_INFO_TOK:
     {
       const std::string& key = d_tparser.parseKeyword();
       Term s = d_tparser.parseSymbolicExpr();
@@ -340,7 +340,7 @@ Command* Smt2CmdParser::parseNextCommand()
       }
       */
     }
-      break;
+    break;
     default:
       // TODO: error
       break;
