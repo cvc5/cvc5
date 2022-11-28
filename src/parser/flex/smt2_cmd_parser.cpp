@@ -248,8 +248,12 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetAssertionsCommand());
     }
     break;
-    case Token::GET_ASSIGNMENT_TOK: { d_state.checkThatLogicIsSet(); 
-     cmd.reset(new GetAssignmentCommand()); } break;
+    case Token::GET_ASSIGNMENT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new GetAssignmentCommand());
+    }
+    break;
     case Token::GET_DIFFICULTY_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -279,7 +283,8 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetInterpolantNextCommand);
     }
     break;
-    case Token::GET_LEARNED_LITERALS_TOK: {
+    case Token::GET_LEARNED_LITERALS_TOK:
+    {
       // TODO: optional
       bool readKeyword = true;
       const std::string& key = d_tparser.parseKeyword();
@@ -289,8 +294,9 @@ Command* Smt2CmdParser::parseNextCommand()
       {
         llt = d_state.getLearnedLitType(key);
       }
-      cmd.reset(new GetLearnedLiteralsCommand(llt)); }
-      break;
+      cmd.reset(new GetLearnedLiteralsCommand(llt));
+    }
+    break;
     case Token::GET_MODEL_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -303,7 +309,8 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetOptionCommand(key));
     }
     break;
-    case Token::GET_PROOF_TOK: {
+    case Token::GET_PROOF_TOK:
+    {
       // TODO: optional
       bool readKeyword = true;
       const std::string& key = d_tparser.parseKeyword();
@@ -314,8 +321,8 @@ Command* Smt2CmdParser::parseNextCommand()
         pc = d_state.getProofComponent(key);
       }
       cmd.reset(new GetProofCommand(pc));
-    
-    }break;
+    }
+    break;
     // quantifier elimination commands
     case Token::GET_QE_TOK:
     case Token::GET_QE_DISJUNCT_TOK:
@@ -352,9 +359,10 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::INV_CONSTRAINT_TOK:
     {
       std::vector<std::string> names;
-      for (size_t i=0; i<4; i++)
+      for (size_t i = 0; i < 4; i++)
       {
-        const std::string& name = d_tparser.parseSymbol(CHECK_NONE,SYM_VARIABLE);
+        const std::string& name =
+            d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
         names.push_back(name);
       }
       d_state.checkThatLogicIsSet();
@@ -374,9 +382,9 @@ Command* Smt2CmdParser::parseNextCommand()
       {
         cmd = d_state.handlePop(std::nullopt);
       }
-    } 
+    }
     break;
-    case Token::PUSH_TOK: 
+    case Token::PUSH_TOK:
     {
       // TODO: optional
       bool readNumeral = true;
@@ -389,8 +397,8 @@ Command* Smt2CmdParser::parseNextCommand()
       {
         cmd = d_state.handlePush(std::nullopt);
       }
-    } 
-      break;
+    }
+    break;
     case Token::RESET_TOK:
     {
       cmd.reset(new ResetCommand());
@@ -433,8 +441,8 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(d_state.setLogic(name));
     }
     break;
-    case Token::SET_OPTION_TOK:     
-    { 
+    case Token::SET_OPTION_TOK:
+    {
       const std::string& key = d_tparser.parseKeyword();
       Term sexpr = d_tparser.parseSymbolicExpr();
       std::string ss = sexprToString(sexpr);
@@ -442,7 +450,7 @@ Command* Smt2CmdParser::parseNextCommand()
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SolverEngine eventually (if ever) executes it.
-      if(key == "global-declarations")
+      if (key == "global-declarations")
       {
         d_state.getSymbolManager()->setGlobalDeclarations(ss == "true");
       }

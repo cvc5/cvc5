@@ -63,10 +63,7 @@ const std::string& Smt2TermParser::parseKeyword() { return ""; }
 
 Grammar* Smt2TermParser::parseGrammar() { return nullptr; }
 
-size_t Smt2TermParser::parseIntegerNumeral()
-{
-  return 0;
-}
+size_t Smt2TermParser::parseIntegerNumeral() { return 0; }
 
 }  // namespace parser
 }  // namespace cvc5
