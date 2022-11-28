@@ -37,14 +37,12 @@ namespace parser {
 
 Parser::Parser(cvc5::Solver* solver,
                SymbolManager* sm,
-               bool strictMode,
-               bool parseOnly)
+               bool strictMode)
     : d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
-      d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_solver(solver)
 {

@@ -134,9 +134,6 @@ private:
  /** Are we parsing in strict mode? */
  bool d_strictMode;
 
- /** Are we only parsing? */
- bool d_parseOnly;
-
  /**
   * Can we include files?  (Set to false for security purposes in
   * e.g. the online version.)
@@ -177,14 +174,10 @@ protected:
   * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
-  * @param parseOnly whether we are parsing only (and therefore certain checks
-  * need not be performed, like those about unimplemented features, @see
-  * unimplementedFeature())
   */
  Parser(cvc5::Solver* solver,
         SymbolManager* sm,
-        bool strictMode = false,
-        bool parseOnly = false);
+        bool strictMode = false);
 
 public:
 
@@ -606,24 +599,11 @@ public:
   }
 
   /**
-   * If we are parsing only, don't raise an exception; if we are not,
-   * raise a parse error with the given message.  There is no actual
-   * parse error, everything is as expected, but we cannot create the
-   * Expr, Type, or other requested thing yet due to internal
-   * limitations.  Even though it's not a parse error, we throw a
-   * parse error so that the input line and column information is
-   * available.
-   *
-   * Think quantifiers.  We don't have a TheoryQuantifiers yet, so we
-   * have no kind::FORALL or kind::EXISTS.  But we might want to
-   * support parsing quantifiers (just not doing anything with them).
-   * So this mechanism gives you a way to do it with --parse-only.
+   * Raise a parse error with the given message.
    */
-  inline void unimplementedFeature(const std::string& msg)
+  void unimplementedFeature(const std::string& msg)
   {
-    if(!d_parseOnly) {
-      parseError("Unimplemented feature: " + msg);
-    }
+    parseError("Unimplemented feature: " + msg);
   }
 
   /**
