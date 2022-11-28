@@ -27,6 +27,7 @@ ws          [ \t\f]+
 "assume"   return cvc5::parser::ASSUME_TOK;
 "as"   return cvc5::parser::AS_TOK;
 ":inst-add-to-pool"   return cvc5::parser::ATTRIBUTE_INST_ADD_TO_POOL_TOK;
+":quant-inst-max-level"  return cvc5::parser::ATTRIBUTE_INST_LEVEL;
 ":named"   return cvc5::parser::ATTRIBUTE_NAMED_TOK;
 ":no-pattern"   return cvc5::parser::ATTRIBUTE_NO_PATTERN_TOK;
 ":pattern"   return cvc5::parser::ATTRIBUTE_PATTERN_TOK;
@@ -58,7 +59,6 @@ ws          [ \t\f]+
 "echo"   return cvc5::parser::ECHO_TOK;
 "exists"   return cvc5::parser::EXISTS_TOK;
 "exit"   return cvc5::parser::EXIT_TOK;
-"fmf.card"   return cvc5::parser::FMF_CARD_TOK;
 "forall"   return cvc5::parser::FORALL_TOK;
 "get-abduct-next"   return cvc5::parser::GET_ABDUCT_NEXT_TOK;
 "get-abduct"   return cvc5::parser::GET_ABDUCT_TOK;
@@ -89,7 +89,6 @@ ws          [ \t\f]+
 "reset-assertions"   return cvc5::parser::RESET_ASSERTIONS_TOK;
 "reset"   return cvc5::parser::RESET_TOK;
 ")"   return cvc5::parser::RPAREN_TOK;
-"set.comprehension"   return cvc5::parser::SET_COMPREHENSION_TOK;
 "set-feature"   return cvc5::parser::SET_FEATURE_TOK;
 "set-info"   return cvc5::parser::SET_INFO_TOK;
 "set-logic"   return cvc5::parser::SET_LOGIC_TOK;
