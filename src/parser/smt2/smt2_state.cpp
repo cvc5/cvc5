@@ -24,11 +24,12 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2State::Smt2State(cvc5::Solver* solver,
+Smt2State::Smt2State(ParserStateCallback * psc,
+                     Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool parseOnly)
-    : ParserState(solver, sm, strictMode, parseOnly),
+    : ParserState(psc, solver, sm, strictMode, parseOnly),
       d_logicSet(false),
       d_seenSetLogic(false)
 {

@@ -40,7 +40,8 @@ class Command;
 class Smt2State : public ParserState
 {
  public:
-  Smt2State(cvc5::Solver* solver,
+  Smt2State(ParserStateCallback * psc,
+            Solver* solver,
        SymbolManager* sm,
        bool strictMode = false,
        bool parseOnly = false);
@@ -52,7 +53,7 @@ class Smt2State : public ParserState
    */
   void addCoreSymbols();
 
-  void addOperator(cvc5::Kind k, const std::string& name);
+  void addOperator(Kind k, const std::string& name);
 
   /**
    * Registers an indexed function symbol.

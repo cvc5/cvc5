@@ -52,10 +52,14 @@ set(libcvc5parser_src_files
   parser_builder.cpp
   parser_builder.h
   parser_exception.h
+  parser_state.cpp
+  parser_state.h
   smt2/smt2.cpp
   smt2/smt2.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_state.cpp
+  smt2/smt2_state.h
   smt2/sygus_input.cpp
   smt2/sygus_input.h
   symbol_table.cpp
@@ -66,6 +70,20 @@ set(libcvc5parser_src_files
   tptp/tptp_input.h
   tptp/tptp_state.cpp
   tptp/tptp_state.h
+  flex/lexer.cpp
+  flex/lexer.h
+  flex/flex_input.cpp	
+  flex/flex_input.h	
+  flex/flex_parser.cpp	
+  flex/flex_parser.h	
+  flex/smt2_lexer.cpp	
+  flex/smt2_lexer.h	
+  flex/smt2_cmd_parser.cpp	
+  flex/smt2_cmd_parser.h	
+  flex/smt2_parser.cpp	
+  flex/smt2_parser.h	
+  flex/smt2_term_parser.cpp	
+  flex/smt2_term_parser.h
   flex/tokens.cpp
   flex/tokens.h
   flex/smt2_lexer.cpp

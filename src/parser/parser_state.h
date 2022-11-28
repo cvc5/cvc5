@@ -50,17 +50,7 @@ enum DeclarationCheck
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check)
-{
-  switch (check)
-  {
-    case CHECK_NONE: return out << "CHECK_NONE";
-    case CHECK_DECLARED: return out << "CHECK_DECLARED";
-    case CHECK_UNDECLARED: return out << "CHECK_UNDECLARED";
-    default: return out << "DeclarationCheck!UNKNOWN";
-  }
-}
+std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
 
 /**
  * Types of symbols. Used to define namespaces.
@@ -79,17 +69,27 @@ enum SymbolType
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type);
-inline std::ostream& operator<<(std::ostream& out, SymbolType type)
+std::ostream& operator<<(std::ostream& out, SymbolType type);
+
+class ParserStateCallback
 {
-  switch (type)
-  {
-    case SYM_VARIABLE: return out << "SYM_VARIABLE";
-    case SYM_SORT: return out << "SYM_SORT";
-    case SYM_VERBATIM: return out << "SYM_VERBATIM";
-    default: return out << "SymbolType!UNKNOWN";
-  }
-}
+public:
+  ParserStateCallback(){}
+  virtual ~ParserStateCallback(){}
+  /** Issue a warning to the user. */
+  virtual void warning(const std::string& msg) = 0;
+  /** Raise a parse error with the given message. */
+  virtual void parseError(const std::string& msg) = 0;
+  /** Unexpectedly encountered an EOF */
+  virtual void unexpectedEOF(const std::string& msg) = 0;
+  /**
+   * Preempt the next returned command with other ones; used to
+   * support the :named attribute in SMT-LIBv2, which implicitly
+   * inserts a new command before the current one. Also used in TPTP
+   * because function and predicate symbols are implicitly declared.
+   */
+  virtual void preemptCommand(Command* cmd) = 0;
+};
 
 /**
  * This class encapsulates all of the state of a parser, including the
@@ -105,6 +105,7 @@ class CVC5_EXPORT ParserState
    * @attention The parser takes "ownership" of the given
    * input and will delete it on destruction.
    *
+   * @param psc The callback for implementing parser-specific methods
    * @param solver solver API object
    * @param symm reference to the symbol manager
    * @param input the parser input
@@ -113,7 +114,8 @@ class CVC5_EXPORT ParserState
    * need not be performed, like those about unimplemented features, @see
    * unimplementedFeature())
    */
-  ParserState(cvc5::Solver* solver,
+  ParserState(ParserStateCallback * psc,
+              Solver* solver,
               SymbolManager* sm,
               bool strictMode = false,
               bool parseOnly = false);
@@ -121,7 +123,7 @@ class CVC5_EXPORT ParserState
   virtual ~ParserState();
 
   /** Get the associated solver. */
-  cvc5::Solver* getSolver() const;
+  Solver* getSolver() const;
 
   /** Deletes and replaces the current parser input. */
   void setInput() { d_done = false; }
@@ -131,10 +133,10 @@ class CVC5_EXPORT ParserState
    * error has been encountered.
    * @return true if parser is done
    */
-  inline bool done() const { return d_done; }
+  bool done() const { return d_done; }
 
   /** Sets the done flag */
-  inline void setDone(bool done = true) { d_done = done; }
+  void setDone(bool done = true) { d_done = done; }
 
   /** Enable semantic checks during parsing. */
   void enableChecks() { d_checksEnabled = true; }
@@ -502,15 +504,18 @@ class CVC5_EXPORT ParserState
    */
   bool isFunctionLike(cvc5::Term fun);
 
+  //-------------------- callbacks to parser
   /** Issue a warning to the user. */
   void warning(const std::string& msg);
-  /** Issue a warning to the user, but only once per attribute. */
-  void attributeNotSupported(const std::string& attr);
-
   /** Raise a parse error with the given message. */
   void parseError(const std::string& msg);
   /** Unexpectedly encountered an EOF */
   void unexpectedEOF(const std::string& msg);
+  /** Preempt command */
+  void preemptCommand(Command* cmd);
+  //-------------------- end callbacks to parser
+  /** Issue a warning to the user, but only once per attribute. */
+  void attributeNotSupported(const std::string& attr);
 
   /**
    * If we are parsing only, don't raise an exception; if we are not,
@@ -526,7 +531,7 @@ class CVC5_EXPORT ParserState
    * support parsing quantifiers (just not doing anything with them).
    * So this mechanism gives you a way to do it with --parse-only.
    */
-  inline void unimplementedFeature(const std::string& msg)
+  void unimplementedFeature(const std::string& msg)
   {
     if (!d_parseOnly)
     {
@@ -625,9 +630,11 @@ class CVC5_EXPORT ParserState
 
  protected:
   /** The API Solver object. */
-  cvc5::Solver* d_solver;
+  Solver* d_solver;
 
  private:
+  /** The callback */
+  ParserStateCallback * d_psc;
   /**
    * Reference to the symbol manager, which manages the symbol table used by
    * this parser.

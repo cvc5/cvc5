@@ -35,11 +35,35 @@ using namespace std;
 namespace cvc5 {
 namespace parser {
 
-ParserState::ParserState(cvc5::Solver* solver,
+std::ostream& operator<<(std::ostream& out, DeclarationCheck check)
+{
+  switch (check)
+  {
+    case CHECK_NONE: return out << "CHECK_NONE";
+    case CHECK_DECLARED: return out << "CHECK_DECLARED";
+    case CHECK_UNDECLARED: return out << "CHECK_UNDECLARED";
+    default: return out << "DeclarationCheck!UNKNOWN";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, SymbolType type)
+{
+  switch (type)
+  {
+    case SYM_VARIABLE: return out << "SYM_VARIABLE";
+    case SYM_SORT: return out << "SYM_SORT";
+    case SYM_VERBATIM: return out << "SYM_VERBATIM";
+    default: return out << "SymbolType!UNKNOWN";
+  }
+}
+
+ParserState::ParserState(ParserStateCallback * psc,
+                         Solver* solver,
                          SymbolManager* sm,
                          bool strictMode,
                          bool parseOnly)
     : d_solver(solver),
+    d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_done(true),
@@ -52,9 +76,9 @@ ParserState::ParserState(cvc5::Solver* solver,
 
 ParserState::~ParserState() {}
 
-cvc5::Solver* ParserState::getSolver() const { return d_solver; }
+Solver* ParserState::getSolver() const { return d_solver; }
 
-cvc5::Term ParserState::getSymbol(const std::string& name, SymbolType type)
+Term ParserState::getSymbol(const std::string& name, SymbolType type)
 {
   checkDeclaration(name, CHECK_DECLARED, type);
   Assert(isDeclared(name, type));
@@ -641,19 +665,22 @@ void ParserState::addOperator(cvc5::Kind kind)
 
 void ParserState::warning(const std::string& msg)
 {
-  // FIXME
-  // d_input->warning(msg);
+  d_psc->warning(msg);
 }
 
 void ParserState::parseError(const std::string& msg)
 {
-  // FIXME
-  // d_input->parseError(msg);
+  d_psc->parseError(msg);
 }
+
 void ParserState::unexpectedEOF(const std::string& msg)
 {
-  // FIXME
-  // d_input->parseError(msg, true);
+  d_psc->unexpectedEOF(msg);
+}
+
+void ParserState::preemptCommand(Command* cmd)
+{
+  d_psc->preemptCommand(cmd);
 }
 
 void ParserState::attributeNotSupported(const std::string& attr)

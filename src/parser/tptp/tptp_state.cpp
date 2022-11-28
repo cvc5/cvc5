@@ -13,8 +13,7 @@
  * Definition of TPTP parser.
  */
 
-// Do not #include "parser/antlr_input.h" directly. Rely on the header.
-#include "parser/tptp/tptp.h"
+#include "parser/tptp/tptp_state.h"
 
 #include <algorithm>
 #include <set>
@@ -23,15 +22,17 @@
 #include "base/check.h"
 #include "parser/api/cpp/command.h"
 #include "theory/logic_info.h"
+#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
 
-TptpState::TptpState(cvc5::Solver* solver,
+TptpState::TptpState(ParserStateCallback * psc,
+                     Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly),
+    : ParserState(psc, solver, sm, strictMode, parseOnly),
       d_cnf(false),
       d_fof(false),
       d_hol(false)
@@ -69,9 +70,6 @@ TptpState::TptpState(cvc5::Solver* solver,
 }
 
 TptpState::~TptpState() {
-  for( unsigned i=0; i<d_in_created.size(); i++ ){
-    d_in_created[i]->free(d_in_created[i]);
-  }
 }
 
 void TptpState::addTheory(Theory theory) {

@@ -15,8 +15,8 @@
 
 #include "cvc5parser_private.h"
 
-#ifndef CVC5__PARSER__TPTP_H
-#define CVC5__PARSER__TPTP_H
+#ifndef CVC5__PARSER__TPTP_STATE_H
+#define CVC5__PARSER__TPTP_STATE_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -33,7 +33,8 @@ namespace parser {
  */
 class TptpState : public ParserState {
  public:
-  TptpState(cvc5::Solver* solver,
+  TptpState(ParserStateCallback * psc,
+            Solver* solver,
        SymbolManager* sm,
        bool strictMode = false,
        bool parseOnly = false);
@@ -191,8 +192,6 @@ class TptpState : public ParserState {
    * scopes.
    */
   std::unordered_map<std::string, cvc5::Term> d_auxSymbolTable;
-
-  std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 
   // TPTP directory where to find includes;
   // empty if none could be determined
