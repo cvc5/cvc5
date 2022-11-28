@@ -67,6 +67,8 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
                                                          SymbolType type)
 {
+  std::vector<std::string> symbols;
+  return symbols;
 }
 
 std::string Smt2TermParser::parseKeyword() { return ""; }
