@@ -44,7 +44,8 @@ class Smt2State : public ParserState
             Solver* solver,
             SymbolManager* sm,
             bool strictMode = false,
-            bool parseOnly = false);
+            bool parseOnly = false,
+            bool isSygus = false);
 
   ~Smt2State();
 
@@ -414,6 +415,8 @@ class Smt2State : public ParserState
    */
   static bool isConstInt(const cvc5::Term& t);
 
+  /** Are we parsing a sygus file? */
+  bool d_isSygus;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */

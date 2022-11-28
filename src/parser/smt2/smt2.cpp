@@ -17,15 +17,8 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "parser/antlr_input.h"
-#include "parser/parser.h"
-#include "parser/smt2/smt2_input.h"
-
-// ANTLR defines these, which is really bad!
-#undef true
-#undef false
-// ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
-#undef ADD
+#include "base/output.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 namespace parser {
@@ -38,7 +31,8 @@ Smt2::Smt2(cvc5::Solver* solver,
     : Parser(solver, sm, strictMode, parseOnly),
       d_isSygus(isSygus),
       d_logicSet(false),
-      d_seenSetLogic(false)
+      d_seenSetLogic(false),
+      d_state(this, solver, sm, strictMode, parseOnly, isSygus)
 {
 }
 
@@ -1386,6 +1380,11 @@ cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
 bool Smt2::isConstInt(const cvc5::Term& t)
 {
   return t.getKind() == cvc5::CONST_INTEGER;
+}
+
+Smt2State& Smt2::getState()
+{
+  return d_state;
 }
 
 }  // namespace parser

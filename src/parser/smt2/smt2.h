@@ -29,6 +29,7 @@
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "theory/logic_info.h"
+#include "parser/smt2/smt2_state.h"
 
 namespace cvc5 {
 
@@ -414,6 +415,9 @@ class Smt2 : public Parser
    */
   std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
 
+  /** Get the state */
+  Smt2State& getState();
+  
  private:
 
   void addArithmeticOperators();
@@ -444,6 +448,8 @@ class Smt2 : public Parser
    * Is term t a constant integer?
    */
   static bool isConstInt(const cvc5::Term& t);
+  /** The state object */
+  Smt2State d_state;
 }; /* class Smt2 */
 
 }  // namespace parser

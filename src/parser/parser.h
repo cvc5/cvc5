@@ -30,6 +30,7 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "parser/parser_utils.h"
+#include "parser/parser_state.h"
 #include "symbol_table.h"
 
 namespace cvc5 {
@@ -45,7 +46,7 @@ class Input;
  *
  * This class is deprecated and used only for the ANTLR parser.
  */
-class CVC5_EXPORT Parser
+class CVC5_EXPORT Parser : public ParserStateCallback
 {
   friend class ParserBuilder;
 private:
@@ -523,7 +524,7 @@ public:
    * inserts a new command before the current one. Also used in TPTP
    * because function and predicate symbols are implicitly declared.
    */
-  void preemptCommand(Command* cmd);
+  void preemptCommand(Command* cmd) override;
 
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
@@ -538,14 +539,14 @@ public:
   cvc5::Term nextExpression();
 
   /** Issue a warning to the user. */
-  void warning(const std::string& msg) { d_input->warning(msg); }
+  void warning(const std::string& msg) override { d_input->warning(msg); }
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
 
   /** Raise a parse error with the given message. */
-  inline void parseError(const std::string& msg) { d_input->parseError(msg); }
+  void parseError(const std::string& msg) override { d_input->parseError(msg); }
   /** Unexpectedly encountered an EOF */
-  inline void unexpectedEOF(const std::string& msg)
+  void unexpectedEOF(const std::string& msg) override
   {
     d_input->parseError(msg, true);
   }

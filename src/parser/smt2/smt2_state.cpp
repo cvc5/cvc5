@@ -28,8 +28,10 @@ Smt2State::Smt2State(ParserStateCallback* psc,
                      Solver* solver,
                      SymbolManager* sm,
                      bool strictMode,
-                     bool parseOnly)
+                     bool parseOnly,
+                     bool isSygus)
     : ParserState(psc, solver, sm, strictMode, parseOnly),
+      d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
