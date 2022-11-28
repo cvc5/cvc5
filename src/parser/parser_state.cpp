@@ -35,28 +35,6 @@ using namespace std;
 namespace cvc5 {
 namespace parser {
 
-std::ostream& operator<<(std::ostream& out, DeclarationCheck check)
-{
-  switch (check)
-  {
-    case CHECK_NONE: return out << "CHECK_NONE";
-    case CHECK_DECLARED: return out << "CHECK_DECLARED";
-    case CHECK_UNDECLARED: return out << "CHECK_UNDECLARED";
-    default: return out << "DeclarationCheck!UNKNOWN";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, SymbolType type)
-{
-  switch (type)
-  {
-    case SYM_VARIABLE: return out << "SYM_VARIABLE";
-    case SYM_SORT: return out << "SYM_SORT";
-    case SYM_VERBATIM: return out << "SYM_VERBATIM";
-    default: return out << "SymbolType!UNKNOWN";
-  }
-}
-
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
                          SymbolManager* sm,

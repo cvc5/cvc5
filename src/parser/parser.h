@@ -29,14 +29,10 @@
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "parser/parser_state.h"
+#include "parser/parser_utils.h"
 #include "symbol_table.h"
 
 namespace cvc5 {
-
-// Forward declarations
-class ResourceManager;
-
 namespace parser {
 
 class Command;
@@ -101,6 +97,12 @@ private:
   */
  std::list<Command*> d_commandQueue;
 
+ /** Memory allocation for included files */
+ class IncludeFileCache;
+ std::unique_ptr<IncludeFileCache> d_incCache;
+
+ /** Get the include file cache */
+ IncludeFileCache* getIncludeFileCache();
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
