@@ -15,10 +15,10 @@
 
 #include "parser/flex/flex_parser.h"
 
+#include "base/check.h"
 #include "base/output.h"
 #include "parser/flex/smt2_parser.h"
 #include "parser/parser_exception.h"
-#include "base/check.h"
 
 namespace cvc5 {
 namespace parser {
@@ -76,21 +76,29 @@ Command* FlexParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
   Command* cmd = nullptr;
-  if (!d_commandQueue.empty()) {
+  if (!d_commandQueue.empty())
+  {
     cmd = d_commandQueue.front();
     d_commandQueue.pop_front();
     setDone(cmd == nullptr);
-  } else {
-    try {
+  }
+  else
+  {
+    try
+    {
       cmd = parseNextCommand();
       d_commandQueue.push_back(cmd);
       cmd = d_commandQueue.front();
       d_commandQueue.pop_front();
       setDone(cmd == nullptr);
-    } catch (ParserException& e) {
+    }
+    catch (ParserException& e)
+    {
       setDone();
       throw;
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e)
+    {
       setDone();
       parseError(e.what());
     }
@@ -103,14 +111,20 @@ Term FlexParser::nextExpression()
 {
   Trace("parser") << "nextExpression()" << std::endl;
   Term result;
-  if (!d_done) {
-    try {
+  if (!d_done)
+  {
+    try
+    {
       result = parseNextExpression();
       setDone(result.isNull());
-    } catch (ParserException& e) {
+    }
+    catch (ParserException& e)
+    {
       setDone();
       throw;
-    } catch (std::exception& e) {
+    }
+    catch (std::exception& e)
+    {
       setDone();
       parseError(e.what());
     }

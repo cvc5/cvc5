@@ -18,7 +18,10 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state) : d_lex(lex), d_state(state) {}
+Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
+    : d_lex(lex), d_state(state)
+{
+}
 
 Term Smt2TermParser::parseNextExpression()
 {

@@ -18,8 +18,8 @@
 #ifndef CVC5__PARSER__FLEX_PARSER_H
 #define CVC5__PARSER__FLEX_PARSER_H
 
-#include <memory>
 #include <list>
+#include <memory>
 
 #include "api/cpp/cvc5.h"
 #include "parser/flex/flex_input.h"
@@ -81,15 +81,15 @@ class FlexParser : public ParserStateCallback
 
   /** Parse and return the next expression. */
   Term nextExpression();
-  
+
   /** make flex parser from language string */
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
                                                   Solver* solver,
                                                   SymbolManager* sm);
 
  protected:
-   /** Initialize input */
-   void initializeInput(const std::string& name);
+  /** Initialize input */
+  void initializeInput(const std::string& name);
 
   /** Sets the done flag */
   void setDone(bool done = true) { d_done = done; }
@@ -110,12 +110,12 @@ class FlexParser : public ParserStateCallback
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
   /**
-    * "Preemption commands": extra commands implied by subterms that
-    * should be issued before the currently-being-parsed command is
-    * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-    *
-    * Owns the memory of the Commands in the queue.
-    */
+   * "Preemption commands": extra commands implied by subterms that
+   * should be issued before the currently-being-parsed command is
+   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   *
+   * Owns the memory of the Commands in the queue.
+   */
   std::list<Command*> d_commandQueue;
   /** Are we done */
   bool d_done;

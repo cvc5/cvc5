@@ -38,6 +38,7 @@ class Smt2Parser : public FlexParser
              bool strictMode = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
+
  protected:
   /**
    * Parse and return the next command.

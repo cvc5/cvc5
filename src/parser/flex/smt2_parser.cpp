@@ -33,9 +33,15 @@ Smt2Parser::Smt2Parser(Solver* solver,
 {
   d_lex = &d_slex;
 }
-Command* Smt2Parser::parseNextCommand() { return d_cmdParser.parseNextCommand(); }
+Command* Smt2Parser::parseNextCommand()
+{
+  return d_cmdParser.parseNextCommand();
+}
 
-Term Smt2Parser::parseNextExpression() { return d_termParser.parseNextExpression(); }
+Term Smt2Parser::parseNextExpression()
+{
+  return d_termParser.parseNextExpression();
+}
 
 }  // namespace parser
 }  // namespace cvc5
