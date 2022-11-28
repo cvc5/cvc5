@@ -205,7 +205,7 @@ private:
     ArithVariables* d_pm;
   public:
     LowerBoundCleanUp(ArithVariables* pm);
-    void operator()(AVCPair* restore);
+    void operator()(AVCPair& restore);
   };
 
   class UpperBoundCleanUp {
@@ -213,7 +213,7 @@ private:
     ArithVariables* d_pm;
   public:
     UpperBoundCleanUp(ArithVariables* pm);
-    void operator()(AVCPair* restore);
+    void operator()(AVCPair& restore);
   };
 
   typedef context::CDList<AVCPair, LowerBoundCleanUp> LBReverts;
