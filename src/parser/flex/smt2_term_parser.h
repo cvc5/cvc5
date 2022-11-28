@@ -35,6 +35,7 @@ class Smt2TermParser
 
   ///
   Term parseTerm();
+  Sort parseSort();
   const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
                                  SymbolType type = SYM_SORT);
   const std::string& parseKeyword();

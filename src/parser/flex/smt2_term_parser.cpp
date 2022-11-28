@@ -29,6 +29,12 @@ Term Smt2TermParser::parseTerm()
   return t;
 }
 
+Sort Smt2TermParser::parseSort()
+{
+  Sort s;
+  return s;
+}
+
 const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
                                                SymbolType type)
 {

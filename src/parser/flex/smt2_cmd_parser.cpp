@@ -36,10 +36,22 @@ Command* Smt2CmdParser::parseNextCommand()
   switch (tok)
   {
     case Token::ASSERT_TOK:
-    {
+    { d_state.checkThatLogicIsSet(); 
+     d_state.clearLastNamedTerm(); 
       Term t = d_tparser.parseTerm();
+     cmd.reset(new AssertCommand(t));
+      if (d_state.lastNamedTerm().first == t)
+      {
+        Trace("parser") << "Process top-level name: " << t << std::endl;
+        // set the expression name, if there was a named term
+        std::pair<Term, std::string> namedTerm =
+            d_state.lastNamedTerm();
+        d_state.getSymbolManager()->setExpressionName(namedTerm.first, namedTerm.second, true);
+        Trace("parser") << "finished process top-level name" << std::endl;
+      }
     }
     break;
+    // sygus assume/constraint
     case Token::ASSUME_TOK:
     case Token::CONSTRAINT_TOK:
     {
@@ -94,7 +106,18 @@ Command* Smt2CmdParser::parseNextCommand()
     }
     break;
     case Token::DECLARE_VAR_TOK: break;
-    case Token::DEFINE_CONST_TOK: break;
+    case Token::DEFINE_CONST_TOK:
+    { d_state.checkThatLogicIsSet(); 
+      const std::string& name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_VARIABLE);
+    d_state.checkUserSymbol(name);
+    Sort t = d_tparser.parseSort();
+    Term e = d_tparser.parseTerm();
+    
+      // declare the name down here (while parsing term, signature
+      // must not be extended with the name itself; no recursion
+      // permitted)
+      cmd.reset(new DefineFunctionCommand(name, t, e));
+    } break;
     case Token::DEFINE_FUN_TOK: break;
     case Token::DEFINE_FUN_REC_TOK: break;
     case Token::DEFINE_FUNS_REC_TOK: break;
@@ -129,7 +152,8 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::GET_INTERPOL_TOK: break;
     case Token::GET_INTERPOL_NEXT_TOK: break;
     case Token::GET_LEARNED_LITERALS_TOK: break;
-    case Token::GET_MODEL_TOK: break;
+    case Token::GET_MODEL_TOK: { d_state.checkThatLogicIsSet(); 
+     cmd.reset(new GetModelCommand()); }break;
     case Token::GET_OPTION_TOK:
     {
       const std::string& key = d_tparser.parseKeyword();
@@ -155,8 +179,15 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::INV_CONSTRAINT_TOK: break;
     case Token::POP_TOK: break;
     case Token::PUSH_TOK: break;
-    case Token::RESET_TOK: break;
-    case Token::RESET_ASSERTIONS_TOK: break;
+    case Token::RESET_TOK:    {
+      cmd.reset(new ResetCommand());
+      // reset the state of the parser, which is independent of the symbol
+      // manager
+      d_state.reset();
+    }
+    break;
+    case Token::RESET_ASSERTIONS_TOK:     { cmd.reset(new ResetAssertionsCommand());
+    }break;
     case Token::SET_FEATURE_TOK: break;
     case Token::SET_INFO_TOK: break;
     case Token::SET_LOGIC_TOK:
