@@ -26,20 +26,14 @@
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "symbol_table.h"
+#include "parser/symbol_table.h"
 
 namespace cvc5 {
-
-// Forward declarations
-class ResourceManager;
-
 namespace parser {
 
 class Command;
-class Input;
 
 /** Types of checks for the symbols */
 enum DeclarationCheck
