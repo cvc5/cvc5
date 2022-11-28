@@ -107,24 +107,25 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     // single datatype
     case Token::DECLARE_CODATATYPE_TOK:
-    case Token::DECLARE_DATATYPE_TOK: 
-    { 
-      d_state.checkThatLogicIsSet(); 
+    case Token::DECLARE_DATATYPE_TOK:
+    {
+      d_state.checkThatLogicIsSet();
       std::vector<std::string> dnames;
-      const std::string& name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
       dnames.push_back(name);
       std::vector<int> arities;
       arities.push_back(-1);
-      bool isCo= (tok==Token::DECLARE_CODATATYPE_TOK);
-      std::vector<DatatypeDecl> dts = d_tparser.parseDatatypeDef(isCo, dnames, arities);
-    cmd.reset(new DatatypeDeclarationCommand(
-        d_state.bindMutualDatatypeTypes(dts, true)));
+      bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
+      std::vector<DatatypeDecl> dts =
+          d_tparser.parseDatatypeDef(isCo, dnames, arities);
+      cmd.reset(new DatatypeDeclarationCommand(
+          d_state.bindMutualDatatypeTypes(dts, true)));
     }
-      break;
+    break;
     // multiple datatype
     case Token::DECLARE_CODATATYPES_TOK:
-    case Token::DECLARE_DATATYPES_TOK: 
-      break;
+    case Token::DECLARE_DATATYPES_TOK: break;
     // declare-fun and declare-const
     case Token::DECLARE_CONST_TOK:
     case Token::DECLARE_FUN_TOK:

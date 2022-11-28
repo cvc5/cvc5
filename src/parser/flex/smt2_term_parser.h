@@ -54,9 +54,11 @@ class Smt2TermParser
   /** Parse integer numeral */
   size_t parseIntegerNumeral();
   /** Parse datatype def */
-  std::vector<DatatypeDecl> parseDatatypeDef(bool isCo,
-              const std::vector<std::string>& dnames,
-              const std::vector<int>& arities);
+  std::vector<DatatypeDecl> parseDatatypeDef(
+      bool isCo,
+      const std::vector<std::string>& dnames,
+      const std::vector<int>& arities);
+
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
