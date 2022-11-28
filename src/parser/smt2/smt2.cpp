@@ -33,9 +33,8 @@ namespace parser {
 Smt2::Smt2(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
-           bool parseOnly,
            bool isSygus)
-    : Parser(solver, sm, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode),
       d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
