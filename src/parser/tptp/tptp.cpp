@@ -39,7 +39,8 @@ Tptp::Tptp(cvc5::Solver* solver,
     : Parser(solver, sm, strictMode, parseOnly),
       d_cnf(false),
       d_fof(false),
-      d_hol(false)
+      d_hol(false),
+      d_state(this, solver, sm, strictMode, parseOnly)
 {
   addTheory(Tptp::THEORY_CORE);
 
@@ -561,6 +562,10 @@ Command* Tptp::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
   }else{
     return new AssertCommand(expr);
   }
+}
+TptpState* Tptp::getState()
+{
+  return &d_state;
 }
 
 }  // namespace parser

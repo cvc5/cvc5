@@ -416,7 +416,7 @@ class Smt2 : public Parser
   std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
 
   /** Get the state */
-  Smt2State& getState();
+  Smt2State* getState();
 
  private:
 

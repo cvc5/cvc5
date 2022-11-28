@@ -212,31 +212,6 @@ class TptpState : public ParserState
   bool d_hol;  // in a thf formula
 };             /* class Tptp */
 
-namespace tptp {
-/**
- * Just exists to provide the uintptr_t constructor that ANTLR
- * requires.
- */
-struct myExpr : public cvc5::Term
-{
-  myExpr() : cvc5::Term() {}
-  myExpr(void*) : cvc5::Term() {}
-  myExpr(const cvc5::Term& e) : cvc5::Term(e) {}
-  myExpr(const myExpr& e) : cvc5::Term(e) {}
-}; /* struct myExpr*/
-
-enum NonAssoc
-{
-  NA_IFF,
-  NA_IMPLIES,
-  NA_REVIMPLIES,
-  NA_REVIFF,
-  NA_REVOR,
-  NA_REVAND,
-};
-
-}  // namespace tptp
-
 }  // namespace parser
 }  // namespace cvc5
 

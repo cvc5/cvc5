@@ -108,8 +108,10 @@ using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
+#undef PARSER_BASE
+#define PARSER_BASE ((Tptp*)PARSER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Tptp*)PARSER->super)
+#define PARSER_STATE PARSER_BASE->getState()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef SYM_MAN

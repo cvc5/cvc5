@@ -115,7 +115,7 @@ using namespace cvc5::parser;
 #undef PARSER_BASE
 #define PARSER_BASE ((Smt2*)PARSER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Smt2*)PARSER->super)
+#define PARSER_STATE PARSER_BASE->getState()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef SYM_MAN
@@ -165,7 +165,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
         PARSER_STATE->parseError("Extended commands are not permitted while "
                                  "operating in strict compliance mode.");
       }
-      PARSER_STATE->includeSmt2File(name);
+      PARSER_BASE->includeSmt2File(name);
       // The command of the included file will be produced at the next
       // parseCommand() call
       cmd.reset(new EmptyCommand("include::" + name));

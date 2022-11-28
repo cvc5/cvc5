@@ -1382,7 +1382,7 @@ bool Smt2::isConstInt(const cvc5::Term& t)
   return t.getKind() == cvc5::CONST_INTEGER;
 }
 
-Smt2State& Smt2::getState() { return d_state; }
+Smt2State* Smt2::getState() { return &d_state; }
 
 }  // namespace parser
 }  // namespace cvc5

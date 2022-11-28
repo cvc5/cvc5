@@ -26,15 +26,10 @@
 #include "parser/parse_op.h"
 #include "parser/parser.h"
 #include "util/hash.h"
+#include "parser/tptp/tptp_state.h"
 
 namespace cvc5 {
-
-class Solver;
-
 namespace parser {
-
-class Command;
-
 /*
  * This class is deprecated and used only for the ANTLR parser.
  */
@@ -179,6 +174,8 @@ class Tptp : public Parser {
   /** Get TPTP directory */
   const std::string& getTptpDir() const;
 
+  /** Get state */
+  TptpState* getState();
  private:
   void addArithmeticOperators();
   /** is the name declared, if so, return the term for that name */
@@ -219,6 +216,8 @@ class Tptp : public Parser {
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
   bool d_hol;  // in a thf formula
+  /** The state */
+  TptpState d_state;
 };/* class Tptp */
 
 
