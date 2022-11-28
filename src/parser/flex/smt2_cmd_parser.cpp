@@ -261,14 +261,17 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetUnsatCoreCommand);
     }
     break;
-    case Token::GET_VALUE_TOK:    {
+    case Token::GET_VALUE_TOK:
+    {
       d_state.checkThatLogicIsSet();
       // bind all symbols specific to the model, e.g. uninterpreted constant
       // values
       d_state.pushGetValueScope();
       std::vector<Term> terms = d_tparser.parseTermList();
-       cmd.reset(new GetValueCommand(terms));
-     d_state.popScope(); } break;
+      cmd.reset(new GetValueCommand(terms));
+      d_state.popScope();
+    }
+    break;
     case Token::INV_CONSTRAINT_TOK: break;
     case Token::POP_TOK: break;
     case Token::PUSH_TOK: break;
