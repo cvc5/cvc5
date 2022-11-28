@@ -40,14 +40,28 @@ Command* Smt2CmdParser::parseNextCommand()
       Term t = d_tparser.parseTerm();
     }
     break;
-    case Token::ASSUME_TOK: break;
+    case Token::ASSUME_TOK: 
+    case Token::CONSTRAINT_TOK:
+    {
+      bool isAssume = (tok==Token::ASSUME_TOK);
+      d_state.checkThatLogicIsSet();
+      Term t = d_tparser.parseTerm();
+      cmd.reset(new SygusConstraintCommand(t, isAssume));
+    }
+      break;
     case Token::BLOCK_MODEL_TOK: break;
     case Token::BLOCK_MODEL_VALUES_TOK: break;
-    case Token::CHECK_SAT_TOK: break;
+    case Token::CHECK_SAT_TOK: 
+    {
+      if (d_state.sygus()) {
+        d_state.parseError("Sygus does not support check-sat command.");
+      }
+      cmd.reset(new CheckSatCommand());
+    }
+    break;
     case Token::CHECK_SAT_ASSUMING_TOK: break;
     case Token::CHECK_SYNTH_TOK: break;
     case Token::CHECK_SYNTH_NEXT_TOK: break;
-    case Token::CONSTRAINT_TOK: break;
     case Token::DECLARE_CODATATYPE_TOK: break;
     case Token::DECLARE_CODATATYPES_TOK: break;
     case Token::DECLARE_CONST_TOK: break;
@@ -85,12 +99,15 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DEFINE_FUNS_REC_TOK: break;
     case Token::DEFINE_SORT_TOK: break;
     case Token::ECHO_TOK: break;
-    case Token::EXIT_TOK: break;
+    case Token::EXIT_TOK: { cmd.reset(new QuitCommand()); } break;
     case Token::GET_ABDUCT_TOK: break;
     case Token::GET_ABDUCT_NEXT_TOK: break;
-    case Token::GET_ASSERTIONS_TOK: break;
+    case Token::GET_ASSERTIONS_TOK: 
+    { d_state.checkThatLogicIsSet(); 
+    cmd.reset(new GetAssertionsCommand()); }break;
     case Token::GET_ASSIGNMENT_TOK: break;
-    case Token::GET_DIFFICULTY_TOK: break;
+    case Token::GET_DIFFICULTY_TOK: { d_state.checkThatLogicIsSet(); 
+     cmd.reset(new GetDifficultyCommand); }break;
     case Token::GET_INFO_TOK:
     {
       const std::string& key = d_tparser.parseKeyword();
@@ -110,8 +127,10 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::GET_PROOF_TOK: break;
     case Token::GET_QE_TOK: break;
     case Token::GET_QE_DISJUNCT_TOK: break;
-    case Token::GET_UNSAT_ASSUMPTIONS_TOK: break;
-    case Token::GET_UNSAT_CORE_TOK: break;
+    case Token::GET_UNSAT_ASSUMPTIONS_TOK: { d_state.checkThatLogicIsSet(); 
+    cmd.reset(new GetUnsatAssumptionsCommand); }break;
+    case Token::GET_UNSAT_CORE_TOK: { d_state.checkThatLogicIsSet(); 
+     cmd.reset(new GetUnsatCoreCommand); }break;
     case Token::GET_VALUE_TOK: break;
     case Token::INV_CONSTRAINT_TOK: break;
     case Token::POP_TOK: break;
