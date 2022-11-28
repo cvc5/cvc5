@@ -51,6 +51,7 @@ class Smt2TermParser
   const std::string& parseKeyword();
   /** Parse grammar */
   Grammar* parseGrammar();
+
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;

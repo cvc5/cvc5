@@ -61,10 +61,7 @@ const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
 
 const std::string& Smt2TermParser::parseKeyword() { return ""; }
 
-Grammar* Smt2TermParser::parseGrammar()
-{
-  return nullptr;
-}
+Grammar* Smt2TermParser::parseGrammar() { return nullptr; }
 
 }  // namespace parser
 }  // namespace cvc5
