@@ -68,8 +68,10 @@ options {
 using namespace cvc5;
 using namespace cvc5::parser;
 
+#undef PARSER_BASE
+#define PARSER_BASE ((Smt2*)LEXER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Smt2*)LEXER->super)
+#define PARSER_STATE PARSER_BASE->getSmt2State()
 }/* @lexer::postinclude */
 
 @parser::includes {
@@ -115,7 +117,7 @@ using namespace cvc5::parser;
 #undef PARSER_BASE
 #define PARSER_BASE ((Smt2*)PARSER->super)
 #undef PARSER_STATE
-#define PARSER_STATE PARSER_BASE->getState()
+#define PARSER_STATE PARSER_BASE->getSmt2State()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef SYM_MAN
