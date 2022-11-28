@@ -133,10 +133,12 @@ Command* Smt2CmdParser::parseNextCommand()
     }
     break;
     case Token::GET_ABDUCT_TOK: break;
-    case Token::GET_ABDUCT_NEXT_TOK:  {
+    case Token::GET_ABDUCT_NEXT_TOK:
+    {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetAbductNextCommand);
-    }break;
+    }
+    break;
     case Token::GET_ASSERTIONS_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -157,10 +159,12 @@ Command* Smt2CmdParser::parseNextCommand()
     }
     break;
     case Token::GET_INTERPOL_TOK: break;
-    case Token::GET_INTERPOL_NEXT_TOK: {
+    case Token::GET_INTERPOL_NEXT_TOK:
+    {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetInterpolantNextCommand);
-    }break;
+    }
+    break;
     case Token::GET_LEARNED_LITERALS_TOK: break;
     case Token::GET_MODEL_TOK:
     {
@@ -176,11 +180,13 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::GET_PROOF_TOK: break;
     case Token::GET_QE_TOK:
-    case Token::GET_QE_DISJUNCT_TOK: 
-    { d_state.checkThatLogicIsSet(); 
-    Term t = d_tparser.parseTerm();
-    bool isFull = (tok==Token::GET_QE_TOK);
-    cmd.reset(new GetQuantifierEliminationCommand(t, isFull)); }
+    case Token::GET_QE_DISJUNCT_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      Term t = d_tparser.parseTerm();
+      bool isFull = (tok == Token::GET_QE_TOK);
+      cmd.reset(new GetQuantifierEliminationCommand(t, isFull));
+    }
     break;
     case Token::GET_UNSAT_ASSUMPTIONS_TOK:
     {
@@ -220,11 +226,11 @@ Command* Smt2CmdParser::parseNextCommand()
     }
     break;
     case Token::SET_OPTION_TOK: break;
-    case Token::SIMPLIFY_TOK: 
-    { 
-      d_state.checkThatLogicIsSet(); 
+    case Token::SIMPLIFY_TOK:
+    {
+      d_state.checkThatLogicIsSet();
       Term t = d_tparser.parseTerm();
-      cmd.reset(new SimplifyCommand(t)); 
+      cmd.reset(new SimplifyCommand(t));
     }
     break;
     case Token::SYNTH_FUN_TOK: break;
