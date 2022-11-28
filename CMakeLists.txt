@@ -210,7 +210,6 @@ add_check_c_cxx_supression_flag("-Wno-unused-private-field")
 add_check_c_flag("-fexceptions")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
-add_check_c_cxx_flag("-Wconversion")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
 
