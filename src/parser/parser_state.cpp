@@ -57,13 +57,13 @@ std::ostream& operator<<(std::ostream& out, SymbolType type)
   }
 }
 
-ParserState::ParserState(ParserStateCallback * psc,
+ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
                          SymbolManager* sm,
                          bool strictMode,
                          bool parseOnly)
     : d_solver(solver),
-    d_psc(psc),
+      d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_done(true),
@@ -663,25 +663,16 @@ void ParserState::addOperator(cvc5::Kind kind)
   d_logicOperators.insert(kind);
 }
 
-void ParserState::warning(const std::string& msg)
-{
-  d_psc->warning(msg);
-}
+void ParserState::warning(const std::string& msg) { d_psc->warning(msg); }
 
-void ParserState::parseError(const std::string& msg)
-{
-  d_psc->parseError(msg);
-}
+void ParserState::parseError(const std::string& msg) { d_psc->parseError(msg); }
 
 void ParserState::unexpectedEOF(const std::string& msg)
 {
   d_psc->unexpectedEOF(msg);
 }
 
-void ParserState::preemptCommand(Command* cmd)
-{
-  d_psc->preemptCommand(cmd);
-}
+void ParserState::preemptCommand(Command* cmd) { d_psc->preemptCommand(cmd); }
 
 void ParserState::attributeNotSupported(const std::string& attr)
 {

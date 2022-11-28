@@ -20,18 +20,18 @@
 
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
+#include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "theory/logic_info.h"
-#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
 
-TptpState::TptpState(ParserStateCallback * psc,
+TptpState::TptpState(ParserStateCallback* psc,
                      Solver* solver,
-           SymbolManager* sm,
-           bool strictMode,
-           bool parseOnly)
+                     SymbolManager* sm,
+                     bool strictMode,
+                     bool parseOnly)
     : ParserState(psc, solver, sm, strictMode, parseOnly),
       d_cnf(false),
       d_fof(false),
@@ -43,21 +43,26 @@ TptpState::TptpState(ParserStateCallback * psc,
   // From tptp4x FileUtilities
   //----Try the TPTP directory, and TPTP variations
   char* home = getenv("TPTP");
-  if(home == NULL) {
-     home = getenv("TPTP_HOME");
-// //----If no TPTP_HOME, try the tptp user (aaargh)
-//         if(home == NULL && (PasswdEntry = getpwnam("tptp")) != NULL) {
-//            home = PasswdEntry->pw_dir;
-//         }
-//----Now look in the TPTP directory from there
-    if(home != NULL) {
+  if (home == NULL)
+  {
+    home = getenv("TPTP_HOME");
+    // //----If no TPTP_HOME, try the tptp user (aaargh)
+    //         if(home == NULL && (PasswdEntry = getpwnam("tptp")) != NULL) {
+    //            home = PasswdEntry->pw_dir;
+    //         }
+    //----Now look in the TPTP directory from there
+    if (home != NULL)
+    {
       d_tptpDir = home;
       d_tptpDir.append("/TPTP/");
     }
-  } else {
+  }
+  else
+  {
     d_tptpDir = home;
-    //add trailing "/"
-    if(d_tptpDir[d_tptpDir.size() - 1] != '/') {
+    // add trailing "/"
+    if (d_tptpDir[d_tptpDir.size() - 1] != '/')
+    {
       d_tptpDir.append("/");
     }
   }
@@ -69,44 +74,46 @@ TptpState::TptpState(ParserStateCallback * psc,
   }
 }
 
-TptpState::~TptpState() {
-}
+TptpState::~TptpState() {}
 
-void TptpState::addTheory(Theory theory) {
-  switch(theory) {
-  case THEORY_CORE:
-    //TPTP (CNF and FOF) is unsorted so we define this common type
-    {
-      std::string d_unsorted_name = "$$unsorted";
-      d_unsorted = d_solver->mkUninterpretedSort(d_unsorted_name);
-      preemptCommand(new DeclareSortCommand(d_unsorted_name, 0, d_unsorted));
-    }
-    // propositionnal
-    defineType("Bool", d_solver->getBooleanSort());
-    defineVar("$true", d_solver->mkTrue());
-    defineVar("$false", d_solver->mkFalse());
-    addOperator(cvc5::AND);
-    addOperator(cvc5::EQUAL);
-    addOperator(cvc5::IMPLIES);
-    // addOperator(cvc5::ITE); //only for tff thf
-    addOperator(cvc5::NOT);
-    addOperator(cvc5::OR);
-    addOperator(cvc5::XOR);
-    addOperator(cvc5::APPLY_UF);
-    //Add quantifiers?
-    break;
+void TptpState::addTheory(Theory theory)
+{
+  switch (theory)
+  {
+    case THEORY_CORE:
+      // TPTP (CNF and FOF) is unsorted so we define this common type
+      {
+        std::string d_unsorted_name = "$$unsorted";
+        d_unsorted = d_solver->mkUninterpretedSort(d_unsorted_name);
+        preemptCommand(new DeclareSortCommand(d_unsorted_name, 0, d_unsorted));
+      }
+      // propositionnal
+      defineType("Bool", d_solver->getBooleanSort());
+      defineVar("$true", d_solver->mkTrue());
+      defineVar("$false", d_solver->mkFalse());
+      addOperator(cvc5::AND);
+      addOperator(cvc5::EQUAL);
+      addOperator(cvc5::IMPLIES);
+      // addOperator(cvc5::ITE); //only for tff thf
+      addOperator(cvc5::NOT);
+      addOperator(cvc5::OR);
+      addOperator(cvc5::XOR);
+      addOperator(cvc5::APPLY_UF);
+      // Add quantifiers?
+      break;
 
-  default:
-    std::stringstream ss;
-    ss << "internal error: TptpState::addTheory(): unhandled theory " << theory;
-    throw ParserException(ss.str());
+    default:
+      std::stringstream ss;
+      ss << "internal error: TptpState::addTheory(): unhandled theory "
+         << theory;
+      throw ParserException(ss.str());
   }
 }
 
 void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
-                           cvc5::Term lhs,
-                           cvc5::Term rhs,
-                           bool formula)
+                                cvc5::Term lhs,
+                                cvc5::Term rhs,
+                                bool formula)
 {
   if (lhs.getKind() != cvc5::APPLY_UF)
   {
@@ -121,8 +128,8 @@ void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
   {
     if (var.hasOp())
     {
-      parseError("malformed let: LHS must be flat, illegal child: " +
-                 var.toString());
+      parseError("malformed let: LHS must be flat, illegal child: "
+                 + var.toString());
     }
   }
 
@@ -130,14 +137,17 @@ void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
   for (const cvc5::Term& bound_var : bvlist)
   {
     const size_t count = vars.count(bound_var);
-    if (count == 0) {
+    if (count == 0)
+    {
       parseError(
           "malformed let: LHS must make use of all quantified variables, "
-          "missing `" +
-          bound_var.toString() + "'");
-    } else if (count >= 2) {
-      parseError("malformed let: LHS cannot use same bound variable twice: " +
-                 bound_var.toString());
+          "missing `"
+          + bound_var.toString() + "'");
+    }
+    else if (count >= 2)
+    {
+      parseError("malformed let: LHS cannot use same bound variable twice: "
+                 + bound_var.toString());
     }
   }
 }
@@ -435,7 +445,8 @@ std::vector<cvc5::Term> TptpState::getFreeVar()
 cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
 {
   // Create the conversion function If they doesn't exists
-  if (d_rtu_op.isNull()) {
+  if (d_rtu_op.isNull())
+  {
     cvc5::Sort t;
     // Conversion from rational to unsorted
     t = d_solver->mkFunctionSort({d_solver->getRealSort()}, d_unsorted);
@@ -451,7 +462,8 @@ cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
   // rational
   std::vector<Term> args = {d_rtu_op, expr};
   Term ret = makeApplyUf(args);
-  if (d_r_converted.find(expr) == d_r_converted.end()) {
+  if (d_r_converted.find(expr) == d_r_converted.end())
+  {
     d_r_converted.insert(expr);
     if (expr.getSort().isInteger())
     {
@@ -500,7 +512,8 @@ cvc5::Term TptpState::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
 
 cvc5::Term TptpState::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
 {
-  switch (fr) {
+  switch (fr)
+  {
     case FR_AXIOM:
     case FR_HYPOTHESIS:
     case FR_DEFINITION:
@@ -546,13 +559,17 @@ Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".
-  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
+  if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE))
+  {
     d_hasConjecture = true;
     Assert(!expr.isNull());
   }
-  if( expr.isNull() ){
+  if (expr.isNull())
+  {
     return new EmptyCommand("Untreated role for expression");
-  }else{
+  }
+  else
+  {
     return new AssertCommand(expr);
   }
 }

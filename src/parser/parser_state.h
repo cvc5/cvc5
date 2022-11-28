@@ -73,9 +73,9 @@ std::ostream& operator<<(std::ostream& out, SymbolType type);
 
 class ParserStateCallback
 {
-public:
-  ParserStateCallback(){}
-  virtual ~ParserStateCallback(){}
+ public:
+  ParserStateCallback() {}
+  virtual ~ParserStateCallback() {}
   /** Issue a warning to the user. */
   virtual void warning(const std::string& msg) = 0;
   /** Raise a parse error with the given message. */
@@ -114,7 +114,7 @@ class CVC5_EXPORT ParserState
    * need not be performed, like those about unimplemented features, @see
    * unimplementedFeature())
    */
-  ParserState(ParserStateCallback * psc,
+  ParserState(ParserStateCallback* psc,
               Solver* solver,
               SymbolManager* sm,
               bool strictMode = false,
@@ -634,7 +634,7 @@ class CVC5_EXPORT ParserState
 
  private:
   /** The callback */
-  ParserStateCallback * d_psc;
+  ParserStateCallback* d_psc;
   /**
    * Reference to the symbol manager, which manages the symbol table used by
    * this parser.

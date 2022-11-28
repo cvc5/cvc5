@@ -40,11 +40,11 @@ class Command;
 class Smt2State : public ParserState
 {
  public:
-  Smt2State(ParserStateCallback * psc,
+  Smt2State(ParserStateCallback* psc,
             Solver* solver,
-       SymbolManager* sm,
-       bool strictMode = false,
-       bool parseOnly = false);
+            SymbolManager* sm,
+            bool strictMode = false,
+            bool parseOnly = false);
 
   ~Smt2State();
 
@@ -385,7 +385,6 @@ class Smt2State : public ParserState
   std::unique_ptr<Command> handlePop(std::optional<uint32_t> nscopes);
 
  private:
-
   void addArithmeticOperators();
 
   void addTranscendentalOperators();
@@ -414,7 +413,7 @@ class Smt2State : public ParserState
    * Is term t a constant integer?
    */
   static bool isConstInt(const cvc5::Term& t);
-  
+
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */
@@ -433,7 +432,6 @@ class Smt2State : public ParserState
    * they don't get deleted before the commands using them get invoked.
    */
   std::vector<std::unique_ptr<cvc5::Grammar>> d_allocGrammars;
-
 };
 
 }  // namespace parser

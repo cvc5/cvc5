@@ -19,6 +19,7 @@
 #define CVC5__PARSER__FLEX_PARSER_H
 
 #include <memory>
+
 #include "api/cpp/cvc5.h"
 #include "parser/flex/flex_input.h"
 
