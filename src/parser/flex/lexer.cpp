@@ -118,14 +118,15 @@ void Lexer::eatToken(Token t)
 bool Lexer::eatTokenChoice(Token t, Token f)
 {
   Token tt = nextToken();
-  if (tt==t)
+  if (tt == t)
   {
     return true;
   }
-  else if (tt!=f)
+  else if (tt != f)
   {
     std::ostringstream o{};
-    o << "Expected " << t << " or " << f << ", but got a " << tt << ", `" << YYText() << "`";
+    o << "Expected " << t << " or " << f << ", but got a " << tt << ", `"
+      << YYText() << "`";
     unexpected_token_error(tt, o.str());
   }
   return false;

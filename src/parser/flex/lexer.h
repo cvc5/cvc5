@@ -60,10 +60,10 @@ class Lexer : public yyFlexLexer
   Token nextToken();
   /** Expect a token `t` as the next one. Error o.w. */
   void eatToken(Token t);
-  /** 
+  /**
    * Expect a token `t` or `f` as the next one, error otherwise. Return true
    * if `t`.
-   */ 
+   */
   bool eatTokenChoice(Token t, Token f);
   // String corresponding to the last token (old top of stack)
   const char* token_str();

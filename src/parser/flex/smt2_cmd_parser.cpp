@@ -15,9 +15,9 @@
 
 #include "parser/flex/smt2_cmd_parser.h"
 
+#include "base/check.h"
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
-#include "base/check.h"
 
 namespace cvc5 {
 namespace parser {
@@ -363,7 +363,7 @@ Command* Smt2CmdParser::parseNextCommand()
         formals.push_back(bvs);
       }
       d_lex.eatToken(Token::RPAREN_TOK);
-      Assert (funcs.size() == funcDefs.size());
+      Assert(funcs.size() == funcDefs.size());
       cmd.reset(new DefineFunctionRecCommand(funcs, formals, funcDefs));
     }
     break;
