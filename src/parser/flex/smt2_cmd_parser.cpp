@@ -109,9 +109,18 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DECLARE_CODATATYPES_TOK: break;
     case Token::DECLARE_DATATYPE_TOK: break;
     case Token::DECLARE_DATATYPES_TOK: break;
-    case Token::DECLARE_CONST_TOK: break;
-    case Token::DECLARE_FUN_TOK: break;
-    case Token::DECLARE_HEAP: break;
+    case Token::DECLARE_CONST_TOK:
+    case Token::DECLARE_FUN_TOK: 
+      break;
+    case Token::DECLARE_HEAP:
+    { 
+      d_lex.eatToken(Token::LPAREN_TOK);
+      Sort t = d_tparser.parseSort();
+      Sort s = d_tparser.parseSort();
+      cmd.reset(new DeclareHeapCommand(t, s));
+      d_lex.eatToken(Token::RPAREN_TOK);
+    }
+    break;
     case Token::DECLARE_POOL: break;
     case Token::DECLARE_SORT_TOK:
     {
