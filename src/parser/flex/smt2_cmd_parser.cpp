@@ -137,7 +137,6 @@ Command* Smt2CmdParser::parseNextCommand()
         size_t arity = d_tparser.parseIntegerNumeral();
         dnames.push_back(name);
         arities.push_back(arity);
-
         d_lex.eatToken(Token::RPAREN_TOK);
       }
       d_lex.eatToken(Token::RPAREN_TOK);
@@ -322,7 +321,56 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionRecCommand(func, bvs, expr));
     }
     break;
-    case Token::DEFINE_FUNS_REC_TOK: break;
+    case Token::DEFINE_FUNS_REC_TOK: 
+    { d_state.checkThatLogicIsSet();
+        d_lex.eatToken(Token::LPAREN_TOK);
+      std::vector<Term> funcs;
+  std::vector<std::vector<std::pair<std::string, Sort>>>
+      sortedVarNamesList;
+  std::vector<std::vector<Term>> flattenVarsList;
+      // TODO: optional
+      while (true)
+      {
+        d_lex.eatToken(Token::LPAREN_TOK);
+      std::string fname = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      d_state.checkUserSymbol(fname);
+      std::vector<std::pair<std::string, Sort> > sortedVarNames =
+          d_tparser.parseSortedVarList();
+      Sort t = d_tparser.parseSort();
+      std::vector<Term> flattenVars;
+        Term func = d_state.bindDefineFunRec(
+            fname, sortedVarNames, t, flattenVars);
+        funcs.push_back( func );
+
+        // add to lists (need to remember for when parsing the bodies)
+        sortedVarNamesList.push_back( sortedVarNames );
+        flattenVarsList.push_back( flattenVars );
+        d_lex.eatToken(Token::RPAREN_TOK);
+      }
+        d_lex.eatToken(Token::RPAREN_TOK);
+        
+        d_lex.eatToken(Token::LPAREN_TOK);
+        std::vector<Term> funcDefs;
+        std::vector<std::vector<Term>> formals;
+        for (size_t j = 0, nfuncs = funcs.size(); j<nfuncs; j++)
+        {
+          std::vector<Term> bvs;
+          d_state.pushDefineFunRecScope( sortedVarNamesList[j], funcs[j],
+                                              flattenVarsList[j], bvs);
+          Term expr = d_tparser.parseTerm();
+          d_state.popScope();
+          funcDefs.push_back( expr );
+          formals.push_back(bvs);
+        }
+        d_lex.eatToken(Token::RPAREN_TOK);
+        if( funcs.size()!=funcDefs.size() ){
+        d_state.parseError(std::string(
+            "Number of functions defined does not match number listed in "
+            "define-funs-rec"));
+      }
+      cmd.reset(new DefineFunctionRecCommand(funcs, formals, funcDefs));
+    }
+    break;
     case Token::DEFINE_SORT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -640,7 +688,10 @@ Command* Smt2CmdParser::parseNextCommand()
     }
     break;
     default:
-      // TODO: error
+      // TODO: get token text
+      std::string id;
+        d_state.parseError("expected SMT-LIBv2 command, got `" + id +
+                                 "'.");
       break;
   }
   d_lex.eatToken(Token::RPAREN_TOK);
