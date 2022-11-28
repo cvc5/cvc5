@@ -300,26 +300,28 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionCommand(name, terms, t, expr));
     }
     break;
-    case Token::DEFINE_FUN_REC_TOK:   
-    { d_state.checkThatLogicIsSet(); 
-      std::string fname = d_tparser.parseSymbol(CHECK_NONE,SYM_VARIABLE);
-    d_state.checkUserSymbol(fname); 
+    case Token::DEFINE_FUN_REC_TOK:
+    {
+      d_state.checkThatLogicIsSet();
+      std::string fname = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      d_state.checkUserSymbol(fname);
       std::vector<std::pair<std::string, Sort> > sortedVarNames =
           d_tparser.parseSortedVarList();
-          Sort t = d_tparser.parseSort();
+      Sort t = d_tparser.parseSort();
       std::vector<Term> flattenVars;
       std::vector<Term> bvs;
       Term func =
           d_state.bindDefineFunRec(fname, sortedVarNames, t, flattenVars);
-      d_state.pushDefineFunRecScope(
-          sortedVarNames, func, flattenVars, bvs);
+      d_state.pushDefineFunRecScope(sortedVarNames, func, flattenVars, bvs);
       Term expr = d_tparser.parseTerm();
       d_state.popScope();
-      if( !flattenVars.empty() ){
-        expr = d_state.mkHoApply( expr, flattenVars );
+      if (!flattenVars.empty())
+      {
+        expr = d_state.mkHoApply(expr, flattenVars);
       }
       cmd.reset(new DefineFunctionRecCommand(func, bvs, expr));
-    }break;
+    }
+    break;
     case Token::DEFINE_FUNS_REC_TOK: break;
     case Token::DEFINE_SORT_TOK:
     {
