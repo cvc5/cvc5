@@ -40,7 +40,8 @@ Command* Smt2Parser::parseNextCommand()
 
 Term Smt2Parser::parseNextExpression()
 {
-  return d_termParser.parseNextExpression();
+  // TODO: check for EOF here and return null
+  return d_termParser.parseTerm();
 }
 
 }  // namespace parser

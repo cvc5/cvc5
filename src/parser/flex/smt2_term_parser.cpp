@@ -23,10 +23,15 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 {
 }
 
-Term Smt2TermParser::parseNextExpression()
+Term Smt2TermParser::parseTerm()
 {
   Term t;
   return t;
+}
+
+const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
+{
+  
 }
 
 }  // namespace parser

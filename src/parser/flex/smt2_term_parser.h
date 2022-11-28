@@ -33,9 +33,10 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
-  /** Parse and return the next expression. */
-  Term parseNextExpression();
-
+  ///
+  Term parseTerm();
+  const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE, SymbolType type = SYM_SORT);
+  const std::string& parseKeyword();
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
