@@ -110,10 +110,9 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DECLARE_DATATYPE_TOK: break;
     case Token::DECLARE_DATATYPES_TOK: break;
     case Token::DECLARE_CONST_TOK:
-    case Token::DECLARE_FUN_TOK: 
-      break;
+    case Token::DECLARE_FUN_TOK: break;
     case Token::DECLARE_HEAP:
-    { 
+    {
       d_lex.eatToken(Token::LPAREN_TOK);
       Sort t = d_tparser.parseSort();
       Sort s = d_tparser.parseSort();
@@ -121,14 +120,14 @@ Command* Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     break;
-    case Token::DECLARE_POOL: 
-    { d_state.checkThatLogicIsSet();
-      const std::string& name =
-          d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
-    d_state.checkUserSymbol(name);
-    Sort t = d_tparser.parseSort();
+    case Token::DECLARE_POOL:
+    {
+      d_state.checkThatLogicIsSet();
+      const std::string& name = d_tparser.parseSymbol(CHECK_NONE, SYM_VARIABLE);
+      d_state.checkUserSymbol(name);
+      Sort t = d_tparser.parseSort();
       std::vector<Term> terms = d_tparser.parseTermList();
-     Trace("parser") << "declare pool: '" << name << "'" << std::endl;
+      Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       Term pool = d_state.getSolver()->declarePool(name, t, terms);
       d_state.defineVar(name, pool);
       cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
@@ -156,12 +155,13 @@ Command* Smt2CmdParser::parseNextCommand()
       }
     }
     break;
-    case Token::DECLARE_VAR_TOK: 
-    { d_state.checkThatLogicIsSet(); 
+    case Token::DECLARE_VAR_TOK:
+    {
+      d_state.checkThatLogicIsSet();
       const std::string& name =
           d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
-     d_state.checkUserSymbol(name); 
-     Sort t = d_tparser.parseSort();
+      d_state.checkUserSymbol(name);
+      Sort t = d_tparser.parseSort();
       Term var = d_state.getSolver()->declareSygusVar(name, t);
       d_state.defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
