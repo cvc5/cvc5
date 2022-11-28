@@ -16,6 +16,7 @@
 #include "parser/flex/smt2_cmd_parser.h"
 
 #include "parser/api/cpp/command.h"
+#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
@@ -38,7 +39,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       Term t = d_tparser.parseTerm();
     }
-      break;
+    break;
     case Token::ASSUME_TOK: break;
     case Token::BLOCK_MODEL_TOK: break;
     case Token::BLOCK_MODEL_VALUES_TOK: break;
@@ -55,7 +56,22 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DECLARE_FUN_TOK: break;
     case Token::DECLARE_HEAP: break;
     case Token::DECLARE_POOL: break;
-    case Token::DECLARE_SORT_TOK: break;
+    case Token::DECLARE_SORT_TOK: 
+    {
+      d_state.checkThatLogicIsSet();
+      d_state.checkLogicAllowsFreeSorts();
+      const std::string& name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_SORT);
+      d_state.checkUserSymbol(name);
+      unsigned arity;// = AntlrInput::tokenToUnsigned(n);
+      Trace("parser") << "declare sort: '" << name << "' arity=" << arity << std::endl;
+      if(arity == 0) {
+        Sort type = d_state.mkSort(name);
+        cmd.reset(new DeclareSortCommand(name, 0, type));
+      } else {
+        Sort type = d_state.mkSortConstructor(name, arity);
+        cmd.reset(new DeclareSortCommand(name, arity, type));
+      }
+    }break;
     case Token::DECLARE_VAR_TOK: break;
     case Token::DEFINE_CONST_TOK: break;
     case Token::DEFINE_FUN_TOK: break;
@@ -69,12 +85,22 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::GET_ASSERTIONS_TOK: break;
     case Token::GET_ASSIGNMENT_TOK: break;
     case Token::GET_DIFFICULTY_TOK: break;
-    case Token::GET_INFO_TOK: break;
+    case Token::GET_INFO_TOK: 
+    {
+      const std::string& key = d_tparser.parseKeyword();
+      cmd.reset(new GetInfoCommand(key));
+    }
+    break;
     case Token::GET_INTERPOL_TOK: break;
     case Token::GET_INTERPOL_NEXT_TOK: break;
     case Token::GET_LEARNED_LITERALS_TOK: break;
     case Token::GET_MODEL_TOK: break;
-    case Token::GET_OPTION_TOK: break;
+    case Token::GET_OPTION_TOK:
+    {
+      const std::string& key = d_tparser.parseKeyword();
+      cmd.reset(new GetOptionCommand(key));
+    }
+    break;
     case Token::GET_PROOF_TOK: break;
     case Token::GET_QE_TOK: break;
     case Token::GET_QE_DISJUNCT_TOK: break;
@@ -88,7 +114,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::RESET_ASSERTIONS_TOK: break;
     case Token::SET_FEATURE_TOK: break;
     case Token::SET_INFO_TOK: break;
-    case Token::SET_LOGIC_TOK: 
+    case Token::SET_LOGIC_TOK:
     {
       const std::string& name = d_tparser.parseSymbol();
       cmd.reset(d_state.setLogic(name));

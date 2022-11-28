@@ -35,8 +35,10 @@ class Smt2TermParser
 
   ///
   Term parseTerm();
-  const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE, SymbolType type = SYM_SORT);
+  const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
+                                 SymbolType type = SYM_SORT);
   const std::string& parseKeyword();
+
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;

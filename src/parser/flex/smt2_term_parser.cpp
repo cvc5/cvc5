@@ -29,9 +29,15 @@ Term Smt2TermParser::parseTerm()
   return t;
 }
 
-const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
+const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
+                                               SymbolType type)
 {
-  
+  return "";
+}
+
+const std::string& Smt2TermParser::parseKeyword()
+{
+  return "";
 }
 
 }  // namespace parser
