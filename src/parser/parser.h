@@ -157,8 +157,6 @@ public:
     d_input->parseError(msg, true);
   }
 
-  // virtual void reset();
-
   /**
    * Include smt2 file
    */

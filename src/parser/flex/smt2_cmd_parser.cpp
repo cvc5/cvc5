@@ -20,12 +20,12 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex, Smt2TermParser& tparser)
-    : d_lex(lex), d_tparser(tparser)
+Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex, Smt2State& state, Smt2TermParser& tparser)
+    : d_lex(lex), d_state(state), d_tparser(tparser)
 {
 }
 
-Command* Smt2CmdParser::nextCommand()
+Command* Smt2CmdParser::parseNextCommand()
 {
   d_lex.eatToken(Token::LPAREN_TOK);
   Token t = d_lex.nextToken();

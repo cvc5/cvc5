@@ -20,6 +20,7 @@
 
 #include "parser/flex/smt2_lexer.h"
 #include "parser/flex/smt2_term_parser.h"
+#include "parser/smt2/smt2_state.h"
 
 namespace cvc5 {
 namespace parser {
@@ -31,16 +32,18 @@ class Command;
 class Smt2CmdParser
 {
  public:
-  Smt2CmdParser(Smt2Lexer& lex, Smt2TermParser& tparser);
+  Smt2CmdParser(Smt2Lexer& lex, Smt2State& state, Smt2TermParser& tparser);
   virtual ~Smt2CmdParser() {}
   /**
    * Parse and return the next command.
    */
-  Command* nextCommand();
+  Command* parseNextCommand();
 
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
+  /** The state */
+  Smt2State& d_state;
   /** The term parser */
   Smt2TermParser& d_tparser;
 };

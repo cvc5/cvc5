@@ -38,15 +38,14 @@ class Smt2Parser : public FlexParser
              bool strictMode = false,
              bool isSygus = false);
   virtual ~Smt2Parser() {}
+ protected:
   /**
    * Parse and return the next command.
    */
-  Command* nextCommand() override;
+  Command* parseNextCommand() override;
 
   /** Parse and return the next expression. */
-  Term nextExpression() override;
-
- protected:
+  Term parseNextExpression() override;
   /** Is sygus? */
   bool d_isSygus;
   /** The lexer */

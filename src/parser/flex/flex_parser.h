@@ -19,6 +19,7 @@
 #define CVC5__PARSER__FLEX_PARSER_H
 
 #include <memory>
+#include <list>
 
 #include "api/cpp/cvc5.h"
 #include "parser/flex/flex_input.h"
@@ -71,21 +72,35 @@ class FlexParser : public ParserStateCallback
    * because function and predicate symbols are implicitly declared.
    */
   void preemptCommand(Command* cmd) override;
+
   /**
    * Parse and return the next command.
    * NOTE: currently memory management of commands is handled internally.
    */
-  virtual Command* nextCommand() = 0;
+  Command* nextCommand();
 
   /** Parse and return the next expression. */
-  virtual Term nextExpression() = 0;
-
+  Term nextExpression();
+  
   /** make flex parser from language string */
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
                                                   Solver* solver,
                                                   SymbolManager* sm);
 
  protected:
+   /** Initialize input */
+   void initializeInput(const std::string& name);
+
+  /** Sets the done flag */
+  void setDone(bool done = true) { d_done = done; }
+  /**
+   * Parse and return the next command.
+   * NOTE: currently memory management of commands is handled internally.
+   */
+  virtual Command* parseNextCommand() = 0;
+
+  /** Parse and return the next expression. */
+  virtual Term parseNextExpression() = 0;
   /** Solver */
   Solver* d_solver;
   /** Symbol manager */
@@ -94,6 +109,16 @@ class FlexParser : public ParserStateCallback
   Lexer* d_lex;
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
+  /**
+    * "Preemption commands": extra commands implied by subterms that
+    * should be issued before the currently-being-parsed command is
+    * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+    *
+    * Owns the memory of the Commands in the queue.
+    */
+  std::list<Command*> d_commandQueue;
+  /** Are we done */
+  bool d_done;
 };
 
 }  // namespace parser
