@@ -892,48 +892,53 @@ cvc5::Term Parser::mkCharConstant(const std::string& s)
   return d_solver->mkString(std::wstring(1, val));
 }
 
-
 /* The include are managed in the lexer but called in the parser */
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
-bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANTLR3_INPUT_STREAM >& inc ) {
+bool newInputStream(std::string fileName,
+                    pANTLR3_LEXER lexer,
+                    std::vector<pANTLR3_INPUT_STREAM>& inc)
+{
   Trace("parser") << "Including " << fileName << std::endl;
   // Create a new input stream and take advantage of built in stream stacking
   // in C target runtime.
   //
-  pANTLR3_INPUT_STREAM    in;
+  pANTLR3_INPUT_STREAM in;
 #ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
-  in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) fileName.c_str());
+  in = antlr3AsciiFileStreamNew((pANTLR3_UINT8)fileName.c_str());
 #else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
+  in = antlr3FileStreamNew((pANTLR3_UINT8)fileName.c_str(), ANTLR3_ENC_8BIT);
 #endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  if(in == NULL) {
+  if (in == NULL)
+  {
     Trace("parser") << "Can't open " << fileName << std::endl;
     return false;
   }
   // Same thing as the predefined PUSHSTREAM(in);
-  lexer->pushCharStream(lexer,in);
+  lexer->pushCharStream(lexer, in);
   // restart it
-  //lexer->rec->state->tokenStartCharIndex  = -10;
-  //lexer->emit(lexer);
+  // lexer->rec->state->tokenStartCharIndex  = -10;
+  // lexer->emit(lexer);
 
   // Note that the input stream is not closed when it EOFs, I don't bother
   // to do it here, but it is up to you to track streams created like this
-  // and destroy them when the whole parse session is complete. Remember that you
-  // don't want to do this until all tokens have been manipulated all the way through
-  // your tree parsers etc as the token does not store the text it just refers
-  // back to the input stream and trying to get the text for it will abort if you
-  // close the input stream too early.
+  // and destroy them when the whole parse session is complete. Remember that
+  // you don't want to do this until all tokens have been manipulated all the
+  // way through your tree parsers etc as the token does not store the text it
+  // just refers back to the input stream and trying to get the text for it will
+  // abort if you close the input stream too early.
   //
-  inc.push_back( in );
+  inc.push_back(in);
 
-  //TODO what said before
+  // TODO what said before
   return true;
 }
 
-void Parser::includeSmt2File(const std::string& filename) {
+void Parser::includeSmt2File(const std::string& filename)
+{
   // security for online version
-  if(!canIncludeFile()) {
+  if (!canIncludeFile())
+  {
     parseError("include-file feature was disabled for this run.");
   }
 
@@ -946,60 +951,72 @@ void Parser::includeSmt2File(const std::string& filename) {
   // Find the directory of the current input file
   std::string path;
   size_t pos = inputName.rfind('/');
-  if(pos != std::string::npos) {
+  if (pos != std::string::npos)
+  {
     path = std::string(inputName, 0, pos + 1);
   }
   path.append(filename);
-  std::vector< pANTLR3_INPUT_STREAM > inc;
-  if(!newInputStream(path, lexer, inc)) {
+  std::vector<pANTLR3_INPUT_STREAM> inc;
+  if (!newInputStream(path, lexer, inc))
+  {
     parseError("Couldn't open include file `" + path + "'");
   }
 }
 
-void Parser::includeTptpFile(const std::string& fileName, const std::string& tptpDir) {
+void Parser::includeTptpFile(const std::string& fileName,
+                             const std::string& tptpDir)
+{
   // security for online version
-  if(!canIncludeFile()) {
+  if (!canIncludeFile())
+  {
     parseError("include-file feature was disabled for this run.");
   }
 
   // Get the lexer
-  AntlrInput * ai = static_cast<AntlrInput *>(getInput());
+  AntlrInput* ai = static_cast<AntlrInput*>(getInput());
   pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
 
   // push the inclusion scope; will be popped by our special popCharStream
   // would be necessary for handling symbol filtering in inclusions
-  //pushScope();
+  // pushScope();
 
   // get the name of the current stream "Does it work inside an include?"
   const std::string inputName = ai->getInputStreamName();
 
   // Test in the directory of the actual parsed file
   std::string currentDirFileName;
-  if(inputName != "<stdin>") {
+  if (inputName != "<stdin>")
+  {
     // TODO: Use dirname or Boost::filesystem?
     size_t pos = inputName.rfind('/');
-    if(pos != std::string::npos) {
+    if (pos != std::string::npos)
+    {
       currentDirFileName = std::string(inputName, 0, pos + 1);
     }
     currentDirFileName.append(fileName);
-    std::vector< pANTLR3_INPUT_STREAM > inc;
-    if(newInputStream(currentDirFileName,lexer, inc)) {
+    std::vector<pANTLR3_INPUT_STREAM> inc;
+    if (newInputStream(currentDirFileName, lexer, inc))
+    {
       return;
     }
-  } else {
+  }
+  else
+  {
     currentDirFileName = "<unknown current directory for stdin>";
   }
 
-  if(tptpDir.empty()) {
+  if (tptpDir.empty())
+  {
     parseError("Couldn't open included file: " + fileName
                + " at " + currentDirFileName + " and the TPTP directory is not specified (environment variable TPTP)");
   };
 
   std::string tptpDirFileName = tptpDir + fileName;
-  std::vector< pANTLR3_INPUT_STREAM > inc;
-  if(! newInputStream(tptpDirFileName,lexer, inc)) {
-    parseError("Couldn't open included file: " + fileName
-               + " at " + currentDirFileName + " or " + tptpDirFileName);
+  std::vector<pANTLR3_INPUT_STREAM> inc;
+  if (!newInputStream(tptpDirFileName, lexer, inc))
+  {
+    parseError("Couldn't open included file: " + fileName + " at "
+               + currentDirFileName + " or " + tptpDirFileName);
   }
 }
 

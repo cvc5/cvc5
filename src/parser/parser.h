@@ -657,16 +657,16 @@ public:
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::wstring processAdHocStringEsc(const std::string& s);
-  
+
   /**
    * Include smt2 file
    */
   void includeSmt2File(const std::string& filename);
   /**
-   * Include tptp file 
+   * Include tptp file
    */
   void includeTptpFile(const std::string& filename, const std::string& tptpDir);
-  
+
 }; /* class Parser */
 
 }  // namespace parser

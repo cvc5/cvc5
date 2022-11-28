@@ -411,10 +411,7 @@ cvc5::Term Tptp::mkDecimal(
   return d_solver->mkReal(ss.str());
 }
 
-const std::string& Tptp::getTptpDir() const
-{
-  return d_tptpDir;
-}
+const std::string& Tptp::getTptpDir() const { return d_tptpDir; }
 
 bool Tptp::hol() const { return d_hol; }
 void Tptp::setHol()
