@@ -57,7 +57,7 @@ class Smt2TermParser
   std::vector<DatatypeDecl> parseDatatypeDef(
       bool isCo,
       const std::vector<std::string>& dnames,
-      const std::vector<int>& arities);
+      const std::vector<size_t>& arities);
 
  protected:
   /** The lexer */

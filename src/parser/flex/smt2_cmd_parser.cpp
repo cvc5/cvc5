@@ -111,11 +111,10 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       d_state.checkThatLogicIsSet();
       std::vector<std::string> dnames;
+      std::vector<size_t> arities;
       const std::string& name =
           d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
       dnames.push_back(name);
-      std::vector<int> arities;
-      arities.push_back(-1);
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypeDef(isCo, dnames, arities);
@@ -125,7 +124,34 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     // multiple datatype
     case Token::DECLARE_CODATATYPES_TOK:
-    case Token::DECLARE_DATATYPES_TOK: break;
+    case Token::DECLARE_DATATYPES_TOK:
+    { d_state.checkThatLogicIsSet(); 
+      d_lex.eatToken(Token::LPAREN_TOK);
+      std::vector<std::string> dnames;
+      std::vector<size_t> arities;
+      // TODO: optional
+      while(true)
+      {
+        d_lex.eatToken(Token::LPAREN_TOK);
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+        size_t arity = d_tparser.parseIntegerNumeral();
+      dnames.push_back(name);
+      arities.push_back( arity );
+        
+        d_lex.eatToken(Token::RPAREN_TOK);
+      }
+      d_lex.eatToken(Token::RPAREN_TOK);
+      d_lex.eatToken(Token::LPAREN_TOK);
+      
+      bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
+      std::vector<DatatypeDecl> dts =
+          d_tparser.parseDatatypeDef(isCo, dnames, arities);
+      d_lex.eatToken(Token::RPAREN_TOK);
+      cmd.reset(new DatatypeDeclarationCommand(
+          d_state.bindMutualDatatypeTypes(dts, true)));
+    }
+    break;
     // declare-fun and declare-const
     case Token::DECLARE_CONST_TOK:
     case Token::DECLARE_FUN_TOK:
