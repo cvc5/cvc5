@@ -109,8 +109,39 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::DECLARE_CODATATYPES_TOK: break;
     case Token::DECLARE_DATATYPE_TOK: break;
     case Token::DECLARE_DATATYPES_TOK: break;
+    // declare-fun and declare-const
     case Token::DECLARE_CONST_TOK:
-    case Token::DECLARE_FUN_TOK: break;
+    case Token::DECLARE_FUN_TOK:
+    { d_state.checkThatLogicIsSet(); 
+      const std::string& name = d_tparser.parseSymbol(CHECK_NONE,SYM_VARIABLE);
+     d_state.checkUserSymbol(name);
+     std::vector<Sort> sorts;
+     if (tok == Token::DECLARE_FUN_TOK)
+     {
+       sorts = d_tparser.parseSortList();
+     }
+     Sort t = d_tparser.parseSort();
+     Trace("parser") << "declare fun: '" << name << "'" << std::endl;
+      if( !sorts.empty() ) {
+        t = d_state.mkFlatFunctionType(sorts, t);
+      }
+      if(t.isFunction())
+      {
+        d_state.checkLogicAllowsFunctions();
+      }
+      // we allow overloading for function declarations
+      if( d_state.sygus() )
+      {
+        d_state.parseError("declare-fun are not allowed in sygus "
+                                 "version 2.0");
+      }
+      else
+      {
+        Term func =
+            d_state.bindVar(name, t, true);
+        cmd.reset(new DeclareFunctionCommand(name, func, t));
+      }
+    }break;
     case Token::DECLARE_HEAP:
     {
       d_lex.eatToken(Token::LPAREN_TOK);
@@ -192,7 +223,14 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new QuitCommand());
     }
     break;
-    case Token::GET_ABDUCT_TOK: break;
+    case Token::GET_ABDUCT_TOK: {
+      d_state.checkThatLogicIsSet();
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      Term t = d_tparser.parseTerm();
+      Grammar* g = d_tparser.parseGrammar();
+      cmd.reset(new GetAbductCommand(name, t, g));
+    }break;
     case Token::GET_ABDUCT_NEXT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -218,7 +256,15 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetInfoCommand(key));
     }
     break;
-    case Token::GET_INTERPOL_TOK: break;
+    case Token::GET_INTERPOL_TOK: {
+      d_state.checkThatLogicIsSet();
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      Term t = d_tparser.parseTerm();
+      Grammar* g = d_tparser.parseGrammar();
+      cmd.reset(new GetInterpolantCommand(name, t, g));
+    }
+    break;
     case Token::GET_INTERPOL_NEXT_TOK:
     {
       d_state.checkThatLogicIsSet();

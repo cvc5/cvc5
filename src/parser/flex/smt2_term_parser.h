@@ -41,13 +41,16 @@ class Smt2TermParser
   Term parseSymbolicExpr();
   /** Parse a sort */
   Sort parseSort();
+  /** Parses parentheses-enclosed sort list */
+  std::vector<Sort> parseSortList();
   const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
                                  SymbolType type = SYM_SORT);
   /**
    * Parses ':X', returns 'X'
    */
   const std::string& parseKeyword();
-
+  /** Parse grammar */
+  Grammar* parseGrammar();
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;

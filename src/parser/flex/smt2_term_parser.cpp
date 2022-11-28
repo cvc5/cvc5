@@ -47,6 +47,12 @@ Sort Smt2TermParser::parseSort()
   return s;
 }
 
+std::vector<Sort> Smt2TermParser::parseSortList()
+{
+  std::vector<Sort> sorts;
+  return sorts;
+}
+
 const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
                                                SymbolType type)
 {
@@ -54,6 +60,11 @@ const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
 }
 
 const std::string& Smt2TermParser::parseKeyword() { return ""; }
+
+Grammar* Smt2TermParser::parseGrammar()
+{
+  return nullptr;
+}
 
 }  // namespace parser
 }  // namespace cvc5
