@@ -167,6 +167,8 @@ enum class AletheRule : uint32_t
   // Tautology of linear disequalities.
   // > i. (cl F1 ... Fn)
   LA_GENERIC,
+  LA_MULT_POS,
+  LA_MULT_NEG,
   // Tautology of linear integer arithmetic
   // > i. (cl F1 ... Fn)
   LIA_GENERIC,
@@ -424,6 +426,9 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_BVEQUAL,
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
+  // ======== hole
+  // Used for unjustified steps
+  HOLE,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED

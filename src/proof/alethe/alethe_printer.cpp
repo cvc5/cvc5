@@ -287,14 +287,18 @@ void AletheProofPrinter::print(std::ostream& out,
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
   AlwaysAssert(innerPf);
-  // Traverse the proof node to letify the (converted) conclusions of proof
-  // steps. TODO This traversal will collect the skolems to de defined.
-  ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
-  Trace("alethe-printer") << "- letify.\n";
-  updater.process(innerPf);
 
   if (options::ioutils::getDagThresh(std::cout))
   {
+    // Traverse the proof node to letify the (converted) conclusions of proof
+    // steps. Note that we traverse the original proof node because assumptions
+    // may apper just in them (if they are not used in the rest of the proof).
+    // If that's the case then repeated terms *only* in assumptions would not be
+    // letified otherwise.
+    ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
+    Trace("alethe-printer") << "- letify.\n";
+    updater.process(pfn);
+
     std::vector<Node> letList;
     d_lbind.letify(letList);
     for (TNode n : letList)
@@ -382,7 +386,7 @@ std::string AletheProofPrinter::printInternal(
       steps_before_subproof = steps;
 
   // In case the rule is an anchor it is printed before its children.
-  if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
+  if (arule >= AletheRule::ANCHOR_SUBPROOF && arule <= AletheRule::ANCHOR_SKO_EX)
   {
     // Print anchor
     std::string current_t =
@@ -403,13 +407,19 @@ std::string AletheProofPrinter::printInternal(
     // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
     //
     // Note that since these are variables there is no need to letify.
-    if (arule == AletheRule::ANCHOR_BIND)
+    if (arule >= AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
       for (size_t j = 3, size = args.size(); j < size; j++)
       {
-        out << "(:= (" << args[j][0] << " " << args[j][0].getType() << ") "
-            << args[j][1] << ")" << (j != args.size() - 1 ? " " : "");
+        Assert(args[j].getKind() == kind::EQUAL);
+        // if the rhs is a variable, it must be declared first
+        if (args[j][1].getKind() == kind::BOUND_VARIABLE)
+        {
+          out << "(" << args[j][1] << " " << args[j][1].getType() << ") ";
+        }
+        out << "(:= " << args[j][0] << " " << args[j][1] << ")"
+            << (j != args.size() - 1 ? " " : "");
       }
       out << ")";
     }
@@ -447,7 +457,7 @@ std::string AletheProofPrinter::printInternal(
   }
 
   // If the rule is a subproof a final subproof step needs to be printed
-  if (arule == AletheRule::ANCHOR_SUBPROOF || arule == AletheRule::ANCHOR_BIND)
+  if (arule >= AletheRule::ANCHOR_SUBPROOF && arule <= AletheRule::ANCHOR_SKO_EX)
   {
     Trace("alethe-printer") << "... print anchor node " << pfn->getResult()
                             << " " << arule << " / " << args << std::endl;
@@ -503,6 +513,15 @@ std::string AletheProofPrinter::printInternal(
   out << "(step " << current_t << " ";
   printTerm(out, args[2]);
   out << " :rule " << arule;
+  if (pfn->getChildren().size() >= 1)
+  {
+    out << " :premises (";
+    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
+    {
+      out << child_prefixes[i] << (i != size - 1? " " : "");
+    }
+    out << ")";
+  }
   if (args.size() > 3)
   {
     out << " :args (";
@@ -525,19 +544,7 @@ std::string AletheProofPrinter::printInternal(
     }
     out << ")";
   }
-  if (pfn->getChildren().size() >= 1)
-  {
-    out << " :premises (";
-    for (size_t i = 0, size = child_prefixes.size(); i < size; i++)
-    {
-      out << child_prefixes[i] << (i != size - 1? " " : "");
-    }
-    out << "))\n";
-  }
-  else
-  {
-    out << ")\n";
-  }
+  out << ")\n";
   return current_t;
 }
 

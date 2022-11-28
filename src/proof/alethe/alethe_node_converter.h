@@ -26,17 +26,31 @@ namespace proof {
 
 /**
  * This is a helper class for the Alethe post-processor that converts nodes into
- * form that Alethe expects.
+ * the form that Alethe expects.
  */
-class AletheNodeConverter : public NodeConverter
+class AletheNodeConverter
 {
  public:
   AletheNodeConverter();
   ~AletheNodeConverter() {}
-  /** Convert by removing attributes of quantifiers. */
-  Node postConvert(Node n) override;
+  /** convert to internal */
+  Node convert(Node n);
+
+
+ private:
   /** Should only traverse nodes containing closures. */
-  bool shouldTraverse(Node n) override;
+  bool shouldTraverse(Node n);
+
+  /** Node cache for convert */
+  std::unordered_map<Node, Node> d_cache;
+
+  /**
+   * Make or get an internal symbol with custom name.
+   */
+  Node mkInternalSymbol(const std::string& name);
+
+  /** Map from internally generated symbols to the built nodes. */
+  std::unordered_map<std::string, Node> d_symbolsMap;
 };
 
 }  // namespace proof
