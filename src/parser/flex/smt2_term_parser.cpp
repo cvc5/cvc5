@@ -65,5 +65,13 @@ Grammar* Smt2TermParser::parseGrammar() { return nullptr; }
 
 size_t Smt2TermParser::parseIntegerNumeral() { return 0; }
 
+  std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(bool isCo,
+              const std::vector<std::string>& dnames,
+              const std::vector<int>& arities)
+  {
+    std::vector<DatatypeDecl> dts;
+    return dts;
+  }
+  
 }  // namespace parser
 }  // namespace cvc5
