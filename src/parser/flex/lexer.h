@@ -70,6 +70,7 @@ class Lexer : public yyFlexLexer
   void warning(const std::string&);
   /** Used to report errors, with the current source location attached. */
   void parseError(const std::string&);
+
  protected:
   // Used to initialize d_span.
   void init_d_span();

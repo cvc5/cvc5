@@ -34,9 +34,7 @@ namespace parser {
 class Tptp : public Parser {
   friend class ParserBuilder;
  protected:
-  Tptp(cvc5::Solver* solver,
-       SymbolManager* sm,
-       bool strictMode = false);
+  Tptp(cvc5::Solver* solver, SymbolManager* sm, bool strictMode = false);
 
   /** get state */
   ParserState* getState() override;

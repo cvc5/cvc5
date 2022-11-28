@@ -20,7 +20,10 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2Parser::Smt2Parser(Solver* solver, SymbolManager* sm, bool strictMode, bool isSygus)
+Smt2Parser::Smt2Parser(Solver* solver,
+                       SymbolManager* sm,
+                       bool strictMode,
+                       bool isSygus)
     : FlexParser(solver, sm),
       d_isSygus(isSygus),
       d_slex(),

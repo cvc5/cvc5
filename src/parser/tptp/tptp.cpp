@@ -18,9 +18,7 @@
 namespace cvc5 {
 namespace parser {
 
-Tptp::Tptp(cvc5::Solver* solver,
-           SymbolManager* sm,
-           bool strictMode)
+Tptp::Tptp(cvc5::Solver* solver, SymbolManager* sm, bool strictMode)
     : Parser(), d_state(this, solver, sm, strictMode)
 {
 }

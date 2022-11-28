@@ -15,8 +15,8 @@
 
 #include "parser/flex/flex_parser.h"
 
-#include "parser/flex/smt2_parser.h"
 #include "base/output.h"
+#include "parser/flex/smt2_parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -30,7 +30,7 @@ void FlexParser::setFileInput(const std::string& filename)
 {
   d_flexInput = FlexInput::mkFileInput(filename);
   d_lex->initialize(d_flexInput->getStream(), filename);
-  
+
   Trace("ajr-temp") << "Get tokens" << std::endl;
   Token t;
   while ((t = d_lex->nextToken()) != Token::EOF_TOK)
@@ -54,25 +54,13 @@ void FlexParser::setStringInput(const std::string& input,
   d_lex->initialize(d_flexInput->getStream(), name);
 }
 
-void FlexParser::warning(const std::string& msg)
-{
-  d_lex->warning(msg);
-}
+void FlexParser::warning(const std::string& msg) { d_lex->warning(msg); }
 
-void FlexParser::parseError(const std::string& msg)
-{
-  d_lex->parseError(msg);
-}
+void FlexParser::parseError(const std::string& msg) { d_lex->parseError(msg); }
 
-void FlexParser::unexpectedEOF(const std::string& msg)
-{
-  
-}
+void FlexParser::unexpectedEOF(const std::string& msg) {}
 
-void FlexParser::preemptCommand(Command* cmd)
-{
-  
-}
+void FlexParser::preemptCommand(Command* cmd) {}
 
 std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
                                                      Solver* solver,

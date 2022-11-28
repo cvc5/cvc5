@@ -57,7 +57,7 @@ class FlexParser : public ParserStateCallback
    * @param name the name of the stream, for use in error messages
    */
   void setStringInput(const std::string& input, const std::string& name);
-  
+
   /** Issue a warning to the user. */
   void warning(const std::string& msg) override;
   /** Raise a parse error with the given message. */
@@ -84,6 +84,7 @@ class FlexParser : public ParserStateCallback
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
                                                   Solver* solver,
                                                   SymbolManager* sm);
+
  protected:
   /** Solver */
   Solver* d_solver;

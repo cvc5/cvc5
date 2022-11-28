@@ -33,8 +33,10 @@ namespace parser {
 class Smt2Parser : public FlexParser
 {
  public:
-  Smt2Parser(Solver* solver, SymbolManager* sm,
-            bool strictMode = false, bool isSygus = false);
+  Smt2Parser(Solver* solver,
+             SymbolManager* sm,
+             bool strictMode = false,
+             bool isSygus = false);
   virtual ~Smt2Parser() {}
   /**
    * Parse and return the next command.
