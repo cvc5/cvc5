@@ -30,6 +30,7 @@ set(LIBCONTEXT_SOURCES
   context.h
   context_mm.cpp
   context_mm.h
+  default_clean_up.h
 )
 
 add_library(cvc5context OBJECT ${LIBCONTEXT_SOURCES})

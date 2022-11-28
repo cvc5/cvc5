@@ -72,7 +72,11 @@ std::unique_ptr<Parser> ParserBuilder::build()
   else
   {
     Assert(d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6");
-    parser.reset(new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly));
+    parser.reset(new Smt2(d_solver,
+                          d_symman,
+                          d_strictMode,
+                          d_parseOnly,
+                          d_lang == "LANG_SYGUS_V2"));
   }
 
   if( d_checksEnabled ) {

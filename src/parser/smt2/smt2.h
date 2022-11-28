@@ -46,6 +46,8 @@ class Smt2 : public Parser
   friend class ParserBuilder;
 
  private:
+  /** Are we parsing a sygus file? */
+  bool d_isSygus;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */
@@ -69,7 +71,8 @@ class Smt2 : public Parser
   Smt2(cvc5::Solver* solver,
        SymbolManager* sm,
        bool strictMode = false,
-       bool parseOnly = false);
+       bool parseOnly = false,
+       bool isSygus = false);
 
  public:
   ~Smt2();
