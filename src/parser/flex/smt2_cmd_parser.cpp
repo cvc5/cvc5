@@ -122,7 +122,7 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::SET_INFO_TOK: break;
     case Token::SET_LOGIC_TOK:
     {
-      const std::string& name = d_tparser.parseSymbol(CHECK_NONE,SYM_SORT);
+      const std::string& name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
       cmd.reset(d_state.setLogic(name));
     }
     break;
