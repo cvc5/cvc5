@@ -31,7 +31,7 @@ Term Smt2TermParser::parseTerm()
 std::vector<Term> Smt2TermParser::parseTermList()
 {
   std::vector<Term> terms;
-  
+
   return terms;
 }
 
