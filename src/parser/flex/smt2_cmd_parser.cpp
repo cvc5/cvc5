@@ -62,8 +62,16 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new SygusConstraintCommand(t, isAssume));
     }
     break;
-    case Token::BLOCK_MODEL_TOK: break;
-    case Token::BLOCK_MODEL_VALUES_TOK: break;
+    case Token::BLOCK_MODEL_TOK:{
+      const std::string& key = d_tparser.parseKeyword();
+      d_state.checkThatLogicIsSet(); 
+      modes::BlockModelsMode mode =
+        d_state.getBlockModelsMode(key);
+      cmd.reset(new BlockModelCommand(mode));
+    } break;
+    case Token::BLOCK_MODEL_VALUES_TOK:  { d_state.checkThatLogicIsSet(); 
+    std::vector<Term> terms = d_tparser.parseTermList();
+      cmd.reset(new BlockModelValuesCommand(terms)); }break;
     case Token::CHECK_SAT_TOK:
     {
       if (d_state.sygus())
@@ -73,14 +81,26 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new CheckSatCommand());
     }
     break;
-    case Token::CHECK_SAT_ASSUMING_TOK: break;
-    case Token::CHECK_SYNTH_TOK: break;
-    case Token::CHECK_SYNTH_NEXT_TOK: break;
+    case Token::CHECK_SAT_ASSUMING_TOK: { d_state.checkThatLogicIsSet(); 
+    std::vector<Term> terms = d_tparser.parseTermList();
+      cmd.reset(new CheckSatAssumingCommand(terms)); }break;
+    case Token::CHECK_SYNTH_TOK: 
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new CheckSynthCommand());
+    }
+    break;
+    case Token::CHECK_SYNTH_NEXT_TOK: 
+    {
+      d_state.checkThatLogicIsSet();
+      cmd.reset(new CheckSynthCommand(true));
+    }
+    break;
     case Token::DECLARE_CODATATYPE_TOK: break;
     case Token::DECLARE_CODATATYPES_TOK: break;
-    case Token::DECLARE_CONST_TOK: break;
     case Token::DECLARE_DATATYPE_TOK: break;
     case Token::DECLARE_DATATYPES_TOK: break;
+    case Token::DECLARE_CONST_TOK: break;
     case Token::DECLARE_FUN_TOK: break;
     case Token::DECLARE_HEAP: break;
     case Token::DECLARE_POOL: break;

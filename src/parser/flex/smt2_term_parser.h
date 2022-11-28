@@ -33,11 +33,16 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
-  ///
+  /** Parses a term */
   Term parseTerm();
+  /** Parses parentheses-enclosed term list */
+  std::vector<Term> parseTermList();
   Sort parseSort();
   const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
                                  SymbolType type = SYM_SORT);
+  /**
+   * Parses ':X', returns 'X'
+   */
   const std::string& parseKeyword();
 
  protected:

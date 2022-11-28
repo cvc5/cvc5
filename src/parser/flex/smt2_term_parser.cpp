@@ -28,6 +28,12 @@ Term Smt2TermParser::parseTerm()
   Term t;
   return t;
 }
+std::vector<Term> Smt2TermParser::parseTermList()
+{
+  std::vector<Term> terms;
+  
+  return terms;
+}
 
 Sort Smt2TermParser::parseSort()
 {
