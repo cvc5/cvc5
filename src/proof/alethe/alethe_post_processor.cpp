@@ -2134,11 +2134,23 @@ bool AletheProofPostprocessCallback::updatePost(
                       : std::vector<Node>(args.begin(), args.begin() + 3);
       bool hasUpdated = false;
 
+      // If we are printing the pivots, the order of polarity/pivot is reversed.
+      size_t polIdx, pivIdx;
+      if (d_resPivots)
+      {
+        polIdx = 4;
+        pivIdx = 3;
+      }
+      else
+      {
+        polIdx = 3;
+        pivIdx = 4;
+      }
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true.
       if (children[0].getKind() == kind::OR
-          && (args[3] != d_true || children[0] != args[4]))
+          && (args[polIdx] != d_true || children[0] != args[pivIdx]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
         Node childConclusion = childPf->getArguments()[2];
@@ -2186,10 +2198,27 @@ bool AletheProofPostprocessCallback::updatePost(
       // true if it isn't the pivot element.
       for (std::size_t i = 1, size = children.size(); i < size; ++i)
       {
-        if (children[i].getKind() == kind::OR
-            && (args[2 * (i - 1) + 3] != d_false
-                || args[2 * (i - 1) + 1 + 3] != children[i]))
+        if (d_resPivots)
         {
+          polIdx = 2 * (i - 1) + 3 + 1;
+          pivIdx = 2 * (i - 1) + 3;
+        }
+        else
+        {
+          polIdx = 2 * (i - 1) + 3;
+          pivIdx = 2 * (i - 1) + 3 + 1;
+        }
+        if (children[i].getKind() == kind::OR
+            && (args[polIdx] != d_false || args[pivIdx] != children[i]))
+        {
+          // the arguments will have been converted to witness form already, so
+          // we also check whether after conversion the child is still not the
+          // same (in the case where we'd need to have them different)
+          if (args[polIdx] == d_false
+              && args[pivIdx] == d_anc.convert(children[i]))
+          {
+            continue;
+          }
           std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
           Node childConclusion = childPf->getArguments()[2];
           AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
@@ -2222,7 +2251,7 @@ bool AletheProofPostprocessCallback::updatePost(
                           *cdp);
             new_children[i] = conclusion;
             Trace("alethe-proof")
-                << "Added OR step in finalizer" << childConclusion << " / "
+                << "Added OR step in finalizer " << childConclusion << " / "
                 << conclusion << std::endl;
           }
         }
@@ -2235,6 +2264,7 @@ bool AletheProofPostprocessCallback::updatePost(
         cdp->addStep(res, PfRule::ALETHE_RULE, new_children, new_args);
         return true;
       }
+      Trace("alethe-proof") << "... no update\n";
       return false;
     }
     // A application of the FACTORING rule:
@@ -2295,14 +2325,17 @@ bool AletheProofPostprocessCallback::updatePost(
         cdp->addStep(res, PfRule::ALETHE_RULE, {newChild}, args);
         return true;
       }
+      Trace("alethe-proof") << "... no update\n";
       return false;
     }
     default:
     {
       // Unreachable();
+      Trace("alethe-proof") << "... no update\n";
       return false;
     }
   }
+  Trace("alethe-proof") << "... no update\n";
   return false;
 }
 
