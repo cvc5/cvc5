@@ -36,6 +36,18 @@ using namespace std;
 namespace cvc5 {
 namespace parser {
 
+class Parser::IncludeFileCache
+{
+public:
+  IncludeFileCache(){}
+  ~IncludeFileCache(){
+    for( size_t i=0, isize = d_inCreated.size(); i<isize; i++ ){
+      d_inCreated[i]->free(d_inCreated[i]);
+    }
+  }
+  std::vector< pANTLR3_INPUT_STREAM > d_inCreated;
+};
+
 Parser::Parser(cvc5::Solver* solver,
                SymbolManager* sm,
                bool strictMode,
@@ -923,6 +935,15 @@ bool newInputStream(std::string fileName,
   return true;
 }
 
+Parser::IncludeFileCache * Parser::getIncludeFileCache()
+{
+  if (d_incCache==nullptr)
+  {
+    d_incCache.reset(new IncludeFileCache);
+  }
+  return d_incCache.get();
+}
+
 void Parser::includeSmt2File(const std::string& filename)
 {
   // security for online version
@@ -945,8 +966,8 @@ void Parser::includeSmt2File(const std::string& filename)
     path = std::string(inputName, 0, pos + 1);
   }
   path.append(filename);
-  std::vector<pANTLR3_INPUT_STREAM> inc;
-  if (!newInputStream(path, lexer, inc))
+  IncludeFileCache * ifc = getIncludeFileCache();
+  if (!newInputStream(path, lexer, ifc->d_inCreated))
   {
     parseError("Couldn't open include file `" + path + "'");
   }
@@ -983,8 +1004,8 @@ void Parser::includeTptpFile(const std::string& fileName,
       currentDirFileName = std::string(inputName, 0, pos + 1);
     }
     currentDirFileName.append(fileName);
-    std::vector<pANTLR3_INPUT_STREAM> inc;
-    if (newInputStream(currentDirFileName, lexer, inc))
+    IncludeFileCache * ifc = getIncludeFileCache();
+    if (newInputStream(currentDirFileName, lexer, ifc->d_inCreated))
     {
       return;
     }
@@ -1001,8 +1022,8 @@ void Parser::includeTptpFile(const std::string& fileName,
   };
 
   std::string tptpDirFileName = tptpDir + fileName;
-  std::vector<pANTLR3_INPUT_STREAM> inc;
-  if (!newInputStream(tptpDirFileName, lexer, inc))
+  IncludeFileCache * ifc = getIncludeFileCache();
+  if (!newInputStream(tptpDirFileName, lexer, ifc->d_inCreated))
   {
     parseError("Couldn't open included file: " + fileName + " at "
                + currentDirFileName + " or " + tptpDirFileName);
