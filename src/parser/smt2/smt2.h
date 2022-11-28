@@ -35,7 +35,6 @@ class Smt2 : public Parser
   Smt2(Solver* solver,
        SymbolManager* sm,
        bool strictMode = false,
-       bool parseOnly = false,
        bool isSygus = false);
   /** get state */
   ParserState* getState() override;

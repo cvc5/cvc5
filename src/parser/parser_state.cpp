@@ -38,8 +38,7 @@ namespace parser {
 ParserState::ParserState(ParserStateCallback* psc,
                          Solver* solver,
                          SymbolManager* sm,
-                         bool strictMode,
-                         bool parseOnly)
+                         bool strictMode)
     : d_solver(solver),
       d_psc(psc),
       d_symman(sm),
@@ -47,7 +46,6 @@ ParserState::ParserState(ParserStateCallback* psc,
       d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
-      d_parseOnly(parseOnly),
       d_canIncludeFile(true)
 {
 }

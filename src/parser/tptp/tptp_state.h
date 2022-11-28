@@ -37,8 +37,7 @@ class TptpState : public ParserState
   TptpState(ParserStateCallback* psc,
             Solver* solver,
             SymbolManager* sm,
-            bool strictMode = false,
-            bool parseOnly = false);
+            bool strictMode = false);
   ~TptpState();
 
   bool cnf() const { return d_cnf; }

@@ -44,7 +44,6 @@ class Smt2State : public ParserState
             Solver* solver,
             SymbolManager* sm,
             bool strictMode = false,
-            bool parseOnly = false,
             bool isSygus = false);
 
   ~Smt2State();

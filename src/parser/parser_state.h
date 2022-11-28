@@ -74,15 +74,11 @@ class CVC5_EXPORT ParserState
    * @param symm reference to the symbol manager
    * @param input the parser input
    * @param strictMode whether to incorporate strict(er) compliance checks
-   * @param parseOnly whether we are parsing only (and therefore certain checks
-   * need not be performed, like those about unimplemented features, @see
-   * unimplementedFeature())
    */
   ParserState(ParserStateCallback* psc,
               Solver* solver,
               SymbolManager* sm,
-              bool strictMode = false,
-              bool parseOnly = false);
+              bool strictMode = false);
 
   virtual ~ParserState();
 
@@ -497,10 +493,7 @@ class CVC5_EXPORT ParserState
    */
   void unimplementedFeature(const std::string& msg)
   {
-    if (!d_parseOnly)
-    {
-      parseError("Unimplemented feature: " + msg);
-    }
+    parseError("Unimplemented feature: " + msg);
   }
 
   /**
@@ -618,9 +611,6 @@ class CVC5_EXPORT ParserState
 
   /** Are we parsing in strict mode? */
   bool d_strictMode;
-
-  /** Are we only parsing? */
-  bool d_parseOnly;
 
   /**
    * Can we include files?  (Set to false for security purposes in

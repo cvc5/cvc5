@@ -30,9 +30,8 @@ namespace parser {
 TptpState::TptpState(ParserStateCallback* psc,
                      Solver* solver,
                      SymbolManager* sm,
-                     bool strictMode,
-                     bool parseOnly)
-    : ParserState(psc, solver, sm, strictMode, parseOnly),
+                     bool strictMode)
+    : ParserState(psc, solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
       d_hol(false)

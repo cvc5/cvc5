@@ -36,8 +36,7 @@ class Tptp : public Parser {
  protected:
   Tptp(cvc5::Solver* solver,
        SymbolManager* sm,
-       bool strictMode = false,
-       bool parseOnly = false);
+       bool strictMode = false);
 
   /** get state */
   ParserState* getState() override;

@@ -20,9 +20,8 @@ namespace parser {
 Smt2::Smt2(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
-           bool parseOnly,
            bool isSygus)
-    : Parser(), d_state(this, solver, sm, strictMode, parseOnly, isSygus)
+    : Parser(), d_state(this, solver, sm, strictMode, isSygus)
 {
 }
 

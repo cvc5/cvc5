@@ -20,9 +20,8 @@ namespace parser {
 
 Tptp::Tptp(cvc5::Solver* solver,
            SymbolManager* sm,
-           bool strictMode,
-           bool parseOnly)
-    : Parser(), d_state(this, solver, sm, strictMode, parseOnly)
+           bool strictMode)
+    : Parser(), d_state(this, solver, sm, strictMode)
 {
 }
 
