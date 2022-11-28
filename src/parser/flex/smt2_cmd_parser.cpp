@@ -255,10 +255,68 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionCommand(name, t, e));
     }
     break;
-    case Token::DEFINE_FUN_TOK: break;
+    case Token::DEFINE_FUN_TOK: { 
+      d_state.checkThatLogicIsSet(); 
+      std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_VARIABLE);
+     d_state.checkUserSymbol(name); 
+      std::vector<std::pair<std::string, Sort> > sortedVarNames =
+          d_tparser.parseSortedVarList();
+          Sort t = d_tparser.parseSort();
+     /* add variables to parser state before parsing term */
+      Trace("parser") << "define fun: '" << name << "'" << std::endl;
+      std::vector<Sort> sorts;
+      if( sortedVarNames.size() > 0 ) {
+        sorts.reserve(sortedVarNames.size());
+        for(const std::pair<std::string, Sort>& i : sortedVarNames) {
+          sorts.push_back(i.second);
+        }
+      }
+      std::vector<Term> flattenVars;
+      t = d_state.mkFlatFunctionType(sorts, t, flattenVars);
+      if (t.isFunction())
+      {
+        t = t.getFunctionCodomainSort();
+      }
+      if (sortedVarNames.size() > 0)
+      {
+        d_state.pushScope();
+      }
+      std::vector<Term> terms = d_state.bindBoundVars(sortedVarNames);
+      Term expr = d_tparser.parseTerm();
+      if( !flattenVars.empty() ){
+        // if this function has any implicit variables flattenVars,
+        // we apply the body of the definition to the flatten vars
+        expr = d_state.mkHoApply(expr, flattenVars);
+        terms.insert(terms.end(), flattenVars.begin(), flattenVars.end());
+      }
+      if (sortedVarNames.size() > 0)
+      {
+        d_state.popScope();
+      }
+      cmd.reset(new DefineFunctionCommand(name, terms, t, expr));
+    }
+    break;
     case Token::DEFINE_FUN_REC_TOK: break;
     case Token::DEFINE_FUNS_REC_TOK: break;
-    case Token::DEFINE_SORT_TOK: break;
+    case Token::DEFINE_SORT_TOK: 
+    { d_state.checkThatLogicIsSet();
+    std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED,SYM_SORT);
+    d_state.checkUserSymbol(name);
+    std::vector<std::string> snames = d_tparser.parseSymbolList(CHECK_UNDECLARED,SYM_SORT);
+      d_state.pushScope();
+      std::vector<Sort> sorts;
+      for (const std::string& sname : snames)
+      {
+        sorts.push_back(d_state.mkSort(sname));
+      }
+      Sort t = d_tparser.parseSort();
+      d_state.popScope();
+      // Do NOT call mkSort, since that creates a new sort!
+      // This name is not its own distinct sort, it's an alias.
+      d_state.defineParameterizedType(name, sorts, t);
+      cmd.reset(new DefineSortCommand(name, sorts, t));
+    }
+    break;
     case Token::ECHO_TOK:
     {
       // TODO: optional
@@ -516,6 +574,7 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new SimplifyCommand(t));
     }
     break;
+    // synth-fun and synth-inv
     case Token::SYNTH_FUN_TOK:
     case Token::SYNTH_INV_TOK:
     {
