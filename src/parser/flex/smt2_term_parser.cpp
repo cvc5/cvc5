@@ -35,6 +35,12 @@ std::vector<Term> Smt2TermParser::parseTermList()
   return terms;
 }
 
+Term Smt2TermParser::parseSymbolicExpr()
+{
+  Term t;
+  return t;
+}
+
 Sort Smt2TermParser::parseSort()
 {
   Sort s;

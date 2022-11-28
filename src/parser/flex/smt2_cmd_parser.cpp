@@ -288,8 +288,29 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new ResetAssertionsCommand());
     }
     break;
-    case Token::SET_FEATURE_TOK: break;
-    case Token::SET_INFO_TOK: break;
+    case Token::SET_FEATURE_TOK: 
+    {
+      const std::string& key = d_tparser.parseKeyword();
+      Term s = d_tparser.parseSymbolicExpr();
+      d_state.checkThatLogicIsSet();
+      // ":grammars" is defined in the SyGuS version 2.1 standard and is by
+      // default supported, all other features are not.
+      if (key != "grammars")
+      {
+        std::stringstream ss;
+        ss << "SyGuS feature " << key << " not currently supported";
+        d_state.warning(ss.str());
+      }
+      cmd.reset(new EmptyCommand());
+    }
+    break;
+    case Token::SET_INFO_TOK: 
+    {
+      const std::string& key = d_tparser.parseKeyword();
+      Term s = d_tparser.parseSymbolicExpr();
+      cmd.reset(new SetInfoCommand(key, sexprToString(s)));
+    }
+    break;
     case Token::SET_LOGIC_TOK:
     {
       const std::string& name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
@@ -304,8 +325,22 @@ Command* Smt2CmdParser::parseNextCommand()
       cmd.reset(new SimplifyCommand(t));
     }
     break;
-    case Token::SYNTH_FUN_TOK: break;
-    case Token::SYNTH_INV_TOK: break;
+    case Token::SYNTH_FUN_TOK:
+    case Token::SYNTH_INV_TOK:
+    {
+      /*
+      Sort range;
+      if (tok==Token::SYNTH_FUN_TOK)
+      {
+        range = d_tparser.parseSort();
+      }
+      else
+      {
+        range = d_state.getSolver()->getBooleanSort();
+      }
+      */
+    }
+      break;
     default:
       // TODO: error
       break;

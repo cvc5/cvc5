@@ -37,6 +37,9 @@ class Smt2TermParser
   Term parseTerm();
   /** Parses parentheses-enclosed term list */
   std::vector<Term> parseTermList();
+  /** Parses a symbolic expr */
+  Term parseSymbolicExpr();
+  /** Parse a sort */
   Sort parseSort();
   const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
                                  SymbolType type = SYM_SORT);
