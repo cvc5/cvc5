@@ -45,12 +45,10 @@ class Smt2Parser : public FlexParser
   Term nextExpression() override;
 
  protected:
-  /** initialize input */
-  void initializeInput(std::istream& s, const std::string& inputName) override;
   /** Is sygus? */
   bool d_isSygus;
   /** The lexer */
-  Smt2Lexer d_lex;
+  Smt2Lexer d_slex;
   /** The state */
   Smt2State d_state;
   /** Term parser */

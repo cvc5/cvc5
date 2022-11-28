@@ -23,27 +23,13 @@ namespace parser {
 Smt2Parser::Smt2Parser(Solver* solver, SymbolManager* sm, bool strictMode, bool isSygus)
     : FlexParser(solver, sm),
       d_isSygus(isSygus),
-      d_lex(),
+      d_slex(),
       d_state(this, solver, sm, strictMode, isSygus),
-      d_termParser(d_lex),
-      d_cmdParser(d_lex, d_termParser)
+      d_termParser(d_slex),
+      d_cmdParser(d_slex, d_termParser)
 {
+  d_lex = &d_slex;
 }
-
-void Smt2Parser::initializeInput(std::istream& s, const std::string& inputName)
-{
-  d_lex.initialize(s, inputName);
-
-  Trace("ajr-temp") << "Get tokens" << std::endl;
-  Token t;
-  while ((t = d_lex.nextToken()) != Token::EOF_TOK)
-  {
-    Trace("ajr-temp") << "Token: " << t << std::endl;
-  }
-  Trace("ajr-temp") << "Finished" << std::endl;
-  exit(1);
-}
-
 Command* Smt2Parser::nextCommand() { return d_cmdParser.nextCommand(); }
 
 Term Smt2Parser::nextExpression() { return d_termParser.nextExpression(); }

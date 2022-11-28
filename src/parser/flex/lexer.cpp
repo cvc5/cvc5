@@ -33,7 +33,16 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
 
 Lexer::Lexer() : yyFlexLexer() {}
 
-void Lexer::report_error(const std::string& msg)
+void Lexer::warning(const std::string& msg)
+{
+  if (d_inputName.length())
+  {
+    std::cerr << "Warning: " << d_inputName << " at " << d_span;
+  }
+  std::cerr << std::endl << msg << std::endl;
+}
+
+void Lexer::parseError(const std::string& msg)
 {
   if (d_inputName.length())
   {
@@ -86,7 +95,7 @@ void Lexer::unexpected_token_error(Token t, const std::string& info)
   {
     o << std::endl << "Note: " << info;
   }
-  report_error(o.str());
+  parseError(o.str());
 }
 
 std::string Lexer::prefix_id()

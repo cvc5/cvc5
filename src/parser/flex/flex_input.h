@@ -19,7 +19,6 @@
 #define CVC5__PARSER__FLEX_INPUT_H
 
 #include <memory>
-#include <optional>
 #include <sstream>
 #include <string>
 

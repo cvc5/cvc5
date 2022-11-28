@@ -29,6 +29,7 @@ namespace parser {
 
 class Command;
 class SymbolManager;
+class Lexer;
 
 /**
  */
@@ -84,13 +85,12 @@ class FlexParser : public ParserStateCallback
                                                   Solver* solver,
                                                   SymbolManager* sm);
  protected:
-  /** initialize input */
-  virtual void initializeInput(std::istream& s,
-                               const std::string& inputName) = 0;
   /** Solver */
   Solver* d_solver;
   /** Symbol manager */
   SymbolManager* d_sm;
+  /** The lexer we are using */
+  Lexer* d_lex;
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
 };

@@ -16,42 +16,52 @@
 #include "parser/flex/flex_parser.h"
 
 #include "parser/flex/smt2_parser.h"
+#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
 
 FlexParser::FlexParser(Solver* solver, SymbolManager* sm)
-    : d_solver(solver), d_sm(sm)
+    : d_solver(solver), d_sm(sm), d_lex(nullptr)
 {
 }
 
 void FlexParser::setFileInput(const std::string& filename)
 {
   d_flexInput = FlexInput::mkFileInput(filename);
-  initializeInput(d_flexInput->getStream(), filename);
+  d_lex->initialize(d_flexInput->getStream(), filename);
+  
+  Trace("ajr-temp") << "Get tokens" << std::endl;
+  Token t;
+  while ((t = d_lex->nextToken()) != Token::EOF_TOK)
+  {
+    Trace("ajr-temp") << "Token: " << t << std::endl;
+  }
+  Trace("ajr-temp") << "Finished" << std::endl;
+  exit(1);
 }
 
 void FlexParser::setStreamInput(std::istream& input, const std::string& name)
 {
   d_flexInput = FlexInput::mkStreamInput(input);
-  initializeInput(d_flexInput->getStream(), name);
+  d_lex->initialize(d_flexInput->getStream(), name);
 }
 
 void FlexParser::setStringInput(const std::string& input,
                                 const std::string& name)
 {
   d_flexInput = FlexInput::mkStringInput(input);
-  initializeInput(d_flexInput->getStream(), name);
+  d_lex->initialize(d_flexInput->getStream(), name);
 }
 
 void FlexParser::warning(const std::string& msg)
 {
-  
+  d_lex->warning(msg);
 }
 
 void FlexParser::parseError(const std::string& msg)
 {
-  
+  d_lex->parseError(msg);
 }
 
 void FlexParser::unexpectedEOF(const std::string& msg)
