@@ -58,7 +58,7 @@ void FlexParser::initializeInput(const std::string& name)
   Token t;
   while ((t = d_lex->nextToken()) != Token::EOF_TOK)
   {
-    Trace("ajr-temp") << "Token: " << t << std::endl;
+    Trace("ajr-temp") << "Token: " << t << " / '" << d_lex->YYText() << "'" << std::endl;
   }
   Trace("ajr-temp") << "Finished" << std::endl;
   exit(1);

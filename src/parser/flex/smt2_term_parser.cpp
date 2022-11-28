@@ -15,6 +15,9 @@
 
 #include "parser/flex/smt2_term_parser.h"
 
+#include <string.h>
+#include "base/check.h"
+
 namespace cvc5 {
 namespace parser {
 
@@ -90,7 +93,41 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
   return dts;
 }
 
-std::string Smt2TermParser::parseStr(bool unescape) { return ""; }
+std::string Smt2TermParser::parseStr(bool unescape) {
+  d_lex.eatToken(Token::STRING_LITERAL);
+  std::string s = d_lex.YYText();
+    if (unescape)
+    {
+      /* strip off the quotes */
+      s = s.substr(1, s.size() - 2);
+      for (size_t i = 0, ssize = s.size(); i < ssize; i++)
+      {
+        if ((unsigned)s[i] > 127 && !isprint(s[i]))
+        {
+          d_state.parseError(
+              "Extended/unprintable characters are not "
+              "part of SMT-LIB, and they must be encoded "
+              "as escape sequences");
+        }
+      }
+      char* p_orig = strdup(s.c_str());
+      char *p = p_orig, *q = p_orig;
+      while (*q != '\0')
+      {
+        if (*q == '"')
+        {
+          // Handle SMT-LIB >=2.5 standard escape '""'.
+          ++q;
+          Assert(*q == '"');
+        }
+        *p++ = *q++;
+      }
+      *p = '\0';
+      s = p_orig;
+      free(p_orig);
+    }
+  return s; 
+}
 
 }  // namespace parser
 }  // namespace cvc5

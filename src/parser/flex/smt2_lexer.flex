@@ -15,7 +15,7 @@
 
 nl          [\n]+
 ws          [ \t\f]+
-
+string_literal \"(\"\"|[^"])*\"
 
 %%
 
@@ -103,6 +103,7 @@ ws          [ \t\f]+
 
 {ws}            bump_span();
 {nl}            add_lines(yyleng); bump_span();
+{string_literal}  return cvc5::parser::STRING_LITERAL;
 
 ";"    {
           int c;

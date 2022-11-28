@@ -22,6 +22,8 @@
 namespace cvc5 {
 namespace parser {
 
+// TODO: optional string, grammar, numeral 
+
 Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
