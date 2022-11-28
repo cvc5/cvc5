@@ -513,11 +513,13 @@ Command* Smt2CmdParser::parseNextCommand()
     case Token::SYNTH_FUN_TOK:
     case Token::SYNTH_INV_TOK:
     {
-    d_state.checkThatLogicIsSet();
-      const std::string& name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
-      std::vector<std::pair<std::string, Sort> > sortedVarNames = d_tparser.parseSortedVarList();
+      d_state.checkThatLogicIsSet();
+      const std::string& name =
+          d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
+      std::vector<std::pair<std::string, Sort> > sortedVarNames =
+          d_tparser.parseSortedVarList();
       Sort range;
-      bool isInv = (tok ==Token::SYNTH_INV_TOK);
+      bool isInv = (tok == Token::SYNTH_INV_TOK);
       if (isInv)
       {
         range = d_state.getSolver()->getBooleanSort();
@@ -530,22 +532,20 @@ Command* Smt2CmdParser::parseNextCommand()
       std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
       // TODO: optional
       Grammar* g = d_tparser.parseGrammar(sygusVars, name);
-    
+
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
-      Solver * slv = d_state.getSolver();
-      Term fun = isInv ? (g == nullptr
-                         ? slv->synthInv(name, sygusVars)
-                         : slv->synthInv(name, sygusVars, *g))
-                  : (g == nullptr
-                         ? slv->synthFun(name, sygusVars, range)
-                         : slv->synthFun(name, sygusVars, range, *g));
+      Solver* slv = d_state.getSolver();
+      Term fun =
+          isInv ? (g == nullptr ? slv->synthInv(name, sygusVars)
+                                : slv->synthInv(name, sygusVars, *g))
+                : (g == nullptr ? slv->synthFun(name, sygusVars, range)
+                                : slv->synthFun(name, sygusVars, range, *g));
 
       Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       d_state.popScope();
       // we do not allow overloading for synth fun
       d_state.defineVar(name, fun);
-      cmd.reset(
-          new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
+      cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
     }
     break;
     default:

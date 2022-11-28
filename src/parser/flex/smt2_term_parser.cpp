@@ -67,9 +67,11 @@ const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
 
 const std::string& Smt2TermParser::parseKeyword() { return ""; }
 
-Grammar* Smt2TermParser::parseGrammar(
-             const std::vector<Term>& sygusVars,
-             const std::string& fun) { return nullptr; }
+Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
+                                      const std::string& fun)
+{
+  return nullptr;
+}
 
 size_t Smt2TermParser::parseIntegerNumeral() { return 0; }
 

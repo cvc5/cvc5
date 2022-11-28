@@ -53,9 +53,8 @@ class Smt2TermParser
    */
   const std::string& parseKeyword();
   /** Parse grammar */
-  Grammar* parseGrammar(
-             const std::vector<Term>& sygusVars,
-             const std::string& fun);
+  Grammar* parseGrammar(const std::vector<Term>& sygusVars,
+                        const std::string& fun);
   /** Parse integer numeral */
   size_t parseIntegerNumeral();
   /** Parse datatype def */
@@ -63,6 +62,7 @@ class Smt2TermParser
       bool isCo,
       const std::vector<std::string>& dnames,
       const std::vector<size_t>& arities);
+
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
