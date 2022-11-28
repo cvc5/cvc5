@@ -59,13 +59,13 @@ std::vector<std::pair<std::string, Sort> > Smt2TermParser::parseSortedVarList()
   return varList;
 }
 
-const std::string& Smt2TermParser::parseSymbol(DeclarationCheck check,
+std::string Smt2TermParser::parseSymbol(DeclarationCheck check,
                                                SymbolType type)
 {
   return "";
 }
 
-const std::string& Smt2TermParser::parseKeyword() { return ""; }
+std::string Smt2TermParser::parseKeyword() { return ""; }
 
 Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
                                       const std::string& fun)
@@ -82,6 +82,11 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
 {
   std::vector<DatatypeDecl> dts;
   return dts;
+}
+
+std::string Smt2TermParser::parseStr(bool unescape)
+{
+  return "";
 }
 
 }  // namespace parser

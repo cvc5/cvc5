@@ -46,12 +46,12 @@ class Smt2TermParser
   /** Parse parentheses-enclosed sorted variable list */
   std::vector<std::pair<std::string, Sort> > parseSortedVarList();
   /** Parse symbol */
-  const std::string& parseSymbol(DeclarationCheck check = CHECK_NONE,
+  std::string parseSymbol(DeclarationCheck check = CHECK_NONE,
                                  SymbolType type = SYM_SORT);
   /**
    * Parses ':X', returns 'X'
    */
-  const std::string& parseKeyword();
+  std::string parseKeyword();
   /** Parse grammar */
   Grammar* parseGrammar(const std::vector<Term>& sygusVars,
                         const std::string& fun);
@@ -62,6 +62,11 @@ class Smt2TermParser
       bool isCo,
       const std::vector<std::string>& dnames,
       const std::vector<size_t>& arities);
+  /**
+  * Matches a string, and (optionally) strips off the quotes/unescapes the
+  * string when `unescape` is set to true.
+  */
+  std::string parseStr(bool unescape);
 
  protected:
   /** The lexer */
