@@ -22,21 +22,14 @@ Tptp::Tptp(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool parseOnly)
-    : Parser(),
-      d_state(this, solver, sm, strictMode, parseOnly)
+    : Parser(), d_state(this, solver, sm, strictMode, parseOnly)
 {
 }
 
 Tptp::~Tptp() {
 }
-ParserState * Tptp::getState()
-{
-  return &d_state;
-}
-TptpState* Tptp::getTptpState()
-{
-  return &d_state;
-}
+ParserState* Tptp::getState() { return &d_state; }
+TptpState* Tptp::getTptpState() { return &d_state; }
 
 }  // namespace parser
 }  // namespace cvc5

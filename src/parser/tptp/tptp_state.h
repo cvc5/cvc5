@@ -172,6 +172,7 @@ class TptpState : public ParserState
 
   /** Get TPTP directory */
   const std::string& getTptpDir() const;
+
  private:
   void addArithmeticOperators();
   /** is the name declared, if so, return the term for that name */

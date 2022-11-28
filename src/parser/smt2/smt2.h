@@ -38,11 +38,13 @@ class Smt2 : public Parser
        bool parseOnly = false,
        bool isSygus = false);
   /** get state */
-  ParserState * getState() override;
+  ParserState* getState() override;
+
  public:
   ~Smt2();
   /** Get the state */
   Smt2State* getSmt2State();
+
  private:
   /** The state object */
   Smt2State d_state;

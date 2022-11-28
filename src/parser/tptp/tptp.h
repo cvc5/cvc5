@@ -22,12 +22,12 @@
 #include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "util/hash.h"
 #include "parser/tptp/tptp_state.h"
+#include "util/hash.h"
 
 namespace cvc5 {
 namespace parser {
-  
+
 /*
  * This class is deprecated and used only for the ANTLR parser.
  */
@@ -40,11 +40,13 @@ class Tptp : public Parser {
        bool parseOnly = false);
 
   /** get state */
-  ParserState * getState() override;
+  ParserState* getState() override;
+
  public:
   ~Tptp();
   /** Get state */
   TptpState* getTptpState();
+
  private:
   /** The state */
   TptpState d_state;

@@ -97,7 +97,8 @@ protected:
  Parser();
 
  /** Get the state */
- virtual ParserState * getState() = 0;
+ virtual ParserState* getState() = 0;
+
 public:
 
   virtual ~Parser();
@@ -117,20 +118,16 @@ public:
    * error has been encountered.
    * @return true if parser is done
    */
-  bool done() const {
-    return d_done;
-  }
+  bool done() const { return d_done; }
 
   /** Sets the done flag */
-  void setDone(bool done = true) {
-    d_done = done;
-  }
+  void setDone(bool done = true) { d_done = done; }
   /** Enable semantic checks during parsing. */
   void enableChecks();
 
   /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
   void disableChecks();
-  
+
   void allowIncludeFile() { d_canIncludeFile = true; }
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
@@ -160,8 +157,7 @@ public:
     d_input->parseError(msg, true);
   }
 
-  //virtual void reset();
-
+  // virtual void reset();
 
   /**
    * Include smt2 file

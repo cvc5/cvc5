@@ -22,15 +22,11 @@ Smt2::Smt2(cvc5::Solver* solver,
            bool strictMode,
            bool parseOnly,
            bool isSygus)
-    : Parser(),
-      d_state(this, solver, sm, strictMode, parseOnly, isSygus)
+    : Parser(), d_state(this, solver, sm, strictMode, parseOnly, isSygus)
 {
 }
 
-ParserState * Smt2::getState()
-{
-  return &d_state;
-}
+ParserState* Smt2::getState() { return &d_state; }
 
 Smt2::~Smt2() {}
 

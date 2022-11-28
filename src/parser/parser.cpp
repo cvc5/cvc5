@@ -50,15 +50,14 @@ class Parser::IncludeFileCache
   std::vector<pANTLR3_INPUT_STREAM> d_inCreated;
 };
 
-Parser::Parser()
-    : d_done(true),
-      d_canIncludeFile(true)
-{
-}
+Parser::Parser() : d_done(true), d_canIncludeFile(true) {}
 
-Parser::~Parser() {
+Parser::~Parser()
+{
   for (std::list<Command*>::iterator iter = d_commandQueue.begin();
-       iter != d_commandQueue.end(); ++iter) {
+       iter != d_commandQueue.end();
+       ++iter)
+  {
     Command* command = *iter;
     delete command;
   }
@@ -113,15 +112,9 @@ cvc5::Term Parser::nextExpression()
   return result;
 }
 
-void Parser::enableChecks()
-{
-  getState()->enableChecks();
-}
+void Parser::enableChecks() { getState()->enableChecks(); }
 
-void Parser::disableChecks()
-{
-  getState()->disableChecks();
-}
+void Parser::disableChecks() { getState()->disableChecks(); }
 
 /* The include are managed in the lexer but called in the parser */
 // Inspired by http://www.antlr3.org/api/C/interop.html
