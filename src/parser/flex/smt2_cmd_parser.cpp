@@ -17,6 +17,7 @@
 
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
+#include "base/check.h"
 
 namespace cvc5 {
 namespace parser {
@@ -64,7 +65,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::BLOCK_MODEL_TOK:
     {
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       d_state.checkThatLogicIsSet();
       modes::BlockModelsMode mode = d_state.getBlockModelsMode(key);
       cmd.reset(new BlockModelCommand(mode));
@@ -129,8 +130,8 @@ Command* Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<std::string> dnames;
       std::vector<size_t> arities;
-      // TODO: optional
-      while (true)
+      // while the next token is LPAREN, exit if RPAREN
+      while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
       {
         d_lex.eatToken(Token::LPAREN_TOK);
         std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
@@ -139,7 +140,6 @@ Command* Smt2CmdParser::parseNextCommand()
         arities.push_back(arity);
         d_lex.eatToken(Token::RPAREN_TOK);
       }
-      d_lex.eatToken(Token::RPAREN_TOK);
       d_lex.eatToken(Token::LPAREN_TOK);
 
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
@@ -328,10 +328,9 @@ Command* Smt2CmdParser::parseNextCommand()
       std::vector<Term> funcs;
       std::vector<std::vector<std::pair<std::string, Sort>>> sortedVarNamesList;
       std::vector<std::vector<Term>> flattenVarsList;
-      // TODO: optional
-      while (true)
+      // while the next token is LPAREN, exit if RPAREN
+      while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
       {
-        d_lex.eatToken(Token::LPAREN_TOK);
         std::string fname =
             d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
         d_state.checkUserSymbol(fname);
@@ -348,8 +347,8 @@ Command* Smt2CmdParser::parseNextCommand()
         flattenVarsList.push_back(flattenVars);
         d_lex.eatToken(Token::RPAREN_TOK);
       }
-      d_lex.eatToken(Token::RPAREN_TOK);
 
+      // parse the bodies
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<Term> funcDefs;
       std::vector<std::vector<Term>> formals;
@@ -364,12 +363,7 @@ Command* Smt2CmdParser::parseNextCommand()
         formals.push_back(bvs);
       }
       d_lex.eatToken(Token::RPAREN_TOK);
-      if (funcs.size() != funcDefs.size())
-      {
-        d_state.parseError(std::string(
-            "Number of functions defined does not match number listed in "
-            "define-funs-rec"));
-      }
+      Assert (funcs.size() == funcDefs.size());
       cmd.reset(new DefineFunctionRecCommand(funcs, formals, funcDefs));
     }
     break;
@@ -451,7 +445,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::GET_INFO_TOK:
     {
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       cmd.reset(new GetInfoCommand(key));
     }
     break;
@@ -476,7 +470,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       // TODO: optional
       bool readKeyword = true;
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       d_state.checkThatLogicIsSet();
       modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
       if (readKeyword)
@@ -494,7 +488,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::GET_OPTION_TOK:
     {
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       cmd.reset(new GetOptionCommand(key));
     }
     break;
@@ -502,7 +496,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       // TODO: optional
       bool readKeyword = true;
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       d_state.checkThatLogicIsSet();
       modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
       if (readKeyword)
@@ -602,7 +596,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::SET_FEATURE_TOK:
     {
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       Term s = d_tparser.parseSymbolicExpr();
       d_state.checkThatLogicIsSet();
       // ":grammars" is defined in the SyGuS version 2.1 standard and is by
@@ -618,7 +612,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::SET_INFO_TOK:
     {
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       Term sexpr = d_tparser.parseSymbolicExpr();
       cmd.reset(new SetInfoCommand(key, sexprToString(sexpr)));
     }
@@ -631,7 +625,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::SET_OPTION_TOK:
     {
-      const std::string& key = d_tparser.parseKeyword();
+      std::string key = d_tparser.parseKeyword();
       Term sexpr = d_tparser.parseSymbolicExpr();
       std::string ss = sexprToString(sexpr);
       cmd.reset(new SetOptionCommand(key, ss));

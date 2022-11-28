@@ -106,13 +106,29 @@ std::string Lexer::prefix_id()
 
 void Lexer::eatToken(Token t)
 {
-  auto tt = nextToken();
+  Token tt = nextToken();
   if (t != tt)
   {
     std::ostringstream o{};
     o << "Expected a " << t << ", but got a " << tt << ", `" << YYText() << "`";
     unexpected_token_error(tt, o.str());
   }
+}
+
+bool Lexer::eatTokenChoice(Token t, Token f)
+{
+  Token tt = nextToken();
+  if (tt==t)
+  {
+    return true;
+  }
+  else if (tt!=f)
+  {
+    std::ostringstream o{};
+    o << "Expected " << t << " or " << f << ", but got a " << tt << ", `" << YYText() << "`";
+    unexpected_token_error(tt, o.str());
+  }
+  return false;
 }
 
 }  // namespace parser
