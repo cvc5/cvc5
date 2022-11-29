@@ -1931,21 +1931,19 @@ sortSymbol[cvc5::Sort& t]
         } else if (name == "Table" && !PARSER_STATE->strictModeEnabled()) {
           cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
           t = SOLVER->mkBagSort(tupleSort);
+        } else if (name == "->" && PARSER_STATE->isHoEnabled()) {
+          if(args.size()<2) {
+            PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
+          }
+          //flatten the type
+          cvc5::Sort rangeType = args.back();
+          args.pop_back();
+          t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
         } else {
           t = PARSER_STATE->getSort(name, args);
         }
       }
     ) RPAREN_TOK
-  | LPAREN_TOK HO_ARROW_TOK sortList[args] RPAREN_TOK
-    {
-      if(args.size()<2) {
-        PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
-      }
-      //flatten the type
-      cvc5::Sort rangeType = args.back();
-      args.pop_back();
-      t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
-    }
   ;
 
 /**
@@ -2107,7 +2105,7 @@ PAR_TOK : 'par';
 SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }?'set.comprehension';
 TESTER_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
 UPDATE_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
-MATCH_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
+MATCH_TOK : 'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
@@ -2156,7 +2154,6 @@ CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
-HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
 
 /**
