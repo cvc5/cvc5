@@ -41,6 +41,7 @@ simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 ":pool"   return cvc5::parser::ATTRIBUTE_POOL_TOK;
 ":qid"   return cvc5::parser::ATTRIBUTE_QUANTIFIER_ID_TOK;
 ":skolem-add-to-pool"   return cvc5::parser::ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK;
+"!"   return cvc5::parser::ATTRIBUTE_TOK;
 "block-model"   return cvc5::parser::BLOCK_MODEL_TOK;
 "block-model-values"   return cvc5::parser::BLOCK_MODEL_VALUES_TOK;
 "check-sat-assuming"   return cvc5::parser::CHECK_SAT_ASSUMING_TOK;

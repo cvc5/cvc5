@@ -392,7 +392,7 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::ECHO_TOK:
     {
-      // optional
+      // optional string literal
       tok = d_lex.peekToken();
       if (tok == Token::STRING_LITERAL)
       {
@@ -413,7 +413,7 @@ Command* Smt2CmdParser::parseNextCommand()
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       Term t = d_tparser.parseTerm();
-      // optional
+      // parse optional grammar
       std::vector<Term> emptyVarList;
       Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, name);
       cmd.reset(new GetAbductCommand(name, t, g));

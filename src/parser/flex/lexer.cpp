@@ -95,11 +95,18 @@ Token Lexer::nextToken()
 
 Token Lexer::peekToken()
 {
-  Assert(d_peeked == Token::NONE);
+  // parse next token
   Token t = Token(yylex());
-  // reinsert it
-  d_peeked = t;
+  // reinsert it immediately
+  reinsertToken(t);
+  // return it
   return t;
+}
+
+void Lexer::reinsertToken(Token t)
+{
+  Assert(d_peeked == Token::NONE);
+  d_peeked = t;
 }
 
 void Lexer::unexpectedTokenError(Token t, const std::string& info)

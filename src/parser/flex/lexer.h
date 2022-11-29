@@ -67,6 +67,8 @@ class Lexer : public yyFlexLexer
    * if `t`.
    */
   bool eatTokenChoice(Token t, Token f);
+  /** reinsert token */
+  void reinsertToken(Token t);
   // String corresponding to the last token (old top of stack)
   const char* token_str();
   // Derived functions

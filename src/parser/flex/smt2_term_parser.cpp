@@ -29,7 +29,7 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 
 Term Smt2TermParser::parseTerm()
 {
-  Term t;
+  Term ret;
   Token tok;
   std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
   do
@@ -37,23 +37,74 @@ Term Smt2TermParser::parseTerm()
     tok = d_lex.nextToken();
     switch (tok)
     {
+      // open paren
       case Token::LPAREN_TOK: {
+        tok = d_lex.nextToken();
+        switch (tok)
+        {
+        case Token::AS_TOK: {
+          // a standalone qualifier identifier
+        }
+        break;
+        case Token::INDEX_TOK: {
+          // a standalone qualified identifier
+        }
+        break;
+        case Token::LPAREN_TOK: {
+          // must be a qualified identifier
+        }
+        break;
+        case Token::FORALL_TOK: {
+        }
+        break;
+        case Token::EXISTS_TOK: {
+        }
+        break;
+        case Token::LET_TOK: {
+        }
+        break;
+        case Token::MATCH_TOK: {
+        }
+        break;
+        case Token::ATTRIBUTE_TOK: {
+        }
+        break;
+        case Token::SYMBOL: {
+          // function identifier
+        }
+        break;
+        default: break;
+        }
       }
       break;
+      // close paren
       case Token::RPAREN_TOK: {
       }
       break;
+      // base cases
       case Token::SYMBOL: {
       }
       break;
-      case Token::AS_TOK: {
+      case Token::INTEGER_LITERAL: {
+      }
+      break;
+      case Token::DECIMAL_LITERAL: {
+      }
+      break;
+      case Token::HEX_LITERAL: {
+      }
+      break;
+      case Token::BINARY_LITERAL: {
+      }
+      break;
+      case Token::STRING_LITERAL: {
       }
       break;
       default: break;
     }
   } while (!tstack.empty());
 
-  return t;
+  return ret;
 }
 std::vector<Term> Smt2TermParser::parseTermList()
 {
