@@ -365,7 +365,7 @@ class IntBlaster : protected EnvObj
 
   /** an SolverEngine for context */
   context::Context* d_context;
-  
+
   /** the granularity to use in the translation */
   uint32_t d_granularity;
 };

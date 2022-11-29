@@ -62,7 +62,7 @@ IntBlaster::IntBlaster(Env& env,
   d_zero = d_nm->mkConstInt(0);
   d_one = d_nm->mkConstInt(1);
   Assert(granularity <= 8);
-  d_granularity = (uint32_t) granularity;
+  d_granularity = (uint32_t)granularity;
 };
 
 IntBlaster::~IntBlaster() {}
