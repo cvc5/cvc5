@@ -27,6 +27,6 @@ class DefaultCleanUp
   void operator()(typename std::vector<T>::reference) const {}
 };
 
-}  // namespace cvc5::context
+}  // namespace cvc5 
 
 #endif /* CVC5__CONTEXT__DEFAULT_CLEAN_UP_H */

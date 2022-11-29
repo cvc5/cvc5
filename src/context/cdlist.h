@@ -132,8 +132,7 @@ class CDList : public ContextObj
   void emplace_back(Args&&... args)
   {
     Trace("cdlist") << "emplace_back " << this << " "
-                    << getContext()->getLevel() << ": make-current"
-                    << std::endl;
+                    << getContext()->getLevel() << ": make-current" << std::endl;
     makeCurrent();
     d_list.emplace_back(std::forward<Args>(args)...);
     ++d_size;
@@ -255,7 +254,7 @@ class CDList : public ContextObj
    */
   ContextObj* save(ContextMemoryManager* pCMM) override
   {
-    ContextObj* data = new (pCMM) CDList<T, CleanUp, Allocator>(*this);
+    ContextObj* data = new(pCMM) CDList<T, CleanUp, Allocator>(*this);
     return data;
   }
 
