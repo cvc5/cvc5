@@ -1240,8 +1240,9 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       // add rfl step for final replacement
       Node curPremise = nm->mkNode(
-          kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
-      addAletheStep(AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
+          kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized), false));
+      addAletheStep(
+          AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
       for (size_t size = quant[0].getNumChildren(), i = size; i > 0; --i)
       {
@@ -1273,12 +1274,12 @@ bool AletheProofPostprocessCallback::update(Node res,
         Node conclusion =
             nm->mkNode(kind::SEXPR,
                        d_cl,
-                       d_anc.convert(curSkolemizing.eqNode(skolemized)));
+                       d_anc.convert(curSkolemizing.eqNode(skolemized), false));
         addAletheStep(skoRule,
                       conclusion,
                       conclusion,
                       {curPremise},
-                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice))},
+                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice), false)},
                       *cdp);
         // update premise
         curPremise = conclusion;
