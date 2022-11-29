@@ -1242,10 +1242,9 @@ bool AletheProofPostprocessCallback::update(Node res,
         quantKind = kind::FORALL;
       }
       // add rfl step for final replacement
-      Node curPremise =
-          nm->mkNode(kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
-      addAletheStep(
-          AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
+      Node curPremise = nm->mkNode(
+          kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
+      addAletheStep(AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
       for (size_t size = quant[0].getNumChildren(), i = size; i > 0; --i)
       {
