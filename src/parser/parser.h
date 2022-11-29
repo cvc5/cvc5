@@ -90,9 +90,6 @@ protected:
   * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
-  * @param parseOnly whether we are parsing only (and therefore certain checks
-  * need not be performed, like those about unimplemented features, @see
-  * unimplementedFeature())
   */
  Parser();
 
