@@ -138,7 +138,7 @@ Node IntBlaster::makeBinary(Node n)
           || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
   {
     result = n[0];
-    for (uint64_t i = 1; i < numChildren; i++)
+    for (uint32_t i = 1; i < numChildren; i++)
     {
       result = d_nm->mkNode(n.getKind(), result, n[i]);
     }
@@ -882,7 +882,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
   {
     builder << originalNode.getOperator();
   }
-  for (size_t i = 0; i < originalNode.getNumChildren(); i++)
+  for (uint32_t i = 0; i < originalNode.getNumChildren(); i++)
   {
     Node originalChild = originalNode[i];
     Node translatedChild = translated_children[i];
