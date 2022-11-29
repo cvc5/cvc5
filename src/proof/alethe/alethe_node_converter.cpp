@@ -21,8 +21,6 @@
 namespace cvc5::internal {
 namespace proof {
 
-AletheNodeConverter::AletheNodeConverter() {}
-
 Node AletheNodeConverter::preConvert(Node n)
 {
   Kind k = n.getKind();
@@ -49,58 +47,56 @@ Node AletheNodeConverter::preConvert(Node n)
   return n;
 }
 
-Node AletheNodeConverter::postConvertUntyped(Node orig,
-                                             const std::vector<Node>& terms,
-                                             bool termsChanged)
+Node AletheNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Kind k = orig.getKind();
+  Kind k = n.getKind();
   AlwaysAssert(k != kind::SKOLEM && k != kind::BOOLEAN_TERM_VARIABLE);
   switch (k)
   {
-    // case kind::SKOLEM:
-    // case kind::BOOLEAN_TERM_VARIABLE:
-    // {
-    //   Trace("alethe-conv") << "AletheNodeConverter: ..handling skolem " << orig
-    //                        << "\n";
-    //   Node wi = SkolemManager::getWitnessForm(orig);
-    //   // retrieve the conversion of the witness/original form and use that
-    //   // for the conversion of orig
-    //   return wi.isNull() ? d_cache[SkolemManager::getOriginalForm(orig)]
-    //                      : d_cache[wi];
-    // }
     case kind::FORALL:
     {
       // remove patterns, if any
-      return terms.size() == 3
-                 ? nm->mkNode(kind::FORALL, terms[0], terms[1])
-                 : Node(orig);
+      return n.getNumChildren() == 3 ? nm->mkNode(kind::FORALL, n[0], n[1]) : n;
     }
-    // we must make it to be printed with "choice", so as an SEXPR with that
-    // internal symbol as the "head"
+    // we must make it to be printed with "choice", so we create an operator
+    // with that name and the correct type and do a function application
     case kind::WITNESS:
     {
-      std::vector<Node> newTerms{mkInternalSymbol("choice")};
-      newTerms.insert(newTerms.end(), terms.begin(), terms.end());
-      return nm->mkNode(kind::SEXPR, newTerms);
+      std::vector<TypeNode> childrenTypes;
+      for (const Node& c : n)
+      {
+        childrenTypes.push_back(c.getType());
+      }
+      TypeNode fType = nm->mkFunctionType(childrenTypes, n.getType());
+      Node choiceOp = mkInternalSymbol("choice", fType);
+      return nm->mkNode(kind::APPLY_UF, choiceOp, n[0], n[1]);
     }
     default:
     {
-      return termsChanged ? nm->mkNode(k, terms) : Node(orig);
+      return n;
     }
   }
+  return n;
 }
 
 Node AletheNodeConverter::mkInternalSymbol(const std::string& name)
 {
-  std::unordered_map<std::string, Node>::iterator it = d_symbolsMap.find(name);
+  return mkInternalSymbol(name, NodeManager::currentNM()->sExprType());
+}
+
+Node AletheNodeConverter::mkInternalSymbol(const std::string& name, TypeNode tn)
+{
+  std::pair<TypeNode, std::string> key(tn, name);
+  std::map<std::pair<TypeNode, std::string>, Node>::iterator it =
+      d_symbolsMap.find(key);
   if (it != d_symbolsMap.end())
   {
     return it->second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node sym = nm->mkBoundVar(name, nm->sExprType());
-  d_symbolsMap[name] = sym;
+  Node sym = nm->mkBoundVar(name, tn);
+  d_symbolsMap[key] = sym;
   return sym;
 }
 

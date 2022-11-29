@@ -31,24 +31,25 @@ namespace proof {
 class AletheNodeConverter : public NodeConverter
 {
  public:
-  AletheNodeConverter();
+  AletheNodeConverter() {}
   ~AletheNodeConverter() {}
-  /** The only pre-conversion is to replace skolems by their witness forms. */
+  /** convert at pre-order traversal */
   Node preConvert(Node n) override;
-  /** The post-conversion may not preserve types, so we use the untyped version.
-   */
-  Node postConvertUntyped(Node orig,
-                          const std::vector<Node>& terms,
-                          bool termsChanged) override;
+  /** convert at post-order traversal */
+  Node postConvert(Node n) override;
 
  private:
   /**
-   * Make or get an internal symbol with custom name.
+   * Make or get an internal symbol with custom name and type.
+   */
+  Node mkInternalSymbol(const std::string& name, TypeNode tn);
+  /**
+   * As above but uses the s-expression type.
    */
   Node mkInternalSymbol(const std::string& name);
 
-  /** Map from internally generated symbols to the built nodes. */
-  std::unordered_map<std::string, Node> d_symbolsMap;
+  /** Maps from internally generated symbols to the built nodes. */
+  std::map<std::pair<TypeNode, std::string>, Node> d_symbolsMap;
 };
 
 }  // namespace proof
