@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
-#define CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#define CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
@@ -28,22 +28,20 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * the form that Alethe expects.
  */
-class AletheNodeConverter
+class AletheNodeConverter : public NodeConverter
 {
  public:
   AletheNodeConverter();
   ~AletheNodeConverter() {}
-  /** convert to internal */
-  Node convert(Node n);
-
+  /** The only pre-conversion is to replace skolems by their witness forms. */
+  Node preConvert(Node n) override;
+  /** The post-conversion may not preserve types, so we use the untyped version.
+   */
+  Node postConvertUntyped(Node orig,
+                          const std::vector<Node>& terms,
+                          bool termsChanged) override;
 
  private:
-  /** Should only traverse nodes containing closures. */
-  bool shouldTraverse(Node n);
-
-  /** Node cache for convert */
-  std::unordered_map<Node, Node> d_cache;
-
   /**
    * Make or get an internal symbol with custom name.
    */
