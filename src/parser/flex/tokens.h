@@ -133,8 +133,7 @@ enum Token : int
   UNTERMINATED_QUOTED_SYMBOL,
   UNTERMINATED_STRING_LITERAL,
   UPDATE_TOK,
-  WHITESPACE,
-  NONE
+  WHITESPACE
 };
 
 std::ostream& operator<<(std::ostream& o, Token t);

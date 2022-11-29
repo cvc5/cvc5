@@ -124,9 +124,10 @@ std::vector<Term> Smt2TermParser::parseTermList()
 {
   d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<Term> terms;
-  Token tok = d_lex.peekToken();
+  Token tok = d_lex.nextToken();
   while (tok != Token::RPAREN_TOK)
   {
+    d_lex.reinsertToken(tok);
     Term t = parseTerm();
     terms.push_back(t);
     tok = d_lex.peekToken();
@@ -152,12 +153,13 @@ std::vector<Sort> Smt2TermParser::parseSortList()
 {
   d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<Sort> sorts;
-  Token tok = d_lex.peekToken();
+  Token tok = d_lex.nextToken();
   while (tok != Token::RPAREN_TOK)
   {
+    d_lex.reinsertToken(tok);
     Sort s = parseSort();
     sorts.push_back(s);
-    tok = d_lex.peekToken();
+    tok = d_lex.nextToken();
   }
   return sorts;
 }
@@ -215,12 +217,13 @@ std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
 {
   d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<std::string> symbols;
-  Token tok = d_lex.peekToken();
+  Token tok = d_lex.nextToken();
   while (tok != Token::RPAREN_TOK)
   {
+    d_lex.reinsertToken(tok);
     std::string sym = parseSymbol(check, type);
     symbols.push_back(sym);
-    tok = d_lex.peekToken();
+    tok = d_lex.nextToken();
   }
   return symbols;
 }
@@ -236,7 +239,92 @@ std::string Smt2TermParser::parseKeyword()
 Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
                                       const std::string& fun)
 {
-  // TODO
+  // We read a sorted variable list.
+  std::vector<std::pair<std::string, Sort>> sortedVarNames =
+          parseSortedVarList();
+  // non-terminal symbols in the pre-declaration are locally scoped
+  d_state.pushScope();
+  std::vector<Term> ntSyms;
+  for (std::pair<std::string, Sort>& i : sortedVarNames)
+  {
+    d_state.checkDeclaration(i.first, CHECK_UNDECLARED, SYM_SORT);
+    // make the non-terminal symbol, which will be parsed as an ordinary
+    // free variable.
+    Term nts = d_state.bindBoundVar(i.first, i.second);
+    ntSyms.push_back(nts);
+  }
+  Grammar* ret = d_state.mkGrammar(sygusVars, ntSyms);
+  
+  d_lex.eatToken(Token::LPAREN_TOK);
+  for (size_t i=0, nnts = ntSyms.size(); i<nnts; i++)
+  {
+    d_lex.eatToken(Token::LPAREN_TOK);
+    std::string name = parseSymbol(CHECK_DECLARED, SYM_VARIABLE);
+    Sort t = parseSort();
+    // check that it matches sortedVarNames
+    if (sortedVarNames[i].first != name)
+    {
+      std::stringstream sse;
+      sse << "Grouped rule listing " << name
+          << " does not match the name (in order) from the predeclaration ("
+          << sortedVarNames[i].first << ")." << std::endl;
+      d_state.parseError(sse.str().c_str());
+    }
+    if (sortedVarNames[i].second != t)
+    {
+      std::stringstream sse;
+      sse << "Type for grouped rule listing " << name
+          << " does not match the type (in order) from the predeclaration ("
+          << sortedVarNames[i].second << ")." << std::endl;
+      d_state.parseError(sse.str().c_str());
+    }
+    // read the grouped rule listing
+    d_lex.eatToken(Token::LPAREN_TOK);
+    Token tok = d_lex.peekToken();
+    while (tok != Token::RPAREN_TOK)
+    {
+      // lookahead for Constant/Variable
+      bool parsedGTerm = false;
+      if (tok==Token::LPAREN_TOK)
+      {
+        switch(d_lex.peekToken())
+        {
+          case SYGUS_CONSTANT_TOK:
+          {
+            d_lex.skipTokens(2);
+            t = parseSort();
+            ret->addAnyConstant(ntSyms[i]);
+            d_lex.eatToken(Token::RPAREN_TOK);
+            parsedGTerm = true;
+          }
+          break;
+          case SYGUS_VARIABLE_TOK:
+          {
+            d_lex.skipTokens(2);
+            t = parseSort();
+            ret->addAnyVariable(ntSyms[i]);
+            d_lex.eatToken(Token::RPAREN_TOK);
+            parsedGTerm = true;
+          }
+          break;
+          default:
+            break;
+        }
+      }
+      if (!parsedGTerm)
+      {
+        // parse ordinary term
+        Term e = parseTerm();
+        ret->addRule(ntSyms[i], e);
+      }
+      tok = d_lex.peekToken();
+    }
+    d_lex.eatToken(Token::RPAREN_TOK);
+    d_lex.eatToken(Token::RPAREN_TOK);
+  }
+  d_lex.eatToken(Token::RPAREN_TOK);
+  // pop scope from the pre-declaration
+  d_state.popScope();
   return nullptr;
 }
 
@@ -268,6 +356,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     const std::vector<size_t>& arities)
 {
   std::vector<DatatypeDecl> dts;
+  // TODO
   return dts;
 }
 

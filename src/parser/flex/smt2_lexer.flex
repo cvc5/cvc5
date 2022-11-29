@@ -122,7 +122,7 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 {quoted_symbol} return cvc5::parser::QUOTED_SYMBOL;
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
-
+. parseError("Error finding token");
 
 ";"    {
           int c;

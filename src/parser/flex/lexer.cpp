@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-Lexer::Lexer() : yyFlexLexer(), d_peeked(Token::NONE) {}
+Lexer::Lexer() : yyFlexLexer() {}
 
 void Lexer::warning(const std::string& msg)
 {
@@ -78,19 +78,20 @@ void Lexer::initialize(std::istream& input, const std::string& inputName)
   d_inputName = inputName;
   yyrestart(input);
   init_d_span();
+  d_peeked.clear();
 }
 
 const char* Lexer::token_str() { return YYText(); }
 
 Token Lexer::nextToken()
 {
-  if (d_peeked == Token::NONE)
+  if (d_peeked.empty())
   {
     // Call the derived yylex() and convert it to a token
     return Token(yylex());
   }
-  Token t = d_peeked;
-  d_peeked = Token::NONE;
+  Token t = d_peeked.back();
+  d_peeked.pop_back();
   return t;
 }
 
@@ -106,8 +107,15 @@ Token Lexer::peekToken()
 
 void Lexer::reinsertToken(Token t)
 {
-  Assert(d_peeked == Token::NONE);
-  d_peeked = t;
+  d_peeked.push_back(t);
+}
+
+void Lexer::skipTokens(size_t k)
+{
+  for (size_t i=0; i<k; i++)
+  {
+    nextToken();
+  }
 }
 
 void Lexer::unexpectedTokenError(Token t, const std::string& info)

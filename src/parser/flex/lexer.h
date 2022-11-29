@@ -29,6 +29,7 @@
 #endif
 
 #include "parser/flex/tokens.h"
+#include <vector>
 
 namespace cvc5 {
 namespace parser {
@@ -49,6 +50,9 @@ struct Span
 std::ostream& operator<<(std::ostream& o, const Location& l);
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
+/**
+ * NOTE: YYText() is only valid if d_peeked.size()<=1 ?
+ */
 class Lexer : public yyFlexLexer
 {
  public:
@@ -69,6 +73,8 @@ class Lexer : public yyFlexLexer
   bool eatTokenChoice(Token t, Token f);
   /** reinsert token */
   void reinsertToken(Token t);
+  /** skip k tokens */
+  void skipTokens(size_t k);
   // String corresponding to the last token (old top of stack)
   const char* token_str();
   // Derived functions
@@ -96,7 +102,7 @@ class Lexer : public yyFlexLexer
   /** Name of current file */
   std::string d_inputName;
   /** Peeked */
-  Token d_peeked;
+  std::vector<Token> d_peeked;
 };
 
 }  // namespace parser
