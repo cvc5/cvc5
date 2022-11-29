@@ -54,8 +54,8 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
       {
         Trace("nconv-debug2")
             << "..pre-rewrite changed " << cur << " into " << curp << std::endl;
-        AlwaysAssert (!preserveTypes || cur.getType()==curp.getType())
-                << "Pre-converting " << cur << " to " << curp << " changes type";
+        AlwaysAssert(!preserveTypes || cur.getType() == curp.getType())
+            << "Pre-converting " << cur << " to " << curp << " changes type";
         visit.push_back(cur);
         visit.push_back(curp);
       }
@@ -116,8 +116,8 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
           if (childChanged)
           {
             ret = nm->mkNode(ret.getKind(), children);
-            Trace("nconv-debug2") << "..from children changed " << cur << " into "
-                                  << ret << std::endl;
+            Trace("nconv-debug2") << "..from children changed " << cur
+                                  << " into " << ret << std::endl;
           }
           // run the callback for the current application
           Node cret = postConvert(ret);
@@ -125,8 +125,8 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
           {
             AlwaysAssert(cret.getType() == ret.getType())
                 << "Converting " << ret << " to " << cret << " changes type";
-            Trace("nconv-debug2") << "..post-rewrite changed " << ret << " into "
-                                  << cret << std::endl;
+            Trace("nconv-debug2") << "..post-rewrite changed " << ret
+                                  << " into " << cret << std::endl;
             ret = cret;
           }
         }
@@ -263,7 +263,8 @@ void NodeConverter::addToTypeCache(TypeNode cur, TypeNode ret)
 Node NodeConverter::preConvert(Node n) { return Node::null(); }
 Node NodeConverter::postConvert(Node n) { return Node::null(); }
 
-Node NodeConverter::postConvertUntyped(Node orig, const std::vector<Node>& terms)
+Node NodeConverter::postConvertUntyped(Node orig,
+                                       const std::vector<Node>& terms)
 {
   return Node::null();
 }

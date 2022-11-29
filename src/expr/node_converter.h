@@ -48,7 +48,7 @@ class NodeConverter
    * be overriden by instances of this class.
    *
    * If n is null, this always returns the null node.
-   * 
+   *
    * @param preserveTypes If true, we make calls to postConvert below for the
    * conversion, which requires that the conversion preserves the types of
    * all subterms in n. If false, we make calls to postConvertUntyped, which
@@ -79,7 +79,7 @@ class NodeConverter
    * to postConvert.
    *
    * Returning null is equivalent to saying the node should not be changed.
-   * 
+   *
    * We require that the type of the returned term (if non-null) is the same
    * as the type of n.
    */
