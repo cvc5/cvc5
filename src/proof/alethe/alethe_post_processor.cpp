@@ -256,7 +256,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       for (const Node& arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(d_anc.convert(arg, false));
+        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);  // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(kind::SEXPR, negNode);
@@ -1410,7 +1410,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       // add rfl step for final replacement
       Node curPremise = nm->mkNode(
-          kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized), false));
+          kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
       addAletheStep(
           AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
       std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
@@ -1444,12 +1444,12 @@ bool AletheProofPostprocessCallback::update(Node res,
         Node conclusion =
             nm->mkNode(kind::SEXPR,
                        d_cl,
-                       d_anc.convert(curSkolemizing.eqNode(skolemized), false));
+                       d_anc.convert(curSkolemizing.eqNode(skolemized)));
         addAletheStep(skoRule,
                       conclusion,
                       conclusion,
                       {curPremise},
-                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice), false)},
+                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice))},
                       *cdp);
         // update premise
         curPremise = conclusion;
@@ -2099,7 +2099,7 @@ bool AletheProofPostprocessCallback::updatePost(
           // we also check whether after conversion the child is still not the
           // same (in the case where we'd need to have them different)
           if (args[polIdx] == d_false
-              && args[pivIdx] == d_anc.convert(children[i], false))
+              && args[pivIdx] == d_anc.convert(children[i]))
           {
             continue;
           }
@@ -2283,7 +2283,7 @@ bool AletheProofPostprocessCallback::finalStep(
         res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
     for (const Node& arg : args)
     {
-      sanitized_args.push_back(d_anc.convert(arg, false));
+      sanitized_args.push_back(d_anc.convert(arg));
     }
     return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitized_args);
   }
@@ -2301,10 +2301,10 @@ bool AletheProofPostprocessCallback::addAletheStep(
   std::vector<Node> newArgs{NodeManager::currentNM()->mkConstInt(
       Rational(static_cast<uint32_t>(rule)))};
   newArgs.push_back(res);
-  newArgs.push_back(d_anc.convert(conclusion, false));
+  newArgs.push_back(d_anc.convert(conclusion));
   for (const Node& arg : args)
   {
-    newArgs.push_back(d_anc.convert(arg, false));
+    newArgs.push_back(d_anc.convert(arg));
   }
   Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
                         << " " << rule << " " << children << " / " << newArgs
