@@ -250,7 +250,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       for (const Node& arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
-        sanitized_args.push_back(d_anc.convert(arg, false));
+        sanitized_args.push_back(d_anc.convert(arg));
       }
       negNode.push_back(children[0]);  // (cl (not F1) ... (not Fn) F)
       Node vp1 = nm->mkNode(kind::SEXPR, negNode);
@@ -1769,7 +1769,7 @@ bool AletheProofPostprocessCallback::finalStep(
         res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
     for (const Node& arg : args)
     {
-      sanitized_args.push_back(d_anc.convert(arg, false));
+      sanitized_args.push_back(d_anc.convert(arg));
     }
     return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitized_args);
   }
