@@ -72,7 +72,7 @@ class Lexer : public yyFlexLexer
    * if `t`.
    */
   bool eatTokenChoice(Token t, Token f);
-  /** reinsert token */
+  /** reinsert token, read back first in, last out */
   void reinsertToken(Token t);
   /** skip k tokens */
   void skipTokens(size_t k);

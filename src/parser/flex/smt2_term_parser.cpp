@@ -254,10 +254,10 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
     ntSyms.push_back(nts);
   }
   Grammar* ret = d_state.mkGrammar(sygusVars, ntSyms);
-
   d_lex.eatToken(Token::LPAREN_TOK);
   for (size_t i = 0, nnts = ntSyms.size(); i < nnts; i++)
   {
+    // start the non-terminal definition
     d_lex.eatToken(Token::LPAREN_TOK);
     std::string name = parseSymbol(CHECK_DECLARED, SYM_VARIABLE);
     Sort t = parseSort();
@@ -280,18 +280,18 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
     }
     // read the grouped rule listing
     d_lex.eatToken(Token::LPAREN_TOK);
-    Token tok = d_lex.peekToken();
+    Token tok = d_lex.nextToken();
     while (tok != Token::RPAREN_TOK)
     {
-      // lookahead for Constant/Variable
+      // Lookahead for Constant/Variable.
       bool parsedGTerm = false;
       if (tok == Token::LPAREN_TOK)
       {
-        switch (d_lex.peekToken())
+        Token tok2 = d_lex.nextToken();
+        switch (tok2)
         {
           case SYGUS_CONSTANT_TOK:
           {
-            d_lex.skipTokens(2);
             t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
@@ -300,25 +300,30 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
           break;
           case SYGUS_VARIABLE_TOK:
           {
-            d_lex.skipTokens(2);
             t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
           break;
-          default: break;
+          default:
+            // Did not process tok2.
+            d_lex.reinsertToken(tok2);
+            break;
         }
       }
       if (!parsedGTerm)
       {
+        // We did not process tok. Note that Lex::d_peeked may contain
+        // {tok2, LPAREN_TOK} or {tok}.
+        d_lex.reinsertToken(tok);
         // parse ordinary term
         Term e = parseTerm();
         ret->addRule(ntSyms[i], e);
       }
-      tok = d_lex.peekToken();
+      tok = d_lex.nextToken();
     }
-    d_lex.eatToken(Token::RPAREN_TOK);
+    // finish the non-terminal
     d_lex.eatToken(Token::RPAREN_TOK);
   }
   d_lex.eatToken(Token::RPAREN_TOK);
