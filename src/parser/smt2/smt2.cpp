@@ -1109,7 +1109,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
-      // special case: tuple projection with zero arguments
+      // special case: indexed operators with zero arguments
       if (kind == TUPLE_PROJECT || kind == TABLE_PROJECT
           || kind == TABLE_AGGREGATE || kind == TABLE_JOIN
           || kind == TABLE_GROUP || kind == RELATION_GROUP
