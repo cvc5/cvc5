@@ -19,7 +19,7 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "options/expr_options.h"
+#include "options/printer_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5::internal {
@@ -269,9 +269,8 @@ bool LetUpdaterPfCallback::update(Node res,
 
 AletheProofPrinter::AletheProofPrinter(Env& env)
     : EnvObj(env),
-      d_lbind(options::ioutils::getDagThresh(std::cout)
-                  ? options::ioutils::getDagThresh(std::cout) + 1
-                  : 0),
+      d_lbind(options().printer.dagThresh ? options().printer.dagThresh + 1
+                                          : 0),
       d_cb(new LetUpdaterPfCallback(d_lbind))
 {
 }
@@ -288,7 +287,7 @@ void AletheProofPrinter::print(std::ostream& out,
   std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
   AlwaysAssert(innerPf);
 
-  if (options::ioutils::getDagThresh(std::cout))
+  if (options().printer.dagThresh)
   {
     // Traverse the proof node to letify the (converted) conclusions of proof
     // steps. Note that we traverse the original proof node because assumptions
