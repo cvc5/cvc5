@@ -227,9 +227,12 @@ TheoryEngine::TheoryEngine(Env& env)
       d_decManager(new DecisionManager(userContext())),
       d_relManager(nullptr),
       d_inConflict(context(), false),
-      d_incomplete(context(), false),
-      d_incompleteTheory(context(), THEORY_BUILTIN),
-      d_incompleteId(context(), IncompleteId::UNKNOWN),
+      d_modelUnsound(context(), false),
+      d_modelUnsoundTheory(context(), THEORY_BUILTIN),
+      d_modelUnsoundId(context(), IncompleteId::UNKNOWN),
+      d_refutationUnsound(userContext(), false),
+      d_refutationUnsoundTheory(userContext(), THEORY_BUILTIN),
+      d_refutationUnsoundId(userContext(), IncompleteId::UNKNOWN),
       d_propagationMap(context()),
       d_propagationMapTimestamp(context(), 0),
       d_propagatedLiterals(context()),
@@ -510,7 +513,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         // Do post-processing of model from the theories (e.g. used for
         // THEORY_SEP to construct heap model)
-        d_tc->postProcessModel(d_incomplete.get());
+        d_tc->postProcessModel(d_modelUnsound.get());
       }
     }
   } catch(const theory::Interrupted&) {
@@ -1086,9 +1089,13 @@ void TheoryEngine::getDifficultyMap(std::map<Node, Node>& dmap)
   d_relManager->getDifficultyMap(dmap);
 }
 
-theory::IncompleteId TheoryEngine::getIncompleteId() const
+theory::IncompleteId TheoryEngine::getModelUnsoundId() const
 {
-  return d_incompleteId.get();
+  return d_modelUnsoundId.get();
+}
+theory::IncompleteId TheoryEngine::getRefutationUnsoundId() const
+{
+  return d_refutationUnsoundId.get();
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
@@ -1467,12 +1474,20 @@ void TheoryEngine::conflict(TrustNode tconflict, TheoryId theoryId)
   }
 }
 
-void TheoryEngine::setIncomplete(theory::TheoryId theory,
-                                 theory::IncompleteId id)
+void TheoryEngine::setModelUnsound(theory::TheoryId theory,
+                                   theory::IncompleteId id)
 {
-  d_incomplete = true;
-  d_incompleteTheory = theory;
-  d_incompleteId = id;
+  d_modelUnsound = true;
+  d_modelUnsoundTheory = theory;
+  d_modelUnsoundId = id;
+}
+
+void TheoryEngine::setRefutationUnsound(theory::TheoryId theory,
+                                        theory::IncompleteId id)
+{
+  d_refutationUnsound = true;
+  d_refutationUnsoundTheory = theory;
+  d_refutationUnsoundId = id;
 }
 
 TrustNode TheoryEngine::getExplanation(

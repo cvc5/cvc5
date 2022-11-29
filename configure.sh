@@ -69,6 +69,10 @@ Optional Path to Optional Packages:
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
 
+Wasm Options
+  --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
+  --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
+
 EOF
   exit 0
 }
@@ -133,6 +137,9 @@ werror=default
 ipo=default
 
 glpk_dir=default
+
+wasm=default
+wasm_flags=""
 
 #--------------------------------------------------------------------------#
 
@@ -272,6 +279,12 @@ do
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
+    --wasm) wasm=WASM ;;
+    --wasm=*) wasm="${1##*=}" ;;
+
+    --wasm-flags) die "missing argument to $1 (try -h)" ;;
+    --wasm-flags=*) wasm_flags="${1#*=}" ;;
+
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
@@ -370,8 +383,17 @@ fi
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \
   && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
+[ "$wasm" != default ] \
+  && cmake_opts="$cmake_opts -DWASM=$wasm"
 
 root_dir=$(pwd)
+
+cmake_wrapper=
+cmake_opts=($cmake_opts)
+if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
+  cmake_wrapper=emcmake
+  cmake_opts=(${cmake_opts[@]} -DWASM_FLAGS="${wasm_flags}")
+fi
 
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
@@ -383,5 +405,5 @@ cd "$build_dir"
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
-cmake "$root_dir" $cmake_opts 2>&1 | \
+$cmake_wrapper cmake "$root_dir" "${cmake_opts[@]}" 2>&1 | \
   sed "s/^Now just/Now change to '$build_dir_escaped' and/"

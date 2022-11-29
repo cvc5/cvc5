@@ -15,9 +15,10 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_PRINTER_H
-#define CVC4__PROOF__ALETHE_PROOF_PRINTER_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 
+#include "proof/alethe/alethe_let_binding.h"
 #include "proof/proof_node.h"
 
 namespace cvc5::internal {
@@ -79,4 +80,4 @@ class AletheProofPrinter
 
 }  // namespace cvc5::internal
 
-#endif /* CVC4__PROOF__ALETHE_PROOF_PRINTER_H */
+#endif /* CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H */

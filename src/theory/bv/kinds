@@ -96,6 +96,7 @@ operator BITVECTOR_UMULO 2 "bit-vector unsigned multiplication overflow predicat
 operator BITVECTOR_SMULO 2 "bit-vector signed multiplication overflow predicate"
 operator BITVECTOR_USUBO 2 "bit-vector unsigned subtraction overflow predicate"
 operator BITVECTOR_SSUBO 2 "bit-vector signed subtraction overflow predicate"
+operator BITVECTOR_SDIVO 2 "bit-vector signed division overflow predicate"
 
 ## if-then-else kind
 operator BITVECTOR_ITE 3 "same semantics as regular ITE, but condition is bv of size 1 instead of Boolean"
@@ -226,6 +227,7 @@ typerule BITVECTOR_UMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRul
 typerule BITVECTOR_SMULO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_USUBO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_SSUBO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
+typerule BITVECTOR_SDIVO ::cvc5::internal::theory::bv::BitVectorPredicateTypeRule
 
 ## internal kinds
 typerule BITVECTOR_ACKERMANNIZE_UDIV ::cvc5::internal::theory::bv::BitVectorAckermanizationUdivTypeRule

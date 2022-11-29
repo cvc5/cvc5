@@ -431,9 +431,14 @@ void SygusSolver::initializeSygusSubsolver(std::unique_ptr<SolverEngine>& se,
                                            Assertions& as)
 {
   initializeSubsolver(se, d_env);
+  std::unordered_set<Node> processed;
+  // if we did not spawn a subsolver for the main check, the overall SyGuS
+  // conjecture has been added as an assertion. Do not add it here, which
+  // is important for check-synth-sol. Adding this also has no impact
+  // when spawning a subsolver for the main check.
+  processed.insert(d_conj);
   // carry the ordinary define-fun definitions
   const context::CDList<Node>& alistDefs = as.getAssertionListDefinitions();
-  std::unordered_set<Node> processed;
   for (const Node& def : alistDefs)
   {
     // only consider define-fun, represented as (= f (lambda ...)).

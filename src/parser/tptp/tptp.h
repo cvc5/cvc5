@@ -35,6 +35,9 @@ namespace parser {
 
 class Command;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Tptp : public Parser {
  private:
   friend class ParserBuilder;
@@ -47,8 +50,6 @@ class Tptp : public Parser {
 
   bool hol() const;
   void setHol();
-
-  void forceLogic(const std::string& logic) override;
 
   void addFreeVar(cvc5::Term var);
   std::vector<cvc5::Term> getFreeVar();
@@ -91,8 +92,7 @@ class Tptp : public Parser {
  protected:
   Tptp(cvc5::Solver* solver,
        SymbolManager* sm,
-       bool strictMode = false,
-       bool parseOnly = false);
+       bool strictMode = false);
 
  public:
   ~Tptp();
