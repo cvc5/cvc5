@@ -22,8 +22,6 @@
 namespace cvc5 {
 namespace parser {
 
-// TODO: d_state.parseError should just be d_lex.parseError ?
-
 Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
                              Smt2State& state,
                              Smt2TermParser& tparser)
@@ -84,7 +82,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       if (d_state.sygus())
       {
-        d_state.parseError("Sygus does not support check-sat command.");
+        d_lex.parseError("Sygus does not support check-sat command.");
       }
       cmd.reset(new CheckSatCommand());
     }
@@ -141,6 +139,10 @@ Command* Smt2CmdParser::parseNextCommand()
         arities.push_back(arity);
         d_lex.eatToken(Token::RPAREN_TOK);
       }
+      if (dnames.empty())
+      {
+        d_lex.parseError("Empty list of datatypes");
+      }
       d_lex.eatToken(Token::LPAREN_TOK);
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
       std::vector<DatatypeDecl> dts =
@@ -175,9 +177,8 @@ Command* Smt2CmdParser::parseNextCommand()
       // we allow overloading for function declarations
       if (d_state.sygus())
       {
-        d_state.parseError(
-            "declare-fun are not allowed in sygus "
-            "version 2.0");
+        d_lex.parseError(
+            "declare-fun are not allowed in sygus version 2.0");
       }
       else
       {

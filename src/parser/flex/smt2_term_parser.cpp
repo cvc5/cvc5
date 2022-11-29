@@ -269,7 +269,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
       sse << "Grouped rule listing " << name
           << " does not match the name (in order) from the predeclaration ("
           << sortedVarNames[i].first << ")." << std::endl;
-      d_state.parseError(sse.str().c_str());
+      d_lex.parseError(sse.str().c_str());
     }
     if (sortedVarNames[i].second != t)
     {
@@ -277,7 +277,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
       sse << "Type for grouped rule listing " << name
           << " does not match the type (in order) from the predeclaration ("
           << sortedVarNames[i].second << ")." << std::endl;
-      d_state.parseError(sse.str().c_str());
+      d_lex.parseError(sse.str().c_str());
     }
     // read the grouped rule listing
     d_lex.eatToken(Token::LPAREN_TOK);
@@ -389,7 +389,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     Trace("parser-dt") << "Processing datatype #" << i << std::endl;
     if (i >= dnames.size())
     {
-      d_state.parseError("Too many datatypes defined in this block.");
+      d_lex.parseError("Too many datatypes defined in this block.");
     }
     Token tok = d_lex.nextToken();
     bool pushedScope = false;
@@ -423,7 +423,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     {
       // if the arity was fixed by prelude and is not equal to the number of
       // parameters
-      d_state.parseError("Wrong number of parameters for datatype.");
+      d_lex.parseError("Wrong number of parameters for datatype.");
     }
     // read constructor definition list, populate into the current datatype
     parseConstructorDefinitionList(dts.back());
@@ -436,7 +436,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
   }
   if (dts.size() != dnames.size())
   {
-    d_state.parseError("Wrong number of datatypes provided.");
+    d_lex.parseError("Wrong number of datatypes provided.");
   }
   d_state.popScope();
   return dts;
@@ -480,7 +480,7 @@ std::string Smt2TermParser::parseStr(bool unescape)
     {
       if ((unsigned)s[i] > 127 && !isprint(s[i]))
       {
-        d_state.parseError(
+        d_lex.parseError(
             "Extended/unprintable characters are not "
             "part of SMT-LIB, and they must be encoded "
             "as escape sequences");
