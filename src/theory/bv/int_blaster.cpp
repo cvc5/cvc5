@@ -95,7 +95,7 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
   }
 }
 
-Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
+Node IntBlaster::mkRangeConstraint(Node newVar, uint32_t k)
 {
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
@@ -339,7 +339,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_NEG:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNegNode(translated_children[0], bvsize);
       break;
     }
@@ -362,7 +362,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_OR:
     {
       Assert(translated_children.size() == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVOrNode(
           translated_children[0], translated_children[1], bvsize, lemmas);
       break;
@@ -370,7 +370,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_XOR:
     {
       Assert(translated_children.size() == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       // Based on Hacker's Delight section 2-2 equation n:
       // x xor y = x|y - x&y
       Node bvor = createBVOrNode(
@@ -383,20 +383,20 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_AND:
     {
       Assert(translated_children.size() == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVAndNode(
           translated_children[0], translated_children[1], bvsize, lemmas);
       break;
     }
     case kind::BITVECTOR_SHL:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, true);
       break;
     }
     case kind::BITVECTOR_LSHR:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createShiftNode(translated_children, bvsize, false);
       break;
     }
@@ -416,7 +416,7 @@ Node IntBlaster::translateWithChildren(
        *
        */
       // signed_min is 100000...
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       Node signed_min = pow2(bvsize - 1);
       Node condition =
           d_nm->mkNode(kind::LT, translated_children[0], signed_min);
@@ -445,7 +445,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SIGN_EXTEND:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode =
           createSignExtendNode(translated_children[0],
                                bvsize,
@@ -455,7 +455,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_CONCAT:
     {
       // (concat a b) translates to a*2^k+b, k being the bitwidth of b.
-      uint64_t bvsizeRight = original[1].getType().getBitVectorSize();
+      uint32_t bvsizeRight = original[1].getType().getBitVectorSize();
       Node pow2BvSizeRight = pow2(bvsizeRight);
       Node a =
           d_nm->mkNode(kind::MULT, translated_children[0], pow2BvSizeRight);
@@ -487,7 +487,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLT:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = d_nm->mkNode(kind::LT,
                                 uts(translated_children[0], bvsize),
                                 uts(translated_children[1], bvsize));
@@ -518,7 +518,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLTBV:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode =
           d_nm->mkNode(kind::ITE,
                        d_nm->mkNode(kind::LT,
@@ -1040,7 +1040,6 @@ Node IntBlaster::createBVAndNode(Node x,
   {
     Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
     // Enforce semantics over individual bits with iextract and ites
-    uint64_t granularity = options().smt.BVAndIntegerGranularity;
 
     Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
     Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
@@ -1052,10 +1051,10 @@ Node IntBlaster::createBVAndNode(Node x,
     addRangeConstraint(returnNode, bvsize, lemmas);
 
     // eagerly add bitwise lemmas according to the provided granularity
-    uint64_t high_bit;
-    for (uint64_t j = 0; j < bvsize; j += granularity)
+    uint32_t high_bit;
+    for (uint32_t j = 0; j < bvsize; j += d_granularity)
     {
-      high_bit = j + granularity - 1;
+      high_bit = j + d_granularity - 1;
       // don't let high_bit pass bvsize
       if (high_bit >= bvsize)
       {
@@ -1073,7 +1072,7 @@ Node IntBlaster::createBVAndNode(Node x,
 
 Node IntBlaster::createBVOrNode(Node x,
                                 Node y,
-                                uint64_t bvsize,
+                                uint32_t bvsize,
                                 std::vector<Node>& lemmas)
 {
   // Based on Hacker's Delight section 2-2 equation h:
@@ -1085,7 +1084,7 @@ Node IntBlaster::createBVOrNode(Node x,
   return createBVSubNode(plus, bvand, bvsize);
 }
 
-Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
+Node IntBlaster::createBVSubNode(Node x, Node y, uint32_t bvsize)
 {
   Node minus = d_nm->mkNode(kind::SUB, x, y);
   Node p2 = pow2(bvsize);

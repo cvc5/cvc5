@@ -173,14 +173,14 @@ class IntBlaster : protected EnvObj
    * to sum and bitwise and. */
   Node createBVOrNode(Node x,
                       Node y,
-                      uint64_t bvsize,
+                      uint32_t bvsize,
                       std::vector<Node>& lemmas);
 
   /** Returns a node that represents the sum of x and y. */
   Node createBVAddNode(Node x, Node y, uint64_t bvsize);
 
   /** Returns a node that represents the difference of x and y. */
-  Node createBVSubNode(Node x, Node y, uint64_t bvsize);
+  Node createBVSubNode(Node x, Node y, uint32_t bvsize);
 
   /** Returns a node that represents the signed extension of x by amount. */
   Node createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount);
@@ -193,7 +193,7 @@ class IntBlaster : protected EnvObj
    * @param k the bit width of the original bit-vector variable.
    * @return a node representing the range constraint.
    */
-  Node mkRangeConstraint(Node newVar, uint64_t k);
+  Node mkRangeConstraint(Node newVar, uint32_t k);
 
   /**
    * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
@@ -364,7 +364,7 @@ class IntBlaster : protected EnvObj
   options::SolveBVAsIntMode d_mode;
 
   /** the granularity to use in the translation */
-  uint64_t d_granularity;
+  uint32_t d_granularity;
 
   /** an SolverEngine for context */
   context::Context* d_context;
