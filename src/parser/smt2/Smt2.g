@@ -1402,17 +1402,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
       PARSER_STATE->popScope();
       expr = MK_TERM(cvc5::LAMBDA, args);
     }
-  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-  {
-    std::vector<cvc5::Sort> sorts;
-    std::vector<cvc5::Term> terms;
-    for (const cvc5::Term& arg : args)
-    {
-      sorts.emplace_back(arg.getSort());
-      terms.emplace_back(arg);
-    }
-    expr = SOLVER->mkTuple(sorts, terms);
-  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1642,15 +1631,6 @@ termAtomic[cvc5::Term& atomTerm]
 
   // String constant
   | str[s, true] { atomTerm = SOLVER->mkString(s, true); }
-
-  // NOTE: Theory constants go here
-
-  // Empty tuple constant
-  | TUPLE_CONST_TOK
-    {
-      atomTerm = SOLVER->mkTuple(std::vector<cvc5::Sort>(),
-                                 std::vector<cvc5::Term>());
-    }
   ;
 
 /**
@@ -2151,7 +2131,6 @@ EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';

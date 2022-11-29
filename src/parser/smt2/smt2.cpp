@@ -143,9 +143,14 @@ void Smt2::addDatatypesOperators()
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
-    // Notice that tuple operators, we use the generic APPLY_SELECTOR and
-    // APPLY_UPDATER kinds. These are processed based on the context
-    // in which they are parsed, e.g. when parsing identifiers.
+    // Notice that tuple operators, we use the generic APPLY_CONSTRUCTOR,
+    // APPLY_SELECTOR and APPLY_UPDATER kinds. These are processed based on the
+    // context in which they are parsed, e.g. when parsing identifiers.
+    // For the tuple constructor "tuple", this is both a nullary operator
+    // (for the 0-ary tuple), and a operator, hence we call both addOperator
+    // and defineVar here.
+    addOperator(cvc5::APPLY_CONSTRUCTOR, "tuple");
+    defineVar("tuple", d_solver->mkTuple({}, {}));
     addIndexedOperator(cvc5::APPLY_SELECTOR, "tuple.select");
     addIndexedOperator(cvc5::APPLY_UPDATER, "tuple.update");
   }
@@ -1120,6 +1125,18 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
         kind = NULL_TERM;
         isBuiltinOperator = false;
       }
+      else if (kind == cvc5::APPLY_CONSTRUCTOR)
+      {
+        // tuple application
+        std::vector<cvc5::Sort> sorts;
+        std::vector<cvc5::Term> terms;
+        for (const cvc5::Term& arg : args)
+        {
+          sorts.emplace_back(arg.getSort());
+          terms.emplace_back(arg);
+        }
+        return d_solver->mkTuple(sorts, terms);
+      }
       Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;
     }
@@ -1189,7 +1206,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   else if ((p.d_kind == cvc5::APPLY_SELECTOR || p.d_kind == cvc5::APPLY_UPDATER)
            && !p.d_expr.isNull())
   {
-    // tuple selector case
+    // tuple selector or updater case
     if (!p.d_expr.isUInt64Value())
     {
       parseError(
