@@ -190,12 +190,12 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
   {
     case Token::SYMBOL:
     {
-      id = d_lex.YYText();
+      id = d_lex.tokenStr();
     }
     break;
     case Token::QUOTED_SYMBOL:
     {
-      id = d_lex.YYText();
+      id = d_lex.tokenStr();
       // strip off the quotes
       id = id.substr(1, id.size() - 2);
     }
@@ -232,7 +232,7 @@ std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
 std::string Smt2TermParser::parseKeyword()
 {
   d_lex.eatToken(Token::KEYWORD);
-  std::string s = d_lex.YYText();
+  std::string s = d_lex.tokenStr();
   // strip off the initial colon
   return s.substr(1);
 }
@@ -350,7 +350,7 @@ size_t Smt2TermParser::parseIntegerNumeral()
   // TODO: leading zeroes in strict mode?
   size_t result;
   std::stringstream ss;
-  ss << d_lex.YYText();
+  ss << d_lex.tokenStr();
   ss >> result;
   return result;
 }
@@ -472,7 +472,7 @@ void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
 std::string Smt2TermParser::parseStr(bool unescape)
 {
   d_lex.eatToken(Token::STRING_LITERAL);
-  std::string s = d_lex.YYText();
+  std::string s = d_lex.tokenStr();
   if (unescape)
   {
     /* strip off the quotes */

@@ -52,7 +52,6 @@ std::ostream& operator<<(std::ostream& o, const Location& l);
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
 /**
- * NOTE: YYText() is only valid if d_peeked.size()<=1 ?
  */
 class Lexer : public yyFlexLexer
 {
@@ -76,8 +75,11 @@ class Lexer : public yyFlexLexer
   void reinsertToken(Token t);
   /** skip k tokens */
   void skipTokens(size_t k);
-  // String corresponding to the last token (old top of stack)
-  const char* token_str();
+  /**
+   * String corresponding to the last token (old top of stack). This is only
+   * valid if no tokens are currently peeked.
+   */
+  const char* tokenStr();
   // Derived functions
   // Interpret the next token as an identifier (even if it isn't) and return its
   // string
