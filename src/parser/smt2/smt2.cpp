@@ -140,10 +140,12 @@ void Smt2::addDatatypesOperators()
   if (!strictModeEnabled())
   {
     Parser::addOperator(cvc5::APPLY_UPDATER);
+    // Tuple projection is both indexed and non-indexed (when indices are empty)
+    addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
+    addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     // Notice that tuple operators, we use the generic APPLY_SELECTOR and
     // APPLY_UPDATER kinds. These are processed based on the context
     // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(cvc5::APPLY_SELECTOR, "tuple.select");
     addIndexedOperator(cvc5::APPLY_UPDATER, "tuple.update");
   }

@@ -1413,12 +1413,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
     }
     expr = SOLVER->mkTuple(sorts, terms);
   }
-  | LPAREN_TOK TUPLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
   | LPAREN_TOK TABLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
   {
     std::vector<uint32_t> indices;
@@ -1594,13 +1588,6 @@ identifier[cvc5::ParseOp& p]
         cvc5::DatatypeSelector ds = d.getSelector(f.toString());
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
-      }
-    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ tuple.project i_1 ... i_n) where
-        // i_1, ..., i_n are numerals
-        p.d_kind = cvc5::TUPLE_PROJECT;
-        p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
       }
     | TABLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
@@ -2258,7 +2245,6 @@ FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
 TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
 TABLE_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.aggr';
 TABLE_JOIN_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.join';
