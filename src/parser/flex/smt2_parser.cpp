@@ -16,6 +16,7 @@
 #include "parser/flex/smt2_parser.h"
 
 #include "base/output.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 namespace parser {
@@ -35,7 +36,8 @@ Smt2Parser::Smt2Parser(Solver* solver,
 }
 Command* Smt2Parser::parseNextCommand()
 {
-  return d_cmdParser.parseNextCommand();
+  std::unique_ptr<Command> cmd = d_cmdParser.parseNextCommand();
+  return cmd.release();
 }
 
 Term Smt2Parser::parseNextExpression()

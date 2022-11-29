@@ -37,7 +37,7 @@ class Smt2CmdParser
   /**
    * Parse and return the next command.
    */
-  Command* parseNextCommand();
+  std::unique_ptr<Command> parseNextCommand();
 
  protected:
   /** The lexer */
