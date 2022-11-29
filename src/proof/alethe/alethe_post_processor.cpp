@@ -1153,6 +1153,9 @@ bool AletheProofPostprocessCallback::update(Node res,
     }
     //================================================= Skolems rules
     // ======== Skolem intro
+    // Since this rule just equates a term to its purification skolem, whose
+    // conversion is the term itself, the converted conclusion is an equality
+    // between the same terms.
     case PfRule::SKOLEM_INTRO:
     {
       return addAletheStep(AletheRule::REFL,
@@ -1162,7 +1165,10 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // ======== Skolem intro
+    // ======== Replace term by its axiom definition
+    // For now this introduces a hole. The processing in the future should
+    // generate corresponding Alethe steps for each particular axiom for term
+    // removal (for example for the ITE case).
     case PfRule::REMOVE_TERM_FORMULA_AXIOM:
     {
       return addAletheStep(AletheRule::HOLE,
