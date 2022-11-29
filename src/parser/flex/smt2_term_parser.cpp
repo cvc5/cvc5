@@ -202,7 +202,8 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
       break;
   }
   // run the check
-  if(!d_state.isAbstractValue(id)) {
+  if (!d_state.isAbstractValue(id))
+  {
     // if an abstract value, SolverEngine handles declaration
     d_state.checkDeclaration(id, check, type);
   }
