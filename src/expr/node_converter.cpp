@@ -132,6 +132,7 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
         }
         else
         {
+          // use the untyped version
           Node cret = postConvertUntyped(cur, children);
           if (!cret.isNull())
           {
