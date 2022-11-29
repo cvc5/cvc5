@@ -69,7 +69,7 @@ class NodeConverter
   /**
    * Run the conversion for n during pre-order traversal.
    * Returning null is equivalent to saying the node should not be changed.
-   * 
+   *
    * If convert is called with preserveTypes=false, then we require that the
    * type of the returned term (if non-null) is the same as the type of n.
    */
