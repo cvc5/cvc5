@@ -102,7 +102,6 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::GET_VALUE_TOK: o << "GET_VALUE_TOK"; break;
     case Token::HEX_DIGIT: o << "HEX_DIGIT"; break;
     case Token::HEX_LITERAL: o << "HEX_LITERAL"; break;
-    case Token::HO_ARROW_TOK: o << "HO_ARROW_TOK"; break;
     case Token::HO_LAMBDA_TOK: o << "HO_LAMBDA_TOK"; break;
     case Token::INCLUDE_TOK: o << "INCLUDE_TOK"; break;
     case Token::INDEX_TOK: o << "INDEX_TOK"; break;
@@ -140,13 +139,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
       break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
     case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;
-    case Token::TABLE_AGGREGATE_TOK: o << "TABLE_AGGREGATE_TOK"; break;
-    case Token::TABLE_GROUP_TOK: o << "TABLE_GROUP_TOK"; break;
-    case Token::TABLE_JOIN_TOK: o << "TABLE_JOIN_TOK"; break;
-    case Token::TABLE_PROJECT_TOK: o << "TABLE_PROJECT_TOK"; break;
     case Token::TESTER_TOK: o << "TESTER_TOK"; break;
-    case Token::TUPLE_CONST_TOK: o << "TUPLE_CONST_TOK"; break;
-    case Token::TUPLE_PROJECT_TOK: o << "TUPLE_PROJECT_TOK"; break;
     case Token::UNTERMINATED_QUOTED_SYMBOL:
       o << "UNTERMINATED_QUOTED_SYMBOL";
       break;

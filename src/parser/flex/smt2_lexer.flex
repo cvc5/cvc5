@@ -22,7 +22,8 @@ decimal     [0-9]+\.[0-9]+
 bitstr      #b[01]+
 hexstr      #x[0-9a-fA-F]+
 simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
-
+quoted_symbol \|[^(\||\\)]*\|
+unterminated_quoted_symbol \|[^(\||\\)]*
 
 %%
 
@@ -118,6 +119,8 @@ simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
 {hexstr}   return cvc5::parser::HEX_LITERAL;
 {bitstr}   return cvc5::parser::BINARY_LITERAL;
 \:{simple_symbol}  return cvc5::parser::KEYWORD;
+{quoted_symbol} return cvc5::parser::QUOTED_SYMBOL;
+{unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
 
 

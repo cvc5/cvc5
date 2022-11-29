@@ -181,8 +181,32 @@ std::vector<std::pair<std::string, Sort>> Smt2TermParser::parseSortedVarList()
 
 std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 {
-  // TODO
-  return "";
+  Token tok = d_lex.nextToken();
+  std::string id;
+  switch (tok)
+  {
+    case Token::SYMBOL:
+    {
+      id = d_lex.YYText();
+    }
+    break;
+    case Token::QUOTED_SYMBOL:
+    {
+      id = d_lex.YYText();
+      // strip off the quotes
+      id = id.substr(1, id.size() - 2);
+    }
+    break;
+    default:
+      d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 symbol");
+      break;
+  }
+  // run the check
+  if(!d_state.isAbstractValue(id)) {
+    // if an abstract value, SolverEngine handles declaration
+    d_state.checkDeclaration(id, check, type);
+  }
+  return id;
 }
 
 std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
