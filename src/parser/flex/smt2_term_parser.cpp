@@ -450,22 +450,21 @@ void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
   while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
   {
     std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
-    DatatypeConstructorDecl* ctor = new DatatypeConstructorDecl(
+    DatatypeConstructorDecl ctor(
         d_state.getSolver()->mkDatatypeConstructorDecl(name));
     // parse another selector or close the current constructor
     while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
     {
       std::string id = parseSymbol(CHECK_NONE, SYM_SORT);
       Sort t = parseSort();
-      ctor->addSelector(id, t);
+      ctor.addSelector(id, t);
       Trace("parser-idt") << "selector: " << id << " of type " << t
                           << std::endl;
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     // make the constructor
-    type.addConstructor(*ctor);
+    type.addConstructor(ctor);
     Trace("parser-idt") << "constructor: " << name << std::endl;
-    delete ctor;
   }
 }
 
