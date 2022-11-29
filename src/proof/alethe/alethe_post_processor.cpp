@@ -15,9 +15,6 @@
 
 #include "proof/alethe/alethe_post_processor.h"
 
-#include <sstream>
-
-#include "base/configuration.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/alethe/alethe_proof_rule.h"
