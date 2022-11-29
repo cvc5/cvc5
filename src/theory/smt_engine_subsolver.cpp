@@ -174,7 +174,7 @@ void assertToSubsolver(SolverEngine& subsolver,
     {
       continue;
     }
-    // check if it is a function definition
+    // check if it is an ordinary function definition
     if (defs.find(f) != defs.end())
     {
       if (f.getKind() == kind::EQUAL && f[0].isVar())

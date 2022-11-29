@@ -134,7 +134,9 @@ Result checkWithSubsolver(Node query,
  *
  * @param subsolver The subsolver to assert to
  * @param core The formulas to assert
- * @param defs The subset of core that are function definitions
+ * @param defs The subset of core that are (recursive or ordinary) function
+ * definitions. Ordinary function definitions are sent to the subsolver via
+ * the defineFunction interface.
  * @param removed The subset of core that should be excluded from consideration.
  */
 void assertToSubsolver(SolverEngine& subsolver,
