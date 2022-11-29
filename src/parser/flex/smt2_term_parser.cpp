@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "base/check.h"
+#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
@@ -360,7 +361,79 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     const std::vector<size_t>& arities)
 {
   std::vector<DatatypeDecl> dts;
-  // TODO
+  d_state.pushScope();
+  // Declare the datatypes that are currently being defined as unresolved
+  // types. If we do not know the arity of the datatype yet, we wait to
+  // define it until parsing the preamble of its body, which may optionally
+  // involve `par`. This is limited to the case of single datatypes defined
+  // via declare-datatype, and hence no datatype body is parsed without
+  // having all types declared. This ensures we can parse datatypes with
+  // nested recursion, e.g. datatypes D having a subfield type
+  // (Array Int D).
+  for (unsigned i=0, dsize=dnames.size(); i<dsize; i++)
+  {
+    if( i>=arities.size() )
+    {
+      // do not know the arity yet
+      continue;
+    }
+    unsigned arity = static_cast<unsigned>(arities[i]);
+    d_state.mkUnresolvedType(dnames[i], arity);
+  }
+  d_lex.eatToken(Token::LPAREN_TOK);
+  // while the next token is LPAREN, exit if RPAREN
+  while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+  {
+    std::vector<Sort> params;
+    size_t i = dts.size();
+    Trace("parser-dt") << "Processing datatype #" << i << std::endl;
+    if( i>=dnames.size() ){
+      d_state.parseError("Too many datatypes defined in this block.");
+    }
+    Token tok = d_lex.nextToken();
+    bool pushedScope = false;
+    if (tok==PAR_TOK)
+    {
+      pushedScope = true;
+      d_state.pushScope();
+      std::vector<std::string> symList = parseSymbolList(CHECK_UNDECLARED,SYM_SORT);
+      for (const std::string& sym : symList)
+      {
+        params.push_back(d_state.mkSort(sym));
+      }
+      Trace("parser-dt") << params.size() << " parameters for " << dnames[i] << std::endl;
+      dts.push_back(d_state.getSolver()->mkDatatypeDecl(dnames[i], params, isCo));
+    }
+    else
+    {
+      d_lex.reinsertToken(tok);
+      dts.push_back(d_state.getSolver()->mkDatatypeDecl(dnames[i],
+                                            params,
+                                            isCo));
+    }
+    if (i>=arities.size())
+    {
+      // if the arity is not yet fixed, declare it as an unresolved type
+      d_state.mkUnresolvedType(dnames[i], params.size());
+    }
+    else if( arities[i]>=0 && params.size()!=arities[i] ){
+    // if the arity was fixed by prelude and is not equal to the number of parameters
+      d_state.parseError("Wrong number of parameters for datatype.");
+    }
+    // TODO: read constructor definition list
+    
+    if (pushedScope)
+    {
+      d_state.popScope();
+    }
+    d_lex.eatToken(Token::RPAREN_TOK);
+  }
+  
+  if (dts.size() != dnames.size())
+  {
+    d_state.parseError("Wrong number of datatypes provided.");
+  }
+  d_state.popScope();
   return dts;
 }
 
