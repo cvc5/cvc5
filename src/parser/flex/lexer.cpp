@@ -81,8 +81,9 @@ void Lexer::initialize(std::istream& input, const std::string& inputName)
   d_peeked.clear();
 }
 
-const char* Lexer::tokenStr() { 
-  Assert (d_peeked.empty());
+const char* Lexer::tokenStr()
+{
+  Assert(d_peeked.empty());
   return YYText();
 }
 
@@ -120,7 +121,7 @@ void Lexer::skipTokens(size_t k)
 
 void Lexer::unexpectedTokenError(Token t, const std::string& info)
 {
-  Assert (d_peeked.empty());
+  Assert(d_peeked.empty());
   std::ostringstream o{};
   o << info << ", got `" << tokenStr() << "` (" << t << ").";
   parseError(o.str());
