@@ -1227,16 +1227,6 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
-           || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
-           || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
-           || p.d_kind == cvc5::RELATION_AGGREGATE
-           || p.d_kind == cvc5::RELATION_PROJECT)
-  {
-    cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
-    Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
-    return ret;
-  }
   else if (p.d_kind != cvc5::NULL_TERM)
   {
     // it should not have an expression or type specified at this point
