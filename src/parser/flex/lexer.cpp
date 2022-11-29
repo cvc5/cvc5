@@ -18,6 +18,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+
 #include "base/check.h"
 
 namespace cvc5 {

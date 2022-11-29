@@ -405,7 +405,9 @@ Command* Smt2CmdParser::parseNextCommand()
       }
     }
     break;
-    case Token::EXIT_TOK: { cmd.reset(new QuitCommand());
+    case Token::EXIT_TOK:
+    {
+      cmd.reset(new QuitCommand());
     }
     break;
     case Token::GET_ABDUCT_TOK:
@@ -588,7 +590,9 @@ Command* Smt2CmdParser::parseNextCommand()
       d_state.reset();
     }
     break;
-    case Token::RESET_ASSERTIONS_TOK: { cmd.reset(new ResetAssertionsCommand());
+    case Token::RESET_ASSERTIONS_TOK:
+    {
+      cmd.reset(new ResetAssertionsCommand());
     }
     break;
     case Token::SET_FEATURE_TOK:

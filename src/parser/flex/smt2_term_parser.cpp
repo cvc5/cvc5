@@ -38,64 +38,80 @@ Term Smt2TermParser::parseTerm()
     switch (tok)
     {
       // ------------------- open paren
-      case Token::LPAREN_TOK: {
+      case Token::LPAREN_TOK:
+      {
         tok = d_lex.nextToken();
         switch (tok)
         {
-        case Token::AS_TOK: {
-          // a standalone qualifier identifier
-        }
-        break;
-        case Token::INDEX_TOK: {
-          // a standalone qualified identifier
-        }
-        break;
-        case Token::LPAREN_TOK: {
-          // must be a qualified identifier
-        }
-        break;
-        case Token::FORALL_TOK:
-        case Token::EXISTS_TOK: {
-        }
-        break;
-        case Token::LET_TOK: {
-        }
-        break;
-        case Token::MATCH_TOK: {
-        }
-        break;
-        case Token::ATTRIBUTE_TOK: {
-        }
-        break;
-        case Token::SYMBOL: {
-          // function identifier
-        }
-        break;
-        default: break;
+          case Token::AS_TOK:
+          {
+            // a standalone qualifier identifier
+          }
+          break;
+          case Token::INDEX_TOK:
+          {
+            // a standalone qualified identifier
+          }
+          break;
+          case Token::LPAREN_TOK:
+          {
+            // must be a qualified identifier
+          }
+          break;
+          case Token::FORALL_TOK:
+          case Token::EXISTS_TOK:
+          {
+          }
+          break;
+          case Token::LET_TOK:
+          {
+          }
+          break;
+          case Token::MATCH_TOK:
+          {
+          }
+          break;
+          case Token::ATTRIBUTE_TOK:
+          {
+          }
+          break;
+          case Token::SYMBOL:
+          {
+            // function identifier
+          }
+          break;
+          default: break;
         }
       }
       break;
       // ------------------- close paren
-      case Token::RPAREN_TOK: {
+      case Token::RPAREN_TOK:
+      {
       }
       break;
       // ------------------- base cases
-      case Token::SYMBOL: {
+      case Token::SYMBOL:
+      {
       }
       break;
-      case Token::INTEGER_LITERAL: {
+      case Token::INTEGER_LITERAL:
+      {
       }
       break;
-      case Token::DECIMAL_LITERAL: {
+      case Token::DECIMAL_LITERAL:
+      {
       }
       break;
-      case Token::HEX_LITERAL: {
+      case Token::HEX_LITERAL:
+      {
       }
       break;
-      case Token::BINARY_LITERAL: {
+      case Token::BINARY_LITERAL:
+      {
       }
       break;
-      case Token::STRING_LITERAL: {
+      case Token::STRING_LITERAL:
+      {
       }
       break;
       default: break;
@@ -109,7 +125,7 @@ std::vector<Term> Smt2TermParser::parseTermList()
   d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<Term> terms;
   Token tok = d_lex.peekToken();
-  while (tok!=Token::RPAREN_TOK)
+  while (tok != Token::RPAREN_TOK)
   {
     Term t = parseTerm();
     terms.push_back(t);
@@ -137,7 +153,7 @@ std::vector<Sort> Smt2TermParser::parseSortList()
   d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<Sort> sorts;
   Token tok = d_lex.peekToken();
-  while (tok!=Token::RPAREN_TOK)
+  while (tok != Token::RPAREN_TOK)
   {
     Sort s = parseSort();
     sorts.push_back(s);
@@ -175,7 +191,7 @@ std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
   d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<std::string> symbols;
   Token tok = d_lex.peekToken();
-  while (tok!=Token::RPAREN_TOK)
+  while (tok != Token::RPAREN_TOK)
   {
     std::string sym = parseSymbol(check, type);
     symbols.push_back(sym);
