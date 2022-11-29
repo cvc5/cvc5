@@ -199,10 +199,5 @@ void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
   d_assertions.enableProofs(pppg);
 }
 
-bool Assertions::isProofEnabled() const
-{
-  return d_assertions.isProofEnabled();
-}
-
 }  // namespace smt
 }  // namespace cvc5::internal

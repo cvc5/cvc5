@@ -113,7 +113,7 @@ if(NOT GMP_FOUND_SYSTEM)
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-        <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic

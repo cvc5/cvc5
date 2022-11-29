@@ -753,6 +753,8 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
 {
   if (options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
   {
+    Trace("unsat-core") << "PropEngine::getUnsatCore: via unsat assumptions"
+                        << std::endl;
     std::vector<SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
     for (const SatLiteral& lit : unsat_assumptions)
@@ -762,6 +764,7 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   }
   else
   {
+    Trace("unsat-core") << "PropEngine::getUnsatCore: via proof" << std::endl;
     // otherwise, it is just the free assumptions of the proof
     std::shared_ptr<ProofNode> pfn = getProof();
     expr::getFreeAssumptions(pfn.get(), core);

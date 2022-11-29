@@ -13,6 +13,8 @@ This file contains a summary of important user-visible changes.
   * `BITVECTOR_SSUBO` signed subtraction overflow detection
   * `BITVECTOR_SDIVO` signed division overflow detection
 
+- Support for Web Assembly compilation using Emscripten.
+
 **Changes**
 
 - The (non-standard) operators `BITVECTOR_TO_NAT` and `INT_TO_BITVECTOR` now

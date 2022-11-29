@@ -799,9 +799,21 @@ bool RegExpEntail::regExpIncludes(Node r1,
   }
   // first, check some basic inclusions
   bool ret = false;
-  bool retSet = false;
-  Kind k1 = r1.getKind();
   Kind k2 = r2.getKind();
+  // if the right hand side is a constant string, this is a membership test
+  if (k2 == STRING_TO_REGEXP)
+  {
+    // only check if r1 is a constant regular expression
+    if (r2[0].isConst() && isConstRegExp(r1))
+    {
+      String s = r2[0].getConst<String>();
+      ret = testConstStringInRegExp(s, 0, r1);
+    }
+    cache[key] = ret;
+    return ret;
+  }
+  Kind k1 = r1.getKind();
+  bool retSet = false;
   if (k1 == REGEXP_UNION)
   {
     retSet = true;
@@ -842,18 +854,23 @@ bool RegExpEntail::regExpIncludes(Node r1,
       ret = regExpIncludes(r1[0], k2 == REGEXP_STAR ? r2[0] : r2, cache);
     }
   }
-  else if (k1 == REGEXP_ALLCHAR)
-  {
-    retSet = true;
-    if (k2 == STRING_TO_REGEXP)
-    {
-      ret = (r2[0].getConst<String>().size() == 1);
-    }
-  }
   else if (k1 == STRING_TO_REGEXP)
   {
     // only way to include is if equal, which was already checked
     retSet = true;
+  }
+  else if (k1 == REGEXP_RANGE)
+  {
+    retSet = true;
+    // if comparing subranges, we check inclusion of interval
+    if (k2 == REGEXP_RANGE)
+    {
+      unsigned l1 = r1[0].getConst<String>().front();
+      unsigned u1 = r1[1].getConst<String>().front();
+      unsigned l2 = r1[0].getConst<String>().front();
+      unsigned u2 = r1[1].getConst<String>().front();
+      ret = l1 <= l2 && l2 <= u1 && l1 <= u2 && u2 <= u1;
+    }
   }
   if (retSet)
   {
