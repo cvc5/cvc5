@@ -360,7 +360,8 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     const std::vector<std::string>& dnames,
     const std::vector<size_t>& arities)
 {
-  Assert (dnames.size()==arities.size() || (dnames.size()==1 && arities.empty()));
+  Assert(dnames.size() == arities.size()
+         || (dnames.size() == 1 && arities.empty()));
   std::vector<DatatypeDecl> dts;
   d_state.pushScope();
   // Declare the datatypes that are currently being defined as unresolved
@@ -448,22 +449,22 @@ void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
   // parse another constructor or close the list
   while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
   {
-    std::string name = parseSymbol(CHECK_NONE,SYM_VARIABLE);
+    std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
     DatatypeConstructorDecl* ctor = new DatatypeConstructorDecl(
-            d_state.getSolver()->mkDatatypeConstructorDecl(name));
+        d_state.getSolver()->mkDatatypeConstructorDecl(name));
     // parse another selector or close the current constructor
     while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
     {
-      std::string id = parseSymbol(CHECK_NONE,SYM_SORT);
+      std::string id = parseSymbol(CHECK_NONE, SYM_SORT);
       Sort t = parseSort();
       ctor->addSelector(id, t);
-      Trace("parser-idt") << "selector: " << id
-                          << " of type " << t << std::endl;
+      Trace("parser-idt") << "selector: " << id << " of type " << t
+                          << std::endl;
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     // make the constructor
     type.addConstructor(*ctor);
-    Trace("parser-idt") << "constructor: " << name<< std::endl;
+    Trace("parser-idt") << "constructor: " << name << std::endl;
     delete ctor;
   }
 }

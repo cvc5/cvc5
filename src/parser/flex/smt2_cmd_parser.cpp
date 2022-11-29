@@ -177,8 +177,7 @@ Command* Smt2CmdParser::parseNextCommand()
       // we allow overloading for function declarations
       if (d_state.sygus())
       {
-        d_lex.parseError(
-            "declare-fun are not allowed in sygus version 2.0");
+        d_lex.parseError("declare-fun are not allowed in sygus version 2.0");
       }
       else
       {
