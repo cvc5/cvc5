@@ -100,6 +100,16 @@ const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
   return d_assertionListDefs;
 }
 
+std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
+{
+  std::unordered_set<Node> defSet;
+  for (const Node& a : d_assertionListDefs)
+  {
+    defSet.insert(a);
+  }
+  return defSet;
+}
+
 void Assertions::addFormula(TNode n,
                             bool isFunDef,
                             bool maybeHasFv)
