@@ -106,7 +106,7 @@ class IntBlaster : protected EnvObj
    */
   IntBlaster(Env& env,
              options::SolveBVAsIntMode mode,
-             uint32_t granluarity = 1);
+             uint64_t granluarity = 1);
 
   ~IntBlaster();
 
@@ -363,11 +363,11 @@ class IntBlaster : protected EnvObj
   /** the mode for translation to integers */
   options::SolveBVAsIntMode d_mode;
 
-  /** the granularity to use in the translation */
-  uint32_t d_granularity;
-
   /** an SolverEngine for context */
   context::Context* d_context;
+  
+  /** the granularity to use in the translation */
+  uint32_t d_granularity;
 };
 
 }  // namespace cvc5::internal

@@ -49,19 +49,20 @@ Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
-                       uint32_t granularity)
+                       uint64_t granularity)
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
       d_rangeAssertions(userContext()),
       d_bitwiseAssertions(userContext()),
       d_mode(mode),
-      d_granularity(granularity),
       d_context(userContext())
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConstInt(0);
   d_one = d_nm->mkConstInt(1);
+  Assert(granularity <= 8);
+  d_granularity = (uint32_t) granularity;
 };
 
 IntBlaster::~IntBlaster() {}
