@@ -1140,6 +1140,17 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   HO_CONG,
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
+   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
+   * \endverbatim
+   */
+  BETA_REDUCE,
 
   /**
    * \verbatim embed:rst:leading-asterisk
