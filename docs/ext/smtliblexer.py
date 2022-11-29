@@ -16,20 +16,24 @@ class SmtLibLexer(RegexLexer):
     name = 'smtlib'
 
     COMMANDS = [
-        'assert', 'check-sat', 'check-sat-assuming', 'declare-const',
-        'declare-datatype', 'declare-datatypes', 'declare-codatatypes',
-        'declare-fun', 'declare-sort', 'define-fun', 'define-fun-rec',
-        'define-funs-rec', 'define-sort', 'echo', 'exit', 'get-assertions',
-        'get-assignment', 'get-info', 'get-model', 'get-option', 'get-proof',
-        'get-unsat-assumptions', 'get-unsat-core', 'get-value', 'pop', 'push',
-        'reset', 'reset-assertions', 'set-info', 'set-logic', 'set-option',
+        'assert', 'block-model', 'block-model-values', 'check-sat',
+        'check-sat-assuming', 'declare-const', 'declare-datatype',
+        'declare-datatypes', 'declare-codatatypes', 'declare-fun',
+        'declare-sort', 'define-const', 'define-fun', 'define-fun-rec',
+        'define-funs-rec', 'define-sort', 'echo', 'exit', 'get-abduct',
+        'get-abduct-next', 'get-assertions', 'get-assignment', 'get-info',
+        'get-interpolant', 'get-model', 'get-option', 'get-proof', 'get-qe',
+        'get-qe-disjunct', 'get-unsat-assumptions', 'get-unsat-core',
+        'get-value', 'pop', 'push', 'reset', 'reset-assertions', 'set-info',
+        'set-logic', 'set-option',
         # SyGuS v2
-        'declare-var', 'constraint', 'inv-constraint', 'synth-fun',
-        'check-synth', 'synth-inv', 'declare-pool',
+        'assume', 'check-synth', 'constraint', 'declare-var', 'inv-constraint',
+        'synth-fun', 'synth-inv', 'declare-pool',
     ]
     SORTS = [
-        'Array', 'BitVec', 'Bool', 'FloatingPoint', 'Float[0-9]+', 'Int',
-        'Real', 'RegLan', 'RoundingMode', 'Set', 'String', 'Tuple',
+        'Array', 'BitVec', 'Bag', 'Bool', 'FloatingPoint', 'Float[0-9]+',
+        'Int', 'Real', 'RegLan', 'RoundingMode', 'Set', 'Seq', 'String',
+        'Tuple',
     ]
     OPERATORS = [
         # array
@@ -45,7 +49,7 @@ class SmtLibLexer(RegexLexer):
         '=>', '=', 'true', 'false', 'not', 'and', 'or', 'xor', 'distinct',
         'ite',
         # datatypes
-        'mkTuple', 'tupSel',
+        'tuple', 'tuple\.project', 'tuple\.select', 'tuple\.update',
         # fp
         'RNE', 'RNA', 'RTP', 'RTN', 'RTZ', 'fp', 'NaN', 'fp\.abs', 'fp\.neg',
         'fp\.add', 'fp\.sub', 'fp\.mul', 'fp\.div', 'fp\.fma', 'fp\.sqrt',
@@ -57,22 +61,30 @@ class SmtLibLexer(RegexLexer):
         '-zero',
         # int / real
         '<', '>', '<=', '>=', '!=', '\+', '-', '\*', '/', 'div', 'mod', 'abs',
-        'divisible', 'to_real', 'to_int', 'is_int',
+        'divisible', 'to_real', 'to_int', 'is_int', 'iand', 'int2bv',
         # separation logic
-        'emp', 'pto', 'sep', 'wand', 'nil',
+        'sep\.emp', 'pto', 'sep', 'wand', 'sep\.nil',
         # sets / relations
-        'union', 'setminus', 'member', 'subset', 'emptyset', 'singleton',
-        'card', 'insert', 'complement', 'univset', 'transpose', 'tclosure',
-        'join', 'product', 'intersection',
+        'set\.union', 'set\.minus', 'set\.member', 'set\.subset', 'set\.empty',
+        'set\.singleton', 'set\.card', 'set\.insert', 'set\.complement',
+        'set\.universe', 'rel\.transpose', 'rel\.tclosure', 'rel\.join',
+        'rel\.product', 'set\.inter',
         # string
-        'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.to_re', 'str\.in_re',
-        're\.none', 're\.all', 're\.allchar', 're\.\+\+', 're\.union',
-        're\.inter', 're\.*', 'str\.<=', 'str\.at', 'str\.substr',
+        'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.<=', 'str\.to_re',
+        'str\.in_re', 're\.none', 're\.all', 're\.allchar', 're\.\+\+',
+        're\.union', 're\.inter', 're\.*', 'str\.<=', 'str\.at', 'str\.substr',
         'str\.prefixof', 'str\.suffixof', 'str\.contains', 'str\.indexof',
         'str\.replace', 'str\.replace_all', 'str\.replace_re',
         'str\.replace_re_all', 're\.comp', 're\.diff', 're\.\+', 're\.opt',
         're\.range', 're\.^', 're\.loop', 'str\.is_digit', 'str\.to_code',
         'str\.from_code', 'str\.to_int', 'str\.from_int',
+        # sequences
+        'seq\.\+\+', 'seq\.len', 'seq\.extract', 'seq\.update', 'seq\.at',
+        'seq\.contains', 'seq\.indexof', 'seq\.replace', 'seq\.prefixof',
+        'seq\.suffixof', 'seq\.rev', 'seq\.replace_all', 'seq\.unit',
+        'seq\.nth', 'seq\.empty',
+        # others
+        'witness',
     ]
 
     tokens = {
@@ -98,6 +110,8 @@ class SmtLibLexer(RegexLexer):
             # parentheses
             (r'\(', token.Text),
             (r'\)', token.Text),
+            (r'\{', token.Text),
+            (r'\}', token.Text),
             # commands (terminated by whitespace or ")")
             ('(' + '|'.join(COMMANDS) + ')(?=(\s|\)))', token.Keyword),
             # sorts (terminated by whitespace or ")")

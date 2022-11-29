@@ -5,7 +5,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -15,11 +15,10 @@
 # API
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     integer = slv.getIntegerSort()
     set_ = slv.mkSetSort(integer)

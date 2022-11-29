@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,8 +23,9 @@
 #include "proof/proof_generator.h"
 #include "proof/proof_rule.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNode;
 class ProofNodeManager;
@@ -83,12 +84,12 @@ class ProofNodeManager;
  * storing the proof internally, and the proof output channel is responsible for
  * maintaining the map that epg is who to ask for the proof of the conflict.
  */
-class EagerProofGenerator : public ProofGenerator
+class EagerProofGenerator : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(ProofNodeManager* pnm,
+  EagerProofGenerator(Env& env,
                       context::Context* c = nullptr,
                       std::string name = "EagerProofGenerator");
   ~EagerProofGenerator() {}
@@ -158,6 +159,21 @@ class EagerProofGenerator : public ProofGenerator
    * a proof of a = b
    */
   TrustNode mkTrustedRewrite(Node a, Node b, std::shared_ptr<ProofNode> pf);
+  /**
+   * Make trust node from a single step proof. This is a convenience function
+   * that avoids the need to explictly construct ProofNode by the caller.
+   *
+   * @param a the original
+   * @param b what is rewrites to
+   * @param id The rule of the proof concluding a=b
+   * @param args The arguments to the proof concluding a=b,
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of a=b.
+   */
+  TrustNode mkTrustedRewrite(Node a,
+                             Node b,
+                             PfRule id,
+                             const std::vector<Node>& args);
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma
@@ -176,8 +192,6 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Set that pf is the proof for explained propagation */
   void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** Name identifier */
   std::string d_name;
   /** A dummy context used by this class if none is provided */
@@ -189,6 +203,6 @@ class EagerProofGenerator : public ProofGenerator
   NodeProofNodeMap d_proofs;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_GENERATOR_H */

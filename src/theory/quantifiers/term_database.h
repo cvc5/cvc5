@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -93,11 +93,13 @@ class TermDb : public QuantifiersUtil {
   * Get the number of ground terms with operator f that have been added to the
   * database
   */
-  size_t getNumGroundTerms(Node f) const;
+  size_t getNumGroundTerms(TNode f) const;
   /** get ground term for operator
   * Get the i^th ground term with operator f that has been added to the database
   */
-  Node getGroundTerm(Node f, size_t i) const;
+  Node getGroundTerm(TNode f, size_t i) const;
+  /** Get ground term list */
+  DbList* getGroundTermList(TNode f) const;
   /** get num type terms
   * Get the number of ground terms of tn that have been added to the database
   */
@@ -128,28 +130,30 @@ class TermDb : public QuantifiersUtil {
   /** Get the currently added ground terms for the given operator */
   DbList* getOrMkDbListForOp(TNode op);
   /** get match operator for term n
-  *
-  * If n has a kind that we index, this function will
-  * typically return n.getOperator().
-  *
-  * However, for parametric operators f, the match operator is an arbitrary
-  * chosen f-application.  For example, consider array select:
-  * A : (Array Int Int)
-  * B : (Array Bool Int)
-  * We require that terms like (select A 1) and (select B 2) are indexed in
-  * separate
-  * data structures despite the fact that
-  *    (select A 1).getOperator()==(select B 2).getOperator().
-  * Hence, for the above terms, we may return:
-  * getMatchOperator( (select A 1) ) = (select A 1), and
-  * getMatchOperator( (select B 2) ) = (select B 2).
-  * The match operator is the first instance of an application of the parametric
-  * operator of its type.
-  *
-  * If n has a kind that we do not index (like PLUS),
-  * then this function returns Node::null().
-  */
-  Node getMatchOperator(Node n);
+   *
+   * If n has a kind that we index, this function will
+   * typically return n.getOperator().
+   *
+   * However, for parametric operators f, the match operator is an arbitrary
+   * chosen f-application.  For example, consider array select:
+   * A : (Array Int Int)
+   * B : (Array Bool Int)
+   * We require that terms like (select A 1) and (select B 2) are indexed in
+   * separate
+   * data structures despite the fact that
+   *    (select A 1).getOperator()==(select B 2).getOperator().
+   * Hence, for the above terms, we may return:
+   * getMatchOperator( (select A 1) ) = (select A 1), and
+   * getMatchOperator( (select B 2) ) = (select B 2).
+   * The match operator is the first instance of an application of the
+   * parametric operator of its type.
+   *
+   * If n has a kind that we do not index (like ADD),
+   * then this function returns Node::null().
+   */
+  Node getMatchOperator(TNode n);
+  /** Is matchable? true if the above method is non-null */
+  bool isMatchable(TNode n);
   /** get term arg index for all f-applications in the current context */
   TNodeTrie* getTermArgTrie(Node f);
   /** get the term arg trie for f-applications in the equivalence class of eqc.
@@ -163,19 +167,20 @@ class TermDb : public QuantifiersUtil {
   */
   TNode getCongruentTerm(Node f, Node n);
   /** get congruent term
-  * If possible, returns a term t such that:
-  * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) where ti is in the
-  *     equivalence class of args[i] for i=1...k.
-  */
-  TNode getCongruentTerm(Node f, std::vector<TNode>& args);
+   * If possible, returns a term t such that:
+   * (1) t is a term that is currently indexed by this database,
+   * (2) t is of the form f( t1, ..., tk ) where ti is in the
+   *     equivalence class of args[i] for i=1...k.
+   * If not possible, return the null node.
+   */
+  TNode getCongruentTerm(Node f, const std::vector<TNode>& args);
   /** in relevant domain
   * Returns true if there is at least one term t such that:
   * (1) t is a term that is currently indexed by this database,
   * (2) t is of the form f( t1, ..., tk ) and ti is in the
   *     equivalence class of r.
   */
-  bool inRelevantDomain(TNode f, unsigned i, TNode r);
+  bool inRelevantDomain(TNode f, size_t i, TNode r);
   /** is the term n active in the current context?
    *
   * By default, all terms are active. A term is inactive if:
@@ -198,7 +203,7 @@ class TermDb : public QuantifiersUtil {
    * It returns whether the term n should be indexed in the current context.
    *
    * If the argument useMode is true, then this method returns a value based on
-   * the option options::termDbMode().
+   * the option termDbMode.
    * Otherwise, it returns the lookup in the map d_has_map.
    */
   bool hasTermCurrent(Node n, bool useMode = true);
@@ -244,8 +249,13 @@ class TermDb : public QuantifiersUtil {
   /** map from operators to trie */
   std::map<Node, TNodeTrie> d_func_map_trie;
   std::map<Node, TNodeTrie> d_func_map_eqc_trie;
-  /** mapping from operators to their representative relevant domains */
-  std::map< Node, std::map< unsigned, std::vector< Node > > > d_func_map_rel_dom;
+  /**
+   * Mapping from operators to their representative relevant domains. The
+   * size of the range is equal to the arity of the domain symbol. The
+   * terms in each vector are the representatives that occur in a term for
+   * that argument position (see inRelevantDomain).
+   */
+  std::map<Node, std::vector<std::vector<TNode>>> d_fmapRelDom;
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
@@ -299,6 +309,6 @@ class TermDb : public QuantifiersUtil {
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_DATABASE_H */

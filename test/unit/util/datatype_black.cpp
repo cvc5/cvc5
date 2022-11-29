@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,9 @@
 #include "test_smt.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackDatatype : public TestSmt
@@ -30,8 +32,8 @@ class TestUtilBlackDatatype : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    Debug.on("datatypes");
-    Debug.on("groundterms");
+    TraceChannel.on("datatypes");
+    TraceChannel.on("groundterms");
   }
 };
 
@@ -53,13 +55,13 @@ TEST_F(TestUtilBlackDatatype, enumeration)
   colors.addConstructor(green);
   colors.addConstructor(red);
 
-  Debug("datatypes") << colors << std::endl;
+  Trace("datatypes") << colors << std::endl;
   TypeNode colorsType = d_nodeManager->mkDatatypeType(colors);
-  Debug("datatypes") << colorsType << std::endl;
+  Trace("datatypes") << colorsType << std::endl;
 
   Node ctor = colorsType.getDType()[1].getConstructor();
   Node apply = d_nodeManager->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
-  Debug("datatypes") << apply << std::endl;
+  Trace("datatypes") << apply << std::endl;
 
   ASSERT_FALSE(colorsType.getDType().isParametric());
   ASSERT_TRUE(colorsType.getDType().isFinite());
@@ -67,10 +69,11 @@ TEST_F(TestUtilBlackDatatype, enumeration)
             Cardinality::EQUAL);
   ASSERT_EQ(ctor.getType().getCardinality().compare(1), Cardinality::EQUAL);
   ASSERT_TRUE(colorsType.getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << colorsType.getDType().getName()
+  Trace("groundterms") << "ground term of " << colorsType.getDType().getName()
                        << std::endl
-                       << "  is " << colorsType.mkGroundTerm() << std::endl;
-  ASSERT_EQ(colorsType.mkGroundTerm().getType(), colorsType);
+                       << "  is " << d_nodeManager->mkGroundTerm(colorsType)
+                       << std::endl;
+  ASSERT_EQ(d_nodeManager->mkGroundTerm(colorsType).getType(), colorsType);
 }
 
 TEST_F(TestUtilBlackDatatype, nat)
@@ -86,23 +89,24 @@ TEST_F(TestUtilBlackDatatype, nat)
       std::make_shared<DTypeConstructor>("zero");
   nat.addConstructor(zero);
 
-  Debug("datatypes") << nat << std::endl;
+  Trace("datatypes") << nat << std::endl;
   TypeNode natType = d_nodeManager->mkDatatypeType(nat);
-  Debug("datatypes") << natType << std::endl;
+  Trace("datatypes") << natType << std::endl;
 
   Node ctor = natType.getDType()[1].getConstructor();
   Node apply = d_nodeManager->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
-  Debug("datatypes") << apply << std::endl;
+  Trace("datatypes") << apply << std::endl;
 
   ASSERT_FALSE(natType.getDType().isParametric());
   ASSERT_FALSE(natType.getDType().isFinite());
   ASSERT_TRUE(natType.getDType().getCardinality().compare(Cardinality::INTEGERS)
               == Cardinality::EQUAL);
   ASSERT_TRUE(natType.getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << natType.getDType().getName()
+  Trace("groundterms") << "ground term of " << natType.getDType().getName()
                        << std::endl
-                       << "  is " << natType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(natType.mkGroundTerm().getType() == natType);
+                       << "  is " << d_nodeManager->mkGroundTerm(natType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(natType).getType() == natType);
 }
 
 TEST_F(TestUtilBlackDatatype, tree)
@@ -121,9 +125,9 @@ TEST_F(TestUtilBlackDatatype, tree)
   leaf->addArg("leaf", integerType);
   tree.addConstructor(leaf);
 
-  Debug("datatypes") << tree << std::endl;
+  Trace("datatypes") << tree << std::endl;
   TypeNode treeType = d_nodeManager->mkDatatypeType(tree);
-  Debug("datatypes") << treeType << std::endl;
+  Trace("datatypes") << treeType << std::endl;
 
   ASSERT_FALSE(treeType.getDType().isParametric());
   ASSERT_FALSE(treeType.getDType().isFinite());
@@ -131,10 +135,11 @@ TEST_F(TestUtilBlackDatatype, tree)
       treeType.getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_TRUE(treeType.getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << treeType.getDType().getName()
+  Trace("groundterms") << "ground term of " << treeType.getDType().getName()
                        << std::endl
-                       << "  is " << treeType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(treeType.mkGroundTerm().getType() == treeType);
+                       << "  is " << d_nodeManager->mkGroundTerm(treeType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(treeType).getType() == treeType);
 }
 
 TEST_F(TestUtilBlackDatatype, list_int)
@@ -152,9 +157,9 @@ TEST_F(TestUtilBlackDatatype, list_int)
       std::make_shared<DTypeConstructor>("nil");
   list.addConstructor(nil);
 
-  Debug("datatypes") << list << std::endl;
+  Trace("datatypes") << list << std::endl;
   TypeNode listType = d_nodeManager->mkDatatypeType(list);
-  Debug("datatypes") << listType << std::endl;
+  Trace("datatypes") << listType << std::endl;
 
   ASSERT_FALSE(listType.getDType().isParametric());
   ASSERT_FALSE(listType.getDType().isFinite());
@@ -162,10 +167,11 @@ TEST_F(TestUtilBlackDatatype, list_int)
       listType.getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_TRUE(listType.getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << listType.getDType().getName()
+  Trace("groundterms") << "ground term of " << listType.getDType().getName()
                        << std::endl
-                       << "  is " << listType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+                       << "  is " << d_nodeManager->mkGroundTerm(listType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(listType).getType() == listType);
 }
 
 TEST_F(TestUtilBlackDatatype, list_real)
@@ -183,19 +189,20 @@ TEST_F(TestUtilBlackDatatype, list_real)
       std::make_shared<DTypeConstructor>("nil");
   list.addConstructor(nil);
 
-  Debug("datatypes") << list << std::endl;
+  Trace("datatypes") << list << std::endl;
   TypeNode listType = d_nodeManager->mkDatatypeType(list);
-  Debug("datatypes") << listType << std::endl;
+  Trace("datatypes") << listType << std::endl;
 
   ASSERT_FALSE(listType.getDType().isParametric());
   ASSERT_FALSE(listType.getDType().isFinite());
   ASSERT_TRUE(listType.getDType().getCardinality().compare(Cardinality::REALS)
               == Cardinality::EQUAL);
   ASSERT_TRUE(listType.getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << listType.getDType().getName()
+  Trace("groundterms") << "ground term of " << listType.getDType().getName()
                        << std::endl
-                       << "  is " << listType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+                       << "  is " << d_nodeManager->mkGroundTerm(listType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(listType).getType() == listType);
 }
 
 TEST_F(TestUtilBlackDatatype, list_boolean)
@@ -213,19 +220,20 @@ TEST_F(TestUtilBlackDatatype, list_boolean)
       std::make_shared<DTypeConstructor>("nil");
   list.addConstructor(nil);
 
-  Debug("datatypes") << list << std::endl;
+  Trace("datatypes") << list << std::endl;
   TypeNode listType = d_nodeManager->mkDatatypeType(list);
-  Debug("datatypes") << listType << std::endl;
+  Trace("datatypes") << listType << std::endl;
 
   ASSERT_FALSE(listType.getDType().isFinite());
   ASSERT_TRUE(
       listType.getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_TRUE(listType.getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << listType.getDType().getName()
+  Trace("groundterms") << "ground term of " << listType.getDType().getName()
                        << std::endl
-                       << "  is " << listType.mkGroundTerm() << std::endl;
-  ASSERT_TRUE(listType.mkGroundTerm().getType() == listType);
+                       << "  is " << d_nodeManager->mkGroundTerm(listType)
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(listType).getType() == listType);
 }
 
 TEST_F(TestUtilBlackDatatype, listIntUpdate)
@@ -246,8 +254,8 @@ TEST_F(TestUtilBlackDatatype, listIntUpdate)
   TypeNode listType = d_nodeManager->mkDatatypeType(list);
   const DType& ldt = listType.getDType();
   Node updater = ldt[0][0].getUpdater();
-  Node gt = listType.mkGroundTerm();
-  Node zero = d_nodeManager->mkConst(Rational(0));
+  Node gt = d_nodeManager->mkGroundTerm(listType);
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
   Node truen = d_nodeManager->mkConst(true);
   // construct an update term
   Node uterm = d_nodeManager->mkNode(kind::APPLY_UPDATER, updater, gt, zero);
@@ -267,13 +275,8 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
    *     list = cons(car: tree, cdr: list) | nil
    *   END;
    */
-  std::set<TypeNode> unresolvedTypes;
-  TypeNode unresList =
-      d_nodeManager->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresList);
-  TypeNode unresTree =
-      d_nodeManager->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresTree);
+  TypeNode unresList = d_nodeManager->mkSort("list");
+  TypeNode unresTree = d_nodeManager->mkSort("tree");
 
   DType tree("tree");
   std::shared_ptr<DTypeConstructor> node =
@@ -287,7 +290,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   leaf->addArg("leaf", unresList);
   tree.addConstructor(leaf);
 
-  Debug("datatypes") << tree << std::endl;
+  Trace("datatypes") << tree << std::endl;
 
   DType list("list");
   std::shared_ptr<DTypeConstructor> cons =
@@ -300,7 +303,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
       std::make_shared<DTypeConstructor>("nil");
   list.addConstructor(nil);
 
-  Debug("datatypes") << list << std::endl;
+  Trace("datatypes") << list << std::endl;
 
   ASSERT_FALSE(tree.isResolved());
   ASSERT_FALSE(list.isResolved());
@@ -308,8 +311,7 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   std::vector<DType> dts;
   dts.push_back(tree);
   dts.push_back(list);
-  std::vector<TypeNode> dtts =
-      d_nodeManager->mkMutualDatatypeTypes(dts, unresolvedTypes);
+  std::vector<TypeNode> dtts = d_nodeManager->mkMutualDatatypeTypes(dts);
 
   ASSERT_TRUE(dtts[0].getDType().isResolved());
   ASSERT_TRUE(dtts[1].getDType().isResolved());
@@ -318,30 +320,27 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees1)
   ASSERT_TRUE(dtts[0].getDType().getCardinality().compare(Cardinality::INTEGERS)
               == Cardinality::EQUAL);
   ASSERT_TRUE(dtts[0].getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << dtts[0].getDType().getName()
+  Trace("groundterms") << "ground term of " << dtts[0].getDType().getName()
                        << std::endl
-                       << "  is " << dtts[0].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts[0].mkGroundTerm().getType() == dtts[0]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts[0])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts[0]).getType() == dtts[0]);
 
   ASSERT_FALSE(dtts[1].getDType().isFinite());
   ASSERT_TRUE(dtts[1].getDType().getCardinality().compare(Cardinality::INTEGERS)
               == Cardinality::EQUAL);
   ASSERT_TRUE(dtts[1].getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << dtts[1].getDType().getName()
+  Trace("groundterms") << "ground term of " << dtts[1].getDType().getName()
                        << std::endl
-                       << "  is " << dtts[1].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts[1].mkGroundTerm().getType() == dtts[1]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts[1])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts[1]).getType() == dtts[1]);
 }
 
 TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
 {
-  std::set<TypeNode> unresolvedTypes;
-  TypeNode unresList =
-      d_nodeManager->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresList);
-  TypeNode unresTree =
-      d_nodeManager->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
-  unresolvedTypes.insert(unresTree);
+  TypeNode unresList = d_nodeManager->mkSort("list");
+  TypeNode unresTree = d_nodeManager->mkSort("tree");
 
   DType tree("tree");
   std::shared_ptr<DTypeConstructor> node =
@@ -376,18 +375,18 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
   dts.push_back(tree);
   dts.push_back(list);
   // remake the types
-  std::vector<TypeNode> dtts2 =
-      d_nodeManager->mkMutualDatatypeTypes(dts, unresolvedTypes);
+  std::vector<TypeNode> dtts2 = d_nodeManager->mkMutualDatatypeTypes(dts);
 
   ASSERT_FALSE(dtts2[0].getDType().isFinite());
   ASSERT_TRUE(
       dtts2[0].getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_TRUE(dtts2[0].getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << dtts2[0].getDType().getName()
+  Trace("groundterms") << "ground term of " << dtts2[0].getDType().getName()
                        << std::endl
-                       << "  is " << dtts2[0].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts2[0].mkGroundTerm().getType() == dtts2[0]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts2[0])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts2[0]).getType() == dtts2[0]);
 
   ASSERT_FALSE(dtts2[1].getDType().isParametric());
   ASSERT_FALSE(dtts2[1].getDType().isFinite());
@@ -395,10 +394,11 @@ TEST_F(TestUtilBlackDatatype, mutual_list_trees2)
       dtts2[1].getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_TRUE(dtts2[1].getDType().isWellFounded());
-  Debug("groundterms") << "ground term of " << dtts2[1].getDType().getName()
+  Trace("groundterms") << "ground term of " << dtts2[1].getDType().getName()
                        << std::endl
-                       << "  is " << dtts2[1].mkGroundTerm() << std::endl;
-  ASSERT_TRUE(dtts2[1].mkGroundTerm().getType() == dtts2[1]);
+                       << "  is " << d_nodeManager->mkGroundTerm(dtts2[1])
+                       << std::endl;
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(dtts2[1]).getType() == dtts2[1]);
 }
 
 TEST_F(TestUtilBlackDatatype, not_so_well_founded)
@@ -411,9 +411,9 @@ TEST_F(TestUtilBlackDatatype, not_so_well_founded)
   node->addArgSelf("right");
   tree.addConstructor(node);
 
-  Debug("datatypes") << tree << std::endl;
+  Trace("datatypes") << tree << std::endl;
   TypeNode treeType = d_nodeManager->mkDatatypeType(tree);
-  Debug("datatypes") << treeType << std::endl;
+  Trace("datatypes") << treeType << std::endl;
 
   ASSERT_FALSE(treeType.getDType().isParametric());
   ASSERT_FALSE(treeType.getDType().isFinite());
@@ -421,7 +421,7 @@ TEST_F(TestUtilBlackDatatype, not_so_well_founded)
       treeType.getDType().getCardinality().compare(Cardinality::INTEGERS)
       == Cardinality::EQUAL);
   ASSERT_FALSE(treeType.getDType().isWellFounded());
-  ASSERT_TRUE(treeType.mkGroundTerm().isNull());
+  ASSERT_TRUE(d_nodeManager->mkGroundTerm(treeType).isNull());
   ASSERT_TRUE(treeType.getDType().mkGroundTerm(treeType).isNull());
 }
 
@@ -464,64 +464,6 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_NE(pairIntInt, pairIntReal);
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
-
-  ASSERT_TRUE(pairRealReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isComparableTo(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isComparableTo(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isComparableTo(pairIntInt));
-
-  ASSERT_TRUE(pairRealReal.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairIntReal.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairRealInt.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairIntInt.isSubtypeOf(pairRealReal));
-  ASSERT_FALSE(pairRealReal.isSubtypeOf(pairRealInt));
-  ASSERT_FALSE(pairIntReal.isSubtypeOf(pairRealInt));
-  ASSERT_TRUE(pairRealInt.isSubtypeOf(pairRealInt));
-  ASSERT_FALSE(pairIntInt.isSubtypeOf(pairRealInt));
-  ASSERT_FALSE(pairRealReal.isSubtypeOf(pairIntReal));
-  ASSERT_TRUE(pairIntReal.isSubtypeOf(pairIntReal));
-  ASSERT_FALSE(pairRealInt.isSubtypeOf(pairIntReal));
-  ASSERT_FALSE(pairIntInt.isSubtypeOf(pairIntReal));
-  ASSERT_FALSE(pairRealReal.isSubtypeOf(pairIntInt));
-  ASSERT_FALSE(pairIntReal.isSubtypeOf(pairIntInt));
-  ASSERT_FALSE(pairRealInt.isSubtypeOf(pairIntInt));
-  ASSERT_TRUE(pairIntInt.isSubtypeOf(pairIntInt));
-
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairRealReal, pairRealReal),
-            pairRealReal);
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairIntReal, pairRealReal).isNull());
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairRealInt, pairRealReal).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntInt, pairRealReal).isNull());
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairRealReal, pairRealInt).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntReal, pairRealInt).isNull());
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairRealInt, pairRealInt),
-            pairRealInt);
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntInt, pairRealInt).isNull());
-  ASSERT_TRUE(
-      TypeNode::leastCommonTypeNode(pairRealReal, pairIntReal).isNull());
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntReal, pairIntReal),
-            pairIntReal);
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairRealInt, pairIntReal).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntInt, pairIntReal).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairRealReal, pairIntInt).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairIntReal, pairIntInt).isNull());
-  ASSERT_TRUE(TypeNode::leastCommonTypeNode(pairRealInt, pairIntInt).isNull());
-  ASSERT_EQ(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

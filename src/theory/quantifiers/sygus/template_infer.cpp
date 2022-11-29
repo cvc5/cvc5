@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,11 +20,13 @@
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+SygusTemplateInfer::SygusTemplateInfer(Env& env) : EnvObj(env), d_ti(env) {}
 
 void SygusTemplateInfer::initialize(Node q)
 {
@@ -34,7 +36,7 @@ void SygusTemplateInfer::initialize(Node q)
   // We are processing without single invocation techniques, now check if
   // we should fix an invariant template (post-condition strengthening or
   // pre-condition weakening).
-  options::SygusInvTemplMode tmode = options::sygusInvTemplMode();
+  options::SygusInvTemplMode tmode = options().quantifiers.sygusInvTemplMode;
   if (tmode != options::SygusInvTemplMode::NONE)
   {
     // currently only works for single predicate synthesis
@@ -42,7 +44,7 @@ void SygusTemplateInfer::initialize(Node q)
     {
       tmode = options::SygusInvTemplMode::NONE;
     }
-    else if (!options::sygusInvTemplWhenSyntax())
+    else if (!options().quantifiers.sygusInvTemplWhenSyntax)
     {
       // only use invariant templates if no syntactic restrictions
       if (CegGrammarConstructor::hasSyntaxRestrictions(q))
@@ -104,7 +106,7 @@ void SygusTemplateInfer::initialize(Node q)
 
   // construct template
   Node templ;
-  if (options::sygusInvAutoUnfold())
+  if (options().quantifiers.sygusInvAutoUnfold)
   {
     if (d_ti.isComplete())
     {
@@ -205,4 +207,4 @@ Node SygusTemplateInfer::getTemplateArg(Node prog) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

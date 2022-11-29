@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,8 +19,9 @@
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__ENUM_VAL_GENERATOR_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -30,9 +31,10 @@ namespace quantifiers {
  * values" a1, ..., an, ..., and generate a (possibly larger) stream of
  * "concrete values" c11, ..., c1{m_1}, ..., cn1, ... cn{m_n}, ....
  */
-class EnumValGenerator
+class EnumValGenerator : protected EnvObj
 {
  public:
+  EnumValGenerator(Env& env) : EnvObj(env) {}
   virtual ~EnumValGenerator() {}
   /** initialize this class with enumerator e */
   virtual void initialize(Node e) = 0;
@@ -57,6 +59,6 @@ class EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Liana Hadarean, Aina Niemetz
+ *   Mathias Preiner, Aina Niemetz, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +33,7 @@ namespace CMSat {
   class SATSolver;
 }
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
 class CryptoMinisatSolver : public SatSolver
@@ -93,6 +93,17 @@ class CryptoMinisatSolver : public SatSolver
    */
   void init();
 
+  /**
+   * Set time limit per solve() call.
+   */
+  void setTimeLimit(ResourceManager* resmgr);
+
+  /**
+   * Set CryptoMiniSat's maximum time limit based on the already elapsed time
+   * of the --tlimit-per limit.
+   */
+  void setMaxTime();
+
   std::unique_ptr<CMSat::SATSolver> d_solver;
   unsigned d_numVariables;
   bool d_okay;
@@ -100,10 +111,11 @@ class CryptoMinisatSolver : public SatSolver
   SatVariable d_false;
 
   Statistics d_statistics;
+  ResourceManager* d_resmgr;
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif  // CVC5_USE_CRYPTOMINISAT
 #endif  // CVC5__PROP__CRYPTOMINISAT_H

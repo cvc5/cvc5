@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :produce-models true)
+(declare-fun A () (Table Int Int))
+(declare-fun d () (Tuple Int Int))
+(assert (= A (bag.difference_remove A (bag d 1))))
+(check-sat)

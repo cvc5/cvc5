@@ -33,7 +33,7 @@ dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
 Note that linking system libraries statically is
 `strongly discouraged <https://developer.apple.com/library/archive/qa/qa1118/_index.html>`_
-on macOS. Using ``./configure.sh --static-binary`` will thus produce a binary
+on macOS. Using ``./configure.sh --static`` will thus produce a binary
 that uses static versions of all our dependencies, but is still a dynamically
 linked binary.
 
@@ -45,7 +45,7 @@ Cross-compiling cvc5 with Mingw-w64 can be done as follows:
 
 .. code:: bash
 
-  ./configure.sh --win64 --static-binary <configure options...>
+  ./configure.sh --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -53,6 +53,56 @@ Cross-compiling cvc5 with Mingw-w64 can be done as follows:
 The built binary ``cvc5.exe`` is located in ``<build_dir>/bin`` and the cvc5
 library can be found in ``<build_dir>/lib``.
 
+
+WebAssembly Compilation
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
+latter). Setting up emsdk can be done as follows:
+
+.. code:: bash
+
+  git clone https://github.com/emscripten-core/emsdk.git
+  cd emsdk
+  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
+                              # <version> = 'latest' has high chance of working
+  ./emsdk activate <version>
+  source ./emsdk_env.sh   # Activate PATH and other environment variables in the
+                          # current terminal. Whenever Emscripten is going to be
+                          # used this command needs to be called before because 
+                          # emsdk doesn't insert the binaries paths directly in 
+                          # the system PATH variable.
+
+Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
+to ensure that all required dependencies are installed on the system.
+
+Then, in the cvc5 directory:
+
+.. code:: bash
+
+  ./configure.sh --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
+
+  cd <build_dir>   # default is ./build
+  make             # use -jN for parallel build with N threads
+
+``--wasm`` can take three values: ``WASM`` (will generate the wasm file for cvc5), ``JS``
+(not only the wasm, but the .js glue code for web integration) and ``HTML`` (both
+the last two files and also an .html file which supports the run of the glue
+code).
+
+``--wasm-flags`` take a string wrapped by a single quote containing the
+`emscripten flags <https://github.com/emscripten-core/emscripten/blob/main/src/settings.js>`_,
+which modifies how the wasm and glue code are built and how they behave. An ``-s``
+should precede each flag.
+
+For example, to generate modularized glue code, use:
+
+.. code:: bash
+
+  ./configure.sh --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
+
+  cd prod
+  make            # use -jN for parallel build with N threads
 
 Build dependencies
 ------------------
@@ -174,19 +224,6 @@ cvc5 with GLPK support, you are licensing cvc5 under that same license. (Usually
 cvc5's license is more permissive; see above discussion.)
 
 
-ABC library (Improved Bit-Vector Support)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-`ABC <http://www.eecs.berkeley.edu/~alanmi/abc/>`_ (A System for Sequential
-Synthesis and Verification) is a library for synthesis and verification of logic
-circuits. This dependency may improve performance of the eager bit-vector
-solver. When enabled, the bit-blasted formula is encoded into
-and-inverter-graphs (AIG) and ABC is used to simplify these AIGs.
-
-ABC can be installed using the ``contrib/get-abc`` script. Configure cvc5 with
-``configure.sh --abc`` to build with this dependency.
-
-
 Editline library (Improved Interactive Experience)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -200,8 +237,9 @@ Google Test Unit Testing Framework (Unit Tests)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `Google Test <https://github.com/google/googletest>`_ is required to optionally
-run cvc5's unit tests (included with the distribution). See :ref:`Testing cvc5
-<testing-cvc5>` below for more details.
+run cvc5's unit tests (included with the distribution). 
+See `Testing cvc5 <#testing-cvc5>`_
+below for more details.
 
 
 Language bindings
@@ -236,8 +274,10 @@ Building the API documentation of cvc5 requires the following dependencies:
 
 - `Doxygen <https://www.doxygen.nl>`_
 - `Sphinx <https://www.sphinx-doc.org>`_,
+  `sphinx-rtd-theme <https://sphinx-rtd-theme.readthedocs.io/>`_,
   `sphinx-tabs <https://sphinx-tabs.readthedocs.io/>`_,
-  `sphinxcontrib-bibtex <https://sphinxcontrib-bibtex.readthedocs.io>`_
+  `sphinxcontrib-bibtex <https://sphinxcontrib-bibtex.readthedocs.io>`_,
+  `sphinxcontrib-programoutput <https://sphinxcontrib-programoutput.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
 
 To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
@@ -413,7 +453,7 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  wget https://github.com/CVC4/CVC4/archive/<commit-sha>.tar.gz
+  wget https://github.com/cvc5/cvc5/archive/<commit-sha>.tar.gz
 
 4. Extract the source code
 
@@ -431,6 +471,6 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  ./configure.sh --static-binary <options>
+  ./configure.sh --static <options>
 
 7. Follow remaining steps from `build instructions <#building-cvc5>`_

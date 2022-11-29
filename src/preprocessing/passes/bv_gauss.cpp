@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,11 +29,11 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-using namespace cvc5;
-using namespace cvc5::theory;
-using namespace cvc5::theory::bv;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -699,7 +699,7 @@ PreprocessingPassResult BVGauss::applyInternal(
   {
     Node a = assertions.back();
     assertions.pop_back();
-    cvc5::Kind k = a.getKind();
+    cvc5::internal::Kind k = a.getKind();
 
     if (k == kind::AND)
     {
@@ -795,4 +795,4 @@ PreprocessingPassResult BVGauss::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz
+ *   Martin Brain, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "base/check.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace symfpuLiteral {
 
 template <bool isSigned>
@@ -110,35 +110,40 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator|(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator|(op);
+  return static_cast<const BitVector&>(*this)
+         | static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator&(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator&(op);
+  return static_cast<const BitVector&>(*this)
+         & static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator+(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator+(op);
+  return static_cast<const BitVector&>(*this)
+         + static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator-(op);
+  return static_cast<const BitVector&>(*this)
+         - static_cast<const BitVector&>(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator*(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator*(op);
+  return static_cast<const BitVector&>(*this)
+         * static_cast<const BitVector&>(op);
 }
 
 template <>
@@ -158,13 +163,13 @@ wrappedBitVector<false> wrappedBitVector<false>::operator%(
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(void) const
 {
-  return BitVector::operator-();
+  return -(static_cast<const BitVector&>(*this));
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator~(void) const
 {
-  return BitVector::operator~();
+  return ~(static_cast<const BitVector&>(*this));
 }
 
 template <bool isSigned>
@@ -233,7 +238,8 @@ template <bool isSigned>
 Cvc5Prop wrappedBitVector<isSigned>::operator==(
     const wrappedBitVector<isSigned>& op) const
 {
-  return BitVector::operator==(op);
+  return static_cast<const BitVector&>(*this)
+         == static_cast<const BitVector&>(op);
 }
 
 template <>
@@ -410,4 +416,4 @@ void traits::invariant(const traits::prop& p)
   return;
 }
 }  // namespace symfpuLiteral
-}  // namespace cvc5
+}  // namespace cvc5::internal

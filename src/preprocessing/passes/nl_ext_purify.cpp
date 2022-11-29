@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,12 +21,12 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 Node NlExtPurify::purifyNlTerms(TNode n,
                                 NodeMap& cache,
@@ -60,8 +60,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
   Node ret = n;
   if (n.getNumChildren() > 0)
   {
-    if (beneathMult
-        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
+    if (beneathMult && (n.getKind() == kind::ADD || n.getKind() == kind::SUB))
     {
       // don't do it if it rewrites to a constant
       Node nr = rewrite(n);
@@ -143,4 +142,4 @@ PreprocessingPassResult NlExtPurify::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

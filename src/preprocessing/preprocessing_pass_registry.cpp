@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Yoni Zohar, Justin Xu
+ *   Andres Noetzli, Yoni Zohar, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,6 @@
 #include "preprocessing/passes/ackermann.h"
 #include "preprocessing/passes/apply_substs.h"
 #include "preprocessing/passes/bool_to_bv.h"
-#include "preprocessing/passes/bv_abstraction.h"
 #include "preprocessing/passes/bv_eager_atoms.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
@@ -60,10 +59,10 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
-using namespace cvc5::preprocessing::passes;
+using namespace cvc5::internal::preprocessing::passes;
 
 PreprocessingPassRegistry& PreprocessingPassRegistry::getInstance()
 {
@@ -137,7 +136,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("sort-inference", callCtor<SortInferencePass>);
   registerPassInfo("sep-skolem-emp", callCtor<SepSkolemEmp>);
   registerPassInfo("rewrite", callCtor<Rewrite>);
-  registerPassInfo("bv-abstraction", callCtor<BvAbstraction>);
   registerPassInfo("bv-eager-atoms", callCtor<BvEagerAtoms>);
   registerPassInfo("pseudo-boolean-processor",
                    callCtor<PseudoBooleanProcessor>);
@@ -159,4 +157,4 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
 }
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

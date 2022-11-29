@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Divisibility-by-k predicate.
  */
 
 #include "cvc5_public.h"
@@ -27,7 +24,7 @@
 
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * The structure representing the divisibility-by-k predicate.
@@ -62,6 +59,6 @@ inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
   return os << "divisible-by-" << d.k;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__DIVISIBLE_H */

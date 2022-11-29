@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -57,11 +57,15 @@ void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int
   }
 }
 
-Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node argDefaultValue, bool simplify) {
+Node UfModelTreeNode::getFunctionValue(const std::vector<Node>& args,
+                                       int index,
+                                       Node argDefaultValue)
+{
   if(!d_data.empty()) {
     Node defaultValue = argDefaultValue;
     if(d_data.find(Node::null()) != d_data.end()) {
-      defaultValue = d_data[Node::null()].getFunctionValue(args, index + 1, argDefaultValue, simplify);
+      defaultValue = d_data[Node::null()].getFunctionValue(
+          args, index + 1, argDefaultValue);
     }
 
     std::vector<Node> caseArgs;
@@ -71,8 +75,7 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
     {
       if (!p.first.isNull())
       {
-        Node val =
-            p.second.getFunctionValue(args, index + 1, defaultValue, simplify);
+        Node val = p.second.getFunctionValue(args, index + 1, defaultValue);
         caseArgs.push_back(p.first);
         caseValues[p.first] = val;
       }
@@ -80,44 +83,19 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
 
     NodeManager* nm = NodeManager::currentNM();
     Node retNode = defaultValue;
-
-    if(!simplify) {
-      // "non-simplifying" mode - expand function values to things like:
-      //   IF      (x=0 AND y=0 AND z=0) THEN value1
-      //   ELSE IF (x=0 AND y=0 AND z=1) THEN value2
-      //   [...etc...]
-      for(int i = (int)caseArgs.size() - 1; i >= 0; --i) {
-        Node val = caseValues[ caseArgs[ i ] ];
-        if(val.getKind() == ITE) {
-          // use a stack to reverse the order, since we're traversing outside-in
-          std::stack<TNode> stk;
-          do {
-            stk.push(val);
-            val = val[2];
-          } while(val.getKind() == ITE);
-          AlwaysAssert(val == defaultValue)
-              << "default values don't match when constructing function "
-                 "definition!";
-          while(!stk.empty()) {
-            val = stk.top();
-            stk.pop();
-            retNode = nm->mkNode(ITE, nm->mkNode(AND, args[index].eqNode(caseArgs[i]), val[0]), val[1], retNode);
-          }
-        } else {
-          retNode = nm->mkNode(ITE, args[index].eqNode(caseArgs[i]), caseValues[caseArgs[i]], retNode);
-        }
-      }
-    } else {
-      // "simplifying" mode - condense function values
-      for(int i = (int)caseArgs.size() - 1; i >= 0; --i) {
-        retNode = nm->mkNode(ITE, args[index].eqNode(caseArgs[i]), caseValues[caseArgs[i]], retNode);
-      }
+    // condense function values
+    for (size_t i = 0, cargs = caseArgs.size(); i < cargs; i++)
+    {
+      size_t ii = cargs - i - 1;
+      retNode = nm->mkNode(ITE,
+                           args[index].eqNode(caseArgs[ii]),
+                           caseValues[caseArgs[ii]],
+                           retNode);
     }
     return retNode;
-  } else {
-    Assert(!d_value.isNull());
-    return d_value;
   }
+  Assert(!d_value.isNull());
+  return d_value;
 }
 
 //update function
@@ -222,16 +200,19 @@ void UfModelTreeNode::debugPrint( std::ostream& out, TheoryModel* m, std::vector
   }
 }
 
-Node UfModelTree::getFunctionValue( std::vector< Node >& args, bool simplify ){
-  Node body = d_tree.getFunctionValue( args, 0, Node::null(), simplify );
-  if(simplify) {
-    body = Rewriter::rewrite( body );
+Node UfModelTree::getFunctionValue(const std::vector<Node>& args, Rewriter* r)
+{
+  Node body = d_tree.getFunctionValue(args, 0, Node::null());
+  if (r != nullptr)
+  {
+    body = r->rewrite(body);
   }
   Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, args);
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, body);
 }
 
-Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
+Node UfModelTree::getFunctionValue(const std::string& argPrefix, Rewriter* r)
+{
   TypeNode type = d_op.getType();
   std::vector< Node > vars;
   for( size_t i=0; i<type.getNumChildren()-1; i++ ){
@@ -239,9 +220,9 @@ Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
     ss << argPrefix << (i+1);
     vars.push_back( NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] ) );
   }
-  return getFunctionValue( vars, simplify );
+  return getFunctionValue(vars, r);
 }
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +28,7 @@
 #include "expr/node_value.h"
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/io_utils.h"
 #include "options/language.h"
 #include "options/options_public.h"
 #include "smt/solver_engine.h"
@@ -36,7 +37,7 @@
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -67,9 +68,8 @@ class TestNodeBlackNode : public TestNode
     TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
-    opts.base.outputLanguage = Language::LANG_AST;
-    opts.base.outputLanguageWasSetByUser = true;
-    d_slvEngine.reset(new SolverEngine(d_nodeManager, &opts));
+    d_slvEngine.reset(new SolverEngine(&opts));
+    d_slvEngine->setOption("output-language", "ast");
   }
 
   std::unique_ptr<SolverEngine> d_slvEngine;
@@ -397,11 +397,11 @@ TEST_F(TestNodeBlackNode, getKind)
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->realType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->realType());
 
-  n = d_nodeManager->mkNode(PLUS, x, y);
-  ASSERT_EQ(PLUS, n.getKind());
+  n = d_nodeManager->mkNode(ADD, x, y);
+  ASSERT_EQ(ADD, n.getKind());
 
-  n = d_nodeManager->mkNode(UMINUS, x);
-  ASSERT_EQ(UMINUS, n.getKind());
+  n = d_nodeManager->mkNode(NEG, x);
+  ASSERT_EQ(NEG, n.getKind());
 }
 
 TEST_F(TestNodeBlackNode, getOperator)
@@ -511,19 +511,19 @@ TEST_F(TestNodeBlackNode, kinded_iterator)
   Node x = d_skolemManager->mkDummySkolem("x", integerType);
   Node y = d_skolemManager->mkDummySkolem("y", integerType);
   Node z = d_skolemManager->mkDummySkolem("z", integerType);
-  Node plus_x_y_z = d_nodeManager->mkNode(kind::PLUS, x, y, z);
-  Node x_minus_y = d_nodeManager->mkNode(kind::MINUS, x, y);
+  Node plus_x_y_z = d_nodeManager->mkNode(kind::ADD, x, y, z);
+  Node x_minus_y = d_nodeManager->mkNode(kind::SUB, x, y);
 
   {  // iterator
-    Node::kinded_iterator i = plus_x_y_z.begin(PLUS);
+    Node::kinded_iterator i = plus_x_y_z.begin(ADD);
     ASSERT_EQ(*i++, x);
     ASSERT_EQ(*i++, y);
     ASSERT_EQ(*i++, z);
-    ASSERT_TRUE(i == plus_x_y_z.end(PLUS));
+    ASSERT_TRUE(i == plus_x_y_z.end(ADD));
 
-    i = x.begin(PLUS);
+    i = x.begin(ADD);
     ASSERT_EQ(*i++, x);
-    ASSERT_TRUE(i == x.end(PLUS));
+    ASSERT_TRUE(i == x.end(ADD));
   }
 }
 
@@ -532,13 +532,13 @@ TEST_F(TestNodeBlackNode, toString)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << w << x << kind::OR;
   Node n = NodeBuilder() << m << y << z << kind::AND;
 
@@ -550,24 +550,24 @@ TEST_F(TestNodeBlackNode, toStream)
   TypeNode booleanType = d_nodeManager->booleanType();
 
   Node w = d_skolemManager->mkDummySkolem(
-      "w", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "w", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node x = d_skolemManager->mkDummySkolem(
-      "x", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node z = d_skolemManager->mkDummySkolem(
-      "z", booleanType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "z", booleanType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node m = NodeBuilder() << x << y << kind::OR;
   Node n = NodeBuilder() << w << m << z << kind::AND;
   Node o = NodeBuilder() << n << n << kind::XOR;
 
   std::stringstream sstr;
-  sstr << Node::dag(false);
+  options::ioutils::applyDagThresh(sstr, 0);
   n.toStream(sstr);
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  o.toStream(sstr, -1, 0);
+  o.toStream(sstr);
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
@@ -579,37 +579,41 @@ TEST_F(TestNodeBlackNode, toStream)
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(0) << n;
+  options::ioutils::applyNodeDepth(sstr, -1);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(0) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(1) << n;
+  options::ioutils::applyNodeDepth(sstr, 1);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR (...) (...)) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(1) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(),
             "(XOR (AND (...) (...) (...)) (AND (...) (...) (...)))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(2) << n;
+  options::ioutils::applyNodeDepth(sstr, 2);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(2) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(),
             "(XOR (AND w (OR (...) (...)) z) (AND w (OR (...) (...)) z))");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(3) << n;
+  options::ioutils::applyNodeDepth(sstr, 3);
+  sstr << n;
   ASSERT_EQ(sstr.str(), "(AND w (OR x y) z)");
 
   sstr.str(std::string());
-  sstr << Node::setdepth(3) << o;
+  sstr << o;
   ASSERT_EQ(sstr.str(), "(XOR (AND w (OR x y) z) (AND w (OR x y) z))");
 }
 
@@ -619,13 +623,13 @@ TEST_F(TestNodeBlackNode, dagifier)
   TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
 
   Node x = d_skolemManager->mkDummySkolem(
-      "x", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node y = d_skolemManager->mkDummySkolem(
-      "y", intType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "y", intType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node f = d_skolemManager->mkDummySkolem(
-      "f", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "f", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node g = d_skolemManager->mkDummySkolem(
-      "g", fnType, "", NodeManager::SKOLEM_EXACT_NAME);
+      "g", fnType, "", SkolemManager::SKOLEM_EXACT_NAME);
   Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
   Node fy = d_nodeManager->mkNode(APPLY_UF, f, y);
   Node gx = d_nodeManager->mkNode(APPLY_UF, g, x);
@@ -643,8 +647,9 @@ TEST_F(TestNodeBlackNode, dagifier)
       OR, {fffx_eq_x, fffx_eq_y, fx_eq_gx, x_eq_y, fgx_eq_gy});
 
   std::stringstream sstr;
-  sstr << Node::setdepth(-1) << Node::setlanguage(Language::LANG_SMTLIB_V2_6);
-  sstr << Node::dag(false) << n;  // never dagify
+  options::ioutils::applyDagThresh(sstr, 0);
+  options::ioutils::applyOutputLanguage(sstr, Language::LANG_SMTLIB_V2_6);
+  sstr << n;  // never dagify
   ASSERT_EQ(sstr.str(),
             "(or (= (f (f (f x))) x) (= (f (f (f x))) y) (= (f x) (g x)) (= x "
             "y) (= (f (g x)) (g y)))");
@@ -654,7 +659,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_node)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add = d_nodeManager->mkNode(kind::ADD, skolems);
   std::vector<Node> children;
   for (Node child : add)
   {
@@ -668,7 +673,7 @@ TEST_F(TestNodeBlackNode, for_each_over_nodes_as_tnode)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add = d_nodeManager->mkNode(kind::ADD, skolems);
   std::vector<TNode> children;
   for (TNode child : add)
   {
@@ -682,7 +687,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_node)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add_node = d_nodeManager->mkNode(kind::ADD, skolems);
   TNode add_tnode = add_node;
   std::vector<Node> children;
   for (Node child : add_tnode)
@@ -697,7 +702,7 @@ TEST_F(TestNodeBlackNode, for_each_over_tnodes_as_tnode)
 {
   const std::vector<Node> skolems =
       makeNSkolemNodes(d_nodeManager, 3, d_nodeManager->integerType());
-  Node add_node = d_nodeManager->mkNode(kind::PLUS, skolems);
+  Node add_node = d_nodeManager->mkNode(kind::ADD, skolems);
   TNode add_tnode = add_node;
   std::vector<TNode> children;
   for (TNode child : add_tnode)
@@ -732,15 +737,15 @@ TEST_F(TestNodeBlackNode, isConst)
   Node cons_1_nil =
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(1)),
+                            d_nodeManager->mkConstInt(Rational(1)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
   Node cons_1_cons_2_nil = d_nodeManager->mkNode(
       APPLY_CONSTRUCTOR,
       cons,
-      d_nodeManager->mkConst(Rational(1)),
+      d_nodeManager->mkConstInt(Rational(1)),
       d_nodeManager->mkNode(APPLY_CONSTRUCTOR,
                             cons,
-                            d_nodeManager->mkConst(Rational(2)),
+                            d_nodeManager->mkConstInt(Rational(2)),
                             d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
   ASSERT_TRUE(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
   ASSERT_FALSE(cons_x_nil.isConst());
@@ -749,8 +754,8 @@ TEST_F(TestNodeBlackNode, isConst)
 
   TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                 d_nodeManager->integerType());
-  Node zero = d_nodeManager->mkConst(Rational(0));
-  Node one = d_nodeManager->mkConst(Rational(1));
+  Node zero = d_nodeManager->mkConstInt(Rational(0));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
   Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
   ASSERT_TRUE(storeAll.isConst());
 
@@ -806,4 +811,4 @@ TEST_F(TestNodeBlackNode, node_tnode_usage)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+ *   Aina Niemetz, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,10 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace cvc5::expr;
+using namespace cvc5::internal::expr;
+using namespace cvc5::internal::kind;
 
 namespace test {
 
@@ -33,8 +34,8 @@ class TestNodeWhiteNodeManager : public TestNode
 TEST_F(TestNodeWhiteNodeManager, mkConst_rational)
 {
   Rational i("3");
-  Node n = d_nodeManager->mkConst(i);
-  Node m = d_nodeManager->mkConst(i);
+  Node n = d_nodeManager->mkConstInt(i);
+  Node m = d_nodeManager->mkConstInt(i);
   ASSERT_EQ(n.getId(), m.getId());
 }
 
@@ -80,4 +81,4 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
   }
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

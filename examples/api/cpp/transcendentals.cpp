@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mudathir Mohamed
+ *   Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include <cvc5/cvc5.h>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -34,14 +34,14 @@ int main()
   // Helper terms
   Term two = slv.mkReal(2);
   Term pi = slv.mkPi();
-  Term twopi = slv.mkTerm(MULT, two, pi);
-  Term ysq = slv.mkTerm(MULT, y, y);
-  Term sinx = slv.mkTerm(SINE, x);
+  Term twopi = slv.mkTerm(MULT, {two, pi});
+  Term ysq = slv.mkTerm(MULT, {y, y});
+  Term sinx = slv.mkTerm(SINE, {x});
 
   // Formulas
-  Term x_gt_pi = slv.mkTerm(GT, x, pi);
-  Term x_lt_tpi = slv.mkTerm(LT, x, twopi);
-  Term ysq_lt_sinx = slv.mkTerm(LT, ysq, sinx);
+  Term x_gt_pi = slv.mkTerm(GT, {x, pi});
+  Term x_lt_tpi = slv.mkTerm(LT, {x, twopi});
+  Term ysq_lt_sinx = slv.mkTerm(LT, {ysq, sinx});
 
   slv.assertFormula(x_gt_pi);
   slv.assertFormula(x_lt_tpi);

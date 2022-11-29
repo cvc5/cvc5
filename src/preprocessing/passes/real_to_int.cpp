@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,9 +27,10 @@
 #include "theory/theory_model.h"
 #include "util/rational.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -77,7 +78,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               if (!c.isNull())
               {
                 Assert(c.isConst());
-                coeffs.push_back(NodeManager::currentNM()->mkConst(
+                coeffs.push_back(nm->mkConstInt(
                     Rational(c.getConst<Rational>().getDenominator())));
               }
             }
@@ -97,15 +98,16 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull() ? NodeManager::currentNM()->mkConst(Rational(1))
-                                : cc;
+                c = cc.isNull()
+                        ? NodeManager::currentNM()->mkConstInt(Rational(1))
+                        : cc;
               }
               else
               {
                 if (!cc.isNull())
                 {
-                  c = rewrite(
-                      NodeManager::currentNM()->mkNode(kind::MULT, c, cc));
+                  c = nm->mkConstInt(c.getConst<Rational>()
+                                     * cc.getConst<Rational>());
                 }
               }
               Assert(c.getType().isInteger());
@@ -131,14 +133,10 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             }
             Node sumt =
                 sum.empty()
-                    ? NodeManager::currentNM()->mkConst(Rational(0))
-                    : (sum.size() == 1
-                           ? sum[0]
-                           : NodeManager::currentNM()->mkNode(kind::PLUS, sum));
-            ret = NodeManager::currentNM()->mkNode(
-                ret_lit.getKind(),
-                sumt,
-                NodeManager::currentNM()->mkConst(Rational(0)));
+                    ? nm->mkConstInt(Rational(0))
+                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::ADD, sum));
+            ret = nm->mkNode(
+                ret_lit.getKind(), sumt, nm->mkConstInt(Rational(0)));
             if (!ret_pol)
             {
               ret = ret.negate();
@@ -153,9 +151,20 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
       {
         bool childChanged = false;
         std::vector<Node> children;
-        for (unsigned i = 0; i < n.getNumChildren(); i++)
+        Kind k = n.getKind();
+        // we change Real equalities to Int equalities
+        bool preserveTypes = k != EQUAL && (kindToTheoryId(k) != THEORY_ARITH);
+        for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
+          // must preserve types if we don't belong to arithmetic, cast back
+          if (preserveTypes)
+          {
+            if (!n[i].getType().isInteger() && nc.getType().isInteger())
+            {
+              nc = nm->mkNode(TO_REAL, nc);
+            }
+          }
           childChanged = childChanged || nc != n[i];
           children.push_back(nc);
         }
@@ -165,7 +174,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           {
             children.insert(children.begin(), n.getOperator());
           }
-          ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
+          ret = nm->mkNode(k, children);
         }
       }
     }
@@ -187,11 +196,15 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
           ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
-          var_eq.push_back(n.eqNode(ret));
+          Node retToReal = nm->mkNode(kind::TO_REAL, ret);
+          var_eq.push_back(n.eqNode(retToReal));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
           // assertions when necessary.
-          d_preprocContext->addSubstitution(n, ret);
+          // The model value for the Real variable n we are eliminating is
+          // (to_real k), where k is the Int skolem whose unpurified form is
+          // (to_int n).
+          d_preprocContext->addSubstitution(n, retToReal);
         }
       }
     }
@@ -215,4 +228,4 @@ PreprocessingPassResult RealToInt::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

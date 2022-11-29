@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class DTypeConstructor;
 
@@ -69,10 +69,7 @@ class Skolemize : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  Skolemize(Env& env,
-            QuantifiersState& qs,
-            TermRegistry& tr,
-            ProofNodeManager* pnm);
+  Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -105,16 +102,21 @@ class Skolemize : protected EnvObj
    * has multiple induction variables. See page 5
    * of Reynolds et al., VMCAI 2015.
    */
-  static Node mkSkolemizedBody(Node q,
+  static Node mkSkolemizedBody(const Options& opts,
+                               Node q,
                                Node n,
                                std::vector<TNode>& fvs,
                                std::vector<Node>& sk,
                                Node& sub,
                                std::vector<unsigned>& sub_vars);
-  /** get the skolemized body for quantified formula q */
+  /** get the skolemized body for quantified formula q
+   *
+   * For example, if q is forall x. P( x ), this returns the formula P( k ) for
+   * a fresh Skolem constant k.
+   */
   Node getSkolemizedBody(Node q);
   /** is n a variable that we can apply inductive strenghtening to? */
-  static bool isInductionTerm(Node n);
+  static bool isInductionTerm(const Options& opts, Node n);
   /**
    * Get skolemization vectors, where for each quantified formula that was
    * skolemized, this is the list of skolems that were used to witness the
@@ -152,14 +154,12 @@ class Skolemize : protected EnvObj
   std::unordered_map<Node, std::vector<Node>> d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node> d_skolem_body;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** Eager proof generator for skolemization lemmas */
   std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SKOLEMIZE_H */

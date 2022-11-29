@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ *   Morgan Deters, Christopher L. Conway, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,16 +26,14 @@
 
 namespace cvc5 {
 
-namespace api {
 class Solver;
-}
 
 class Options;
-class SymbolManager;
 
 namespace parser {
 
 class Parser;
+class SymbolManager;
 
 /**
  * A builder for input language parsers. <code>build()</code> can be
@@ -48,7 +46,7 @@ class CVC5_EXPORT ParserBuilder
   std::string d_lang;
 
   /** The API Solver object. */
-  api::Solver* d_solver;
+  cvc5::Solver* d_solver;
 
   /** The symbol manager */
   SymbolManager* d_symman;
@@ -62,9 +60,6 @@ class CVC5_EXPORT ParserBuilder
   /** Should we allow include-file commands? */
   bool d_canIncludeFile;
 
-  /** Are we parsing only? */
-  bool d_parseOnly;
-
   /** Is the logic forced by the user? */
   bool d_logicIsForced;
 
@@ -72,14 +67,14 @@ class CVC5_EXPORT ParserBuilder
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(api::Solver* solver, SymbolManager* sm);
+  void init(cvc5::Solver* solver, SymbolManager* sm);
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver, SymbolManager* sm, bool useOptions);
+  ParserBuilder(cvc5::Solver* solver, SymbolManager* sm, bool useOptions);
 
   /** Build the parser, using the current settings. */
-  Parser* build();
+  std::unique_ptr<Parser> build();
 
   /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);
@@ -90,19 +85,6 @@ class CVC5_EXPORT ParserBuilder
    * (Default: LANG_AUTO)
    */
   ParserBuilder& withInputLanguage(const std::string& lang);
-
-  /**
-   * Are we only parsing, or doing something with the resulting
-   * commands and expressions?  This setting affects whether the
-   * parser will raise certain errors about unimplemented features,
-   * even if there isn't a parsing error, because the result of the
-   * parse would otherwise be an incorrect parse tree and the error
-   * would go undetected.  This is specifically for circumstances
-   * where the parser is ahead of the functionality present elsewhere
-   * in cvc5 (such as quantifiers, subtypes, records, etc. in the CVC
-   * language parser).
-   */
-  ParserBuilder& withParseOnly(bool flag = true);
 
   /** Derive settings from the solver's options. */
   ParserBuilder& withOptions();

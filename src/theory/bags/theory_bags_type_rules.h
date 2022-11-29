@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz
+ *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 class TypeNode;
@@ -29,9 +29,9 @@ namespace theory {
 namespace bags {
 
 /**
- * Type rule for binary operators (union_max, union_disjoint, intersection_min
- * difference_subtract, difference_remove)
- * to check if the two arguments are of the same sort.
+ * Type rule for binary operators (bag.union_max, bag.union_disjoint,
+ * bag.inter_min bag.difference_subtract, bag.difference_remove) to check
+ * if the two arguments are bags of the same sort.
  */
 struct BinaryOperatorTypeRule
 {
@@ -40,8 +40,8 @@ struct BinaryOperatorTypeRule
 }; /* struct BinaryOperatorTypeRule */
 
 /**
- * Type rule for binary operator subbag to check if the two arguments have the
- * same sort.
+ * Type rule for binary operator bag.subbag to check if the two arguments are
+ * bags of the same sort.
  */
 struct SubBagTypeRule
 {
@@ -58,7 +58,16 @@ struct CountTypeRule
 }; /* struct CountTypeRule */
 
 /**
- * Type rule for duplicate_removal to check the argument is of a bag.
+ * Type rule for binary operator bag.member to check the sort of the first
+ * argument matches the element sort of the given bag.
+ */
+struct MemberTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+};
+
+/**
+ * Type rule for bag.duplicate_removal to check the argument is of a bag.
  */
 struct DuplicateRemovalTypeRule
 {
@@ -69,22 +78,22 @@ struct DuplicateRemovalTypeRule
  * Type rule for (bag op e) operator to check the sort of e matches the sort
  * stored in op.
  */
-struct MkBagTypeRule
+struct BagMakeTypeRule
 {
   static TypeNode computeType(NodeManager* nm, TNode n, bool check);
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
-}; /* struct MkBagTypeRule */
+}; /* struct BagMakeTypeRule */
 
 /**
- * Type rule for bag.is_singleton to check the argument is of a bag.
+ * Type rule for (bag.is_singleton B) to check the argument B is a bag.
  */
 struct IsSingletonTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-}; /* struct IsMkBagTypeRule */
+}; /* struct IsSingletonTypeRule */
 
 /**
- * Type rule for (as emptybag (Bag ...))
+ * Type rule for (as bag.empty (Bag T)) where T is a type
  */
 struct EmptyBagTypeRule
 {
@@ -92,7 +101,7 @@ struct EmptyBagTypeRule
 }; /* struct EmptyBagTypeRule */
 
 /**
- * Type rule for (bag.card ..) to check the argument is of a bag.
+ * Type rule for (bag.card B) to check the argument B is a bag.
  */
 struct CardTypeRule
 {
@@ -100,7 +109,7 @@ struct CardTypeRule
 }; /* struct CardTypeRule */
 
 /**
- * Type rule for (bag.choose ..) to check the argument is of a bag.
+ * Type rule for (bag.choose B) to check the argument B is a bag.
  */
 struct ChooseTypeRule
 {
@@ -132,6 +141,92 @@ struct BagMapTypeRule
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 }; /* struct BagMapTypeRule */
 
+/**
+ * Type rule for (bag.filter p B) to make sure p is a unary predicate of type
+ * (-> T Bool) where B is a bag of type (Bag T)
+ */
+struct BagFilterTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFilterTypeRule */
+
+/**
+ * Type rule for (bag.fold f t A) to make sure f is a binary operation of type
+ * (-> T1 T2 T2), t of type T2, and A is a bag of type (Bag T1)
+ */
+struct BagFoldTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (bag.partition r A) to make sure r is a binary operation of
+ * type
+ * (-> T1 T1 Bool), and A is a bag of type (Bag T1)
+ */
+struct BagPartitionTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Type rule for (table.product A B) to make sure A,B are bags of tuples,
+ * and get the type of the cross product
+ */
+struct TableProductTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct BagFoldTypeRule */
+
+/**
+ * Table project is indexed by a list of indices (n_1, ..., n_m). It ensures
+ * that the argument is a bag of tuples whose arity k is greater than each n_i
+ * for i = 1, ..., m. If the argument is of type (Table T_1 ... T_k), then
+ * the returned type is (Table T_{n_1} ... T_{n_m}).
+ */
+struct TableProjectTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableProjectTypeRule */
+
+/**
+ * Table aggregate operator is indexed by a list of indices (n_1, ..., n_k).
+ * It ensures that it has 3 arguments:
+ * - A combining function of type (-> (Tuple T_1 ... T_j) T T)
+ * - Initial value of type T
+ * - A table of type (Table T_1 ... T_j) where 0 <= n_1, ..., n_k < j
+ * the returned type is (Bag T).
+ */
+struct TableAggregateTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableAggregateTypeRule */
+
+/**
+ * Table join operator is indexed by a list of indices (m_1, m_k, n_1, ...,
+ * n_k). It ensures that it has 2 arguments:
+ * - A table of type (Table X_1 ... X_i)
+ * - A table of type (Table Y_1 ... Y_j)
+ * such that indices has constraints 0 <= m_1, ..., mk, n_1, ..., n_k <=
+ * min(i,j) and types has constraints X_{m_1} = Y_{n_1}, ..., X_{m_k} = Y_{n_k}.
+ * The returned type is (Table X_1 ... X_i Y_1 ... Y_j)
+ */
+struct TableJoinTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableJoinTypeRule */
+
+/**
+ * Table group operator is indexed by a list of indices (n_1, ..., n_k). It
+ * ensures that the argument is a table whose arity is greater than each n_i for
+ * i = 1, ..., k. If the passed table is of type T, then the returned type is
+ * (Bag T), i.e., bag of tables.
+ */
+struct TableGroupTypeRule
+{
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+}; /* struct TableGroupTypeRule */
+
 struct BagsProperties
 {
   static Cardinality computeCardinality(TypeNode type);
@@ -143,6 +238,6 @@ struct BagsProperties
 
 }  // namespace bags
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BAGS__THEORY_BAGS_TYPE_RULES_H */

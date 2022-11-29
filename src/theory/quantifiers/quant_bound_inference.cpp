@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,12 +16,11 @@
 #include "theory/quantifiers/quant_bound_inference.h"
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/rewriter.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -60,13 +59,8 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
     Cardinality c = tn.getCardinality();
     if (!c.isLargeFinite())
     {
-      NodeManager* nm = NodeManager::currentNM();
-      Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
       // check if less than fixed upper bound
-      Node oth = nm->mkConst(Rational(maxCard));
-      Node eq = nm->mkNode(LEQ, card, oth);
-      eq = Rewriter::rewrite(eq);
-      mc = eq.isConst() && eq.getConst<bool>();
+      mc = (c.getFiniteCardinality() < Integer(maxCard));
     }
   }
   return mc;
@@ -79,7 +73,7 @@ bool QuantifiersBoundInference::isFiniteBound(Node q, Node v)
     return true;
   }
   TypeNode tn = v.getType();
-  if (tn.isSort() && d_isFmf)
+  if (tn.isUninterpretedSort() && d_isFmf)
   {
     return true;
   }
@@ -100,7 +94,7 @@ BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v)
 }
 
 void QuantifiersBoundInference::getBoundVarIndices(
-    Node q, std::vector<unsigned>& indices) const
+    Node q, std::vector<size_t>& indices) const
 {
   Assert(indices.empty());
   // we take the bounded variables first
@@ -134,4 +128,4 @@ bool QuantifiersBoundInference::getBoundElements(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

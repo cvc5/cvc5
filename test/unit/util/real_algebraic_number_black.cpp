@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +16,7 @@
 #include "test.h"
 #include "util/real_algebraic_number.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 #ifndef CVC5_POLY_IMP
@@ -37,7 +37,7 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, creation)
   ASSERT_TRUE(sqrt2 < RealAlgebraicNumber(Integer(2)));
 }
 
-TEST_F(TestUtilBlackRealAlgebraicNumber, comprison)
+TEST_F(TestUtilBlackRealAlgebraicNumber, comparison)
 {
   RealAlgebraicNumber msqrt3({-3, 0, 1}, -2, -1);
   RealAlgebraicNumber msqrt2({-2, 0, 1}, -2, -1);
@@ -79,5 +79,16 @@ TEST_F(TestUtilBlackRealAlgebraicNumber, arithmetic)
   ASSERT_EQ(-msqrt2 + sqrt2, sqrt2 + sqrt2);
   ASSERT_EQ(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
 }
+
+TEST_F(TestUtilBlackRealAlgebraicNumber, division)
+{
+  RealAlgebraicNumber msqrt2({-2, 0, 1}, -2, -1);
+  RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
+  RealAlgebraicNumber mone({1, 1}, -2, 0);
+
+  ASSERT_EQ(msqrt2 / sqrt2, mone);
+  ASSERT_TRUE(isOne(sqrt2 / sqrt2));
+}
+
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

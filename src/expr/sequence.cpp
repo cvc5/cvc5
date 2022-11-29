@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 Sequence::Sequence(const TypeNode& t, const std::vector<Node>& s)
     : d_type(new TypeNode(t)), d_seq(s)
@@ -371,13 +371,13 @@ std::ostream& operator<<(std::ostream& os, const Sequence& s)
 
 size_t SequenceHashFunction::operator()(const Sequence& s) const
 {
-  size_t ret = 0;
+  uint64_t ret = fnv1a::offsetBasis;
   const std::vector<Node>& vec = s.getVec();
   for (const Node& n : vec)
   {
     ret = fnv1a::fnv1a_64(ret, std::hash<Node>()(n));
   }
-  return ret;
+  return static_cast<size_t>(ret);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

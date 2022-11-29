@@ -1,0 +1,7 @@
+(set-logic QF_ABV)
+(set-info :status sat)
+(declare-fun a () (_ BitVec 1))
+(declare-fun b () (Array (_ BitVec 32) (_ BitVec 8)))
+(declare-fun c () (_ BitVec 32))
+(assert (= (_ bv1 1) (bvnot (bvcomp (_ bv1 32) (bvand (_ bv1 32) (bvxor (_ bv1 32) (bvsub (_ bv1 32) (bvnor (bvmul (_ bv2 32) ((_ zero_extend 24) (select b c))) ((_ zero_extend 24) (select (store (store b (_ bv0 32) (_ bv0 8)) (bvsub ((_ zero_extend 31) a) (_ bv1 32)) (_ bv0 8)) (bvadd c (_ bv1 32))))))))))))
+(check-sat)

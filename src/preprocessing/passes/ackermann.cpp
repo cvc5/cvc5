@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,10 +34,10 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
-using namespace cvc5;
-using namespace cvc5::theory;
+using namespace cvc5::internal;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -239,7 +239,7 @@ std::unordered_set<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 
     for (const TNode& var : vars)
     {
-      if (var.getType().isSort())
+      if (var.getType().isUninterpretedSort())
       {
         res.insert(var);
       }
@@ -339,4 +339,4 @@ PreprocessingPassResult Ackermann::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

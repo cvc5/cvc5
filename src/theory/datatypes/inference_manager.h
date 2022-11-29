@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include "theory/datatypes/infer_proof_cons.h"
 #include "theory/inference_manager_buffered.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class EagerProofGenerator;
 
@@ -38,10 +38,7 @@ class InferenceManager : public InferenceManagerBuffered
   friend class DatatypesInference;
 
  public:
-  InferenceManager(Env& env,
-                   Theory& t,
-                   TheoryState& state,
-                   ProofNodeManager* pnm);
+  InferenceManager(Env& env, Theory& t, TheoryState& state);
   ~InferenceManager();
   /**
    * Add pending inference, which may be processed as either a fact or
@@ -78,8 +75,6 @@ class InferenceManager : public InferenceManagerBuffered
   void sendDtConflict(const std::vector<Node>& conf, InferenceId id);
 
  private:
-  /** Are proofs enabled? */
-  bool isProofEnabled() const;
   /**
    * Process datatype inference as a lemma
    */
@@ -103,8 +98,6 @@ class InferenceManager : public InferenceManagerBuffered
   Node prepareDtInference(Node conc, Node exp, InferenceId id, InferProofCons* ipc);
   /** The false node */
   Node d_false;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The inference to proof converter */
   std::unique_ptr<InferProofCons> d_ipc;
   /** An eager proof generator for lemmas */
@@ -113,6 +106,6 @@ class InferenceManager : public InferenceManagerBuffered
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

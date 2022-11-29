@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Christopher L. Conway, Gereon Kremer
+ *   Tim King, Mathias Preiner, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -12,6 +12,8 @@
  *
  * A multi-precision rational constant.
  */
+#include <cln/integer_io.h>
+
 #include <sstream>
 #include <string>
 
@@ -26,7 +28,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
@@ -47,6 +49,44 @@ Rational Rational::fromDecimal(const std::string& dec) {
     /* No decimal point, assume it's just an integer. */
     return Rational( dec );
   }
+}
+
+Rational::Rational(const char* s, uint32_t base)
+{
+  try
+  {
+    cln::cl_read_flags flags;
+    flags.rational_base = base;
+    flags.lsyntax = cln::lsyntax_standard;
+
+    const char* p = strchr(s, '/');
+    /* read_rational() does not support the case where the denominator is
+     * negative.  In this case we read the numerator and denominator via
+     * read_integer() and build a rational out of two integers. */
+    if (p)
+    {
+      flags.syntax = cln::syntax_integer;
+      auto num = cln::read_integer(flags, s, p, nullptr);
+      auto den = cln::read_integer(flags, p + 1, nullptr, nullptr);
+      d_value = num / den;
+    }
+    else
+    {
+      flags.syntax = cln::syntax_rational;
+      d_value = read_rational(flags, s, NULL, NULL);
+    }
+  }
+  catch (...)
+  {
+    std::stringstream ss;
+    ss << "Rational() failed to parse value \"" << s << "\" in base=" << base;
+    throw std::invalid_argument(ss.str());
+  }
+}
+
+Rational::Rational(const std::string& s, uint32_t base)
+    : Rational(s.c_str(), base)
+{
 }
 
 int Rational::sgn() const
@@ -115,4 +155,4 @@ std::optional<Rational> Rational::fromDouble(double d)
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

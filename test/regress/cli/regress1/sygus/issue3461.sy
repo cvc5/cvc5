@@ -1,0 +1,18 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+
+(set-logic ALL)
+
+(declare-datatype Doc ((D (owner Int) (body Int))))
+
+(declare-datatype Policy
+  ((p (principal Int))
+   (por (left Policy) (right Policy))))
+
+(synth-fun mkPolicy ((d Doc)) Policy
+  ((Start Policy) (Q Policy))
+  ((Start Policy (Q))
+   (Q Policy ((p 0) (p 1) (por Q Q))))
+)
+
+(check-synth)

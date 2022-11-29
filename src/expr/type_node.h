@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ *   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +15,7 @@
 
 #include "cvc5_private.h"
 
-// circular dependency
-#include "expr/node_value.h"
+#include "expr/node.h"
 
 #ifndef CVC5__TYPE_NODE_H
 #define CVC5__TYPE_NODE_H
@@ -29,13 +28,15 @@
 #include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
 #include "util/cardinality_class.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class NodeManager;
 class Cardinality;
 class DType;
+class Integer;
 
 namespace expr {
   class NodeValue;
@@ -45,9 +46,9 @@ namespace expr {
  * Encapsulation of an NodeValue pointer for Types. The reference count is
  * maintained in the NodeValue.
  */
-class TypeNode {
-
-private:
+class CVC5_EXPORT TypeNode
+{
+ private:
 
   /**
    * The NodeValue has access to the private constructors, so that the
@@ -218,16 +219,6 @@ private:
   }
 
   /**
-   * PARAMETERIZED-metakinded types (the SORT_TYPE is one of these)
-   * have an operator.  "Little-p parameterized" types (like Array),
-   * are OPERATORs, not PARAMETERIZEDs.
-   */
-  inline Node getOperator() const {
-    Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
-    return Node(d_nv->getOperator());
-  }
-
-  /**
    * Returns the unique id of this node
    *
    * @return the id
@@ -374,14 +365,14 @@ private:
    * @param out the stream to serialize this node to
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       Language language = Language::LANG_AUTO) const
-  {
-    d_nv->toStream(out, -1, 0, language);
+  inline void toStream(std::ostream& out) const {
+    options::ioutils::Scope scope(out);
+    options::ioutils::applyDagThresh(out, 0);
+    d_nv->toStream(out);
   }
 
   /**
-   * Very basic pretty printer for Node.
+   * Very basic pretty printer for TypeNode.
    *
    * @param out output stream to print to.
    * @param indent number of spaces to indent the formula by.
@@ -411,6 +402,13 @@ private:
    * @return the cardinality class
    */
   CardinalityClass getCardinalityClass();
+  /**
+   * Determine if the cardinality of this type is strictly less than `n`.
+   * We do not want to compute the precise cardinality for this for performance
+   * reasons, and will answer false if it is not less than or if we don't know.
+   * @return if the cardinality of this type is strictly less than `n`.
+   */
+  bool isCardinalityLessThan(size_t n);
 
   /** is closed enumerable type
    *
@@ -443,33 +441,6 @@ private:
    */
   bool isWellFounded() const;
 
-  /**
-   * Construct and return a ground term of this type.  If the type is
-   * not well founded, this function throws an exception.
-   *
-   * @return a ground term of the type
-   */
-  Node mkGroundTerm() const;
-
-  /**
-   * Construct and return a ground value of this type.  If the type is
-   * not well founded, this function throws an exception.
-   *
-   * @return a ground value of the type
-   */
-  Node mkGroundValue() const;
-
-  /**
-   * Is this type a subtype of the given type?
-   */
-  bool isSubtypeOf(TypeNode t) const;
-
-  /**
-   * Is this type comparable to the given type (i.e., do they share
-   * a common ancestor in the subtype tree)?
-   */
-  bool isComparableTo(TypeNode t) const;
-
   /** Is this the Boolean type? */
   bool isBoolean() const;
 
@@ -485,11 +456,17 @@ private:
   /** Is this a string-like type? (string or sequence) */
   bool isStringLike() const;
 
+  /** Is this the integer or real type? */
+  bool isRealOrInt() const;
+
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
 
   /** Is this an array type? */
   bool isArray() const;
+
+  /** Is this a finite-field type? */
+  bool isFiniteField() const;
 
   /** Is this a Set type? */
   bool isSet() const;
@@ -507,16 +484,16 @@ private:
   TypeNode getArrayConstituentType() const;
 
   /** Get the return type (for constructor types) */
-  TypeNode getConstructorRangeType() const;
+  TypeNode getDatatypeConstructorRangeType() const;
 
   /** Get the domain type (for selector types) */
-  TypeNode getSelectorDomainType() const;
+  TypeNode getDatatypeSelectorDomainType() const;
 
   /** Get the return type (for selector types) */
-  TypeNode getSelectorRangeType() const;
+  TypeNode getDatatypeSelectorRangeType() const;
 
   /** Get the domain type (for tester types) */
-  TypeNode getTesterDomainType() const;
+  TypeNode getDatatypeTesterDomainType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -553,10 +530,16 @@ private:
   std::vector<TypeNode> getArgTypes() const;
 
   /**
-   * Get the paramater types of a parameterized datatype.  Fails an
-   * assertion if this type is not a parametric datatype.
+   * Get the types used to instantiate the type parameters of a parametric
+   * type (parametric datatype or uninterpreted sort constructor type,
+   * see TypeNode::instantiate(const std::vector<TypeNode>& const).
+   *
+   * Asserts that this type is an instantiated type.
+   *
+   * @return the types used to instantiate the type parameters of a
+   *         parametric type
    */
-  std::vector<TypeNode> getParamTypes() const;
+  std::vector<TypeNode> getInstantiatedParamTypes() const;
 
   /**
    * Get the range type (i.e., the type of the result) of a function,
@@ -621,88 +604,102 @@ private:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /**
+   * Is this an uninterpreted sort constructed from instantiating an
+   * uninterpreted sort constructor?
+   */
+  bool isInstantiatedUninterpretedSort() const;
+
+  /**
+   * Return true if this is an instantiated parametric datatype or
+   * uninterpreted sort constructor type.
+   */
+  bool isInstantiated() const;
+
   /** Is this a sygus datatype type */
   bool isSygusDatatype() const;
 
   /**
-   * Get instantiated datatype type. The type on which this method is called
-   * should be a parametric datatype whose parameter list is the same size as
-   * argument params. This constructs the instantiated version of this
-   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
-   * method returns (List Int).
+   * Instantiate parametric type (parametric datatype or uninterpreted sort
+   * constructor type).
+   *
+   * The parameter list of this type must be the same size as the list of
+   * argument parameters `params`.
+   *
+   * If this TypeNode is a parametric datatype, this constructs the
+   * instantiated version of this parametric datatype. For example, passing
+   * (par (A) (List A)), { Int } ) to this method returns (List Int).
+   *
+   * If this is an uninterpreted sort constructor type, this constructs the
+   * instantiated version of this sort constructor. For example, for a sort
+   * constructor declared via (declare-sort U 2), passing { Int, Int } will
+   * generate the instantiated sort (U Int Int).
    */
-  TypeNode instantiateParametricDatatype(
-      const std::vector<TypeNode>& params) const;
+  TypeNode instantiate(const std::vector<TypeNode>& params) const;
 
   /** Is this an instantiated datatype parameter */
-  bool isParameterInstantiatedDatatype(unsigned n) const;
+  bool isParameterInstantiatedDatatype(size_t n) const;
 
-  /** Is this a constructor type */
-  bool isConstructor() const;
+  /** Is this a datatype constructor type? */
+  bool isDatatypeConstructor() const;
 
-  /** Is this a selector type */
-  bool isSelector() const;
+  /** Is this a datatype selector type? */
+  bool isDatatypeSelector() const;
 
-  /** Is this a tester type */
-  bool isTester() const;
+  /** Is this a datatype tester type? */
+  bool isDatatypeTester() const;
 
-  /** Is this a datatype updater type */
-  bool isUpdater() const;
+  /** Is this a datatype updater type? */
+  bool isDatatypeUpdater() const;
 
-  /** Get the internal Datatype specification from a datatype type */
+  /** Get the internal Datatype specification from a datatype type. */
   const DType& getDType() const;
 
-  /** Get the exponent size of this floating-point type */
+  /** Get the exponent size of this floating-point type. */
   unsigned getFloatingPointExponentSize() const;
 
-  /** Get the significand size of this floating-point type */
+  /** Get the significand size of this floating-point type. */
   unsigned getFloatingPointSignificandSize() const;
 
-  /** Get the size of this bit-vector type */
+  /** Get the size of this bit-vector type. */
   uint32_t getBitVectorSize() const;
 
-  /** Is this a sort kind */
-  bool isSort() const;
+  /** Get the field cardinality (order) of this finite-field type. */
+  const Integer& getFfSize() const;
 
-  /** Is this a sort constructor kind */
-  bool isSortConstructor() const;
+  /** Is this a sort kind? */
+  bool isUninterpretedSort() const;
 
-  /** Get sort constructor arity */
-  uint64_t getSortConstructorArity() const;
+  /** Is this a sort constructor kind? */
+  bool isUninterpretedSortConstructor() const;
 
+  /** Get sort constructor arity. */
+  uint64_t getUninterpretedSortConstructorArity() const;
+
+  /** Is this an unresolved datatype? */
+  bool isUnresolvedDatatype() const;
   /**
-   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true for
+   * uninterpreted sorts and uninterpreted sort constructors.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getName() const;
 
   /**
-   * Instantiate a sort constructor type. The type on which this method is
-   * called should be a sort constructor type whose parameter list is the
-   * same size as argument params. This constructs the instantiated version of
-   * this sort constructor. For example, this is a sort constructor, e.g.
-   * declared via (declare-sort U 2), then calling this method with
-   * { Int, Int } will generate the instantiated sort (U Int Int).
+   * Get the uninterpreted sort constructor type this instantiated
+   * uninterpreted sort has been constructed from.
+   *
+   * Asserts that this is an instantiated uninterpreted sort.
    */
-  TypeNode instantiateSortConstructor(
-      const std::vector<TypeNode>& params) const;
+  TypeNode getUninterpretedSortConstructor() const;
 
-  /** Get the most general base type of the type */
-  TypeNode getBaseType() const;
-
-  /**
-   * Returns the leastUpperBound in the extended type lattice of the two types.
-   * If this is \top, i.e. there is no inhabited type that contains both,
-   * a TypeNode such that isNull() is true is returned.
-   */
-  static TypeNode leastCommonTypeNode(TypeNode t0, TypeNode t1);
-  static TypeNode mostCommonTypeNode(TypeNode t0, TypeNode t1);
-
-  /** get ensure type condition
-   *  Return value is a condition that implies that n has type tn.
-  */
-  static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
-  static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
 
   /**
    * Indents the given stream a given amount of spaces.
@@ -726,25 +723,25 @@ private:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, const TypeNode& n) {
-  n.toStream(out, Node::setlanguage::getLanguage(out));
+  n.toStream(out);
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
 template <>
-struct hash<cvc5::TypeNode>
+struct hash<cvc5::internal::TypeNode>
 {
-  size_t operator()(const cvc5::TypeNode& tn) const;
+  size_t operator()(const cvc5::internal::TypeNode& tn) const;
 };
 
 }  // namespace std
 
 #include "expr/node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,
@@ -881,17 +878,6 @@ inline bool TypeNode::isBoolean() const {
     ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == BOOLEAN_TYPE );
 }
 
-inline bool TypeNode::isInteger() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == INTEGER_TYPE );
-}
-
-inline bool TypeNode::isReal() const {
-  return
-    ( getKind() == kind::TYPE_CONSTANT && getConst<TypeConstant>() == REAL_TYPE ) ||
-    isInteger();
-}
-
 inline bool TypeNode::isString() const {
   return getKind() == kind::TYPE_CONSTANT &&
     getConst<TypeConstant>() == STRING_TYPE;
@@ -912,6 +898,11 @@ inline bool TypeNode::isArray() const {
   return getKind() == kind::ARRAY_TYPE;
 }
 
+inline bool TypeNode::isFiniteField() const
+{
+  return getKind() == kind::FINITE_FIELD_TYPE;
+}
+
 inline TypeNode TypeNode::getArrayIndexType() const {
   Assert(isArray());
   return (*this)[0];
@@ -922,20 +913,21 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
   return (*this)[1];
 }
 
-inline TypeNode TypeNode::getConstructorRangeType() const {
-  Assert(isConstructor());
+inline TypeNode TypeNode::getDatatypeConstructorRangeType() const
+{
+  Assert(isDatatypeConstructor());
   return (*this)[getNumChildren()-1];
 }
 
-inline TypeNode TypeNode::getSelectorDomainType() const
+inline TypeNode TypeNode::getDatatypeSelectorDomainType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[0];
 }
 
-inline TypeNode TypeNode::getSelectorRangeType() const
+inline TypeNode TypeNode::getDatatypeSelectorRangeType() const
 {
-  Assert(isSelector());
+  Assert(isDatatypeSelector());
   return (*this)[1];
 }
 
@@ -973,67 +965,6 @@ inline bool TypeNode::isPredicateLike() const {
   return isFunctionLike() && getRangeType().isBoolean();
 }
 
-inline TypeNode TypeNode::getRangeType() const {
-  if(isTester()) {
-    return NodeManager::currentNM()->booleanType();
-  }
-  Assert(isFunction() || isConstructor() || isSelector())
-      << "Cannot get range type of " << *this;
-  return (*this)[getNumChildren() - 1];
-}
-
-/** Is this a floating-point type of with <code>exp</code> exponent bits
-    and <code>sig</code> significand bits */
-inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
-  return (getKind() == kind::FLOATINGPOINT_TYPE
-          && getConst<FloatingPointSize>().exponentWidth() == exp
-          && getConst<FloatingPointSize>().significandWidth() == sig);
-}
-
-/** Get the exponent size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointExponentSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().exponentWidth();
-}
-
-/** Get the significand size of this floating-point type */
-inline unsigned TypeNode::getFloatingPointSignificandSize() const {
-  Assert(isFloatingPoint());
-  return getConst<FloatingPointSize>().significandWidth();
-}
-
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.  We mark as __attribute__((used)) so that
- * GCC emits code for it even though static analysis indicates it's
- * never called.
- *
- * Tim's Note: I moved this into the node.h file because this allows gdb
- * to find the symbol, and use it, which is the first standard this code needs
- * to meet. A cleaner solution is welcomed.
- */
-static void __attribute__((used)) debugPrintTypeNode(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintTypeNodeNoDag(const TypeNode& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
-
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_H */

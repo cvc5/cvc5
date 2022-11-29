@@ -1,19 +1,16 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Andres Noetzli, Mathias Preiner
+ *   Liana Hadarean, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Theory BV rewriter.
  */
 
 #include "cvc5_private.h"
@@ -23,7 +20,7 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -32,22 +29,10 @@ typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 class TheoryBVRewriter : public TheoryRewriter
 {
  public:
-  /**
-   * Temporary hack for devision-by-zero until we refactor theory code from
-   * smt engine.
-   *
-   * @param node
-   *
-   * @return
-   */
-  static Node eliminateBVSDiv(TNode node);
-
   TheoryBVRewriter();
 
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
-
-  TrustNode expandDefinition(Node node) override;
 
  private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
@@ -97,6 +82,13 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteRotateLeft(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedor(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteRedand(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUaddo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSaddo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUmulo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSmulo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteUsubo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSsubo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSdivo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
 
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
@@ -109,6 +101,6 @@ class TheoryBVRewriter : public TheoryRewriter
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BV__THEORY_BV_REWRITER_H */

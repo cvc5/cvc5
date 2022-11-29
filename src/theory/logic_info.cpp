@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Andrew Reynolds
+ *   Morgan Deters, Andrew Reynolds, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,9 +25,9 @@
 #include "expr/kind.h"
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 LogicInfo::LogicInfo()
     : d_logicString(""),
@@ -311,6 +311,11 @@ std::string LogicInfo::getLogicString() const {
         ss << "BV";
         ++seen;
       }
+      if (d_theories[THEORY_FF])
+      {
+        ss << "FF";
+        ++seen;
+      }
       if(d_theories[THEORY_FP]) {
         ss << "FP";
         ++seen;
@@ -443,6 +448,11 @@ void LogicInfo::setLogicString(std::string logicString)
       // allow BV or DT in either order
       if(!strncmp(p, "BV", 2)) {
         enableTheory(THEORY_BV);
+        p += 2;
+      }
+      if (!strncmp(p, "FF", 2))
+      {
+        enableTheory(THEORY_FF);
         p += 2;
       }
       if(!strncmp(p, "FP", 2)) {
@@ -721,4 +731,4 @@ std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) {
   return out << logic.getLogicString();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

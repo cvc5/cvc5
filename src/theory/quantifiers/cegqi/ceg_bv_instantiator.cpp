@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,15 +19,14 @@
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -55,7 +54,7 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
 };
 
 BvInstantiator::BvInstantiator(Env& env, TypeNode tn, BvInverter* inv)
-    : Instantiator(env, tn), d_inverter(inv), d_inst_id_counter(0)
+    : Instantiator(env, tn), d_inverter(inv), d_util(env), d_inst_id_counter(0)
 {
   // The inverter utility d_inverter is global to all BvInstantiator classes.
   // This must be global since we need to:
@@ -91,8 +90,8 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   Node sv = d_inverter->getSolveVariable(pv.getType());
   Node pvs = ci->getModelValue(pv);
   Trace("cegqi-bv") << "Get path to " << pv << " : " << lit << std::endl;
-  Node slit =
-      d_inverter->getPathToPv(lit, pv, sv, pvs, path, options::cegqiBvSolveNl());
+  Node slit = d_inverter->getPathToPv(
+      lit, pv, sv, pvs, path, options().quantifiers.cegqiBvSolveNl);
   if (!slit.isNull())
   {
     CegInstantiatorBvInverterQuery m(ci);
@@ -154,7 +153,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return Node::null();
   }
-  else if (options::cegqiBvIneqMode() == options::CegqiBvIneqMode::KEEP
+  else if (options().quantifiers.cegqiBvIneqMode
+               == options::CegqiBvIneqMode::KEEP
            || (pol && k == EQUAL))
   {
     return lit;
@@ -173,7 +173,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
 
   Node ret;
-  if (options::cegqiBvIneqMode() == options::CegqiBvIneqMode::EQ_SLACK)
+  if (options().quantifiers.cegqiBvIneqMode
+      == options::CegqiBvIneqMode::EQ_SLACK)
   {
     // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
@@ -234,13 +235,13 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
 {
   // if option enabled, use approach for word-level inversion for BV
   // instantiation
-  if (options::cegqiBv())
+  if (options().quantifiers.cegqiBv)
   {
     // get the best rewritten form of lit for solving for pv
     //   this should remove instances of non-invertible operators, and
     //   "linearize" lit with respect to pv as much as possible
     Node rlit = rewriteAssertionForSolvePv(ci, pv, lit);
-    if (Trace.isOn("cegqi-bv"))
+    if (TraceIsOn("cegqi-bv"))
     {
       Trace("cegqi-bv") << "BvInstantiator::processAssertion : solve " << pv
                         << " in " << lit << std::endl;
@@ -262,7 +263,7 @@ bool BvInstantiator::useModelValue(CegInstantiator* ci,
                                    Node pv,
                                    CegInstEffort effort)
 {
-  return effort < CEG_INST_EFFORT_FULL || options::cegqiFullEffort();
+  return effort < CEG_INST_EFFORT_FULL || options().quantifiers.cegqiFullEffort;
 }
 
 bool BvInstantiator::processAssertions(CegInstantiator* ci,
@@ -280,14 +281,15 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   Trace("cegqi-bv") << "BvInstantiator::processAssertions for " << pv
                     << std::endl;
   // if interleaving, do not do inversion half the time
-  if (options::cegqiBvInterleaveValue() && Random::getRandom().pickWithProb(0.5))
+  if (options().quantifiers.cegqiBvInterleaveValue
+      && Random::getRandom().pickWithProb(0.5))
   {
     Trace("cegqi-bv") << "...do not do instantiation for " << pv
                       << " (skip, based on heuristic)" << std::endl;
   }
   bool firstVar = sf.empty();
   // get inst id list
-  if (Trace.isOn("cegqi-bv"))
+  if (TraceIsOn("cegqi-bv"))
   {
     Trace("cegqi-bv") << "  " << iti->second.size()
                       << " candidate instantiations for " << pv << " : "
@@ -305,7 +307,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   // we may find an invertible literal that leads to a useful instantiation.
   std::shuffle(iti->second.begin(), iti->second.end(), Random::getRandom());
 
-  if (Trace.isOn("cegqi-bv"))
+  if (TraceIsOn("cegqi-bv"))
   {
     for (unsigned j = 0, size = iti->second.size(); j < size; j++)
     {
@@ -342,7 +344,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   // for constructing instantiations is exponential on the number of
   // variables in this quantifier prefix.
   bool ret = false;
-  bool tryMultipleInst = firstVar && options::cegqiMultiInst();
+  bool tryMultipleInst = firstVar && options().quantifiers.cegqiMultiInst;
   bool revertOnSuccess = tryMultipleInst;
   for (unsigned j = 0, size = iti->second.size(); j < size; j++)
   {
@@ -503,7 +505,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
 
   Node result = visited.top()[lit];
 
-  if (Trace.isOn("cegqi-bv-nl"))
+  if (TraceIsOn("cegqi-bv-nl"))
   {
     std::vector<TNode> trace_visit;
     std::unordered_set<TNode> trace_visited;
@@ -557,9 +559,10 @@ Node BvInstantiator::rewriteTermForSolvePv(
           bv::utils::mkConst(BitVector(bv::utils::getSize(pv), Integer(2))));
     }
 
-    if (options::cegqiBvLinearize() && contains_pv[lhs] && contains_pv[rhs])
+    if (options().quantifiers.cegqiBvLinearize && contains_pv[lhs]
+        && contains_pv[rhs])
     {
-      Node result = utils::normalizePvEqual(pv, children, contains_pv);
+      Node result = d_util.normalizePvEqual(pv, children, contains_pv);
       if (!result.isNull())
       {
         Trace("cegqi-bv-nl")
@@ -575,16 +578,16 @@ Node BvInstantiator::rewriteTermForSolvePv(
   }
   else if (n.getKind() == BITVECTOR_MULT || n.getKind() == BITVECTOR_ADD)
   {
-    if (options::cegqiBvLinearize() && contains_pv[n])
+    if (options().quantifiers.cegqiBvLinearize && contains_pv[n])
     {
       Node result;
       if (n.getKind() == BITVECTOR_MULT)
       {
-        result = utils::normalizePvMult(pv, children, contains_pv);
+        result = d_util.normalizePvMult(pv, children, contains_pv);
       }
       else
       {
-        result = utils::normalizePvPlus(pv, children, contains_pv);
+        result = d_util.normalizePvPlus(pv, children, contains_pv);
       }
       if (!result.isNull())
       {
@@ -640,7 +643,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
   // new lemmas
   std::vector<Node> new_lems;
 
-  if (options::cegqiBvRmExtract())
+  if (d_opts.quantifiers.cegqiBvRmExtract)
   {
     NodeManager* nm = NodeManager::currentNM();
     SkolemManager* sm = nm->getSkolemManager();
@@ -761,4 +764,4 @@ void BvInstantiatorPreprocess::collectExtracts(
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

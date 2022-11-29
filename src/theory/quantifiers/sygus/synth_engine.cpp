@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_registry.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -31,7 +31,10 @@ SynthEngine::SynthEngine(Env& env,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_conj(nullptr), d_sqp(env)
+    : QuantifiersModule(env, qs, qim, qr, tr),
+      d_conj(nullptr),
+      d_sqp(env),
+      d_statistics(statisticsRegistry())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
       new SynthConjecture(env, qs, qim, qr, tr, d_statistics)));
@@ -39,6 +42,8 @@ SynthEngine::SynthEngine(Env& env,
 }
 
 SynthEngine::~SynthEngine() {}
+
+std::string SynthEngine::identify() const { return "SynthEngine"; }
 
 void SynthEngine::presolve()
 {
@@ -136,7 +141,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 void SynthEngine::assignConjecture(Node q)
 {
   Trace("sygus-engine") << "SynthEngine::assignConjecture " << q << std::endl;
-  if (options::sygusQePreproc())
+  if (options().quantifiers.sygusQePreproc)
   {
     Node lem = d_sqp.preprocess(q);
     if (!lem.isNull())
@@ -160,9 +165,9 @@ void SynthEngine::assignConjecture(Node q)
 void SynthEngine::checkOwnership(Node q)
 {
   // take ownership of quantified formulas with sygus attribute, and function
-  // definitions when options::sygusRecFun is true.
+  // definitions when the sygusRecFun option is true.
   QuantAttributes& qa = d_qreg.getQuantAttributes();
-  if (qa.isSygus(q) || (qa.isFunDef(q) && options::sygusRecFun()))
+  if (qa.isSygus(q) || (qa.isFunDef(q) && options().quantifiers.sygusRecFun))
   {
     d_qreg.setOwner(q, this, 2);
   }
@@ -178,7 +183,7 @@ void SynthEngine::registerQuantifier(Node q)
   }
   if (d_qreg.getQuantAttributes().isFunDef(q))
   {
-    Assert(options::sygusRecFun());
+    Assert(options().quantifiers.sygusRecFun);
     // If it is a recursive function definition, add it to the function
     // definition evaluator class.
     Trace("cegqi") << "Registering function definition : " << q << "\n";
@@ -187,7 +192,7 @@ void SynthEngine::registerQuantifier(Node q)
     return;
   }
   Trace("cegqi") << "Register conjecture : " << q << std::endl;
-  if (options::sygusQePreproc())
+  if (options().quantifiers.sygusQePreproc)
   {
     d_waiting_conj.push_back(q);
   }
@@ -200,7 +205,7 @@ void SynthEngine::registerQuantifier(Node q)
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
-  if (Trace.isOn("sygus-engine-debug"))
+  if (TraceIsOn("sygus-engine-debug"))
   {
     conj->debugPrint("sygus-engine-debug");
     Trace("sygus-engine-debug") << std::endl;
@@ -251,4 +256,4 @@ void SynthEngine::preregisterAssertion(Node n)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Morgan Deters, Andrew Reynolds
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,15 +17,16 @@
 #include <set>
 #include <vector>
 
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/set_language.h"
-#include "smt_util/boolean_simplification.h"
+#include "preprocessing/util/boolean_simplification.h"
 #include "test_node.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::preprocessing;
+
+namespace cvc5::internal {
 namespace test {
 
 class TestUtilBlackBooleanSimplification : public TestNode
@@ -71,8 +72,9 @@ class TestUtilBlackBooleanSimplification : public TestNode
     // this test is designed for >= 10 removal threshold
     Assert(BooleanSimplification::DUPLICATE_REMOVAL_THRESHOLD >= 10);
 
-    std::cout << expr::ExprSetDepth(-1)
-              << language::SetLanguage(Language::LANG_SMTLIB_V2_6);
+    options::ioutils::applyNodeDepth(std::cout, -1);
+    options::ioutils::applyOutputLanguage(std::cout,
+                                          Language::LANG_SMTLIB_V2_6);
   }
 
   // assert equality up to commuting children
@@ -241,4 +243,4 @@ TEST_F(TestUtilBlackBooleanSimplification, simplifyConflict)
 #endif
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

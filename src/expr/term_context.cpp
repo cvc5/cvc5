@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
 {
@@ -131,7 +131,7 @@ uint32_t PolarityTermContext::getValue(bool hasPol, bool pol)
 
 void PolarityTermContext::getFlags(uint32_t val, bool& hasPol, bool& pol)
 {
-  hasPol = val == 0;
+  hasPol = val != 0;
   pol = val == 2;
 }
 
@@ -144,4 +144,4 @@ uint32_t TheoryLeafTermContext::computeValue(TNode t,
   return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

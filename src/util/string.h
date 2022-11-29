@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Tianyi Liang
+ *   Andrew Reynolds, Tim King, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,11 @@
 
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
+
+namespace strings {
+struct StringHashFunction;
+}
 
 /** The cvc5 string class
  *
@@ -33,6 +37,8 @@ namespace cvc5 {
  */
 class String
 {
+  friend strings::StringHashFunction;
+
  public:
   /**
    * This is the cardinality of the alphabet that is representable by this
@@ -47,7 +53,7 @@ class String
   static inline unsigned num_codes() { return 196608; }
   /** constructors for String
    *
-   * Internally, a cvc5::String is represented by a vector of unsigned
+   * Internally, a cvc5::internal::String is represented by a vector of unsigned
    * integers (d_str) representing the code points of the characters.
    *
    * To build a string from a C++ string, we may process escape sequences
@@ -62,7 +68,7 @@ class String
    * where d_0 ... d_4 are hexadecimal digits, to the appropriate character.
    *
    * If useEscSequences is false, then the characters of the constructed
-   * cvc5::String correspond one-to-one with the input string.
+   * cvc5::internal::String correspond one-to-one with the input string.
    */
   String() = default;
   explicit String(const std::string& s, bool useEscSequences = false)
@@ -114,7 +120,7 @@ class String
    * If useEscSequences is false, the string's printable characters are
    * printed as characters. Notice that for all std::string s having only
    * printable characters, we have that
-   *    cvc5::String( s ).toString() = s.
+   *    cvc5::internal::String( s ).toString() = s.
    */
   std::string toString(bool useEscSequences = false) const;
   /* toWString
@@ -267,16 +273,13 @@ namespace strings {
 
 struct StringHashFunction
 {
-  size_t operator()(const ::cvc5::String& s) const
-  {
-    return std::hash<std::string>()(s.toString());
-  }
+  size_t operator()(const cvc5::internal::String& s) const;
 }; /* struct StringHashFunction */
 
 }  // namespace strings
 
 std::ostream& operator<<(std::ostream& os, const String& s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTIL__STRING_H */

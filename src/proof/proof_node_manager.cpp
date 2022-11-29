@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,11 +24,14 @@
 #include "proof/proof_node_algorithm.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-ProofNodeManager::ProofNodeManager(ProofChecker* pc) : d_checker(pc)
+ProofNodeManager::ProofNodeManager(const Options& opts,
+                                   theory::Rewriter* rr,
+                                   ProofChecker* pc)
+    : d_opts(opts), d_rewriter(rr), d_checker(pc)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // we always allocate a proof checker, regardless of the proof checking mode
@@ -125,19 +128,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       acu.insert(a);
       continue;
     }
-    // trivial assumption
-    if (a == d_true)
-    {
-      Trace("pnm-scope") << "- justify trivial True assumption\n";
-      for (std::shared_ptr<ProofNode> pfs : fa.second)
-      {
-        Assert(pfs->getResult() == a);
-        updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
-      }
-      Trace("pnm-scope") << "...finished" << std::endl;
-      acu.insert(a);
-      continue;
-    }
     Trace("pnm-scope") << "- try matching free assumption " << a << "\n";
     // otherwise it may be due to symmetry?
     Node aeqSym = CDProof::getSymmFact(a);
@@ -152,6 +142,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     }
     else
     {
+      // trivial assumption (by rewriting)
+      Node ar = d_rewriter->rewrite(a);
+      if (ar == d_true)
+      {
+        Trace("pnm-scope") << "- justify trivial True assumption\n";
+        for (std::shared_ptr<ProofNode> pfs : fa.second)
+        {
+          Assert(pfs->getResult() == a);
+          updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
+        }
+        Trace("pnm-scope") << "...finished" << std::endl;
+        acu.insert(a);
+        continue;
+      }
       // Otherwise, may be derivable by rewriting. Note this is used in
       // ensuring that proofs from the proof equality engine that involve
       // equality with Boolean constants are closed.
@@ -160,14 +164,11 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         computedAcr = true;
         for (const Node& acc : ac)
         {
-          Node accr = theory::Rewriter::rewrite(acc);
-          if (accr != acc)
-          {
-            acr[accr] = acc;
-          }
+          Node accr = d_rewriter->rewrite(acc);
+          acr[accr] = acc;
         }
       }
-      Node ar = theory::Rewriter::rewrite(a);
+      Trace("pnm-scope") << "- rewritten: " << ar << std::endl;
       std::unordered_map<Node, Node>::iterator itr = acr.find(ar);
       if (itr != acr.end())
       {
@@ -211,7 +212,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     // should be arguments to SCOPE.
     std::stringstream ss;
 
-    bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+    bool dumpProofTraceOn = TraceIsOn("dump-proof-error");
     if (dumpProofTraceOn)
     {
       ss << "The proof : " << *pf << std::endl;
@@ -236,8 +237,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     {
       if (acu.find(a) == acu.end())
       {
-        Notice() << "ProofNodeManager::mkScope: assumption " << a
-                 << " does not match a free assumption in proof" << std::endl;
+        Trace("pnm") << "ProofNodeManager::mkScope: assumption " << a
+                     << " does not match a free assumption in proof"
+                     << std::endl;
       }
     }
   }
@@ -327,8 +329,8 @@ Node ProofNodeManager::checkInternal(
   // a proof checking mode that does not eagerly check rule applications
   if (!expected.isNull())
   {
-    if (options::proofCheck() == options::ProofCheckMode::LAZY
-        || options::proofCheck() == options::ProofCheckMode::NONE)
+    if (d_opts.proof.proofCheck == options::ProofCheckMode::LAZY
+        || d_opts.proof.proofCheck == options::ProofCheckMode::NONE)
     {
       return expected;
     }
@@ -401,12 +403,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::clone(
 
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
+  // processed is almost always size <= 1
+  std::vector<ProofNode*> processed;
   while (pn->getRule() == PfRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
     if (pnc->getRule() == PfRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
+      if (std::find(processed.begin(), processed.end(), pn) != processed.end())
+      {
+        Unreachable()
+            << "Cyclic proof encountered when cancelling double symmetry";
+      }
+      processed.push_back(pn);
     }
     else
     {
@@ -425,7 +435,7 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  if (options::proofCheck() == options::ProofCheckMode::EAGER)
+  if (d_opts.proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     std::unordered_set<const ProofNode*> visited;
     for (const std::shared_ptr<ProofNode>& cpc : children)
@@ -475,4 +485,4 @@ bool ProofNodeManager::updateNodeInternal(
   return true;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

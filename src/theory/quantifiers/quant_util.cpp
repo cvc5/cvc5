@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ *   Andrew Reynolds, Morgan Deters, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,9 +17,9 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 QuantifiersUtil::QuantifiersUtil(Env& env) : EnvObj(env) {}
@@ -38,22 +38,22 @@ void QuantPhaseReq::initialize( Node n, bool computeEq ){
       d_phase_reqs[ it->first ] = false;
     }
   }
-  Debug("inst-engine-phase-req") << "Phase requirements for " << n << ":" << std::endl;
+  Trace("inst-engine-phase-req") << "Phase requirements for " << n << ":" << std::endl;
   //now, compute if any patterns are equality required
   if( computeEq ){
     for( std::map< Node, bool >::iterator it = d_phase_reqs.begin(); it != d_phase_reqs.end(); ++it ){
-      Debug("inst-engine-phase-req") << "   " << it->first << " -> " << it->second << std::endl;
+      Trace("inst-engine-phase-req") << "   " << it->first << " -> " << it->second << std::endl;
       if( it->first.getKind()==EQUAL ){
         if( quantifiers::TermUtil::hasInstConstAttr(it->first[0]) ){
           if( !quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
             d_phase_reqs_equality_term[ it->first[0] ] = it->first[1];
             d_phase_reqs_equality[ it->first[0] ] = it->second;
-            Debug("inst-engine-phase-req") << "      " << it->first[0] << ( it->second ? " == " : " != " ) << it->first[1] << std::endl;
+            Trace("inst-engine-phase-req") << "      " << it->first[0] << ( it->second ? " == " : " != " ) << it->first[1] << std::endl;
           }
         }else if( quantifiers::TermUtil::hasInstConstAttr(it->first[1]) ){
           d_phase_reqs_equality_term[ it->first[1] ] = it->first[0];
           d_phase_reqs_equality[ it->first[1] ] = it->second;
-          Debug("inst-engine-phase-req") << "      " << it->first[1] << ( it->second ? " == " : " != " ) << it->first[0] << std::endl;
+          Trace("inst-engine-phase-req") << "      " << it->first[1] << ( it->second ? " == " : " != " ) << it->first[0] << std::endl;
         }
       }
     }
@@ -138,4 +138,4 @@ void QuantPhaseReq::getEntailPolarity(
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

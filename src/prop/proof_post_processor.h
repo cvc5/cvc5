@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa
+ *   Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,8 +23,9 @@
 
 #include "proof/proof_node_updater.h"
 #include "prop/proof_cnf_stream.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace prop {
 
@@ -34,11 +35,11 @@ namespace prop {
  * assertions and lemmas, with the CNF transformation of these formulas, while
  * expanding the generators of lemmas.
  */
-class ProofPostprocessCallback : public ProofNodeUpdaterCallback
+class ProofPostprocessCallback : protected EnvObj,
+                                 public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm,
-                           ProofCnfStream* proofCnfStream);
+  ProofPostprocessCallback(Env& env, ProofCnfStream* proofCnfStream);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -74,8 +75,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
               bool& continueUpdate) override;
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The cnf stream proof generator */
   ProofCnfStream* d_proofCnfStream;
   //---------------------------------reset at the begining of each update
@@ -89,11 +88,11 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  * produced by the SAT solver. Its main task is to connect the refutation's
  * assumptions to the CNF transformation proof in ProofCnfStream.
  */
-class ProofPostproccess
+class ProofPostprocess : protected EnvObj
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm, ProofCnfStream* proofCnfStream);
-  ~ProofPostproccess();
+  ProofPostprocess(Env& env, ProofCnfStream* proofCnfStream);
+  ~ProofPostprocess();
   /** post-process
    *
    * The post-processing is done via a proof node updater run on pf with this
@@ -104,11 +103,9 @@ class ProofPostproccess
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

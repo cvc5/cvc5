@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,8 @@
 #include "base/listener.h"
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-class OutputManager;
 class SolverEngine;
 
 namespace smt {
@@ -43,39 +42,7 @@ class ResourceOutListener : public Listener
   SolverEngine& d_slv;
 };
 
-class DumpManager;
-
-/**
- * A listener for node manager calls, which impacts certain dumping traces.
- */
-class SmtNodeManagerListener : public NodeManagerListener
-{
- public:
-  SmtNodeManagerListener(DumpManager& dm, OutputManager& outMgr);
-  /** Notify when new sort is created */
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override;
-  /** Notify when new sort constructor is created */
-  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override;
-  /** Notify when list of datatypes is created */
-  void nmNotifyNewDatatypes(const std::vector<TypeNode>& dtts,
-                            uint32_t flags) override;
-  /** Notify when new variable is created */
-  void nmNotifyNewVar(TNode n) override;
-  /** Notify when new skolem is created */
-  void nmNotifyNewSkolem(TNode n,
-                         const std::string& comment,
-                         uint32_t flags) override;
-  /** Notify when a term is deleted */
-  void nmNotifyDeleteNode(TNode n) override {}
-
- private:
-  /** Reference to the dump manager of smt engine */
-  DumpManager& d_dm;
-  /** Reference to the output manager of the smt engine */
-  OutputManager& d_outMgr;
-};
-
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

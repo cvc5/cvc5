@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
+ *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,10 @@
 #include "base/configuration.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
@@ -28,7 +29,7 @@ void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
-  Debug(c) << ss.str();
+  Trace(c) << ss.str();
 }
 
 void EqProof::debug_print(std::ostream& os, unsigned tb) const
@@ -91,8 +92,8 @@ void EqProof::cleanReflPremises(std::vector<Node>& premises) const
   if (newPremises.size() != size)
   {
     Trace("eqproof-conv") << "EqProof::cleanReflPremises: removed "
-                          << (newPremises.size() >= size
-                                  ? newPremises.size() - size
+                          << (size >= newPremises.size()
+                                  ? size - newPremises.size()
                                   : 0)
                           << " refl premises from " << premises << "\n";
     premises.clear();
@@ -138,6 +139,8 @@ bool EqProof::expandTransitivityForDisequalities(
   // if no equality of the searched form, nothing to do
   if (offending == size)
   {
+    Trace("eqproof-conv")
+        << "EqProof::expandTransitivityForDisequalities: no need.\n";
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -703,8 +706,10 @@ void EqProof::reduceNestedCongruence(
         << transitivityMatrix[i].back() << "\n";
     // if i == 0, first child must be REFL step, standing for (= f f), which can
     // be ignored in a first-order calculus
-    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
-           || options::ufHo());
+    // Notice if higher-order is disabled, the following holds:
+    //   i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
+    // We don't have access to whether we are higher-order in this context,
+    // so the above cannot be an assertion.
     // recurse
     if (i > 1)
     {
@@ -965,6 +970,7 @@ Node EqProof::addToProof(CDProof* p,
   if (d_id == MERGED_THROUGH_REFLEXIVITY
       || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
+    Trace("eqproof-conv") << "EqProof::addToProof: refl step\n";
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]});
@@ -974,12 +980,27 @@ Node EqProof::addToProof(CDProof* p,
   // Equalities due to theory reasoning
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
-    Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
-           && d_node[1].isConst())
+    Assert(!d_node.isNull()
+           && ((d_node.getKind() == kind::EQUAL && d_node[1].isConst())
+               || (d_node.getKind() == kind::NOT
+                   && d_node[0].getKind() == kind::EQUAL
+                   && d_node[0][0].isConst() && d_node[0][1].isConst())))
         << ". Conclusion " << d_node << " from " << d_id
-        << " was expected to be (= (f t1 ... tn) c)\n";
+        << " was expected to be (= (f t1 ... tn) c) or (not (= c1 c2))\n";
     Assert(!assumptions.count(d_node))
         << "Conclusion " << d_node << " from " << d_id << " is an assumption\n";
+    // The step has the form (not (= c1 c2)). We conclude it via
+    // MACRO_SR_PRED_INTRO and turn it into an equality with false, so that the
+    // rest of the reconstruction works
+    if (d_children.empty())
+    {
+      Node conclusion =
+          d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
+      p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, {}, {d_node});
+      p->addStep(conclusion, PfRule::FALSE_INTRO, {d_node}, {});
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // The step has the form
     //  [(= t1 c1)] ... [(= tn cn)]
     //  ------------------------
@@ -1168,7 +1189,9 @@ Node EqProof::addToProof(CDProof* p,
         }
       }
     }
-    Assert(p->hasStep(conclusion));
+    Assert(p->hasStep(conclusion) || assumptions.count(conclusion))
+        << "Conclusion " << conclusion
+        << " does not have a step in the proof neither it's an assumption.\n";
     visited[d_node] = conclusion;
     return conclusion;
   }
@@ -1312,7 +1335,7 @@ Node EqProof::addToProof(CDProof* p,
           << "EqProof::addToProof: New conclusion " << conclusion << "\n";
     }
   }
-  if (Trace.isOn("eqproof-conv"))
+  if (TraceIsOn("eqproof-conv"))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: premises from reduced cong of " << conclusion
@@ -1324,7 +1347,7 @@ Node EqProof::addToProof(CDProof* p,
     }
   }
   std::vector<Node> children(arity + 1);
-  // Proccess transitivity matrix to (possibly) generate transitivity steps for
+  // Process transitivity matrix to (possibly) generate transitivity steps for
   // congruence premises (= ai bi)
   for (unsigned i = 0; i <= arity; ++i)
   {
@@ -1430,14 +1453,52 @@ Node EqProof::addToProof(CDProof* p,
   // we obtained for example (= (f (f t1 t2 t3) t4) (f (f t5 t6) t7)), which is
   // flattened into the original conclusion (= (f t1 t2 t3 t4) (f t5 t6 t7)) via
   // rewriting
-  if (conclusion != d_node)
+  if (!CDProof::isSame(conclusion, d_node))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: add "
+    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a"
                           << PfRule::MACRO_SR_PRED_TRANSFORM
-                          << " step to flatten rebuilt conclusion "
-                          << conclusion << "into " << d_node << "\n";
-    p->addStep(
-        d_node, PfRule::MACRO_SR_PRED_TRANSFORM, {conclusion}, {d_node}, true);
+                          << " step the rebuilt conclusion "
+                          << conclusion << " into " << d_node << "\n";
+    Node res = p->getManager()->getChecker()->checkDebug(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {conclusion},
+        {d_node},
+        Node::null(),
+        "eqproof-conv");
+    // If rewriting was not able to flatten the rebuilt conclusion into the
+    // original one, we give up and use a TRUST_FLATTENING_REWRITE step,
+    // generating a proof for the original conclusion d_node such as
+    //
+    //     Converted EqProof
+    //  ----------------------      ------------------- TRUST_FLATTENING_REWRITE
+    //     conclusion               conclusion = d_node
+    // ------------------------------------------------------- EQ_RESOLVE
+    //                       d_node
+    //
+    //
+    //  If rewriting was able to do it, however, we just add the macro step.
+    if (res.isNull())
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: adding a trust flattening rewrite step\n";
+      Node bridgeEq = conclusion.eqNode(d_node);
+      p->addStep(bridgeEq,
+                 PfRule::TRUST_FLATTENING_REWRITE,
+                 {},
+                 {bridgeEq});
+      p->addStep(d_node,
+                 PfRule::EQ_RESOLVE,
+                 {conclusion, bridgeEq},
+                 {});
+    }
+    else
+    {
+      p->addStep(d_node,
+                 PfRule::MACRO_SR_PRED_TRANSFORM,
+                 {conclusion},
+                 {d_node},
+                 true);
+    }
   }
   visited[d_node] = d_node;
   return d_node;
@@ -1445,4 +1506,4 @@ Node EqProof::addToProof(CDProof* p,
 
 }  // namespace eq
 }  // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

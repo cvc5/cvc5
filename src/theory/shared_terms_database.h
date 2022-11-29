@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,18 +24,19 @@
 #include "expr/node.h"
 #include "proof/proof_node_manager.h"
 #include "proof/trust_node.h"
+#include "smt/env_obj.h"
 #include "theory/ee_setup_info.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-class Env;
 class TheoryEngine;
 
-class SharedTermsDatabase : public context::ContextNotifyObj {
+class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
+{
  public:
   /** A container for a list of shared terms */
   typedef std::vector<TNode> shared_terms_list;
@@ -44,8 +45,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   typedef shared_terms_list::const_iterator shared_terms_iterator;
 
  private:
-  /** Reference to the env */
-  Env& d_env;
 
   /** Some statistics */
   IntStat d_statSharedTerms;
@@ -276,4 +275,4 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   ProofNodeManager* d_pnm;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

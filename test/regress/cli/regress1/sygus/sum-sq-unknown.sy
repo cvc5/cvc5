@@ -1,0 +1,12 @@
+; COMMAND-LINE: --sygus-verify-timeout=100 --sygus-enum=smart
+; EXPECT: fail
+(set-logic ALL)
+(synth-fun f ((x Int) (y Int)) Bool
+  ((Start Bool))(
+  (Start Bool ((= (+ (* x x) (* y y)) 707)))))
+
+(declare-var x Int)
+(declare-var y Int)
+(constraint (not (f x y)))
+; feasible but hard to verify, we should say "fail"
+(check-synth)

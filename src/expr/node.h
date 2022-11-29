@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,9 +14,6 @@
  */
 
 #include "cvc5_private.h"
-
-// circular dependency
-#include "expr/node_value.h"
 
 #ifndef CVC5__NODE_H
 #define CVC5__NODE_H
@@ -32,15 +29,15 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
+#include "expr/node_value.h"
+#include "options/io_utils.h"
 #include "options/language.h"
-#include "options/set_language.h"
 #include "util/hash.h"
 #include "util/utility.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TypeNode;
 class NodeManager;
@@ -130,25 +127,25 @@ typedef NodeTemplate<true> Node;
  */
 typedef NodeTemplate<false> TNode;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 namespace std {
 
 template <>
-struct hash<cvc5::Node>
+struct hash<cvc5::internal::Node>
 {
-  size_t operator()(const cvc5::Node& node) const;
+  size_t operator()(const cvc5::internal::Node& node) const;
 };
 
 template <>
-struct hash<cvc5::TNode>
+struct hash<cvc5::internal::TNode>
 {
-  size_t operator()(const cvc5::TNode& node) const;
+  size_t operator()(const cvc5::internal::TNode& node) const;
 };
 
 }  // namespace std
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 class NodeValue;
@@ -160,12 +157,6 @@ class NodeValue;
 
   class ExprSetDepth;
   }  // namespace expr
-
-namespace kind {
-  namespace metakind {
-    struct NodeValueConstPrinter;
-    }  // namespace metakind
-    }  // namespace kind
 
 /**
  * Encapsulation of an NodeValue pointer.  The reference count is
@@ -208,10 +199,8 @@ class NodeTemplate {
 
   friend class NodeBuilder;
 
-  friend class ::cvc5::expr::attr::AttributeManager;
-  friend struct ::cvc5::expr::attr::SmtAttributes;
-
-  friend struct ::cvc5::kind::metakind::NodeValueConstPrinter;
+  friend class ::cvc5::internal::expr::attr::AttributeManager;
+  friend struct ::cvc5::internal::expr::attr::SmtAttributes;
 
   /**
    * Assigns the expression value and does reference counting. No assumptions
@@ -438,7 +427,7 @@ public:
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
            || getKind() == kind::EXISTS || getKind() == kind::WITNESS
-           || getKind() == kind::COMPREHENSION
+           || getKind() == kind::SET_COMPREHENSION
            || getKind() == kind::MATCH_BIND_CASE;
   }
 
@@ -490,6 +479,18 @@ public:
    * (default: false)
    */
   TypeNode getType(bool check = false) const;
+
+  /**
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true typically for
+   * user-created variables.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Returns the string value of the expr::VarNameAttr attribute
+   * for this node.
+   */
+  std::string getName() const;
 
   /**
    * Substitution of Nodes.
@@ -701,10 +702,10 @@ public:
    * Returns the iterator pointing to the first child, if the node's
    * kind is the same as the parameter, otherwise returns the iterator
    * pointing to the node itself.  This is useful if you want to
-   * pretend to iterate over a "unary" PLUS, for instance, since unary
-   * PLUSes don't exist---begin(PLUS) will give an iterator over the
-   * children if the node's a PLUS node, otherwise give an iterator
-   * over the node itself, as if it were a unary PLUS.
+   * pretend to iterate over a "unary" ADD, for instance, since unary
+   * PLUSes don't exist---begin(ADD) will give an iterator over the
+   * children if the node's an ADD node, otherwise give an iterator
+   * over the node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
@@ -719,10 +720,10 @@ public:
    * beyond the last one), if the node's kind is the same as the
    * parameter, otherwise returns the iterator pointing to the
    * one-of-the-node-itself.  This is useful if you want to pretend to
-   * iterate over a "unary" PLUS, for instance, since unary PLUSes
-   * don't exist---begin(PLUS) will give an iterator over the children
-   * if the node's a PLUS node, otherwise give an iterator over the
-   * node itself, as if it were a unary PLUS.
+   * iterate over a "unary" ADD, for instance, since unary PLUSes
+   * don't exist---begin(ADD) will give an iterator over the children
+   * if the node's an ADD node, otherwise give an iterator over the
+   * node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
@@ -777,10 +778,10 @@ public:
    * Returns the iterator pointing to the first child, if the node's
    * kind is the same as the parameter, otherwise returns the iterator
    * pointing to the node itself.  This is useful if you want to
-   * pretend to iterate over a "unary" PLUS, for instance, since unary
-   * PLUSes don't exist---begin(PLUS) will give an iterator over the
-   * children if the node's a PLUS node, otherwise give an iterator
-   * over the node itself, as if it were a unary PLUS.
+   * pretend to iterate over a "unary" ADD, for instance, since unary
+   * PLUSes don't exist---begin(ADD) will give an iterator over the
+   * children if the node's an ADD node, otherwise give an iterator
+   * over the node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator iterating over this Node (if its kind
    * is not the passed kind) or its children
@@ -795,10 +796,10 @@ public:
    * beyond the last one), if the node's kind is the same as the
    * parameter, otherwise returns the iterator pointing to the
    * one-of-the-node-itself.  This is useful if you want to pretend to
-   * iterate over a "unary" PLUS, for instance, since unary PLUSes
-   * don't exist---begin(PLUS) will give an iterator over the children
-   * if the node's a PLUS node, otherwise give an iterator over the
-   * node itself, as if it were a unary PLUS.
+   * iterate over a "unary" ADD, for instance, since unary PLUSes
+   * don't exist---begin(ADD) will give an iterator over the children
+   * if the node's an ADD node, otherwise give an iterator over the
+   * node itself, as if it were a unary ADD.
    * @param kind the kind to match
    * @return the kinded_iterator pointing off-the-end of this Node (if
    * its kind is not the passed kind) or off-the-end of its children
@@ -822,44 +823,17 @@ public:
    * given stream
    *
    * @param out the stream to serialize this node to
-   * @param toDepth the depth to which to print this expression, or -1 to
-   * print it fully
-   * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out,
-                       int toDepth = -1,
-                       size_t dagThreshold = 1,
-                       Language language = Language::LANG_AUTO) const
+  inline void toStream(std::ostream& out) const
   {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, dagThreshold, language);
+    d_nv->toStream(out);
   }
 
-  /**
-   * IOStream manipulator to set the maximum depth of Nodes when
-   * pretty-printing.  -1 means print to any depth.  E.g.:
-   *
-   *   // let a, b, c, and d be VARIABLEs
-   *   Node n = nm->mkNode(OR, a, b, nm->mkNode(AND, c, nm->mkNode(NOT, d)))
-   *   out << setdepth(3) << n;
-   *
-   * gives "(OR a b (AND c (NOT d)))", but
-   *
-   *   out << setdepth(1) << [same node as above]
-   *
-   * gives "(OR a b (...))"
-   */
-  typedef expr::ExprSetDepth setdepth;
-
-  /**
-   * IOStream manipulator to print expressions as DAGs (or not).
-   */
-  typedef expr::ExprDag dag;
-
-  /**
-   * IOStream manipulator to set the output language for Exprs.
-   */
-  typedef language::SetLanguage setlanguage;
+  void constToStream(std::ostream& out) const
+  {
+    kind::metakind::nodeValueConstantToStream(out, d_nv);
+  }
 
   /**
    * Very basic pretty printer for Node.
@@ -895,10 +869,7 @@ public:
  * @return the stream
  */
 inline std::ostream& operator<<(std::ostream& out, TNode n) {
-  n.toStream(out,
-             Node::setdepth::getDepth(out),
-             Node::dag::getDag(out),
-             Node::setlanguage::getLanguage(out));
+  n.toStream(out);
   return out;
 }
 
@@ -980,12 +951,12 @@ std::ostream& operator<<(
   return out;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using TNodePairHashFunction =
     PairHashFunction<TNode, TNode, std::hash<TNode>, std::hash<TNode>>;
@@ -1441,53 +1412,6 @@ Node NodeTemplate<ref_count>::substitute(
   }
 }
 
-#ifdef CVC5_DEBUG
-/**
- * Pretty printer for use within gdb.  This is not intended to be used
- * outside of gdb.  This writes to the Warning() stream and immediately
- * flushes the stream.
- *
- * Note that this function cannot be a template, since the compiler
- * won't instantiate it.  Even if we explicitly instantiate.  (Odd?)
- * So we implement twice.  We mark as __attribute__((used)) so that
- * GCC emits code for it even though static analysis indicates it's
- * never called.
- *
- * Tim's Note: I moved this into the node.h file because this allows gdb
- * to find the symbol, and use it, which is the first standard this code needs
- * to meet. A cleaner solution is welcomed.
- */
-static void __attribute__((used)) debugPrintNode(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintNodeNoDag(const NodeTemplate<true>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawNode(const NodeTemplate<true>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-
-static void __attribute__((used)) debugPrintTNode(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(true)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintTNodeNoDag(const NodeTemplate<false>& n) {
-  Warning() << Node::setdepth(-1) << Node::dag(false)
-            << Node::setlanguage(Language::LANG_AST) << n << std::endl;
-  Warning().flush();
-}
-static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& n) {
-  n.printAst(Warning(), 0);
-  Warning().flush();
-}
-#endif /* CVC5_DEBUG */
-
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__NODE_H */

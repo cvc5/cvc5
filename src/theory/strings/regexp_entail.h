@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,17 +23,19 @@
 #include <vector>
 
 #include "expr/attribute.h"
+#include "theory/strings/arith_entail.h"
 #include "theory/strings/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
 class RegExpEntail
 {
  public:
+  RegExpEntail(Rewriter* r);
   /** simple regular expression consume
    *
    * This method is called when we are rewriting a membership of the form
@@ -103,9 +105,7 @@ class RegExpEntail
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExp(cvc5::String& s,
-                                      unsigned index_start,
-                                      TNode r);
+  static bool testConstStringInRegExp(String& s, unsigned index_start, TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
   static bool hasEpsilonNode(TNode node);
   /** get length for regular expression
@@ -113,8 +113,14 @@ class RegExpEntail
    * Given regular expression n, if this method returns a non-null value c, then
    * x in n entails len( x ) = c.
    */
-  static Node getFixedLengthForRegexp(Node n);
+  static Node getFixedLengthForRegexp(TNode n);
 
+  /**
+   * Get constant lower or upper bound on the lengths of strings that occur in
+   * regular expression n. Return null if a constant bound cannot be determined.
+   * This method will always worst case return 0 as a lower bound.
+   */
+  Node getConstantBoundLengthForRegexp(TNode n, bool isLower) const;
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
@@ -128,11 +134,28 @@ class RegExpEntail
    *           in rewritten form)
    * @return True if the inclusion can be shown, false otherwise
    */
+  static bool regExpIncludes(Node r1,
+                             Node r2,
+                             std::map<std::pair<Node, Node>, bool>& cache);
+  /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
+ private:
+  /** Set bound cache, used for getConstantBoundLengthForRegexp */
+  static void setConstantBoundCache(TNode n, Node ret, bool isLower);
+  /**
+   * Get bound cache, store in c and return true if the bound for n has been
+   * computed. Used for getConstantBoundLengthForRegexp.
+   */
+  static bool getConstantBoundCache(TNode n, bool isLower, Node& c);
+  /** Arithmetic entailment module */
+  ArithEntail d_aent;
+  /** Common constants */
+  Node d_zero;
+  Node d_one;
 };
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__REGEXP_ENTAIL_H */

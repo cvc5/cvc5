@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,10 @@
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
-#include "expr/uninterpreted_constant.h"
 #include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
@@ -142,7 +141,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
   Node operator*() override
   {
-    Debug("dt-enum-debug") << ": get term " << this << std::endl;
+    Trace("dt-enum-debug") << ": get term " << this << std::endl;
     if (d_zeroTermActive)
     {
       return d_zeroTerm;
@@ -165,6 +164,6 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DATATYPES__TYPE_ENUMERATOR_H */

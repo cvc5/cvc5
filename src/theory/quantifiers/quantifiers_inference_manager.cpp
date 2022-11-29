@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/skolemize.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -27,11 +27,10 @@ QuantifiersInferenceManager::QuantifiersInferenceManager(
     Theory& t,
     QuantifiersState& state,
     QuantifiersRegistry& qr,
-    TermRegistry& tr,
-    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, state, pnm, "theory::quantifiers::"),
-      d_instantiate(new Instantiate(env, state, *this, qr, tr, pnm)),
-      d_skolemize(new Skolemize(env, state, tr, pnm))
+    TermRegistry& tr)
+    : InferenceManagerBuffered(env, t, state, "theory::quantifiers::"),
+      d_instantiate(new Instantiate(env, state, *this, qr, tr)),
+      d_skolemize(new Skolemize(env, state, tr))
 {
 }
 
@@ -55,4 +54,4 @@ void QuantifiersInferenceManager::doPending()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

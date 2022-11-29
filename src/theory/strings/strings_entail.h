@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "theory/strings/arith_entail.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class Rewriter;
@@ -163,6 +163,17 @@ class StringsEntail
    *   returns 1,
    *   n1 is updated to { "c", x, "def" },
    *   nb is updated to { y, "ab" }
+   *
+   * Note that when computeRemainder is true, this check is less aggressive.
+   * In particular, the only terms we add to nb and ne are terms from n1 or
+   * substrings of words that appear in n1. If we would require constructing
+   * a (symbolic) substring term, we fail instead. For example:
+   *
+   * componentContains({ y }, { substr(y,0,1) }, {}, false, 1) returns 1,
+   * while componentContains({ y }, { substr(y,0,1) }, {}, true, 1) returns 0;
+   * it does not return 1 updating nb/ne to
+   * { substr(y,0,1) } / { substr(y,1,len(y)-1) }. This is to avoid
+   * non-termination in the rewriter.
    */
   int componentContains(std::vector<Node>& n1,
                         std::vector<Node>& n2,
@@ -354,8 +365,8 @@ class StringsEntail
    *               str.substr(y,x,z),
    *               ite( x+z < 0 OR x < 0, y, str.substr(y,x+z,len(y)) ) )
    *
-   * Since we do not wish to introduce ITE terms in the rewriter, we instead
-   * return false, indicating that we cannot compute the remainder.
+   * Since we do not wish to introduce new (symbolic) terms, we
+   * instead return false, indicating that we cannot compute the remainder.
    */
   bool componentContainsBase(
       Node n1, Node n2, Node& n1rb, Node& n1re, int dir, bool computeRemainder);
@@ -388,6 +399,6 @@ class StringsEntail
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__STRING_ENTAIL_H */

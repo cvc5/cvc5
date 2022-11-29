@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,9 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 
 const char* toString(MethodId id)
 {
@@ -49,7 +51,8 @@ std::ostream& operator<<(std::ostream& out, MethodId id)
 
 Node mkMethodId(MethodId id)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(id)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(id)));
 }
 
 bool getMethodId(TNode n, MethodId& i)
@@ -115,4 +118,4 @@ void addMethodIds(std::vector<Node>& args,
   }
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

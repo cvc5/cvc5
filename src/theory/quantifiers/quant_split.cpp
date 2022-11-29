@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -62,12 +62,13 @@ void QuantDSplit::checkOwnership(Node q)
       }
       else
       {
-        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        if (options().quantifiers.quantDynamicSplit
+            == options::QuantDSplitMode::AGG)
         {
           // split if it is a finite datatype
           doSplit = isFinite;
         }
-        else if (options::quantDynamicSplit()
+        else if (options().quantifiers.quantDynamicSplit
                  == options::QuantDSplitMode::DEFAULT)
         {
           if (!qbi.isFiniteBound(q, q[0][i]))
@@ -166,7 +167,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         std::vector<Node> vars;
-        TypeNode dtjtn = dt[j].getSpecializedConstructorType(tn);
+        TypeNode dtjtn = dt[j].getInstantiatedConstructorType(tn);
         Assert(dtjtn.getNumChildren() == dt[j].getNumArgs() + 1);
         for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
         {
@@ -212,4 +213,4 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

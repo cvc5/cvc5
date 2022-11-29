@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +18,19 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s)
-    : d_enum(e), d_stats(s)
+SygusEnumeratorCallback::SygusEnumeratorCallback(Env& env,
+                                                 Node e,
+                                                 TermDbSygus* tds,
+                                                 SygusStatistics* s)
+    : EnvObj(env), d_enum(e), d_tds(tds), d_stats(s)
 {
   d_tn = e.getType();
 }
@@ -34,7 +38,7 @@ SygusEnumeratorCallback::SygusEnumeratorCallback(Node e, SygusStatistics* s)
 bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 {
   Node bn = datatypes::utils::sygusToBuiltin(n);
-  Node bnr = Rewriter::callExtendedRewrite(bn);
+  Node bnr = d_tds == nullptr ? extendedRewrite(bn) : d_tds->rewriteNode(bn);
   if (d_stats != nullptr)
   {
     ++(d_stats->d_enumTermsRewrite);
@@ -62,12 +66,17 @@ bool SygusEnumeratorCallback::addTerm(Node n, std::unordered_set<Node>& bterms)
 }
 
 SygusEnumeratorCallbackDefault::SygusEnumeratorCallbackDefault(
+    Env& env,
     Node e,
+    TermDbSygus* tds,
     SygusStatistics* s,
     ExampleEvalCache* eec,
     SygusSampler* ssrv,
     std::ostream* out)
-    : SygusEnumeratorCallback(e, s), d_eec(eec), d_samplerRrV(ssrv), d_out(out)
+    : SygusEnumeratorCallback(env, e, tds, s),
+      d_eec(eec),
+      d_samplerRrV(ssrv),
+      d_out(out)
 {
 }
 void SygusEnumeratorCallbackDefault::notifyTermInternal(Node n,
@@ -91,7 +100,7 @@ bool SygusEnumeratorCallbackDefault::addTermInternal(Node n, Node bn, Node bnr)
       ++(d_stats->d_enumTermsExampleEval);
     }
     // Is it equivalent under examples?
-    Node bne = d_eec->addSearchVal(d_tn, bnr);
+    Node bne = d_eec->addSearchVal(n.getType(), bnr);
     if (!bne.isNull())
     {
       if (bnr != bne)
@@ -108,4 +117,4 @@ bool SygusEnumeratorCallbackDefault::addTermInternal(Node n, Node bn, Node bnr)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

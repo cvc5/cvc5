@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Tim King
+ *   Aina Niemetz, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,17 +22,16 @@
 #include <iostream>
 
 #include "api/cpp/cvc5.h"
-#include "expr/symbol_manager.h"
 #include "options/language.h"
+#include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "smt/command.h"
 #include "test_api.h"
 
-namespace cvc5 {
+using namespace cvc5::parser;
 
-using namespace parser;
-
+namespace cvc5::internal {
 namespace test {
 
 class TestParseBlackParserBuilder : public TestApi
@@ -42,7 +41,7 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkEmptyInput(Parser* parser)
   {
-    api::Term e = parser->nextExpression();
+    cvc5::Term e = parser->nextExpression();
     ASSERT_TRUE(e.isNull());
   }
 
@@ -78,7 +77,7 @@ TEST_F(TestParseBlackParserBuilder, empty_file_input)
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
                                      .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename, false));
+  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename));
   checkEmptyInput(parser.get());
 
   remove(filename);
@@ -96,7 +95,7 @@ TEST_F(TestParseBlackParserBuilder, simple_file_input)
   std::unique_ptr<Parser> parser(ParserBuilder(&d_solver, d_symman.get(), false)
                                      .withInputLanguage("LANG_SMTLIB_V2_6")
                                      .build());
-  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename, false));
+  parser->setInput(Input::newFileInput("LANG_SMTLIB_V2_6", filename));
   checkInput(parser.get(), "(set-logic ALL)\n");
 
   remove(filename);
@@ -143,4 +142,4 @@ TEST_F(TestParseBlackParserBuilder, true_stream_input)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Liana Hadarean, Mathias Preiner, Alex Ozdemir
+ *   Liana Hadarean, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,12 +19,13 @@
 
 #ifdef CVC5_USE_CRYPTOMINISAT
 
-#include "base/check.h"
-#include "util/statistics_registry.h"
-
 #include <cryptominisat5/cryptominisat.h>
 
-namespace cvc5 {
+#include "base/check.h"
+#include "util/resource_manager.h"
+#include "util/statistics_registry.h"
+
+namespace cvc5::internal {
 namespace prop {
 
 using CMSatVar = unsigned;
@@ -75,7 +76,8 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry& registry,
     : d_solver(new CMSat::SATSolver()),
       d_numVariables(0),
       d_okay(true),
-      d_statistics(registry, name)
+      d_statistics(registry, name),
+      d_resmgr(nullptr)
 {
 }
 
@@ -94,14 +96,28 @@ void CryptoMinisatSolver::init()
 
 CryptoMinisatSolver::~CryptoMinisatSolver() {}
 
+void CryptoMinisatSolver::setTimeLimit(ResourceManager* resmgr)
+{
+  d_resmgr = resmgr;
+}
+
+void CryptoMinisatSolver::setMaxTime()
+{
+  if (d_resmgr)
+  {
+    // Set time limit to remaining number of seconds.
+    d_solver->set_max_time(d_resmgr->getRemainingTime() / 1000.0);
+  }
+}
+
 ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
                                            bool rhs,
                                            bool removable)
 {
-  Debug("sat::cryptominisat") << "Add xor clause " << clause <<" = " << rhs << "\n";
+  Trace("sat::cryptominisat") << "Add xor clause " << clause <<" = " << rhs << "\n";
 
   if (!d_okay) {
-    Debug("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
+    Trace("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
     return ClauseIdError;
   }
 
@@ -120,10 +136,10 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
 }
 
 ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
-  Debug("sat::cryptominisat") << "Add clause " << clause <<"\n";
+  Trace("sat::cryptominisat") << "Add clause " << clause <<"\n";
 
   if (!d_okay) {
-    Debug("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
+    Trace("sat::cryptominisat") << "Solver unsat: not adding clause.\n";
     return ClauseIdError;
   }
 
@@ -170,6 +186,7 @@ void CryptoMinisatSolver::interrupt(){
 SatValue CryptoMinisatSolver::solve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   ++d_statistics.d_statCallsToSolve;
+  setMaxTime();
   return toSatLiteralValue(d_solver->solve());
 }
 
@@ -189,6 +206,7 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
     assumpts.push_back(toInternalLit(lit));
   }
   ++d_statistics.d_statCallsToSolve;
+  setMaxTime();
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
@@ -228,5 +246,5 @@ CryptoMinisatSolver::Statistics::Statistics(StatisticsRegistry& registry,
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

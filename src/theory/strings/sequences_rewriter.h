@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -40,6 +40,12 @@ class SequencesRewriter : public TheoryRewriter
   StringsEntail& getStringsEntail();
 
  protected:
+  /** rewrite regular expression all
+   *
+   * This is the entry point for post-rewriting applications of re.all.
+   * Returns the rewritten form of node.
+   */
+  Node rewriteAllRegExp(TNode node);
   /** rewrite regular expression concatenation
    *
    * This is the entry point for post-rewriting applications of re.++.
@@ -126,8 +132,6 @@ class SequencesRewriter : public TheoryRewriter
  public:
   RewriteResponse postRewrite(TNode node) override;
   RewriteResponse preRewrite(TNode node) override;
-  /** Expand definition */
-  TrustNode expandDefinition(Node n) override;
 
   /** rewrite equality
    *
@@ -284,7 +288,7 @@ class SequencesRewriter : public TheoryRewriter
    * We apply certain normalizations to n', such as replacing all constants
    * that are not relevant to length by "A".
    */
-  static Node lengthPreserveRewrite(Node n);
+  Node lengthPreserveRewrite(Node n);
 
   /**
    * Given a symbolic length n, returns the canonical string (of type stype)
@@ -305,6 +309,11 @@ class SequencesRewriter : public TheoryRewriter
   Node postProcessRewrite(Node node, Node ret);
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
+  /**
+   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
+   * be removed.
+   */
+  Rewriter* d_rr;
   /** The arithmetic entailment module */
   ArithEntail d_arithEntail;
   /** Instance of the entailment checker for strings. */
@@ -313,6 +322,6 @@ class SequencesRewriter : public TheoryRewriter
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__SEQUENCES_REWRITER_H */

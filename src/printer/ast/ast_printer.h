@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,23 +22,28 @@
 
 #include "printer/printer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class LetBinding;
 
 namespace printer {
 namespace ast {
 
-class AstPrinter : public cvc5::Printer
+class AstPrinter : public cvc5::internal::Printer
 {
  public:
-  using cvc5::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
-  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  using cvc5::internal::Printer::toStream;
+  void toStream(std::ostream& out, TNode n) const override;
+  void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
+
+  void toStreamCmdSuccess(std::ostream& out) const override;
+  void toStreamCmdInterrupted(std::ostream& out) const override;
+  void toStreamCmdUnsupported(std::ostream& out) const override;
+  void toStreamCmdFailure(std::ostream& out,
+                          const std::string& message) const override;
+  void toStreamCmdRecoverableFailure(std::ostream& out,
+                                     const std::string& message) const override;
 
   /** Print empty command */
   void toStreamCmdEmpty(std::ostream& out,
@@ -52,10 +57,10 @@ class AstPrinter : public cvc5::Printer
   void toStreamCmdAssert(std::ostream& out, Node n) const override;
 
   /** Print push command */
-  void toStreamCmdPush(std::ostream& out) const override;
+  void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print pop command */
-  void toStreamCmdPop(std::ostream& out) const override;
+  void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const override;
 
   /** Print declare-fun command */
   void toStreamCmdDeclareFunction(std::ostream& out,
@@ -103,7 +108,8 @@ class AstPrinter : public cvc5::Printer
   void toStreamCmdGetModel(std::ostream& out) const override;
 
   /** Print get-proof command */
-  void toStreamCmdGetProof(std::ostream& out) const override;
+  void toStreamCmdGetProof(std::ostream& out,
+                           modes::ProofComponent c) const override;
 
   /** Print get-unsat-core command */
   void toStreamCmdGetUnsatCore(std::ostream& out) const override;
@@ -146,14 +152,6 @@ class AstPrinter : public cvc5::Printer
   /** Print quit command */
   void toStreamCmdQuit(std::ostream& out) const override;
 
-  /** Print command sequence command */
-  void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
-
-  /** Print declaration sequence command */
-  void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const override;
-
  private:
   void toStream(std::ostream& out,
                 TNode n,
@@ -186,6 +184,6 @@ class AstPrinter : public cvc5::Printer
 
 }  // namespace ast
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__AST_PRINTER_H */

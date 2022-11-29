@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar
+ *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,13 +18,16 @@
 #include "proof/proof_checker.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace proof {
 
 const char* toString(LfscRule id)
 {
   switch (id)
   {
+    case LfscRule::DEFINITION: return "refl";
     case LfscRule::SCOPE: return "scope";
     case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";
@@ -33,6 +36,7 @@ const char* toString(LfscRule id)
     case LfscRule::NOT_AND_REV: return "not_and_rev";
     case LfscRule::PROCESS_SCOPE: return "process_scope";
     case LfscRule::ARITH_SUM_UB: return "arith_sum_ub";
+    case LfscRule::CONCAT_CONFLICT_DEQ: return "concat_conflict_deq";
     case LfscRule::INSTANTIATE: return "instantiate";
     case LfscRule::SKOLEMIZE: return "skolemize";
     case LfscRule::LAMBDA: return "\\";
@@ -66,7 +70,8 @@ LfscRule getLfscRule(Node n)
 
 Node mkLfscRuleNode(LfscRule r)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
+  return NodeManager::currentNM()->mkConstInt(
+      Rational(static_cast<uint32_t>(r)));
 }
 
 bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
@@ -85,4 +90,4 @@ bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

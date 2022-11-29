@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Mathias Preiner, Gereon Kremer
+ *   Tim King, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,8 +25,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 
-namespace cvc5 {
-namespace context {
+namespace cvc5::context {
 
 class Context;
 
@@ -89,7 +88,6 @@ public:
 
 };/* class CDTrailQueue<> */
 
-}  // namespace context
-}  // namespace cvc5
+}  // namespace cvc5::context
 
 #endif /* CVC5__CONTEXT__CDTRAIL_QUEUE_H */

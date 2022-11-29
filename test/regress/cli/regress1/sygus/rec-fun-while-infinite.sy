@@ -1,0 +1,97 @@
+; EXPECT: fail
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
+
+(set-logic ALL)
+
+; The environment datatypes
+(declare-datatype NVars ((x) (y)))
+
+(declare-datatype Pair ((build (first NVars) (second Int))))
+
+(declare-datatype Env ((cons (head Pair) (tail Env)) (nil)))
+
+(define-fun-rec envStore ((var NVars) (value Int) (env Env)) Env
+  (ite (is-nil env)
+    (cons (build var value) env)
+    (ite (= var (first (head env)))
+      (cons (build var value) (tail env))
+      (cons (head env) (envStore var value (tail env)))
+      )
+    )
+  )
+
+(define-fun-rec envSelect ((var NVars) (env Env)) Int
+  (ite (is-nil env)
+    0
+    (ite (= var (first (head env)))
+      (second (head env))
+      (envSelect var (tail env))
+      )
+    )
+  )
+
+; Syntax for arithmetic expressions
+(declare-datatype Aexp
+  (
+    (Val (val Int))
+    (Var (name NVars))
+    (Add (addL Aexp) (addR Aexp))
+    )
+  )
+
+; Function to evaluate arithmetic expressions
+(define-fun-rec evalA ((env Env) (a Aexp)) Int
+  (ite (is-Val a)
+    (val a)
+    (ite (is-Var a)
+      (envSelect (name a) env)
+      ; (is-Add a)
+      (+ (evalA env (addL a)) (evalA env (addR a)))
+      )))
+
+; Syntax for boolean expressions
+(declare-datatype Bexp
+  (
+    (TRUE)
+    ))
+
+; Function to evaluate boolean expressions
+(define-fun-rec evalB ((env Env) (b Bexp)) Bool
+  (is-TRUE b)
+)
+
+; Syntax for commands
+(declare-datatype Com
+  (
+    (Assign (lhs NVars) (rhs Aexp))
+    (While (wCond Bexp) (wCom Com))
+    )
+  )
+
+; Function to evaluate statements
+(define-fun-rec evalC ((env Env) (c Com)) Env
+  (ite (is-Assign c)
+    (envStore (lhs c) (evalA env (rhs c)) env)
+        ; (is-While c)
+          (ite (evalB env (wCond c)) (evalC (evalC env (wCom c)) c) env)
+        )
+      )
+
+
+(synth-fun prog () Com
+  ((C1 Com) (C2 Com) (V NVars) (A1 Aexp) (A2 Aexp) (A3 Aexp) (B Bexp) (I Int))
+  (
+    (C1 Com ((While B C2)))
+    (C2 Com ((Assign V A1)))
+    (V NVars (x))
+    (A1 Aexp ((Var V)))
+    (A2 Aexp ((Val I)))
+    (A3 Aexp ((Add A1 A2)))
+    (B Bexp (TRUE))
+    (I Int (1))
+    )
+)
+
+(constraint (= (evalC (cons (build x 1) nil) prog) (cons (build x 1) nil)))
+
+(check-synth)

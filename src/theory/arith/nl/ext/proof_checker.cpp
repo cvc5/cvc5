@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
+ *   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -37,11 +37,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-  auto zero = nm->mkConst<Rational>(0);
-  auto one = nm->mkConst<Rational>(1);
-  auto mone = nm->mkConst<Rational>(-1);
-  auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-  auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-ext-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {
@@ -103,6 +98,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
         }
       }
     }
+    Node zero = nm->mkConstRealOrInt(mon.getType(), Rational(0));
     switch (sign)
     {
       case -1:
@@ -122,13 +118,12 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 6);
-    Assert(args[0].getType().isReal());
-    Assert(args[1].getType().isReal());
-    Assert(args[2].getType().isReal());
-    Assert(args[3].getType().isReal());
-    Assert(args[4].getType().isReal());
-    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL
-           && args[5].getConst<Rational>().isIntegral());
+    Assert(args[0].getType().isRealOrInt());
+    Assert(args[1].getType().isRealOrInt());
+    Assert(args[2].getType().isRealOrInt());
+    Assert(args[3].getType().isRealOrInt());
+    Assert(args[4].getType().isRealOrInt());
+    Assert(args[5].isConst() && args[5].getConst<Rational>().isIntegral());
     Node t = args[0];
     Node x = args[1];
     Node y = args[2];
@@ -136,8 +131,8 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
     Node b = args[4];
     int sgn = args[5].getConst<Rational>().getNumerator().sgn();
     Assert(sgn == -1 || sgn == 1);
-    Node tplane = nm->mkNode(Kind::MINUS,
-                             nm->mkNode(Kind::PLUS,
+    Node tplane = nm->mkNode(Kind::SUB,
+                             nm->mkNode(Kind::ADD,
                                         nm->mkNode(Kind::MULT, b, x),
                                         nm->mkNode(Kind::MULT, a, y)),
                              nm->mkNode(Kind::MULT, a, b));
@@ -159,4 +154,4 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

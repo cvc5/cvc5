@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Tim King
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -30,10 +31,10 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -43,7 +44,8 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
       d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),
-      d_termsContextUse(options::termDbCd() ? context() : &d_termsContext),
+      d_termsContextUse(options().quantifiers.termDbCd ? context()
+                                                       : &d_termsContext),
       d_processed(d_termsContextUse),
       d_typeMap(d_termsContextUse),
       d_ops(d_termsContextUse),
@@ -53,7 +55,7 @@ TermDb::TermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  if (!options::termDbCd())
+  if (!options().quantifiers.termDbCd)
   {
     // when not maintaining terms in a context-dependent manner, we clear during
     // each presolve, which requires maintaining a single outermost level
@@ -85,7 +87,7 @@ Node TermDb::getOperator(size_t i) const
 }
 
 /** ground terms */
-size_t TermDb::getNumGroundTerms(Node f) const
+size_t TermDb::getNumGroundTerms(TNode f) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -95,7 +97,7 @@ size_t TermDb::getNumGroundTerms(Node f) const
   return 0;
 }
 
-Node TermDb::getGroundTerm(Node f, size_t i) const
+Node TermDb::getGroundTerm(TNode f, size_t i) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
   if (it != d_opMap.end())
@@ -105,6 +107,16 @@ Node TermDb::getGroundTerm(Node f, size_t i) const
   }
   Assert(false);
   return Node::null();
+}
+
+DbList* TermDb::getGroundTermList(TNode f) const
+{
+  NodeDbListMap::const_iterator it = d_opMap.find(f);
+  if (it != d_opMap.end())
+  {
+    return it->second.get();
+  }
+  return nullptr;
 }
 
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
@@ -157,12 +169,12 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   {
     SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
     std::stringstream ss;
-    ss << language::SetLanguage(options::outputLanguage());
+    options::ioutils::applyOutputLanguage(ss, options().printer.outputLanguage);
     ss << "e_" << tn;
     Node k = sm->mkDummySkolem(ss.str(), tn, "is a termDb fresh variable");
     Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
                    << std::endl;
-    if (options::instMaxLevel() != -1)
+    if (options().quantifiers.instMaxLevel != -1)
     {
       QuantAttributes::setInstantiationLevelAttr(k, 0);
     }
@@ -172,13 +184,15 @@ Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
   return it->second;
 }
 
-Node TermDb::getMatchOperator( Node n ) {
+Node TermDb::getMatchOperator(TNode n)
+{
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are
-  if (k == SELECT || k == STORE || k == UNION || k == INTERSECTION
-      || k == SUBSET || k == SETMINUS || k == MEMBER || k == SINGLETON
-      || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR || k == APPLY_TESTER
-      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH)
+  if (k == SELECT || k == STORE || k == SET_UNION || k == SET_INTER
+      || k == SET_SUBSET || k == SET_MINUS || k == SET_MEMBER
+      || k == SET_SINGLETON || k == APPLY_SELECTOR || k == APPLY_TESTER
+      || k == SEP_PTO || k == HO_APPLY || k == SEQ_NTH || k == STRING_LENGTH
+      || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR)
   {
     //since it is parametric, use a particular one as op
     TypeNode tn = n[0].getType();
@@ -197,10 +211,11 @@ Node TermDb::getMatchOperator( Node n ) {
   else if (inst::TriggerTermInfo::isAtomicTriggerKind(k))
   {
     return n.getOperator();
-  }else{
-    return Node::null();
   }
+  return Node::null();
 }
+
+bool TermDb::isMatchable(TNode n) { return !getMatchOperator(n).isNull(); }
 
 void TermDb::addTerm(Node n)
 {
@@ -284,7 +299,8 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     return;
   }
-  d_func_map_eqc_trie[f].clear();
+  TNodeTrie& tnt = d_func_map_eqc_trie[f];
+  tnt.clear();
   // get the matchable operators in the equivalence class of f
   std::vector<TNode> ops;
   getOperatorsFor(f, ops);
@@ -298,7 +314,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       {
         computeArgReps(n);
         TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
-        d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
+        tnt.d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
   }
@@ -348,23 +364,27 @@ void TermDb::computeUfTerms( TNode f ) {
       }
 
       computeArgReps(n);
+      std::vector<TNode>& reps = d_arg_reps[n];
       Trace("term-db-debug") << "Adding term " << n << " with arg reps : ";
-      for (unsigned i = 0, size = d_arg_reps[n].size(); i < size; i++)
+      std::vector<std::vector<TNode> >& frds = d_fmapRelDom[f];
+      size_t rsize = reps.size();
+      // ensure the relevant domain vector has been allocated
+      frds.resize(rsize);
+      for (size_t i = 0; i < rsize; i++)
       {
-        Trace("term-db-debug") << d_arg_reps[n][i] << " ";
-        if (std::find(d_func_map_rel_dom[f][i].begin(),
-                      d_func_map_rel_dom[f][i].end(),
-                      d_arg_reps[n][i])
-            == d_func_map_rel_dom[f][i].end())
+        TNode r = reps[i];
+        Trace("term-db-debug") << r << " ";
+        std::vector<TNode>& frd = frds[i];
+        if (std::find(frd.begin(), frd.end(), r) == frd.end())
         {
-          d_func_map_rel_dom[f][i].push_back(d_arg_reps[n][i]);
+          frd.push_back(r);
         }
       }
       Trace("term-db-debug") << std::endl;
       Assert(d_qstate.hasTerm(n));
       Trace("term-db-debug")
           << "  and value : " << d_qstate.getRepresentative(n) << std::endl;
-      Node at = d_func_map_trie[f].addOrGetTerm(n, d_arg_reps[n]);
+      Node at = d_func_map_trie[f].addOrGetTerm(n, reps);
       Assert(d_qstate.hasTerm(at));
       Trace("term-db-debug2") << "...add term returned " << at << std::endl;
       if (at != n && d_qstate.areEqual(at, n))
@@ -386,7 +406,7 @@ void TermDb::computeUfTerms( TNode f ) {
           }
         }
         Node lem = nm->mkOr(lits);
-        if (Trace.isOn("term-db-lemma"))
+        if (TraceIsOn("term-db-lemma"))
         {
           Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                  << n << "!!!!" << std::endl;
@@ -406,7 +426,7 @@ void TermDb::computeUfTerms( TNode f ) {
       nonCongruentCount++;
       d_op_nonred_count[f]++;
     }
-    if (Trace.isOn("tdb"))
+    if (TraceIsOn("tdb"))
     {
       Trace("tdb") << "Term db size [" << f << "] : " << nonCongruentCount
                    << " / ";
@@ -432,23 +452,22 @@ bool TermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   return false;
 }
 
-bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
+bool TermDb::inRelevantDomain(TNode f, size_t i, TNode r)
+{
   // notice if we are not higher-order, getOperatorRepresentative is a no-op
   f = getOperatorRepresentative(f);
-  computeUfTerms( f );
+  computeUfTerms(f);
   Assert(!d_qstate.getEqualityEngine()->hasTerm(r)
          || d_qstate.getEqualityEngine()->getRepresentative(r) == r);
-  std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
-  if( it != d_func_map_rel_dom.end() ){
-    std::map< unsigned, std::vector< Node > >::iterator it2 = it->second.find( i );
-    if( it2!=it->second.end() ){
-      return std::find( it2->second.begin(), it2->second.end(), r )!=it2->second.end();
-    }else{
-      return false;
-    }
-  }else{
-    return false;
+  std::map<Node, std::vector<std::vector<TNode> > >::const_iterator it =
+      d_fmapRelDom.find(f);
+  if (it != d_fmapRelDom.end())
+  {
+    Assert(i < it->second.size());
+    const std::vector<TNode>& rd = it->second[i];
+    return std::find(rd.begin(), rd.end(), r) != rd.end();
   }
+  return false;
 }
 
 bool TermDb::isTermActive( Node n ) {
@@ -468,25 +487,27 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
     return d_has_map.find( n )!=d_has_map.end();
   }
   //some assertions are not sent to EE
-  if (options::termDbMode() == options::TermDbMode::ALL)
+  if (options().quantifiers.termDbMode == options::TermDbMode::ALL)
   {
     return true;
   }
-  else if (options::termDbMode() == options::TermDbMode::RELEVANT)
+  else if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
     return d_has_map.find( n )!=d_has_map.end();
   }
-  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : " << options::termDbMode();
+  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : "
+                << options().quantifiers.termDbMode;
   return false;
 }
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
-  if( options::instMaxLevel()!=-1 ){
+  if (options().quantifiers.instMaxLevel != -1)
+  {
     if( n.hasAttribute(InstLevelAttribute()) ){
       int64_t fml =
           f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
-      unsigned ml = fml>=0 ? fml : options::instMaxLevel();
+      unsigned ml = fml >= 0 ? fml : options().quantifiers.instMaxLevel;
 
       if( n.getAttribute(InstLevelAttribute())>ml ){
         Trace("inst-add-debug") << "Term " << n << " has instantiation level " << n.getAttribute(InstLevelAttribute());
@@ -494,10 +515,10 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
         return false;
       }
     }else{
-      if( options::instLevelInputOnly() ){
-        Trace("inst-add-debug") << "Term " << n << " does not have an instantiation level." << std::endl;
-        return false;
-      }
+      Trace("inst-add-debug")
+          << "Term " << n << " does not have an instantiation level."
+          << std::endl;
+      return false;
     }
   }
   // it cannot have instantiation constants, which originate from
@@ -565,7 +586,7 @@ void TermDb::setHasTerm( Node n ) {
 }
 
 void TermDb::presolve() {
-  if (options::incrementalSolving() && !options::termDbCd())
+  if (options().base.incrementalSolving && !options().quantifiers.termDbCd)
   {
     d_termsContext.pop();
     d_termsContext.push();
@@ -577,7 +598,7 @@ bool TermDb::reset( Theory::Effort effort ){
   d_arg_reps.clear();
   d_func_map_trie.clear();
   d_func_map_eqc_trie.clear();
-  d_func_map_rel_dom.clear();
+  d_fmapRelDom.clear();
   d_consistent_ee = true;
 
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
@@ -590,7 +611,7 @@ bool TermDb::reset( Theory::Effort effort ){
   }
 
   //compute has map
-  if (options::termDbMode() == options::TermDbMode::RELEVANT)
+  if (options().quantifiers.termDbMode == options::TermDbMode::RELEVANT)
   {
     d_has_map.clear();
     d_term_elig_eqc.clear();
@@ -678,12 +699,12 @@ TNode TermDb::getCongruentTerm( Node f, Node n ) {
   if( itut!=d_func_map_trie.end() ){
     computeArgReps( n );
     return itut->second.existsTerm( d_arg_reps[n] );
-  }else{
-    return TNode::null();
   }
+  return TNode::null();
 }
 
-TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
+TNode TermDb::getCongruentTerm(Node f, const std::vector<TNode>& args)
+{
   f = getOperatorRepresentative(f);
   computeUfTerms( f );
   return d_func_map_trie[f].existsTerm( args );
@@ -691,4 +712,4 @@ TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Mathias Preiner
+ *   Morgan Deters, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 #include "expr/type_node.h"
 #include "expr/kind.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace booleans {
 
@@ -64,6 +64,6 @@ class BooleanEnumerator : public TypeEnumeratorBase<BooleanEnumerator> {
 
 }  // namespace booleans
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__BOOLEANS__TYPE_ENUMERATOR_H */

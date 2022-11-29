@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,40 +16,47 @@
 #include "smt/check_models.h"
 
 #include "base/modal_exception.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/node_command.h"
+#include "smt/expand_definitions.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/rewriter.h"
-#include "theory/substitutions.h"
-#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
-CheckModels::CheckModels(Env& e) : d_env(e) {}
-CheckModels::~CheckModels() {}
+CheckModels::CheckModels(Env& e) : EnvObj(e) {}
 
 void CheckModels::checkModel(TheoryModel* m,
                              const context::CDList<Node>& al,
                              bool hardFailure)
 {
-  // Throughout, we use Notice() to give diagnostic output.
+  // Throughout, we use verbose(1) to give diagnostic output.
   //
   // If this function is running, the user gave --check-model (or equivalent),
-  // and if Notice() is on, the user gave --verbose (or equivalent).
+  // and if verbose(1) is on, the user gave --verbose (or equivalent).
 
-  // check-model is not guaranteed to succeed if approximate values were used.
-  // Thus, we intentionally abort here.
-  if (m->hasApproximations())
+  Node sepHeap, sepNeq;
+  if (m->getHeapModel(sepHeap, sepNeq))
   {
     throw RecoverableModalException(
-        "Cannot run check-model on a model with approximate values.");
+        "Cannot run check-model on a model with a separation logic heap.");
   }
+  if (options().quantifiers.fmfFunWellDefined)
+  {
+    warning() << "Running check-model is not guaranteed to pass when fmf-fun "
+                 "is enabled."
+              << std::endl;
+  }
+  // expand definitions module and substitutions
+  std::unordered_map<Node, Node> ecache;
+  ExpandDefs expDef(d_env);
 
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
@@ -59,26 +66,35 @@ void CheckModels::checkModel(TheoryModel* m,
   // Now go through all our user assertions checking if they're satisfied.
   for (const Node& assertion : al)
   {
-    Notice() << "SolverEngine::checkModel(): checking assertion " << assertion
-             << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): checking assertion " << assertion
+               << std::endl;
 
     // Apply any define-funs from the problem. We do not expand theory symbols
     // like integer division here. Hence, the code below is not able to properly
     // evaluate e.g. divide-by-zero. This is intentional since the evaluation
     // is not trustworthy, since the UF introduced by expanding definitions may
     // not be properly constrained.
-    Node n = sm.apply(assertion, false);
-    Notice() << "SolverEngine::checkModel(): -- substitutes to " << n
-             << std::endl;
+    Node n = sm.apply(assertion);
+    verbose(1) << "SolverEngine::checkModel(): -- substitutes to " << n
+               << std::endl;
 
-    n = Rewriter::rewrite(n);
-    Notice() << "SolverEngine::checkModel(): -- rewrites to " << n << std::endl;
+    // Expand definitions, which is required for being accurate for operators
+    // that expand involving skolems during preprocessing. Not doing this will
+    // increase the spurious warnings raised by this class.
+    n = expDef.expandDefinitions(n, cache);
+    verbose(1) << "SolverEngine::checkModel(): -- expands to " << n
+               << std::endl;
+
+    n = rewrite(n);
+    verbose(1) << "SolverEngine::checkModel(): -- rewrites to " << n
+               << std::endl;
 
     // We look up the value before simplifying. If n contains quantifiers,
     // this may increases the chance of finding its value before the node is
     // altered by simplification below.
     n = m->getValue(n);
-    Notice() << "SolverEngine::checkModel(): -- get value : " << n << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): -- get value : " << n
+               << std::endl;
 
     if (n.isConst() && n.getConst<bool>())
     {
@@ -104,7 +120,7 @@ void CheckModels::checkModel(TheoryModel* m,
     if (!n.isConst())
     {
       // Not constant, print a less severe warning message here.
-      Warning()
+      warning()
           << "Warning : SolverEngine::checkModel(): cannot check simplified "
              "assertion : "
           << n << std::endl;
@@ -113,8 +129,8 @@ void CheckModels::checkModel(TheoryModel* m,
     }
     // Assertions that simplify to false result in an InternalError or
     // Warning being thrown below (when hardFailure is false).
-    Notice() << "SolverEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-             << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+               << std::endl;
     std::stringstream ss;
     ss << "SolverEngine::checkModel(): "
        << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << std::endl
@@ -129,13 +145,13 @@ void CheckModels::checkModel(TheoryModel* m,
     }
     else
     {
-      Warning() << ss.str() << std::endl;
+      warning() << ss.str() << std::endl;
     }
   }
   if (noCheckList.empty())
   {
-    Notice() << "SolverEngine::checkModel(): all assertions checked out OK !"
-             << std::endl;
+    verbose(1) << "SolverEngine::checkModel(): all assertions checked out OK !"
+               << std::endl;
     return;
   }
   // if the noCheckList is non-empty, we could expand definitions on this list
@@ -145,4 +161,4 @@ void CheckModels::checkModel(TheoryModel* m,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

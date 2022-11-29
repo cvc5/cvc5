@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,23 +22,21 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
 BranchAndBound::BranchAndBound(Env& env,
                                ArithState& s,
                                InferenceManager& im,
-                               PreprocessRewriteEq& ppre,
-                               ProofNodeManager* pnm)
+                               PreprocessRewriteEq& ppre)
     : EnvObj(env),
       d_astate(s),
       d_im(im),
       d_ppre(ppre),
-      d_pfGen(new EagerProofGenerator(pnm, userContext())),
-      d_pnm(pnm)
+      d_pfGen(new EagerProofGenerator(env, userContext()))
 {
 }
 
@@ -58,17 +56,15 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
 
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
-    Node ub =
-        Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(nearest - 1)));
-    Node lb =
-        Rewriter::rewrite(nm->mkNode(GEQ, var, mkRationalNode(nearest + 1)));
+    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
+    Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
-    Node rawEq = nm->mkNode(EQUAL, var, mkRationalNode(nearest));
-    Node eq = Rewriter::rewrite(rawEq);
+    Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
+    Node eq = rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
     TrustNode teq;
-    if (Theory::theoryOf(eq) == THEORY_ARITH)
+    if (d_env.theoryOf(eq) == THEORY_ARITH)
     {
       teq = d_ppre.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
@@ -80,38 +76,38 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
     Trace("integers") << "l: " << l << std::endl;
     if (proofsEnabled())
     {
-      Node less = nm->mkNode(LT, var, mkRationalNode(nearest));
-      Node greater = nm->mkNode(GT, var, mkRationalNode(nearest));
+      ProofNodeManager* pnm = d_env.getProofNodeManager();
+      Node less = nm->mkNode(LT, var, nm->mkConstInt(nearest));
+      Node greater = nm->mkNode(GT, var, nm->mkConstInt(nearest));
       // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
-      Debug("integers::pf") << "less: " << less << std::endl;
-      Debug("integers::pf") << "greater: " << greater << std::endl;
-      Debug("integers::pf") << "literal: " << literal << std::endl;
-      Debug("integers::pf") << "eq: " << eq << std::endl;
-      Debug("integers::pf") << "rawEq: " << rawEq << std::endl;
-      Pf pfNotLit = d_pnm->mkAssume(literal.negate());
+      Trace("integers::pf") << "less: " << less << std::endl;
+      Trace("integers::pf") << "greater: " << greater << std::endl;
+      Trace("integers::pf") << "literal: " << literal << std::endl;
+      Trace("integers::pf") << "eq: " << eq << std::endl;
+      Trace("integers::pf") << "rawEq: " << rawEq << std::endl;
+      Pf pfNotLit = pnm->mkAssume(literal.negate());
       // rewrite notLiteral to notRawEq, using teq.
       Pf pfNotRawEq =
           literal == rawEq
               ? pfNotLit
-              : d_pnm->mkNode(
-                    PfRule::MACRO_SR_PRED_TRANSFORM,
-                    {pfNotLit,
-                     teq.getGenerator()->getProofFor(teq.getProven())},
-                    {rawEq.negate()});
-      Pf pfBot = d_pnm->mkNode(
-          PfRule::CONTRA,
-          {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                         {d_pnm->mkAssume(less.negate()), pfNotRawEq},
-                         {greater}),
-           d_pnm->mkAssume(greater.negate())},
-          {});
+              : pnm->mkNode(
+                  PfRule::MACRO_SR_PRED_TRANSFORM,
+                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
+                  {rawEq.negate()});
+      Pf pfBot =
+          pnm->mkNode(PfRule::CONTRA,
+                      {pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+                                   {pnm->mkAssume(less.negate()), pfNotRawEq},
+                                   {greater}),
+                       pnm->mkAssume(greater.negate())},
+                      {});
       std::vector<Node> assumptions = {
           literal.negate(), less.negate(), greater.negate()};
       // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
-      Pf pfNotAnd = d_pnm->mkScope(pfBot, assumptions);
-      Pf pfL = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
-                             {d_pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
-                             {l});
+      Pf pfNotAnd = pnm->mkScope(pfBot, assumptions);
+      Pf pfL = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                           {pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
+                           {l});
       lem = d_pfGen->mkTrustNode(l, pfL);
     }
     else
@@ -121,7 +117,7 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   }
   else
   {
-    Node ub = Rewriter::rewrite(nm->mkNode(LEQ, var, mkRationalNode(floor)));
+    Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
@@ -138,8 +134,11 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
   return lem;
 }
 
-bool BranchAndBound::proofsEnabled() const { return d_pnm != nullptr; }
+bool BranchAndBound::proofsEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

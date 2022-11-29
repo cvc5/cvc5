@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Tim King
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,8 +23,11 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
+
+class Rewriter;
+
 namespace quantifiers {
 
 class TermDbSygus;
@@ -44,6 +47,7 @@ class SynthConjecture;
 class SygusInvarianceTest
 {
  public:
+  SygusInvarianceTest(Rewriter* r) : d_rewriter(r) {}
   virtual ~SygusInvarianceTest() {}
 
   /** Is nvn invariant with respect to this test ?
@@ -69,6 +73,8 @@ class SygusInvarianceTest
   /** set updated term */
   void setUpdatedTerm(Node n) { d_update_nvn = n; }
  protected:
+  /** Pointer to the rewriter */
+  Rewriter* d_rewriter;
   /** result of the node that satisfies this invariant */
   Node d_update_nvn;
   /** check whether nvn[ x ] is invariant */
@@ -98,8 +104,10 @@ class SygusInvarianceTest
 class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EvalSygusInvarianceTest()
-      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
+  EvalSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r),
+        d_kind(kind::UNDEFINED_KIND),
+        d_is_conjunctive(false)
   {
   }
 
@@ -168,7 +176,10 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 class EquivSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EquivSygusInvarianceTest() : d_conj(nullptr) {}
+  EquivSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r), d_conj(nullptr)
+  {
+  }
 
   /** initialize this invariance test
    * tn is the sygus type for e
@@ -209,7 +220,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  DivByZeroSygusInvarianceTest() {}
+  DivByZeroSygusInvarianceTest(Rewriter* r) : SygusInvarianceTest(r) {}
 
  protected:
   /** checks whether nvn involves division by zero. */
@@ -245,7 +256,10 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  NegContainsSygusInvarianceTest() : d_isUniversal(false) {}
+  NegContainsSygusInvarianceTest(Rewriter* r)
+      : SygusInvarianceTest(r), d_isUniversal(false)
+  {
+  }
 
   /** initialize this invariance test
    *  e is the enumerator which we are reasoning about (associated with a synth
@@ -294,6 +308,6 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */

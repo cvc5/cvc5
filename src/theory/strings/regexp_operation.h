@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +28,7 @@
 #include "theory/strings/skolem_cache.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -44,7 +44,7 @@ enum RegExpConstType
   // re.allchar or re.range (call these three operators "non-concrete
   // operators"). Notice that re.comp is a non-concrete operator
   // since it can be seen as indirectly defined in terms of re.allchar.
-  RE_C_CONRETE_CONSTANT,
+  RE_C_CONCRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
   // re.comp, re.allchar or re.range
   RE_C_CONSTANT,
@@ -56,7 +56,7 @@ enum RegExpConstType
 
 class RegExpOpr : protected EnvObj
 {
-  typedef std::pair<Node, cvc5::String> PairNodeStr;
+  typedef std::pair<Node, cvc5::internal::String> PairNodeStr;
   typedef std::set< Node > SetNodes;
   typedef std::pair< Node, Node > PairNodes;
 
@@ -172,8 +172,8 @@ class RegExpOpr : protected EnvObj
    * - delta( (re.union (re.* "A") R) ) returns 1.
    */
   int delta( Node r, Node &exp );
-  int derivativeS(Node r, cvc5::String c, Node& retNode);
-  Node derivativeSingle(Node r, cvc5::String c);
+  int derivativeS(Node r, cvc5::internal::String c, Node& retNode);
+  Node derivativeSingle(Node r, cvc5::internal::String c);
   /**
    * Returns the regular expression intersection of r1 and r2. If r1 or r2 is
    * not constant, then this method returns null.
@@ -198,6 +198,6 @@ class RegExpOpr : protected EnvObj
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__REGEXP__OPERATION_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
+ *   Aina Niemetz, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +19,9 @@
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestNode : public TestInternal
@@ -31,7 +30,6 @@ class TestNode : public TestInternal
   void SetUp() override
   {
     d_nodeManager = NodeManager::currentNM();
-    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));
@@ -48,5 +46,5 @@ class TestNode : public TestInternal
 };
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Matthew Sotoudeh, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "options/base_options.h"
 #include "util/statistics_public.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
     : EnvObj(env)
@@ -32,28 +32,28 @@ StatisticsRegistry::StatisticsRegistry(Env& env, bool registerPublic)
 }
 
 AverageStat StatisticsRegistry::registerAverage(const std::string& name,
-                                                bool expert)
+                                                bool internal)
 {
-  return registerStat<AverageStat>(name, expert);
+  return registerStat<AverageStat>(name, internal);
 }
-IntStat StatisticsRegistry::registerInt(const std::string& name, bool expert)
+IntStat StatisticsRegistry::registerInt(const std::string& name, bool internal)
 {
-  return registerStat<IntStat>(name, expert);
+  return registerStat<IntStat>(name, internal);
 }
 TimerStat StatisticsRegistry::registerTimer(const std::string& name,
-                                            bool expert)
+                                            bool internal)
 {
-  return registerStat<TimerStat>(name, expert);
+  return registerStat<TimerStat>(name, internal);
 }
 
 void StatisticsRegistry::storeSnapshot()
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     d_lastSnapshot = std::make_unique<Snapshot>();
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
       if (!options().base.statisticsAll && s.second->isDefault()) continue;
       d_lastSnapshot->emplace(
           s.first,
@@ -64,7 +64,7 @@ void StatisticsRegistry::storeSnapshot()
 
 StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     auto it = d_stats.find(name);
     if (it == d_stats.end()) return nullptr;
@@ -75,11 +75,11 @@ StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 
 void StatisticsRegistry::print(std::ostream& os) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
       if (!options().base.statisticsAll && s.second->isDefault()) continue;
       os << s.first << " = " << *s.second << std::endl;
     }
@@ -88,11 +88,11 @@ void StatisticsRegistry::print(std::ostream& os) const
 
 void StatisticsRegistry::printSafe(int fd) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
       if (!options().base.statisticsAll && s.second->isDefault()) continue;
 
       safe_print(fd, s.first);
@@ -104,7 +104,7 @@ void StatisticsRegistry::printSafe(int fd) const
 }
 void StatisticsRegistry::printDiff(std::ostream& os) const
 {
-  if constexpr (Configuration::isStatisticsBuild())
+  if constexpr (configuration::isStatisticsBuild())
   {
     if (!d_lastSnapshot)
     {
@@ -114,7 +114,7 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
     }
     for (const auto& s : d_stats)
     {
-      if (!options().base.statisticsExpert && s.second->d_expert) continue;
+      if (!options().base.statisticsInternal && s.second->d_internal) continue;
       if (!options().base.statisticsAll && s.second->isDefault())
       {
         auto oldit = d_lastSnapshot->find(s.first);
@@ -153,4 +153,4 @@ std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
   return os;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

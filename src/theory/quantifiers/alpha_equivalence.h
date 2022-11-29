@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Paul Meng
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "smt/env_obj.h"
 #include "theory/quantifiers/quant_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -35,23 +35,29 @@ namespace quantifiers {
  * d_children[T1][2].d_children[T2][3].
  */
 class AlphaEquivalenceTypeNode {
-public:
- /** children of this node */
- std::map<std::pair<TypeNode, size_t>, AlphaEquivalenceTypeNode> d_children;
- /**
-  * map from canonized quantifier bodies to a quantified formula whose
-  * canonized body is that term.
-  */
- std::map<Node, Node> d_quant;
- /** register node
-  *
-  * This registers term q to this trie. The term t is the canonical form of
-  * q, typs/typCount represent a multi-set of types of free variables in t.
-  */
- Node registerNode(Node q,
-                   Node t,
-                   std::vector<TypeNode>& typs,
-                   std::map<TypeNode, size_t>& typCount);
+  using NodeMap = context::CDHashMap<Node, Node>;
+
+ public:
+  AlphaEquivalenceTypeNode(context::Context* c);
+  /** children of this node */
+  std::map<std::pair<TypeNode, size_t>,
+           std::unique_ptr<AlphaEquivalenceTypeNode>>
+      d_children;
+  /**
+   * map from canonized quantifier bodies to a quantified formula whose
+   * canonized body is that term.
+   */
+  NodeMap d_quant;
+  /** register node
+   *
+   * This registers term q to this trie. The term t is the canonical form of
+   * q, typs/typCount represent a multi-set of types of free variables in t.
+   */
+  Node registerNode(context::Context* c,
+                    Node q,
+                    Node t,
+                    std::vector<TypeNode>& typs,
+                    std::map<TypeNode, size_t>& typCount);
 };
 
 /**
@@ -60,10 +66,9 @@ public:
 class AlphaEquivalenceDb
 {
  public:
-  AlphaEquivalenceDb(expr::TermCanonize* tc, bool sortCommChildren)
-      : d_tc(tc), d_sortCommutativeOpChildren(sortCommChildren)
-  {
-  }
+  AlphaEquivalenceDb(context::Context* c,
+                     expr::TermCanonize* tc,
+                     bool sortCommChildren);
   /** adds quantified formula q to this database
    *
    * This function returns a quantified formula q' that is alpha-equivalent to
@@ -87,6 +92,8 @@ class AlphaEquivalenceDb
    * had been added to this class, or q otherwise.
    */
   Node addTermToTypeTrie(Node t, Node q);
+  /** The context we depend on */
+  context::Context* d_context;
   /** a trie per # of variables per type */
   AlphaEquivalenceTypeNode d_ae_typ_trie;
   /** pointer to the term canonize utility */
@@ -124,8 +131,6 @@ class AlphaEquivalence : protected EnvObj
   expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */
   AlphaEquivalenceDb d_aedb;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** An eager proof generator storing alpha equivalence proofs.*/
   std::unique_ptr<EagerProofGenerator> d_pfAlpha;
   /** Are proofs enabled for this object? */
@@ -134,6 +139,6 @@ class AlphaEquivalence : protected EnvObj
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

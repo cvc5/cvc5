@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli
+ *   Aina Niemetz, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -36,8 +36,9 @@ class TestPrinterBlackSmt2 : public TestSmt
   void checkToString(TNode n, const std::string& expected)
   {
     std::stringstream ss;
-    ss << Node::setdepth(-1) << Node::setlanguage(Language::LANG_SMTLIB_V2_6)
-       << n;
+    options::ioutils::applyNodeDepth(ss, -1);
+    options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+    ss << n;
     ASSERT_EQ(ss.str(), expected);
   }
 };
@@ -60,4 +61,4 @@ TEST_F(TestPrinterBlackSmt2, regexp_loop)
   checkToString(n, "((_ re.loop 1 3) (str.to_re \"x\"))");
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

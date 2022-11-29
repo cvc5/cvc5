@@ -16,6 +16,8 @@ find_package(Sphinx REQUIRED)
 check_python_module(breathe)
 check_python_module(sphinxcontrib.bibtex sphinxcontrib-bibtex)
 check_python_module(sphinx_tabs.tabs sphinx-tabs)
+check_python_module(sphinxcontrib.programoutput sphinxcontrib.programoutput)
+check_python_module(sphinx_rtd_theme sphinx-rtd-theme)
 
 add_subdirectory(api)
 
@@ -26,7 +28,7 @@ configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
 add_custom_target(
   docs
-  DEPENDS docs-cpp docs-java docs-python gen-options
+  DEPENDS docs-cpp docs-java docs-python gen-options cvc5-bin
   COMMAND
     ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output

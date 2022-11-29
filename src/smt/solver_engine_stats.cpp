@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,33 +15,24 @@
 
 #include "smt/solver_engine_stats.h"
 
-#include "smt/smt_statistics_registry.h"
-
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
-SolverEngineStatistics::SolverEngineStatistics(const std::string& name)
-    : d_definitionExpansionTime(smtStatisticsRegistry().registerTimer(
-        name + "definitionExpansionTime")),
-      d_numConstantProps(
-          smtStatisticsRegistry().registerInt(name + "numConstantProps")),
-      d_numAssertionsPre(smtStatisticsRegistry().registerInt(
-          name + "numAssertionsPreITERemoval")),
-      d_numAssertionsPost(smtStatisticsRegistry().registerInt(
-          name + "numAssertionsPostITERemoval")),
-      d_checkModelTime(
-          smtStatisticsRegistry().registerTimer(name + "checkModelTime")),
-      d_checkUnsatCoreTime(
-          smtStatisticsRegistry().registerTimer(name + "checkUnsatCoreTime")),
-      d_solveTime(smtStatisticsRegistry().registerTimer(name + "solveTime")),
-      d_pushPopTime(
-          smtStatisticsRegistry().registerTimer(name + "pushPopTime")),
-      d_processAssertionsTime(smtStatisticsRegistry().registerTimer(
-          name + "processAssertionsTime")),
-      d_simplifiedToFalse(
-          smtStatisticsRegistry().registerInt(name + "simplifiedToFalse"))
+SolverEngineStatistics::SolverEngineStatistics(StatisticsRegistry& sr,
+                                               const std::string& name)
+    : d_definitionExpansionTime(
+        sr.registerTimer(name + "definitionExpansionTime")),
+      d_numConstantProps(sr.registerInt(name + "numConstantProps")),
+      d_numAssertionsPre(sr.registerInt(name + "numAssertionsPreITERemoval")),
+      d_numAssertionsPost(sr.registerInt(name + "numAssertionsPostITERemoval")),
+      d_checkModelTime(sr.registerTimer(name + "checkModelTime")),
+      d_checkUnsatCoreTime(sr.registerTimer(name + "checkUnsatCoreTime")),
+      d_solveTime(sr.registerTimer(name + "solveTime")),
+      d_pushPopTime(sr.registerTimer(name + "pushPopTime")),
+      d_processAssertionsTime(sr.registerTimer(name + "processAssertionsTime")),
+      d_simplifiedToFalse(sr.registerInt(name + "simplifiedToFalse"))
 {
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

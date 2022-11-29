@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 /**
@@ -85,6 +85,16 @@ bool hasBoundVar(TNode n);
 bool hasFreeVar(TNode n);
 
 /**
+ * Returns true iff the node n contains a free variable, that is, a node
+ * of kind BOUND_VARIABLE that is not bound in n, or a BOUND_VARIABLE that
+ * is shadowed (e.g. it is bound twice in the same context).
+ * @param n The node under investigation
+ * @param wasShadow Set to true if n had a shadowed variable.
+ * @return true iff this node contains a free or shadowed variable.
+ */
+bool hasFreeOrShadowedVar(TNode n, bool& wasShadow);
+
+/**
  * Returns true iff the node n contains a closure, that is, a node
  * whose kind is FORALL, EXISTS, WITNESS, LAMBDA, or any other closure currently
  * supported.
@@ -98,27 +108,27 @@ bool hasClosure(Node n);
  * BOUND_VARIABLE that are not bound in n, adds these to fvs.
  * @param n The node under investigation
  * @param fvs The set which free variables are added to
- * @param computeFv If this flag is false, then we only return true/false and
- * do not add to fvs.
  * @return true iff this node contains a free variable.
  */
-bool getFreeVariables(TNode n,
-                      std::unordered_set<Node>& fvs,
-                      bool computeFv = true);
+bool getFreeVariables(TNode n, std::unordered_set<Node>& fvs);
 /**
  * Get the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs.
  * @param n The node under investigation
  * @param fvs The set which free variables are added to
  * @param scope The scope we are considering.
- * @param computeFv If this flag is false, then we only return true/false and
- * do not add to fvs.
  * @return true iff this node contains a free variable.
  */
 bool getFreeVariablesScope(TNode n,
                            std::unordered_set<Node>& fvs,
-                           std::unordered_set<TNode>& scope,
-                           bool computeFv = true);
+                           std::unordered_set<TNode>& scope);
+/**
+ * Return true if n has any free variables in the given scope.
+ * @param n The node under investigation
+ * @param scope The scope we are considering.
+ * @return true iff this node contains a free variable.
+ */
+bool hasFreeVariablesScope(TNode n, std::unordered_set<TNode>& scope);
 
 /**
  * Get all variables in n.
@@ -247,7 +257,10 @@ void getComponentTypes(TypeNode t, std::unordered_set<TypeNode>& types);
  */
 bool match(Node n1, Node n2, std::unordered_map<Node, Node>& subs);
 
+/** Is the top symbol of cur a Boolean connective? */
+bool isBooleanConnective(TNode cur);
+
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

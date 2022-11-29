@@ -1,0 +1,7 @@
+; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status
+; EXPECT: infeasible
+(set-logic LIA)
+(synth-fun P ((x Int)) Bool)
+(constraint (P 54))
+(constraint (not (P 54)))
+(check-synth)

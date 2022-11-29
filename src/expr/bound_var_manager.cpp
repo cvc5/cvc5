@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,9 @@
 #include "expr/node_manager_attributes.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 
 BoundVarManager::BoundVarManager() : d_keepCacheVals(false) {}
 
@@ -51,7 +53,7 @@ Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, size_t i)
 
 Node BoundVarManager::getCacheValue(size_t i)
 {
-  return NodeManager::currentNM()->mkConst(Rational(i));
+  return NodeManager::currentNM()->mkConstInt(Rational(i));
 }
 
 Node BoundVarManager::getCacheValue(TNode cv, size_t i)
@@ -59,4 +61,4 @@ Node BoundVarManager::getCacheValue(TNode cv, size_t i)
   return getCacheValue(cv, getCacheValue(i));
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

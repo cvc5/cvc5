@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include <memory>
 #include <vector>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 template <bool ref_count>
 class NodeTemplate;
@@ -37,7 +37,7 @@ class Sequence
  public:
   /** constructors for Sequence
    *
-   * Internally, a cvc5::Sequence is represented by a vector of Nodes (d_seq),
+   * Internally, a cvc5::internal::Sequence is represented by a vector of Nodes (d_seq),
    * where each Node in this vector must be a constant.
    */
   Sequence() = default;
@@ -174,6 +174,6 @@ struct SequenceHashFunction
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__SEQUENCE_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@
 #include "theory/rewriter.h"
 #include "theory/uf/equality_engine.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -119,7 +119,7 @@ bool HoTermDb::resetInternal(Theory::Effort effort)
       std::map<Node, Node>::iterator itpe = d_hoPurifyToEq.find(pp.first);
       if (itpe == d_hoPurifyToEq.end())
       {
-        eq = Rewriter::rewrite(pp.first.eqNode(pp.second));
+        eq = rewrite(pp.first.eqNode(pp.second));
         d_hoPurifyToEq[pp.first] = eq;
       }
       else
@@ -249,4 +249,4 @@ Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

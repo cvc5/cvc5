@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 
 #include "theory/theory.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -47,8 +47,6 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
-  // check register terms pre-normal forms
-  CHECK_REGISTER_TERMS_PRE_NF,
   // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
   // check normal forms disequalities
@@ -65,6 +63,12 @@ enum InferStep
   CHECK_MEMBERSHIP,
   // check cardinality
   CHECK_CARDINALITY,
+  // check sequence updates wrt concat
+  CHECK_SEQUENCES_ARRAY_CONCAT,
+  // check sequence array-like reasoning
+  CHECK_SEQUENCES_ARRAY,
+  // check sequence
+  CHECK_SEQUENCES_ARRAY_EAGER,
 };
 std::ostream& operator<<(std::ostream& out, InferStep i);
 
@@ -74,10 +78,10 @@ std::ostream& operator<<(std::ostream& out, InferStep i);
  * This stores a sequence of the above enum that indicates the calls to
  * runInferStep to make on the theory of strings, given by parent.
  */
-class Strategy
+class Strategy : protected EnvObj
 {
  public:
-  Strategy();
+  Strategy(Env& env);
   ~Strategy();
   /** is this strategy initialized? */
   bool isStrategyInit() const;
@@ -112,6 +116,6 @@ class Strategy
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__STRATEGY_H */

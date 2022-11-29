@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "theory/quantifiers/sygus/sygus_enumerator_callback.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -59,6 +59,7 @@ class SygusEnumerator : public EnumValGenerator
 {
  public:
   /**
+   * @param env Reference to the environment
    * @param tds Pointer to the term database, required if enumShapes or
    * enumAnyConstHoles is true, or if we want to include symmetry breaking from
    * lemmas stored in the sygus term database,
@@ -69,12 +70,16 @@ class SygusEnumerator : public EnumValGenerator
    * number of free variables
    * @param enumAnyConstHoles If true, this enumerator will generate terms where
    * free variables are the arguments to any-constant constructors.
+   * @param numConstants The number of interpreted constants to consider for
+   * each size
    */
-  SygusEnumerator(TermDbSygus* tds = nullptr,
+  SygusEnumerator(Env& env,
+                  TermDbSygus* tds = nullptr,
                   SygusEnumeratorCallback* sec = nullptr,
                   SygusStatistics* s = nullptr,
                   bool enumShapes = false,
-                  bool enumAnyConstHoles = false);
+                  bool enumAnyConstHoles = false,
+                  size_t numConstants = 5);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -101,6 +106,8 @@ class SygusEnumerator : public EnumValGenerator
   /** Whether we are enumerating free variables as arguments to any-constant
    * constructors */
   bool d_enumAnyConstHoles;
+  /** The number of interpreted constants to consider for each size */
+  size_t d_enumNumConsts;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -241,7 +248,7 @@ class SygusEnumerator : public EnumValGenerator
     TermEnum();
     virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
-    unsigned getCurrentSize();
+    unsigned getCurrentSize() const;
     /** get the current term of the enumerator */
     virtual Node getCurrent() = 0;
     /** increment the enumerator, return false if the enumerator is finished */
@@ -298,6 +305,8 @@ class SygusEnumerator : public EnumValGenerator
    private:
     /** the maximum size of terms this enumerator should enumerate */
     unsigned d_sizeLim;
+    /** is the index valid? */
+    bool d_indexValid;
     /** the current index in the term cache we are considering */
     unsigned d_index;
     /** the index in the term cache where terms of the current size end */
@@ -452,7 +461,7 @@ class SygusEnumerator : public EnumValGenerator
   class TermEnumMasterInterp : public TermEnum
   {
    public:
-    TermEnumMasterInterp(TypeNode tn);
+    TermEnumMasterInterp(TypeNode tn, size_t numConstants);
     /** initialize this enumerator */
     bool initialize(SygusEnumerator* se, TypeNode tn);
     /** get the current term of the enumerator */
@@ -467,6 +476,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currNumConsts;
     /** the next end threshold */
     unsigned d_nextIndexEnd;
+    /** The number of interpreted constants to consider for each size */
+    size_t d_enumNumConsts;
   };
   /** a free variable enumerator
    *
@@ -517,6 +528,6 @@ class SygusEnumerator : public EnumValGenerator
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SYGUS_ENUMERATOR_H */

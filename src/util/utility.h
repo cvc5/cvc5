@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include <optional>
 #include <string>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Using std::find_if(), finds the first iterator in [first,last)
@@ -102,6 +102,6 @@ std::ostream& operator<<(std::ostream& out, const std::optional<T>& m)
  */
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__UTILITY_H */

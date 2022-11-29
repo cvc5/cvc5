@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Tim King, Dejan Jovanovic
+ *   Morgan Deters, Tim King, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +31,7 @@
 #include "expr/attribute_internals.h"
 #undef CVC5_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 namespace attr {
 
@@ -611,6 +611,6 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
   d_attrManager->setAttribute(n.d_nv, AttrKind(), value);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__ATTRIBUTE_H */

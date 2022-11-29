@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,8 +25,9 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -119,10 +120,10 @@ class SynthConjectureProcessArg
 * It maintains information about each of the function to
 * synthesize's arguments.
 */
-struct SynthConjectureProcessFun
+struct SynthConjectureProcessFun : protected EnvObj
 {
  public:
-  SynthConjectureProcessFun() {}
+  SynthConjectureProcessFun(Env& env);
   ~SynthConjectureProcessFun() {}
   /** initialize this class for function f */
   void init(Node f);
@@ -266,10 +267,10 @@ struct SynthConjectureProcessFun
  * sygus to SynthConjectureProcess::getSymmetryBreakingPredicate(...), which are
  * used for pruning search space based on conjecture-specific analysis.
  */
-class SynthConjectureProcess
+class SynthConjectureProcess : protected EnvObj
 {
  public:
-  SynthConjectureProcess();
+  SynthConjectureProcess(Env& env);
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
    * Returns a formula that is equivalent to q.
@@ -350,6 +351,6 @@ class SynthConjectureProcess
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

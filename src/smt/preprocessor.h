@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Justin Xu
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +21,10 @@
 #include <memory>
 
 #include "smt/env_obj.h"
-#include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TheoryEngine;
 
@@ -53,7 +52,7 @@ class PreprocessProofGenerator;
 class Preprocessor : protected EnvObj
 {
  public:
-  Preprocessor(Env& env, AbstractValues& abs, SolverEngineStatistics& stats);
+  Preprocessor(Env& env, SolverEngineStatistics& stats);
   ~Preprocessor();
   /**
    * Finish initialization
@@ -62,12 +61,16 @@ class Preprocessor : protected EnvObj
   /**
    * Process the assertions that have been asserted in argument as. Returns
    * true if no conflict was discovered while preprocessing them.
+   *
+   * @param ap The assertions to preprocess
    */
-  bool process(Assertions& as);
+  bool process(preprocessing::AssertionPipeline& ap);
   /**
    * Clear learned literals from the Boolean propagator.
    */
   void clearLearnedLiterals();
+  /** Get learned literals */
+  std::vector<Node> getLearnedLiterals() const;
   /**
    * Cleanup, which deletes the processing passes owned by this module. This
    * is required to be done explicitly so that passes are deleted before the
@@ -75,35 +78,21 @@ class Preprocessor : protected EnvObj
    */
   void cleanup();
   /**
-   * Simplify a formula without doing "much" work.  Does not involve
-   * the SAT Engine in the simplification, but uses the current
-   * definitions, assertions, and the current partial model, if one
-   * has been constructed.  It also involves theory normalization.
+   * Apply top-level substitutions and eliminate abstract values in a term or
+   * formula n.  No other simplification or normalization is done.
    *
-   * @param n The node to simplify
-   * @return The simplified term.
+   * @param n The node to subsitute
+   * @return The term after substitution.
    */
-  Node simplify(const Node& n);
-  /**
-   * Expand the definitions in a term or formula n.  No other
-   * simplification or normalization is done.
-   *
-   * @param n The node to expand
-   * @return The expanded term.
-   */
-  Node expandDefinitions(const Node& n);
-  /** Same as above, with a cache of previous results. */
-  Node expandDefinitions(const Node& n, std::unordered_map<Node, Node>& cache);
+  Node applySubstitutions(const Node& n);
   /** Same as above, for a list of assertions, updating in place */
-  void expandDefinitions(std::vector<Node>& ns);
-  /**
-   * Set proof node manager. Enables proofs in this preprocessor.
-   */
-  void setProofGenerator(PreprocessProofGenerator* pppg);
+  void applySubstitutions(std::vector<Node>& ns);
+  /** Get the preprocess proof generator */
+  PreprocessProofGenerator* getPreprocessProofGenerator();
 
  private:
-  /** Reference to the abstract values utility */
-  AbstractValues& d_absValues;
+  /** The preprocess proof generator. */
+  std::unique_ptr<PreprocessProofGenerator> d_pppg;
   /**
    * A circuit propagator for non-clausal propositional deduction.
    */
@@ -114,18 +103,14 @@ class Preprocessor : protected EnvObj
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
   std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
-  /** Expand definitions module, responsible for expanding definitions */
-  ExpandDefs d_exDefs;
   /**
    * Process assertions module, responsible for implementing the preprocessing
    * passes.
    */
   ProcessAssertions d_processor;
-  /** Proof node manager */
-  ProofNodeManager* d_pnm;
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

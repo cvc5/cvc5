@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,17 +19,14 @@
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-InferenceManager::InferenceManager(Env& env,
-                                   Theory& t,
-                                   SolverState& s,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, s, pnm, "theory::sets::"), d_state(s)
+InferenceManager::InferenceManager(Env& env, Theory& t, SolverState& s)
+    : InferenceManagerBuffered(env, t, s, "theory::sets::"), d_state(s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -38,7 +35,7 @@ InferenceManager::InferenceManager(Env& env,
 bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
 {
   // should we send this fact out as a lemma?
-  if ((options::setsInferAsLemmas() && inferType != -1) || inferType == 1)
+  if ((options().sets.setsInferAsLemmas && inferType != -1) || inferType == 1)
   {
     if (d_state.isEntailed(fact, true))
     {
@@ -89,7 +86,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     return false;
   }
   // things we can assert to equality engine
-  if (atom.getKind() == MEMBER
+  if (atom.getKind() == SET_MEMBER
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
@@ -175,7 +172,7 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
 
 void InferenceManager::split(Node n, InferenceId id, int reqPol)
 {
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
   // send the lemma
   lemma(lem, id);
@@ -190,4 +187,4 @@ void InferenceManager::split(Node n, InferenceId id, int reqPol)
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

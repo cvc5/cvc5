@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/skolemize.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -77,7 +77,7 @@ Node QuantifiersPreprocess::computePrenexAgg(
     std::unordered_set<Node> argsSet;
     std::unordered_set<Node> nargsSet;
     Node q;
-    QuantifiersRewriter qrew(options());
+    QuantifiersRewriter qrew(d_env.getRewriter(), options());
     Node nn = qrew.computePrenex(q, n, argsSet, nargsSet, true, true);
     Assert(n != nn || argsSet.empty());
     Assert(n != nn || nargsSet.empty());
@@ -127,6 +127,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>&
         visited) const
 {
+  Assert(options().quantifiers.preSkolemQuant
+         != options::PreSkolemQuantMode::OFF);
   std::pair<Node, bool> key(n, polarity);
   std::unordered_map<std::pair<Node, bool>, Node, NodePolPairHashFunction>::
       iterator it = visited.find(key);
@@ -149,8 +151,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     }
     else if (polarity)
     {
-      if (options().quantifiers.preSkolemQuant
-          && options().quantifiers.preSkolemQuantNested)
+      if (options().quantifiers.preSkolemQuantNested)
       {
         std::vector<Node> children;
         children.push_back(n[0]);
@@ -175,7 +176,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
       Node sub;
       std::vector<unsigned> sub_vars;
       // return skolemized body
-      ret = Skolemize::mkSkolemizedBody(n, nn, fvs, sk, sub, sub_vars);
+      ret =
+          Skolemize::mkSkolemizedBody(options(), n, nn, fvs, sk, sub, sub_vars);
     }
     visited[key] = ret;
     return ret;
@@ -192,7 +194,8 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
   Assert(n.getType().isBoolean());
   if (k == ITE || (k == EQUAL && n[0].getType().isBoolean()))
   {
-    if (options().quantifiers.preSkolemQuantAgg)
+    if (options().quantifiers.preSkolemQuant
+        == options::PreSkolemQuantMode::AGG)
     {
       Node nn;
       // must remove structure
@@ -231,7 +234,7 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
 TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst) const
 {
   Node prev = n;
-  if (options().quantifiers.preSkolemQuant)
+  if (options().quantifiers.preSkolemQuant != options::PreSkolemQuantMode::OFF)
   {
     if (!isInst || !options().quantifiers.preSkolemQuantNested)
     {
@@ -264,4 +267,4 @@ TrustNode QuantifiersPreprocess::preprocess(Node n, bool isInst) const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

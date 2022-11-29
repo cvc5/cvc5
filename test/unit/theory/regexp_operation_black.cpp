@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli
+ *   Andres Noetzli, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,13 +20,12 @@
 #include "api/cpp/cvc5.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "smt/solver_engine_scope.h"
 #include "test_smt.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -44,16 +43,18 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
   void includes(Node r1, Node r2)
   {
-    r1 = Rewriter::rewrite(r1);
-    r2 = Rewriter::rewrite(r2);
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
+    r1 = rr->rewrite(r1);
+    r2 = rr->rewrite(r2);
     std::cout << r1 << " includes " << r2 << std::endl;
     ASSERT_TRUE(RegExpEntail::regExpIncludes(r1, r2));
   }
 
   void doesNotInclude(Node r1, Node r2)
   {
-    r1 = Rewriter::rewrite(r1);
-    r2 = Rewriter::rewrite(r2);
+    Rewriter* rr = d_slvEngine->getEnv().getRewriter();
+    r1 = rr->rewrite(r1);
+    r2 = rr->rewrite(r2);
     std::cout << r1 << " does not include " << r2 << std::endl;
     ASSERT_FALSE(RegExpEntail::regExpIncludes(r1, r2));
   }
@@ -61,7 +62,7 @@ class TestTheoryBlackRegexpOperation : public TestSmt
 
 TEST_F(TestTheoryBlackRegexpOperation, basic)
 {
-  Node sigma = d_nodeManager->mkNode(REGEXP_SIGMA);
+  Node sigma = d_nodeManager->mkNode(REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(REGEXP_STAR, sigma);
   Node a = d_nodeManager->mkNode(STRING_TO_REGEXP,
                                  d_nodeManager->mkConst(String("a")));
@@ -88,7 +89,8 @@ TEST_F(TestTheoryBlackRegexpOperation, basic)
 
 TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 {
-  Node sigma = d_nodeManager->mkNode(REGEXP_SIGMA);
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
+  Node sigma = d_nodeManager->mkNode(REGEXP_ALLCHAR);
   Node sigmaStar = d_nodeManager->mkNode(REGEXP_STAR, sigma);
   Node a = d_nodeManager->mkNode(STRING_TO_REGEXP,
                                  d_nodeManager->mkConst(String("a")));
@@ -100,9 +102,9 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
   Node _abc_ = d_nodeManager->mkNode(REGEXP_CONCAT, sigmaStar, abc, sigmaStar);
   Node _asc_ =
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, a, sigma, c, sigmaStar});
-  Node _sc_ = Rewriter::rewrite(
+  Node _sc_ = rr->rewrite(
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, sigma, c, sigmaStar}));
-  Node _as_ = Rewriter::rewrite(
+  Node _as_ = rr->rewrite(
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, a, sigma, sigmaStar}));
   Node _assc_ = d_nodeManager->mkNode(
       REGEXP_CONCAT,
@@ -111,9 +113,9 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
       d_nodeManager->mkNode(REGEXP_CONCAT, {sigmaStar, c, sigma, a, sigmaStar});
   Node _c_a_ = d_nodeManager->mkNode(REGEXP_CONCAT,
                                      {sigmaStar, c, sigmaStar, a, sigmaStar});
-  Node _s_s_ = Rewriter::rewrite(d_nodeManager->mkNode(
+  Node _s_s_ = rr->rewrite(d_nodeManager->mkNode(
       REGEXP_CONCAT, {sigmaStar, sigma, sigmaStar, sigma, sigmaStar}));
-  Node _a_abc_ = Rewriter::rewrite(d_nodeManager->mkNode(
+  Node _a_abc_ = rr->rewrite(d_nodeManager->mkNode(
       REGEXP_CONCAT, {sigmaStar, a, sigmaStar, abc, sigmaStar}));
 
   includes(_asc_, _abc_);
@@ -138,4 +140,4 @@ TEST_F(TestTheoryBlackRegexpOperation, star_wildcards)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

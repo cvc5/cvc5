@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,26 +18,27 @@
 #ifndef CVC5__INTEGER_H
 #define CVC5__INTEGER_H
 
-#include <cln/input.h>
 #include <cln/integer.h>
-#include <cln/integer_io.h>
-#include <cln/modinteger.h>
 
-#include <iostream>
+#include <iosfwd>
 #include <limits>
-#include <sstream>
 #include <string>
 
 #include "base/exception.h"
 #include "cvc5_export.h"  // remove when Cvc language support is removed
 
-namespace cvc5 {
+namespace cln
+{
+  struct cl_read_flags;
+}
+
+namespace cvc5::internal {
 
 class Rational;
 
 class CVC5_EXPORT Integer
 {
-  friend class cvc5::Rational;
+  friend class cvc5::internal::Rational;
 
  public:
   /**
@@ -273,17 +274,17 @@ class CVC5_EXPORT Integer
   /** Return the unsigned int representation of this Integer. */
   unsigned int getUnsignedInt() const;
 
-  /** Return true if this Integer fits into a signed long. */
-  bool fitsSignedLong() const;
-
-  /** Return true if this Integer fits into an unsigned long. */
-  bool fitsUnsignedLong() const;
-
   /** Return the signed long representation of this Integer. */
   long getLong() const;
 
   /** Return the unsigned long representation of this Integer. */
   unsigned long getUnsignedLong() const;
+
+  /** Return the int64_t representation of this Integer. */
+  int64_t getSigned64() const;
+
+  /** Return the uint64_t representation of this Integer. */
+  uint64_t getUnsigned64() const;
 
   /**
    * Computes the hash of the node from the first word of the
@@ -310,6 +311,14 @@ class CVC5_EXPORT Integer
    * If x == 0, returns 1.
    */
   size_t length() const;
+
+  /**
+   * Returns whether `x` is probably a prime.
+   *
+   * A false result is always accurate, but a true result may be inaccurate
+   * with small (approximately 2^{-60}) probability.
+   */
+  bool isProbablePrime() const;
 
   /*   cl_I xgcd (const cl_I& a, const cl_I& b, cl_I* u, cl_I* v) */
   /* This function ("extended gcd") returns the greatest common divisor g of a
@@ -378,11 +387,11 @@ class CVC5_EXPORT Integer
 
 struct IntegerHashFunction
 {
-  size_t operator()(const cvc5::Integer& i) const { return i.hash(); }
+  size_t operator()(const cvc5::internal::Integer& i) const { return i.hash(); }
 }; /* struct IntegerHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Integer& n);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__INTEGER_H */

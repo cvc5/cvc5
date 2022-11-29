@@ -1,0 +1,50 @@
+; EXPECT: infeasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status -q
+(set-logic SLIA)
+
+(synth-fun f ((col1 String) (col2 String)) String
+    ((ntString String) (ntInt Int) (ntBool Bool))
+    ((ntString String (col1 col2 " " "," "USA" "PA" "CT" "CA" "MD" "NY"
+                       (str.++ ntString ntString)
+                       (str.replace ntString ntString ntString)
+                       (str.at ntString ntInt)
+                       (str.from_int ntInt)
+                       (ite ntBool ntString ntString)
+                       (str.substr ntString ntInt ntInt)))
+      (ntInt Int (0 1 2
+                  (+ ntInt ntInt)
+                  (- ntInt ntInt)
+                  (str.len ntString)
+                  (str.to_int ntString)
+                  (str.indexof ntString ntString ntInt)))
+      (ntBool Bool (true false
+                    (str.prefixof ntString ntString)
+                    (str.suffixof ntString ntString)
+                    (str.contains ntString ntString)))))
+
+
+(declare-var col1 String)
+(declare-var col2 String)
+(constraint (= (f "UC Berkeley" "Berkeley, CA") 
+                  "Berkeley, CA, USA"))
+(constraint (= (f "University of Pennsylvania" "Phialdelphia, PA, USA") 
+                  "Phialdelphia, PA, USA"))
+(constraint (= (f "UCLA" "Los Angeles, CA") 
+                    "UCLA, Los Angeles, CA, USA"))
+(constraint (= (f "Cornell University" "Ithaca, New York, USA") 
+                  "Ithaca, New York, USA"))
+(constraint (= (f "Penn" "Philadelphia, PA, USA") 
+                  "Philadelphia, PA, USA"))
+(constraint (= (f "University of Michigan" "Ann Arbor, MI, USA") 
+                  "Ann Arbor, MI, USA"))
+(constraint (= (f "UC Berkeley" "Berkeley, CA") 
+                  "Berkeley, CA, USA"))
+(constraint (= (f "MIT" "Cambridge, MA") 
+                  "Cambridge, MA, USA"))
+(constraint (= (f "University of Pennsylvania" "Phialdelphia, PA, USA") 
+                  "Phialdelphia, PA, USA"))
+(constraint (= (f "UCLA" "Los Angeles, CA") 
+                    "Los Angeles, CA, USA"))
+
+; has contradictory examples
+(check-synth)

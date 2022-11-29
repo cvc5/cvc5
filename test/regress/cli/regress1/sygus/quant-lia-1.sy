@@ -1,0 +1,30 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: feasible
+(set-logic NIA)
+(set-option :dag-thresh 0)
+
+(declare-var la Int)
+(declare-var ua Int)
+(declare-var lb Int)
+(declare-var ub Int)
+(declare-var t Bool)
+
+(assume (<= la ua))
+(assume (<= lb ub))
+
+(synth-fun consistency
+    ((la Int) (ua Int) (lb Int) (ub Int) (t Bool)) Bool
+    ((B Bool) (I Int))
+    (
+        (B Bool ((< I I) (<= I I) (ite t B B)))
+        (I Int (la ua lb ub))
+    )
+)
+(constraint (=
+    (consistency la ua lb ub t)
+    (exists ((a Int) (b Int)) (and
+        (<= la a) (<= a ua) (<= lb b) (<= b ub)
+        (= (< a b) t)
+    ))
+))
+(check-synth)

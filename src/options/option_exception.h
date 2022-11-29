@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Andres Noetzli
+ *   Andres Noetzli, Morgan Deters, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,16 +21,16 @@
 #include "cvc5_export.h"
 #include "base/exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * Class representing an option-parsing exception such as badly-typed
  * or missing arguments, arguments out of bounds, etc.
  */
-class CVC5_EXPORT OptionException : public cvc5::Exception
+class CVC5_EXPORT OptionException : public cvc5::internal::Exception
 {
  public:
-  OptionException(const std::string& s) : cvc5::Exception(s_errPrefix + s) {}
+  OptionException(const std::string& s) : cvc5::internal::Exception(s_errPrefix + s) {}
 
   /**
    * Get the error message without the prefix that is automatically added for
@@ -46,6 +46,6 @@ class CVC5_EXPORT OptionException : public cvc5::Exception
   static const std::string s_errPrefix;
 }; /* class OptionException */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__OPTION_EXCEPTION_H */

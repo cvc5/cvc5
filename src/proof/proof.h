@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,8 +24,9 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_step_buffer.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNode;
 class ProofNodeManager;
@@ -132,7 +133,7 @@ class ProofNodeManager;
  * of ID_2. More generally, CDProof::isSame(F,G) returns true if F and G are
  * essentially the same formula according to this class.
  */
-class CDProof : public ProofGenerator
+class CDProof : protected EnvObj, public ProofGenerator
 {
  public:
   /**
@@ -142,7 +143,7 @@ class CDProof : public ProofGenerator
    * @param autoSymm Whether this proof automatically adds symmetry steps based
    * on policy documented above.
    */
-  CDProof(ProofNodeManager* pnm,
+  CDProof(Env& env,
           context::Context* c = nullptr,
           const std::string& name = "CDProof",
           bool autoSymm = true);
@@ -227,6 +228,8 @@ class CDProof : public ProofGenerator
                 bool doCopy = false);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact);
+  /** Return how many proof nodes currently in proof */
+  size_t getNumProofNodes() const;
   /** Get the proof manager for this proof */
   ProofNodeManager* getManager() const;
   /**
@@ -247,8 +250,6 @@ class CDProof : public ProofGenerator
 
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
-  /** The proof manager, used for allocating new ProofNode objects */
-  ProofNodeManager* d_manager;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The nodes of the proof */
@@ -273,6 +274,6 @@ class CDProof : public ProofGenerator
   void notifyNewProof(Node expected);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_MANAGER_H */

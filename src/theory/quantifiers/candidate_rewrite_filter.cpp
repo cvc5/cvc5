@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -73,15 +73,17 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   bool keep = true;
 
   // ----- check redundancy based on variables
-  if (options::sygusRewSynthFilterOrder()
-      || options::sygusRewSynthFilterNonLinear())
+  if (options().quantifiers.sygusRewSynthFilterOrder
+      || options().quantifiers.sygusRewSynthFilterNonLinear)
   {
-    bool nor = d_ss->checkVariables(bn,
-                                    options::sygusRewSynthFilterOrder(),
-                                    options::sygusRewSynthFilterNonLinear());
-    bool eqor = d_ss->checkVariables(beq_n,
-                                     options::sygusRewSynthFilterOrder(),
-                                     options::sygusRewSynthFilterNonLinear());
+    bool nor = d_ss->checkVariables(
+        bn,
+        options().quantifiers.sygusRewSynthFilterOrder,
+        options().quantifiers.sygusRewSynthFilterNonLinear);
+    bool eqor = d_ss->checkVariables(
+        beq_n,
+        options().quantifiers.sygusRewSynthFilterOrder,
+        options().quantifiers.sygusRewSynthFilterNonLinear);
     Trace("cr-filter-debug")
         << "Variables ok? : " << nor << " " << eqor << std::endl;
     if (eqor || nor)
@@ -118,7 +120,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   }
 
   // ----- check rewriting redundancy
-  if (keep && options::sygusRewSynthFilterCong())
+  if (keep && options().quantifiers.sygusRewSynthFilterCong)
   {
     // When using sygus types, this filtering applies to the builtin versions
     // of n and eq_n. This means that we may filter out a rewrite rule for one
@@ -135,7 +137,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     }
   }
 
-  if (keep && options::sygusRewSynthFilterMatch())
+  if (keep && options().quantifiers.sygusRewSynthFilterMatch)
   {
     // ----- check matchable
     // check whether the pair is matchable with a previous one
@@ -163,7 +165,7 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     return false;
   }
-  if (Trace.isOn("sygus-rr-filter"))
+  if (TraceIsOn("sygus-rr-filter"))
   {
     std::stringstream ss;
     ss << "(redundant-rewrite ";
@@ -186,13 +188,13 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
     beq_n = d_tds->sygusToBuiltin(eq_n);
   }
   // ----- check rewriting redundancy
-  if (options::sygusRewSynthFilterCong())
+  if (options().quantifiers.sygusRewSynthFilterCong)
   {
     Trace("cr-filter-debug") << "Add rewrite pair..." << std::endl;
     Assert(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
   }
-  if (options::sygusRewSynthFilterMatch())
+  if (options().quantifiers.sygusRewSynthFilterMatch)
   {
     // cache based on the builtin type
     TypeNode tn = bn.getType();
@@ -229,7 +231,7 @@ bool CandidateRewriteFilter::notify(Node s,
   n = d_drewrite->toExternal(n);
   Assert(!n.isNull());
   std::map<Node, std::unordered_set<Node> >::iterator it = d_pairs.find(n);
-  if (Trace.isOn("crf-match"))
+  if (TraceIsOn("crf-match"))
   {
     Trace("crf-match") << "  " << s << " matches " << n
                        << " under:" << std::endl;
@@ -243,7 +245,7 @@ bool CandidateRewriteFilter::notify(Node s,
   {
     // By using internal representation of terms, we ensure polymorphism is
     // handled correctly.
-    Assert(vars[i].getType().isComparableTo(subs[i].getType()));
+    Assert(vars[i].getType() == subs[i].getType());
   }
 #endif
   // must convert the inferred substitution to original form
@@ -258,7 +260,7 @@ bool CandidateRewriteFilter::notify(Node s,
     Node nrs =
         nr.substitute(vars.begin(), vars.end(), esubs.begin(), esubs.end());
     bool areEqual = (nrs == d_curr_pair_rhs);
-    if (!areEqual && options::sygusRewSynthFilterCong())
+    if (!areEqual && options().quantifiers.sygusRewSynthFilterCong)
     {
       // if dynamic rewriter is available, consult it
       areEqual = d_drewrite->areEqual(nrs, d_curr_pair_rhs);
@@ -278,4 +280,4 @@ bool CandidateRewriteFilter::notify(Node s,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

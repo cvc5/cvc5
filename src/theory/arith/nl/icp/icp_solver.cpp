@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,11 +23,11 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/poly_conversion.h"
-#include "theory/arith/normal_form.h"
+#include "theory/arith/linear/normal_form.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -65,6 +65,11 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 }
 }  // namespace
 
+ICPSolver::ICPSolver(Env& env, InferenceManager& im)
+    : EnvObj(env), d_im(im), d_state(env, d_mapper)
+{
+}
+
 std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 {
   std::unordered_set<TNode> tmp;
@@ -79,12 +84,12 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
-  Node tmp = Rewriter::rewrite(n);
+  Node tmp = rewrite(n);
   if (tmp.isConst())
   {
     return {};
   }
-  auto comp = Comparison::parseNormalForm(tmp).decompose(false);
+  auto comp = linear::Comparison::parseNormalForm(tmp).decompose(false);
   Kind k = std::get<1>(comp);
   if (k == Kind::DISTINCT)
   {
@@ -122,13 +127,12 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
-      rhsmult = poly::Rational(1) / rhsmult;
       // only correct up to a constant (denominator is thrown away!)
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, rhsmult, n, collectVariables(val)};
+      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -148,12 +152,11 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
-      rhsmult = poly::Rational(1) / rhsmult;
       if (!veq_c.isNull())
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, rhsmult, n, collectVariables(val)};
+      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -271,7 +274,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       {
         Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
-        Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
+        Node lemma = rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
         {
           Assert(lemma == nm->mkConst<bool>(true));
@@ -291,7 +294,7 @@ std::vector<Node> ICPSolver::generateLemmas() const
       {
         Node premise = nm->mkAnd(d_state.d_origins.getOrigins(v));
         Trace("nl-icp") << premise << " => " << c << std::endl;
-        Node lemma = Rewriter::rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
+        Node lemma = rewrite(nm->mkNode(Kind::IMPLIES, premise, c));
         if (lemma.isConst())
         {
           Assert(lemma == nm->mkConst<bool>(true));
@@ -352,9 +355,7 @@ void ICPSolver::check()
         }
         d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
                              InferenceId::ARITH_NL_ICP_CONFLICT);
-        did_progress = true;
-        progress = false;
-        break;
+        return;
     }
   } while (progress);
   if (did_progress)
@@ -385,4 +386,4 @@ void ICPSolver::check()
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

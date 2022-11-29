@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,24 +30,20 @@
 #include "theory/sort_inference.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(Env& env,
-                     QuantifiersState& qs,
-                     TermRegistry& tr,
-                     ProofNodeManager* pnm)
+Skolemize::Skolemize(Env& env, QuantifiersState& qs, TermRegistry& tr)
     : EnvObj(env),
       d_qstate(qs),
       d_treg(tr),
       d_skolemized(userContext()),
-      d_pnm(pnm),
-      d_epg(pnm == nullptr
+      d_epg(!isProofEnabled()
                 ? nullptr
-                : new EagerProofGenerator(pnm, userContext(), "Skolemize::epg"))
+                : new EagerProofGenerator(env, userContext(), "Skolemize::epg"))
 {
 }
 
@@ -61,9 +57,10 @@ TrustNode Skolemize::process(Node q)
   }
   Node lem;
   ProofGenerator* pg = nullptr;
-  if (isProofEnabled() && !options::dtStcInduction()
-      && !options::intWfInduction())
+  if (isProofEnabled() && !options().quantifiers.dtStcInduction
+      && !options().quantifiers.intWfInduction)
   {
+    ProofNodeManager * pnm = d_env.getProofNodeManager();
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
@@ -73,12 +70,12 @@ TrustNode Skolemize::process(Node q)
     Node existsq = nm->mkNode(EXISTS, echildren);
     Node res = skm->mkSkolemize(existsq, d_skolem_constants[q], "skv");
     Node qnot = q.notNode();
-    CDProof cdp(d_pnm);
+    CDProof cdp(d_env);
     cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
     std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
     std::vector<Node> assumps;
     assumps.push_back(qnot);
-    std::shared_ptr<ProofNode> pfs = d_pnm->mkScope({pf}, assumps);
+    std::shared_ptr<ProofNode> pfs = pnm->mkScope({pf}, assumps);
     lem = nm->mkNode(IMPLIES, qnot, res);
     d_epg->setProofFor(lem, pfs);
     pg = d_epg.get();
@@ -138,8 +135,8 @@ void Skolemize::getSelfSel(const DType& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = dc.getSpecializedConstructorType(n.getType());
-    Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
+    tspec = dc.getInstantiatedConstructorType(n.getType());
+    Trace("sk-ind-debug") << "Instantiated constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
@@ -148,38 +145,35 @@ void Skolemize::getSelfSel(const DType& dt,
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
-    std::vector<Node> ssc;
     if (dt.isParametric())
     {
       Trace("sk-ind-debug") << "Compare " << tspec[j] << " " << ntn
                             << std::endl;
-      if (tspec[j] == ntn)
+      if (tspec[j] != ntn)
       {
-        ssc.push_back(n);
+        continue;
       }
     }
     else
     {
       TypeNode tn = dc[j].getRangeType();
       Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
-      if (tn == ntn)
+      if (tn != ntn)
       {
-        ssc.push_back(n);
+        continue;
       }
     }
-    for (unsigned k = 0; k < ssc.size(); k++)
+    // do not use shared selectors
+    Node ss = nm->mkNode(APPLY_SELECTOR, dc.getSelector(j), n);
+    if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
     {
-      Node ss = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
-      if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
-      {
-        selfSel.push_back(ss);
-      }
+      selfSel.push_back(ss);
     }
   }
 }
 
-Node Skolemize::mkSkolemizedBody(Node f,
+Node Skolemize::mkSkolemizedBody(const Options& opts,
+                                 Node f,
                                  Node n,
                                  std::vector<TNode>& fvs,
                                  std::vector<Node>& sk,
@@ -202,7 +196,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
   std::vector<unsigned> var_indicies;
   for (unsigned i = 0; i < f[0].getNumChildren(); i++)
   {
-    if (isInductionTerm(f[0][i]))
+    if (isInductionTerm(opts, f[0][i]))
     {
       ind_vars.push_back(f[0][i]);
       ind_var_indicies.push_back(i);
@@ -265,7 +259,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
     Node nret = ret.substitute(ind_vars[0], k);
     // note : everything is under a negation
     // the following constructs ~( R( x, k ) => ~P( x ) )
-    if (options::dtStcInduction() && tn.isDatatype())
+    if (opts.quantifiers.dtStcInduction && tn.isDatatype())
     {
       const DType& dt = tn.getDType();
       std::vector<Node> disj;
@@ -284,12 +278,13 @@ Node Skolemize::mkSkolemizedBody(Node f,
       Assert(!disj.empty());
       n_str_ind = disj.size() == 1 ? disj[0] : nm->mkNode(AND, disj);
     }
-    else if (options::intWfInduction() && tn.isInteger())
+    else if (opts.quantifiers.intWfInduction && tn.isInteger())
     {
-      Node icond = nm->mkNode(GEQ, k, nm->mkConst(Rational(0)));
-      Node iret = ret.substitute(ind_vars[0],
-                                 nm->mkNode(MINUS, k, nm->mkConst(Rational(1))))
-                      .negate();
+      Node icond = nm->mkNode(GEQ, k, nm->mkConstInt(Rational(0)));
+      Node iret =
+          ret.substitute(ind_vars[0],
+                         nm->mkNode(SUB, k, nm->mkConstInt(Rational(1))))
+              .negate();
       n_str_ind = nm->mkNode(OR, icond.negate(), iret);
       n_str_ind = nm->mkNode(AND, icond, n_str_ind);
     }
@@ -308,7 +303,6 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       Node bvl = nm->mkNode(BOUND_VAR_LIST, rem_ind_vars);
       nret = nm->mkNode(FORALL, bvl, nret);
-      nret = Rewriter::rewrite(nret);
       sub = nret;
       sub_vars.insert(
           sub_vars.end(), ind_var_indicies.begin() + 1, ind_var_indicies.end());
@@ -340,8 +334,8 @@ Node Skolemize::getSkolemizedBody(Node f)
     std::vector<TNode> fvs;
     Node sub;
     std::vector<unsigned> sub_vars;
-    Node ret =
-        mkSkolemizedBody(f, f[1], fvs, d_skolem_constants[f], sub, sub_vars);
+    Node ret = mkSkolemizedBody(
+        options(), f, f[1], fvs, d_skolem_constants[f], sub, sub_vars);
     d_skolem_body[f] = ret;
     // store sub quantifier information
     if (!sub.isNull())
@@ -369,15 +363,15 @@ Node Skolemize::getSkolemizedBody(Node f)
   return it->second;
 }
 
-bool Skolemize::isInductionTerm(Node n)
+bool Skolemize::isInductionTerm(const Options& opts, Node n)
 {
   TypeNode tn = n.getType();
-  if (options::dtStcInduction() && tn.isDatatype())
+  if (opts.quantifiers.dtStcInduction && tn.isDatatype())
   {
     const DType& dt = tn.getDType();
     return !dt.isCodatatype();
   }
-  if (options::intWfInduction() && tn.isInteger())
+  if (opts.quantifiers.intWfInduction && tn.isInteger())
   {
     return true;
   }
@@ -397,8 +391,11 @@ void Skolemize::getSkolemTermVectors(
   }
 }
 
-bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
+bool Skolemize::isProofEnabled() const
+{
+  return d_env.isTheoryProofProducing();
+}
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

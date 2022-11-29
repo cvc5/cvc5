@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,10 +22,11 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
+class Rewriter;
 
 namespace uf {
 
@@ -45,7 +46,9 @@ public:
   /** setValue function */
   void setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex );
   /** getFunctionValue */
-  Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue, bool simplify = true );
+  Node getFunctionValue(const std::vector<Node>& args,
+                        int index,
+                        Node argDefaultValue);
   /** update function */
   void update( TheoryModel* m );
   /** simplify function */
@@ -92,11 +95,12 @@ public:
     d_tree.setValue( m, Node::null(), v, d_index_order, false, 0 );
   }
   /** getFunctionValue
-    *   Returns a representation of this function.
-    */
-  Node getFunctionValue( std::vector< Node >& args, bool simplify = true );
+   * Returns a representation of this function. The body of the function is
+   * rewritten if r is non-null.
+   */
+  Node getFunctionValue(const std::vector<Node>& args, Rewriter* r);
   /** getFunctionValue for args with set prefix */
-  Node getFunctionValue( const char* argPrefix, bool simplify = true );
+  Node getFunctionValue(const std::string& argPrefix, Rewriter* r);
   /** update
     *   This will update all values in the tree to be representatives in m.
     */
@@ -115,6 +119,6 @@ public:
 
 }
 }
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

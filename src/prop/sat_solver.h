@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Liana Hadarean, Mathias Preiner
+ *   Dejan Jovanovic, Mathias Preiner, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,11 +25,10 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_node_manager.h"
-#include "prop/bv_sat_solver_notify.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace prop {
 
@@ -118,30 +117,6 @@ public:
 };/* class SatSolver */
 
 
-class BVSatSolverInterface: public SatSolver {
-public:
-
-  virtual ~BVSatSolverInterface() {}
-  /** Interface for notifications */
-
-  virtual void setNotify(BVSatSolverNotify* notify) = 0;
-
-  virtual void markUnremovable(SatLiteral lit) = 0;
-
-  virtual void getUnsatCore(SatClause& unsatCore) = 0;
-
-  virtual void addMarkerLiteral(SatLiteral lit) = 0;
-
-  virtual SatValue propagate() = 0;
-
-  virtual void explain(SatLiteral lit, std::vector<SatLiteral>& explanation) = 0;
-
-  virtual SatValue assertAssumption(SatLiteral lit, bool propagate = false) = 0;
-
-  virtual void popAssumption() = 0;
-
-};/* class BVSatSolverInterface */
-
 class CDCLTSatSolverInterface : public SatSolver
 {
  public:
@@ -149,7 +124,7 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
-                          cvc5::context::UserContext* userContext,
+                          context::UserContext* userContext,
                           ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
@@ -167,6 +142,17 @@ class CDCLTSatSolverInterface : public SatSolver
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
+
+  /**
+   * Return the current list of decisions made by the SAT solver.
+   */
+  virtual std::vector<SatLiteral> getDecisions() const = 0;
+
+  /**
+   * Return the order heap of the SAT solver, which is a priority queueue
+   * of literals ordered with respect to variable activity.
+   */
+  virtual std::vector<Node> getOrderHeap() const = 0;
 
   /**
    * Return the current decision level of `lit`.
@@ -218,6 +204,6 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP__SAT_MODULE_H */

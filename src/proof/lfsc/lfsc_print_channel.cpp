@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
@@ -62,15 +62,10 @@ void LfscPrintChannelOut::printCloseRule(size_t nparen)
   }
 }
 
-void LfscPrintChannelOut::printProofId(size_t id)
+void LfscPrintChannelOut::printId(size_t id, const std::string& prefix)
 {
   d_out << " ";
-  printProofId(d_out, id);
-}
-void LfscPrintChannelOut::printAssumeId(size_t id)
-{
-  d_out << " ";
-  printAssumeId(d_out, id);
+  printId(d_out, id, prefix);
 }
 
 void LfscPrintChannelOut::printEndLine() { d_out << std::endl; }
@@ -79,7 +74,8 @@ void LfscPrintChannelOut::printNodeInternal(std::ostream& out, Node n)
 {
   // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
-  n.toStream(ss, -1, 0, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+  n.toStream(ss);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
@@ -89,7 +85,8 @@ void LfscPrintChannelOut::printTypeNodeInternal(std::ostream& out, TypeNode tn)
 {
   // due to use of special names in the node converter, we must clean symbols
   std::stringstream ss;
-  tn.toStream(ss, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyOutputLanguage(ss, Language::LANG_SMTLIB_V2_6);
+  tn.toStream(ss);
   std::string s = ss.str();
   cleanSymbols(s);
   out << s;
@@ -114,19 +111,11 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrintChannelOut::printId(std::ostream& out, size_t id)
+void LfscPrintChannelOut::printId(std::ostream& out,
+                                  size_t id,
+                                  const std::string& prefix)
 {
-  out << "__t" << id;
-}
-
-void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id)
-{
-  out << "__p" << id;
-}
-
-void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
-{
-  out << "__a" << id;
+  out << prefix << id;
 }
 
 void LfscPrintChannelOut::cleanSymbols(std::string& s)
@@ -158,4 +147,4 @@ void LfscPrintChannelPre::printOpenRule(const ProofNode* pn)
 }
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal

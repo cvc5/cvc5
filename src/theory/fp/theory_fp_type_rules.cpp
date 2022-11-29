@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,12 +16,13 @@
 #include "theory/fp/theory_fp_type_rules.h"
 
 // This is only needed for checking that components are only applied to leaves.
+#include "theory/fp/theory_fp_utils.h"
 #include "theory/theory.h"
 #include "util/cardinality.h"
 #include "util/floatingpoint.h"
 #include "util/roundingmode.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
@@ -422,45 +423,6 @@ TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
   return nodeManager->mkFloatingPointType(info.getSize());
 }
 
-TypeNode FloatingPointToFPGenericTypeRule::computeType(NodeManager* nodeManager,
-                                                       TNode n,
-                                                       bool check)
-{
-  TRACE("FloatingPointToFPGenericTypeRule");
-
-  FloatingPointToFPGeneric info =
-      n.getOperator().getConst<FloatingPointToFPGeneric>();
-
-  if (check)
-  {
-    uint32_t nchildren = n.getNumChildren();
-    if (nchildren == 1)
-    {
-      if (!n[0].getType(check).isBitVector())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "first argument must be a bit-vector");
-      }
-    }
-    else
-    {
-      Assert(nchildren == 2);
-      if (!n[0].getType(check).isRoundingMode())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "first argument must be a roundingmode");
-      }
-      TypeNode tn = n[1].getType(check);
-      if (!tn.isBitVector() && !tn.isFloatingPoint() && !tn.isReal())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "second argument must be a bit-vector, floating-point or Real");
-      }
-    }
-  }
-  return nodeManager->mkFloatingPointType(info.getSize());
-}
-
 TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check)
@@ -688,7 +650,7 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
                                          "sort");
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "floating-point bit component "
@@ -718,7 +680,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
                                          "sort");
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "floating-point exponent component "
@@ -754,7 +716,7 @@ TypeNode FloatingPointComponentSignificand::computeType(
                                          "floating-point sort");
     }
     if (!(Theory::isLeafOf(n[0], THEORY_FP)
-          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_REAL))
+          || n[0].getKind() == kind::FLOATINGPOINT_TO_FP_FROM_REAL))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "floating-point significand "
@@ -796,28 +758,9 @@ TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
 
 Cardinality CardinalityComputer::computeCardinality(TypeNode type)
 {
-  Assert(type.getKind() == kind::FLOATINGPOINT_TYPE);
-
-  FloatingPointSize fps = type.getConst<FloatingPointSize>();
-
-  /*
-   * 1                    NaN
-   * 2*1                  Infinities
-   * 2*1                  Zeros
-   * 2*2^(s-1)            Subnormal
-   * 2*((2^e)-2)*2^(s-1)  Normal
-   *
-   *  = 1 + 2*2 + 2*((2^e)-1)*2^(s-1)
-   *  =       5 + ((2^e)-1)*2^s
-   */
-
-  Integer significandValues = Integer(2).pow(fps.significandWidth());
-  Integer exponentValues = Integer(2).pow(fps.exponentWidth());
-  exponentValues -= Integer(1);
-
-  return Integer(5) + exponentValues * significandValues;
+  return fp::utils::getCardinality(type);
 }
 
 }  // namespace fp
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

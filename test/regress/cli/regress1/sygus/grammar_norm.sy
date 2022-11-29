@@ -1,0 +1,20 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --sygus-grammar-norm
+(set-logic LIA)
+
+(synth-fun f ((x Int)) Int
+  ((Start Int) (StartBool Bool))
+  ((Start Int (0 1 x
+               (+ Start Start)
+               (- Start Start)
+               (ite StartBool Start Start)))
+   (StartBool Bool ((and StartBool StartBool)
+                    (not StartBool)
+                    (<= Start Start)))))
+
+(declare-var x Int)
+
+(constraint (= (f x) (* 2 x)))
+
+(check-synth)

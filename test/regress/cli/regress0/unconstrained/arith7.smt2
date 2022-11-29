@@ -1,0 +1,12 @@
+; COMMAND-LINE: --unconstrained-simp
+(set-logic QF_AUFLIRA)
+(set-info :smt-lib-version 2.6)
+(set-info :category "crafted")
+(set-info :status unsat)
+(declare-fun v1 () Int)
+(declare-fun v2 () Real)
+(assert (= (/ (to_real v1) 2.0) v2))
+(assert (< v2 (/ 1 2)))
+(assert (> v2 0.0))
+(check-sat)
+(exit)

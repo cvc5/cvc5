@@ -1,0 +1,24 @@
+; COMMAND-LINE: --sygus-si=all --sygus-si-rcons=all-limit --sygus-si-rcons-limit=0 --sygus-out=status
+; ERROR-SCRUBBER: grep -o "reconstruction to syntax failed."
+; EXPECT-ERROR: reconstruction to syntax failed.
+; EXPECT: fail
+; REQUIRES: no-competition
+
+(set-logic LIA)
+
+(synth-fun max ((x Int) (y Int)) Int
+  ((Start Int) (StartBool Bool))
+  ((Start Int (0 1 x y
+               (+ Start Start)
+               (- Start Start)
+               (ite StartBool Start Start)))
+   (StartBool Bool ((and StartBool StartBool)
+                    (not StartBool)
+                    (<= Start Start)))))
+
+(declare-var x Int)
+(declare-var y Int)
+
+(constraint (= (max x y) (ite (<= x y) y x)))
+
+(check-synth)

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,15 +25,13 @@
 #include "smt/model.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-class Command;
-class CommandStatus;
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
 
-class Printer
+class CVC5_EXPORT Printer
 {
  public:
   /**
@@ -42,17 +40,17 @@ class Printer
    */
   virtual ~Printer() {}
 
+  /** Get the Printer for a given output stream */
+  static Printer* getPrinter(std::ostream& out);
+
   /** Get the Printer for a given Language */
   static Printer* getPrinter(Language lang);
 
   /** Write a Node out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out,
-                        TNode n,
-                        int toDepth,
-                        size_t dag) const = 0;
+  virtual void toStream(std::ostream& out, TNode n) const = 0;
 
-  /** Write a CommandStatus out to a stream with this Printer. */
-  virtual void toStream(std::ostream& out, const CommandStatus* s) const = 0;
+  /** Write a Kind out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, Kind k) const = 0;
 
   /** Write a Model out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const smt::Model& m) const;
@@ -66,6 +64,23 @@ class Printer
   /** Write a skolem list out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const SkolemList& sks) const;
 
+  /** Print command success status */
+  virtual void toStreamCmdSuccess(std::ostream& out) const;
+
+  /** Print command interrupted status */
+  virtual void toStreamCmdInterrupted(std::ostream& out) const;
+
+  /** Print command unsupported status */
+  virtual void toStreamCmdUnsupported(std::ostream& out) const;
+
+  /** Print command failure status */
+  virtual void toStreamCmdFailure(std::ostream& out,
+                                  const std::string& message) const;
+
+  /** Print command recoverable failure status */
+  virtual void toStreamCmdRecoverableFailure(std::ostream& out,
+                                             const std::string& message) const;
+
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
                                 const std::string& name) const;
@@ -78,10 +93,10 @@ class Printer
   virtual void toStreamCmdAssert(std::ostream& out, Node n) const;
 
   /** Print push command */
-  virtual void toStreamCmdPush(std::ostream& out) const;
+  virtual void toStreamCmdPush(std::ostream& out, uint32_t nscopes) const;
 
   /** Print pop command */
-  virtual void toStreamCmdPop(std::ostream& out) const;
+  virtual void toStreamCmdPop(std::ostream& out, uint32_t nscopes) const;
 
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
@@ -94,6 +109,11 @@ class Printer
                                       const std::string& id,
                                       TypeNode type,
                                       const std::vector<Node>& initValue) const;
+  /** Print declare-oracle-fun command */
+  virtual void toStreamCmdDeclareOracleFun(std::ostream& out,
+                                           const std::string& id,
+                                           TypeNode type,
+                                           const std::string& binName) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
@@ -165,6 +185,9 @@ class Printer
   /** Print check-synth command */
   virtual void toStreamCmdCheckSynth(std::ostream& out) const;
 
+  /** Print check-synth-next command */
+  virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
+
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
 
@@ -179,23 +202,28 @@ class Printer
   virtual void toStreamCmdGetModel(std::ostream& out) const;
 
   /** Print block-model command */
-  void toStreamCmdBlockModel(std::ostream& out) const;
+  virtual void toStreamCmdBlockModel(std::ostream& out,
+                                     modes::BlockModelsMode mode) const;
 
   /** Print block-model-values command */
-  void toStreamCmdBlockModelValues(std::ostream& out,
-                                   const std::vector<Node>& nodes) const;
+  virtual void toStreamCmdBlockModelValues(
+      std::ostream& out, const std::vector<Node>& nodes) const;
 
   /** Print get-proof command */
-  virtual void toStreamCmdGetProof(std::ostream& out) const;
+  virtual void toStreamCmdGetProof(std::ostream& out,
+                                   modes::ProofComponent c) const;
 
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
 
-  /** Print get-interpol command */
-  void toStreamCmdGetInterpol(std::ostream& out,
-                              const std::string& name,
-                              Node conj,
-                              TypeNode sygusType) const;
+  /** Print get-interpolant command */
+  virtual void toStreamCmdGetInterpol(std::ostream& out,
+                                      const std::string& name,
+                                      Node conj,
+                                      TypeNode sygusType) const;
+
+  /** Print get-interpolant-next command */
+  virtual void toStreamCmdGetInterpolNext(std::ostream& out) const;
 
   /** Print get-abduct command */
   virtual void toStreamCmdGetAbduct(std::ostream& out,
@@ -203,8 +231,13 @@ class Printer
                                     Node conj,
                                     TypeNode sygusType) const;
 
+  /** Print get-abduct-next command */
+  virtual void toStreamCmdGetAbductNext(std::ostream& out) const;
+
   /** Print get-quantifier-elimination command */
-  void toStreamCmdGetQuantifierElimination(std::ostream& out, Node n) const;
+  virtual void toStreamCmdGetQuantifierElimination(std::ostream& out,
+                                                   Node n,
+                                                   bool doFull) const;
 
   /** Print get-unsat-assumptions command */
   virtual void toStreamCmdGetUnsatAssumptions(std::ostream& out) const;
@@ -214,6 +247,10 @@ class Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-learned-literals command */
+  virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
+                                             modes::LearnedLitType t) const;
 
   /** Print get-assertions command */
   virtual void toStreamCmdGetAssertions(std::ostream& out) const;
@@ -263,14 +300,6 @@ class Printer
                                       TypeNode locType,
                                       TypeNode dataType) const;
 
-  /** Print command sequence command */
-  virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const;
-
-  /** Print declaration sequence command */
-  virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const;
-
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}
@@ -291,10 +320,12 @@ class Printer
                                  const Node& n,
                                  const Node& value) const = 0;
 
-  /** write model response to command using another language printer */
-  void toStreamUsing(Language lang,
-                     std::ostream& out,
-                     const smt::Model& m) const;
+  /**
+   * Write an error to `out` stating that command status `name` is not supported
+   * by this printer.
+   */
+  void printUnknownCommandStatus(std::ostream& out,
+                                 const std::string& name) const;
 
   /**
    * Write an error to `out` stating that command `name` is not supported by
@@ -316,6 +347,6 @@ class Printer
 
 }; /* class Printer */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__PRINTER_H */

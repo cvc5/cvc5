@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Morgan Deters, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 
 #include "options/option_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::string cvc5_errno_failreason()
 {
@@ -72,12 +72,11 @@ std::string cvc5_errno_failreason()
 
 namespace detail {
 
-std::ostream* openOStream(const std::string& filename)
+std::unique_ptr<std::ostream> openOStream(const std::string& filename)
 {
   errno = 0;
-  std::ostream* res;
-  res = new std::ofstream(filename);
-  if (res == nullptr || !*res)
+  std::unique_ptr<std::ostream> res = std::make_unique<std::ofstream>(filename);
+  if (!res || !*res)
   {
     std::stringstream ss;
     ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
@@ -85,12 +84,11 @@ std::ostream* openOStream(const std::string& filename)
   }
   return res;
 }
-std::istream* openIStream(const std::string& filename)
+std::unique_ptr<std::istream> openIStream(const std::string& filename)
 {
   errno = 0;
-  std::istream* res;
-  res = new std::ifstream(filename);
-  if (res == nullptr || !*res)
+  std::unique_ptr<std::istream> res = std::make_unique<std::ifstream>(filename);
+  if (!res || !*res)
   {
     std::stringstream ss;
     ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
@@ -100,37 +98,57 @@ std::istream* openIStream(const std::string& filename)
 }
 }  // namespace detail
 
-std::ostream* ManagedErr::defaultValue() const { return &std::cerr; }
+ManagedErr::ManagedErr() : ManagedStream(&std::cerr, "stderr") {}
 bool ManagedErr::specialCases(const std::string& value)
 {
   if (value == "stderr" || value == "--")
   {
-    d_stream.reset();
+    d_nonowned = &std::cerr;
+    d_owned.reset();
+    d_description = "stderr";
+    return true;
+  }
+  else if (value == "stdout")
+  {
+    d_nonowned = &std::cout;
+    d_owned.reset();
+    d_description = "stdout";
     return true;
   }
   return false;
 }
 
-std::istream* ManagedIn::defaultValue() const { return &std::cin; }
+ManagedIn::ManagedIn() : ManagedStream(&std::cin, "stdin") {}
 bool ManagedIn::specialCases(const std::string& value)
 {
   if (value == "stdin" || value == "--")
   {
-    d_stream.reset();
+    d_nonowned = &std::cin;
+    d_owned.reset();
+    d_description = "stdin";
     return true;
   }
   return false;
 }
 
-std::ostream* ManagedOut::defaultValue() const { return &std::cout; }
+ManagedOut::ManagedOut() : ManagedStream(&std::cout, "stdout") {}
 bool ManagedOut::specialCases(const std::string& value)
 {
   if (value == "stdout" || value == "--")
   {
-    d_stream.reset();
+    d_nonowned = &std::cout;
+    d_owned.reset();
+    d_description = "stdout";
+    return true;
+  }
+  else if (value == "stderr")
+  {
+    d_nonowned = &std::cerr;
+    d_owned.reset();
+    d_description = "stderr";
     return true;
   }
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

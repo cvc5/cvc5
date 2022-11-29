@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "util/gmp_util.h"
 #include "util/integer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A multi-precision rational constant.
@@ -286,7 +286,7 @@ class CVC5_EXPORT Rational
     return (*this);
   }
 
-  bool isIntegral() const { return getDenominator() == 1; }
+  bool isIntegral() const { return mpz_cmp_ui(d_value.get_den_mpz_t(), 1) == 0; }
 
   /** Returns a string representing the rational in the given base. */
   std::string toString(int base = 10) const { return d_value.get_str(base); }
@@ -324,11 +324,11 @@ class CVC5_EXPORT Rational
 
 struct RationalHashFunction
 {
-  inline size_t operator()(const cvc5::Rational& r) const { return r.hash(); }
+  inline size_t operator()(const cvc5::internal::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RATIONAL_H */

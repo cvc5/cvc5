@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,8 +23,9 @@
 
 #include "expr/node.h"
 #include "proof/proof_node.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class CDProof;
 class ProofNode;
@@ -67,6 +68,21 @@ class ProofNodeUpdaterCallback
                       const std::vector<Node>& args,
                       CDProof* cdp,
                       bool& continueUpdate);
+
+  /** As above, but at post-visit.
+   *
+   * We do not pass a continueUpdate flag to this method, or the one below,
+   * since the children of this proof node have already been updated.
+   */
+  virtual bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                                const std::vector<Node>& fa);
+
+  /** As above, but at post-visit. */
+  virtual bool updatePost(Node res,
+                          PfRule id,
+                          const std::vector<Node>& children,
+                          const std::vector<Node>& args,
+                          CDProof* cdp);
 };
 
 /**
@@ -79,18 +95,18 @@ class ProofNodeUpdaterCallback
  * should be filled in the callback for each ProofNode to update. This update
  * process is applied in a *pre-order* traversal.
  */
-class ProofNodeUpdater
+class ProofNodeUpdater : protected EnvObj
 {
  public:
   /**
-   * @param pnm The proof node manager we are using
+   * @param env Reference to the environment
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
    * @param autoSym Whether intermediate CDProof objects passed to updater
    * callbacks automatically introduce SYMM steps.
    */
-  ProofNodeUpdater(ProofNodeManager* pnm,
+  ProofNodeUpdater(Env& env,
                    ProofNodeUpdaterCallback& cb,
                    bool mergeSubproofs = false,
                    bool autoSym = true);
@@ -110,8 +126,6 @@ class ProofNodeUpdater
   void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
   /**
@@ -125,20 +139,35 @@ class ProofNodeUpdater
    */
   void processInternal(std::shared_ptr<ProofNode> pf, std::vector<Node>& fa);
   /**
-   * Update proof node cur based on the callback. This modifies curr using
-   * ProofNodeManager::updateNode based on the proof node constructed to
-   * replace it by the callback. Return true if cur was updated. If
-   * continueUpdate is updated to false, then cur is not updated further
-   * and its children are not traversed.
+   * Update proof node cur based on the callback and on whether we are updating
+   * at pre visit or post visit time. This modifies curr using
+   * ProofNodeManager::updateNode based on the proof node constructed to replace
+   * it by the callback. If we are debugging free assumptions, the set fa is
+   * used to check whether the updated proof node is closed with relation to
+   * them. Return true if cur was updated, and continueUpdate may be set to
+   * false by the callback.
+   */
+  bool updateProofNode(std::shared_ptr<ProofNode> cur,
+                       const std::vector<Node>& fa,
+                       bool& continueUpdate,
+                       bool preVisit);
+  /**
+   * Update the node cur if it should be updated according to the callback. How
+   * the callback performs the update, if at all, depends if we are at pre- or
+   * post-visit time. If continueUpdate is updated to false, then cur is not
+   * updated further and its children are not traversed (when pre-visiting).
    */
   bool runUpdate(std::shared_ptr<ProofNode> cur,
                  const std::vector<Node>& fa,
-                 bool& continueUpdate);
+                 bool& continueUpdate,
+                 bool preVisit = true);
   /**
    * Finalize the node cur. This is called at the moment that it is established
-   * that cur will appear in the final proof. We do any final debug checking
-   * and add it to resCache/resCacheNcWaiting if we are merging subproofs, where
-   * these map result formulas to proof nodes with/without assumptions.
+   * that cur will appear in the final proof. We do any final debug checking and
+   * add it to resCache/resCacheNcWaiting if we are merging subproofs, where
+   * these map result formulas to proof nodes with/without assumptions. If we
+   * are updating nodes at post visit time, then we run updateProofNode on it.
+   *
    */
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
@@ -159,6 +188,6 @@ class ProofNodeUpdater
   bool d_autoSym;
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

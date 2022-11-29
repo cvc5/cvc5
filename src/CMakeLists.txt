@@ -4,7 +4,7 @@
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -19,16 +19,12 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  api/cpp/cvc5_types.cpp
+  api/cpp/cvc5_types.h
   decision/assertion_list.cpp
   decision/assertion_list.h
-  decision/decision_attributes.h
   decision/decision_engine.cpp
   decision/decision_engine.h
-  decision/decision_engine_old.cpp
-  decision/decision_engine_old.h
-  decision/decision_strategy.h
-  decision/justification_heuristic.cpp
-  decision/justification_heuristic.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
   decision/justify_info.cpp
@@ -50,9 +46,6 @@ libcvc5_add_sources(
   omt/integer_optimizer.h
   omt/omt_optimizer.cpp
   omt/omt_optimizer.h
-  options/decision_weight.h
-  options/didyoumean.cpp
-  options/didyoumean.h
   options/language.cpp
   options/language.h
   options/managed_streams.cpp
@@ -63,8 +56,6 @@ libcvc5_add_sources(
   options/options_handler.h
   options/options_listener.h
   options/options_public.h
-  options/set_language.cpp
-  options/set_language.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/learned_literal_manager.cpp
@@ -75,8 +66,6 @@ libcvc5_add_sources(
   preprocessing/passes/apply_substs.h
   preprocessing/passes/bool_to_bv.cpp
   preprocessing/passes/bool_to_bv.h
-  preprocessing/passes/bv_abstraction.cpp
-  preprocessing/passes/bv_abstraction.h
   preprocessing/passes/bv_eager_atoms.cpp
   preprocessing/passes/bv_eager_atoms.h
   preprocessing/passes/bv_gauss.cpp
@@ -143,6 +132,8 @@ libcvc5_add_sources(
   preprocessing/preprocessing_pass_context.h
   preprocessing/preprocessing_pass_registry.cpp
   preprocessing/preprocessing_pass_registry.h
+  preprocessing/util/boolean_simplification.cpp
+  preprocessing/util/boolean_simplification.h
   preprocessing/util/ite_utilities.cpp
   preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
@@ -155,6 +146,8 @@ libcvc5_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
+  proof/annotation_proof_generator.cpp
+  proof/annotation_proof_generator.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
@@ -212,6 +205,8 @@ libcvc5_add_sources(
   proof/proof_node_updater.h
   proof/proof_rule.cpp
   proof/proof_rule.h
+  proof/proof_rule_checker.cpp
+  proof/proof_rule_checker.h
   proof/proof_set.h
   proof/proof_step_buffer.cpp
   proof/proof_step_buffer.h
@@ -221,31 +216,16 @@ libcvc5_add_sources(
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_let_binding.cpp
+  proof/alethe/alethe_let_binding.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
   proof/alethe/alethe_post_processor.h
+  proof/alethe/alethe_printer.h
+  proof/alethe/alethe_printer.cpp
   proof/alethe/alethe_proof_rule.cpp
   proof/alethe/alethe_proof_rule.h
-  prop/bv_sat_solver_notify.h
-  prop/bvminisat/bvminisat.cpp
-  prop/bvminisat/bvminisat.h
-  prop/bvminisat/core/Dimacs.h
-  prop/bvminisat/core/Solver.cc
-  prop/bvminisat/core/Solver.h
-  prop/bvminisat/core/SolverTypes.h
-  prop/bvminisat/mtl/Alg.h
-  prop/bvminisat/mtl/Alloc.h
-  prop/bvminisat/mtl/Heap.h
-  prop/bvminisat/mtl/IntTypes.h
-  prop/bvminisat/mtl/Map.h
-  prop/bvminisat/mtl/Queue.h
-  prop/bvminisat/mtl/Sort.h
-  prop/bvminisat/mtl/Vec.h
-  prop/bvminisat/mtl/XAlloc.h
-  prop/bvminisat/simp/SimpSolver.cc
-  prop/bvminisat/simp/SimpSolver.h
-  prop/bvminisat/utils/Options.h
   prop/cadical.cpp
   prop/cadical.h
   prop/cnf_stream.cpp
@@ -254,8 +234,8 @@ libcvc5_add_sources(
   prop/cryptominisat.h
   prop/kissat.cpp
   prop/kissat.h
-  prop/proof_cnf_stream.cpp
-  prop/proof_cnf_stream.h
+  prop/learned_db.cpp
+  prop/learned_db.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -274,6 +254,10 @@ libcvc5_add_sources(
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
+  prop/proof_cnf_stream.cpp
+  prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
   prop/proof_post_processor.h
   prop/prop_engine.cpp
@@ -292,6 +276,8 @@ libcvc5_add_sources(
   prop/skolem_def_manager.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
+  prop/zero_level_learner.cpp
+  prop/zero_level_learner.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
   smt/abstract_values.cpp
@@ -300,14 +286,10 @@ libcvc5_add_sources(
   smt/assertions.h
   smt/check_models.cpp
   smt/check_models.h
-  smt/command.cpp
-  smt/command.h
+  smt/context_manager.cpp
+  smt/context_manager.h
   smt/difficulty_post_processor.cpp
   smt/difficulty_post_processor.h
-  smt/dump.cpp
-  smt/dump.h
-  smt/dump_manager.cpp
-  smt/dump_manager.h
   smt/env.cpp
   smt/env.h
   smt/env_obj.cpp
@@ -325,18 +307,16 @@ libcvc5_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
-  smt/node_command.cpp
-  smt/node_command.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
-  smt/output_manager.cpp
-  smt/output_manager.h
   smt/quant_elim_solver.cpp
   smt/quant_elim_solver.h
   smt/preprocessor.cpp
   smt/preprocessor.h
   smt/preprocess_proof_generator.cpp
   smt/preprocess_proof_generator.h
+  smt/print_benchmark.cpp
+  smt/print_benchmark.h
   smt/process_assertions.cpp
   smt/process_assertions.h
   smt/proof_manager.cpp
@@ -349,18 +329,18 @@ libcvc5_add_sources(
   smt/set_defaults.h
   smt/solver_engine.cpp
   smt/solver_engine.h
-  smt/solver_engine_scope.cpp
-  smt/solver_engine_scope.h
   smt/solver_engine_state.cpp
   smt/solver_engine_state.h
   smt/solver_engine_stats.cpp
   smt/solver_engine_stats.h
+  smt/smt_driver.cpp
+  smt/smt_driver.h
+  smt/smt_driver_deep_restarts.cpp
+  smt/smt_driver_deep_restarts.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
   smt/smt_solver.h
-  smt/smt_statistics_registry.cpp
-  smt/smt_statistics_registry.h
   smt/sygus_solver.cpp
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
@@ -369,82 +349,104 @@ libcvc5_add_sources(
   smt/unsat_core_manager.h
   smt/witness_form.cpp
   smt/witness_form.h
-  smt_util/boolean_simplification.cpp
-  smt_util/boolean_simplification.h
-  smt_util/nary_builder.cpp
-  smt_util/nary_builder.h
-  theory/arith/approx_simplex.cpp
-  theory/arith/approx_simplex.h
+  theory/arith/arith_evaluator.cpp
+  theory/arith/arith_evaluator.h
   theory/arith/arith_ite_utils.cpp
   theory/arith/arith_ite_utils.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
+  theory/arith/arith_poly_norm.cpp
+  theory/arith/arith_poly_norm.h
   theory/arith/arith_preprocess.cpp
   theory/arith/arith_preprocess.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
   theory/arith/arith_state.cpp
   theory/arith/arith_state.h
-  theory/arith/arith_static_learner.cpp
-  theory/arith/arith_static_learner.h
+  theory/arith/arith_subs.cpp
+  theory/arith/arith_subs.h
   theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
-  theory/arith/arithvar.cpp
-  theory/arith/arithvar.h
-  theory/arith/attempt_solution_simplex.cpp
-  theory/arith/attempt_solution_simplex.h
-  theory/arith/bound_counts.h
   theory/arith/bound_inference.cpp
   theory/arith/bound_inference.h
   theory/arith/branch_and_bound.cpp
   theory/arith/branch_and_bound.h
-  theory/arith/callbacks.cpp
-  theory/arith/callbacks.h
-  theory/arith/congruence_manager.cpp
-  theory/arith/congruence_manager.h
-  theory/arith/constraint.cpp
-  theory/arith/constraint.h
-  theory/arith/constraint_forward.h
-  theory/arith/cut_log.cpp
-  theory/arith/cut_log.h
   theory/arith/delta_rational.cpp
   theory/arith/delta_rational.h
-  theory/arith/dio_solver.cpp
-  theory/arith/dio_solver.h
-  theory/arith/dual_simplex.cpp
-  theory/arith/dual_simplex.h
   theory/arith/equality_solver.cpp
   theory/arith/equality_solver.h
-  theory/arith/error_set.cpp
-  theory/arith/error_set.h
-  theory/arith/fc_simplex.cpp
-  theory/arith/fc_simplex.h
-  theory/arith/infer_bounds.cpp
-  theory/arith/infer_bounds.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
-  theory/arith/linear_equality.cpp
-  theory/arith/linear_equality.h
-  theory/arith/matrix.cpp
-  theory/arith/matrix.h
-  theory/arith/nl/cad_solver.cpp
-  theory/arith/nl/cad_solver.h
-  theory/arith/nl/cad/cdcac.cpp
-  theory/arith/nl/cad/cdcac.h
-  theory/arith/nl/cad/cdcac_utils.cpp
-  theory/arith/nl/cad/cdcac_utils.h
-  theory/arith/nl/cad/constraints.cpp
-  theory/arith/nl/cad/constraints.h
-  theory/arith/nl/cad/lazard_evaluation.cpp
-  theory/arith/nl/cad/lazard_evaluation.h
-  theory/arith/nl/cad/projections.cpp
-  theory/arith/nl/cad/projections.h
-  theory/arith/nl/cad/proof_checker.cpp
-  theory/arith/nl/cad/proof_checker.h
-  theory/arith/nl/cad/proof_generator.cpp
-  theory/arith/nl/cad/proof_generator.h
-  theory/arith/nl/cad/variable_ordering.cpp
-  theory/arith/nl/cad/variable_ordering.h
+  theory/arith/linear/approx_simplex.cpp
+  theory/arith/linear/approx_simplex.h
+  theory/arith/linear/arith_static_learner.cpp
+  theory/arith/linear/arith_static_learner.h
+  theory/arith/linear/arithvar.cpp
+  theory/arith/linear/arithvar.h
+  theory/arith/linear/attempt_solution_simplex.cpp
+  theory/arith/linear/attempt_solution_simplex.h
+  theory/arith/linear/bound_counts.h
+  theory/arith/linear/callbacks.cpp
+  theory/arith/linear/callbacks.h
+  theory/arith/linear/congruence_manager.cpp
+  theory/arith/linear/congruence_manager.h
+  theory/arith/linear/constraint.cpp
+  theory/arith/linear/constraint.h
+  theory/arith/linear/constraint_forward.h
+  theory/arith/linear/cut_log.cpp
+  theory/arith/linear/cut_log.h
+  theory/arith/linear/dio_solver.cpp
+  theory/arith/linear/dio_solver.h
+  theory/arith/linear/dual_simplex.cpp
+  theory/arith/linear/dual_simplex.h
+  theory/arith/linear/error_set.cpp
+  theory/arith/linear/error_set.h
+  theory/arith/linear/fc_simplex.cpp
+  theory/arith/linear/fc_simplex.h
+  theory/arith/linear/infer_bounds.cpp
+  theory/arith/linear/infer_bounds.h
+  theory/arith/linear/linear_equality.cpp
+  theory/arith/linear/linear_equality.h
+  theory/arith/linear/matrix.cpp
+  theory/arith/linear/matrix.h
+  theory/arith/linear/normal_form.cpp
+  theory/arith/linear/normal_form.h
+  theory/arith/linear/partial_model.cpp
+  theory/arith/linear/partial_model.h
+  theory/arith/linear/simplex.cpp
+  theory/arith/linear/simplex.h
+  theory/arith/linear/simplex_update.cpp
+  theory/arith/linear/simplex_update.h
+  theory/arith/linear/soi_simplex.cpp
+  theory/arith/linear/soi_simplex.h
+  theory/arith/linear/tableau.cpp
+  theory/arith/linear/tableau.h
+  theory/arith/linear/tableau_sizes.cpp
+  theory/arith/linear/tableau_sizes.h
+  theory/arith/linear/theory_arith_private.cpp
+  theory/arith/linear/theory_arith_private.h
+  theory/arith/nl/coverings_solver.cpp
+  theory/arith/nl/coverings_solver.h
+  theory/arith/nl/coverings/cdcac.cpp
+  theory/arith/nl/coverings/cdcac.h
+  theory/arith/nl/coverings/cdcac_utils.cpp
+  theory/arith/nl/coverings/cdcac_utils.h
+  theory/arith/nl/coverings/cocoa_converter.cpp
+  theory/arith/nl/coverings/cocoa_converter.h
+  theory/arith/nl/coverings/constraints.cpp
+  theory/arith/nl/coverings/constraints.h
+  theory/arith/nl/coverings/lazard_evaluation.cpp
+  theory/arith/nl/coverings/lazard_evaluation.h
+  theory/arith/nl/coverings/projections.cpp
+  theory/arith/nl/coverings/projections.h
+  theory/arith/nl/coverings/proof_checker.cpp
+  theory/arith/nl/coverings/proof_checker.h
+  theory/arith/nl/coverings/proof_generator.cpp
+  theory/arith/nl/coverings/proof_generator.h
+  theory/arith/nl/coverings/variable_ordering.cpp
+  theory/arith/nl/coverings/variable_ordering.h
+  theory/arith/nl/equality_substitution.cpp
+  theory/arith/nl/equality_substitution.h
   theory/arith/nl/ext/constraint.cpp
   theory/arith/nl/ext/constraint.h
   theory/arith/nl/ext/factoring_check.cpp
@@ -503,32 +505,23 @@ libcvc5_add_sources(
   theory/arith/nl/transcendental/transcendental_solver.h
   theory/arith/nl/transcendental/transcendental_state.cpp
   theory/arith/nl/transcendental/transcendental_state.h
-  theory/arith/normal_form.cpp
-  theory/arith/normal_form.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
-  theory/arith/partial_model.cpp
-  theory/arith/partial_model.h
   theory/arith/pp_rewrite_eq.cpp
   theory/arith/pp_rewrite_eq.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
+  theory/arith/rewriter/addition.cpp
+  theory/arith/rewriter/addition.h
+  theory/arith/rewriter/node_utils.cpp
+  theory/arith/rewriter/node_utils.h
+  theory/arith/rewriter/ordering.h
+  theory/arith/rewriter/rewrite_atom.cpp
+  theory/arith/rewriter/rewrite_atom.h
   theory/arith/rewrites.cpp
   theory/arith/rewrites.h
-  theory/arith/simplex.cpp
-  theory/arith/simplex.h
-  theory/arith/simplex_update.cpp
-  theory/arith/simplex_update.h
-  theory/arith/soi_simplex.cpp
-  theory/arith/soi_simplex.h
-  theory/arith/tableau.cpp
-  theory/arith/tableau.h
-  theory/arith/tableau_sizes.cpp
-  theory/arith/tableau_sizes.h
   theory/arith/theory_arith.cpp
   theory/arith/theory_arith.h
-  theory/arith/theory_arith_private.cpp
-  theory/arith/theory_arith_private.h
   theory/arith/theory_arith_type_rules.cpp
   theory/arith/theory_arith_type_rules.h
   theory/arith/type_enumerator.h
@@ -548,8 +541,6 @@ libcvc5_add_sources(
   theory/arrays/theory_arrays_type_rules.h
   theory/arrays/type_enumerator.h
   theory/arrays/type_enumerator.cpp
-  theory/arrays/union_find.cpp
-  theory/arrays/union_find.h
   theory/assertion.cpp
   theory/assertion.h
   theory/atom_requests.cpp
@@ -558,22 +549,26 @@ libcvc5_add_sources(
   theory/bags/bags_rewriter.h
   theory/bags/bag_solver.cpp
   theory/bags/bag_solver.h
+  theory/bags/bag_reduction.cpp
+  theory/bags/bag_reduction.h
   theory/bags/bags_statistics.cpp
   theory/bags/bags_statistics.h
+  theory/bags/bags_utils.cpp
+  theory/bags/bags_utils.h
+  theory/bags/card_solver.cpp
+  theory/bags/card_solver.h
   theory/bags/infer_info.cpp
   theory/bags/infer_info.h
   theory/bags/inference_generator.cpp
   theory/bags/inference_generator.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
-  theory/bags/make_bag_op.cpp
-  theory/bags/make_bag_op.h
-  theory/bags/normal_form.cpp
-  theory/bags/normal_form.h
   theory/bags/rewrites.cpp
   theory/bags/rewrites.h
   theory/bags/solver_state.cpp
   theory/bags/solver_state.h
+  theory/bags/strategy.cpp
+  theory/bags/strategy.h
   theory/bags/term_registry.cpp
   theory/bags/term_registry.h
   theory/bags/theory_bags.cpp
@@ -605,51 +600,24 @@ libcvc5_add_sources(
   theory/builtin/theory_builtin_type_rules.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
-  theory/bv/abstraction.cpp
-  theory/bv/abstraction.h
-  theory/bv/bitblast/aig_bitblaster.cpp
-  theory/bv/bitblast/aig_bitblaster.h
   theory/bv/bitblast/bitblast_proof_generator.cpp
   theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
   theory/bv/bitblast/bitblast_utils.h
   theory/bv/bitblast/bitblaster.h
-  theory/bv/bitblast/eager_bitblaster.cpp
-  theory/bv/bitblast/eager_bitblaster.h
-  theory/bv/bitblast/lazy_bitblaster.cpp
-  theory/bv/bitblast/lazy_bitblaster.h
   theory/bv/bitblast/node_bitblaster.cpp
   theory/bv/bitblast/node_bitblaster.h
   theory/bv/bitblast/proof_bitblaster.cpp
   theory/bv/bitblast/proof_bitblaster.h
-  theory/bv/bv_eager_solver.cpp
-  theory/bv/bv_eager_solver.h
-  theory/bv/bv_inequality_graph.cpp
-  theory/bv/bv_inequality_graph.h
-  theory/bv/bv_quick_check.cpp
-  theory/bv/bv_quick_check.h
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
   theory/bv/bv_solver_bitblast_internal.cpp
   theory/bv/bv_solver_bitblast_internal.h
-  theory/bv/bv_solver_layered.cpp
-  theory/bv/bv_solver_layered.h
-  theory/bv/bv_subtheory.h
-  theory/bv/bv_subtheory_algebraic.cpp
-  theory/bv/bv_subtheory_algebraic.h
-  theory/bv/bv_subtheory_bitblast.cpp
-  theory/bv/bv_subtheory_bitblast.h
-  theory/bv/bv_subtheory_core.cpp
-  theory/bv/bv_subtheory_core.h
-  theory/bv/bv_subtheory_inequality.cpp
-  theory/bv/bv_subtheory_inequality.h
   theory/bv/int_blaster.cpp
   theory/bv/int_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
-  theory/bv/slicer.cpp
-  theory/bv/slicer.h
   theory/bv/theory_bv.cpp
   theory/bv/theory_bv.h
   theory/bv/theory_bv_rewrite_rules.h
@@ -666,6 +634,8 @@ libcvc5_add_sources(
   theory/bv/theory_bv_utils.h
   theory/bv/type_enumerator.h
   theory/care_graph.h
+  theory/care_pair_argument_callback.cpp
+  theory/care_pair_argument_callback.cpp
   theory/combination_care_graph.cpp
   theory/combination_care_graph.h
   theory/combination_engine.cpp
@@ -692,8 +662,10 @@ libcvc5_add_sources(
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
-  theory/datatypes/tuple_project_op.cpp
-  theory/datatypes/tuple_project_op.h
+  theory/datatypes/project_op.cpp
+  theory/datatypes/project_op.h
+  theory/datatypes/tuple_utils.cpp
+  theory/datatypes/tuple_utils.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp
@@ -715,6 +687,24 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
+  theory/ff/groebner.cpp
+  theory/ff/groebner.h
+  theory/ff/core.cpp
+  theory/ff/core.h
+  theory/ff/model.cpp
+  theory/ff/model.h
+  theory/ff/roots.cpp
+  theory/ff/roots.h
+  theory/ff/stats.cpp
+  theory/ff/stats.h
+  theory/ff/sub_theory.cpp
+  theory/ff/sub_theory.h
+  theory/ff/theory_ff.cpp
+  theory/ff/theory_ff.h
+  theory/ff/theory_ff_rewriter.cpp
+  theory/ff/theory_ff_rewriter.h
+  theory/ff/theory_ff_type_rules.cpp
+  theory/ff/theory_ff_type_rules.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
@@ -725,12 +715,16 @@ libcvc5_add_sources(
   theory/fp/theory_fp_rewriter.h
   theory/fp/theory_fp_type_rules.h
   theory/fp/theory_fp_type_rules.cpp
+  theory/fp/theory_fp_utils.h
+  theory/fp/theory_fp_utils.cpp
   theory/fp/type_enumerator.h
   theory/interrupted.h
   theory/incomplete_id.cpp
   theory/incomplete_id.h
   theory/inference_id.cpp
   theory/inference_id.h
+  theory/inference_id_proof_annotator.cpp
+  theory/inference_id_proof_annotator.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
   theory/logic_info.cpp
@@ -795,6 +789,8 @@ libcvc5_add_sources(
   theory/quantifiers/ematching/instantiation_engine.h
   theory/quantifiers/ematching/pattern_term_selector.cpp
   theory/quantifiers/ematching/pattern_term_selector.h
+  theory/quantifiers/ematching/relational_match_generator.cpp
+  theory/quantifiers/ematching/relational_match_generator.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
   theory/quantifiers/ematching/trigger_database.cpp
@@ -831,6 +827,20 @@ libcvc5_add_sources(
   theory/quantifiers/fun_def_evaluator.h
   theory/quantifiers/ho_term_database.cpp
   theory/quantifiers/ho_term_database.h
+  theory/quantifiers/ieval/free_var_info.cpp
+  theory/quantifiers/ieval/free_var_info.h
+  theory/quantifiers/ieval/inst_evaluator.cpp
+  theory/quantifiers/ieval/inst_evaluator.h
+  theory/quantifiers/ieval/inst_evaluator_manager.cpp
+  theory/quantifiers/ieval/inst_evaluator_manager.h
+  theory/quantifiers/ieval/pattern_term_info.cpp
+  theory/quantifiers/ieval/pattern_term_info.h
+  theory/quantifiers/ieval/quant_info.cpp
+  theory/quantifiers/ieval/quant_info.h
+  theory/quantifiers/ieval/state.cpp
+  theory/quantifiers/ieval/state.h
+  theory/quantifiers/ieval/term_evaluator.cpp
+  theory/quantifiers/ieval/term_evaluator.h
   theory/quantifiers/index_trie.cpp
   theory/quantifiers/index_trie.h
   theory/quantifiers/inst_match.cpp
@@ -839,6 +849,8 @@ libcvc5_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
+  theory/quantifiers/inst_strategy_mbqi.cpp
+  theory/quantifiers/inst_strategy_mbqi.h
   theory/quantifiers/inst_strategy_pool.cpp
   theory/quantifiers/inst_strategy_pool.h
   theory/quantifiers/instantiate.cpp
@@ -849,6 +861,10 @@ libcvc5_add_sources(
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/master_eq_notify.cpp
   theory/quantifiers/master_eq_notify.h
+  theory/quantifiers/oracle_checker.cpp
+  theory/quantifiers/oracle_checker.h
+  theory/quantifiers/oracle_engine.cpp
+  theory/quantifiers/oracle_engine.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_bound_inference.cpp
@@ -885,6 +901,10 @@ libcvc5_add_sources(
   theory/quantifiers/quantifiers_statistics.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
+  theory/quantifiers/query_generator_sample_sat.cpp
+  theory/quantifiers/query_generator_sample_sat.h
+  theory/quantifiers/query_generator_unsat.cpp
+  theory/quantifiers/query_generator_unsat.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
   theory/quantifiers/single_inv_partition.cpp
@@ -920,6 +940,8 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/print_sygus_to_builtin.cpp
+  theory/quantifiers/sygus/print_sygus_to_builtin.h
   theory/quantifiers/sygus/rcons_obligation.cpp
   theory/quantifiers/sygus/rcons_obligation.h
   theory/quantifiers/sygus/rcons_type_info.cpp
@@ -928,8 +950,6 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
   theory/quantifiers/sygus/sygus_enumerator.h
-  theory/quantifiers/sygus/sygus_enumerator_basic.cpp
-  theory/quantifiers/sygus/sygus_enumerator_basic.h
   theory/quantifiers/sygus/sygus_enumerator_callback.cpp
   theory/quantifiers/sygus/sygus_enumerator_callback.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
@@ -952,10 +972,12 @@ libcvc5_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
-  theory/quantifiers/sygus/sygus_reconstruct.cpp
-  theory/quantifiers/sygus/sygus_reconstruct.h
   theory/quantifiers/sygus/sygus_qe_preproc.cpp
   theory/quantifiers/sygus/sygus_qe_preproc.h
+  theory/quantifiers/sygus/sygus_random_enumerator.cpp
+  theory/quantifiers/sygus/sygus_random_enumerator.h
+  theory/quantifiers/sygus/sygus_reconstruct.cpp
+  theory/quantifiers/sygus/sygus_reconstruct.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
   theory/quantifiers/sygus/sygus_stats.cpp
@@ -1010,6 +1032,8 @@ libcvc5_add_sources(
   theory/relevance_manager.h
   theory/rep_set.cpp
   theory/rep_set.h
+  theory/rep_set_iterator.cpp
+  theory/rep_set_iterator.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h
@@ -1024,9 +1048,10 @@ libcvc5_add_sources(
   theory/sets/inference_manager.cpp
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
+  theory/sets/rels_utils.cpp
   theory/sets/rels_utils.h
-  theory/sets/singleton_op.cpp
-  theory/sets/singleton_op.h
+  theory/sets/set_reduction.cpp
+  theory/sets/set_reduction.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
@@ -1057,8 +1082,12 @@ libcvc5_add_sources(
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/partition_generator.cpp
+  theory/partition_generator.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
+  theory/strings/array_core_solver.cpp
+  theory/strings/array_core_solver.h
   theory/strings/arith_entail.cpp
   theory/strings/arith_entail.h
   theory/strings/base_solver.cpp
@@ -1081,6 +1110,8 @@ libcvc5_add_sources(
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp
   theory/strings/proof_checker.h
+  theory/strings/regexp_enumerator.cpp
+  theory/strings/regexp_enumerator.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
@@ -1157,6 +1188,8 @@ libcvc5_add_sources(
   theory/type_set.h
   theory/uf/cardinality_extension.cpp
   theory/uf/cardinality_extension.h
+  theory/uf/conversions_solver.cpp
+  theory/uf/conversions_solver.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_iterator.cpp
@@ -1165,12 +1198,18 @@ libcvc5_add_sources(
   theory/uf/equality_engine_types.h
   theory/uf/eq_proof.cpp
   theory/uf/eq_proof.h
+  theory/uf/function_const.cpp
+  theory/uf/function_const.h
+  theory/uf/lambda_lift.cpp
+  theory/uf/lambda_lift.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/proof_equality_engine.cpp
   theory/uf/proof_equality_engine.h
   theory/uf/ho_extension.cpp
   theory/uf/ho_extension.h
+  theory/uf/lambda_lift.cpp
+  theory/uf/lambda_lift.h
   theory/uf/symmetry_breaker.cpp
   theory/uf/symmetry_breaker.h
   theory/uf/theory_uf.cpp
@@ -1181,6 +1220,8 @@ libcvc5_add_sources(
   theory/uf/theory_uf_rewriter.h
   theory/uf/theory_uf_type_rules.cpp
   theory/uf/theory_uf_type_rules.h
+  theory/uf/type_enumerator.cpp
+  theory/uf/type_enumerator.h
   theory/valuation.cpp
   theory/valuation.h
 )
@@ -1206,8 +1247,10 @@ set(options_toml_files
   options/datatypes_options.toml
   options/decision_options.toml
   options/expr_options.toml
+  options/ff_options.toml
   options/fp_options.toml
   options/main_options.toml
+  options/parallel_options.toml
   options/parser_options.toml
   options/printer_options.toml
   options/proof_options.toml
@@ -1222,8 +1265,8 @@ set(options_toml_files
 )
 string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
 string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-list(APPEND options_gen_cpp_files "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
-list(APPEND options_gen_h_files "options/options.h")
+list(APPEND options_gen_cpp_files "options/io_utils.cpp" "options/options.cpp" "options/options_public.cpp" "main/options.cpp")
+list(APPEND options_gen_h_files "options/io_utils.h" "options/options.h")
 
 libcvc5_add_sources(GENERATED ${options_gen_cpp_files} ${options_gen_h_files})
 
@@ -1238,35 +1281,44 @@ if (BUILD_DOCS)
   )
 endif()
 
+# The mkoptions.py script only updates its output files if their content would
+# actually change. This mechanism makes sure that running the script does not
+# automatically trigger a full rebuild, but only a rebuild of those parts that
+# include files that did actually change.
+# This approach also means that the output files (which gen-options used to
+# depend on) may not actually be updated and thus cmake would keep re-running
+# mkoptions.py over and over again.
+# We thus have an artificial options.stamp file that mkoptions.py always writes
+# to, and can thus be used to communicate that all options files have been
+# properly updated.
 add_custom_command(
-    OUTPUT
-      ${options_gen_cpp_files} ${options_gen_h_files}
-      ${options_gen_doc_files}
-    COMMAND
-      ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
-    COMMAND
-      ${PYTHON_EXECUTABLE}
-      ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
-      ${CMAKE_CURRENT_LIST_DIR}
-      ${CMAKE_BINARY_DIR}
-      ${CMAKE_CURRENT_BINARY_DIR}
-      ${abs_toml_files}
-    DEPENDS
-      options/mkoptions.py
-      ${options_toml_files}
-      main/options_template.cpp
-      options/module_template.h
-      options/module_template.cpp
-      options/options_public_template.cpp
-      options/options_template.h
-      options/options_template.cpp
+  OUTPUT
+    options/options.stamp
+  COMMAND
+    ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
+  COMMAND
+    ${PYTHON_EXECUTABLE}
+    ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${abs_toml_files}
+  BYPRODUCTS
+    ${options_gen_cpp_files} ${options_gen_h_files} ${options_gen_doc_files}
+  DEPENDS
+    options/mkoptions.py
+    ${options_toml_files}
+    main/options_template.cpp
+    options/io_utils_template.h
+    options/io_utils_template.cpp
+    options/module_template.h
+    options/module_template.cpp
+    options/options_public_template.cpp
+    options/options_template.h
+    options/options_template.cpp
 )
 
-add_custom_target(gen-options
-  DEPENDS
-    ${options_gen_cpp_files}
-    ${options_gen_h_files}
-)
+add_custom_target(gen-options DEPENDS options/options.stamp)
 
 
 #-----------------------------------------------------------------------------#
@@ -1277,6 +1329,7 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/ff/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
@@ -1304,130 +1357,90 @@ set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
 
 # First build the object library
 add_library(cvc5-obj OBJECT ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS})
-target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB)
+target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
 add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
 
+add_library(cvc5 $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
+
+set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
+
 # Link the shared library
-add_library(cvc5-shared SHARED $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
-set_target_properties(cvc5-shared PROPERTIES SOVERSION ${CVC5_SOVERSION})
-set_target_properties(cvc5-shared PROPERTIES OUTPUT_NAME cvc5)
-target_include_directories(cvc5-shared
+target_include_directories(cvc5
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
-install(TARGETS cvc5-shared
+install(TARGETS cvc5
   EXPORT cvc5-targets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-
-if(ENABLE_STATIC_LIBRARY)
-  add_library(cvc5-static STATIC $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
-  set_target_properties(cvc5-static PROPERTIES OUTPUT_NAME cvc5)
-  target_include_directories(cvc5-static
-    PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-      $<INSTALL_INTERFACE:include>
-  )
-  install(TARGETS cvc5-static
-    EXPORT cvc5-targets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
 
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)
 
 # Add library/include dependencies
-add_dependencies(cvc5-obj GMP_SHARED)
+add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
-target_link_libraries(cvc5-shared PRIVATE GMP_SHARED)
-if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(cvc5-static PUBLIC GMP_STATIC)
+if(BUILD_SHARED_LIBS)
+  target_link_libraries(cvc5 PRIVATE GMP)
+else()
+  target_link_libraries(cvc5 PUBLIC GMP)
 endif()
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       RT_LIBRARIES should be empty for glibc >= 2.17
-target_link_libraries(cvc5-shared PRIVATE ${RT_LIBRARIES})
-if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(cvc5-static PRIVATE ${RT_LIBRARIES})
-endif()
+target_link_libraries(cvc5 PRIVATE ${RT_LIBRARIES})
 
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc5-obj PUBLIC ${Valgrind_INCLUDE_DIR})
-endif()
-if(USE_ABC)
-  target_include_directories(cvc5-obj PRIVATE ${ABC_INCLUDE_DIR})
-  target_link_libraries(cvc5-obj PUBLIC ${ABC_LIBRARIES})
+  target_include_directories(cvc5-obj SYSTEM PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
 
 add_dependencies(cvc5-obj CaDiCaL)
-target_include_directories(cvc5-obj PRIVATE ${CaDiCaL_INCLUDE_DIR})
-target_link_libraries(cvc5-shared PRIVATE CaDiCaL)
-if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(cvc5-static PUBLIC CaDiCaL)
-endif()
+target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
+target_link_libraries(cvc5 PRIVATE CaDiCaL)
 
 if(USE_CLN)
-  add_dependencies(cvc5-obj CLN_SHARED)
-  target_include_directories(cvc5-obj PRIVATE ${CLN_INCLUDE_DIR})
-  target_link_libraries(cvc5-shared PRIVATE CLN_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
-    target_link_libraries(cvc5-static PUBLIC CLN_STATIC)
-  endif()
+  add_dependencies(cvc5-obj CLN)
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${CLN_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE CLN)
 endif()
 if(USE_CRYPTOMINISAT)
   add_dependencies(cvc5-obj CryptoMiniSat)
-  target_include_directories(cvc5-obj PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
-  target_link_libraries(cvc5-shared PRIVATE CryptoMiniSat)
-  if(ENABLE_STATIC_LIBRARY)
-    target_link_libraries(cvc5-static PUBLIC CryptoMiniSat)
-  endif()
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE CryptoMiniSat)
 endif()
 if(USE_KISSAT)
   add_dependencies(cvc5-obj Kissat)
-  target_include_directories(cvc5-obj PRIVATE ${Kissat_INCLUDE_DIR})
-  target_link_libraries(cvc5-shared PRIVATE Kissat)
-  if(ENABLE_STATIC_LIBRARY)
-    target_link_libraries(cvc5-static PUBLIC Kissat)
-  endif()
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${Kissat_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE Kissat)
 endif()
 if(USE_GLPK)
-  target_include_directories(cvc5-obj PRIVATE ${GLPK_INCLUDE_DIR})
-  target_link_libraries(cvc5-shared PRIVATE ${GLPK_LIBRARIES})
-  if(ENABLE_STATIC_LIBRARY)
-    target_link_libraries(cvc5-static PUBLIC ${GLPK_LIBRARIES})
-  endif()
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${GLPK_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE ${GLPK_LIBRARIES})
 endif()
 if(USE_POLY)
-  add_dependencies(cvc5-obj Polyxx_SHARED)
-  target_include_directories(cvc5-obj PRIVATE ${Poly_INCLUDE_DIR})
-  target_link_libraries(cvc5-shared PRIVATE Polyxx_SHARED)
-  if(ENABLE_STATIC_LIBRARY)
-    target_link_libraries(cvc5-static PUBLIC Polyxx_STATIC)
+  add_dependencies(cvc5-obj Polyxx)
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
+  if(BUILD_SHARED_LIBS)
+    target_link_libraries(cvc5 PRIVATE Polyxx)
+  else()
+    target_link_libraries(cvc5 PUBLIC Polyxx)
   endif()
 endif()
 if(USE_COCOA)
   add_dependencies(cvc5-obj CoCoA)
-  target_include_directories(cvc5-obj PRIVATE ${CoCoA_INCLUDE_DIR})
-  target_link_libraries(cvc5-shared PRIVATE CoCoA)
-  if(ENABLE_STATIC_LIBRARY)
-    target_link_libraries(cvc5-static PUBLIC CoCoA)
-  endif()
+  target_include_directories(cvc5-obj SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE CoCoA)
 endif()
 
 add_dependencies(cvc5-obj SymFPU)
-target_include_directories(cvc5-obj PRIVATE ${SymFPU_INCLUDE_DIR})
-target_link_libraries(cvc5-shared PRIVATE SymFPU)
-if(ENABLE_STATIC_LIBRARY)
-  target_link_libraries(cvc5-static PUBLIC SymFPU)
-endif()
+target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
+target_link_libraries(cvc5 PRIVATE SymFPU)
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc5. For target main, we have
@@ -1443,6 +1456,7 @@ add_subdirectory(main)
 install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
+          api/cpp/cvc5_types.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
 install(FILES

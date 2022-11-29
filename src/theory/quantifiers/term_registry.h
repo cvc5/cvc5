@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,17 +23,20 @@
 
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_pools.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 class FirstOrderModel;
+class OracleChecker;
 
 /**
  * Term Registry, which manages notifying modules within quantifiers about
@@ -84,12 +87,30 @@ class TermRegistry : protected EnvObj
   TermDb* getTermDatabase() const;
   /** get term database sygus */
   TermDbSygus* getTermDatabaseSygus() const;
+  /** get oracle checker */
+  OracleChecker* getOracleChecker() const;
   /** get entailment check utility */
   EntailmentCheck* getEntailmentCheck() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
   /** get the term pools utility */
   TermPools* getTermPools() const;
+  /** get the virtual term substitution term cache utility */
+  VtsTermCache* getVtsTermCache() const;
+  /** get the instantiation evaluator manager */
+  ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
+  /**
+   * Get evaluator for quantified formula q and evaluator mode tev. We require
+   * that an evaluator is only used by one user at a time. The user of an
+   * evaluator has the responsibility to ensure it is cleaned (via a soft
+   * resetAll or push) when it is finished using it.
+   *
+   * Note the returned inst evaluator can be assumed to be watching quantified
+   * formula q only. It may or may not be initialized (i.e. such that the
+   * evaluation of ground terms is already computed), although the InstEvaluator
+   * interface automatically manages this initialization internally.
+   */
+  ieval::InstEvaluator* getEvaluator(Node q, ieval::TermEvaluatorMode tev);
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -110,12 +131,18 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
+  /** oracle checker */
+  std::unique_ptr<OracleChecker> d_ochecker;
+  /** virtual term substitution term cache for arithmetic instantiation */
+  std::unique_ptr<VtsTermCache> d_vtsCache;
+  /** the instantiation evaluator manager */
+  std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__TERM_REGISTRY_H */

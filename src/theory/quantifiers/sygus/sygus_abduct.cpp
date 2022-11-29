@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,12 +28,11 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -62,7 +61,8 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   for (const Node& s : symset)
   {
     TypeNode tn = s.getType();
-    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    if (tn.isDatatypeConstructor() || tn.isDatatypeSelector()
+        || tn.isDatatypeTester() || tn.isDatatypeUpdater())
     {
       // datatype symbols should be considered interpreted symbols here, not
       // (higher-order) variables.
@@ -184,8 +184,6 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   res = SygusUtils::mkSygusConjecture({abd}, res, {instAttr});
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
-  res = theory::Rewriter::rewrite(res);
-
   Trace("sygus-abduct") << "Generate: " << res << std::endl;
 
   return res;
@@ -193,4 +191,4 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Hanna Lachnitt
+ *   Hanna Lachnitt, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,9 @@
 
 #include <iostream>
 
-namespace cvc5 {
+#include "proof/proof_checker.h"
+
+namespace cvc5::internal {
 
 namespace proof {
 
@@ -90,7 +92,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::NOT_ITE1: return "not_ite1";
     case AletheRule::NOT_ITE2: return "not_ite2";
     case AletheRule::ITE_INTRO: return "ite_intro";
-    case AletheRule::DUPLICATED_LITERALS: return "duplicate_literals";
+    case AletheRule::CONTRACTION: return "contraction";
     case AletheRule::CONNECTIVE_DEF: return "connective_def";
     case AletheRule::ITE_SIMPLIFY: return "ite_simplify";
     case AletheRule::EQ_SIMPLIFY: return "eq_simplify";
@@ -112,9 +114,27 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::QNT_SIMPLIFY: return "qnt_simplify";
     case AletheRule::SKO_EX: return "sko_ex";
     case AletheRule::SKO_FORALL: return "sko_forall";
+    case AletheRule::ALL_SIMPLIFY: return "all_simplify";
     case AletheRule::SYMM: return "symm";
     case AletheRule::NOT_SYMM: return "not_symm";
-    case AletheRule::REORDER: return "reorder";
+    case AletheRule::REORDERING: return "reordering";
+    case AletheRule::BV_BITBLAST_STEP_VAR: return "bv_bitblast_step_var";
+    case AletheRule::BV_BITBLAST_STEP_BVAND: return "bv_bitblast_step_bvand";
+    case AletheRule::BV_BITBLAST_STEP_BVOR: return "bv_bitblast_step_bvor";
+    case AletheRule::BV_BITBLAST_STEP_BVXOR: return "bv_bitblast_step_bvxor";
+    case AletheRule::BV_BITBLAST_STEP_BVXNOR: return "bv_bitblast_step_bvxnor";
+    case AletheRule::BV_BITBLAST_STEP_BVNOT: return "bv_bitblast_step_bvnot";
+    case AletheRule::BV_BITBLAST_STEP_BVADD: return "bv_bitblast_step_bvadd";
+    case AletheRule::BV_BITBLAST_STEP_BVNEG: return "bv_bitblast_step_bvneg";
+    case AletheRule::BV_BITBLAST_STEP_BVMULT: return "bv_bitblast_step_bvmult";
+    case AletheRule::BV_BITBLAST_STEP_BVULE: return "bv_bitblast_step_bvule";
+    case AletheRule::BV_BITBLAST_STEP_BVULT: return "bv_bitblast_step_bvult";
+    case AletheRule::BV_BITBLAST_STEP_EXTRACT:
+      return "bv_bitblast_step_extract";
+    case AletheRule::BV_BITBLAST_STEP_BVEQUAL:
+      return "bv_bitblast_step_bvequal";
+    case AletheRule::BV_BITBLAST_STEP_CONCAT: return "bv_bitblast_step_concat";
+    case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";
@@ -127,6 +147,16 @@ std::ostream& operator<<(std::ostream& out, AletheRule id)
   return out;
 }
 
+AletheRule getAletheRule(Node n)
+{
+  uint32_t id;
+  if (ProofRuleChecker::getUInt32(n, id))
+  {
+    return static_cast<AletheRule>(id);
+  }
+  return AletheRule::UNDEFINED;
+}
+
 }  // namespace proof
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

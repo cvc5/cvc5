@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Andrew V. Jones
+#   Gereon Kremer, Andres Noetzli, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -33,7 +33,7 @@ if(ANTLR3_JAR AND ANTLR3_INCLUDE_DIR AND ANTLR3_LIBRARIES)
     check_system_version("ANTLR3")
 endif()
 
-if(ENABLE_STATIC_LIBRARY AND ANTLR3_FOUND_SYSTEM)
+if(NOT BUILD_SHARED_LIBS AND ANTLR3_FOUND_SYSTEM)
   force_static_library()
   find_library(ANTLR3_STATIC_LIBRARIES NAMES antlr3c)
   if(NOT ANTLR3_STATIC_LIBRARIES)
@@ -97,11 +97,20 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         BUILD_BYPRODUCTS <INSTALL_DIR>/share/config.sub
     )
 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES ".*64$")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(64bit "--enable-64bit")
     else()
         unset(64bit)
     endif()
+
+  set(compilers "")
+  if (CMAKE_CROSSCOMPILING_MACOS)
+    # We set the CC and CXX flags as suggested in
+    # https://github.com/antlr/antlr3/blob/5c2a916a10139cdb5c7c8851ee592ed9c3b3d4ff/runtime/C/INSTALL#L133-L135.
+    set(compilers
+      "CC=${CMAKE_C_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}"
+      "CXX=${CMAKE_CXX_COMPILER} -arch ${CMAKE_OSX_ARCHITECTURES}")
+  endif()
 
     # Download, build and install antlr3 runtime
     ExternalProject_Add(
@@ -117,9 +126,12 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND ${CMAKE_COMMAND} -E copy
           <INSTALL_DIR>/share/config.sub
           <SOURCE_DIR>/config.sub
-        CONFIGURE_COMMAND <SOURCE_DIR>/configure
+        CONFIGURE_COMMAND
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
+            ${compilers}
             --with-pic
             --disable-antlrdebug
+            --disable-abiflags
             --prefix=<INSTALL_DIR>
             --libdir=<INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}
             --srcdir=<SOURCE_DIR>
@@ -128,13 +140,12 @@ if(NOT ANTLR3_FOUND_SYSTEM)
             ${64bit}
             --host=${TOOLCHAIN_PREFIX}
         BUILD_BYPRODUCTS <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a
-                         <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c.so
+                         <INSTALL_DIR>/${CMAKE_INSTALL_LIBDIR}/libantlr3c${CMAKE_SHARED_LIBRARY_SUFFIX}
     )
 
     set(ANTLR3_JAR "${DEPS_BASE}/share/java/antlr-3.4-complete.jar")
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
-    set(ANTLR3_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c${CMAKE_SHARED_LIBRARY_SUFFIX}")
-    set(ANTLR3_STATIC_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a")
+    set(ANTLR3_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libantlr3c.a")
 endif()
 
 find_package(Java COMPONENTS Runtime REQUIRED)
@@ -146,18 +157,13 @@ set(ANTLR3_FOUND TRUE)
 set(ANTLR3_COMMAND ${Java_JAVA_EXECUTABLE} -cp "${ANTLR3_JAR}" org.antlr.Tool
     CACHE STRING "run ANTLR3" FORCE)
 
-add_library(ANTLR3_SHARED SHARED IMPORTED GLOBAL)
-set_target_properties(ANTLR3_SHARED PROPERTIES
+add_library(ANTLR3 STATIC IMPORTED GLOBAL)
+set_target_properties(ANTLR3 PROPERTIES
     IMPORTED_LOCATION "${ANTLR3_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
+    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
 )
-
-if(ENABLE_STATIC_LIBRARY)
-    add_library(ANTLR3_STATIC STATIC IMPORTED GLOBAL)
-    set_target_properties(ANTLR3_STATIC PROPERTIES
-        IMPORTED_LOCATION "${ANTLR3_STATIC_LIBRARIES}"
-        INTERFACE_INCLUDE_DIRECTORIES "${ANTLR3_INCLUDE_DIR}"
-    )
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set_target_properties(ANTLR3 PROPERTIES IMPORTED_IMPLIB "${ANTLR3_LIBRARIES}")
 endif()
 
 mark_as_advanced(ANTLR3_BINARY)
@@ -167,7 +173,6 @@ mark_as_advanced(ANTLR3_FOUND_SYSTEM)
 mark_as_advanced(ANTLR3_INCLUDE_DIR)
 mark_as_advanced(ANTLR3_JAR)
 mark_as_advanced(ANTLR3_LIBRARIES)
-mark_as_advanced(ANTLR3_STATIC_LIBRARIES)
 
 if(ANTLR3_FOUND_SYSTEM)
     message(STATUS "Found ANTLR3 runtime: ${ANTLR3_LIBRARIES}")
@@ -175,8 +180,5 @@ if(ANTLR3_FOUND_SYSTEM)
 else()
     message(STATUS "Building ANTLR3 runtime: ${ANTLR3_LIBRARIES}")
     message(STATUS "Downloading ANTLR3 JAR: ${ANTLR3_JAR}")
-    add_dependencies(ANTLR3_SHARED ANTLR3-EP-runtime ANTLR3-EP-jar)
-    if(ENABLE_STATIC_LIBRARY)
-        add_dependencies(ANTLR3_STATIC ANTLR3-EP-runtime ANTLR3-EP-jar)
-    endif()
+    add_dependencies(ANTLR3 ANTLR3-EP-runtime ANTLR3-EP-jar)
 endif()

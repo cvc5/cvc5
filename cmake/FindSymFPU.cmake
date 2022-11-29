@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner
+#   Gereon Kremer, Mathias Preiner, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -56,7 +56,7 @@ set(SymFPU_FOUND TRUE)
 
 add_library(SymFPU INTERFACE IMPORTED GLOBAL)
 set_target_properties(
-  SymFPU PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${SymFPU_INCLUDE_DIR}"
+  SymFPU PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${SymFPU_INCLUDE_DIR}"
 )
 
 mark_as_advanced(SymFPU_FOUND)

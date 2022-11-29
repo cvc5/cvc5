@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Haniel Barbosa
+ *   Mathias Preiner, Andrew Reynolds, Liana Hadarean
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,17 +18,16 @@
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_checker.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_bitblast_internal.h"
-#include "theory/bv/bv_solver_layered.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ee_setup_info.h"
 #include "theory/trust_substitutions.h"
+#include "theory/uf/equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -40,7 +39,7 @@ TheoryBV::TheoryBV(Env& env,
       d_internal(nullptr),
       d_rewriter(),
       d_state(env, valuation),
-      d_im(env, *this, d_state, nullptr, "theory::bv::"),
+      d_im(env, *this, d_state, "theory::bv::"),
       d_notify(d_im),
       d_invalidateModelCache(context(), true),
       d_stats(statisticsRegistry(), "theory::bv::")
@@ -48,18 +47,12 @@ TheoryBV::TheoryBV(Env& env,
   switch (options().bv.bvSolver)
   {
     case options::BVSolver::BITBLAST:
-      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im, d_pnm));
-      break;
-
-    case options::BVSolver::LAYERED:
-      d_internal.reset(new BVSolverLayered(
-          env, *this, context(), userContext(), d_pnm, name));
+      d_internal.reset(new BVSolverBitblast(env, &d_state, d_im));
       break;
 
     default:
       AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
-      d_internal.reset(
-          new BVSolverBitblastInternal(d_env, &d_state, d_im, d_pnm));
+      d_internal.reset(new BVSolverBitblastInternal(d_env, &d_state, d_im));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -282,7 +275,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     return texp;
   }
 
-  Debug("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
+  Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
   if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
   {
@@ -306,7 +299,7 @@ TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
     }
   }
 
-  Debug("theory-bv-pp-rewrite") << "to   " << res << "\n";
+  Trace("theory-bv-pp-rewrite") << "to   " << res << "\n";
   if (res != t)
   {
     return TrustNode::mkTrustRewrite(t, res, nullptr);
@@ -333,10 +326,10 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 
     if (value_a == value_b)
     {
-      Debug("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
+      Trace("theory-bv") << EQUALITY_TRUE_IN_MODEL << std::endl;
       return EQUALITY_TRUE_IN_MODEL;
     }
-    Debug("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
+    Trace("theory-bv") << EQUALITY_FALSE_IN_MODEL << std::endl;
     return EQUALITY_FALSE_IN_MODEL;
   }
   return status;
@@ -393,12 +386,6 @@ void TheoryBV::ppStaticLearn(TNode in, NodeBuilder& learned)
   }
 
   d_internal->ppStaticLearn(in, learned);
-}
-
-bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions,
-                                std::vector<Node>& new_assertions)
-{
-  return d_internal->applyAbstraction(assertions, new_assertions);
 }
 
 Node TheoryBV::getValue(TNode node)
@@ -483,4 +470,4 @@ TheoryBV::Statistics::Statistics(StatisticsRegistry& reg,
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

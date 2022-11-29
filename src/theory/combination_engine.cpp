@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/shared_solver_distributed.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 CombinationEngine::CombinationEngine(Env& env,
@@ -34,17 +34,17 @@ CombinationEngine::CombinationEngine(Env& env,
     : EnvObj(env),
       d_te(te),
       d_valuation(&te),
-      d_pnm(env.isTheoryProofProducing() ? env.getProofNodeManager() : nullptr),
-      d_logicInfo(te.getLogicInfo()),
+      d_logicInfo(env.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
       d_mmanager(nullptr),
       d_sharedSolver(nullptr),
-      d_cmbsPg(d_pnm ? new EagerProofGenerator(d_pnm, env.getUserContext())
-                     : nullptr)
+      d_cmbsPg(env.isTheoryProofProducing()
+                   ? new EagerProofGenerator(env, env.getUserContext())
+                   : nullptr)
 {
   // create the equality engine, model manager, and shared solver
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
+  if (options().theory.eeMode == options::EqEngineMode::DISTRIBUTED)
   {
     // use the distributed shared solver
     d_sharedSolver.reset(new SharedSolverDistributed(env, d_te));
@@ -55,7 +55,7 @@ CombinationEngine::CombinationEngine(Env& env,
     d_mmanager.reset(
         new ModelManagerDistributed(env, d_te, *d_eemanager.get()));
   }
-  else if (options::eeMode() == options::EqEngineMode::CENTRAL)
+  else if (options().theory.eeMode == options::EqEngineMode::CENTRAL)
   {
     // for now, the shared solver is the same in both approaches; use the
     // distributed one for now
@@ -70,7 +70,7 @@ CombinationEngine::CombinationEngine(Env& env,
   else
   {
     Unhandled() << "CombinationEngine::finishInit: equality engine mode "
-                << options::eeMode() << " not supported";
+                << options().theory.eeMode << " not supported";
   }
 }
 
@@ -127,4 +127,4 @@ void CombinationEngine::resetRound()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +17,7 @@
 
 #include <sstream>
 
+#include "expr/cardinality_constraint.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -31,10 +32,10 @@
 #include "util/rational.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -45,15 +46,17 @@ typedef Region::RegionNodeInfo RegionNodeInfo;
 typedef RegionNodeInfo::DiseqList DiseqList;
 
 Region::Region(SortModel* cf, context::Context* c)
-  : d_cf( cf )
-  , d_testCliqueSize( c, 0 )
-  , d_splitsSize( c, 0 )
-  , d_testClique( c )
-  , d_splits( c )
-  , d_reps_size( c, 0 )
-  , d_total_diseq_external( c, 0 )
-  , d_total_diseq_internal( c, 0 )
-  , d_valid( c, true ) {}
+    : d_cf(cf),
+      d_testCliqueSize(c, 0),
+      d_splitsSize(c, 0),
+      d_testClique(c),
+      d_splits(c),
+      d_reps_size(c, 0),
+      d_total_diseq_external(c, 0),
+      d_total_diseq_internal(c, 0),
+      d_valid(c, true)
+{
+}
 
 Region::~Region() {
   for(iterator i = begin(), iend = end(); i != iend; ++i) {
@@ -156,7 +159,7 @@ void Region::setEqual( Node a, Node b ){
 }
 
 void Region::setDisequal( Node n1, Node n2, int type, bool valid ){
-  //Debug("uf-ss-region-debug") << "set disequal " << n1 << " " << n2 << " "
+  //Trace("uf-ss-region-debug") << "set disequal " << n1 << " " << n2 << " "
   //                            << type << " " << valid << std::endl;
   //debugPrint("uf-ss-region-debug");
   //Assert( isDisequal( n1, n2, type )!=valid );
@@ -172,7 +175,7 @@ void Region::setDisequal( Node n1, Node n2, int type, bool valid ){
             d_testClique.find( n2 )!=d_testClique.end() && d_testClique[n2] ){
           Node eq = NodeManager::currentNM()->mkNode( EQUAL, n1, n2 );
           if( d_splits.find( eq )!=d_splits.end() && d_splits[ eq ] ){
-            Debug("uf-ss-debug") << "removing split for " << n1 << " " << n2
+            Trace("uf-ss-debug") << "removing split for " << n1 << " " << n2
                                  << std::endl;
             d_splits[ eq ] = false;
             d_splitsSize = d_splitsSize - 1;
@@ -334,7 +337,7 @@ bool Region::check( Theory::Effort level, int cardinality,
         }
         //check splits internal to new members
         for( int j=0; j<(int)newClique.size(); j++ ){
-          Debug("uf-ss-debug") << "Choose to add clique member "
+          Trace("uf-ss-debug") << "Choose to add clique member "
                                << newClique[j] << std::endl;
           for( int k=(j+1); k<(int)newClique.size(); k++ ){
             if( !isDisequal( newClique[j], newClique[k], 1 ) ){
@@ -399,74 +402,78 @@ void Region::getNumExternalDisequalities(
 }
 
 void Region::debugPrint( const char* c, bool incClique ) {
-  Debug( c ) << "Num reps: " << d_reps_size << std::endl;
+  Trace( c ) << "Num reps: " << d_reps_size << std::endl;
   for( Region::iterator it = begin(); it != end(); ++it ){
     RegionNodeInfo* rni = it->second;
     if( rni->valid() ){
       Node n = it->first;
-      Debug( c ) << "   " << n << std::endl;
+      Trace( c ) << "   " << n << std::endl;
       for( int i=0; i<2; i++ ){
-        Debug( c ) << "      " << ( i==0 ? "Ext" : "Int" ) << " disequal:";
+        Trace( c ) << "      " << ( i==0 ? "Ext" : "Int" ) << " disequal:";
         DiseqList* del = rni->get(i);
         for( DiseqList::iterator it2 = del->begin(); it2 != del->end(); ++it2 ){
           if( (*it2).second ){
-            Debug( c ) << " " << (*it2).first;
+            Trace( c ) << " " << (*it2).first;
           }
         }
-        Debug( c ) << ", total = " << del->size() << std::endl;
+        Trace( c ) << ", total = " << del->size() << std::endl;
       }
     }
   }
-  Debug( c ) << "Total disequal: " << d_total_diseq_external << " external,";
-  Debug( c ) << " " << d_total_diseq_internal << " internal." << std::endl;
+  Trace( c ) << "Total disequal: " << d_total_diseq_external << " external,";
+  Trace( c ) << " " << d_total_diseq_internal << " internal." << std::endl;
 
   if( incClique ){
     if( !d_testClique.empty() ){
-      Debug( c ) << "Candidate clique members: " << std::endl;
-      Debug( c ) << "   ";
+      Trace( c ) << "Candidate clique members: " << std::endl;
+      Trace( c ) << "   ";
       for( NodeBoolMap::iterator it = d_testClique.begin();
            it != d_testClique.end(); ++ it ){
         if( (*it).second ){
-          Debug( c ) << (*it).first << " ";
+          Trace( c ) << (*it).first << " ";
         }
       }
-      Debug( c ) << ", size = " << d_testCliqueSize << std::endl;
+      Trace( c ) << ", size = " << d_testCliqueSize << std::endl;
     }
     if( !d_splits.empty() ){
-      Debug( c ) << "Required splits: " << std::endl;
-      Debug( c ) << "   ";
+      Trace( c ) << "Required splits: " << std::endl;
+      Trace( c ) << "   ";
       for( NodeBoolMap::iterator it = d_splits.begin(); it != d_splits.end();
            ++ it ){
         if( (*it).second ){
-          Debug( c ) << (*it).first << " ";
+          Trace( c ) << (*it).first << " ";
         }
       }
-      Debug( c ) << ", size = " << d_splitsSize << std::endl;
+      Trace( c ) << ", size = " << d_splitsSize << std::endl;
     }
   }
 }
 
 SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
-    Env& env, Node t, Valuation valuation)
-    : DecisionStrategyFmf(env, valuation), d_cardinality_term(t)
+    Env& env, TypeNode type, Valuation valuation)
+    : DecisionStrategyFmf(env, valuation), d_type(type)
 {
 }
+
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(
-      CARDINALITY_CONSTRAINT, d_cardinality_term, nm->mkConst(Rational(i + 1)));
+  Node cco = nm->mkConst(CardinalityConstraint(d_type, Integer(i + 1)));
+  return nm->mkNode(CARDINALITY_CONSTRAINT, cco);
 }
+
 std::string SortModel::CardinalityDecisionStrategy::identify() const
 {
   return std::string("uf_card");
 }
 
-SortModel::SortModel(Node n,
+SortModel::SortModel(Env& env,
+                     TypeNode tn,
                      TheoryState& state,
                      TheoryInferenceManager& im,
                      CardinalityExtension* thss)
-    : d_type(n.getType()),
+    : EnvObj(env),
+      d_type(tn),
       d_state(state),
       d_im(im),
       d_thss(thss),
@@ -481,15 +488,13 @@ SortModel::SortModel(Node n,
       d_initialized(thss->userContext(), false),
       d_c_dec_strat(nullptr)
 {
-  d_cardinality_term = n;
-
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options().uf.ufssMode == options::UfssMode::FULL)
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
     // construct this module during TheoryUF::finishInit.
     d_c_dec_strat.reset(new CardinalityDecisionStrategy(
-        thss->d_env, n, thss->getTheory()->getValuation()));
+        thss->d_env, d_type, thss->getTheory()->getValuation()));
   }
 }
 
@@ -521,8 +526,8 @@ void SortModel::newEqClass( Node n ){
   {
     if( d_regions_map.find( n )==d_regions_map.end() ){
       d_regions_map[n] = d_regions_index;
-      Debug("uf-ss") << "CardinalityExtension: New Eq Class " << n << std::endl;
-      Debug("uf-ss-debug") << d_regions_index << " " << (int)d_regions.size()
+      Trace("uf-ss") << "CardinalityExtension: New Eq Class " << n << std::endl;
+      Trace("uf-ss-debug") << d_regions_index << " " << (int)d_regions.size()
                            << std::endl;
       if (d_regions_index < d_regions.size())
       {
@@ -546,7 +551,7 @@ void SortModel::merge( Node a, Node b ){
   {
     return;
   }
-  Debug("uf-ss") << "CardinalityExtension: Merging " << a << " = " << b << "..."
+  Trace("uf-ss") << "CardinalityExtension: Merging " << a << " = " << b << "..."
                  << std::endl;
   if (a != b)
   {
@@ -554,7 +559,7 @@ void SortModel::merge( Node a, Node b ){
     Assert(d_regions_map.find(b) != d_regions_map.end());
     int ai = d_regions_map[a];
     int bi = d_regions_map[b];
-    Debug("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
+    Trace("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
     if (ai != bi)
     {
       if (d_regions[ai]->getNumReps() == 1)
@@ -619,9 +624,9 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
     // already disequal
     return;
   }
-  Debug("uf-ss") << "Assert disequal " << a << " != " << b << "..."
+  Trace("uf-ss") << "Assert disequal " << a << " != " << b << "..."
                  << std::endl;
-  Debug("uf-ss-disequal") << "Assert disequal " << a << " != " << b << "..."
+  Trace("uf-ss-disequal") << "Assert disequal " << a << " != " << b << "..."
                           << std::endl;
   // add to list of disequalities
   if (d_disequalities_index < d_disequalities.size())
@@ -636,7 +641,7 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
   // now, add disequalities to regions
   Assert(d_regions_map.find(a) != d_regions_map.end());
   Assert(d_regions_map.find(b) != d_regions_map.end());
-  Debug("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
+  Trace("uf-ss") << "   regions: " << ai << " " << bi << std::endl;
   if (ai == bi)
   {
     // internal disequality
@@ -670,28 +675,28 @@ bool SortModel::areDisequal( Node a, Node b ) {
 
 void SortModel::check(Theory::Effort level)
 {
-  Assert(options::ufssMode() == options::UfssMode::FULL);
+  Assert(options().uf.ufssMode == options::UfssMode::FULL);
   if (!d_hasCard && d_state.isInConflict())
   {
     // not necessary to check
     return;
   }
-  Debug("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type
+  Trace("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type
                  << std::endl;
   if (level == Theory::EFFORT_FULL)
   {
-    Debug("fmf-full-check") << std::endl;
-    Debug("fmf-full-check")
+    Trace("fmf-full-check") << std::endl;
+    Trace("fmf-full-check")
         << "Full check for SortModel " << d_type << ", status : " << std::endl;
     debugPrint("fmf-full-check");
-    Debug("fmf-full-check") << std::endl;
+    Trace("fmf-full-check") << std::endl;
   }
   if (d_reps <= (unsigned)d_cardinality)
   {
-    Debug("uf-ss-debug") << "We have " << d_reps << " representatives for type "
+    Trace("uf-ss-debug") << "We have " << d_reps << " representatives for type "
                          << d_type << ", <= " << d_cardinality << std::endl;
     if( level==Theory::EFFORT_FULL ){
-      Debug("uf-ss-sat") << "We have " << d_reps << " representatives for type "
+      Trace("uf-ss-sat") << "We have " << d_reps << " representatives for type "
                          << d_type << ", <= " << d_cardinality << std::endl;
     }
     return;
@@ -760,7 +765,7 @@ void SortModel::check(Theory::Effort level)
         int sort_id = si->getSortId(op);
         if (sortsFound.find(sort_id) != sortsFound.end())
         {
-          Debug("fmf-full-check") << "Combined regions " << i << " "
+          Trace("fmf-full-check") << "Combined regions " << i << " "
                                   << sortsFound[sort_id] << std::endl;
           combineRegions(sortsFound[sort_id], i);
           recheck = true;
@@ -782,7 +787,7 @@ void SortModel::check(Theory::Effort level)
       if (d_regions[i]->valid())
       {
         int fcr = forceCombineRegion(i, false);
-        Debug("fmf-full-check")
+        Trace("fmf-full-check")
             << "Combined regions " << i << " " << fcr << std::endl;
         Trace("uf-ss-debug")
             << "Combined regions " << i << " " << fcr << std::endl;
@@ -826,7 +831,6 @@ void SortModel::getDisequalitiesToRegions(int ri,
       for( DiseqList::iterator it2 = del->begin(); it2 != del->end(); ++it2 ){
         if( (*it2).second ){
           Assert(isValid(d_regions_map[(*it2).first]));
-          //Notice() << "Found disequality with " << (*it2).first << ", region = " << d_regions_map[ (*it2).first ] << std::endl;
           regions_diseq[ d_regions_map[ (*it2).first ] ]++;
         }
       }
@@ -884,11 +888,11 @@ void SortModel::assertCardinality(uint32_t c, bool val)
         }
       }
       // we assert it positively, if its beyond the bound, abort
-      if (options::ufssAbortCardinality() >= 0
-          && c >= static_cast<uint32_t>(options::ufssAbortCardinality()))
+      if (options().uf.ufssAbortCardinality >= 0
+          && c >= static_cast<uint32_t>(options().uf.ufssAbortCardinality))
       {
         std::stringstream ss;
-        ss << "Maximum cardinality (" << options::ufssAbortCardinality()
+        ss << "Maximum cardinality (" << options().uf.ufssAbortCardinality
            << ")  for finite model finding exceeded." << std::endl;
         throw LogicException(ss.str());
       }
@@ -934,8 +938,8 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
     return -1;
   }else{
     //this region must merge with another
-    if( Debug.isOn("uf-ss-check-region") ){
-      Debug("uf-ss-check-region") << "We must combine Region #" << ri << ". " << std::endl;
+    if( TraceIsOn("uf-ss-check-region") ){
+      Trace("uf-ss-check-region") << "We must combine Region #" << ri << ". " << std::endl;
       d_regions[ri]->debugPrint("uf-ss-check-region");
     }
     //take region with maximum disequality density
@@ -944,7 +948,7 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
     std::map< int, int > regions_diseq;
     getDisequalitiesToRegions( ri, regions_diseq );
     for( std::map< int, int >::iterator it = regions_diseq.begin(); it != regions_diseq.end(); ++it ){
-      Debug("uf-ss-check-region") << it->first << " : " << it->second << std::endl;
+      Trace("uf-ss-check-region") << it->first << " : " << it->second << std::endl;
     }
     for( std::map< int, int >::iterator it = regions_diseq.begin(); it != regions_diseq.end(); ++it ){
       Assert(it->first != ri);
@@ -957,8 +961,8 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
       }
     }
     if( maxRegion!=-1 ){
-      if( Debug.isOn("uf-ss-check-region") ){
-        Debug("uf-ss-check-region") << "Combine with region #" << maxRegion << ":" << std::endl;
+      if( TraceIsOn("uf-ss-check-region") ){
+        Trace("uf-ss-check-region") << "Combine with region #" << maxRegion << ":" << std::endl;
         d_regions[maxRegion]->debugPrint("uf-ss-check-region");
       }
       return combineRegions( ri, maxRegion );
@@ -969,7 +973,7 @@ int SortModel::forceCombineRegion( int ri, bool useDensity ){
 
 
 int SortModel::combineRegions( int ai, int bi ){
-  Debug("uf-ss-region") << "uf-ss: Combine Region #" << bi << " with Region #" << ai << std::endl;
+  Trace("uf-ss-region") << "uf-ss: Combine Region #" << bi << " with Region #" << ai << std::endl;
   Assert(isValid(ai) && isValid(bi));
   Region* region_bi = d_regions[bi];
   for(Region::iterator it = region_bi->begin(); it != region_bi->end(); ++it){
@@ -985,7 +989,7 @@ int SortModel::combineRegions( int ai, int bi ){
 }
 
 void SortModel::moveNode( Node n, int ri ){
-  Debug("uf-ss-region") << "uf-ss: Move node " << n << " to Region #" << ri << std::endl;
+  Trace("uf-ss-region") << "uf-ss: Move node " << n << " to Region #" << ri << std::endl;
   Assert(isValid(d_regions_map[n]));
   Assert(isValid(ri));
   //move node to region ri
@@ -1010,7 +1014,7 @@ int SortModel::addSplit(Region* r)
   if (!s.isNull() ){
     //add lemma to output channel
     Assert(s.getKind() == EQUAL);
-    Node ss = Rewriter::rewrite( s );
+    Node ss = rewrite(s);
     if( ss.getKind()!=EQUAL ){
       Node b_t = NodeManager::currentNM()->mkConst( true );
       Node b_f = NodeManager::currentNM()->mkConst( false );
@@ -1024,11 +1028,10 @@ int SortModel::addSplit(Region* r)
       }
       if (ss == b_t)
       {
-        CVC5Message() << "Bad split " << s << std::endl;
-        AlwaysAssert(false);
+        AlwaysAssert(false) << "Bad split " << s << std::endl;
       }
     }
-    if (Trace.isOn("uf-ss-split-si"))
+    if (TraceIsOn("uf-ss-split-si"))
     {
       SortInference* si = d_state.getSortInference();
       if (si != nullptr)
@@ -1044,7 +1047,6 @@ int SortModel::addSplit(Region* r)
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areEqual( s[0], s[1] ) << " ";
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areDisequal( s[0], s[1] ) << std::endl;
     //Trace("uf-ss-lemma") << s[0].getType() << " " << s[1].getType() << std::endl;
-    //Notice() << "*** Split on " << s << std::endl;
     //split on the equality s
     Node lem = NodeManager::currentNM()->mkNode( kind::OR, ss, ss.negate() );
     // send lemma, with caching
@@ -1098,20 +1100,20 @@ void SortModel::simpleCheckCardinality() {
 }
 
 void SortModel::debugPrint( const char* c ){
-  if( Debug.isOn( c ) ){
-    Debug( c ) << "Number of reps = " << d_reps << std::endl;
-    Debug( c ) << "Cardinality req = " << d_cardinality << std::endl;
+  if( TraceIsOn( c ) ){
+    Trace( c ) << "Number of reps = " << d_reps << std::endl;
+    Trace( c ) << "Cardinality req = " << d_cardinality << std::endl;
     unsigned debugReps = 0;
     for( unsigned i=0; i<d_regions_index; i++ ){
       Region* region = d_regions[i]; 
       if( region->valid() ){
-        Debug( c ) << "Region #" << i << ": " << std::endl;
+        Trace( c ) << "Region #" << i << ": " << std::endl;
         region->debugPrint( c, true );
-        Debug( c ) << std::endl;
+        Trace( c ) << std::endl;
         for( Region::iterator it = region->begin(); it != region->end(); ++it ){
           if( it->second->valid() ){
             if( d_regions_map[ it->first ]!=(int)i ){
-              Debug( c ) << "***Bad regions map : " << it->first
+              Trace( c ) << "***Bad regions map : " << it->first
                          << " " << d_regions_map[ it->first ].get() << std::endl;
             }
           }
@@ -1121,7 +1123,7 @@ void SortModel::debugPrint( const char* c ){
     }
 
     if( debugReps!=d_reps ){
-      Debug( c ) << "***Bad reps: " << d_reps << ", "
+      Trace( c ) << "***Bad reps: " << d_reps << ", "
                  << "actual = " << debugReps << std::endl;
     }
   }
@@ -1132,7 +1134,7 @@ bool SortModel::checkLastCall()
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   TheoryModel* m = d_state.getModel();
-  if( Trace.isOn("uf-ss-warn") ){
+  if( TraceIsOn("uf-ss-warn") ){
     std::vector< Node > eqcs;
     eq::EqClassesIterator eqcs_i =
         eq::EqClassesIterator(m->getEqualityEngine());
@@ -1230,6 +1232,7 @@ CardinalityExtension::CardinalityExtension(Env& env,
                                            TheoryInferenceManager& im,
                                            TheoryUF* th)
     : EnvObj(env),
+      d_statistics(statisticsRegistry()),
       d_state(state),
       d_im(im),
       d_th(th),
@@ -1243,7 +1246,8 @@ CardinalityExtension::CardinalityExtension(Env& env,
       d_min_pos_tn_master_card_set(context(), false),
       d_rel_eqc(context())
 {
-  if (options::ufssMode() == options::UfssMode::FULL && options::ufssFairness())
+  if (options().uf.ufssMode == options::UfssMode::FULL
+      && options().uf.ufssFairness)
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
@@ -1339,75 +1343,83 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
   Trace("uf-ss") << "Assert " << n << " " << isDecision << std::endl;
   bool polarity = n.getKind() != kind::NOT;
   TNode lit = polarity ? n : n[0];
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options().uf.ufssMode == options::UfssMode::FULL)
   {
     if( lit.getKind()==CARDINALITY_CONSTRAINT ){
-      TypeNode tn = lit[0].getType();
-      Assert(tn.isSort());
+      const CardinalityConstraint& cc =
+          lit.getOperator().getConst<CardinalityConstraint>();
+      TypeNode tn = cc.getType();
+      Assert(tn.isUninterpretedSort());
       Assert(d_rep_model[tn]);
-      uint32_t nCard =
-          lit[1].getConst<Rational>().getNumerator().getUnsignedInt();
-      Node ct = d_rep_model[tn]->getCardinalityTerm();
-      Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
-      if( lit[0]==ct ){
-        if( options::ufssFairnessMonotone() ){
-          SortInference* si = d_state.getSortInference();
-          Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
-          if( tn!=d_tn_mono_master ){
-            std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
-            if( it==d_tn_mono_slave.end() ){
-              bool isMonotonic;
-              if (si != nullptr)
+      uint32_t nCard = cc.getUpperBound().getUnsignedInt();
+      Trace("uf-ss-debug") << "...check cardinality constraint : " << tn
+                           << std::endl;
+      if (options().uf.ufssFairnessMonotone)
+      {
+        SortInference* si = d_state.getSortInference();
+        Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
+        if (tn != d_tn_mono_master)
+        {
+          std::map<TypeNode, bool>::iterator it = d_tn_mono_slave.find(tn);
+          if (it == d_tn_mono_slave.end())
+          {
+            bool isMonotonic;
+            if (si != nullptr)
+            {
+              isMonotonic = si->isMonotonic(tn);
+            }
+            else
+            {
+              // if ground, everything is monotonic
+              isMonotonic = true;
+            }
+            if (isMonotonic)
+            {
+              if (d_tn_mono_master.isNull())
               {
-                isMonotonic = si->isMonotonic(tn);
-              }else{
-                //if ground, everything is monotonic
-                isMonotonic = true;
+                Trace("uf-ss-com-card-debug")
+                    << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
+                d_tn_mono_master = tn;
               }
-              if( isMonotonic ){
-                if( d_tn_mono_master.isNull() ){
-                  Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
-                  d_tn_mono_master = tn;
-                }else{
-                  Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
-                  d_tn_mono_slave[tn] = true;
-                }
-              }else{
-                Trace("uf-ss-com-card-debug") << "uf-ss-fair-monotone: Set non-monotonic : " << tn << std::endl;
-                d_tn_mono_slave[tn] = false;
+              else
+              {
+                Trace("uf-ss-com-card-debug")
+                    << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
+                d_tn_mono_slave[tn] = true;
               }
             }
-          }
-          //set the minimum positive cardinality for master if necessary
-          if( polarity && tn==d_tn_mono_master ){
-            Trace("uf-ss-com-card-debug") << "...set min positive cardinality" << std::endl;
-            if (!d_min_pos_tn_master_card_set.get()
-                || nCard < d_min_pos_tn_master_card.get())
+            else
             {
-              d_min_pos_tn_master_card_set.set(true);
-              d_min_pos_tn_master_card.set( nCard );
+              Trace("uf-ss-com-card-debug")
+                  << "uf-ss-fair-monotone: Set non-monotonic : " << tn
+                  << std::endl;
+              d_tn_mono_slave[tn] = false;
             }
           }
         }
-        Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
-        d_rep_model[tn]->assertCardinality(nCard, polarity);
-        //check if combined cardinality is violated
-        checkCombinedCardinality();
-      }else{
-        //otherwise, make equal via lemma
-        if( d_card_assertions_eqv_lemma.find( lit )==d_card_assertions_eqv_lemma.end() ){
-          Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
-          eqv_lit = lit.eqNode( eqv_lit );
-          Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
-          d_im.lemma(eqv_lit, InferenceId::UF_CARD_EQUIV);
-          d_card_assertions_eqv_lemma[lit] = true;
+        // set the minimum positive cardinality for master if necessary
+        if (polarity && tn == d_tn_mono_master)
+        {
+          Trace("uf-ss-com-card-debug")
+              << "...set min positive cardinality" << std::endl;
+          if (!d_min_pos_tn_master_card_set.get()
+              || nCard < d_min_pos_tn_master_card.get())
+          {
+            d_min_pos_tn_master_card_set.set(true);
+            d_min_pos_tn_master_card.set(nCard);
+          }
         }
       }
+      Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
+      d_rep_model[tn]->assertCardinality(nCard, polarity);
+      // check if combined cardinality is violated
+      checkCombinedCardinality();
     }else if( lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       if( polarity ){
         //safe to assume int here
-        uint32_t nCard =
-            lit[0].getConst<Rational>().getNumerator().getUnsignedInt();
+        const CombinedCardinalityConstraint& cc =
+            lit.getOperator().getConst<CombinedCardinalityConstraint>();
+        uint32_t nCard = cc.getUpperBound().getUnsignedInt();
         if (!d_min_pos_com_card_set.get() || nCard < d_min_pos_com_card.get())
         {
           d_min_pos_com_card_set.set(true);
@@ -1416,15 +1428,13 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
         }
       }
     }else{
-      if( Trace.isOn("uf-ss-warn") ){
+      if( TraceIsOn("uf-ss-warn") ){
         ////FIXME: this is too strict: theory propagations are showing up as isDecision=true, but
         ////       a theory propagation is not a decision.
         if( isDecision ){
           for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
             if( !it->second->hasCardinalityAsserted() ){
               Trace("uf-ss-warn") << "WARNING: Assert " << n << " as a decision before cardinality for " << it->first << "." << std::endl;
-              // CVC5Message() << "Error: constraint asserted before cardinality
-              // for " << it->first << std::endl; Unimplemented();
             }
           }
         }
@@ -1436,7 +1446,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
     if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       // cardinality constraint from user input, set incomplete   
       Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
-      d_im.setIncomplete(IncompleteId::UF_CARD_MODE);
+      d_im.setModelUnsound(IncompleteId::UF_CARD_MODE);
     }
   }
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
@@ -1479,17 +1489,17 @@ void CardinalityExtension::check(Theory::Effort level)
   }
   if (!d_state.isInConflict())
   {
-    if (options::ufssMode() == options::UfssMode::FULL)
+    if (options().uf.ufssMode == options::UfssMode::FULL)
     {
       Trace("uf-ss-solver")
           << "CardinalityExtension: check " << level << std::endl;
       if (level == Theory::EFFORT_FULL)
       {
-        if (Debug.isOn("uf-ss-debug"))
+        if (TraceIsOn("uf-ss-debug"))
         {
           debugPrint("uf-ss-debug");
         }
-        if (Trace.isOn("uf-ss-state"))
+        if (TraceIsOn("uf-ss-state"))
         {
           Trace("uf-ss-state")
               << "CardinalityExtension::check " << level << std::endl;
@@ -1508,7 +1518,7 @@ void CardinalityExtension::check(Theory::Effort level)
         }
       }
     }
-    else if (options::ufssMode() == options::UfssMode::NO_MINIMAL)
+    else if (options().uf.ufssMode == options::UfssMode::NO_MINIMAL)
     {
       if( level==Theory::EFFORT_FULL ){
         // split on an equality between two equivalence classes (at most one per type)
@@ -1518,14 +1528,15 @@ void CardinalityExtension::check(Theory::Effort level)
         while( !eqcs_i.isFinished() ){
           Node a = *eqcs_i;
           TypeNode tn = a.getType();
-          if( tn.isSort() ){
+          if (tn.isUninterpretedSort())
+          {
             if( type_proc.find( tn )==type_proc.end() ){
               std::map< TypeNode, std::vector< Node > >::iterator itel = eqc_list.find( tn );
               if( itel!=eqc_list.end() ){
                 for( unsigned j=0; j<itel->second.size(); j++ ){
                   Node b = itel->second[j];
                   if( !d_th->getEqualityEngine()->areDisequal( a, b, false ) ){
-                    Node eq = Rewriter::rewrite( a.eqNode( b ) );
+                    Node eq = rewrite(a.eqNode(b));
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
                     d_im.lemma(lem, InferenceId::UF_CARD_SPLIT);
@@ -1570,7 +1581,8 @@ Node CardinalityExtension::CombinedCardinalityDecisionStrategy::mkLiteral(
     unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(COMBINED_CARDINALITY_CONSTRAINT, nm->mkConst(Rational(i)));
+  Node cco = nm->mkConst(CombinedCardinalityConstraint(Integer(i)));
+  return nm->mkNode(COMBINED_CARDINALITY_CONSTRAINT, cco);
 }
 
 std::string
@@ -1581,30 +1593,51 @@ CardinalityExtension::CombinedCardinalityDecisionStrategy::identify() const
 
 void CardinalityExtension::preRegisterTerm(TNode n)
 {
-  if (options::ufssMode() == options::UfssMode::FULL)
+  if (options().uf.ufssMode != options::UfssMode::FULL)
   {
-    //initialize combined cardinality
-    initializeCombinedCardinality();
+    return;
+  }
+  // initialize combined cardinality
+  initializeCombinedCardinality();
 
-    Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
-    //shouldn't have to preregister this type (it may be that there are no quantifiers over tn)
-    TypeNode tn = n.getType();
-    std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
-    if( it==d_rep_model.end() ){
-      SortModel* rm = NULL;
-      if( tn.isSort() ){
-        Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
-        rm = new SortModel(n, d_state, d_im, this);
-      }
-      if( rm ){
-        rm->initialize();
-        d_rep_model[tn] = rm;
-        //d_rep_model_init[tn] = true;
-      }
-    }else{
-      //ensure sort model is initialized
-      it->second->initialize();
+  Trace("uf-ss-register") << "Preregister " << n << "." << std::endl;
+  // shouldn't have to preregister this type (it may be that there are no
+  // quantifiers over tn)
+  TypeNode tn;
+  if (n.getKind() == CARDINALITY_CONSTRAINT)
+  {
+    const CardinalityConstraint& cc =
+        n.getOperator().getConst<CardinalityConstraint>();
+    tn = cc.getType();
+  }
+  else
+  {
+    tn = n.getType();
+  }
+  if (!tn.isUninterpretedSort())
+  {
+    return;
+  }
+  std::map<TypeNode, SortModel*>::iterator it = d_rep_model.find(tn);
+  if (it == d_rep_model.end())
+  {
+    SortModel* rm = nullptr;
+    if (tn.isUninterpretedSort())
+    {
+      Trace("uf-ss-register") << "Create sort model " << tn << "." << std::endl;
+      rm = new SortModel(d_env, tn, d_state, d_im, this);
     }
+    if (rm)
+    {
+      rm->initialize();
+      d_rep_model[tn] = rm;
+      // d_rep_model_init[tn] = true;
+    }
+  }
+  else
+  {
+    // ensure sort model is initialized
+    it->second->initialize();
   }
 }
 
@@ -1648,9 +1681,9 @@ int CardinalityExtension::getCardinality(TypeNode tn)
 void CardinalityExtension::debugPrint(const char* c)
 {
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-    Debug( c ) << "Conflict find structure for " << it->first << ": " << std::endl;
+    Trace( c ) << "Conflict find structure for " << it->first << ": " << std::endl;
     it->second->debugPrint( c );
-    Debug( c ) << std::endl;
+    Trace( c ) << std::endl;
   }
 }
 
@@ -1669,17 +1702,21 @@ void CardinalityExtension::initializeCombinedCardinality()
 /** check */
 void CardinalityExtension::checkCombinedCardinality()
 {
-  Assert(options::ufssMode() == options::UfssMode::FULL);
-  if( options::ufssFairness() ){
+  Assert(options().uf.ufssMode == options::UfssMode::FULL);
+  if (options().uf.ufssFairness)
+  {
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, get maximum negative cardinalities..." << std::endl;
     uint32_t totalCombinedCard = 0;
     uint32_t maxMonoSlave = 0;
     TypeNode maxSlaveType;
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
       uint32_t max_neg = it->second->getMaximumNegativeCardinality();
-      if( !options::ufssFairnessMonotone() ){
+      if (!options().uf.ufssFairnessMonotone)
+      {
         totalCombinedCard += max_neg;
-      }else{
+      }
+      else
+      {
         std::map< TypeNode, bool >::iterator its = d_tn_mono_slave.find( it->first );
         if( its==d_tn_mono_slave.end() || !its->second ){
           totalCombinedCard += max_neg;
@@ -1692,7 +1729,8 @@ void CardinalityExtension::checkCombinedCardinality()
       }
     }
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, total combined card : " << totalCombinedCard << std::endl;
-    if( options::ufssFairnessMonotone() ){
+    if (options().uf.ufssFairnessMonotone)
+    {
       Trace("uf-ss-com-card-debug") << "Max slave monotonic negated cardinality : " << maxMonoSlave << std::endl;
       if (!d_min_pos_tn_master_card_set.get()
           && maxMonoSlave > d_min_pos_tn_master_card.get())
@@ -1721,7 +1759,8 @@ void CardinalityExtension::checkCombinedCardinality()
       for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); 
            it != d_rep_model.end(); ++it ){
         bool doAdd = true;
-        if( options::ufssFairnessMonotone() ){
+        if (options().uf.ufssFairnessMonotone)
+        {
           std::map< TypeNode, bool >::iterator its =
             d_tn_mono_slave.find( it->first );
           if( its!=d_tn_mono_slave.end() && its->second ){
@@ -1749,19 +1788,16 @@ void CardinalityExtension::checkCombinedCardinality()
   }
 }
 
-CardinalityExtension::Statistics::Statistics()
-    : d_clique_conflicts(smtStatisticsRegistry().registerInt(
-        "CardinalityExtension::Clique_Conflicts")),
-      d_clique_lemmas(smtStatisticsRegistry().registerInt(
-          "CardinalityExtension::Clique_Lemmas")),
-      d_split_lemmas(smtStatisticsRegistry().registerInt(
-          "CardinalityExtension::Split_Lemmas")),
-      d_max_model_size(smtStatisticsRegistry().registerInt(
-          "CardinalityExtension::Max_Model_Size"))
+CardinalityExtension::Statistics::Statistics(StatisticsRegistry& sr)
+    : d_clique_conflicts(
+        sr.registerInt("CardinalityExtension::Clique_Conflicts")),
+      d_clique_lemmas(sr.registerInt("CardinalityExtension::Clique_Lemmas")),
+      d_split_lemmas(sr.registerInt("CardinalityExtension::Split_Lemmas")),
+      d_max_model_size(sr.registerInt("CardinalityExtension::Max_Model_Size"))
 {
   d_max_model_size.maxAssign(1);
 }
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Makai Mann
+#   Mathias Preiner, Gereon Kremer, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -55,11 +55,12 @@ if(CVC5_NEED_HASH_UINT64_T_OVERLOAD)
 endif()
 
 check_include_file(unistd.h HAVE_UNISTD_H)
+check_include_file(sys/wait.h HAVE_SYS_WAIT_H)
 check_include_file_cxx(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
 
 # For Windows builds check if clock_gettime is available via -lpthread
 # (pthread_time.h).
-if(CVC5_WINDOWS_BUILD)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   set(CMAKE_REQUIRED_FLAGS -pthread)
   check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
   unset(CMAKE_REQUIRED_FLAGS)

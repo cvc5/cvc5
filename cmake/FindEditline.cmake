@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Andrew V. Jones, Mathias Preiner
+#   Andrew V. Jones, Mathias Preiner, Gereon Kremer
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -41,9 +41,7 @@ if(Editline_INCLUDE_DIRS)
   unset(CMAKE_REQUIRED_LIBRARIES)
   unset(CMAKE_REQUIRED_INCLUDES)
 
-  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(Editline_LIBRARIES ${Editline_LIBRARIES})
-  else()
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(Editline_LIBRARIES ${Editline_LIBRARIES} bsd tinfo)
   endif()
 endif()

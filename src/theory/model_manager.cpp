@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 ModelManager::ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem)
@@ -34,7 +34,7 @@ ModelManager::ModelManager(Env& env, TheoryEngine& te, EqEngineManager& eem)
       d_modelEqualityEngine(nullptr),
       d_modelEqualityEngineAlloc(nullptr),
       d_model(new TheoryModel(
-          env, "DefaultModel", options::assignFunctionValues())),
+          env, "DefaultModel", options().theory.assignFunctionValues)),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false)
@@ -94,7 +94,7 @@ bool ModelManager::buildModel()
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
 
-  if (Trace.isOn("model-final"))
+  if (TraceIsOn("model-final"))
   {
     Trace("model-final") << "Final model:" << std::endl;
     Trace("model-final") << d_model->debugPrintModelEqc() << std::endl;
@@ -118,7 +118,7 @@ void ModelManager::postProcessModel(bool incomplete)
   Trace("model-builder") << "ModelManager: post-process model..." << std::endl;
   // model construction should always succeed unless lemmas were added
   AlwaysAssert(d_modelBuiltSuccess);
-  if (!options::produceModels())
+  if (!options().smt.produceModels)
   {
     return;
   }
@@ -175,4 +175,4 @@ bool ModelManager::collectModelBooleanVariables()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

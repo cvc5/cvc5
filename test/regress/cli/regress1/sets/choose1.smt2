@@ -1,0 +1,11 @@
+; COMMAND-LINE: --quiet
+(set-logic ALL)
+(set-info :status sat)
+(set-option :produce-models true)
+(declare-fun A () (Set Int))
+(declare-fun a () Int)
+(assert (not (= A (as set.empty (Set Int)))))
+(assert (= (set.choose A) 10))
+(assert (= a (set.choose A)))
+(assert (exists ((x Int)) (and (= x (set.choose A)) (= x a))))
+(check-sat)

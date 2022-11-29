@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Mudathir Mohamed
+ *   Aina Niemetz, Tim King, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,7 +19,7 @@
 #include <cvc5/cvc5.h>
 
 using namespace std;
-using namespace cvc5::api;
+using namespace cvc5;
 
 int main()
 {
@@ -43,33 +43,32 @@ int main()
   Term two_thirds = slv.mkReal(2, 3);
 
   // Terms
-  Term three_y = slv.mkTerm(MULT, three, y);
-  Term diff = slv.mkTerm(MINUS, y, x);
+  Term three_y = slv.mkTerm(MULT, {three, y});
+  Term diff = slv.mkTerm(SUB, {y, x});
 
   // Formulas
-  Term x_geq_3y = slv.mkTerm(GEQ, x, three_y);
-  Term x_leq_y = slv.mkTerm(LEQ, x, y);
-  Term neg2_lt_x = slv.mkTerm(LT, neg2, x);
+  Term x_geq_3y = slv.mkTerm(GEQ, {x, three_y});
+  Term x_leq_y = slv.mkTerm(LEQ, {x, y});
+  Term neg2_lt_x = slv.mkTerm(LT, {neg2, x});
 
-  Term assertions =
-    slv.mkTerm(AND, x_geq_3y, x_leq_y, neg2_lt_x);
+  Term assertions = slv.mkTerm(AND, {x_geq_3y, x_leq_y, neg2_lt_x});
 
   cout << "Given the assertions " << assertions << endl;
   slv.assertFormula(assertions);
 
 
   slv.push();
-  Term diff_leq_two_thirds = slv.mkTerm(LEQ, diff, two_thirds);
+  Term diff_leq_two_thirds = slv.mkTerm(LEQ, {diff, two_thirds});
   cout << "Prove that " << diff_leq_two_thirds << " with cvc5." << endl;
-  cout << "cvc5 should report ENTAILED." << endl;
-  cout << "Result from cvc5 is: " << slv.checkEntailed(diff_leq_two_thirds)
-       << endl;
+  cout << "cvc5 should report UNSAT." << endl;
+  cout << "Result from cvc5 is: "
+       << slv.checkSatAssuming(diff_leq_two_thirds.notTerm()) << endl;
   slv.pop();
 
   cout << endl;
 
   slv.push();
-  Term diff_is_two_thirds = slv.mkTerm(EQUAL, diff, two_thirds);
+  Term diff_is_two_thirds = slv.mkTerm(EQUAL, {diff, two_thirds});
   slv.assertFormula(diff_is_two_thirds);
   cout << "Show that the assertions are consistent with " << endl;
   cout << diff_is_two_thirds << " with cvc5." << endl;

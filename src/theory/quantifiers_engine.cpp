@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Gereon Kremer, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers/ieval/inst_evaluator_manager.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_modules.h"
@@ -39,9 +40,9 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
@@ -63,16 +64,17 @@ QuantifiersEngine::QuantifiersEngine(
       d_quants_red(userContext()),
       d_numInstRoundsLemma(0)
 {
+  options::FmfMbqiMode mmode = options().quantifiers.fmfMbqiMode;
   Trace("quant-init-debug")
-      << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
-      << options::fmfBound() << std::endl;
+      << "Initialize model engine, mbqi : " << mmode << " "
+      << options().quantifiers.fmfBound << std::endl;
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if (options::fmfBound() || options::stringExp()
-      || (options::finiteModelFind()
-          && (options::mbqiMode() == options::MbqiMode::FMC
-              || options::mbqiMode() == options::MbqiMode::TRUST)))
+  if (options().quantifiers.fmfBound || options().strings.stringExp
+      || (options().quantifiers.finiteModelFind
+          && (mmode == options::FmfMbqiMode::FMC
+              || mmode == options::FmfMbqiMode::TRUST)))
   {
     Trace("quant-init-debug") << "...make fmc builder." << std::endl;
     d_builder.reset(
@@ -103,6 +105,7 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(qim.getInstantiate());
   d_util.push_back(tr.getTermPools());
+  d_util.push_back(tr.getInstEvaluatorManager());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -168,14 +171,14 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << std::endl;
-  if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
+  if (options().quantifiers.instMaxLevel != -1)
   {
     for (const Node& a : assertions)
     {
       quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
-  if (options::sygus())
+  if (options().quantifiers.sygus)
   {
     quantifiers::SynthEngine* sye = d_qmodules->d_synth_e.get();
     for (const Node& a : assertions)
@@ -186,7 +189,7 @@ void QuantifiersEngine::ppNotifyAssertions(
   /* The SyGuS instantiation module needs a global view of all available
    * assertions to collect global terms that get added to each grammar.
    */
-  if (options::sygusInst())
+  if (options().quantifiers.sygusInst)
   {
     quantifiers::SygusInst* si = d_qmodules->d_sygus_inst.get();
     si->ppNotifyAssertions(assertions);
@@ -248,14 +251,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   d_qim.reset();
-  bool setIncomplete = false;
-  IncompleteId setIncompleteId = IncompleteId::QUANTIFIERS;
-  if (options::instMaxRounds() >= 0
-      && d_numInstRoundsLemma >= static_cast<uint32_t>(options::instMaxRounds()))
+  bool setModelUnsound = false;
+  IncompleteId setModelUnsoundId = IncompleteId::QUANTIFIERS;
+  if (options().quantifiers.instMaxRounds >= 0
+      && d_numInstRoundsLemma
+             >= static_cast<uint32_t>(options().quantifiers.instMaxRounds))
   {
     needsCheck = false;
-    setIncomplete = true;
-    setIncompleteId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
+    setModelUnsound = true;
+    setModelUnsoundId = IncompleteId::QUANTIFIERS_MAX_INST_ROUNDS;
   }
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
@@ -268,12 +272,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     double clSet = 0;
-    if( Trace.isOn("quant-engine") ){
+    if( TraceIsOn("quant-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << ">>>>> Quantifiers Engine Round, effort = " << e << " <<<<<" << std::endl;
     }
 
-    if( Trace.isOn("quant-engine-debug") ){
+    if( TraceIsOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug")
           << "  depth : " << d_qstate.getInstRoundDepth() << std::endl;
@@ -295,11 +299,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine-debug")
           << "  In conflict : " << d_qstate.isInConflict() << std::endl;
     }
-    if( Trace.isOn("quant-engine-ee-pre") ){
+    if( TraceIsOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
       d_qstate.debugPrintEqualityEngine("quant-engine-ee-pre");
     }
-    if( Trace.isOn("quant-engine-assert") ){
+    if( TraceIsOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
       d_te->printAssertions("quant-engine-assert");
     }
@@ -323,7 +327,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
     }
 
-    if( Trace.isOn("quant-engine-ee") ){
+    if( TraceIsOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
       d_qstate.debugPrintEqualityEngine("quant-engine-ee");
     }
@@ -390,12 +394,18 @@ void QuantifiersEngine::check( Theory::Effort e ){
         //flush all current lemmas
         d_qim.doPending();
       }
-      //if we have added one, stop
-      if (d_qim.hasSentLemma())
+      // If we have added a lemma, stop. We also stop if we are in conflict.
+      // In very rare cases, it may be the case that quantifiers knows there
+      // is a conflict without adding a lemma, e.g. if it sent a duplicate
+      // QUANTIFIERS_TDB_DEQ_CONG lemma, which can occur if it has detected
+      // a quantifier-free conflict during term indexing but the quantifier
+      // free theories haven't caused a backtrack yet. This should never happen
+      // at LAST_CALL effort.
+      if (d_qim.hasSentLemma() || d_qstate.isInConflict())
       {
+        Assert(d_qim.hasSentLemma() || e != Theory::EFFORT_LAST_CALL);
         break;
       }else{
-        Assert(!d_qstate.isInConflict());
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           d_qstate.incrementInstRoundCounters(e);
@@ -406,35 +416,37 @@ void QuantifiersEngine::check( Theory::Effort e ){
             //sources of incompleteness
             for (QuantifiersUtil*& util : d_util)
             {
-              if (!util->checkComplete(setIncompleteId))
+              if (!util->checkComplete(setModelUnsoundId))
               {
                 Trace("quant-engine-debug") << "Set incomplete because utility "
                                             << util->identify().c_str()
                                             << " was incomplete." << std::endl;
-                setIncomplete = true;
+                setModelUnsound = true;
               }
             }
             if (d_qstate.isInConflict())
             {
               // we reported a conflicting lemma, should return
-              setIncomplete = true;
+              setModelUnsound = true;
             }
             //if we have a chance not to set incomplete
-            if( !setIncomplete ){
+            if (!setModelUnsound)
+            {
               //check if we should set the incomplete flag
               for (QuantifiersModule*& mdl : d_modules)
               {
-                if (!mdl->checkComplete(setIncompleteId))
+                if (!mdl->checkComplete(setModelUnsoundId))
                 {
                   Trace("quant-engine-debug")
                       << "Set incomplete because module "
                       << mdl->identify().c_str() << " was incomplete."
                       << std::endl;
-                  setIncomplete = true;
+                  setModelUnsound = true;
                   break;
                 }
               }
-              if( !setIncomplete ){
+              if (!setModelUnsound)
+              {
                 //look at individual quantified formulas, one module must claim completeness for each one
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
                   bool hasCompleteM = false;
@@ -453,7 +465,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                   }
                   if( !hasCompleteM ){
                     Trace("quant-engine-debug") << "Set incomplete because " << q << " was not fully processed." << std::endl;
-                    setIncomplete = true;
+                    setModelUnsound = true;
                     break;
                   }else{
                     Assert(qmd != NULL);
@@ -462,8 +474,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 }
               }
             }
-            //if setIncomplete = false, we will answer SAT, otherwise we will run at quant_e QEFFORT_LAST_CALL
-            if( !setIncomplete ){
+            // if setModelUnsound = false, we will answer SAT, otherwise we will
+            // run at quant_e QEFFORT_LAST_CALL
+            if (!setModelUnsound)
+            {
               break;
             }
           }
@@ -477,7 +491,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       d_qim.getInstantiate()->notifyEndRound();
       d_numInstRoundsLemma++;
     }
-    if( Trace.isOn("quant-engine") ){
+    if( TraceIsOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
       Trace("quant-engine") << ", sent lemma = " << d_qim.hasSentLemma();
@@ -492,13 +506,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
   //SAT case
   if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
   {
-    if( setIncomplete ){
+    if (setModelUnsound)
+    {
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      d_qim.setIncomplete(setIncompleteId);
+      d_qim.setModelUnsound(setModelUnsoundId);
     }
     //output debug stats
     d_qim.getInstantiate()->debugPrintModel();
   }
+  d_qim.clearPending();
 }
 
 void QuantifiersEngine::notifyCombineTheories() {
@@ -620,7 +636,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     TrustNode lem = d_qim.getSkolemize()->process(f);
     if (!lem.isNull())
     {
-      if (Trace.isOn("quantifiers-sk-debug"))
+      if (TraceIsOn("quantifiers-sk-debug"))
       {
         Node slem = rewrite(lem.getNode());
         Trace("quantifiers-sk-debug")
@@ -694,5 +710,24 @@ void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
   d_treg.declarePool(p, initValue);
 }
 
+void QuantifiersEngine::declareOracleFun(Node f)
+{
+  if (d_qmodules->d_oracleEngine.get() == nullptr)
+  {
+    warning() << "Cannot declare oracle function when oracles are disabled"
+              << std::endl;
+    return;
+  }
+  d_qmodules->d_oracleEngine->declareOracleFun(f);
+}
+std::vector<Node> QuantifiersEngine::getOracleFuns() const
+{
+  if (d_qmodules->d_oracleEngine.get() == nullptr)
+  {
+    return {};
+  }
+  return d_qmodules->d_oracleEngine->getOracleFuns();
+}
+
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli, Yoni Zohar, Alex Ozdemir
+ *   Andres Noetzli, Yoni Zohar, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,17 +30,18 @@
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 
 namespace {
@@ -49,7 +50,8 @@ bool childrenTypesChanged(Node n, NodeMap& cache) {
   for (Node child : n) {
     TypeNode originalType = child.getType();
     TypeNode newType = cache[child].getType();
-    if (! newType.isSubtypeOf(originalType)) {
+    if (newType != originalType)
+    {
       return true;
     }
   }
@@ -69,7 +71,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       result = current;
     }
     else if (current.getNumChildren() > 2
-             && (current.getKind() == kind::PLUS
+             && (current.getKind() == kind::ADD
                  || current.getKind() == kind::MULT
                  || current.getKind() == kind::NONLINEAR_MULT))
     {
@@ -117,6 +119,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
   for (TNode current : NodeDfsIterable(n_binary, VisitOrder::POSTORDER,
            [&cache](TNode nn) { return cache.count(nn) > 0; }))
   {
+    TypeNode tn = current.getType();
+    if (tn.isReal() && !tn.isInteger())
+    {
+      throw TypeCheckingExceptionPrivate(
+          current, string("Cannot translate to BV: ") + current.toString());
+    }
     if (current.getNumChildren() > 0)
     {
       // Not a leaf
@@ -143,7 +151,7 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
       {
         switch (newKind)
         {
-          case kind::PLUS:
+          case kind::ADD:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_ADD;
             max = max + 1;
@@ -154,12 +162,12 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
             newKind = kind::BITVECTOR_MULT;
             max = max * 2;
             break;
-          case kind::MINUS:
+          case kind::SUB:
             Assert(children.size() == 2);
             newKind = kind::BITVECTOR_SUB;
             max = max + 1;
             break;
-          case kind::UMINUS:
+          case kind::NEG:
             Assert(children.size() == 1);
             newKind = kind::BITVECTOR_NEG;
             max = max + 1;
@@ -172,12 +180,14 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           case kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
-              throw TypeCheckingExceptionPrivate(
-                  current,
-                  string("Cannot translate to BV: ") + current.toString());
+              std::stringstream ss;
+              ss << "Cannot translate " << current
+                 << " to a bit-vector term. Remove option `--solve-int-as-bv`.";
+              throw LogicException(ss.str());
             }
             break;
         }
+
         for (size_t i = 0, csize = children.size(); i < csize; ++i)
         {
           TypeNode type = children[i].getType();
@@ -194,6 +204,14 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
             children[i] = nm->mkNode(signExtendOp, children[i]);
           }
         }
+      }
+
+      if (tn.isInteger() && newKind == current.getKind())
+      {
+        std::stringstream ss;
+        ss << "Cannot translate the operator " << current.getKind()
+           << " to a bit-vector operator. Remove option `--solve-int-as-bv`.";
+        throw LogicException(ss.str());
       }
       NodeBuilder builder(newKind);
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -228,32 +246,26 @@ Node IntToBV::intToBV(TNode n, NodeMap& cache)
           Node bv2int = nm->mkNode(
               kind::ITE,
               nm->mkNode(kind::BITVECTOR_SLT, result, nm->mkConst(bvzero)),
-              nm->mkNode(kind::UMINUS, negResult),
+              nm->mkNode(kind::NEG, negResult),
               nm->mkNode(kind::BITVECTOR_TO_NAT, result));
           d_preprocContext->addSubstitution(current, bv2int);
         }
       }
       else if (current.isConst())
       {
-        switch (current.getKind())
+        if (current.getType().isInteger())
         {
-          case kind::CONST_RATIONAL:
+          Rational constant = current.getConst<Rational>();
+          Assert (constant.isIntegral());
+          BitVector bv(size, constant.getNumerator());
+          if (bv.toSignedInteger() != constant.getNumerator())
           {
-            Rational constant = current.getConst<Rational>();
-            if (constant.isIntegral()) {
-              BitVector bv(size, constant.getNumerator());
-              if (bv.toSignedInteger() != constant.getNumerator())
-              {
-                throw TypeCheckingExceptionPrivate(
-                    current,
-                    string("Not enough bits for constant in intToBV: ")
-                        + current.toString());
-              }
-              result = nm->mkConst(bv);
-            }
-            break;
+            throw TypeCheckingExceptionPrivate(
+                current,
+                string("Not enough bits for constant in intToBV: ")
+                    + current.toString());
           }
-          default: break;
+          result = nm->mkConst(bv);
         }
       }
       else
@@ -288,4 +300,4 @@ PreprocessingPassResult IntToBV::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

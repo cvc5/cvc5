@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,10 +20,11 @@
 
 #include <vector>
 
+#include "api/cpp/cvc5_types.h"
 #include "expr/node.h"
-#include "options/smt_options.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 namespace theory {
 class TheoryModel;
@@ -32,9 +33,10 @@ class TheoryModel;
 /**
  * A utility for blocking the current model.
  */
-class ModelBlocker
+class ModelBlocker : protected EnvObj
 {
  public:
+  ModelBlocker(Env& e);
   /** get model blocker
    *
    * This returns a disjunction of literals ~L1 V ... V ~Ln with the following
@@ -63,13 +65,13 @@ class ModelBlocker
    * our input. In other words, we do not return ~(x < 0) V ~(w < 0) since the
    * left disjunct is always false.
    */
-  static Node getModelBlocker(
+  Node getModelBlocker(
       const std::vector<Node>& assertions,
       theory::TheoryModel* m,
-      options::BlockModelsMode mode,
+      modes::BlockModelsMode mode,
       const std::vector<Node>& exprToBlock = std::vector<Node>());
 }; /* class TheoryModelCoreBuilder */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* __CVC5__THEORY__MODEL_BLOCKER_H */

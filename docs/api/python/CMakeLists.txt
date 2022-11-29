@@ -16,6 +16,5 @@
 add_custom_target(docs-python)
 
 if (BUILD_BINDINGS_PYTHON)
-    # Python API docs are generated from built python API
-    add_dependencies(docs-python pycvc5)
+    add_dependencies(docs-python cvc5_python_api)
 endif()

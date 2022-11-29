@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Andrew Reynolds
+ *   Aina Niemetz, Dejan Jovanovic, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace expr;
@@ -122,7 +122,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
   Node x = d_skolemManager->mkDummySkolem(
-      "x", *d_boolTypeNode, "", NodeManager::SKOLEM_EXACT_NAME);
+      "x", *d_boolTypeNode, "", SkolemManager::SKOLEM_EXACT_NAME);
   ASSERT_EQ(x.getKind(), SKOLEM);
   ASSERT_EQ(x.getNumChildren(), 0u);
   ASSERT_EQ(x.getAttribute(VarNameAttr()), "x");
@@ -140,7 +140,7 @@ TEST_F(TestNodeBlackNodeManager, mkConst_bool)
 TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 {
   Rational r("3/2");
-  Node n = d_nodeManager->mkConst(r);
+  Node n = d_nodeManager->mkConstReal(r);
   ASSERT_EQ(n.getConst<Rational>(), r);
 }
 
@@ -162,7 +162,7 @@ TEST_F(TestNodeBlackNodeManager, booleanType)
   ASSERT_FALSE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_FALSE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
   ASSERT_EQ(t, t2);
   ASSERT_NE(t, t3);
 
@@ -180,7 +180,7 @@ TEST_F(TestNodeBlackNodeManager, mkFunctionType_bool_to_bool)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_TRUE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -208,7 +208,7 @@ TEST_F(TestNodeBlackNodeManager, mkFunctionType_vector_args_with_return_type)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_FALSE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -238,7 +238,7 @@ TEST_F(TestNodeBlackNodeManager, mkFunctionType_vector_of_arguments)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_FALSE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -269,7 +269,7 @@ TEST_F(TestNodeBlackNodeManager, mkPredicateType)
   ASSERT_TRUE(t.isFunction());
   ASSERT_FALSE(t.isNull());
   ASSERT_TRUE(t.isPredicate());
-  ASSERT_FALSE(t.isSort());
+  ASSERT_FALSE(t.isUninterpretedSort());
 
   ASSERT_EQ(t, t2);
 
@@ -288,7 +288,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 #ifdef CVC5_ASSERTIONS
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   ASSERT_DEATH(d_nodeManager->mkNode(AND, x),
-               "Nodes with kind AND must have at least 2 children");
+               "Nodes with kind `and` must have at least 2 children");
 #endif
 }
 
@@ -313,4 +313,4 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 #endif
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,12 +28,12 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 using namespace std;
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 namespace {
 
@@ -108,14 +108,15 @@ SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  TypeNode locType, dataType;
-  if (!d_preprocContext->getTheoryEngine()->getSepHeapTypes(locType, dataType))
+  if (!d_env.hasSepHeap())
   {
-    Warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
+    warning() << "SepSkolemEmp::applyInternal: failed to get separation logic "
                  "heap types during preprocessing"
               << std::endl;
     return PreprocessingPassResult::NO_CONFLICT;
   }
+  TypeNode locType = d_env.getSepLocType();
+  TypeNode dataType = d_env.getSepDataType();
   std::map<bool, std::map<Node, Node>> visited;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
@@ -137,4 +138,4 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

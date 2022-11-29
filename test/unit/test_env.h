@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
+ *   Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,10 +21,9 @@
 #include "options/options.h"
 #include "smt/env.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 class TestEnv : public TestInternal
@@ -34,7 +33,7 @@ class TestEnv : public TestInternal
   {
     d_options.reset(new Options());
     d_nodeManager = NodeManager::currentNM();
-    d_env.reset(new Env(d_nodeManager, d_options.get()));
+    d_env.reset(new Env(d_options.get()));
   }
 
   std::unique_ptr<Options> d_options;
@@ -43,5 +42,5 @@ class TestEnv : public TestInternal
 };
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

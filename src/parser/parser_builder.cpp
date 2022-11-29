@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Christopher L. Conway, Morgan Deters, Andrew Reynolds
+ *   Morgan Deters, Christopher L. Conway, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 namespace cvc5 {
 namespace parser {
 
-ParserBuilder::ParserBuilder(api::Solver* solver,
+ParserBuilder::ParserBuilder(cvc5::Solver* solver,
                              SymbolManager* sm,
                              bool useOptions)
     : d_solver(solver), d_symman(sm)
@@ -41,7 +41,7 @@ ParserBuilder::ParserBuilder(api::Solver* solver,
   }
 }
 
-void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
+void ParserBuilder::init(cvc5::Solver* solver, SymbolManager* sm)
 {
   d_lang = "LANG_AUTO";
   d_solver = solver;
@@ -49,22 +49,32 @@ void ParserBuilder::init(api::Solver* solver, SymbolManager* sm)
   d_checksEnabled = true;
   d_strictMode = false;
   d_canIncludeFile = true;
-  d_parseOnly = false;
   d_logicIsForced = false;
   d_forcedLogic = "";
 }
 
-Parser* ParserBuilder::build()
+std::unique_ptr<Parser> ParserBuilder::build()
 {
-  Parser* parser = NULL;
+  std::unique_ptr<Parser> parser;
+
+  // Force the logic prior to building the parser. This makes a difference for
+  // the TPTP parser, where forced logic is processed upon construction.
+  if (d_logicIsForced)
+  {
+    d_symman->forceLogic(d_forcedLogic);
+  }
+
   if (d_lang == "LANG_TPTP")
   {
-    parser = new Tptp(d_solver, d_symman, d_strictMode, d_parseOnly);
+    parser.reset(new Tptp(d_solver, d_symman, d_strictMode));
   }
   else
   {
     Assert(d_lang == "LANG_SYGUS_V2" || d_lang == "LANG_SMTLIB_V2_6");
-    parser = new Smt2(d_solver, d_symman, d_strictMode, d_parseOnly);
+    parser.reset(new Smt2(d_solver,
+                          d_symman,
+                          d_strictMode,
+                          d_lang == "LANG_SYGUS_V2"));
   }
 
   if( d_checksEnabled ) {
@@ -79,9 +89,6 @@ Parser* ParserBuilder::build()
     parser->disallowIncludeFile();
   }
 
-  if( d_logicIsForced ) {
-    parser->forceLogic(d_forcedLogic);
-  }
 
   return parser;
 }
@@ -97,23 +104,17 @@ ParserBuilder& ParserBuilder::withInputLanguage(const std::string& lang)
   return *this;
 }
 
-ParserBuilder& ParserBuilder::withParseOnly(bool flag) {
-  d_parseOnly = flag;
-  return *this;
-}
-
 ParserBuilder& ParserBuilder::withOptions()
 {
   ParserBuilder& retval = *this;
   retval = retval.withInputLanguage(d_solver->getOption("input-language"))
                .withChecks(d_solver->getOptionInfo("semantic-checks").boolValue())
                .withStrictMode(d_solver->getOptionInfo("strict-parsing").boolValue())
-               .withParseOnly(d_solver->getOptionInfo("parse-only").boolValue())
                .withIncludeFile(d_solver->getOptionInfo("filesystem-access").boolValue());
   auto info = d_solver->getOptionInfo("force-logic");
   if (info.setByUser)
   {
-    LogicInfo tmp(info.stringValue());
+    internal::LogicInfo tmp(info.stringValue());
     retval = retval.withForcedLogic(tmp.getLogicString());
   }
   return retval;

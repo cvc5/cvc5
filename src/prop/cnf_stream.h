@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Haniel Barbosa, Tim King
+ *   Haniel Barbosa, Dejan Jovanovic, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,11 +30,12 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "smt/env_obj.h"
+#include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -64,7 +65,8 @@ enum class FormulaLitPolicy : uint32_t
  * each subexpression in the constructed equi-satisfiable formula, then
  * substitute the new literal for the formula, and so on, recursively.
  */
-class CnfStream {
+class CnfStream : protected EnvObj
+{
   friend PropEngine;
   friend ProofCnfStream;
 
@@ -81,22 +83,19 @@ class CnfStream {
    * and sends the generated clauses and to the given SAT solver. This does not
    * take ownership of satSolver, registrar, or context.
    *
+   * @param env reference to the environment
    * @param satSolver the sat solver to use.
    * @param registrar the entity that takes care of preregistration of Nodes.
-   * @param context the context that the CNF should respect.
-   * @param env Reference to the environment of the smt engine. Assertions
-   * will not be dumped if env == nullptr.
-   * @param rm the resource manager of the CNF stream
+   * @param c the context that the CNF should respect.
    * @param flpol policy for literals corresponding to formulas (those that are
    * not-theory literals).
    * @param name string identifier to distinguish between different instances
    * even for non-theory literals.
    */
-  CnfStream(SatSolver* satSolver,
+  CnfStream(Env& env,
+            SatSolver* satSolver,
             Registrar* registrar,
-            context::Context* context,
-            Env* env,
-            ResourceManager* rm,
+            context::Context* c,
             FormulaLitPolicy flpol = FormulaLitPolicy::INTERNAL,
             std::string name = "");
   /**
@@ -105,13 +104,8 @@ class CnfStream {
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
-   * @param input whether it is an input assertion (rather than a lemma). This
-   * information is only relevant for unsat core tracking.
    */
-  void convertAndAssert(TNode node,
-                        bool removable,
-                        bool negated,
-                        bool input = false);
+  void convertAndAssert(TNode node, bool removable, bool negated);
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
@@ -212,9 +206,6 @@ class CnfStream {
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
 
-  /** Pointer to the env of the smt engine */
-  Env* d_env;
-
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;
 
@@ -313,13 +304,13 @@ class CnfStream {
  private:
   struct Statistics
   {
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& sr, const std::string& name);
     TimerStat d_cnfConversionTime;
   } d_stats;
 
 }; /* class CnfStream */
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP__CNF_STREAM_H */

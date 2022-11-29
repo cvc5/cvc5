@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,12 +24,13 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_rule.h"
 #include "proof/theory_proof_step_buffer.h"
+#include "smt/env_obj.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/uf/proof_equality_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -47,13 +48,13 @@ namespace strings {
  * returns applications of the rule STRING_INFERENCE, which store the arguments
  * to the proof conversion routine "convert" below.
  */
-class InferProofCons : public ProofGenerator
+class InferProofCons : protected EnvObj, public ProofGenerator
 {
   typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
 
  public:
-  InferProofCons(context::Context* c,
-                 ProofNodeManager* pnm,
+  InferProofCons(Env& env,
+                 context::Context* c,
                  SequencesStatistics& statistics);
   ~InferProofCons() {}
   /**
@@ -69,6 +70,11 @@ class InferProofCons : public ProofGenerator
    * only for facts that are explained.
    */
   void notifyFact(const InferInfo& ii);
+  /**
+   * Same as above, but always overwrites. This is used for lemmas and
+   * conflicts, which do not necessarily have unique conclusions.
+   */
+  void notifyLemma(const InferInfo& ii);
 
   /**
    * This returns the proof for fact. This is required for using this class as
@@ -132,7 +138,7 @@ class InferProofCons : public ProofGenerator
    * true. In this case, the argument psb is updated to contain (possibly
    * multiple) proof steps for how to construct a proof for the given inference.
    * In particular, psb will contain a set of steps that form a proof
-   * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
+   * whose conclusion is conc and whose free assumptions are exp.
    */
   static void convert(InferenceId infer,
                       bool isRev,
@@ -154,6 +160,15 @@ class InferProofCons : public ProofGenerator
    * conclusion, or null if we were not able to construct a TRANS step.
    */
   static Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
+  enum class PurifyType
+  {
+    // we are purifying an equality corresponding to a substitution
+    SUBS_EQ,
+    // we are purifying a (dis)equality in the core calculus
+    CORE_EQ,
+    // we are purifying a equality or predicate for extended function rewriting
+    EXTF
+  };
   /**
    * Purify core substitution.
    *
@@ -183,6 +198,26 @@ class InferProofCons : public ProofGenerator
    * in psb ensure that a proof step involving the purified substitution will
    * have the same net effect as a proof step using the original substitution.
    *
+   * The argument pt determines which arguments are relevant for purification.
+   * For core calculus (CORE_EQ) rules, examples of relevant positions are
+   * non-concatenation terms in positions like:
+   *   (= * (str.++ * (str.++ * *) * *))
+   *   (not (= (str.++ * *) *))
+   * For extended function simplification, examples of relevant positions are:
+   *   (= (str.replace * * *) "")
+   *   (str.contains * *)
+   * If we are purifying a substitution with equality, the LHS is a relevant
+   * position to purify, and the RHS is treated like CORE_EQ.
+   *
+   * For example, given substitution (= t ""), an example
+   * inference in the core calculus is:
+   *   (= (str.++ t "A") (str.++ "B" u)) => false
+   * An example of an extended function inference is:
+   *   (= (str.replace (str.substr t 0 2) t "C") (str.++ "C" f[t]))
+   * Note for the latter, we do not apply the substitution to
+   * (str.substr t 0 2).
+   *
+   * @param pt Determines the positions that are relevant for purification.
    * @param tgt The term we were originally going to apply the substitution to.
    * @param children The premises corresponding to the substitution.
    * @param psb The proof step buffer
@@ -193,22 +228,31 @@ class InferProofCons : public ProofGenerator
    * children'[i] from children[i] for all i, and tgt' from tgt (or vice versa
    * based on concludeTgtNew).
    */
-  static bool purifyCoreSubstitution(Node& tgt,
-                                     std::vector<Node>& children,
+  static bool purifyCoreSubstitutionAndTarget(PurifyType pt,
+                                              Node& tgt,
+                                              std::vector<Node>& children,
+                                              TheoryProofStepBuffer& psb,
+                                              bool concludeTgtNew = false);
+  /**
+   * Same as above, without a target. This updates termsToPurify with the
+   * set of LHS of the substitutions, which are terms that must be purified
+   * when applying the resulting substitution to a target.
+   */
+  static bool purifyCoreSubstitution(std::vector<Node>& children,
                                      TheoryProofStepBuffer& psb,
-                                     bool concludeTgtNew = false);
+                                     std::unordered_set<Node>& termsToPurify);
   /**
    * Return the purified form of the predicate lit with respect to a set of
    * terms to purify, call the returned literal lit'.
    * If concludeNew is true, then we add a proof of lit' from lit in psb;
-   * otherwise we add a proof of lit from lit'.
-   * Note that string predicates that require purification are string
-   * (dis)equalities only.
+   * otherwise we add a proof of lit from lit'. The positions which are purified
+   * are configurable based on the argument pt.
    */
-  static Node purifyCorePredicate(Node lit,
-                                  bool concludeNew,
-                                  TheoryProofStepBuffer& psb,
-                                  std::unordered_set<Node>& termsToPurify);
+  static Node purifyPredicate(PurifyType pt,
+                              Node lit,
+                              bool concludeNew,
+                              TheoryProofStepBuffer& psb,
+                              std::unordered_set<Node>& termsToPurify);
   /**
    * Purify term with respect to a set of terms to purify. This replaces
    * all terms to purify with their purification variables that occur in
@@ -216,8 +260,16 @@ class InferProofCons : public ProofGenerator
    * children of concat or equal).
    */
   static Node purifyCoreTerm(Node n, std::unordered_set<Node>& termsToPurify);
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
+  /**
+   * Purify application, which replaces each direct child nc of n with
+   * maybePurifyTerm(nc, termsToPurify).
+   */
+  static Node purifyApp(Node n, std::unordered_set<Node>& termsToPurify);
+  /**
+   * Maybe purify term, which returns the skolem variable for n if it occurs
+   * in termsToPurify.
+   */
+  static Node maybePurifyTerm(Node n, std::unordered_set<Node>& termsToPurify);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
   /** Reference to the statistics for the theory of strings/sequences. */
@@ -226,6 +278,6 @@ class InferProofCons : public ProofGenerator
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__INFER_PROOF_CONS_H */

@@ -18,14 +18,6 @@ name   = "Strings Theory"
   help       = "the finite model finding used by the theory of strings"
 
 [[option]]
-  name       = "stringEager"
-  category   = "regular"
-  long       = "strings-eager"
-  type       = "bool"
-  default    = "false"
-  help       = "strings eager check"
-
-[[option]]
   name       = "stringLazyPreproc"
   category   = "regular"
   long       = "strings-lazy-pp"
@@ -35,7 +27,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringLenNorm"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-len-norm"
   type       = "bool"
   default    = "true"
@@ -43,19 +35,19 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringInferSym"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-infer-sym"
   type       = "bool"
   default    = "true"
-  help       = "strings split on empty string"
+  help       = "generalized inferences in strings based on proxy symbols"
 
 [[option]]
-  name       = "stringEagerLen"
-  category   = "regular"
-  long       = "strings-eager-len"
+  name       = "stringEagerReg"
+  category   = "expert"
+  long       = "strings-eager-reg"
   type       = "bool"
   default    = "true"
-  help       = "strings eager length lemmas"
+  help       = "do registration lemmas for terms during preregistration. If false, do registration lemmas for terms when they appear in asserted literals"
 
 [[option]]
   name       = "stringCheckEntailLen"
@@ -67,7 +59,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringProcessLoopMode"
-  category   = "expert"
+  category   = "regular"
   long       = "strings-process-loop-mode=MODE"
   type       = "ProcessLoopMode"
   default    = "FULL"
@@ -89,10 +81,9 @@ name   = "Strings Theory"
   name = "abort"
   help = "Abort if looping word equations are encountered."
 
-
 [[option]]
   name       = "stringInferAsLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-infer-as-lemmas"
   type       = "bool"
   default    = "false"
@@ -100,47 +91,41 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringRExplainLemmas"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-rexplain-lemmas"
   type       = "bool"
   default    = "true"
   help       = "regression explanations for string lemmas"
 
 [[option]]
-  name       = "stringMinPrefixExplain"
+  name       = "stringModelBasedReduction"
   category   = "regular"
-  long       = "strings-min-prefix-explain"
+  long       = "strings-mbr"
   type       = "bool"
   default    = "true"
-  help       = "minimize explanations for prefix of normal forms in strings"
-
-[[option]]
-  name       = "stringGuessModel"
-  category   = "regular"
-  long       = "strings-guess-model"
-  type       = "bool"
-  default    = "false"
-  help       = "use model guessing to avoid string extended function reductions"
+  help       = "use models to avoid reductions for extended functions that introduce quantified formulas"
 
 [[option]]
   name       = "regExpElim"
   category   = "regular"
-  long       = "re-elim"
-  type       = "bool"
-  default    = "false"
-  help       = "elimination techniques for regular expressions"
-
-[[option]]
-  name       = "regExpElimAgg"
-  category   = "regular"
-  long       = "re-elim-agg"
-  type       = "bool"
-  default    = "false"
-  help       = "aggressive elimination techniques for regular expressions"
+  long       = "re-elim=MODE"
+  type       = "RegExpElimMode"
+  default    = "OFF"
+  help       = "regular expression elimination mode"
+  help_mode  = "Regular expression elimination modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use regular expression elimination."
+[[option.mode.ON]]
+  name = "on"
+  help = "Use regular expression elimination."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Use aggressive regular expression elimination."
 
 [[option]]
   name       = "stringFlatForms"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-ff"
   type       = "bool"
   default    = "true"
@@ -151,7 +136,7 @@ name   = "Strings Theory"
   category   = "expert"
   long       = "re-inter-mode=MODE"
   type       = "RegExpInterMode"
-  default    = "CONSTANT"
+  default    = "NONE"
   help       = "determines which regular expressions intersections to compute"
   help_mode  = "Regular expression intersection modes."
 [[option.mode.ALL]]
@@ -168,14 +153,6 @@ name   = "Strings Theory"
   help = "Do not compute intersections for regular expressions."
 
 [[option]]
-  name       = "stringUnifiedVSpt"
-  category   = "regular"
-  long       = "strings-unified-vspt"
-  type       = "bool"
-  default    = "true"
-  help       = "use a single skolem for the variable splitting rule"
-
-[[option]]
   name       = "stringEagerEval"
   category   = "regular"
   long       = "strings-eager-eval"
@@ -185,7 +162,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringsAlphaCard"
-  category   = "regular"
+  category   = "expert"
   long       = "strings-alpha-card=N"
   type       = "uint64_t"
   default    = "196608"
@@ -199,3 +176,61 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use extensionality for string disequalities"
+
+[[option]]
+  name       = "stringsEagerLenEntRegexp"
+  category   = "regular"
+  long       = "strings-eager-len-re"
+  type       = "bool"
+  default    = "false"
+  help       = "use regular expressions for eager length conflicts"
+
+[[option]]
+  name       = "stringEagerSolver"
+  category   = "regular"
+  long       = "strings-eager-solver"
+  type       = "bool"
+  default    = "true"
+  help       = "use the eager solver"
+
+[[option]]
+  name       = "stringRegexpInclusion"
+  category   = "regular"
+  long       = "strings-regexp-inclusion"
+  type       = "bool"
+  default    = "true"
+  help       = "use regular expression inclusion for finding conflicts and avoiding regular expression unfolding"
+
+[[option]]
+  name       = "seqArray"
+  category   = "expert"
+  long       = "seq-array=MODE"
+  type       = "SeqArrayMode"
+  default    = "NONE"
+  help       = "use array-inspired solver for sequence updates in eager or lazy mode"
+  help_mode  = "use array-inspired solver for sequence updates in eager or lazy mode"
+[[option.mode.LAZY]]
+  name = "lazy"
+  help = "use array-inspired solver for sequence updates in lazy mode"
+[[option.mode.EAGER]]
+  name = "eager"
+  help = "use array-inspired solver for sequence updates in eager mode"
+[[option.mode.NONE]]
+  name = "none"
+  help = "do not use array-inspired solver for sequence updates"
+
+[[option]]
+  name       = "stringsModelMaxLength"
+  category   = "expert"
+  long       = "strings-model-max-len=N"
+  type       = "uint64_t"
+  default    = "65536"
+  help       = "The maximum size of string values in models"
+
+[[option]]
+  name       = "stringsCodeElim"
+  category   = "expert"
+  long       = "strings-code-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "eliminate code points during preprocessing"

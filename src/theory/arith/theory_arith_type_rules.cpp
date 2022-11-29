@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Dejan Jovanovic
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -25,15 +25,35 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
 {
-  Assert(n.getKind() == kind::CONST_RATIONAL);
-  if (n.getConst<Rational>().isIntegral())
+  // we use different kinds for constant integers and reals
+  if (n.getKind() == kind::CONST_RATIONAL)
   {
-    return nodeManager->integerType();
-  }
-  else
-  {
+    // constant rationals are always real type, even if their value is integral
     return nodeManager->realType();
   }
+  Assert(n.getKind() == kind::CONST_INTEGER);
+  // constant integers should always have integral value
+  if (check)
+  {
+    if (!n.getConst<Rational>().isIntegral())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "making an integer constant from a non-integral rational");
+    }
+  }
+  return nodeManager->integerType();
+}
+
+TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check)
+{
+  return nodeManager->realType();
+}
+TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
+                                                       TNode n,
+                                                       bool check)
+{
+  return nodeManager->realType();
 }
 
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
@@ -59,7 +79,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
     }
     if (check)
     {
-      if (!childType.isReal())
+      if (!childType.isRealOrInt())
       {
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting an arithmetic subterm");
@@ -72,8 +92,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
   switch (k)
   {
-    case kind::TO_REAL:
-    case kind::CAST_TO_REAL: return realType;
+    case kind::TO_REAL: return realType;
     case kind::TO_INTEGER: return integerType;
     default:
     {
@@ -81,6 +100,23 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
       return (isInteger && !isDivision ? integerType : realType);
     }
   }
+}
+
+TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check)
+{
+  if (check)
+  {
+    Assert(n.getNumChildren() == 2);
+    if (!n[0].getType(check).isRealOrInt()
+        || !n[1].getType(check).isRealOrInt())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting an arithmetic term for arithmetic relation");
+    }
+  }
+  return nodeManager->booleanType();
 }
 
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
@@ -104,7 +140,7 @@ TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::IAND_OP)
   {
-    InternalError() << "IAND_OP typerule invoked for IAND_OP kind";
+    InternalError() << "IAND_OP typerule invoked for " << n << " instead of IAND_OP kind";
   }
   TypeNode iType = nodeManager->integerType();
   std::vector<TypeNode> argTypes;
@@ -119,7 +155,7 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::IAND)
   {
-    InternalError() << "IAND typerule invoked for IAND kind";
+    InternalError() << "IAND typerule invoked for " << n << " instead of IAND kind";
   }
   if (check)
   {
@@ -139,7 +175,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() != kind::POW2)
   {
-    InternalError() << "POW2 typerule invoked for POW2 kind";
+    InternalError() << "POW2 typerule invoked for " << n << " instead of POW2 kind";
   }
   if (check)
   {
@@ -165,7 +201,7 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
           n, "expecting boolean term as first argument");
     }
     TypeNode t2 = n[1].getType(check);
-    if (!t2.isReal())
+    if (!t2.isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n, "expecting polynomial as second argument");
@@ -176,4 +212,4 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Christopher L. Conway, Andrew V. Jones
+ *   Morgan Deters, Christopher L. Conway, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,12 +17,13 @@
  */
 #include "main/interactive_shell.h"
 
-#include <cstring>
 #include <unistd.h>
 
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -41,18 +42,16 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
-#include "expr/symbol_manager.h"
-#include "parser/input.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
+#include "parser/api/cpp/command.h"
+#include "parser/api/cpp/symbol_manager.h"
+#include "parser/input_parser.h"
 #include "theory/logic_info.h"
 
 using namespace std;
+using namespace cvc5::parser;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-using namespace parser;
 using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
@@ -81,20 +80,24 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(api::Solver* solver,
+InteractiveShell::InteractiveShell(Solver* solver,
                                    SymbolManager* sm,
                                    std::istream& in,
-                                   std::ostream& out)
-    : d_solver(solver), d_in(in), d_out(out), d_quit(false)
+                                   std::ostream& out,
+                                   bool isInteractive)
+    : d_solver(solver),
+      d_in(in),
+      d_out(out),
+      d_isInteractive(isInteractive),
+      d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, sm, true);
-  /* Create parser with bogus input. */
-  d_parser = parserBuilder.build();
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_parser->forceLogic(tmp.getLogicString());
+    sm->forceLogic(tmp.getLogicString());
   }
+  /* Create parser with bogus input. */
+  d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
 
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
@@ -129,13 +132,16 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
     d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
     ::stifle_history(s_historyLimit);
-    if(Notice.isOn()) {
+    if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+    {
       if(err == 0) {
-        Notice() << "Read " << ::history_length << " lines of history from "
-                 << d_historyFilename << std::endl;
+        d_solver->getDriverOptions().err()
+            << "Read " << ::history_length << " lines of history from "
+            << d_historyFilename << std::endl;
       } else {
-        Notice() << "Could not read history from " << d_historyFilename
-                 << ": " << strerror(err) << std::endl;
+        d_solver->getDriverOptions().err()
+            << "Could not read history from " << d_historyFilename << ": "
+            << strerror(err) << std::endl;
       }
     }
   }
@@ -151,18 +157,23 @@ InteractiveShell::InteractiveShell(api::Solver* solver,
 InteractiveShell::~InteractiveShell() {
 #if HAVE_LIBEDITLINE
   int err = ::write_history(d_historyFilename.c_str());
-  if(err == 0) {
-    Notice() << "Wrote " << ::history_length << " lines of history to "
-             << d_historyFilename << std::endl;
-  } else {
-    Notice() << "Could not write history to " << d_historyFilename
-             << ": " << strerror(err) << std::endl;
+  if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+  {
+    if (err == 0)
+    {
+      d_solver->getDriverOptions().err()
+          << "Wrote " << ::history_length << " lines of history to "
+          << d_historyFilename << std::endl;
+    } else {
+      d_solver->getDriverOptions().err()
+          << "Could not write history to " << d_historyFilename << ": "
+          << strerror(err) << std::endl;
+  }
   }
 #endif /* HAVE_LIBEDITLINE */
-  delete d_parser;
 }
 
-Command* InteractiveShell::readCommand()
+std::optional<InteractiveShell::CmdSeq> InteractiveShell::readCommand()
 {
   char* lineBuf = NULL;
   string line = "";
@@ -172,8 +183,11 @@ restart:
   /* Don't do anything if the input is closed or if we've seen a
    * QuitCommand. */
   if(d_in.eof() || d_quit) {
-    d_out << endl;
-    return NULL;
+    if (d_isInteractive)
+    {
+      d_out << endl;
+    }
+    return {};
   }
 
   /* If something's wrong with the input, there's nothing we can do. */
@@ -185,6 +199,7 @@ restart:
   if (d_usingEditline)
   {
 #if HAVE_LIBEDITLINE
+    Assert(d_isInteractive);
     lineBuf = ::readline(line == "" ? "cvc5> " : "... > ");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
       ::add_history(lineBuf);
@@ -195,13 +210,16 @@ restart:
   }
   else
   {
-    if (line == "")
+    if (d_isInteractive)
     {
-      d_out << "cvc5> " << flush;
-    }
-    else
-    {
-      d_out << "... > " << flush;
+      if (line == "")
+      {
+        d_out << "cvc5> " << flush;
+      }
+      else
+      {
+        d_out << "... > " << flush;
+      }
     }
 
     /* Read a line */
@@ -212,15 +230,15 @@ restart:
 
   string input = "";
   while(true) {
-    Debug("interactive") << "Input now '" << input << line << "'" << endl
+    Trace("interactive") << "Input now '" << input << line << "'" << endl
                          << flush;
 
-    Assert(!(d_in.fail() && !d_in.eof()) || line.empty());
+    Assert(!(d_in.fail() && !d_in.eof()) || line.empty() || !d_isInteractive);
 
     /* Check for failure. */
     if(d_in.fail() && !d_in.eof()) {
       /* This should only happen if the input line was empty. */
-      Assert(line.empty());
+      Assert(line.empty() || !d_isInteractive);
       d_in.clear();
     }
 
@@ -237,10 +255,14 @@ restart:
     {
       input += line;
 
-      if(input.empty()) {
+      if (input.empty())
+      {
         /* Nothing left to parse. */
-        d_out << endl;
-        return NULL;
+        if (d_isInteractive)
+        {
+          d_out << endl;
+        }
+        return {};
       }
 
       /* Some input left to parse, but nothing left to read.
@@ -256,7 +278,7 @@ restart:
       /* Extract the newline delimiter from the stream too */
       int c CVC5_UNUSED = d_in.get();
       Assert(c == '\n');
-      Debug("interactive") << "Next char is '" << (char)c << "'" << endl
+      Trace("interactive") << "Next char is '" << (char)c << "'" << endl
                            << flush;
     }
 
@@ -279,7 +301,10 @@ restart:
       }
       else
       {
-        d_out << "... > " << flush;
+        if (d_isInteractive)
+        {
+          d_out << "... > " << flush;
+        }
 
         /* Read a line */
         stringbuf sb;
@@ -288,24 +313,24 @@ restart:
       }
     } else {
       /* No continuation, we're done. */
-      Debug("interactive") << "Leaving input loop." << endl << flush;
+      Trace("interactive") << "Leaving input loop." << endl << flush;
       break;
     }
   }
 
-  d_parser->setInput(Input::newStringInput(
-      d_solver->getOption("input-language"), input, INPUT_FILENAME));
+  d_parser->setStringInput(
+      d_solver->getOption("input-language"), input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */
-  CommandSequence *cmd_seq = new CommandSequence();
+  std::vector<std::unique_ptr<Command>> cmdSeq;
   Command *cmd;
 
   try
   {
     while ((cmd = d_parser->nextCommand()))
     {
-      cmd_seq->addCommand(cmd);
+      cmdSeq.emplace_back(cmd);
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)
       {
         d_quit = true;
@@ -353,6 +378,12 @@ restart:
     {
       d_out << pe << endl;
     }
+    // if not interactive, we quit when we encounter a parse error
+    if (!d_isInteractive)
+    {
+      d_quit = true;
+      return {};
+    }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
     // line.  The first ones haven't yet been executed by the SolverEngine,
@@ -368,14 +399,14 @@ restart:
     // cmd_seq = new CommandSequence();
   }
 
-  return cmd_seq;
+  return std::optional<CmdSeq>(std::move(cmdSeq));
 }/* InteractiveShell::readCommand() */
 
 #if HAVE_LIBEDITLINE
 
 char** commandCompletion(const char* text, int start, int end) {
-  Debug("rl") << "text: " << text << endl;
-  Debug("rl") << "start: " << start << " end: " << end << endl;
+  Trace("rl") << "text: " << text << endl;
+  Trace("rl") << "start: " << start << " end: " << end << endl;
   return rl_completion_matches(text, commandGenerator);
 }
 
@@ -423,4 +454,4 @@ char* commandGenerator(const char* text, int state) {
 
 #endif /* HAVE_LIBEDITLINE */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

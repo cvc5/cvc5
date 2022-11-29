@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner
+#   Gereon Kremer, Mathias Preiner, Andrew V. Jones
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -29,7 +29,7 @@ if(cryptominisat5_FOUND)
   # TODO(gereon): remove this when
   # https://github.com/msoos/cryptominisat/pull/645 is merged
   set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
                              "${CRYPTOMINISAT5_INCLUDE_DIRS}"
   )
 endif()
@@ -43,6 +43,12 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   endif()
 
   include(ExternalProject)
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(LIBFILENAME "libcryptominisat5win")
+  else()
+    set(LIBFILENAME "libcryptominisat5")
+  endif()
 
   ExternalProject_Add(
     CryptoMiniSat-EP
@@ -77,14 +83,14 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   )
 
   set(CryptoMiniSat_INCLUDE_DIR "${DEPS_BASE}/include/")
-  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/libcryptominisat5.a")
+  set(CryptoMiniSat_LIBRARIES "${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/${LIBFILENAME}.a")
 
   add_library(CryptoMiniSat STATIC IMPORTED GLOBAL)
   set_target_properties(
     CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}"
   )
   set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_INCLUDE_DIRECTORIES
+    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
                              "${CryptoMiniSat_INCLUDE_DIR}"
   )
 endif()

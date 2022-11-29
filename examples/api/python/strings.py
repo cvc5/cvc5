@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Mudathir Mohamed, Andres Noetzli
+#   Makai Mann, Aina Niemetz, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of strings-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -43,38 +43,42 @@ if __name__ == "__main__":
     z = slv.mkConst(string, "z")
 
     # String concatenation: x.ab.y
-    lhs = slv.mkTerm(kinds.StringConcat, x, ab, y)
+    lhs = slv.mkTerm(Kind.STRING_CONCAT, x, ab, y)
     # String concatenation: abc.z
-    rhs = slv.mkTerm(kinds.StringConcat, abc, z)
+    rhs = slv.mkTerm(Kind.STRING_CONCAT, abc, z)
     # x.ab.y = abc.z
-    formula1 = slv.mkTerm(kinds.Equal, lhs, rhs)
+    formula1 = slv.mkTerm(Kind.EQUAL, lhs, rhs)
 
     # Length of y: |y|
-    leny = slv.mkTerm(kinds.StringLength, y)
+    leny = slv.mkTerm(Kind.STRING_LENGTH, y)
     # |y| >= 0
-    formula2 = slv.mkTerm(kinds.Geq, leny, slv.mkInteger(0))
+    formula2 = slv.mkTerm(Kind.GEQ, leny, slv.mkInteger(0))
 
     # Regular expression: (ab[c-e]*f)|g|h
-    r = slv.mkTerm(kinds.RegexpUnion,
-                   slv.mkTerm(kinds.RegexpConcat,
-                              slv.mkTerm(kinds.StringToRegexp, slv.mkString("ab")),
-                              slv.mkTerm(kinds.RegexpStar,
-                                         slv.mkTerm(kinds.RegexpRange, slv.mkString("c"), slv.mkString("e"))),
-                            slv.mkTerm(kinds.StringToRegexp, slv.mkString("f"))),
-                 slv.mkTerm(kinds.StringToRegexp, slv.mkString("g")),
-                 slv.mkTerm(kinds.StringToRegexp, slv.mkString("h")))
+    r = slv.mkTerm(Kind.REGEXP_UNION,
+                   slv.mkTerm(Kind.REGEXP_CONCAT,
+                              slv.mkTerm(Kind.STRING_TO_REGEXP,
+                                         slv.mkString("ab")),
+                              slv.mkTerm(Kind.REGEXP_STAR,
+                                         slv.mkTerm(Kind.REGEXP_RANGE,
+                                         slv.mkString("c"),
+                                         slv.mkString("e"))),
+                            slv.mkTerm(Kind.STRING_TO_REGEXP,
+                                       slv.mkString("f"))),
+                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("g")),
+                 slv.mkTerm(Kind.STRING_TO_REGEXP, slv.mkString("h")))
 
     # String variables
     s1 = slv.mkConst(string, "s1")
     s2 = slv.mkConst(string, "s2")
     # String concatenation: s1.s2
-    s = slv.mkTerm(kinds.StringConcat, s1, s2)
+    s = slv.mkTerm(Kind.STRING_CONCAT, s1, s2)
 
     # s1.s2 in (ab[c-e]*f)|g|h
-    formula3 = slv.mkTerm(kinds.StringInRegexp, s, r)
+    formula3 = slv.mkTerm(Kind.STRING_IN_REGEXP, s, r)
 
     # Make a query
-    q = slv.mkTerm(kinds.And,
+    q = slv.mkTerm(Kind.AND,
                    formula1,
                    formula2,
                    formula3)

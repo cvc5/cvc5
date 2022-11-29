@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "options/strings_options.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -292,6 +292,27 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
+TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
+                                             TNode n,
+                                             bool check)
+{
+  if (check)
+  {
+    if (!n[0].getType().isString())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "expecting string term in string to regexp");
+    }
+  }
+  return nodeManager->regExpType();
+}
+
+bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+{
+  Assert(n.getKind() == kind::STRING_TO_REGEXP);
+  return n[0].isConst();
+}
+
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check)
@@ -304,21 +325,24 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check)
 {
-  return nodeManager->mkSequenceType(n[0].getType(check));
+  Assert(n.getKind() == kind::SEQ_UNIT);
+  TypeNode argType = n[0].getType(check);
+  return nodeManager->mkSequenceType(argType);
 }
 
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
 {
+  Assert(n.getKind() == kind::SEQ_NTH);
   TypeNode t = n[0].getType(check);
-  TypeNode t1 = t.getSequenceElementType();
+  if (check && !t.isStringLike())
+  {
+    throw TypeCheckingExceptionPrivate(n,
+                                       "expecting a string-like term in nth");
+  }
   if (check)
   {
-    if (!t.isSequence())
-    {
-      throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
-    }
     TypeNode t2 = n[1].getType(check);
     if (!t2.isInteger())
     {
@@ -326,7 +350,12 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
           n, "expecting an integer start term in nth");
     }
   }
-  return t1;
+  if (t.isSequence())
+  {
+    return t.getSequenceElementType();
+  }
+  Assert(t.isString());
+  return nodeManager->integerType();
 }
 
 Cardinality SequenceProperties::computeCardinality(TypeNode type)
@@ -350,4 +379,4 @@ Node SequenceProperties::mkGroundTerm(TypeNode type)
 }
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "proof/proof_node.h"
 #include "proof/proof_node_algorithm.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
@@ -50,14 +50,15 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol)
   return out;
 }
 
-TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
+TConvProofGenerator::TConvProofGenerator(Env& env,
                                          context::Context* c,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
                                          TermContext* tccb,
                                          bool rewriteOps)
-    : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
+    : EnvObj(env),
+      d_proof(env, nullptr, c, name + "::LazyCDProof"),
       d_preRewriteMap(c ? c : &d_context),
       d_postRewriteMap(c ? c : &d_context),
       d_policy(pol),
@@ -183,8 +184,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // we use the existing proofs
-  LazyCDProof lpf(
-      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProof");
+  LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProof");
   if (f[0] == f[1])
   {
     // assertion failure in debug
@@ -197,7 +197,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     Node conc = getProofForRewriting(f[0], lpf, d_tcontext);
     if (conc != f)
     {
-      bool debugTraceEnabled = Trace.isOn("tconv-pf-gen-debug");
+      bool debugTraceEnabled = TraceIsOn("tconv-pf-gen-debug");
       Assert(conc.getKind() == EQUAL && conc[0] == f[0]);
       std::stringstream serr;
       serr << "TConvProofGenerator::getProofFor: " << toStringDebug()
@@ -239,8 +239,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node n)
 {
-  LazyCDProof lpf(
-      d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProofRew");
+  LazyCDProof lpf(d_env, &d_proof, nullptr, d_name + "::LazyCDProofRew");
   Node conc = getProofForRewriting(n, lpf, d_tcontext);
   if (conc[1] == n)
   {
@@ -621,4 +620,4 @@ std::string TConvProofGenerator::toStringDebug() const
   return ss.str();
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

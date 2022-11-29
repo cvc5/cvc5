@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +30,7 @@
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
+#include "theory/partition_generator.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
@@ -39,9 +40,8 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
-#include "util/unsafe_interrupt_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class ResourceManager;
@@ -127,7 +127,8 @@ class TheoryEngine : protected EnvObj
   void addTheory(theory::TheoryId theoryId)
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
-    d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
+    d_theoryOut[theoryId] =
+        new theory::EngineOutputChannel(statisticsRegistry(), this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_env, *d_theoryOut[theoryId], theory::Valuation(this));
     getRewriter()->registerTheoryRewriter(
@@ -172,15 +173,28 @@ class TheoryEngine : protected EnvObj
   }
 
   /**
-   * Preprocess rewrite equality, called by the preprocessor to rewrite
-   * equalities appearing in the input.
+   * Preprocess rewrite, called:
+   * (1) on equalities by the preprocessor to rewrite equalities appearing in
+   * the input,
+   * (2) on non-equalities by the theory preprocessor.
+   *
+   * Calls the ppRewrite of the theory of term and adds the associated skolem
+   * lemmas to lems, for details see Theory::ppRewrite.
    */
-  TrustNode ppRewriteEquality(TNode eq);
+  TrustNode ppRewrite(TNode term, std::vector<theory::SkolemLemma>& lems);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
-  /** Return whether or not we are incomplete (in the current context). */
-  bool isIncomplete() const { return d_incomplete; }
+  /**
+   * Return whether or not we are model unsound (in the current SAT context).
+   * For details, see theory_inference_manager.
+   */
+  bool isModelUnsound() const { return d_modelUnsound; }
+  /**
+   * Return whether or not we are refutation unsound (in the current user
+   * context). For details, see theory_inference_manager.
+   */
+  bool isRefutationUnsound() const { return d_refutationUnsound; }
 
   /**
    * Returns true if we need another round of checking.  If this
@@ -204,12 +218,6 @@ class TheoryEngine : protected EnvObj
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
-  /**
-   * This is called at shutdown time by the SolverEngine, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between PropEngine and Theory.
-   */
-  void shutdown();
 
   /**
    * Solve the given literal with a theory that owns it. The proof of tliteral
@@ -250,7 +258,7 @@ class TheoryEngine : protected EnvObj
   bool presolve();
 
   /**
-   * Calls postsolve() on all theories.
+   * Resets the internal state.
    */
   void postsolve();
 
@@ -264,7 +272,7 @@ class TheoryEngine : protected EnvObj
     for (; d_propagatedLiteralsIndex < d_propagatedLiterals.size();
          d_propagatedLiteralsIndex = d_propagatedLiteralsIndex + 1)
     {
-      Debug("getPropagatedLiterals")
+      Trace("getPropagatedLiterals")
           << "TheoryEngine::getPropagatedLiterals: propagating: "
           << d_propagatedLiterals[d_propagatedLiteralsIndex] << std::endl;
       literals.push_back(d_propagatedLiterals[d_propagatedLiteralsIndex]);
@@ -292,14 +300,13 @@ class TheoryEngine : protected EnvObj
   theory::TheoryModel* getModel();
   /**
    * Get the current model for the current set of assertions. This method
-   * should only be called immediately after a satisfiable or unknown
-   * response to a check-sat call, and only if produceModels is true.
+   * should only be called immediately after a satisfiable response to a
+   * check-sat call, and only if produceModels is true.
    *
-   * If the model is not already built, this will cause this theory engine
-   * to build the model.
+   * If the model is not already built, this will cause this theory engine to
+   * build the model.
    *
-   * If the model is not available (for instance, if the last call to check-sat
-   * was interrupted), then this returns the null pointer.
+   * If the model cannot be built, then this returns the null pointer.
    */
   theory::TheoryModel* getBuiltModel();
   /**
@@ -320,7 +327,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* theoryOf(TNode node) const
   {
-    return d_theoryTable[theory::Theory::theoryOf(node)];
+    return d_theoryTable[d_env.theoryOf(node)];
   }
 
   /**
@@ -334,21 +341,9 @@ class TheoryEngine : protected EnvObj
     return d_theoryTable[theoryId];
   }
 
-  bool isTheoryEnabled(theory::TheoryId theoryId) const
-  {
-    return d_logicInfo.isTheoryEnabled(theoryId);
-  }
-  /** get the logic info used by this theory engine */
-  const LogicInfo& getLogicInfo() const;
-  /** get the separation logic heap types */
-  bool getSepHeapTypes(TypeNode& locType, TypeNode& dataType) const;
-
-  /**
-   * Declare heap. This is used for separation logics to set the location
-   * and data types. It should be called only once, and before any separation
-   * logic constraints are asserted to this theory engine.
-   */
-  void declareSepHeap(TypeNode locT, TypeNode dataT);
+  bool isTheoryEnabled(theory::TheoryId theoryId) const;
+  /** return the theory that should explain a propagation from TheoryId */
+  theory::TheoryId theoryExpPropagation(theory::TheoryId tid) const;
 
   /**
    * Returns the equality status of the two terms, from the theory
@@ -374,7 +369,7 @@ class TheoryEngine : protected EnvObj
    * relevance manager failed to compute relevant assertions due to an internal
    * error.
    */
-  const std::unordered_set<TNode>& getRelevantAssertions(bool& success);
+  std::unordered_set<TNode> getRelevantAssertions(bool& success);
 
   /**
    * Get difficulty map, which populates dmap, mapping preprocessed assertions
@@ -383,6 +378,11 @@ class TheoryEngine : protected EnvObj
    * For details, see theory/difficuly_manager.h.
    */
   void getDifficultyMap(std::map<Node, Node>& dmap);
+
+  /** Get incomplete id, valid when isModelUnsound is true. */
+  theory::IncompleteId getModelUnsoundId() const;
+  /** Get unsound id, valid when isRefutationUnsound is true. */
+  theory::IncompleteId getRefutationUnsoundId() const;
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.
@@ -418,10 +418,10 @@ class TheoryEngine : protected EnvObj
   /** set in conflict */
   void markInConflict();
 
-  /**
-   * Called by the theories to notify that the current branch is incomplete.
-   */
-  void setIncomplete(theory::TheoryId theory, theory::IncompleteId id);
+  /** Called by the theories to notify that the current branch is incomplete. */
+  void setModelUnsound(theory::TheoryId theory, theory::IncompleteId id);
+  /** Called by the theories to notify that we are unsound (user-context). */
+  void setRefutationUnsound(theory::TheoryId theory, theory::IncompleteId id);
 
   /**
    * Called by the output channel to propagate literals and facts
@@ -499,9 +499,6 @@ class TheoryEngine : protected EnvObj
   void ensureLemmaAtoms(const std::vector<TNode>& atoms,
                         theory::TheoryId atomsTo);
 
-  /** Dump the assertions to the dump */
-  void dumpAssertions(const char* tag);
-
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
 
@@ -511,22 +508,7 @@ class TheoryEngine : protected EnvObj
    */
   theory::Theory* d_theoryTable[theory::THEORY_LAST];
 
-  /**
-   * A collection of theories that are "active" for the current run.
-   * This set is provided by the user (as a logic string, say, in SMT-LIBv2
-   * format input), or else by default it's all-inclusive.  This is important
-   * because we can optimize for single-theory runs (no sharing), can reduce
-   * the cost of walking the DAG on registration, etc.
-   */
-  const LogicInfo& d_logicInfo;
-
-  /** The separation logic location and data types */
-  TypeNode d_sepLocType;
-  TypeNode d_sepDataType;
-
-  //--------------------------------- new proofs
-  /** Proof node manager used by this theory engine, if proofs are enabled */
-  ProofNodeManager* d_pnm;
+  //--------------------------------- proofs
   /** The lazy proof object
    *
    * This stores instructions for how to construct proofs for all theory lemmas.
@@ -534,7 +516,7 @@ class TheoryEngine : protected EnvObj
   std::shared_ptr<LazyCDProof> d_lazyProof;
   /** The proof generator */
   std::shared_ptr<TheoryEngineProofGenerator> d_tepg;
-  //--------------------------------- end new proofs
+  //--------------------------------- end proofs
   /** The combination manager we are using */
   std::unique_ptr<theory::CombinationEngine> d_tc;
   /** The shared solver of the above combination engine. */
@@ -547,14 +529,6 @@ class TheoryEngine : protected EnvObj
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
-  /**
-   * An empty set of relevant assertions, which is returned as a dummy value for
-   * getRelevantAssertions when relevance is disabled.
-   */
-  std::unordered_set<TNode> d_emptyRelevantSet;
-
-  /** are we in eager model building mode? (see setEagerModelBuilding). */
-  bool d_eager_model_building;
 
   /**
    * Output channels for individual theories.
@@ -567,26 +541,21 @@ class TheoryEngine : protected EnvObj
   context::CDO<bool> d_inConflict;
 
   /**
-   * Are we in "SAT mode"? In this state, the user can query for the model.
-   * This corresponds to the state in Figure 4.1, page 52 of the SMT-LIB
-   * standard, version 2.6.
+   * True if a theory has notified us of model unsoundness (at this SAT
+   * context level or below). For details, see theory_inference_manager.
    */
-  bool d_inSatMode;
-
+  context::CDO<bool> d_modelUnsound;
+  /** The theory and identifier that (most recently) set model unsound */
+  context::CDO<theory::TheoryId> d_modelUnsoundTheory;
+  context::CDO<theory::IncompleteId> d_modelUnsoundId;
   /**
-   * Debugging flag to ensure that shutdown() is called before the
-   * destructor.
-   */
-  bool d_hasShutDown;
-
-  /**
-   * True if a theory has notified us of incompleteness (at this
+   * True if a theory has notified us of refutation unsoundness (at this user
    * context level or below).
    */
-  context::CDO<bool> d_incomplete;
+  context::CDO<bool> d_refutationUnsound;
   /** The theory and identifier that (most recently) set incomplete */
-  context::CDO<theory::TheoryId> d_incompleteTheory;
-  context::CDO<theory::IncompleteId> d_incompleteId;
+  context::CDO<theory::TheoryId> d_refutationUnsoundTheory;
+  context::CDO<theory::IncompleteId> d_refutationUnsoundId;
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -655,8 +624,14 @@ class TheoryEngine : protected EnvObj
    */
   context::CDO<bool> d_factsAsserted;
 
+  /**
+   * The splitter produces partitions when the compute-partitions option is
+   * used.
+   */
+  std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
+
 }; /* class TheoryEngine */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY_ENGINE_H */

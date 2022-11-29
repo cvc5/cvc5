@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Morgan Deters, Aina Niemetz
+ *   Gereon Kremer, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "util/rational.h"
 #include "util/statistics_value.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 void toSExpr(std::ostream& out, const std::string& s)
 {
@@ -55,4 +55,4 @@ void toSExpr(std::ostream& out, const std::unique_ptr<StatisticBaseValue>& sbv)
   out << *sbv;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

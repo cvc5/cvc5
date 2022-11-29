@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,28 +18,23 @@
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
 #include "proof/eager_proof_generator.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Env& env,
-                                   Theory& t,
-                                   TheoryState& state,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, state, pnm, "theory::datatypes::"),
-      d_pnm(pnm),
-      d_ipc(pnm == nullptr ? nullptr : new InferProofCons(context(), pnm)),
-      d_lemPg(pnm == nullptr ? nullptr
-                             : new EagerProofGenerator(
-                                 pnm, userContext(), "datatypes::lemPg"))
+InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
+    : InferenceManagerBuffered(env, t, state, "theory::datatypes::"),
+      d_ipc(isProofEnabled() ? new InferProofCons(env, context()) : nullptr),
+      d_lemPg(isProofEnabled() ? new EagerProofGenerator(
+                  env, userContext(), "datatypes::lemPg")
+                               : nullptr)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -53,10 +48,11 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma)
 {
-  // if we are forcing the inference to be processed as a lemma, or if the
-  // inference must be sent as a lemma based on the policy in
-  // mustCommunicateFact.
-  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
+  // if we are forcing the inference to be processed as a lemma, if the
+  // dtInferAsLemmas option is set, or if the inference must be sent as a lemma
+  // based on the policy in mustCommunicateFact.
+  if (forceLemma || options().datatypes.dtInferAsLemmas
+      || DatatypesInference::mustCommunicateFact(conc, exp))
   {
     d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
@@ -103,15 +99,13 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
   conflictExp(id, conf, d_ipc.get());
 }
 
-bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
-
 TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
 {
   // set up a proof constructor
   std::shared_ptr<InferProofCons> ipcl;
   if (isProofEnabled())
   {
-    ipcl = std::make_shared<InferProofCons>(nullptr, d_pnm);
+    ipcl = std::make_shared<InferProofCons>(d_env, nullptr);
   }
   conc = prepareDtInference(conc, exp, id, ipcl.get());
   // send it as a lemma
@@ -133,7 +127,7 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
     {
       std::vector<Node> expv;
       expv.push_back(exp);
-      pn = d_pnm->mkScope(pbody, expv);
+      pn = d_env.getProofNodeManager()->mkScope(pbody, expv);
     }
     d_lemPg->setProofFor(lem, pn);
   }
@@ -178,4 +172,4 @@ Node InferenceManager::prepareDtInference(Node conc,
 
 }  // namespace datatypes
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

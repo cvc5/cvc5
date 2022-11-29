@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,12 +32,14 @@
 #include "util/sampler.h"
 #include "util/string.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 SygusSampler::SygusSampler(Env& env)
-    : d_env(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+    : EnvObj(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
@@ -184,7 +186,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
                           << vt << std::endl;
   }
   std::map<unsigned, std::map<Node, std::vector<TypeNode> >::iterator> sts;
-  if (options::sygusSampleGrammar())
+  if (options().quantifiers.sygusSampleGrammar)
   {
     for (unsigned j = 0, size = types.size(); j < size; j++)
     {
@@ -200,7 +202,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     {
       Node v = d_vars[j];
       Node r;
-      if (options::sygusSampleGrammar())
+      if (options().quantifiers.sygusSampleGrammar)
       {
         // choose a random start sygus type, if possible
         if (sts[j] != d_var_sygus_types.end())
@@ -229,7 +231,7 @@ void SygusSampler::initializeSamples(unsigned nsamples)
     }
     if (d_samples_trie.add(sample_pt))
     {
-      if (Trace.isOn("sygus-sample"))
+      if (TraceIsOn("sygus-sample"))
       {
         Trace("sygus-sample") << "Sample point #" << i << " : ";
         for (const Node& r : sample_pt)
@@ -513,7 +515,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
   {
     unsigned e = tn.getFloatingPointExponentSize();
     unsigned s = tn.getFloatingPointSignificandSize();
-    return nm->mkConst(options::sygusSampleFpUniform()
+    return nm->mkConst(options().quantifiers.sygusSampleFpUniform
                            ? Sampler::pickFpUniform(e, s)
                            : Sampler::pickFpBiased(e, s));
   }
@@ -587,14 +589,14 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       std::vector<Node> sum;
       for (unsigned j = 0, size = vec.size(); j < size; j++)
       {
-        Node digit = nm->mkConst(Rational(vec[j]) * curr);
+        Node digit = nm->mkConstInt(Rational(vec[j]) * curr);
         sum.push_back(digit);
         curr = curr * baser;
       }
       Node ret;
       if (sum.empty())
       {
-        ret = nm->mkConst(Rational(0));
+        ret = nm->mkConstInt(Rational(0));
       }
       else if (sum.size() == 1)
       {
@@ -602,16 +604,17 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       else
       {
-        ret = nm->mkNode(kind::PLUS, sum);
+        ret = nm->mkNode(kind::ADD, sum);
       }
 
       if (Random::getRandom().pickWithProb(0.5))
       {
         // negative
-        ret = nm->mkNode(kind::UMINUS, ret);
+        ret = nm->mkNode(kind::NEG, ret);
       }
       ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
+      Assert(ret.getType()==tn);
       return ret;
     }
   }
@@ -625,12 +628,9 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       Rational rr = r.getConst<Rational>();
       if (rr.sgn() == 0)
       {
-        return s;
+        return nm->mkConstReal(s.getConst<Rational>());
       }
-      else
-      {
-        return nm->mkConst(sr / rr);
-      }
+      return nm->mkConstReal(sr / rr);
     }
   }
   // default: use type enumerator
@@ -815,10 +815,11 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     }
     if (!ptDisequalConst)
     {
-      Notice() << "Warning: " << bv << " and " << bvr
-               << " evaluate to different (non-constant) values on point:"
-               << std::endl;
-      Notice() << ptOut.str();
+      d_env.verbose(1)
+          << "Warning: " << bv << " and " << bvr
+          << " evaluate to different (non-constant) values on point:"
+          << std::endl;
+      d_env.verbose(1) << ptOut.str();
       return;
     }
     // we have detected unsoundness in the rewriter
@@ -828,15 +829,11 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     out << ptOut.str();
     Assert(bve != bvre);
     out << "where they evaluate to " << bve << " and " << bvre << std::endl;
-
-    if (options::sygusRewVerifyAbort())
-    {
-      AlwaysAssert(false)
-          << "--sygus-rr-verify detected unsoundness in the rewriter!";
-    }
+    AlwaysAssert(false)
+        << "--sygus-rr-verify detected unsoundness in the rewriter!";
   }
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

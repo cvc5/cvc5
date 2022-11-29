@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "theory/quantifiers/sygus/rcons_obligation.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -34,7 +34,7 @@ void RConsTypeInfo::initialize(Env& env,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
 
-  d_enumerator.reset(new SygusEnumerator(tds, nullptr, &s, true));
+  d_enumerator = std::make_unique<SygusEnumerator>(env, tds, nullptr, &s, true);
   d_enumerator->initialize(sm->mkDummySkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(env, true, false, true, false));
   // since initial samples are not always useful for equivalence checks, set
@@ -85,4 +85,4 @@ RConsObligation* RConsTypeInfo::builtinToOb(Node t)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,9 +23,9 @@
 #include "util/regexp.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 struct IsListTag
@@ -119,9 +119,17 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case OR: nullTerm = nm->mkConst(false); break;
     case AND:
     case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
+    case ADD:
+      // Note that we ignore the type. This is safe since ADD is permissive
+      // for subtypes.
+      nullTerm = nm->mkConstInt(Rational(0));
+      break;
     case MULT:
-    case NONLINEAR_MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case NONLINEAR_MULT:
+      // Note that we ignore the type. This is safe since multiplication is
+      // permissive for subtypes.
+      nullTerm = nm->mkConstInt(Rational(1));
+      break;
     case STRING_CONCAT:
       // handles strings and sequences
       nullTerm = theory::strings::Word::mkEmptyWord(tn);
@@ -129,6 +137,14 @@ Node getNullTerminator(Kind k, TypeNode tn)
     case REGEXP_CONCAT:
       // the language containing only the empty string
       nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      break;
+    case REGEXP_UNION:
+      // empty language
+      nullTerm = nm->mkNode(REGEXP_NONE);
+      break;
+    case REGEXP_INTER:
+      // universal language
+      nullTerm = nm->mkNode(REGEXP_ALL);
       break;
     case BITVECTOR_AND:
       nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
@@ -246,4 +262,4 @@ Node narySubstitute(Node src,
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

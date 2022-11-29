@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,26 +19,30 @@
 #define CVC5__THEORY__DIFFICULTY_MANAGER__H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class TheoryModel;
+class RelevanceManager;
 
 /**
  * Difficulty manager, which tracks an estimate of the difficulty of each
  * preprocessed assertion during solving.
  */
-class DifficultyManager
+class DifficultyManager : protected EnvObj
 {
-  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, uint64_t> NodeUIntMap;
 
  public:
-  DifficultyManager(context::Context* c, Valuation val);
+  DifficultyManager(Env& env, RelevanceManager* rlv, Valuation val);
+  /** Notify input assertions */
+  void notifyInputAssertions(const std::vector<Node>& assertions);
   /**
    * Get difficulty map, which populates dmap mapping preprocessed assertions
    * to a difficulty measure (a constant integer).
@@ -54,21 +58,29 @@ class DifficultyManager
    *
    * @param rse Mapping from literals to the preprocessed assertion that was
    * the reason why that literal was relevant in the current context
+   * @param inFullEffortCheck Whether we are in a full effort check when the
+   * lemma was sent.
    * @param lem The lemma
    */
-  void notifyLemma(const std::map<TNode, TNode>& rse, Node lem);
+  void notifyLemma(Node lem, bool inFullEffortCheck);
   /**
    * Notify that `m` is a (candidate) model. This increments the difficulty
    * of assertions that are not satisfied by that model.
    *
-   * @param input The list of preprocessed assertions
    * @param m The candidate model.
    */
-  void notifyCandidateModel(const NodeList& input, TheoryModel* m);
+  void notifyCandidateModel(TheoryModel* m);
 
  private:
   /** Increment difficulty on assertion a */
   void incrementDifficulty(TNode a, uint64_t amount = 1);
+  /** Pointer to the parent relevance manager */
+  RelevanceManager* d_rlv;
+  /**
+   * The input assertions, tracked to ensure we do not increment difficulty
+   * on lemmas.
+   */
+  NodeSet d_input;
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /**
@@ -78,6 +90,6 @@ class DifficultyManager
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__DIFFICULTY_MANAGER__H */

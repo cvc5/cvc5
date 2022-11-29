@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,16 +20,16 @@
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 AbductionSolver::AbductionSolver(Env& env) : EnvObj(env) {}
@@ -45,11 +45,13 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
     const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
   }
+  Trace("sygus-abduct") << "Axioms: " << axioms << std::endl;
   Trace("sygus-abduct") << "SolverEngine::getAbduct: goal " << goal
                         << std::endl;
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(goal);
+  conjn = rewrite(conjn);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
@@ -63,8 +65,14 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   d_sssf = aconj[0][0];
   Trace("sygus-abduct") << "SolverEngine::getAbduct: made conjecture : "
                         << aconj << ", solving for " << d_sssf << std::endl;
+
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeQuantifiers().sygus = true;
+  SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
   // we generate a new smt engine to do the abduction query
-  initializeSubsolver(d_subsolver, d_env);
+  initializeSubsolver(d_subsolver, ssi);
   // get the logic
   LogicInfo l = d_subsolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
@@ -72,19 +80,23 @@ bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
   d_subsolver->setLogic(l);
   // assert the abduction query
   d_subsolver->assertFormula(aconj);
-  return getAbductInternal(axioms, abd);
+  d_axioms = axioms;
+  return getAbductInternal(abd);
 }
 
-bool AbductionSolver::getAbduct(const std::vector<Node>& axioms,
-                                const Node& goal,
-                                Node& abd)
+bool AbductionSolver::getAbductNext(Node& abd)
 {
-  TypeNode grammarType;
-  return getAbduct(axioms, goal, grammarType, abd);
+  // Since we are using the subsolver's check-sat interface directly, we
+  // simply call getAbductInternal again here. We assert that the subsolver
+  // is already initialized, which must be the case or else we are not in the
+  // proper SMT mode to make this call. Due to the default behavior of
+  // subsolvers having synthesis conjectures, this is guaranteed to produce
+  // a new solution.
+  Assert(d_subsolver != nullptr);
+  return getAbductInternal(abd);
 }
 
-bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
-                                        Node& abd)
+bool AbductionSolver::getAbductInternal(Node& abd)
 {
   // should have initialized the subsolver by now
   Assert(d_subsolver != nullptr);
@@ -93,11 +105,12 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
   Result r = d_subsolver->checkSat();
   Trace("sygus-abduct") << "  SolverEngine::getAbduct result: " << r
                         << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  // get the synthesis solution
+  std::map<Node, Node> sols;
+  // use the "getSubsolverSynthSolutions" interface, since we asserted the
+  // internal form of the SyGuS conjecture and used check-sat.
+  if (d_subsolver->getSubsolverSynthSolutions(sols))
   {
-    // get the synthesis solution
-    std::map<Node, Node> sols;
-    d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
     std::map<Node, Node>::iterator its = sols.find(d_sssf);
     if (its != sols.end())
@@ -131,7 +144,7 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
       // if check abducts option is set, we check the correctness
       if (options().smt.checkAbducts)
       {
-        checkAbduct(axioms, abd);
+        checkAbduct(abd);
       }
       return true;
     }
@@ -142,15 +155,20 @@ bool AbductionSolver::getAbductInternal(const std::vector<Node>& axioms,
   return false;
 }
 
-void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
+void AbductionSolver::checkAbduct(Node a)
 {
   Assert(a.getType().isBoolean());
   Trace("check-abduct") << "SolverEngine::checkAbduct: get expanded assertions"
                         << std::endl;
 
-  std::vector<Node> asserts(axioms.begin(), axioms.end());
+  std::vector<Node> asserts(d_axioms.begin(), d_axioms.end());
   asserts.push_back(a);
 
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeSmt().produceAbducts = false;
+  SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, consistent with assertions, second, implies negated goal
   // is unsatisfiable.
   for (unsigned j = 0; j < 2; j++)
@@ -159,7 +177,7 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> abdChecker;
-    initializeSubsolver(abdChecker, d_env);
+    initializeSubsolver(abdChecker, ssi);
     Trace("check-abduct") << "SolverEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Node& e : asserts)
@@ -175,7 +193,7 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
     bool isError = false;
     if (j == 0)
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      if (r.getStatus() != Result::SAT)
       {
         isError = true;
         serr
@@ -191,7 +209,7 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
     }
     else
     {
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      if (r.getStatus() != Result::UNSAT)
       {
         isError = true;
         serr << "SolverEngine::checkAbduct(): negated goal cannot be shown "
@@ -208,4 +226,4 @@ void AbductionSolver::checkAbduct(const std::vector<Node>& axioms, Node a)
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

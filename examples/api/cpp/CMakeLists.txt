@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Abdalrhman Mohamed, Aina Niemetz
+#   Mathias Preiner, Abdalrhman Mohamed, Mudathir Mohamed
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -14,6 +14,7 @@
 ##
 
 set(CVC5_EXAMPLES_API
+  bags
   bitvectors
   bitvectors_and_arrays
   combination
@@ -23,6 +24,7 @@ set(CVC5_EXAMPLES_API
   helloworld
   linear_arith
   quickstart
+  relations
   sequences
   sets
   strings
@@ -30,7 +32,7 @@ set(CVC5_EXAMPLES_API
 )
 
 foreach(example ${CVC5_EXAMPLES_API})
-  cvc5_add_example(${example} "" "api")
+  cvc5_add_example(${example} "" "api/cpp")
 endforeach()
 
 set(SYGUS_EXAMPLES_API
@@ -40,5 +42,5 @@ set(SYGUS_EXAMPLES_API
 )
 
 foreach(example ${SYGUS_EXAMPLES_API})
-  cvc5_add_example(${example} "${example}.cpp utils.h utils.cpp" "api")
+  cvc5_add_example(${example} "${example}.cpp utils.h utils.cpp" "api/cpp")
 endforeach()

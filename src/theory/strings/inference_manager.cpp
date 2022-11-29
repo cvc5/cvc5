@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -35,18 +35,20 @@ InferenceManager::InferenceManager(Env& env,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
-                                   SequencesStatistics& statistics,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(env, t, s, pnm, "theory::strings::", false),
+                                   SequencesStatistics& statistics)
+    : InferenceManagerBuffered(env, t, s, "theory::strings::", false),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(pnm ? new InferProofCons(context(), pnm, d_statistics) : nullptr)
+      d_ipc(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
+                             : nullptr),
+      d_ipcl(isProofEnabled() ? new InferProofCons(env, context(), d_statistics)
+                              : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
@@ -135,7 +137,7 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     eq = d_false;
   }
-  else if (Rewriter::rewrite(eq) == d_true)
+  else if (rewrite(eq) == d_true)
   {
     // if trivial, return
     return false;
@@ -179,13 +181,13 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     processConflict(ii);
     return;
   }
-  else if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
+  else if (asLemma || options().strings.stringInferAsLemmas || !ii.isFact())
   {
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
     addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(ii)));
     return;
   }
-  if (options::stringInferSym())
+  if (options().strings.stringInferSym)
   {
     std::vector<Node> unproc;
     for (const Node& ac : ii.d_premises)
@@ -200,7 +202,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
       InferInfo iiSubsLem(ii.getId());
       iiSubsLem.d_sim = this;
       iiSubsLem.d_conc = eqs;
-      if (Trace.isOn("strings-lemma-debug"))
+      if (TraceIsOn("strings-lemma-debug"))
       {
         Trace("strings-lemma-debug")
             << "Strings::Infer " << iiSubsLem << std::endl;
@@ -211,7 +213,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
       addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSubsLem)));
       return;
     }
-    if (Trace.isOn("strings-lemma-debug"))
+    if (TraceIsOn("strings-lemma-debug"))
     {
       for (const Node& u : unproc)
       {
@@ -228,7 +230,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
 bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
 {
   Node eq = a.eqNode(b);
-  eq = Rewriter::rewrite(eq);
+  eq = rewrite(eq);
   if (eq.isConst())
   {
     return false;
@@ -237,7 +239,6 @@ bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
   InferInfo iiSplit(infer);
   iiSplit.d_sim = this;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  eq = Rewriter::rewrite(eq);
   addPendingPhaseRequirement(eq, preq);
   addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSplit)));
   return true;
@@ -249,7 +250,7 @@ void InferenceManager::addToExplanation(Node a,
 {
   if (a != b)
   {
-    Debug("strings-explain")
+    Trace("strings-explain")
         << "Add to explanation : " << a << " == " << b << std::endl;
     Assert(d_state.areEqual(a, b));
     exp.push_back(a.eqNode(b));
@@ -279,12 +280,12 @@ void InferenceManager::processConflict(const InferInfo& ii)
 {
   Assert(!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
-  if (d_ipc != nullptr)
+  if (d_ipcl != nullptr)
   {
-    d_ipc->notifyFact(ii);
+    d_ipcl->notifyLemma(ii);
   }
   // make the trust node
-  TrustNode tconf = mkConflictExp(ii.d_premises, d_ipc.get());
+  TrustNode tconf = mkConflictExp(ii.d_premises, d_ipcl.get());
   Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("strings-assert") << "(assert (not " << tconf.getNode()
                           << ")) ; conflict " << ii.getId() << std::endl;
@@ -319,7 +320,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     utils::flattenOp(AND, ec, exp);
   }
   std::vector<Node> noExplain;
-  if (!options::stringRExplainLemmas())
+  if (!options().strings.stringRExplainLemmas)
   {
     // if we aren't regressing the explanation, we add all literals to
     // noExplain and ignore ii.d_ant.
@@ -335,11 +336,11 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   }
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
-  if (d_ipc != nullptr)
+  if (d_ipcl != nullptr)
   {
-    d_ipc->notifyFact(ii);
+    d_ipcl->notifyLemma(ii);
   }
-  TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
+  TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipcl.get());
   Trace("strings-pending") << "Process pending lemma : " << tlem.getNode()
                            << std::endl;
 
@@ -368,4 +369,4 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

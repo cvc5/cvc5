@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
@@ -90,8 +90,7 @@ SetEnumerator& SetEnumerator::operator++()
     // get a new element and return it as a singleton set
     Node element = *d_elementEnumerator;
     d_elementsSoFar.push_back(element);
-    TypeNode elementType = d_elementEnumerator.getType();
-    d_currentSet = d_nodeManager->mkSingleton(elementType, element);
+    d_currentSet = d_nodeManager->mkNode(kind::SET_SINGLETON, element);
     d_elementEnumerator++;
   }
   else
@@ -112,7 +111,6 @@ SetEnumerator& SetEnumerator::operator++()
   }
 
   Assert(d_currentSet.isConst());
-  Assert(d_currentSet == Rewriter::rewrite(d_currentSet));
 
   Trace("set-type-enum") << "SetEnumerator::operator++ d_elementsSoFar = "
                          << d_elementsSoFar << std::endl;
@@ -131,4 +129,4 @@ bool SetEnumerator::isFinished()
 
 }  // namespace sets
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

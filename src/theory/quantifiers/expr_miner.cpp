@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,15 +15,17 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include <sstream>
+
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -41,7 +43,9 @@ Node ExprMiner::convertToSkolem(Node n)
     SkolemManager* sm = nm->getSkolemManager();
     for (const Node& v : d_vars)
     {
-      Node sk = sm->mkDummySkolem("rrck", v.getType());
+      std::stringstream ss;
+      ss << "k_" << v;
+      Node sk = sm->mkDummySkolem(ss.str(), v.getType());
       d_skolems.push_back(sk);
       d_fv_to_skolem[v] = sk;
     }
@@ -51,32 +55,26 @@ Node ExprMiner::convertToSkolem(Node n)
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
-                                  Node query)
+                                  Node query,
+                                  const SubsolverSetupInfo& info)
 {
   Assert (!query.isNull());
-  if (Options::current().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser)
-  {
-    initializeSubsolver(checker,
-                        d_env,
-                        true,
-                        options::sygusExprMinerCheckTimeout());
-  }
-  else
-  {
-    initializeSubsolver(checker, d_env);
-  }
-  // also set the options
+  initializeSubsolver(
+      checker,
+      info,
+      options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser,
+      options().quantifiers.sygusExprMinerCheckTimeout);
+  // disable options that would lead to infinite loops
   checker->setOption("sygus-rr-synth-input", "false");
-  checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
   checker->assertFormula(squery);
 }
 
-Result ExprMiner::doCheck(Node query)
+Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
 {
-  Node queryr = Rewriter::rewrite(query);
+  Node queryr = rewrite(query);
   if (queryr.isConst())
   {
     if (!queryr.getConst<bool>())
@@ -89,10 +87,10 @@ Result ExprMiner::doCheck(Node query)
     }
   }
   std::unique_ptr<SolverEngine> smte;
-  initializeChecker(smte, query);
+  initializeChecker(smte, query, info);
   return smte->checkSat();
 }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar
+ *   Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "proof/proof_letify.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace proof {
 
 /**
@@ -39,6 +39,8 @@ enum class LfscRule : uint32_t
   // We defined LFSC versions for rules that either don't exist in the internal
   // calculus, or have a different set of arugments/children.
 
+  // an ASSUME corresponding to a function definition in the input SMT query
+  DEFINITION,
   // scope has a different structure, e.g. uses lambdas
   SCOPE,
   // must distinguish equalities and disequalities
@@ -53,6 +55,9 @@ enum class LfscRule : uint32_t
   PROCESS_SCOPE,
   // arithmetic
   ARITH_SUM_UB,
+  // sequences uses a different form of the concat conflict rule which takes
+  // an explicit disequality
+  CONCAT_CONFLICT_DEQ,
 
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,
@@ -100,6 +105,6 @@ class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
 };
 
 }  // namespace proof
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

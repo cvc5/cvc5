@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/theory.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -48,7 +48,7 @@ class CardinalityExtension : protected EnvObj
    * Information for incremental conflict/clique finding for a
    * particular sort.
    */
-  class SortModel
+  class SortModel : protected EnvObj
   {
    private:
     std::map< Node, std::vector< int > > d_totality_lems;
@@ -69,14 +69,14 @@ class CardinalityExtension : protected EnvObj
         /** disequality list for node */
         class DiseqList {
         public:
-          DiseqList( context::Context* c )
-            : d_size( c, 0 ), d_disequalities( c ) {}
-          ~DiseqList(){}
+         DiseqList(context::Context* c) : d_size(c, 0), d_disequalities(c) {}
+         ~DiseqList() {}
 
-          void setDisequal( Node n, bool valid ){
-            Assert((!isSet(n)) || getDisequalityValue(n) != valid);
-            d_disequalities[ n ] = valid;
-            d_size = d_size + ( valid ? 1 : -1 );
+         void setDisequal(Node n, bool valid)
+         {
+           Assert((!isSet(n)) || getDisequalityValue(n) != valid);
+           d_disequalities[n] = valid;
+           d_size = d_size + (valid ? 1 : -1);
           }
           bool isSet(Node n) const {
             return d_disequalities.find(n) != d_disequalities.end();
@@ -93,13 +93,14 @@ class CardinalityExtension : protected EnvObj
           iterator end() { return d_disequalities.end(); }
 
         private:
-          context::CDO< int > d_size;
-          NodeBoolMap d_disequalities;
+         context::CDO<int> d_size;
+         NodeBoolMap d_disequalities;
         }; /* class DiseqList */
        public:
         /** constructor */
-        RegionNodeInfo( context::Context* c )
-          : d_internal(c), d_external(c), d_valid(c, true) {
+        RegionNodeInfo(context::Context* c)
+            : d_internal(c), d_external(c), d_valid(c, true)
+        {
           d_disequalities[0] = &d_internal;
           d_disequalities[1] = &d_external;
         }
@@ -123,7 +124,7 @@ class CardinalityExtension : protected EnvObj
        private:
         DiseqList d_internal;
         DiseqList d_external;
-        context::CDO< bool > d_valid;
+        context::CDO<bool> d_valid;
         DiseqList* d_disequalities[2];
       }; /* class RegionNodeInfo */
 
@@ -132,7 +133,7 @@ class CardinalityExtension : protected EnvObj
       SortModel* d_cf;
 
       context::CDO<size_t> d_testCliqueSize;
-      context::CDO< unsigned > d_splitsSize;
+      context::CDO<unsigned> d_splitsSize;
       //a postulated clique
       NodeBoolMap d_testClique;
       //disequalities needed for this clique to happen
@@ -140,19 +141,19 @@ class CardinalityExtension : protected EnvObj
       //number of valid representatives in this region
       context::CDO<size_t> d_reps_size;
       //total disequality size (external)
-      context::CDO< unsigned > d_total_diseq_external;
+      context::CDO<unsigned> d_total_diseq_external;
       //total disequality size (internal)
-      context::CDO< unsigned > d_total_diseq_internal;
+      context::CDO<unsigned> d_total_diseq_internal;
       /** set rep */
       void setRep( Node n, bool valid );
       //region node infomation
       std::map< Node, RegionNodeInfo* > d_nodes;
       //whether region is valid
-      context::CDO< bool > d_valid;
+      context::CDO<bool> d_valid;
 
      public:
       //constructor
-      Region( SortModel* cf, context::Context* c );
+      Region(SortModel* cf, context::Context* c);
       virtual ~Region();
 
       typedef std::map< Node, RegionNodeInfo* >::iterator iterator;
@@ -228,11 +229,11 @@ class CardinalityExtension : protected EnvObj
     /** the score for each node for splitting */
     NodeIntMap d_split_score;
     /** number of valid disequalities in d_disequalities */
-    context::CDO< unsigned > d_disequalities_index;
+    context::CDO<unsigned> d_disequalities_index;
     /** list of all disequalities */
     std::vector< Node > d_disequalities;
     /** number of representatives in all regions */
-    context::CDO< unsigned > d_reps;
+    context::CDO<unsigned> d_reps;
 
     /** get number of disequalities from node n to region ri */
     int getNumDisequalitiesToRegion( Node n, int ri );
@@ -265,12 +266,10 @@ class CardinalityExtension : protected EnvObj
     void addCliqueLemma(std::vector<Node>& clique);
     /** cardinality */
     context::CDO<uint32_t> d_cardinality;
-    /** cardinality lemma term */
-    Node d_cardinality_term;
     /** cardinality literals */
     std::map<uint32_t, Node> d_cardinality_literal;
     /** whether a positive cardinality constraint has been asserted */
-    context::CDO< bool > d_hasCard;
+    context::CDO<bool> d_hasCard;
     /** clique lemmas that have been asserted */
     std::map< int, std::vector< std::vector< Node > > > d_cliques;
     /** maximum negatively asserted cardinality */
@@ -278,12 +277,13 @@ class CardinalityExtension : protected EnvObj
     /** list of fresh representatives allocated */
     std::vector< Node > d_fresh_aloc_reps;
     /** whether we are initialized */
-    context::CDO< bool > d_initialized;
+    context::CDO<bool> d_initialized;
     /** simple check cardinality */
     void simpleCheckCardinality();
 
    public:
-    SortModel(Node n,
+    SortModel(Env& env,
+              TypeNode tn,
               TheoryState& state,
               TheoryInferenceManager& im,
               CardinalityExtension* thss);
@@ -309,7 +309,7 @@ class CardinalityExtension : protected EnvObj
     /** has cardinality */
     bool hasCardinalityAsserted() const { return d_hasCard; }
     /** get cardinality term */
-    Node getCardinalityTerm() const { return d_cardinality_term; }
+    TypeNode getType() const { return d_type; }
     /** get cardinality literal */
     Node getCardinalityLiteral(uint32_t c);
     /** get maximum negative cardinality */
@@ -341,15 +341,14 @@ class CardinalityExtension : protected EnvObj
     class CardinalityDecisionStrategy : public DecisionStrategyFmf
     {
      public:
-      CardinalityDecisionStrategy(Env& env, Node t, Valuation valuation);
+      CardinalityDecisionStrategy(Env& env, TypeNode type, Valuation valuation);
       /** make literal (the i^th combined cardinality literal) */
       Node mkLiteral(unsigned i) override;
       /** identify */
       std::string identify() const override;
-
      private:
-      /** the cardinality term */
-      Node d_cardinality_term;
+      /** The type we are considering cardinality constraints for */
+      TypeNode d_type;
     };
     /** cardinality decision strategy */
     std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
@@ -396,7 +395,7 @@ class CardinalityExtension : protected EnvObj
     IntStat d_clique_lemmas;
     IntStat d_split_lemmas;
     IntStat d_max_model_size;
-    Statistics();
+    Statistics(StatisticsRegistry& sr);
   };
   /** statistics class */
   Statistics d_statistics;
@@ -429,7 +428,7 @@ class CardinalityExtension : protected EnvObj
   /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
-   * context. It is enabled by options::ufssFairness(). For details, see
+   * context. It is enabled by the ufssFairness option. For details, see
    * the extension to multiple sorts in Section 6.3 of Reynolds et al,
    * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
    */
@@ -462,6 +461,6 @@ class CardinalityExtension : protected EnvObj
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY_UF_STRONG_SOLVER_H */

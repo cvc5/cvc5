@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Dejan Jovanovic
+ *   Andrew Reynolds, Dejan Jovanovic, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,6 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/ee_setup_info.h"
 #include "theory/ext_theory.h"
 #include "theory/output_channel.h"
@@ -39,11 +38,8 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
-
-/** Default value for the uninterpreted sorts is the UF theory */
-TheoryId Theory::s_uninterpretedSortOwner = THEORY_UF;
 
 std::ostream& operator<<(std::ostream& os, Theory::Effort level){
   switch(level){
@@ -65,11 +61,6 @@ Theory::Theory(TheoryId id,
                Valuation valuation,
                std::string name)
     : EnvObj(env),
-      d_id(id),
-      d_facts(d_env.getContext()),
-      d_factsHead(d_env.getContext(), 0),
-      d_sharedTermsIndex(d_env.getContext(), 0),
-      d_careGraph(nullptr),
       d_instanceName(name),
       d_checkTime(statisticsRegistry().registerTimer(getStatsPrefix(id) + name
                                                      + "checkTime")),
@@ -84,7 +75,12 @@ Theory::Theory(TheoryId id,
       d_inferManager(nullptr),
       d_quantEngine(nullptr),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
-                                           : nullptr)
+                                           : nullptr),
+      d_id(id),
+      d_facts(d_env.getContext()),
+      d_factsHead(d_env.getContext(), 0),
+      d_sharedTermsIndex(d_env.getContext(), 0),
+      d_careGraph(nullptr)
 {
 }
 
@@ -144,7 +140,9 @@ void Theory::finishInitStandalone()
   finishInit();
 }
 
-TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
+TheoryId Theory::theoryOf(TNode node,
+                          options::TheoryOfMode mode,
+                          TheoryId usortOwner)
 {
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {
@@ -158,13 +156,13 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
         }
         else
         {
-          tid = Theory::theoryOf(node.getType());
+          tid = theoryOf(node.getType(), usortOwner);
         }
       }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
-        tid = Theory::theoryOf(node[0].getType());
+        tid = theoryOf(node[0].getType(), usortOwner);
       }
       else
       {
@@ -178,10 +176,10 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       // Variables
       if (node.isVar())
       {
-        if (Theory::theoryOf(node.getType()) != theory::THEORY_BOOL)
+        if (theoryOf(node.getType(), usortOwner) != theory::THEORY_BOOL)
         {
           // We treat the variables as uninterpreted
-          tid = s_uninterpretedSortOwner;
+          tid = THEORY_UF;
         }
         else
         {
@@ -199,60 +197,47 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
-        // If one of them is an ITE, it's irelevant, since they will get
-        // replaced out anyhow
-        if (node[0].getKind() == kind::ITE)
+        TNode l = node[0];
+        TNode r = node[1];
+        TypeNode ltype = l.getType();
+        TypeNode rtype = r.getType();
+        // If the types are different, we must assign based on type due
+        // to handling subtypes (limited to arithmetic). Also, if we are
+        // a Boolean equality, we must assign THEORY_BOOL.
+        if (ltype != rtype || ltype.isBoolean())
         {
-          tid = Theory::theoryOf(node[0].getType());
-        }
-        else if (node[1].getKind() == kind::ITE)
-        {
-          tid = Theory::theoryOf(node[1].getType());
+          tid = theoryOf(ltype, usortOwner);
         }
         else
         {
-          TNode l = node[0];
-          TNode r = node[1];
-          TypeNode ltype = l.getType();
-          TypeNode rtype = r.getType();
-          // If the types are different, we must assign based on type due
-          // to handling subtypes (limited to arithmetic). Also, if we are
-          // a Boolean equality, we must assign THEORY_BOOL.
-          if (ltype != rtype || ltype.isBoolean())
+          // If both sides belong to the same theory the choice is easy
+          TheoryId T1 = theoryOf(l, mode, usortOwner);
+          TheoryId T2 = theoryOf(r, mode, usortOwner);
+          if (T1 == T2)
           {
-            tid = Theory::theoryOf(ltype);
+            tid = T1;
           }
           else
           {
-            // If both sides belong to the same theory the choice is easy
-            TheoryId T1 = Theory::theoryOf(l);
-            TheoryId T2 = Theory::theoryOf(r);
-            if (T1 == T2)
+            TheoryId T3 = theoryOf(ltype, usortOwner);
+            // This is a case of
+            // * x*y = f(z) -> UF
+            // * x = c      -> UF
+            // * f(x) = read(a, y) -> either UF or ARRAY
+            // at least one of the theories has to be parametric, i.e. theory
+            // of the type is different from the theory of the term
+            if (T1 == T3)
+            {
+              tid = T2;
+            }
+            else if (T2 == T3)
             {
               tid = T1;
             }
             else
             {
-              TheoryId T3 = Theory::theoryOf(ltype);
-              // This is a case of
-              // * x*y = f(z) -> UF
-              // * x = c      -> UF
-              // * f(x) = read(a, y) -> either UF or ARRAY
-              // at least one of the theories has to be parametric, i.e. theory
-              // of the type is different from the theory of the term
-              if (T1 == T3)
-              {
-                tid = T2;
-              }
-              else if (T2 == T3)
-              {
-                tid = T1;
-              }
-              else
-              {
-                // If both are parametric, we take the smaller one (arbitrary)
-                tid = T1 < T2 ? T1 : T2;
-              }
+              // If both are parametric, we take the smaller one (arbitrary)
+              tid = T1 < T2 ? T1 : T2;
             }
           }
         }
@@ -267,7 +252,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
   default:
     Unreachable();
   }
-  Trace("theory::internal") << "theoryOf(" << mode << ", " << node << ") -> " << tid << std::endl;
   return tid;
 }
 
@@ -285,7 +269,7 @@ void Theory::notifyInConflict()
 }
 
 void Theory::computeCareGraph() {
-  Debug("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
+  Trace("sharing") << "Theory::computeCareGraph<" << getId() << ">()" << endl;
   for (unsigned i = 0; i < d_sharedTerms.size(); ++ i) {
     TNode a = d_sharedTerms[i];
     TypeNode aType = a.getType();
@@ -319,8 +303,8 @@ void Theory::printFacts(std::ostream& os) const {
 }
 
 void Theory::debugPrintFacts() const{
-  DebugChannel.getStream() << "Theory::debugPrintFacts()" << endl;
-  printFacts(DebugChannel.getStream());
+  TraceChannel.getStream() << "Theory::debugPrintFacts()" << endl;
+  printFacts(TraceChannel.getStream());
 }
 
 bool Theory::isLegalElimination(TNode x, TNode val)
@@ -335,13 +319,18 @@ bool Theory::isLegalElimination(TNode x, TNode val)
   {
     return false;
   }
-  if (!val.getType().isSubtypeOf(x.getType()))
+  if (val.getType() != x.getType())
   {
     return false;
   }
-  if (!options::produceModels() && !logicInfo().isQuantified())
+  if (!options().smt.produceModels || options().smt.modelVarElimUneval)
   {
-    // Don't care about the model and logic is not quantified, we can eliminate.
+    // Don't care about the model, or we allow variables to be eliminated by
+    // unevaluatable terms, we can eliminate. Notice that when
+    // options().smt.modelVarElimUneval is true, val may contain unevaluatable
+    // kinds. This means that e.g. a Boolean variable may be eliminated based on
+    // an equality (= b (forall ((x)) (P x))), where its model value is (forall
+    // ((x)) (P x)).
     return true;
   }
   // If models are enabled, then it depends on whether the term contains any
@@ -389,14 +378,15 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet)
 }
 
 void Theory::collectAssertedTerms(std::set<Node>& termSet,
-                                  bool includeShared) const
+                                  bool includeShared,
+                                  const std::set<Kind>& irrKinds) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
   {
-    collectTerms(*assert_it, termSet);
+    collectTerms(*assert_it, termSet, irrKinds);
   }
 
   if (includeShared)
@@ -406,15 +396,23 @@ void Theory::collectAssertedTerms(std::set<Node>& termSet,
                                            shared_it_end = shared_terms_end();
     for (; shared_it != shared_it_end; ++shared_it)
     {
-      collectTerms(*shared_it, termSet);
+      collectTerms(*shared_it, termSet, irrKinds);
     }
   }
 }
-
-void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
+void Theory::collectAssertedTermsForModel(std::set<Node>& termSet,
+                                          bool includeShared) const
 {
+  // use the irrelevant model kinds from the theory state
   const std::set<Kind>& irrKinds =
       d_theoryState->getModel()->getIrrelevantKinds();
+  collectAssertedTerms(termSet, includeShared, irrKinds);
+}
+
+void Theory::collectTerms(TNode n,
+                          std::set<Node>& termSet,
+                          const std::set<Kind>& irrKinds) const
+{
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -434,7 +432,7 @@ void Theory::collectTerms(TNode n, std::set<Node>& termSet) const
       termSet.insert(cur);
     }
     // traverse owned terms, don't go under quantifiers
-    if ((k == kind::NOT || k == kind::EQUAL || Theory::theoryOf(cur) == d_id)
+    if ((k == kind::NOT || k == kind::EQUAL || d_env.theoryOf(cur) == d_id)
         && !cur.isClosure())
     {
       visit.insert(visit.end(), cur.begin(), cur.end());
@@ -450,6 +448,7 @@ bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
                                         TrustSubstitutionMap& outSubstitutions)
 {
+  Assert(tin.getKind() == TrustNodeKind::LEMMA);
   TNode in = tin.getNode();
   if (in.getKind() == kind::EQUAL)
   {
@@ -469,30 +468,6 @@ Theory::PPAssertStatus Theory::ppAssert(TrustNode tin,
       outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        return PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
-  }
-  else if (in.getKind() == kind::NOT && in[0].getKind() == kind::EQUAL
-           && in[0][0].getType().isBoolean())
-  {
-    TNode eq = in[0];
-    if (eq[0].isVar())
-    {
-      Node res = eq[0].eqNode(eq[1].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
-    else if (eq[1].isVar())
-    {
-      Node res = eq[1].eqNode(eq[0].notNode());
-      TrustNode tn = TrustNode::mkTrustRewrite(in, res, nullptr);
-      return ppAssert(tn, outSubstitutions);
-    }
   }
 
   return PP_ASSERT_STATUS_UNSOLVED;
@@ -504,19 +479,90 @@ std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
-  if (d_careGraph) {
-    d_careGraph->insert(CarePair(t1, t2, d_id));
+  Assert(d_careGraph != nullptr);
+  Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1
+                   << " " << t2 << std::endl;
+  d_careGraph->insert(CarePair(t1, t2, d_id));
+}
+void Theory::addCarePairArgs(TNode a, TNode b)
+{
+  Assert(d_careGraph != nullptr);
+  Assert(d_equalityEngine != nullptr);
+  Assert(a.hasOperator() && b.hasOperator());
+  Assert(a.getOperator() == b.getOperator());
+  Assert(a.getNumChildren() == b.getNumChildren());
+  Trace("sharing") << "Theory::addCarePairArgs: checking function " << d_id
+                   << " " << a << " " << b << std::endl;
+  for (size_t k = 0, nchildren = a.getNumChildren(); k < nchildren; ++k)
+  {
+    TNode x = a[k];
+    TNode y = b[k];
+    if (d_equalityEngine->isTriggerTerm(x, d_id)
+        && d_equalityEngine->isTriggerTerm(y, d_id)
+        && !d_equalityEngine->areEqual(x, y))
+    {
+      TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
+      TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
+      addCarePair(x_shared, y_shared);
+    }
   }
 }
 
+void Theory::processCarePairArgs(TNode a, TNode b)
+{
+  // if a and b are already equal, we ignore this pair
+  if (d_theoryState->areEqual(a, b))
+  {
+    return;
+  }
+  // otherwise, we add pairs for each of their arguments
+  addCarePairArgs(a, b);
+}
+
+bool Theory::areCareDisequal(TNode x, TNode y)
+{
+  Assert(d_equalityEngine != nullptr);
+  Assert(d_equalityEngine->hasTerm(x));
+  Assert(d_equalityEngine->hasTerm(y));
+  if (x == y)
+  {
+    return false;
+  }
+  if (x.isConst() && y.isConst())
+  {
+    return true;
+  }
+  if (!d_equalityEngine->isTriggerTerm(x, d_id)
+      || !d_equalityEngine->isTriggerTerm(y, d_id))
+  {
+    // just check if they are disequal, which is the used in the case for
+    // non-shared terms.
+    if (d_equalityEngine->areDisequal(x, y, false))
+    {
+      return true;
+    }
+    return false;
+  }
+  TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
+  TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
+  EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
+  if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+      || eqStatus == EQUALITY_FALSE_IN_MODEL)
+  {
+    return true;
+  }
+  Assert(!d_equalityEngine->areDisequal(x, y, false));
+  return false;
+}
+
 void Theory::getCareGraph(CareGraph* careGraph) {
-  Assert(careGraph != NULL);
+  Assert(careGraph != nullptr);
 
   Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
   TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
   d_careGraph = careGraph;
   computeCareGraph();
-  d_careGraph = NULL;
+  d_careGraph = nullptr;
 }
 
 bool Theory::proofsEnabled() const
@@ -633,9 +679,9 @@ void Theory::preRegisterTerm(TNode node) {}
 
 void Theory::addSharedTerm(TNode n)
 {
-  Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
+  Trace("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
                    << std::endl;
-  Debug("theory::assertions")
+  Trace("theory::assertions")
       << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
   d_sharedTerms.push_back(n);
   // now call theory-specific method notifySharedTerm
@@ -653,35 +699,24 @@ eq::EqualityEngine* Theory::getEqualityEngine()
   return d_equalityEngine;
 }
 
-bool Theory::usesCentralEqualityEngine() const
-{
-  return usesCentralEqualityEngine(d_id);
-}
-
-bool Theory::usesCentralEqualityEngine(TheoryId id)
-{
-  if (id == THEORY_BUILTIN)
-  {
-    return true;
-  }
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
-  {
-    return false;
-  }
-  if (id == THEORY_ARITH)
-  {
-    // conditional on whether we are using the equality solver
-    return options::arithEqSolver();
-  }
-  return id == THEORY_UF || id == THEORY_DATATYPES || id == THEORY_BAGS
-         || id == THEORY_FP || id == THEORY_SETS || id == THEORY_STRINGS
-         || id == THEORY_SEP || id == THEORY_ARRAYS || id == THEORY_BV;
-}
-
 bool Theory::expUsingCentralEqualityEngine(TheoryId id)
 {
-  return id != THEORY_ARITH && usesCentralEqualityEngine(id);
+  return id != THEORY_ARITH;
+}
+
+theory::Assertion Theory::get()
+{
+  Assert(!done()) << "Theory::get() called with assertion queue empty!";
+
+  // Get the assertion
+  Assertion fact = d_facts[d_factsHead];
+  d_factsHead = d_factsHead + 1;
+
+  Trace("theory") << "Theory::get() => " << fact << " ("
+                  << d_facts.size() - d_factsHead << " left)" << std::endl;
+
+  return fact;
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

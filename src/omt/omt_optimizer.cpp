@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou, Aina Niemetz
+ *   Yancheng Ou, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,9 @@
 #include "omt/bitvector_optimizer.h"
 #include "omt/integer_optimizer.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::smt;
-namespace cvc5::omt {
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::smt;
+namespace cvc5::internal::omt {
 
 bool OMTOptimizer::nodeSupportsOptimization(TNode node)
 {
@@ -182,4 +182,4 @@ Node OMTOptimizer::mkWeakIncrementalExpression(
   Unreachable();
 }
 
-}  // namespace cvc5::omt
+}  // namespace cvc5::internal::omt

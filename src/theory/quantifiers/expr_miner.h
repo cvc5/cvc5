@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class SolverEngine;
@@ -85,7 +85,9 @@ class ExprMiner : protected EnvObj
    * of the argument "query", which is a formula whose free variables (of
    * kind BOUND_VARIABLE) are a subset of d_vars.
    */
-  void initializeChecker(std::unique_ptr<SolverEngine>& smte, Node query);
+  void initializeChecker(std::unique_ptr<SolverEngine>& checker,
+                         Node query,
+                         const SubsolverSetupInfo& info);
   /**
    * Run the satisfiability check on query and return the result
    * (sat/unsat/unknown).
@@ -93,11 +95,11 @@ class ExprMiner : protected EnvObj
    * In contrast to the above method, this call should be used for cases where
    * the model for the query is not important.
    */
-  Result doCheck(Node query);
+  Result doCheck(Node query, const SubsolverSetupInfo& info);
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

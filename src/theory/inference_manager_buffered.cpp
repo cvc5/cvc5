@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,18 +19,17 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 InferenceManagerBuffered::InferenceManagerBuffered(Env& env,
                                                    Theory& t,
                                                    TheoryState& state,
-                                                   ProofNodeManager* pnm,
                                                    const std::string& statsName,
                                                    bool cacheLemmas)
-    : TheoryInferenceManager(env, t, state, pnm, statsName, cacheLemmas),
+    : TheoryInferenceManager(env, t, state, statsName, cacheLemmas),
       d_processingPendingLemmas(false)
 {
 }
@@ -59,7 +58,7 @@ bool InferenceManagerBuffered::addPendingLemma(Node lem,
   if (checkCache)
   {
     // check if it is unique up to rewriting
-    Node lemr = Rewriter::rewrite(lem);
+    Node lemr = rewrite(lem);
     if (hasCachedLemma(lemr, p))
     {
       return false;
@@ -162,14 +161,14 @@ std::size_t InferenceManagerBuffered::numPendingFacts() const
   return d_pendingFact.size();
 }
 
-void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
+bool InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
 {
   // process this lemma
   LemmaProperty p = LemmaProperty::NONE;
   TrustNode tlem = lem->processLemma(p);
   Assert(!tlem.isNull());
   // send the lemma
-  trustedLemma(tlem, lem->getId(), p);
+  return trustedLemma(tlem, lem->getId(), p);
 }
 
 void InferenceManagerBuffered::assertInternalFactTheoryInference(
@@ -196,4 +195,4 @@ void InferenceManagerBuffered::notifyInConflict()
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

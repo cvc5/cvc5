@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Mathias Preiner, Gereon Kremer, Aina Niemetz
+#   Mathias Preiner, Gereon Kremer, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,17 +18,21 @@ configure_file(integer.h.in integer.h)
 configure_file(real_algebraic_number.h.in real_algebraic_number.h)
 
 libcvc5_add_sources(
-  abstract_value.cpp
-  abstract_value.h
   bin_heap.h
   bitvector.cpp
   bitvector.h
+  ff_val.cpp
+  ff_val.h
   bool.h
   cardinality.cpp
   cardinality.h
   cardinality_class.cpp
   cardinality_class.h
+  cocoa_globals.cpp
+  cocoa_globals.h
   dense_map.h
+  didyoumean.cpp
+  didyoumean.h
   divisible.cpp
   divisible.h
   floatingpoint.cpp
@@ -52,6 +56,8 @@ libcvc5_add_sources(
   resource_manager.h
   result.cpp
   result.h
+  real_algebraic_number_poly_imp.cpp
+  real_algebraic_number_poly_imp.h
   regexp.cpp
   regexp.h
   roundingmode.cpp
@@ -74,7 +80,10 @@ libcvc5_add_sources(
   statistics_value.h
   string.cpp
   string.h
-  unsafe_interrupt_exception.h
+  synth_result.cpp
+  synth_result.h
+  uninterpreted_sort_value.cpp
+  uninterpreted_sort_value.h
   utility.cpp
   utility.h
 )
@@ -85,8 +94,4 @@ endif()
 
 if(CVC5_USE_GMP_IMP)
   libcvc5_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
-endif()
-
-if(CVC5_USE_POLY_IMP)
-  libcvc5_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
 endif()

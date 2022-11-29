@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,17 +20,20 @@
 #ifndef CVC5__PROP_ENGINE_H
 #define CVC5__PROP_ENGINE_H
 
+#include "api/cpp/cvc5_types.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "proof/trust_node.h"
+#include "prop/learned_db.h"
 #include "prop/skolem_def_manager.h"
+#include "smt/env_obj.h"
 #include "theory/output_channel.h"
 #include "theory/skolem_lemma.h"
 #include "util/result.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-class Env;
 class ResourceManager;
 class ProofNodeManager;
 class TheoryEngine;
@@ -51,13 +54,13 @@ class TheoryProxy;
  * PropEngine is the abstraction of a Sat Solver, providing methods for
  * solving the SAT problem and conversion to CNF (via the CnfStream).
  */
-class PropEngine
+class PropEngine : protected EnvObj
 {
  public:
   /**
    * Create a PropEngine with a particular decision and theory engine.
    */
-  PropEngine(TheoryEngine* te, Env& env);
+  PropEngine(Env& env, TheoryEngine* te);
 
   /**
    * Destructor.
@@ -70,15 +73,6 @@ class PropEngine
    * This method converts and asserts true and false into the CNF stream.
    */
   void finishInit();
-
-  /**
-   * This is called by SolverEngine, at shutdown time, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between some parts of the system (notably between
-   * PropEngine and Theory).  For now, there's nothing to do here in
-   * the PropEngine.
-   */
-  void shutdown() {}
 
   /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
@@ -107,6 +101,13 @@ class PropEngine
    */
   TrustNode removeItes(TNode node, std::vector<theory::SkolemLemma>& ppLemmas);
 
+  /**
+   * Notify that lhs was substituted by rhs during preprocessing. This impacts
+   * the tracked learned literals and output traces.
+   * @param lhs The left-hand side of the substitution
+   * @param rhs The right-hand side of the substitution
+   */
+  void notifyTopLevelSubstitution(const Node& lhs, const Node& rhs) const;
   /**
    * Converts the given formulas to CNF and assert the CNF to the SAT solver.
    * These formulas are asserted permanently for the current context.
@@ -148,6 +149,24 @@ class PropEngine
    * returns true for both lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
+
+  /**
+   * Get the current list of decisions made by the SAT solver at the moment in
+   * time that getPropDecisions() is called.
+   *
+   * @return List of decisions made by the SAT solver.
+   */
+  std::vector<Node> getPropDecisions() const;
+
+  /**
+   * Get the order heap from the SAT solver.
+   * order_heap is a priority queue of variables ordered with
+   * respect to the variable activity. The order heap is made available here
+   * in order to make partitions based on the literals contained in the heap.
+   *
+   * @return List of Nodes from the SAT variables order heap.
+   */
+  std::vector<Node> getPropOrderHeap() const;
 
   /**
    * Return SAT context level at which `lit` was decided on.
@@ -262,7 +281,7 @@ class PropEngine
 
   /**
    * Informs the ResourceManager that a resource has been spent.  If out of
-   * resources, can throw an UnsafeInterruptException exception.
+   * resources, the solver is interrupted using a callback.
    */
   void spendResource(Resource r);
 
@@ -289,21 +308,51 @@ class PropEngine
    * Return the prop engine proof. This should be called only when proofs are
    * enabled. Returns a proof of false whose free assumptions are the
    * preprocessed assertions.
+   *
+   * @param connectCnf If this flag is false, then all clausified preprocessed
+   * assertion and theory lemmas are free assumptions in the returned proof
+   * instead of being connected to their proofs.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof(bool connectCnf = true);
+
+  /** Return the vector of proofs for the respective proof component requested.
+   *
+   * The components may be of theory lemma proofs (closed proofs of valid theory
+   * clauses) or of preprocessed assertion proofs (them the preprocessed
+   * assertion assumptions to the added clauses to the SAT solver).
+   */
+  std::vector<std::shared_ptr<ProofNode>> getProofLeaves(
+      modes::ProofComponent pc);
 
   /** Is proof enabled? */
   bool isProofEnabled() const;
 
-  /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
+  /**
+   * Retrieve unsat core of preprocessing assertions.
+   *
+   * For assumption-based unsat cores, this is retrived from the SAT solver.
+   * For proof-based unsat cores, this is computed via the free assumptions of
+   * the proof.
+   */
   void getUnsatCore(std::vector<Node>& core);
 
-  /** Return the prop engine proof for assumption-based unsat cores. */
-  std::shared_ptr<ProofNode> getRefutation();
+  /** Get the zero-level assertions of the given type */
+  std::vector<Node> getLearnedZeroLevelLiterals(
+      modes::LearnedLitType ltype) const;
+
+  /** Get the zero-level assertions that should be used on deep restart */
+  std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
+
+  /** Get the literal type through the ZLL utilities */
+  modes::LearnedLitType getLiteralType(const Node& lit) const;
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+  /** Print reason for answering unknown on output when applicable */
+  void outputIncompleteReason(
+      UnknownExplanation uexp,
+      theory::IncompleteId iid = theory::IncompleteId::UNKNOWN);
 
   /**
    * Converts the given formula to CNF and asserts the CNF to the SAT solver.
@@ -348,9 +397,6 @@ class PropEngine
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
 
-  /** Reference to the environment */
-  Env& d_env;
-
   /** The decision engine we will be using */
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
@@ -370,6 +416,8 @@ class PropEngine
   CnfStream* d_cnfStream;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
+  /** A default proof generator for theory lemmas */
+  CDProof d_theoryLemmaPg;
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;
@@ -385,6 +433,6 @@ class PropEngine
 };
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROP_ENGINE_H */

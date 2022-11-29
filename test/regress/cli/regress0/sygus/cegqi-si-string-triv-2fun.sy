@@ -1,0 +1,14 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+
+(synth-fun f ((x String) (y String)) String)
+(synth-fun g ((x String) (y String)) String)
+
+(declare-var x String)
+(declare-var y String)
+
+(constraint (= (f x y) (str.replace (str.++ x y) "A" "ABCD")))
+(constraint (= (g x y) (str.replace (f x y) "B" "CDE")))
+
+(check-synth)

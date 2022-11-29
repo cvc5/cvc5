@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
+ *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,14 +19,15 @@
 #include <map>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
 
-struct TranscendentalState;
+class TranscendentalState;
 
 /** Transcendental solver class
  *
@@ -40,17 +41,17 @@ struct TranscendentalState;
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class ExponentialSolver
+class ExponentialSolver : protected EnvObj
 {
  public:
-  ExponentialSolver(TranscendentalState* tstate);
+  ExponentialSolver(Env& env, TranscendentalState* tstate);
   ~ExponentialSolver();
 
   /**
    * Ensures that new_a is properly registered as a term where new_a is the
-   * purified version of a, y being the new skolem used for purification.
+   * purified version of a, new_a[0] being the new skolem used for purification.
    */
-  void doPurification(TNode a, TNode new_a, TNode y);
+  void doPurification(TNode a, TNode new_a);
 
   /**
    * check initial refine
@@ -109,6 +110,6 @@ class ExponentialSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

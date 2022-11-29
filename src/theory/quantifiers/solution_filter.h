@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,14 +18,13 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
 #define CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
 
-#include <map>
-#include <unordered_set>
 #include "expr/node.h"
+#include "options/options.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus_sampler.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -67,10 +66,12 @@ class SolutionFilterStrength : public ExprMiner
   std::vector<Node> d_curr_sols;
   /** whether we are trying to find the logically strongest solutions */
   bool d_isStrong;
+  /** The options for subsolver calls */
+  Options d_subOptions;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__SOLUTION_FILTER_H */

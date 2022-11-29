@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 class Rewriter;
@@ -34,13 +34,20 @@ class Rewriter;
  */
 enum RewriteStatus
 {
-  /** The node is fully rewritten (no more rewrites apply) */
+  /**
+   * The node is fully rewritten (no more rewrites apply for the original
+   * kind). If the rewrite changes the kind, the rewriter will apply another
+   * round of rewrites.
+   */
   REWRITE_DONE,
   /** The node may be rewritten further */
   REWRITE_AGAIN,
   /** Subnodes of the node may be rewritten further */
   REWRITE_AGAIN_FULL
 }; /* enum RewriteStatus */
+
+/** Print a RewriteStatus to an output stream */
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs);
 
 /**
  * Instances of this class serve as response codes from
@@ -165,6 +172,6 @@ class TheoryRewriter
 };
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_REWRITER_H */

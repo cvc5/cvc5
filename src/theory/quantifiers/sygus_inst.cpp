@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ *   Mathias Preiner, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -45,14 +45,16 @@ namespace {
  * @param cache: Caches visited nodes.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMaxGroundTerms(TNode n,
+void getMaxGroundTerms(const Options& options,
+                       TNode n,
                        TypeNode tn,
                        std::unordered_set<Node>& terms,
                        std::unordered_set<TNode>& cache,
                        bool skip_quant = false)
 {
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MAX
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  if (options.quantifiers.sygusInstTermSel != options::SygusInstTermSelMode::MAX
+      && options.quantifiers.sygusInstTermSel
+             != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -100,14 +102,16 @@ void getMaxGroundTerms(TNode n,
  *               term was already found in a subterm.
  * @param skip_quant: Do not traverse quantified formulas (skip quantifiers).
  */
-void getMinGroundTerms(TNode n,
+void getMinGroundTerms(const Options& options,
+                       TNode n,
                        TypeNode tn,
                        std::unordered_set<Node>& terms,
                        std::unordered_map<TNode, std::pair<bool, bool>>& cache,
                        bool skip_quant = false)
 {
-  if (options::sygusInstTermSel() != options::SygusInstTermSelMode::MIN
-      && options::sygusInstTermSel() != options::SygusInstTermSelMode::BOTH)
+  if (options.quantifiers.sygusInstTermSel != options::SygusInstTermSelMode::MIN
+      && options.quantifiers.sygusInstTermSel
+             != options::SygusInstTermSelMode::BOTH)
   {
     return;
   }
@@ -215,7 +219,10 @@ void SygusInst::reset_round(Theory::Effort e)
   for (uint32_t i = 0; i < nasserted; ++i)
   {
     Node q = model->getAssertedQuantifier(i);
-
+    if (!shouldProcess(q))
+    {
+      continue;
+    }
     if (model->isQuantifierActive(q))
     {
       d_active_quant.insert(q);
@@ -239,6 +246,19 @@ void SygusInst::reset_round(Theory::Effort e)
   }
 }
 
+bool SygusInst::shouldProcess(Node q)
+{
+  // Note that we currently process quantified formulas that other modules
+  // e.g. CEGQI have taken full ownership over.
+  // ignore internal quantifiers
+  QuantAttributes& qattr = d_qreg.getQuantAttributes();
+  if (qattr.isQuantBounded(q))
+  {
+    return false;
+  }
+  return true;
+}
+
 void SygusInst::check(Theory::Effort e, QEffort quant_e)
 {
   Trace("sygus-inst") << "Check " << e << ", " << quant_e << std::endl;
@@ -248,9 +268,9 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   FirstOrderModel* model = d_treg.getModel();
   Instantiate* inst = d_qim.getInstantiate();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
-  SygusExplain syexplain(db);
+  SygusExplain syexplain(d_env, db);
   NodeManager* nm = NodeManager::currentNM();
-  options::SygusInstMode mode = options::sygusInstMode();
+  options::SygusInstMode mode = options().quantifiers.sygusInstMode;
 
   for (const Node& q : d_active_quant)
   {
@@ -338,6 +358,11 @@ void SygusInst::registerQuantifier(Node q)
 {
   Assert(d_ce_lemmas.find(q) == d_ce_lemmas.end());
 
+  if (!shouldProcess(q))
+  {
+    return;
+  }
+
   Trace("sygus-inst") << "Register " << q << std::endl;
 
   std::map<TypeNode, std::unordered_set<Node>> extra_cons;
@@ -346,8 +371,8 @@ void SygusInst::registerQuantifier(Node q)
   std::unordered_set<Node> term_irrelevant;
 
   /* Collect relevant local ground terms for each variable type. */
-  if (options::sygusInstScope() == options::SygusInstScope::IN
-      || options::sygusInstScope() == options::SygusInstScope::BOTH)
+  if (options().quantifiers.sygusInstScope == options::SygusInstScope::IN
+      || options().quantifiers.sygusInstScope == options::SygusInstScope::BOTH)
   {
     std::unordered_map<TypeNode, std::unordered_set<Node>> relevant_terms;
     for (const Node& var : q[0])
@@ -361,8 +386,8 @@ void SygusInst::registerQuantifier(Node q)
         std::unordered_set<TNode> cache_max;
         std::unordered_map<TNode, std::pair<bool, bool>> cache_min;
 
-        getMinGroundTerms(q, tn, terms, cache_min);
-        getMaxGroundTerms(q, tn, terms, cache_max);
+        getMinGroundTerms(options(), q, tn, terms, cache_min);
+        getMaxGroundTerms(options(), q, tn, terms, cache_max);
         relevant_terms.emplace(tn, terms);
       }
 
@@ -378,8 +403,8 @@ void SygusInst::registerQuantifier(Node q)
   }
 
   /* Collect relevant global ground terms for each variable type. */
-  if (options::sygusInstScope() == options::SygusInstScope::OUT
-      || options::sygusInstScope() == options::SygusInstScope::BOTH)
+  if (options().quantifiers.sygusInstScope == options::SygusInstScope::OUT
+      || options().quantifiers.sygusInstScope == options::SygusInstScope::BOTH)
   {
     for (const Node& var : q[0])
     {
@@ -394,8 +419,8 @@ void SygusInst::registerQuantifier(Node q)
 
         for (const Node& a : d_notified_assertions)
         {
-          getMinGroundTerms(a, tn, terms, cache_min, true);
-          getMaxGroundTerms(a, tn, terms, cache_max, true);
+          getMinGroundTerms(options(), a, tn, terms, cache_min, true);
+          getMaxGroundTerms(options(), a, tn, terms, cache_max, true);
         }
         d_global_terms.insert(tn, terms);
       }
@@ -421,7 +446,8 @@ void SygusInst::registerQuantifier(Node q)
   for (const Node& var : q[0])
   {
     addSpecialValues(var.getType(), extra_cons);
-    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
+    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(options(),
+                                                            var.getType(),
                                                             Node(),
                                                             var.toString(),
                                                             extra_cons,
@@ -443,6 +469,10 @@ void SygusInst::registerQuantifier(Node q)
  */
 void SygusInst::preRegisterQuantifier(Node q)
 {
+  if (!shouldProcess(q))
+  {
+    return;
+  }
   Trace("sygus-inst") << "preRegister " << q << std::endl;
   addCeLemma(q);
 }
@@ -486,13 +516,15 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
   /* Generate counterexample lemma for 'q'. */
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   TermDbSygus* db = d_treg.getTermDatabaseSygus();
 
-  /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
-   * instantiation constant ic_i with type types[i] and wrap each ic_i in
-   * DT_SYGUS_EVAL(ic_i), which will be used to instantiate x_i. */
+  // For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
+  // instantiation constant ic_i with type types[i], and a Skolem eval_i whose
+  // type is is the same as x_i, and whose value will be used to instantiate x_i
   std::vector<Node> evals;
   std::vector<Node> inst_constants;
+  InstConstantAttribute ica;
   for (size_t i = 0, size = types.size(); i < size; ++i)
   {
     TypeNode tn = types[i];
@@ -500,7 +532,6 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
 
     /* Create the instantiation constant and set attribute accordingly. */
     Node ic = nm->mkInstConstant(tn);
-    InstConstantAttribute ica;
     ic.setAttribute(ica, q);
     Trace("sygus-inst") << "Create " << ic << " for " << var << std::endl;
 
@@ -513,9 +544,22 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
       args.insert(args.end(), svl.begin(), svl.end());
     }
     Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
+    // we use a Skolem constant here, instead of an application of an
+    // evaluation function, since we are not using the builtin support
+    // for evaluation functions. We use the DT_SYGUS_EVAL term so that the
+    // skolem construction here is deterministic and reproducible.
+    SkolemManager::SkolemFlags flags = eval.getType().isBoolean()
+                                           ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                           : SkolemManager::SKOLEM_DEFAULT;
+    Node k = sm->mkPurifySkolem(
+        eval, "eval", "evaluation variable for sygus-inst", flags);
+    // Requires instantiation constant attribute as well. This ensures that
+    // other instantiation methods, e.g. E-matching do not consider this term
+    // for instantiation, as it is model-unsound to do so.
+    k.setAttribute(ica, q);
 
     inst_constants.push_back(ic);
-    evals.push_back(eval);
+    evals.push_back(k);
   }
 
   d_inst_constants.emplace(q, inst_constants);
@@ -559,4 +603,4 @@ void SygusInst::addCeLemma(Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

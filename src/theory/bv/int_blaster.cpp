@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yoni Zohar
+ *   Yoni Zohar, Makai Mann, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,17 +23,22 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/option_exception.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
-namespace cvc5 {
-using namespace cvc5::theory;
+using namespace cvc5::internal::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::theory::bv;
+
+namespace cvc5::internal {
 
 namespace {
 
@@ -42,53 +47,78 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
 
-IntBlaster::IntBlaster(context::Context* c,
+IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
-                       uint64_t granularity,
-                       bool introduceFreshIntVars)
-    : d_binarizeCache(c),
-      d_intblastCache(c),
-      d_rangeAssertions(c),
-      d_bitwiseAssertions(c),
+                       uint64_t granularity)
+    : EnvObj(env),
+      d_binarizeCache(userContext()),
+      d_intblastCache(userContext()),
+      d_rangeAssertions(userContext()),
+      d_bitwiseAssertions(userContext()),
       d_mode(mode),
       d_granularity(granularity),
-      d_context(c),
-      d_introduceFreshIntVars(introduceFreshIntVars)
+      d_context(userContext())
 {
   d_nm = NodeManager::currentNM();
-  d_zero = d_nm->mkConst<Rational>(0);
-  d_one = d_nm->mkConst<Rational>(1);
+  d_zero = d_nm->mkConstInt(0);
+  d_one = d_nm->mkConstInt(1);
 };
+
+IntBlaster::~IntBlaster() {}
 
 void IntBlaster::addRangeConstraint(Node node,
                                     uint64_t size,
                                     std::vector<Node>& lemmas)
 {
+  Node rangeConstraint = mkRangeConstraint(node, size);
+  Trace("int-blaster-debug")
+      << "range constraint computed: " << rangeConstraint << std::endl;
+  if (d_rangeAssertions.find(rangeConstraint) == d_rangeAssertions.end())
+  {
+    Trace("int-blaster-debug")
+        << "range constraint added to cache and lemmas " << std::endl;
+    d_rangeAssertions.insert(rangeConstraint);
+    lemmas.push_back(rangeConstraint);
+  }
 }
 
 void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
                                       std::vector<Node>& lemmas)
 {
+  if (d_bitwiseAssertions.find(bitwiseConstraint) == d_bitwiseAssertions.end())
+  {
+    Trace("int-blaster-debug")
+        << "bitwise constraint added to cache and lemmas: " << bitwiseConstraint
+        << std::endl;
+    d_bitwiseAssertions.insert(bitwiseConstraint);
+    lemmas.push_back(bitwiseConstraint);
+  }
 }
 
-Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k) { return Node(); }
+Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
+{
+  Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
+  Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
+  Node result = d_nm->mkNode(kind::AND, lower, upper);
+  return rewrite(result);
+}
 
 Node IntBlaster::maxInt(uint64_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
-  return d_nm->mkConst<Rational>(max_value);
+  return d_nm->mkConstInt(max_value);
 }
 
 Node IntBlaster::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst<Rational>(intpow2(k));
+  return d_nm->mkConstInt(intpow2(k));
 }
 
 Node IntBlaster::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst<Rational>(intpow2(exponent));
+  Node p2 = d_nm->mkConstInt(intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -125,7 +155,7 @@ Node IntBlaster::intBlast(Node n,
                           std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written
-  n = Rewriter::rewrite(n);
+  n = rewrite(n);
 
   // helper vector for traversal.
   std::vector<Node> toVisit;
@@ -134,6 +164,7 @@ Node IntBlaster::intBlast(Node n,
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
+    Trace("int-blaster-debug") << "current: " << current << std::endl;
     uint64_t currentNumChildren = current.getNumChildren();
     if (d_intblastCache.find(current) == d_intblastCache.end())
     {
@@ -185,17 +216,20 @@ Node IntBlaster::intBlast(Node n,
           std::vector<Node> translated_children;
           if (current.getKind() == kind::APPLY_UF)
           {
+            Assert(d_intblastCache.find(current.getOperator())
+                   != d_intblastCache.end());
             translated_children.push_back(
                 d_intblastCache[current.getOperator()]);
           }
-          for (uint64_t i = 0; i < currentNumChildren; i++)
+          for (const Node& cc : current)
           {
-            translated_children.push_back(d_intblastCache[current[i]]);
+            Node ccb = makeBinary(cc);
+            Assert(d_intblastCache.find(ccb) != d_intblastCache.end());
+            translated_children.push_back(d_intblastCache[ccb]);
           }
           translation =
               translateWithChildren(current, translated_children, lemmas);
         }
-
         Assert(!translation.isNull());
         // Map the current node to its translation in the cache.
         d_intblastCache[current] = translation;
@@ -205,10 +239,9 @@ Node IntBlaster::intBlast(Node n,
       }
     }
   }
+  Assert(d_intblastCache.find(n) != d_intblastCache.end());
   return d_intblastCache[n].get();
 }
-
-Node IntBlaster::uts(Node n, uint64_t bw) { return Node(); }
 
 Node IntBlaster::translateWithChildren(
     Node original,
@@ -218,23 +251,21 @@ Node IntBlaster::translateWithChildren(
   // The translation of the original node is determined by the kind of
   // the node.
   kind::Kind_t oldKind = original.getKind();
-
   // Some BV operators were eliminated before this point.
   Assert(oldKind != kind::BITVECTOR_SDIV);
   Assert(oldKind != kind::BITVECTOR_SREM);
   Assert(oldKind != kind::BITVECTOR_SMOD);
   Assert(oldKind != kind::BITVECTOR_XNOR);
+  Assert(oldKind != kind::BITVECTOR_NOR);
   Assert(oldKind != kind::BITVECTOR_NAND);
   Assert(oldKind != kind::BITVECTOR_SUB);
   Assert(oldKind != kind::BITVECTOR_REPEAT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_RIGHT);
   Assert(oldKind != kind::BITVECTOR_ROTATE_LEFT);
-  Assert(oldKind != kind::BITVECTOR_COMP);
   Assert(oldKind != kind::BITVECTOR_SGT);
   Assert(oldKind != kind::BITVECTOR_SLE);
   Assert(oldKind != kind::BITVECTOR_SGE);
   Assert(oldKind != kind::EXISTS);
-
   // BV division by zero was eliminated before this point.
   Assert(oldKind != kind::BITVECTOR_UDIV
          || !(original[1].isConst()
@@ -243,6 +274,17 @@ Node IntBlaster::translateWithChildren(
   // Store the translated node
   Node returnNode;
 
+   /**
+    * higher order logic allows comparing between functions
+    * The translation does not support this,
+    * as the translated functions may be different outside
+    * of the bounds that were relevant for the original
+    * bit-vectors.
+    */
+   if (childrenTypesChanged(original) && logicInfo().isHigherOrder())
+   {
+     throw OptionException("bv-to-int does not support higher order logic ");
+   }
   // Translate according to the kind of the original node.
   switch (oldKind)
   {
@@ -273,7 +315,7 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(
           kind::ITE,
           d_nm->mkNode(kind::EQUAL, translated_children[1], d_zero),
-          d_nm->mkNode(kind::MINUS, pow2BvSize, d_one),
+          d_nm->mkNode(kind::SUB, pow2BvSize, d_one),
           divNode);
       break;
     }
@@ -418,7 +460,7 @@ Node IntBlaster::translateWithChildren(
       Node a =
           d_nm->mkNode(kind::MULT, translated_children[0], pow2BvSizeRight);
       Node b = translated_children[1];
-      returnNode = d_nm->mkNode(kind::PLUS, a, b);
+      returnNode = d_nm->mkNode(kind::ADD, a, b);
       break;
     }
     case kind::BITVECTOR_EXTRACT:
@@ -486,6 +528,17 @@ Node IntBlaster::translateWithChildren(
                        d_zero);
       break;
     }
+    case kind::BITVECTOR_COMP:
+    {
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::EQUAL,
+                                    translated_children[0],
+                                    translated_children[1]),
+                       d_one,
+                       d_zero);
+      break;
+    }
     case kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
@@ -493,17 +546,14 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::APPLY_UF:
     {
-      /**
-       * higher order logic allows comparing between functions
-       * The translation does not support this,
-       * as the translated functions may be different outside
-       * of the bounds that were relevant for the original
-       * bit-vectors.
-       */
-      if (childrenTypesChanged(original) && options::ufHo())
-      {
-        throw OptionException("bv-to-int does not support higher order logic ");
+      // The preprocessing pass does not support function applications
+      // with bound variables.
+      if (expr::hasBoundVar(original)) {
+          throw OptionException(
+              "bv-to-int does not support quantified variables under "
+              "uninterpreted functions");
       }
+
       // Insert the translated application term to the cache
       returnNode = d_nm->mkNode(kind::APPLY_UF, translated_children);
       // Add range constraints if necessary.
@@ -520,6 +570,11 @@ Node IntBlaster::translateWithChildren(
     case kind::BOUND_VAR_LIST:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
+      if (d_mode == options::SolveBVAsIntMode::BITWISE)
+      {
+        throw OptionException(
+            "--solve-bv-as-int=bitwise does not support quantifiers");
+      }
       break;
     }
     case kind::FORALL:
@@ -557,9 +612,65 @@ Node IntBlaster::translateWithChildren(
   return returnNode;
 }
 
+Node IntBlaster::uts(Node x, uint64_t bvsize)
+{
+  Node powNode = pow2(bvsize - 1);
+  Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
+  Node two = d_nm->mkConstInt(Rational(2));
+  Node twoTimesNode = d_nm->mkNode(kind::MULT, two, modNode);
+  return d_nm->mkNode(kind::SUB, twoTimesNode, x);
+}
+
 Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
 {
-  return Node();
+  Node returnNode;
+  if (x.isConst())
+  {
+    Rational c(x.getConst<Rational>());
+    Rational twoToKMinusOne(intpow2(bvsize - 1));
+    /* if the msb is 0, this is like zero_extend.
+     *  msb is 0 <-> the value is less than 2^{bvsize-1}
+     */
+    if (c < twoToKMinusOne || amount == 0)
+    {
+      returnNode = x;
+    }
+    else
+    {
+      /* otherwise, we add the integer equivalent of
+       * 11....1 `amount` times
+       */
+      Rational max_of_amount = intpow2(amount) - 1;
+      Rational mul = max_of_amount * intpow2(bvsize);
+      Rational sum = mul + c;
+      returnNode = d_nm->mkConstInt(sum);
+    }
+  }
+  else
+  {
+    if (amount == 0)
+    {
+      returnNode = x;
+    }
+    else
+    {
+      Rational twoToKMinusOne(intpow2(bvsize - 1));
+      Node minSigned = d_nm->mkConstInt(twoToKMinusOne);
+      /* condition checks whether the msb is 1.
+       * This holds when the integer value is smaller than
+       * 100...0, which is 2^{bvsize-1}.
+       */
+      Node condition = d_nm->mkNode(kind::LT, x, minSigned);
+      Node thenResult = x;
+      Node left = maxInt(amount);
+      Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
+      Node sum = d_nm->mkNode(kind::ADD, mul, x);
+      Node elseResult = sum;
+      Node ite = d_nm->mkNode(kind::ITE, condition, thenResult, elseResult);
+      returnNode = ite;
+    }
+  }
+  return returnNode;
 }
 
 Node IntBlaster::translateNoChildren(Node original,
@@ -569,13 +680,11 @@ Node IntBlaster::translateNoChildren(Node original,
   Trace("int-blaster-debug")
       << "translating leaf: " << original << "; of type: " << original.getType()
       << std::endl;
-
   // The result of the translation
   Node translation;
 
   // The translation is done differently for variables (bound or free)  and
   // constants (values)
-  Assert(original.isVar() || original.isConst());
   if (original.isVar())
   {
     if (original.getType().isBitVector())
@@ -591,38 +700,18 @@ Node IntBlaster::translateNoChildren(Node original,
       }
       else
       {
-        // original is a bit-vector variable (symbolic constant).
-        // Either we translate it to a fresh integer variable,
-        // or we translate it to (bv2nat original).
-        // In the former case, we must include range lemmas, while in the
-        // latter we don't.
-        // This is determined by the option bv-to-int-fresh-vars.
-        // The variables intCast and bvCast are used for models:
-        // even if we introduce a fresh variable,
-        // it is associated with intCast (which is (bv2nat original)).
-        // bvCast is either ( (_ nat2bv k) original) or just original.
         Node intCast = castToType(original, d_nm->integerType());
         Node bvCast;
-        if (d_introduceFreshIntVars)
-        {
-          // we introduce a fresh variable, add range constraints, and save the
-          // connection between original and the new variable via intCast
-          translation = d_nm->getSkolemManager()->mkPurifySkolem(
-              intCast,
-              "__intblast__var",
-              "Variable introduced in intblasting for " + original.toString());
-          uint64_t bvsize = original.getType().getBitVectorSize();
-          addRangeConstraint(translation, bvsize, lemmas);
-          // put new definition of old variable in skolems
-          bvCast = castToType(translation, original.getType());
-        }
-        else
-        {
-          // we just translate original to (bv2nat original)
-          translation = intCast;
-          // no need to do any casting back to bit-vector in this case.
-          bvCast = original;
-        }
+        // we introduce a fresh variable, add range constraints, and save the
+        // connection between original and the new variable via intCast
+        translation = d_nm->getSkolemManager()->mkPurifySkolem(
+            intCast,
+            "__intblast__var",
+            "Variable introduced in intblasting for " + original.toString());
+        uint64_t bvsize = original.getType().getBitVectorSize();
+        addRangeConstraint(translation, bvsize, lemmas);
+        // put new definition of old variable in skolems
+        bvCast = castToType(translation, original.getType());
 
         // add bvCast to skolems if it is not already there.
         if (skolems.find(original) == skolems.end())
@@ -648,17 +737,18 @@ Node IntBlaster::translateNoChildren(Node original,
   }
   else
   {
-    // original is a constant (value)
+    // original is a constant (value) or an operator with no arguments (e.g., PI)
     if (original.getKind() == kind::CONST_BITVECTOR)
     {
       // Bit-vector constants are transformed into their integer value.
       BitVector constant(original.getConst<BitVector>());
       Integer c = constant.toInteger();
-      translation = d_nm->mkConst<Rational>(c);
+      Rational r = Rational(c, Integer(1));
+      translation = d_nm->mkConstInt(r);
     }
     else
     {
-      // Other constants stay the same.
+      // Other constants or operators stay the same.
       translation = original;
     }
   }
@@ -670,7 +760,6 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
 {
   // construct the new function symbol.
   Node intUF;
-
   // old and new types of domain and result
   TypeNode tn = bvUF.getType();
   TypeNode bvRange = tn.getRangeType();
@@ -719,7 +808,6 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
     achildren.push_back(castedArg);
     i++;
   }
-
   // create the lambda expression, and add it to skolems
   Node app = d_nm->mkNode(kind::APPLY_UF, achildren);
   Node body = castToType(app, bvRange);
@@ -732,13 +820,32 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   return intUF;
 }
 
-bool IntBlaster::childrenTypesChanged(Node n) { return true; }
+bool IntBlaster::childrenTypesChanged(Node n)
+{
+  bool result = false;
+  for (const Node& child : n)
+  {
+    // the child's type has changed only if it has been
+    // processed already
+    if (d_intblastCache.find(child) != d_intblastCache.end())
+    {
+      TypeNode originalType = child.getType();
+      TypeNode newType = d_intblastCache[child].get().getType();
+      if (newType != originalType)
+      {
+        result = true;
+        break;
+      }
+    }
+  }
+  return result;
+}
 
 Node IntBlaster::castToType(Node n, TypeNode tn)
 {
   // If there is no reason to cast, return the
   // original node.
-  if (n.getType().isSubtypeOf(tn))
+  if (n.getType() == tn)
   {
     return n;
   }
@@ -756,7 +863,6 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
     Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
     return d_nm->mkNode(intToBVOp, n);
   }
-
   // casting bit-vectors to ingers
   Assert(n.getType().isBitVector());
   Assert(tn.isInteger());
@@ -767,19 +873,135 @@ Node IntBlaster::reconstructNode(Node originalNode,
                                  TypeNode resultType,
                                  const std::vector<Node>& translated_children)
 {
-  return Node();
+  // first, we adjust the children of the node as needed.
+  // re-construct the term with the adjusted children.
+  kind::Kind_t oldKind = originalNode.getKind();
+  NodeBuilder builder(oldKind);
+  if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    builder << originalNode.getOperator();
+  }
+  for (size_t i = 0; i < originalNode.getNumChildren(); i++)
+  {
+    Node originalChild = originalNode[i];
+    Node translatedChild = translated_children[i];
+    Node adjustedChild = castToType(translatedChild, originalChild.getType());
+    builder << adjustedChild;
+  }
+  Node reconstruction = builder.constructNode();
+  // cast to tn in case the reconstruction is a bit-vector.
+  reconstruction = castToType(reconstruction, resultType);
+  return reconstruction;
 }
 
 Node IntBlaster::createShiftNode(std::vector<Node> children,
                                  uint64_t bvsize,
                                  bool isLeftShift)
 {
-  return Node();
+  /**
+   * from SMT-LIB:
+   * [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
+   * [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
+   * Since we don't have exponentiation, we use an ite.
+   * Important note: below we use INTS_DIVISION_TOTAL, which is safe here
+   * because we divide by 2^... which is never 0.
+   */
+  Node x = children[0];
+  Node y = children[1];
+  // shifting by const is eliminated by the theory rewriter
+  Assert(!y.isConst());
+
+  // if we use the internal pow2 operator, the translation does not
+  // have any ites
+  if (options().smt.bvToIntUsePow2)
+  {
+    Node pow2Node = d_nm->mkNode(kind::POW2, y);
+    if (isLeftShift)
+    {
+      return d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(kind::MULT, x, pow2Node),
+                          pow2(bvsize));
+    }
+    else
+    {
+      return d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2Node);
+    }
+  }
+
+  // if we do not use the internal pow2 operator, we use ites.
+  Node ite = d_zero;
+  Node body;
+  for (uint64_t i = 0; i < bvsize; i++)
+  {
+    if (isLeftShift)
+    {
+      body = d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(kind::MULT, x, pow2(i)),
+                          pow2(bvsize));
+    }
+    else
+    {
+      body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
+    }
+    ite = d_nm->mkNode(
+        kind::ITE,
+        d_nm->mkNode(
+            kind::EQUAL, y, d_nm->mkConstInt(Rational(Integer(i), Integer(1)))),
+        body,
+        ite);
+  }
+  return ite;
 }
 
 Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 {
-  return Node();
+  kind::Kind_t k = quantifiedNode.getKind();
+  Node boundVarList = quantifiedNode[0];
+  Assert(boundVarList.getKind() == kind::BOUND_VAR_LIST);
+  // Since bit-vector variables are being translated to
+  // integer variables, we need to substitute the new ones
+  // for the old ones.
+  std::vector<Node> oldBoundVars;
+  std::vector<Node> newBoundVars;
+  std::vector<Node> rangeConstraints;
+  for (Node bv : quantifiedNode[0])
+  {
+    oldBoundVars.push_back(bv);
+    if (bv.getType().isBitVector())
+    {
+      // bit-vector variables are replaced by integer ones.
+      // the new variables induce range constraints based on the
+      // original bit-width.
+      Node newBoundVar = d_intblastCache[bv];
+      newBoundVars.push_back(newBoundVar);
+      rangeConstraints.push_back(
+          mkRangeConstraint(newBoundVar, bv.getType().getBitVectorSize()));
+    }
+    else
+    {
+      // variables that are not bit-vectors are not changed
+      newBoundVars.push_back(bv);
+    }
+  }
+
+  // the body of the quantifier
+  Node matrix = d_intblastCache[quantifiedNode[1]];
+  // make the substitution
+  matrix = matrix.substitute(oldBoundVars.begin(),
+                             oldBoundVars.end(),
+                             newBoundVars.begin(),
+                             newBoundVars.end());
+  // A node to represent all the range constraints.
+  Node ranges = d_nm->mkAnd(rangeConstraints);
+  // Add the range constraints to the body of the quantifier.
+  // For "exists", this is added conjunctively
+  // For "forall", this is added to the left side of an implication.
+  matrix = d_nm->mkNode(
+      k == kind::FORALL ? kind::IMPLIES : kind::AND, ranges, matrix);
+  // create the new quantified formula and return it.
+  Node newBoundVarsList = d_nm->mkNode(kind::BOUND_VAR_LIST, newBoundVars);
+  Node result = d_nm->mkNode(kind::FORALL, newBoundVarsList, matrix);
+  return result;
 }
 
 Node IntBlaster::createBVAndNode(Node x,
@@ -787,7 +1009,66 @@ Node IntBlaster::createBVAndNode(Node x,
                                  uint64_t bvsize,
                                  std::vector<Node>& lemmas)
 {
-  return Node();
+  // We support three configurations:
+  // 1. translating to IAND
+  // 2. translating back to BV (using BITVECTOR_TO_NAT and INT_TO_BV
+  // operators)
+  // 3. translating into a sum
+  Node returnNode;
+  if (d_mode == options::SolveBVAsIntMode::IAND)
+  {
+    Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+    returnNode = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+  }
+  else if (d_mode == options::SolveBVAsIntMode::BV)
+  {
+    // translate the children back to BV
+    Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+    Node bvx = d_nm->mkNode(intToBVOp, x);
+    Node bvy = d_nm->mkNode(intToBVOp, y);
+    // perform bvand on the bit-vectors
+    Node bvand = d_nm->mkNode(kind::BITVECTOR_AND, bvx, bvy);
+    // translate the result to integers
+    returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+  }
+  else if (d_mode == options::SolveBVAsIntMode::SUM)
+  {
+    // Construct a sum of ites, based on granularity.
+    returnNode = d_iandUtils.createSumNode(x, y, bvsize, d_granularity);
+  }
+  else
+  {
+    Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
+    // Enforce semantics over individual bits with iextract and ites
+    uint64_t granularity = options().smt.BVAndIntegerGranularity;
+
+    Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+    Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+    // get a skolem so the IAND solver knows not to do work
+    returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
+        iAnd,
+        "__intblast__iand",
+        "skolem for an IAND node in bitwise mode " + iAnd.toString());
+    addRangeConstraint(returnNode, bvsize, lemmas);
+
+    // eagerly add bitwise lemmas according to the provided granularity
+    uint64_t high_bit;
+    for (uint64_t j = 0; j < bvsize; j += granularity)
+    {
+      high_bit = j + granularity - 1;
+      // don't let high_bit pass bvsize
+      if (high_bit >= bvsize)
+      {
+        high_bit = bvsize - 1;
+      }
+      Node extractedReturnNode = d_iandUtils.iextract(high_bit, j, returnNode);
+      addBitwiseConstraint(
+          extractedReturnNode.eqNode(
+              d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
+          lemmas);
+    }
+  }
+  return returnNode;
 }
 
 Node IntBlaster::createBVOrNode(Node x,
@@ -806,14 +1087,14 @@ Node IntBlaster::createBVOrNode(Node x,
 
 Node IntBlaster::createBVSubNode(Node x, Node y, uint64_t bvsize)
 {
-  Node minus = d_nm->mkNode(kind::MINUS, x, y);
+  Node minus = d_nm->mkNode(kind::SUB, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
 }
 
 Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
 {
-  Node plus = d_nm->mkNode(kind::PLUS, x, y);
+  Node plus = d_nm->mkNode(kind::ADD, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
 }
@@ -822,13 +1103,13 @@ Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
 {
   // Based on Hacker's Delight section 2-2 equation a:
   // -x = ~x+1
-  Node p2 = pow2(bvsize);
-  return d_nm->mkNode(kind::MINUS, p2, n);
+  Node bvNotNode = createBVNotNode(n, bvsize);
+  return createBVAddNode(bvNotNode, d_one, bvsize);
 }
 
 Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
 {
-  return d_nm->mkNode(kind::MINUS, maxInt(bvsize), n);
+  return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

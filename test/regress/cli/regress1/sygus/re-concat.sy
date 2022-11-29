@@ -1,0 +1,13 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic SLIA)
+(synth-fun f () RegLan ((Start RegLan) (Tokens String)) (
+                         (Start RegLan (
+                                         (str.to_re Tokens)
+                                         (re.++ Start Start)))
+                         (Tokens String ("A" "B"))
+                         ))
+
+(constraint (str.in_re "AB" f))
+
+(check-synth)

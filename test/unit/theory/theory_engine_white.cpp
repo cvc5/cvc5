@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +26,7 @@
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "options/options.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
@@ -33,11 +34,11 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace expr;
-using namespace context;
+using namespace cvc5::context;
 using namespace kind;
 using namespace theory::bv;
 
@@ -49,10 +50,8 @@ class TestTheoryWhiteEngine : public TestSmt
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_context = d_slvEngine->getContext();
-    d_user_context = d_slvEngine->getUserContext();
 
-    d_theoryEngine = d_slvEngine->getTheoryEngine();
+    d_theoryEngine = d_slvEngine->d_smtSolver->getTheoryEngine();
     for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
     {
       delete d_theoryEngine->d_theoryOut[id];
@@ -68,21 +67,20 @@ class TestTheoryWhiteEngine : public TestSmt
     d_theoryEngine->addTheory<DummyTheory<THEORY_BV> >(THEORY_BV);
   }
 
-  Context* d_context;
-  UserContext* d_user_context;
   TheoryEngine* d_theoryEngine;
 };
 
 TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
   Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
 
-  // make the expression (PLUS x y (MULT z 0))
-  Node zero = d_nodeManager->mkConst(Rational("0"));
+  // make the expression (ADD x y (MULT z 0))
+  Node zero = d_nodeManager->mkConstInt(Rational("0"));
   Node zTimesZero = d_nodeManager->mkNode(MULT, z, zero);
-  Node n = d_nodeManager->mkNode(PLUS, x, y, zTimesZero);
+  Node n = d_nodeManager->mkNode(ADD, x, y, zTimesZero);
 
   Node nExpected = n;
   Node nOut;
@@ -90,7 +88,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
   // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
-  nOut = Rewriter::rewrite(n);
+  nOut = rr->rewrite(n);
 
   // assert that the rewritten node is what we expect
   ASSERT_EQ(nOut, nExpected);
@@ -98,6 +96,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
 
 TEST_F(TestTheoryWhiteEngine, rewriter_complex)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
   Node y = d_nodeManager->mkVar("y", d_nodeManager->realType());
   TypeNode u = d_nodeManager->mkSort("U");
@@ -111,8 +110,8 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
       "g",
       d_nodeManager->mkFunctionType(d_nodeManager->realType(),
                                     d_nodeManager->integerType()));
-  Node one = d_nodeManager->mkConst(Rational("1"));
-  Node two = d_nodeManager->mkConst(Rational("2"));
+  Node one = d_nodeManager->mkConstInt(Rational("1"));
+  Node two = d_nodeManager->mkConstInt(Rational("2"));
 
   Node f1 = d_nodeManager->mkNode(APPLY_UF, f, one);
   Node f2 = d_nodeManager->mkNode(APPLY_UF, f, two);
@@ -137,7 +136,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
   // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
-  nOut = Rewriter::rewrite(n);
+  nOut = rr->rewrite(n);
 
   // assert that the rewritten node is what we expect
   ASSERT_EQ(nOut, nExpected);
@@ -183,4 +182,4 @@ TEST_F(TestTheoryWhiteEngine, rewrite_rules)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

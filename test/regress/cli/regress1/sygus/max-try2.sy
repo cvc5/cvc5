@@ -1,0 +1,15 @@
+; COMMAND-LINE: --sygus-si=all --sygus-si-rcons=try --sygus-out=status
+; ERROR-SCRUBBER: grep -o "reconstruction to syntax failed."
+; EXPECT-ERROR: reconstruction to syntax failed.
+; EXPECT: fail
+; REQUIRES: no-competition
+
+(set-logic LIA)
+
+(synth-fun two () Int
+  ((Start Int))
+  ((Start Int (0 1 (+ Start Start)))))
+
+(constraint (= two 2))
+
+(check-synth)

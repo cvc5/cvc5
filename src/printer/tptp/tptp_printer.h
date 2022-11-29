@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Mathias Preiner
+ *   Andrew Reynolds, Tim King, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,19 +22,16 @@
 
 #include "printer/printer.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace printer {
 namespace tptp {
 
-class TptpPrinter : public cvc5::Printer
+class TptpPrinter : public cvc5::internal::Printer
 {
  public:
-  using cvc5::Printer::toStream;
-  void toStream(std::ostream& out,
-                TNode n,
-                int toDepth,
-                size_t dag) const override;
-  void toStream(std::ostream& out, const CommandStatus* s) const override;
+  using cvc5::internal::Printer::toStream;
+  void toStream(std::ostream& out, TNode n) const override;
+  void toStream(std::ostream& out, Kind k) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
   /**
    * Print unsat core to stream.
@@ -42,6 +39,14 @@ class TptpPrinter : public cvc5::Printer
    * (UnsatCore::getCoreNames).
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
+
+  void toStreamCmdSuccess(std::ostream& out) const override;
+  void toStreamCmdInterrupted(std::ostream& out) const override;
+  void toStreamCmdUnsupported(std::ostream& out) const override;
+  void toStreamCmdFailure(std::ostream& out,
+                          const std::string& message) const override;
+  void toStreamCmdRecoverableFailure(std::ostream& out,
+                                     const std::string& message) const override;
 
  private:
   /**
@@ -64,6 +69,6 @@ class TptpPrinter : public cvc5::Printer
 
 }  // namespace tptp
 }  // namespace printer
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PRINTER__TPTP_PRINTER_H */

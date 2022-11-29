@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Haniel Barbosa
+ *   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
@@ -29,7 +29,7 @@ TheoryBuiltin::TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BUILTIN, env, out, valuation),
       d_checker(env),
       d_state(env, valuation),
-      d_im(env, *this, d_state, d_pnm, "theory::builtin::")
+      d_im(env, *this, d_state, "theory::builtin::")
 {
   // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
@@ -58,4 +58,4 @@ void TheoryBuiltin::finishInit()
 
 }  // namespace builtin
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

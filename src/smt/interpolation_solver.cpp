@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,44 +20,45 @@
 #include "base/modal_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/solver_engine.h"
+#include "smt/set_defaults.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 InterpolationSolver::InterpolationSolver(Env& env) : EnvObj(env) {}
 
 InterpolationSolver::~InterpolationSolver() {}
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      const TypeNode& grammarType,
-                                      Node& interpol)
+bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
+                                         const Node& conj,
+                                         const TypeNode& grammarType,
+                                         Node& interpol)
 {
-  if (options::produceInterpols() == options::ProduceInterpols::NONE)
+  if (!options().smt.produceInterpolants)
   {
     const char* msg =
-        "Cannot get interpolation when produce-interpol options is off.";
+        "Cannot get interpolation when produce-interpolants options is off.";
     throw ModalException(msg);
   }
   Trace("sygus-interpol") << "SolverEngine::getInterpol: conjecture " << conj
                           << std::endl;
   // must expand definitions
   Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
+  conjn = rewrite(conjn);
   std::string name("__internal_interpol");
 
-  quantifiers::SygusInterpol interpolSolver(d_env);
-  if (interpolSolver.solveInterpolation(
+  d_subsolver = std::make_unique<quantifiers::SygusInterpol>(d_env);
+  if (d_subsolver->solveInterpolation(
           name, axioms, conjn, grammarType, interpol))
   {
-    if (options::checkInterpols())
+    if (options().smt.checkInterpolants)
     {
       checkInterpol(interpol, axioms, conj);
     }
@@ -66,12 +67,12 @@ bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
   return false;
 }
 
-bool InterpolationSolver::getInterpol(const std::vector<Node>& axioms,
-                                      const Node& conj,
-                                      Node& interpol)
+bool InterpolationSolver::getInterpolantNext(Node& interpol)
 {
-  TypeNode grammarType;
-  return getInterpol(axioms, conj, grammarType, interpol);
+  // should already have initialized a subsolver, since we are immediately
+  // preceeded by a successful call to get-interpolant(-next).
+  Assert(d_subsolver != nullptr);
+  return d_subsolver->solveInterpolationNext(interpol);
 }
 
 void InterpolationSolver::checkInterpol(Node interpol,
@@ -82,6 +83,11 @@ void InterpolationSolver::checkInterpol(Node interpol,
   Trace("check-interpol")
       << "SolverEngine::checkInterpol: get expanded assertions" << std::endl;
 
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.writeSmt().produceInterpolants = false;
+  SetDefaults::disableChecking(subOptions);
+  SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, axioms imply interpol, second, interpol implies conj.
   for (unsigned j = 0; j < 2; j++)
   {
@@ -94,7 +100,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> itpChecker;
-    initializeSubsolver(itpChecker, d_env);
+    initializeSubsolver(itpChecker, ssi);
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)
@@ -118,7 +124,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": result is " << r << std::endl;
     std::stringstream serr;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+    if (r.getStatus() != Result::UNSAT)
     {
       if (j == 0)
       {
@@ -141,4 +147,4 @@ void InterpolationSolver::checkInterpol(Node interpol,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

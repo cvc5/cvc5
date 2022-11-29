@@ -31,8 +31,7 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          statically link against system libraries
-                           (must be disabled for static macOS builds) [default=yes]
+  --static-binary          link against static system libraries
   --auto-download          automatically download dependencies if necessary
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
@@ -40,12 +39,10 @@ The following flags enable optional features (disable with --no-<option name>).
   --statistics             include statistics
   --assertions             turn on assertions
   --tracing                include tracing code
-  --dumping                include dumping code
   --muzzle                 complete silence (no non-result output)
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
-  --python2                force Python 2 (deprecated)
   --python-bindings        build Python bindings based on new C++ API
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
@@ -59,7 +56,6 @@ Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
   --cln                    use CLN instead of GMP
   --glpk                   use GLPK simplex solver
-  --abc                    use the ABC AIG library
   --cryptominisat          use the CryptoMiniSat SAT solver
   --kissat                 use the Kissat SAT solver
   --poly                   use the LibPoly library [default=yes]
@@ -67,16 +63,15 @@ The following flags enable optional packages (disable with --no-<option name>).
   --editline               support the editline library
 
 Optional Path to Optional Packages:
-  --abc-dir=PATH           path to top level of ABC source tree
   --glpk-dir=PATH          path to top level of GLPK installation
   --dep-path=PATH          path to a dependency installation dir
 
-Build limitations:
-  --lib-only               only build the library, but not the executable or
-                           the parser (default: off)
-
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
+
+Wasm Options
+  --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
+  --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
 
 EOF
   exit 0
@@ -107,7 +102,6 @@ program_prefix=""
 
 buildtype=default
 
-abc=default
 asan=default
 assertions=default
 auto_download=default
@@ -118,7 +112,6 @@ cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
 docs=default
-dumping=default
 glpk=default
 gpl=default
 kissat=default
@@ -127,11 +120,10 @@ cocoa=default
 muzzle=default
 ninja=default
 profiling=default
-python2=default
 python_bindings=default
 java_bindings=default
 editline=default
-static_library=default
+build_shared=ON
 static_binary=default
 statistics=default
 tracing=default
@@ -144,8 +136,10 @@ arm64=default
 werror=default
 ipo=default
 
-abc_dir=default
 glpk_dir=default
+
+wasm=default
+wasm_flags=""
 
 #--------------------------------------------------------------------------#
 
@@ -156,9 +150,6 @@ do
   case $1 in
 
     -h|--help) usage;;
-
-    --abc) abc=ON;;
-    --no-abc) abc=OFF;;
 
     --asan) asan=ON;;
     --no-asan) asan=OFF;;
@@ -179,12 +170,11 @@ do
 
     # Best configuration
     --best)
-      ipo=ON
-      abc=ON
       cln=ON
       cryptominisat=ON
-      glpk=ON
       editline=ON
+      glpk=ON
+      ipo=ON
       ;;
 
     --prefix) die "missing argument to $1 (try -h)" ;;
@@ -219,9 +209,6 @@ do
     --debug-context-mm) debug_context_mm=ON;;
     --no-debug-context-mm) debug_context_mm=OFF;;
 
-    --dumping) dumping=ON;;
-    --no-dumping) dumping=OFF;;
-
     --gpl) gpl=ON;;
     --no-gpl) gpl=OFF;;
 
@@ -249,8 +236,8 @@ do
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
-    --static) static_library=ON; static_binary=ON;;
-    --no-static) static_library=OFF;;
+    --static) build_shared=OFF;;
+    --no-static) build_shared=ON;;
 
     --static-binary) static_binary=ON;;
     --no-static-binary) static_binary=OFF;;
@@ -266,9 +253,6 @@ do
 
     --unit-testing) unit_testing=ON;;
     --no-unit-testing) unit_testing=OFF;;
-
-    --python2) python2=ON;;
-    --no-python2) python2=OFF;;
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
@@ -289,14 +273,17 @@ do
     --editline) editline=ON;;
     --no-editline) editline=OFF;;
 
-    --abc-dir) die "missing argument to $1 (try -h)" ;;
-    --abc-dir=*) abc_dir=${1##*=} ;;
-
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
+
+    --wasm) wasm=WASM ;;
+    --wasm=*) wasm="${1##*=}" ;;
+
+    --wasm-flags) die "missing argument to $1 (try -h)" ;;
+    --wasm-flags=*) wasm_flags="${1#*=}" ;;
 
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
@@ -345,8 +332,6 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
 [ $debug_context_mm != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_CONTEXT_MM=$debug_context_mm"
-[ $dumping != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_DUMPING=$dumping"
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
@@ -356,18 +341,16 @@ fi
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $static_library != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_LIBRARY=$static_library"
+[ $build_shared != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_SHARED_LIBS=$build_shared"
 [ $static_binary != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
+  && cmake_opts="$cmake_opts -DSTATIC_BINARY=$static_binary"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
-[ $python2 != default ] \
-  && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $python_bindings != default ] \
@@ -380,8 +363,6 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling"
 [ $editline != default ] \
   && cmake_opts="$cmake_opts -DUSE_EDITLINE=$editline"
-[ $abc != default ] \
-  && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
 [ $cln != default ] \
   && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
 [ $cryptominisat != default ] \
@@ -394,8 +375,6 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
-[ "$abc_dir" != default ] \
-  && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
@@ -404,8 +383,17 @@ fi
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \
   && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
+[ "$wasm" != default ] \
+  && cmake_opts="$cmake_opts -DWASM=$wasm"
 
 root_dir=$(pwd)
+
+cmake_wrapper=
+cmake_opts=($cmake_opts)
+if [ "$wasm" == "WASM" ] || [ "$wasm" == "JS" ] || [ "$wasm" == "HTML" ] ; then
+  cmake_wrapper=emcmake
+  cmake_opts=(${cmake_opts[@]} -DWASM_FLAGS="${wasm_flags}")
+fi
 
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
@@ -417,5 +405,5 @@ cd "$build_dir"
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
 build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
-cmake "$root_dir" $cmake_opts 2>&1 | \
+$cmake_wrapper cmake "$root_dir" "${cmake_opts[@]}" 2>&1 | \
   sed "s/^Now just/Now change to '$build_dir_escaped' and/"

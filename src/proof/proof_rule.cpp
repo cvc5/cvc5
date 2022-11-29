@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 const char* toString(PfRule id)
 {
@@ -33,6 +33,7 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::ANNOTATION: return "ANNOTATION";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
@@ -44,6 +45,7 @@ const char* toString(PfRule id)
     case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
+    case PfRule::TRUST_FLATTENING_REWRITE: return "TRUST_FLATTENING_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
     case PfRule::TRUST_SUBS_MAP: return "TRUST_SUBS_MAP";
     case PfRule::TRUST_SUBS_EQ: return "TRUST_SUBS_EQ";
@@ -132,7 +134,6 @@ const char* toString(PfRule id)
     case PfRule::DT_CLASH: return "DT_CLASH";
     //================================================= Quantifiers rules
     case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
-    case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     case PfRule::ALPHA_EQUIV: return "ALPHA_EQUIV";
@@ -160,8 +161,7 @@ const char* toString(PfRule id)
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
     case PfRule::STRING_INFERENCE: return "STRING_INFERENCE";
     //================================================= Arith rules
-    case PfRule::MACRO_ARITH_SCALE_SUM_UB:
-      return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::MACRO_ARITH_SCALE_SUM_UB: return "MACRO_ARITH_SCALE_SUM_UB";
     case PfRule::ARITH_SUM_UB: return "ARITH_SUM_UB";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
@@ -171,6 +171,7 @@ const char* toString(PfRule id)
     case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case PfRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case PfRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
     case PfRule::ARITH_TRANS_EXP_POSITIVITY:
@@ -198,8 +199,8 @@ const char* toString(PfRule id)
       return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
     case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
-    case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
-    case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
+    case PfRule::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
+    case PfRule::ARITH_NL_COVERING_RECURSIVE: return "ARITH_NL_COVERING_RECURSIVE";
     //================================================= External rules
     case PfRule::LFSC_RULE: return "LFSC_RULE";
     case PfRule::ALETHE_RULE: return "ALETHE_RULE";
@@ -220,4 +221,4 @@ size_t PfRuleHashFunction::operator()(PfRule id) const
   return static_cast<size_t>(id);
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

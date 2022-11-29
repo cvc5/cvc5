@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
+ *   Andrew Reynolds, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +18,10 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -31,9 +32,9 @@ namespace quantifiers {
 class QuantifiersStatistics
 {
  public:
-  QuantifiersStatistics();
+  QuantifiersStatistics(StatisticsRegistry& sr);
   TimerStat d_time;
-  TimerStat d_qcf_time;
+  TimerStat d_cbqi_time;
   TimerStat d_ematching_time;
   IntStat d_num_quant;
   IntStat d_instantiation_rounds;
@@ -46,6 +47,6 @@ class QuantifiersStatistics
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H */

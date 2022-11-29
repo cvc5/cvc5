@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,10 @@
 #include "expr/node_algorithm.h"
 #include "expr/subs.h"
 #include "smt/env.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -119,7 +120,8 @@ Node NestedQe::doNestedQe(Env& env, Node q, bool keepTopLevel)
   Node qeBody = sk.apply(q[1]);
   qeBody = snqe.apply(qeBody);
   // undo the skolemization
-  qeBody = sk.rapply(qeBody, true);
+  qeBody = sk.rapply(qeBody);
+  qeBody = env.getRewriter()->rewrite(qeBody);
   // reconstruct the body
   std::vector<Node> qargs;
   qargs.push_back(q[0]);
@@ -139,7 +141,7 @@ Node NestedQe::doQe(Env& env, Node q)
   q = nm->mkNode(kind::EXISTS, q[0], q[1].negate());
   std::unique_ptr<SolverEngine> smt_qe;
   initializeSubsolver(smt_qe, env);
-  Node qqe = smt_qe->getQuantifierElimination(q, true, false);
+  Node qqe = smt_qe->getQuantifierElimination(q, true);
   if (expr::hasBoundVar(qqe))
   {
     Trace("cegqi-nested-qe") << "  ...failed QE" << std::endl;
@@ -153,4 +155,4 @@ Node NestedQe::doQe(Env& env, Node q)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Dejan Jovanovic, Haniel Barbosa, Liana Hadarean
+ *   Dejan Jovanovic, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,61 +26,36 @@
 #include "prop/minisat/minisat.h"
 #include "prop/prop_engine.h"
 #include "prop/theory_proxy.h"
-#include "smt/dump.h"
 #include "smt/env.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt/solver_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace prop {
 
-CnfStream::CnfStream(SatSolver* satSolver,
+CnfStream::CnfStream(Env& env,
+                     SatSolver* satSolver,
                      Registrar* registrar,
-                     context::Context* context,
-                     Env* env,
-                     ResourceManager* rm,
+                     context::Context* c,
                      FormulaLitPolicy flpol,
                      std::string name)
-    : d_satSolver(satSolver),
-      d_env(env),
-      d_booleanVariables(context),
-      d_notifyFormulas(context),
-      d_nodeToLiteralMap(context),
-      d_literalToNodeMap(context),
+    : EnvObj(env),
+      d_satSolver(satSolver),
+      d_booleanVariables(c),
+      d_notifyFormulas(c),
+      d_nodeToLiteralMap(c),
+      d_literalToNodeMap(c),
       d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
       d_removable(false),
-      d_resourceManager(rm),
-      d_stats(name)
+      d_stats(statisticsRegistry(), name)
 {
 }
 
 bool CnfStream::assertClause(TNode node, SatClause& c)
 {
   Trace("cnf") << "Inserting into stream " << c << " node = " << node << "\n";
-  if (Dump.isOn("clauses") && d_env != nullptr)
-  {
-    const Printer& printer = d_env->getPrinter();
-    std::ostream& out = d_env->getDumpOut();
-    if (c.size() == 1)
-    {
-      printer.toStreamCmdAssert(out, getNode(c[0]));
-    }
-    else
-    {
-      Assert(c.size() > 1);
-      NodeBuilder b(kind::OR);
-      for (unsigned i = 0; i < c.size(); ++i)
-      {
-        b << getNode(c[i]);
-      }
-      Node n = b;
-      printer.toStreamCmdAssert(out, n);
-    }
-  }
 
   ClauseId clauseId = d_satSolver->addClause(c, d_removable);
 
@@ -149,7 +124,7 @@ void CnfStream::ensureLiteral(TNode n)
   }
   // remove top level negation
   n = n.getKind() == kind::NOT ? n[0] : n;
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  if (d_env.theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
@@ -207,8 +182,7 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If it's a theory literal, need to store it for back queries
-  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK
-      || (Dump.isOn("clauses")))
+  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK)
   {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());
@@ -244,10 +218,9 @@ const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
 }
 
 void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
-  context::CDList<TNode>::const_iterator it, it_end;
-  for (it = d_booleanVariables.begin(); it != d_booleanVariables.end(); ++ it) {
-    outputVariables.push_back(*it);
-  }
+  outputVariables.insert(outputVariables.end(),
+                         d_booleanVariables.begin(),
+                         d_booleanVariables.end());
 }
 
 bool CnfStream::isNotifyFormula(TNode node) const
@@ -716,10 +689,7 @@ void CnfStream::convertAndAssertIte(TNode node, bool negated)
 // At the top level we must ensure that all clauses that are asserted are
 // not unit, except for the direct assertions. This allows us to remove the
 // clauses later when they are not needed anymore (lemmas for example).
-void CnfStream::convertAndAssert(TNode node,
-                                 bool removable,
-                                 bool negated,
-                                 bool input)
+void CnfStream::convertAndAssert(TNode node, bool removable, bool negated)
 {
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
@@ -734,7 +704,7 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")\n";
 
-  d_resourceManager->spendResource(Resource::CnfStep);
+  resourceManager()->spendResource(Resource::CnfStep);
 
   switch(node.getKind()) {
     case kind::AND: convertAndAssertAnd(node, negated); break;
@@ -764,11 +734,12 @@ void CnfStream::convertAndAssert(TNode node, bool negated)
   }
 }
 
-CnfStream::Statistics::Statistics(const std::string& name)
-    : d_cnfConversionTime(smtStatisticsRegistry().registerTimer(
-        name + "::CnfStream::cnfConversionTime"))
+CnfStream::Statistics::Statistics(StatisticsRegistry& sr,
+                                  const std::string& name)
+    : d_cnfConversionTime(
+        sr.registerTimer(name + "::CnfStream::cnfConversionTime"))
 {
 }
 
 }  // namespace prop
-}  // namespace cvc5
+}  // namespace cvc5::internal

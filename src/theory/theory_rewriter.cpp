@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,8 +17,20 @@
 
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
+
+std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
+{
+  switch (rs)
+  {
+    case RewriteStatus::REWRITE_DONE:       return os << "DONE";
+    case RewriteStatus::REWRITE_AGAIN:      return os << "AGAIN";
+    case RewriteStatus::REWRITE_AGAIN_FULL: return os << "AGAIN_FULL";
+  }
+  Unreachable();
+  return os;
+}
 
 TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
                                            Node n,
@@ -67,4 +79,4 @@ TrustNode TheoryRewriter::expandDefinition(Node node)
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

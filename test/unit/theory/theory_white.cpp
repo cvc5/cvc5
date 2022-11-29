@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic
+ *   Aina Niemetz, Dejan Jovanovic, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,12 +18,13 @@
 
 #include "context/context.h"
 #include "expr/node.h"
+#include "smt/smt_solver.h"
 #include "test_smt.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace expr;
@@ -38,10 +39,11 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   {
     TestSmtNoFinishInit::SetUp();
     d_slvEngine->finishInit();
-    delete d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
-    delete d_slvEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
-    d_slvEngine->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = nullptr;
-    d_slvEngine->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = nullptr;
+    TheoryEngine* te = d_slvEngine->d_smtSolver->getTheoryEngine();
+    delete te->d_theoryTable[THEORY_BUILTIN];
+    delete te->d_theoryOut[THEORY_BUILTIN];
+    te->d_theoryTable[THEORY_BUILTIN] = nullptr;
+    te->d_theoryOut[THEORY_BUILTIN] = nullptr;
 
     d_dummy_theory.reset(new DummyTheory<THEORY_BUILTIN>(
         d_slvEngine->getEnv(), d_outputChannel, Valuation(nullptr)));
@@ -91,4 +93,4 @@ TEST_F(TestTheoryWhite, outputChannel)
   d_outputChannel.d_callHistory.clear();
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

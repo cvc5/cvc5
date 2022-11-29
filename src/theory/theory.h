@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +39,7 @@
 #include "theory/valuation.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofNodeManager;
 class TheoryEngine;
@@ -47,6 +47,7 @@ class ProofRuleChecker;
 
 namespace theory {
 
+class CarePairArgumentCallback;
 class DecisionManager;
 struct EeSetupInfo;
 class OutputChannel;
@@ -97,36 +98,8 @@ namespace eq {
  */
 class Theory : protected EnvObj
 {
-  friend class ::cvc5::TheoryEngine;
-
- private:
-  // Disallow default construction, copy, assignment.
-  Theory() = delete;
-  Theory(const Theory&) = delete;
-  Theory& operator=(const Theory&) = delete;
-
-  /** An integer identifying the type of the theory. */
-  TheoryId d_id;
-
-  /**
-   * The assertFact() queue.
-   *
-   * These can not be TNodes as some atoms (such as equalities) are sent
-   * across theories without being stored in a global map.
-   */
-  context::CDList<Assertion> d_facts;
-
-  /** Index into the head of the facts list */
-  context::CDO<unsigned> d_factsHead;
-
-  /** Indices for splitting on the shared terms. */
-  context::CDO<unsigned> d_sharedTermsIndex;
-
-  /** The care graph the theory will use during combination. */
-  CareGraph* d_careGraph;
-
-  /** Pointer to the decision manager. */
-  DecisionManager* d_decManager;
+  friend class CarePairArgumentCallback;
+  friend class internal::TheoryEngine;
 
  protected:
   /** Name of this theory instance. Along with the TheoryId this should
@@ -141,10 +114,25 @@ class Theory : protected EnvObj
   /** time spent in theory combination */
   TimerStat d_computeCareGraphTime;
 
-  /**
-   * The only method to add suff to the care graph.
-   */
+  /** Add (t1, t2) to the care graph */
   void addCarePair(TNode t1, TNode t2);
+  /**
+   * Assuming a is f(a1, ..., an) and b is f(b1, ..., bn), this method adds
+   * (ai, bi) to the care graph for each i where ai is not equal to bi.
+   */
+  void addCarePairArgs(TNode a, TNode b);
+  /**
+   * Process care pair arguments for a and b. By default, this calls the
+   * method above if a and b are not equal according to the equality engine
+   * of this theory.
+   */
+  virtual void processCarePairArgs(TNode a, TNode b);
+  /**
+   * Are care disequal? Return true if x and y are distinct constants, shared
+   * terms that are disequal according to the valuation, or otherwise
+   * disequal according to the equality engine of this theory.
+   */
+  virtual bool areCareDisequal(TNode x, TNode y);
 
   /**
    * The function should compute the care graph over the shared terms.
@@ -168,17 +156,6 @@ class Theory : protected EnvObj
          OutputChannel& out,
          Valuation valuation,
          std::string instance = "");  // taking : No default.
-
-  /**
-   * This is called at shutdown time by the TheoryEngine, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between PropEngine and Theory (based on what
-   * hard-links to Nodes are outstanding).  As the fact queue might be
-   * nonempty, we ensure here that it's clear.  If you overload this,
-   * you must make an explicit call here to this->Theory::shutdown()
-   * too.
-   */
-  virtual void shutdown() {}
 
   /**
    * The output channel for the Theory.
@@ -227,27 +204,6 @@ class Theory : protected EnvObj
    */
   bool proofsEnabled() const;
 
-  /**
-   * Returns the next assertion in the assertFact() queue.
-   *
-   * @return the next assertion in the assertFact() queue
-   */
-  inline Assertion get();
-
-  /**
-   * Set separation logic heap. This is called when the location and data
-   * types for separation logic are determined. This should be called at
-   * most once, before solving.
-   *
-   * This currently should be overridden by the separation logic theory only.
-   */
-  virtual void declareSepHeap(TypeNode locT, TypeNode dataT) {}
-
-  /**
-   * The theory that owns the uninterpreted sort.
-   */
-  static TheoryId s_uninterpretedSortOwner;
-
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
@@ -260,7 +216,7 @@ class Theory : protected EnvObj
    *
    * The following criteria imply that x -> val is *not* a legal elimination:
    * (1) If x is contained in val,
-   * (2) If the type of val is not a subtype of the type of x,
+   * (2) If the type of val is not the same as the type of x,
    * (3) If val contains an operator that cannot be evaluated, and
    * produceModels is true. For example, x -> sqrt(2) is not a legal
    * elimination if we are producing models. This is because we care about the
@@ -341,9 +297,9 @@ class Theory : protected EnvObj
   /**
    * Return the ID of the theory responsible for the given type.
    */
-  static inline TheoryId theoryOf(TypeNode typeNode)
+  static inline TheoryId theoryOf(TypeNode typeNode,
+                                  TheoryId usortOwner = theory::THEORY_UF)
   {
-    Trace("theory::internal") << "theoryOf(" << typeNode << ")" << std::endl;
     TheoryId id;
     if (typeNode.getKind() == kind::TYPE_CONSTANT)
     {
@@ -355,10 +311,7 @@ class Theory : protected EnvObj
     }
     if (id == THEORY_BUILTIN)
     {
-      Trace("theory::internal")
-          << "theoryOf(" << typeNode << ") == " << s_uninterpretedSortOwner
-          << std::endl;
-      return s_uninterpretedSortOwner;
+      return usortOwner;
     }
     return id;
   }
@@ -366,46 +319,29 @@ class Theory : protected EnvObj
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
+  static TheoryId theoryOf(
+      TNode node,
+      options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED,
+      TheoryId usortOwner = theory::THEORY_UF);
 
   /**
-   * Returns the ID of the theory responsible for the given node.
-   */
-  static inline TheoryId theoryOf(TNode node)
-  {
-    return theoryOf(options::theoryOfMode(), node);
-  }
-
-  /**
-   * Set the owner of the uninterpreted sort.
-   */
-  static void setUninterpretedSortOwner(TheoryId theory)
-  {
-    s_uninterpretedSortOwner = theory;
-  }
-
-  /**
-   * Get the owner of the uninterpreted sort.
-   */
-  static TheoryId getUninterpretedSortOwner()
-  {
-    return s_uninterpretedSortOwner;
-  }
-
-  /**
-   * Checks if the node is a leaf node of this theory
+   * Checks if the node is a leaf node of this theory.
    */
   inline bool isLeaf(TNode node) const
   {
-    return node.getNumChildren() == 0 || theoryOf(node) != d_id;
+    return node.getNumChildren() == 0
+           || theoryOf(node, options().theory.theoryOfMode) != d_id;
   }
 
   /**
    * Checks if the node is a leaf node of a theory.
    */
-  inline static bool isLeafOf(TNode node, TheoryId theoryId)
+  inline static bool isLeafOf(
+      TNode node,
+      TheoryId theoryId,
+      options::TheoryOfMode mode = options::TheoryOfMode::THEORY_OF_TYPE_BASED)
   {
-    return node.getNumChildren() == 0 || theoryOf(node) != theoryId;
+    return node.getNumChildren() == 0 || theoryOf(node, mode) != theoryId;
   }
 
   /** Returns true if the assertFact queue is empty*/
@@ -625,14 +561,21 @@ class Theory : protected EnvObj
    *
    * @param termSet The set to add terms to
    * @param includeShared Whether to include the shared terms of the theory
+   * @param irrKind The kinds
    */
   void collectAssertedTerms(std::set<Node>& termSet,
-                            bool includeShared = true) const;
+                            bool includeShared,
+                            const std::set<Kind>& irrKinds) const;
+  /** Same as above, using the irrelevant model kinds for irrKinds.*/
+  void collectAssertedTermsForModel(std::set<Node>& termSet,
+                                    bool includeShared = true) const;
   /**
    * Helper function for collectAssertedTerms, adds all subterms
    * belonging to this theory to termSet.
    */
-  void collectTerms(TNode n, std::set<Node>& termSet) const;
+  void collectTerms(TNode n,
+                    std::set<Node>& termSet,
+                    const std::set<Kind>& irrKinds) const;
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
@@ -727,18 +670,6 @@ class Theory : protected EnvObj
    * the theory.
    */
   virtual void presolve() {}
-
-  /**
-   * A Theory is called with postsolve exactly one time per user
-   * check-sat.  postsolve() is called after the query has completed
-   * (regardless of whether sat, unsat, or unknown), and after any
-   * model-querying related to the query has been performed.
-   * After this call, the theory will not get another check() or
-   * propagate() call until presolve() is called again.  A Theory
-   * cannot raise conflicts, add lemmas, or propagate literals during
-   * postsolve().
-   */
-  virtual void postsolve() {}
 
   /**
    * Notification sent to the theory wheneven the search restarts.
@@ -852,31 +783,53 @@ class Theory : protected EnvObj
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /** Return true if this theory uses central equality engine */
-  bool usesCentralEqualityEngine() const;
-  /** uses central equality engine (static) */
-  static bool usesCentralEqualityEngine(TheoryId id);
-  /** Explains/propagates via central equality engine only */
+  /**
+   * Return true if this theory explains and propagates via central equality
+   * engine only when the theory uses the central equality engine.
+   */
   static bool expUsingCentralEqualityEngine(TheoryId id);
+
+ private:
+  // Disallow default construction, copy, assignment.
+  Theory() = delete;
+  Theory(const Theory&) = delete;
+  Theory& operator=(const Theory&) = delete;
+
+  /**
+   * Returns the next assertion in the assertFact() queue.
+   *
+   * @return the next assertion in the assertFact() queue
+   */
+  Assertion get();
+
+  /** An integer identifying the type of the theory. */
+  TheoryId d_id;
+
+  /**
+   * The assertFact() queue.
+   *
+   * These can not be TNodes as some atoms (such as equalities) are sent
+   * across theories without being stored in a global map.
+   */
+  context::CDList<Assertion> d_facts;
+
+  /** Index into the head of the facts list */
+  context::CDO<unsigned> d_factsHead;
+
+  /** Indices for splitting on the shared terms. */
+  context::CDO<unsigned> d_sharedTermsIndex;
+
+  /** The care graph the theory will use during combination. */
+  CareGraph* d_careGraph;
+
+  /** Pointer to the decision manager. */
+  DecisionManager* d_decManager;
 }; /* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
 
-
-inline theory::Assertion Theory::get() {
-  Assert(!done()) << "Theory::get() called with assertion queue empty!";
-
-  // Get the assertion
-  Assertion fact = d_facts[d_factsHead];
-  d_factsHead = d_factsHead + 1;
-
-  Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
-
-  return fact;
-}
-
 inline std::ostream& operator<<(std::ostream& out,
-                                const cvc5::theory::Theory& theory)
+                                const cvc5::internal::theory::Theory& theory)
 {
   return out << theory.identify();
 }
@@ -896,6 +849,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__THEORY_H */

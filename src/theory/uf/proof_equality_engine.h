@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,8 +27,9 @@
 #include "proof/buffered_proof_generator.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/lazy_proof.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 class ProofNode;
@@ -286,8 +287,6 @@ class ProofEqEngine : public EagerProofGenerator
   /** common nodes */
   Node d_true;
   Node d_false;
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The SAT-context-dependent proof object */
   LazyCDProof d_proof;
   /**
@@ -301,6 +300,6 @@ class ProofEqEngine : public EagerProofGenerator
 
 }  // namespace eq
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__STRINGS__PROOF_MANAGER_H */

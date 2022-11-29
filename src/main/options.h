@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Paul Meng, Tim King
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,19 +25,10 @@
 namespace cvc5::main {
 
 /**
- * Print overall command-line option usage message, prefixed by
- * "msg"---which could be an error message causing the usage
- * output in the first place, e.g. "no such option --foo"
+ * Print overall command-line option usage message to the given output stream
+ * with binary being the command to run cvc5.
  */
-void printUsage(const std::string& msg, std::ostream& os);
-
-/**
- * Print command-line option usage message for only the most-commonly
- * used options.  The message is prefixed by "msg"---which could be
- * an error message causing the usage output in the first place, e.g.
- * "no such option --foo"
- */
-void printShortUsage(const std::string& msg, std::ostream& os);
+void printUsage(const std::string& binary, std::ostream& os);
 
 /**
  * Initialize the Options object options based on the given
@@ -51,11 +42,11 @@ void printShortUsage(const std::string& msg, std::ostream& os);
  *
  * Preconditions: options and argv must be non-null.
  */
-std::vector<std::string> parse(api::Solver& solver,
+std::vector<std::string> parse(cvc5::Solver& solver,
                                int argc,
                                char* argv[],
                                std::string& binaryName);
 
-}  // namespace cvc5::options
+}  // namespace cvc5::main
 
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andres Noetzli
+ *   Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "util/string.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 using namespace theory;
@@ -38,7 +38,7 @@ TEST_F(TestTheoryWhiteStringsUtils, collect_empty_eqs)
   TypeNode strType = d_nodeManager->stringType();
 
   Node empty = d_nodeManager->mkConst(String(""));
-  Node a = d_nodeManager->mkConst(::cvc5::String("A"));
+  Node a = d_nodeManager->mkConst(String("A"));
   Node x = d_nodeManager->mkVar("x", strType);
 
   Node emptyEqX = empty.eqNode(x);
@@ -63,4 +63,4 @@ TEST_F(TestTheoryWhiteStringsUtils, collect_empty_eqs)
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +26,9 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -181,7 +181,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::CONCAT_CONFLICT)
     {
-      Assert(children.size() == 1);
+      Assert(children.size() >= 1 && children.size() <= 2);
       if (!t0.isConst() || !s0.isConst())
       {
         // not constants
@@ -193,6 +193,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
         // versa.
+        return Node::null();
+      }
+      // if a disequality was provided, ensure that it is correct
+      if (children.size() == 2)
+      {
+        if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
+            || children[1][0][0] != t0 || children[1][0][1] != s0)
+        {
+          return Node::null();
+        }
+      }
+      else if (t0.getType().isSequence())
+      {
+        // we require the disequality for sequences
         return Node::null();
       }
       return nm->mkConst(false);
@@ -212,8 +226,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CSPLIT)
     {
       Assert(children.size() == 2);
-      Node zero = nm->mkConst(Rational(0));
-      Node one = nm->mkConst(Rational(1));
+      Node zero = nm->mkConstInt(Rational(0));
+      Node one = nm->mkConstInt(Rational(1));
       if (children[1].getKind() != NOT || children[1][0].getKind() != EQUAL
           || children[1][0][0].getKind() != STRING_LENGTH
           || children[1][0][0][0] != t0 || children[1][0][1] != zero)
@@ -240,7 +254,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     else if (id == PfRule::CONCAT_CPROP)
     {
       Assert(children.size() == 2);
-      Node zero = nm->mkConst(Rational(0));
+      Node zero = nm->mkConstInt(Rational(0));
 
       Trace("pfcheck-strings-cprop")
           << "CONCAT_PROP, isRev=" << isRev << std::endl;
@@ -317,7 +331,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       // we do not use optimizations
       SkolemCache skc(nullptr);
       std::vector<Node> conj;
-      ret = StringsPreprocess::reduce(t, conj, &skc);
+      ret = StringsPreprocess::reduce(t, conj, &skc, d_alphaCard);
       conj.push_back(t.eqNode(ret));
       ret = nm->mkAnd(conj);
     }
@@ -352,7 +366,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
-    Node zero = nm->mkConst(Rational(0));
+    Node zero = nm->mkConstInt(Rational(0));
     Node clen = nm->mkNode(STRING_LENGTH, nemp[0][0]);
     return clen.eqNode(zero).notNode();
   }
@@ -462,7 +476,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
            && args[1].getType().isStringLike());
     Node c1 = nm->mkNode(STRING_TO_CODE, args[0]);
     Node c2 = nm->mkNode(STRING_TO_CODE, args[1]);
-    Node eqNegOne = c1.eqNode(nm->mkConst(Rational(-1)));
+    Node eqNegOne = c1.eqNode(nm->mkConstInt(Rational(-1)));
     Node deq = c1.eqNode(c2).negate();
     Node eqn = args[0].eqNode(args[1]);
     return nm->mkNode(kind::OR, eqNegOne, deq, eqn);
@@ -478,21 +492,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node t[2];
     for (size_t i = 0; i < 2; i++)
     {
-      if (children[0][i].getKind() == SEQ_UNIT)
+      Node c = children[0][i];
+      Kind k = c.getKind();
+      if (k == SEQ_UNIT || k == STRING_UNIT)
       {
-        t[i] = children[0][i][0];
+        t[i] = c[0];
       }
-      else if (children[0][i].isConst())
+      else if (c.isConst())
       {
         // notice that Word::getChars is not the right call here, since it
         // gets a vector of sequences of length one. We actually need to
-        // extract the character, which is a sequence-specific operation.
-        const Sequence& sx = children[0][i].getConst<Sequence>();
-        const std::vector<Node>& vec = sx.getVec();
-        if (vec.size() == 1)
+        // extract the character.
+        if (Word::getLength(c) == 1)
         {
-          // the character of the single character sequence
-          t[i] = vec[0];
+          t[i] = Word::getNth(c, 0);
         }
       }
       if (t[i].isNull())
@@ -516,4 +529,4 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,19 +17,20 @@
 #define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_BOUNDS_CHECK_H
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/ext/constraint.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
 
-struct ExtState;
+class ExtState;
 
-class MonomialBoundsCheck
+class MonomialBoundsCheck : protected EnvObj
 {
  public:
-  MonomialBoundsCheck(ExtState* data);
+  MonomialBoundsCheck(Env& env, ExtState* data);
 
   void init();
 
@@ -87,6 +88,6 @@ class MonomialBoundsCheck
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
+ *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,14 +19,16 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+class ArithState;
 class InferenceManager;
 
 namespace nl {
@@ -47,10 +49,13 @@ namespace transcendental {
  * It's main functionality are methods that implement lemma schemas below,
  * which return a set of lemmas that should be sent on the output channel.
  */
-class TranscendentalSolver
+class TranscendentalSolver : protected EnvObj
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m, Env& env);
+  TranscendentalSolver(Env& env,
+                       ArithState& state,
+                       InferenceManager& im,
+                       NlModel& m);
   ~TranscendentalSolver();
 
   /** init last call
@@ -147,6 +152,21 @@ class TranscendentalSolver
    */
   void checkTranscendentalTangentPlanes();
 
+  /**
+   * Post-process model. This ensures that for all terms t in the domain of
+   * arithModel, if t is in the same equivalence class as a transcendental
+   * function application, then arithModel[t] maps to one such application.
+   *
+   * This is to ensure that the linear model is ignored for such terms,
+   * as their values cannot be properly represented in the model.
+   *
+   * It is important to map such terms t to a transcendental function
+   * application, or otherwise they would be unconstrained, leading to
+   * spurious models.
+   */
+  void postProcessModel(std::map<Node, Node>& arithModel,
+                        const std::set<Node>& termSet);
+
  private:
   /** check transcendental function refinement for tf
    *
@@ -177,6 +197,8 @@ class TranscendentalSolver
    */
   int regionToConcavity(Kind k, int region);
 
+  /** A reference to the arithmetic state object */
+  ArithState& d_astate;
   /** taylor degree
    *
    * Indicates that the degree of the polynomials in the Taylor approximation of
@@ -198,6 +220,6 @@ class TranscendentalSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__ARITH__TRANSCENDENTAL_SOLVER_H */

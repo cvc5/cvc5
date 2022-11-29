@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
+ *   Gereon Kremer, Aina Niemetz, Morgan Deters
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 ${includes}$
 // clang-format on
 
-namespace cvc5::options {
+namespace cvc5::internal::options {
 
 // clang-format off
 ${modes_decl}$
@@ -42,25 +42,13 @@ ${modes_decl}$
 struct Holder${id_cap}$
 {
 // clang-format off
-${holder_decl}$
+  ${holder_decl}$
 // clang-format on
 };
 
 #undef DO_SEMANTIC_CHECKS_BY_DEFAULT
 
-// clang-format off
-${wrapper_functions}$
-// clang-format on
 
-namespace ${id}$
-{
-// clang-format off
-${option_names}$
-
-${setdefaults_decl}$
-// clang-format on
-}
-
-}  // namespace cvc5::options
+}  // namespace cvc5::internal::options
 
 #endif /* CVC5__OPTIONS__${id_cap}$_H */

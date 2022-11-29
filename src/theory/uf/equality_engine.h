@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,13 +30,14 @@
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/theory_id.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Env;
 
@@ -52,8 +53,8 @@ class ProofEqEngine;
  * Class for keeping an incremental congruence closure over a set of terms. It provides
  * notifications via an EqualityEngineNotify object.
  */
-class EqualityEngine : public context::ContextNotifyObj {
-
+class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
+{
   friend class EqClassesIterator;
   friend class EqClassIterator;
 
@@ -126,13 +127,10 @@ class EqualityEngine : public context::ContextNotifyObj {
     /** Number of constant terms managed by the system */
     IntStat d_constantTermsCount;
 
-    Statistics(const std::string& name);
+    Statistics(StatisticsRegistry& sr, const std::string& name);
   };/* struct EqualityEngine::statistics */
 
  private:
-  /** The environment we are using */
-  Env& d_env;
-
   /** The context we are using */
   context::Context* d_context;
 
@@ -418,7 +416,7 @@ class EqualityEngine : public context::ContextNotifyObj {
   /** Are we in propagate */
   bool d_inPropagate;
 
-  /** Proof-new specific construction of equality conclusions for EqProofs
+  /** Construction of equality conclusions for EqProofs
    *
    * Given two equality node ids, build an equality between the nodes they
    * correspond to and add it as a conclusion to the given EqProof.
@@ -860,6 +858,6 @@ class EqualityEngine : public context::ContextNotifyObj {
 
 } // Namespace eq
 } // Namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

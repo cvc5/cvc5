@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Aina Niemetz
+ *   Morgan Deters, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,9 +22,9 @@
 
 #include "base/exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-class LogicException : public cvc5::Exception
+class LogicException : public cvc5::internal::Exception
 {
  public:
   LogicException() :
@@ -41,6 +41,6 @@ class LogicException : public cvc5::Exception
   }
 }; /* class LogicException */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__SMT__LOGIC_EXCEPTION_H */

@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,23 +17,25 @@
 
 #include "options/quantifiers_options.h"
 #include "smt/env.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/query_generator_sample_sat.h"
+#include "theory/quantifiers/query_generator_unsat.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager(Env& env)
     : EnvObj(env),
       d_doRewSynth(false),
-      d_doQueryGen(false),
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_tds(nullptr),
       d_crd(env,
-            options::sygusRewSynthCheck(),
-            options::sygusRewSynthAccel(),
+            options().quantifiers.sygusRewSynthCheck,
+            options().quantifiers.sygusRewSynthAccel,
             false),
-      d_qg(env),
+      d_qg(nullptr),
       d_sols(env),
       d_sampler(env)
 {
@@ -45,7 +47,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
                                         bool unique_type_ids)
 {
   d_doRewSynth = false;
-  d_doQueryGen = false;
+  d_qg = nullptr;
   d_doFilterLogicalStrength = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
@@ -60,13 +62,39 @@ void ExpressionMinerManager::initializeSygus(TermDbSygus* tds,
                                              bool useSygusType)
 {
   d_doRewSynth = false;
-  d_doQueryGen = false;
+  d_qg = nullptr;
   d_doFilterLogicalStrength = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_tds = tds;
   // initialize the sampler
   d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
+}
+
+void ExpressionMinerManager::initializeMinersForOptions()
+{
+  if (options().quantifiers.sygusRewSynth)
+  {
+    enableRewriteRuleSynth();
+  }
+  if (options().quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
+  {
+    enableQueryGeneration(options().quantifiers.sygusQueryGenThresh);
+  }
+  if (options().quantifiers.sygusFilterSolMode
+      != options::SygusFilterSolMode::NONE)
+  {
+    if (options().quantifiers.sygusFilterSolMode
+        == options::SygusFilterSolMode::STRONG)
+    {
+      enableFilterStrongSolutions();
+    }
+    else if (options().quantifiers.sygusFilterSolMode
+             == options::SygusFilterSolMode::WEAK)
+    {
+      enableFilterWeakSolutions();
+    }
+  }
 }
 
 void ExpressionMinerManager::enableRewriteRuleSynth()
@@ -95,24 +123,38 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
 
 void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
 {
-  if (d_doQueryGen)
+  if (d_qg != nullptr)
   {
     // already enabled
     return;
   }
-  d_doQueryGen = true;
+  options::SygusQueryGenMode mode = options().quantifiers.sygusQueryGen;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
-  // must also enable rewrite rule synthesis
-  if (!d_doRewSynth)
+  if (mode == options::SygusQueryGenMode::SAMPLE_SAT)
   {
-    // initialize the candidate rewrite database, in silent mode
-    enableRewriteRuleSynth();
-    d_crd.setSilent(true);
+    // must also enable rewrite rule synthesis
+    if (!d_doRewSynth)
+    {
+      // initialize the candidate rewrite database, in silent mode
+      enableRewriteRuleSynth();
+      d_crd.setSilent(true);
+    }
+    d_qg = std::make_unique<QueryGeneratorSampleSat>(d_env, deqThresh);
   }
-  // initialize the query generator
-  d_qg.initialize(vars, &d_sampler);
-  d_qg.setThreshold(deqThresh);
+  else if (mode == options::SygusQueryGenMode::UNSAT)
+  {
+    d_qg = std::make_unique<QueryGeneratorUnsat>(d_env);
+  }
+  else if (mode == options::SygusQueryGenMode::BASIC)
+  {
+    d_qg = std::make_unique<QueryGeneratorBasic>(d_env);
+  }
+  if (d_qg != nullptr)
+  {
+    // initialize the query generator
+    d_qg->initialize(vars, &d_sampler);
+  }
 }
 
 void ExpressionMinerManager::enableFilterWeakSolutions()
@@ -141,21 +183,22 @@ bool ExpressionMinerManager::addTerm(Node sol,
   Node solb = sol;
   if (d_use_sygus_type)
   {
-    solb = d_tds->sygusToBuiltin(sol);
+    solb = datatypes::utils::sygusToBuiltin(sol, true);
   }
 
   // add to the candidate rewrite rule database
   bool ret = true;
   if (d_doRewSynth)
   {
-    Node rsol = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
+    Node rsol = d_crd.addTerm(
+        sol, options().quantifiers.sygusRewSynthRec, out, rew_print);
     ret = (sol == rsol);
   }
 
   // a unique term, let's try the query generator
-  if (ret && d_doQueryGen)
+  if (ret && d_qg != nullptr)
   {
-    d_qg.addTerm(solb, out);
+    d_qg->addTerm(solb, out);
   }
 
   // filter based on logical strength
@@ -174,4 +217,4 @@ bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

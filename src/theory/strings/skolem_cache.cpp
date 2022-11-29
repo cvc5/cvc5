@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
+ *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -54,7 +54,7 @@ SkolemCache::SkolemCache(Rewriter* rr) : d_rr(rr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_strType = nm->stringType();
-  d_zero = nm->mkConst(Rational(0));
+  d_zero = nm->mkConstInt(Rational(0));
 }
 
 Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
@@ -109,8 +109,8 @@ Node SkolemCache::mkTypedSkolemCached(
     {
       // for sequences of Booleans, we may purify Boolean terms, in which case
       // they must be Boolean term variables.
-      int flags = a.getType().isBoolean() ? NodeManager::SKOLEM_BOOL_TERM_VAR
-                                          : NodeManager::SKOLEM_DEFAULT;
+      int flags = a.getType().isBoolean() ? SkolemManager::SKOLEM_BOOL_TERM_VAR
+                                          : SkolemManager::SKOLEM_DEFAULT;
       sk = sm->mkPurifySkolem(a, c, "string purify skolem", flags);
     }
     break;
@@ -119,7 +119,6 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_V_SPT_REV:
     case SK_ID_VC_SPT:
     case SK_ID_VC_SPT_REV:
-    case SK_FIRST_CTN_POST:
     case SK_ID_C_SPT:
     case SK_ID_C_SPT_REV:
     case SK_ID_DC_SPT:
@@ -127,18 +126,16 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_ID_DEQ_X:
     case SK_ID_DEQ_Y:
     case SK_FIRST_CTN_PRE:
+    case SK_FIRST_CTN_POST:
     case SK_PREFIX:
     case SK_SUFFIX_REM:
       Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
       break;
-    case SK_NUM_OCCUR:
-    case SK_OCCUR_INDEX:
     default:
     {
-      Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
-      Node v = nm->mkBoundVar(tn);
-      Node cond = nm->mkConst(true);
-      sk = sm->mkSkolem(v, cond, c, "string skolem");
+      Trace("skolem-cache")
+          << "Don't know how to handle Skolem ID " << id << std::endl;
+      sk = sm->mkDummySkolem(c, tn, "string skolem");
     }
     break;
   }
@@ -153,22 +150,6 @@ Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
                                       const char* c)
 {
   return mkTypedSkolemCached(tn, a, Node::null(), id, c);
-}
-
-Node SkolemCache::mkSkolemSeqNth(TypeNode seqType, const char* c)
-{
-  // Note this method is static and does not rely on any local caching.
-  // It is used by expand definitions and by (dynamic) reductions, thus
-  // it is centrally located here.
-  Assert(seqType.isSequence());
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-  std::vector<TypeNode> argTypes;
-  argTypes.push_back(seqType);
-  argTypes.push_back(nm->integerType());
-  TypeNode elemType = seqType.getSequenceElementType();
-  TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-  return sm->mkSkolemFunction(SkolemFunId::SEQ_NTH_OOB, ufType);
 }
 
 Node SkolemCache::mkSkolem(const char* c)
@@ -199,7 +180,7 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     id = SK_SUFFIX_REM;
     Node pre = mkSkolemCached(a, b, SK_FIRST_CTN_PRE, "pre");
     b = nm->mkNode(
-        PLUS, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b));
+        ADD, nm->mkNode(STRING_LENGTH, pre), nm->mkNode(STRING_LENGTH, b));
   }
   else if (id == SK_ID_V_SPT || id == SK_ID_C_SPT)
   {
@@ -212,32 +193,32 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     // SK_ID_*_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) (str.len y)))
     id = SK_PREFIX;
     b = nm->mkNode(
-        MINUS, nm->mkNode(STRING_LENGTH, a), nm->mkNode(STRING_LENGTH, b));
+        SUB, nm->mkNode(STRING_LENGTH, a), nm->mkNode(STRING_LENGTH, b));
   }
   else if (id == SK_ID_VC_SPT)
   {
     // SK_ID_VC_SPT(x, y) ---> SK_SUFFIX_REM(x, 1)
     id = SK_SUFFIX_REM;
-    b = nm->mkConst(Rational(1));
+    b = nm->mkConstInt(Rational(1));
   }
   else if (id == SK_ID_VC_SPT_REV)
   {
     // SK_ID_VC_SPT_REV(x, y) ---> SK_PREFIX(x, (- (str.len x) 1))
     id = SK_PREFIX;
     b = nm->mkNode(
-        MINUS, nm->mkNode(STRING_LENGTH, a), nm->mkConst(Rational(1)));
+        SUB, nm->mkNode(STRING_LENGTH, a), nm->mkConstInt(Rational(1)));
   }
   else if (id == SK_ID_DC_SPT)
   {
     // SK_ID_DC_SPT(x, y) ---> SK_PREFIX(x, 1)
     id = SK_PREFIX;
-    b = nm->mkConst(Rational(1));
+    b = nm->mkConstInt(Rational(1));
   }
   else if (id == SK_ID_DC_SPT_REM)
   {
     // SK_ID_DC_SPT_REM(x, y) ---> SK_SUFFIX_REM(x, 1)
     id = SK_SUFFIX_REM;
-    b = nm->mkConst(Rational(1));
+    b = nm->mkConstInt(Rational(1));
   }
   else if (id == SK_ID_DEQ_X)
   {
@@ -265,9 +246,9 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     bool isRev = (id == SK_ID_V_UNIFIED_SPT_REV);
     Node la = nm->mkNode(STRING_LENGTH, a);
     Node lb = nm->mkNode(STRING_LENGTH, b);
-    Node ta = isRev ? utils::mkPrefix(a, nm->mkNode(MINUS, la, lb))
+    Node ta = isRev ? utils::mkPrefix(a, nm->mkNode(SUB, la, lb))
                     : utils::mkSuffix(a, lb);
-    Node tb = isRev ? utils::mkPrefix(b, nm->mkNode(MINUS, lb, la))
+    Node tb = isRev ? utils::mkPrefix(b, nm->mkNode(SUB, lb, la))
                     : utils::mkSuffix(b, la);
     id = SK_PURIFY;
     // SK_ID_V_UNIFIED_SPT(x,y) --->
@@ -318,6 +299,25 @@ Node SkolemCache::mkLengthVar(Node t)
   return bvm->mkBoundVar<LengthVarAttribute>(t, intType);
 }
 
+Node SkolemCache::mkSkolemFun(SkolemFunId id, TypeNode tn, Node a, Node b)
+{
+  std::vector<Node> cacheVals;
+  for (size_t i = 0; i < 2; i++)
+  {
+    Node n = i == 0 ? a : b;
+    if (!n.isNull())
+    {
+      n = d_rr != nullptr ? d_rr->rewrite(n) : n;
+      cacheVals.push_back(n);
+    }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node k = sm->mkSkolemFunction(id, tn, cacheVals);
+  d_allSkolems.insert(k);
+  return k;
+}
+
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,17 +23,22 @@
 #include "expr/node.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace detail {
 /**
  * A single node in the proof tree created by the LazyTreeProofGenerator.
  * A node directly represents a ProofNode that is eventually constructed from
  * it. The Nodes of the additional field d_premise are added to d_children as
  * new assumptions via ASSUME.
+ * The object id can be used to store an arbitrary id to identify tree nodes
+ * and map them back to some other type, for example during pruning.
  */
 struct TreeProofNode
 {
+  /** Storage for some custom object identifier, used for pruning */
+  size_t d_objectId;
   /** The proof rule */
   PfRule d_rule = PfRule::UNKNOWN;
   /** Assumptions used as premise for this proof step */
@@ -67,13 +72,13 @@ struct TreeProofNode
  *
  * Consider the example  x*x<1 and x>2  and the intended proof
  *  (SCOPE
- *    (ARITH_NL_CAD_SPLIT
+ *    (ARITH_NL_COVERING_RECURSIVE
  *      (SCOPE
- *        (ARITH_NL_CAD_DIRECT  (x<=2  and  x>2) ==> false)
+ *        (ARITH_NL_COVERING_DIRECT  (x<=2  and  x>2) ==> false)
  *        :args [x<=2]
  *      )
  *      (SCOPE
- *        (ARITH_NL_CAD_DIRECT  (x>=1  and  x*x<1) ==> false)
+ *        (ARITH_NL_COVERING_DIRECT  (x>=1  and  x*x<1) ==> false)
  *        :args [x>=1]
  *      )
  *    )
@@ -100,7 +105,7 @@ struct TreeProofNode
  *  openChild();
  *  setCurrent(SCOPE, {}, {}, false);
  *  openChild();
- *  setCurrent(CAD_DIRECT, {x>2}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_DIRECT, {x>2}, {}, false);
  *  closeChild();
  *  getCurrent().args = {x<=2};
  *  closeChild();
@@ -108,25 +113,25 @@ struct TreeProofNode
  *  openChild();
  *  setCurrent(SCOPE, {}, {}, false);
  *  openChild();
- *  setCurrent(CAD_DIRECT, {x*x<1}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_DIRECT, {x*x<1}, {}, false);
  *  closeChild();
  *  getCurrent().args = {x>=1};
  *  closeChild();
  *  // Finish split
- *  setCurrent(CAD_SPLIT, {}, {}, false);
+ *  setCurrent(ARITH_NL_COVERING_RECURSIVE, {}, {}, false);
  *  closeChild();
  *  closeChild();
  *
  * To explicitly finish proof construction, we need to call closeChild() one
  * additional time.
  */
-class LazyTreeProofGenerator : public ProofGenerator
+class LazyTreeProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const LazyTreeProofGenerator& ltpg);
 
-  LazyTreeProofGenerator(ProofNodeManager* pnm,
+  LazyTreeProofGenerator(Env& env,
                          const std::string& name = "LazyTreeProofGenerator");
 
   std::string identify() const override { return d_name; }
@@ -145,7 +150,8 @@ class LazyTreeProofGenerator : public ProofGenerator
    */
   detail::TreeProofNode& getCurrent();
   /** Set the current node / proof step */
-  void setCurrent(PfRule rule,
+  void setCurrent(size_t objectId,
+                  PfRule rule,
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);
@@ -162,7 +168,7 @@ class LazyTreeProofGenerator : public ProofGenerator
    * generated and then later pruned, for example to produce smaller conflicts.
    * The predicate is given as a Callable f that is called for every child with
    * the id of the child and the child itself.
-   * f should return true if the child should be kept, fals if the child should
+   * f should return false if the child should be kept, true if the child should
    * be removed.
    * @param f a Callable bool(std::size_t, const detail::TreeProofNode&)
    */
@@ -170,20 +176,10 @@ class LazyTreeProofGenerator : public ProofGenerator
   void pruneChildren(F&& f)
   {
     auto& children = getCurrent().d_children;
-    std::size_t cur = 0;
-    std::size_t pos = 0;
-    for (std::size_t size = children.size(); cur < size; ++cur)
-    {
-      if (f(cur, children[pos]))
-      {
-        if (cur != pos)
-        {
-          children[pos] = std::move(children[cur]);
-        }
-        ++pos;
-      }
-    }
-    children.resize(pos);
+
+    auto it =
+        std::remove_if(children.begin(), children.end(), std::forward<F>(f));
+    children.erase(it, children.end());
   }
 
  private:
@@ -197,8 +193,6 @@ class LazyTreeProofGenerator : public ProofGenerator
              const std::string& prefix,
              const detail::TreeProofNode& pn) const;
 
-  /** The ProofNodeManager used for constructing ProofNodes */
-  ProofNodeManager* d_pnm;
   /** The trace to the current node */
   std::vector<detail::TreeProofNode*> d_stack;
   /** The root node of the proof tree */
@@ -216,6 +210,6 @@ class LazyTreeProofGenerator : public ProofGenerator
  */
 std::ostream& operator<<(std::ostream& os, const LazyTreeProofGenerator& ltpg);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

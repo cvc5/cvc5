@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
+ *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,14 +23,13 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 
-namespace cvc5 {
-
-class Env;
+namespace cvc5::internal {
 
 namespace rewriter {
 class RewriteDb;
@@ -42,19 +41,21 @@ namespace smt {
  * A callback class used by SolverEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
  */
-class ProofPostprocessCallback : public ProofNodeUpdaterCallback
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvObj
 {
  public:
   ProofPostprocessCallback(Env& env,
-                           ProofGenerator* pppg,
                            rewriter::RewriteDb* rdb,
                            bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
+   *
+   * @param pppg The proof generator that has proofs of preprocessed assertions
+   * (derived from input assertions).
    */
-  void initializeUpdate();
+  void initializeUpdate(ProofGenerator* pppg);
   /**
    * Set eliminate rule, which adds rule to the list of rules we will eliminate
    * during update. This adds rule to d_elimRules. Supported rules for
@@ -77,10 +78,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** Common constants */
   Node d_true;
-  /** Reference to the env */
-  Env& d_env;
-  /** Pointer to the proof node manager */
-  ProofNodeManager* d_pnm;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
   /** The witness form proof generator */
@@ -248,23 +245,25 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  * (1) Connect proofs of preprocessing,
  * (2) Expand macro PfRule applications.
  */
-class ProofPostproccess
+class ProofPostprocess : protected EnvObj
 {
  public:
   /**
    * @param env The environment we are using
-   * @param pppg The proof generator for pre-processing proofs
    * @param updateScopedAssumptions Whether we post-process assumptions in
    * scope. Since doing so is sound and only problematic depending on who is
    * consuming the proof, it's true by default.
    */
-  ProofPostproccess(Env& env,
-                    ProofGenerator* pppg,
-                    rewriter::RewriteDb* rdb,
-                    bool updateScopedAssumptions = true);
-  ~ProofPostproccess();
-  /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
+  ProofPostprocess(Env& env,
+                   rewriter::RewriteDb* rdb,
+                   bool updateScopedAssumptions = true);
+  ~ProofPostprocess();
+  /** post-process
+   *
+   * @param pf The proof to process.
+   * @param pppg The proof generator for pre-processing proofs.
+   */
+  void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
 
@@ -286,6 +285,6 @@ class ProofPostproccess
 };
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

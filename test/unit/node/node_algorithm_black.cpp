@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace expr;
 using namespace kind;
@@ -61,7 +61,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
   Node var = d_nodeManager->mkBoundVar(*d_intTypeNode);
   std::vector<Node> vars;
   vars.push_back(var);
-  Node sum = d_nodeManager->mkNode(PLUS, var, var);
+  Node sum = d_nodeManager->mkNode(ADD, var, var);
   Node qeq = d_nodeManager->mkNode(EQUAL, x, sum);
   Node bvl = d_nodeManager->mkNode(BOUND_VAR_LIST, vars);
   Node right = d_nodeManager->mkNode(EXISTS, bvl, qeq);
@@ -88,7 +88,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 
   // create test formula
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->integerType());
-  Node plus = d_nodeManager->mkNode(PLUS, x, x);
+  Node plus = d_nodeManager->mkNode(ADD, x, x);
   Node mul = d_nodeManager->mkNode(MULT, x, x);
   Node eq1 = d_nodeManager->mkNode(EQUAL, plus, mul);
 
@@ -112,7 +112,7 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 
   // in integers, we should only have plus and mult as operators
   ASSERT_EQ(result[*d_intTypeNode].size(), 2);
-  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(PLUS)),
+  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(ADD)),
             result[*d_intTypeNode].end());
   ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT)),
             result[*d_intTypeNode].end());
@@ -140,8 +140,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
 {
   TypeNode integer = d_nodeManager->integerType();
 
-  Node one = d_nodeManager->mkConst(Rational(1));
-  Node two = d_nodeManager->mkConst(Rational(2));
+  Node one = d_nodeManager->mkConstInt(Rational(1));
+  Node two = d_nodeManager->mkConstInt(Rational(2));
 
   Node x = d_nodeManager->mkBoundVar(integer);
   Node a = d_skolemManager->mkDummySkolem("a", integer);
@@ -200,4 +200,4 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
   ASSERT_EQ(subs[x], a);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

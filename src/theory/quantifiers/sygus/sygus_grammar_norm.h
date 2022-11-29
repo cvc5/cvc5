@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,8 +24,9 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "expr/type_node.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -80,11 +81,15 @@ class OpPosTrie
    * unres_t becomes the indexed type and true is returned. Otherwise a new type
    * is created, indexed by the given positions, and assigned to unres_t, with
    * false being returned.
+   *
+   * @param useIndexedName If true, we include the indices in op_pos in the
+   * name of unres_tn.
    */
   bool getOrMakeType(TypeNode tn,
                      TypeNode& unres_tn,
                      const std::vector<unsigned>& op_pos,
-                     unsigned ind = 0);
+                     unsigned ind = 0,
+                     bool useIndexedName = false);
   /** clear all data from this trie */
   void clear() { d_children.clear(); }
 
@@ -123,10 +128,10 @@ class OpPosTrie
  * These lighweight transformations are always applied, independently of the
  * normalization option being enabled.
  */
-class SygusGrammarNorm
+class SygusGrammarNorm : protected EnvObj
 {
  public:
-  SygusGrammarNorm(TermDbSygus* tds);
+  SygusGrammarNorm(Env& env, TermDbSygus* tds);
   ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *
@@ -272,7 +277,7 @@ class SygusGrammarNorm
    * neutral element.
    *
    * TODO: #1304:
-   * - define this transformation for more than just PLUS for Int.
+   * - define this transformation for more than just ADD for Int.
    * - improve the building such that elements that should not be entitled a
    * "link in the chain" (such as 5 in opposition to variables and 1) do not get
    * one
@@ -318,7 +323,7 @@ class SygusGrammarNorm
                    const DType& dt,
                    std::vector<unsigned>& op_pos) override;
 
-    /** Whether operator is chainable for the type (e.g. PLUS for Int)
+    /** Whether operator is chainable for the type (e.g. ADD for Int)
      *
      *  Since the map this function depends on cannot be built statically, this
      *  function first build maps the first time a type is checked. As a
@@ -330,7 +335,7 @@ class SygusGrammarNorm
      */
     static bool isChainable(TypeNode tn, Node op);
     /* Whether n is the identity for the chain operator of the type (e.g. 1 is
-     * not the identity 0 for PLUS for Int)
+     * not the identity 0 for ADD for Int)
      *
      * TODO: #1304: Cover more types, make this robust to more complex grammars
      */
@@ -353,7 +358,7 @@ class SygusGrammarNorm
     static std::map<TypeNode, std::vector<Kind>> d_chain_ops;
     /** Specifies for each type node and chainable operator its identity
      *
-     * For example, for Int and PLUS the map is {Int -> {+ -> 0}}
+     * For example, for Int and ADD the map is {Int -> {+ -> 0}}
      *
      * TODO #1304: consider more operators
      */
@@ -426,6 +431,6 @@ class SygusGrammarNorm
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

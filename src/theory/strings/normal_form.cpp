@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,9 @@
 #include "theory/strings/word.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -52,8 +52,7 @@ void NormalForm::reverse()
 
 void NormalForm::splitConstant(unsigned index, Node c1, Node c2)
 {
-  Assert(Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-             STRING_CONCAT, d_isRev ? c2 : c1, d_isRev ? c1 : c2))
+  Assert(Word::mkWordFlatten({d_isRev ? c2 : c1, d_isRev ? c1 : c2})
          == d_nf[index]);
   d_nf.insert(d_nf.begin() + index + 1, c2);
   d_nf[index] = c1;
@@ -117,7 +116,7 @@ void NormalForm::addToExplanation(Node exp,
 
 void NormalForm::getExplanation(int index, std::vector<Node>& curr_exp)
 {
-  if (index == -1 || !options::stringMinPrefixExplain())
+  if (index == -1)
   {
     curr_exp.insert(curr_exp.end(), d_exp.begin(), d_exp.end());
     return;
@@ -152,14 +151,9 @@ Node NormalForm::collectConstantStringAt(size_t& index)
     {
       std::reverse(c.begin(), c.end());
     }
-    Node cc = Rewriter::rewrite(utils::mkConcat(c, c[0].getType()));
-    Assert(cc.isConst());
-    return cc;
+    return utils::mkConcat(c, c[0].getType());
   }
-  else
-  {
-    return Node::null();
-  }
+  return Node::null();
 }
 
 void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
@@ -185,4 +179,4 @@ void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner
+ *   Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,7 @@
 #include "expr/term_context.h"
 #include "theory/bv/bitblast/node_bitblaster.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TConvProofGenerator;
 
@@ -36,7 +36,6 @@ class BBProof : protected EnvObj
  public:
   BBProof(Env& env,
           TheoryState* state,
-          ProofNodeManager* pnm,
           bool fineGrained);
   ~BBProof();
 
@@ -64,8 +63,6 @@ class BBProof : protected EnvObj
 
   /** The associated simple bit-blaster. */
   std::unique_ptr<NodeBitblaster> d_bb;
-  /** The associated proof node manager. */
-  ProofNodeManager* d_pnm;
   /** Term context for d_tcpg to not rewrite below BV leafs. */
   std::unique_ptr<TermContext> d_tcontext;
   /** Term conversion proof generator for bit-blast steps. */
@@ -81,5 +78,5 @@ class BBProof : protected EnvObj
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

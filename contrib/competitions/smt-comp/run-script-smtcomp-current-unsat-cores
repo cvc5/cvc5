@@ -23,7 +23,7 @@ QF_NIA)
   finishwith --nl-ext-tplanes
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
-ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|ABVFP|BVFP|FP)
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDTLIRA|AUFDTLIA|AUFDTLIRA|AUFBV|AUFBVDTLIA|AUFBVFP|AUFNIA|UFFPDTLIRA|UFFPDTNIRA|ABVFP|BVFP|FP)
   finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
@@ -39,7 +39,7 @@ NIA|NRA)
   finishwith --full-saturate-quant --cegqi-nested-qe --decision=internal
   ;;
 QF_AUFBV)
-  finishwith --decision=justification-stoponly
+  finishwith --decision=stoponly
   ;;
 QF_ABV)
   finishwith --arrays-weak-equiv
@@ -60,7 +60,7 @@ QF_AUFNIA)
   finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_ALIA)
-  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  finishwith --decision=stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
 QF_S|QF_SLIA)
   finishwith --strings-exp

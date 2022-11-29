@@ -13,8 +13,11 @@
 #
 # Output is to standard out.
 #
+# Required to disable this option for bash >=5.2 to avoid automatically
+# replacing & by the substituted text.
+shopt -u patsub_replacement
 
-copyright=2010-2021
+copyright=2010-2022
 
 filename=`basename "$1" | sed 's,_template,,'`
 
@@ -100,9 +103,9 @@ function theory {
     echo "$kf:$lineno: error: \"theory\" directive missing class or header argument" >&2
     exit 1
   elif ! expr "$2" : '\(::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::cvc5::theory::foo)" >&2
-  elif ! expr "$2" : '\(::cvc5::theory::*\)' >/dev/null; then
-    echo "$kf:$lineno: warning: theory class not under ::cvc5::theory namespace" >&2
+    echo "$kf:$lineno: warning: theory class \`$2' isn't fully-qualified (e.g., ::cvc5::internal::theory::foo)" >&2
+  elif ! expr "$2" : '\(::cvc5::internal::theory::*\)' >/dev/null; then
+    echo "$kf:$lineno: warning: theory class not under ::cvc5::internal::theory namespace" >&2
   fi
 
   theory_id="$1"

@@ -1,0 +1,23 @@
+; EXPECT: infeasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status -q
+(set-logic ALL)
+(synth-fun inv-fn ((i Int) (x (Array Int Int)) (c Int)) Bool)
+
+(define-fun init-fn ((i Int) (x (Array Int Int)) (c Int)) Bool 
+	(and (= i 0)
+	(= (select x 10) c)))
+
+(define-fun post-fn ((i Int) (x (Array Int Int))(c Int)) Bool 
+	(exists ((index Int)) (and (= (select x index) c)
+	(forall ((index2 Int)) (=> (< index2 index) (not (= (select x index) c))))
+	)))
+
+(declare-var x (Array Int Int))
+(declare-var x! (Array Int Int))
+(declare-var i Int)
+(declare-var i! Int)
+(declare-var c Int)
+
+(constraint (=> (init-fn i x c) (inv-fn i x c)))
+(constraint (=> (inv-fn i x c) (post-fn i x c)))
+(check-synth)

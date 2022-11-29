@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,11 +25,16 @@
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
+
+BvInverter::BvInverter(const Options& opts, Rewriter* r)
+    : d_opts(opts), d_rewriter(r)
+{
+}
 
 /*---------------------------------------------------------------------------*/
 
@@ -53,12 +58,16 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   TNode solve_var = getSolveVariable(tn);
 
   // condition should be rewritten
-  Node new_cond = Rewriter::rewrite(cond);
-  if (new_cond != cond)
+  Node new_cond = cond;
+  if (d_rewriter != nullptr)
   {
-    Trace("cegqi-bv-skvinv-debug")
-        << "Condition " << cond << " was rewritten to " << new_cond
-        << std::endl;
+    new_cond = d_rewriter->rewrite(cond);
+    if (new_cond != cond)
+    {
+      Trace("cegqi-bv-skvinv-debug")
+          << "Condition " << cond << " was rewritten to " << new_cond
+          << std::endl;
+    }
   }
   // optimization : if condition is ( x = solve_var ) should just return
   // solve_var and not introduce a Skolem this can happen when we ask for
@@ -273,7 +282,7 @@ Node BvInverter::solveBvLit(Node sv,
     k = sv_t.getKind();
 
     /* Note: All n-ary kinds except for CONCAT (i.e., BITVECTOR_AND,
-     *       BITVECTOR_OR, MULT, PLUS) are commutative (no case split
+     *       BITVECTOR_OR, MULT, ADD) are commutative (no case split
      *       based on index). */
     Node s = dropChild(sv_t, index);
     Assert((nchildren == 1 && s.isNull()) || (nchildren > 1 && !s.isNull()));
@@ -336,7 +345,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (k == BITVECTOR_CONCAT)
     {
-      if (litk == EQUAL && options::cegqiBvConcInv())
+      if (litk == EQUAL && d_opts.quantifiers.cegqiBvConcInv)
       {
         /* Compute inverse for s1 o x, x o s2, s1 o x o s2
          * (while disregarding that invertibility depends on si)
@@ -442,4 +451,4 @@ Node BvInverter::solveBvLit(Node sv,
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

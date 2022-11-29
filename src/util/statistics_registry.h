@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer
+ *   Gereon Kremer, Morgan Deters, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,12 +37,10 @@
  *
  * AverageStat is a BackedStat<double>.
  *
- * HistogramStat counts instances of some type T. It is implemented as a
- * std::map<T, std::uint64_t>.
- *
- * IntegralHistogramStat is a (conceptual) specialization of HistogramStat
- * for types that are (convertible to) integral. This allows to use a
- * std::vector<std::uint64_t> instead of a std::map.
+ * HistogramStat counts instances of some type T. We assume that T is either an
+ * integral type, or an enum type (that is convertible to an interval type).
+ * This allows a more efficient implementation as std::vector<std::uint64_t>
+ * instead of a std::map<T, uint64_t>.
  *
  * TimerStat uses std::chrono to collect timing information. It is
  * implemented as BackedStat<std::chrono::duration> and provides methods
@@ -78,7 +76,7 @@
 #include "util/statistics_stats.h"
 #include "util/statistics_value.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 struct StatisticBaseValue;
 
@@ -100,10 +98,10 @@ struct StatisticBaseValue;
  * Note that the type of the re-registered statistic must always match
  * the type of the previously registered statistic with the same name.
  *
- * We generally distinguish between public (non-expert) and private (expert)
- * statistics. By default, `--stats` only shows public statistics. Private
- * ones are printed as well if `--all-statistics` is set.
- * All registration methods have a trailing argument `expert`, defaulting to
+ * We generally distinguish between public and internal statistics.
+ * By default, `--stats` only shows public statistics. Internal
+ * ones are printed as well if `--stats-internal` is set.
+ * All registration methods have a trailing argument `internal`, defaulting to
  * true.
  *
  * If statistics are disabled entirely (i.e. the cmake option
@@ -129,24 +127,24 @@ class StatisticsRegistry : protected EnvObj
 
   /** Register a new running average statistic for `name` */
 
-  AverageStat registerAverage(const std::string& name, bool expert = true);
+  AverageStat registerAverage(const std::string& name, bool internal = true);
   /** Register a new histogram statistic for `name` */
   template <typename T>
   HistogramStat<T> registerHistogram(const std::string& name,
-                                     bool expert = true)
+                                     bool internal = true)
   {
-    return registerStat<HistogramStat<T>>(name, expert);
+    return registerStat<HistogramStat<T>>(name, internal);
   }
 
   /** Register a new integer statistic for `name` */
-  IntStat registerInt(const std::string& name, bool expert = true);
+  IntStat registerInt(const std::string& name, bool internal = true);
 
   /** Register a new reference statistic for `name` */
   template <typename T>
   ReferenceStat<T> registerReference(const std::string& name,
-                                     bool expert = true)
+                                     bool internal = true)
   {
-    return registerStat<ReferenceStat<T>>(name, expert);
+    return registerStat<ReferenceStat<T>>(name, internal);
   }
   /**
    * Register a new reference statistic for `name` and initialize it to
@@ -155,9 +153,9 @@ class StatisticsRegistry : protected EnvObj
   template <typename T>
   ReferenceStat<T> registerReference(const std::string& name,
                                      const T& t,
-                                     bool expert = true)
+                                     bool internal = true)
   {
-    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name, expert);
+    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name, internal);
     res.set(t);
     return res;
   }
@@ -169,30 +167,30 @@ class StatisticsRegistry : protected EnvObj
   template <typename T>
   SizeStat<T> registerSize(const std::string& name,
                            const T& t,
-                           bool expert = true)
+                           bool internal = true)
   {
-    SizeStat<T> res = registerStat<SizeStat<T>>(name, expert);
+    SizeStat<T> res = registerStat<SizeStat<T>>(name, internal);
     res.set(t);
     return res;
   }
 
   /** Register a new timer statistic for `name` */
-  TimerStat registerTimer(const std::string& name, bool expert = true);
+  TimerStat registerTimer(const std::string& name, bool internal = true);
 
   /** Register a new value statistic for `name`. */
   template <typename T>
-  ValueStat<T> registerValue(const std::string& name, bool expert = true)
+  ValueStat<T> registerValue(const std::string& name, bool internal = true)
   {
-    return registerStat<ValueStat<T>>(name, expert);
+    return registerStat<ValueStat<T>>(name, internal);
   }
 
   /** Register a new value statistic for `name` and set it to `init`. */
   template <typename T>
   ValueStat<T> registerValue(const std::string& name,
                              const T& init,
-                             bool expert = true)
+                             bool internal = true)
   {
-    ValueStat<T> res = registerStat<ValueStat<T>>(name, expert);
+    ValueStat<T> res = registerStat<ValueStat<T>>(name, internal);
     res.set(init);
     return res;
   }
@@ -234,22 +232,22 @@ class StatisticsRegistry : protected EnvObj
    * statistic using `typeid`.
    */
   template <typename Stat>
-  Stat registerStat(const std::string& name, bool expert)
+  Stat registerStat(const std::string& name, bool internal)
   {
-    if constexpr (Configuration::isStatisticsBuild())
+    if constexpr (configuration::isStatisticsBuild())
     {
       auto it = d_stats.find(name);
       if (it == d_stats.end())
       {
         it = d_stats.emplace(name, std::make_unique<typename Stat::stat_type>())
                  .first;
-        it->second->d_expert = expert;
+        it->second->d_internal = internal;
       }
       auto* ptr = it->second.get();
       Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
           << "Statistic value " << name
           << " was registered again with a different type.";
-      it->second->d_expert = it->second->d_expert && expert;
+      it->second->d_internal = it->second->d_internal && internal;
       return Stat(static_cast<typename Stat::stat_type*>(ptr));
     }
     return Stat(nullptr);
@@ -267,6 +265,6 @@ class StatisticsRegistry : protected EnvObj
 /** Calls `sr.print(os)`. */
 std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__STATISTICS_REGISTRY_H */

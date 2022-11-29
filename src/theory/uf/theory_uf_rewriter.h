@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
+ *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +27,7 @@
 #include "theory/substitutions.h"
 #include "theory/theory_rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
@@ -35,11 +35,11 @@ class TheoryUfRewriter : public TheoryRewriter
 {
  public:
   TheoryUfRewriter(bool isHigherOrder = false);
+  /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
-
+  /** pre-rewrite */
   RewriteResponse preRewrite(TNode node) override;
-
- public:  // conversion between HO_APPLY AND APPLY_UF
+  // conversion between HO_APPLY AND APPLY_UF
   // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a)
   // b)
   static Node getHoApplyForApplyUf(TNode n);
@@ -62,12 +62,20 @@ class TheoryUfRewriter : public TheoryRewriter
    * Then, f and g can be used as APPLY_UF operators, but (ite C f g), (lambda x1. (f x1)) as well as the variable x above are not.
    */
   static bool canUseAsApplyUfOperator(TNode n);
+
+ private:
+  /** Entry point for rewriting lambdas */
+  static Node rewriteLambda(Node node);
+  /** rewrite bv2nat */
+  static RewriteResponse rewriteBVToNat(TNode node);
+  /** rewrite int2bv */
+  static RewriteResponse rewriteIntToBV(TNode node);
   /** Is the logic higher-order? */
   bool d_isHigherOrder;
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__UF__THEORY_UF_REWRITER_H */

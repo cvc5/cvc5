@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Aina Niemetz
+ *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 
 using namespace std;
 using namespace cvc5::context;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -73,7 +73,7 @@ void StringsFmf::StringSumLengthDecisionStrategy::initialize(
     {
       sum.push_back(nm->mkNode(STRING_LENGTH, v));
     }
-    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
+    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(ADD, sum);
     d_inputVarLsum.set(sumn);
   }
 }
@@ -85,7 +85,7 @@ Node StringsFmf::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
     return Node::null();
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConst(Rational(i)));
+  Node lit = nm->mkNode(LEQ, d_inputVarLsum.get(), nm->mkConstInt(Rational(i)));
   Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
   return lit;
 }
@@ -96,4 +96,4 @@ std::string StringsFmf::StringSumLengthDecisionStrategy::identify() const
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

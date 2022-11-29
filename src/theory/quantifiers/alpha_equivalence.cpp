@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,9 +19,9 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -32,7 +32,13 @@ struct sortTypeOrder {
   }
 };
 
+AlphaEquivalenceTypeNode::AlphaEquivalenceTypeNode(context::Context* c)
+    : d_quant(c)
+{
+}
+
 Node AlphaEquivalenceTypeNode::registerNode(
+    context::Context* c,
     Node q,
     Node t,
     std::vector<TypeNode>& typs,
@@ -40,25 +46,47 @@ Node AlphaEquivalenceTypeNode::registerNode(
 {
   AlphaEquivalenceTypeNode* aetn = this;
   size_t index = 0;
+  std::map<std::pair<TypeNode, size_t>,
+           std::unique_ptr<AlphaEquivalenceTypeNode>>::iterator itc;
   while (index < typs.size())
   {
     TypeNode curr = typs[index];
     Assert(typCount.find(curr) != typCount.end());
     Trace("aeq-debug") << "[" << curr << " " << typCount[curr] << "] ";
     std::pair<TypeNode, size_t> key(curr, typCount[curr]);
-    aetn = &(aetn->d_children[key]);
+    itc = aetn->d_children.find(key);
+    if (itc == aetn->d_children.end())
+    {
+      aetn->d_children[key] = std::make_unique<AlphaEquivalenceTypeNode>(c);
+      aetn = aetn->d_children[key].get();
+    }
+    else
+    {
+      aetn = itc->second.get();
+    }
     index = index + 1;
   }
   Trace("aeq-debug") << " : ";
-  std::map<Node, Node>::iterator it = aetn->d_quant.find(t);
-  if (it != aetn->d_quant.end())
+  NodeMap::iterator it = aetn->d_quant.find(t);
+  if (it != aetn->d_quant.end() && !it->second.isNull())
   {
+    Trace("aeq-debug") << it->second << std::endl;
     return it->second;
   }
+  Trace("aeq-debug") << "(new)" << std::endl;
   aetn->d_quant[t] = q;
   return q;
 }
 
+AlphaEquivalenceDb::AlphaEquivalenceDb(context::Context* c,
+                                       expr::TermCanonize* tc,
+                                       bool sortCommChildren)
+    : d_context(c),
+      d_ae_typ_trie(c),
+      d_tc(tc),
+      d_sortCommutativeOpChildren(sortCommChildren)
+{
+}
 Node AlphaEquivalenceDb::addTerm(Node q)
 {
   Assert(q.getKind() == FORALL);
@@ -129,7 +157,7 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
   sto.d_tu = d_tc;
   std::sort( typs.begin(), typs.end(), sto );
   Trace("aeq-debug") << "  ";
-  Node ret = d_ae_typ_trie.registerNode(q, t, typs, typCount);
+  Node ret = d_ae_typ_trie.registerNode(d_context, q, t, typs, typCount);
   Trace("aeq") << "  ...result : " << ret << std::endl;
   return ret;
 }
@@ -137,9 +165,9 @@ Node AlphaEquivalenceDb::addTermToTypeTrie(Node t, Node q)
 AlphaEquivalence::AlphaEquivalence(Env& env)
     : EnvObj(env),
       d_termCanon(),
-      d_aedb(&d_termCanon, true),
-      d_pnm(env.getProofNodeManager()),
-      d_pfAlpha(d_pnm ? new EagerProofGenerator(d_pnm) : nullptr)
+      d_aedb(userContext(), &d_termCanon, true),
+      d_pfAlpha(env.isTheoryProofProducing() ? new EagerProofGenerator(env)
+                                             : nullptr)
 {
 }
 
@@ -172,9 +200,9 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
   lem = ret.eqNode(q);
   if (q.getNumChildren() == 3)
   {
-    Notice() << "Ignoring annotated quantified formula based on alpha "
-                "equivalence: "
-             << q << std::endl;
+    verbose(1) << "Ignoring annotated quantified formula based on alpha "
+                  "equivalence: "
+               << q << std::endl;
   }
   // if successfully computed the substitution above
   if (isProofEnabled() && !vars.empty())
@@ -187,7 +215,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       Trace("alpha-eq") << "subs: " << vars[i] << " -> " << subs[i]
                         << std::endl;
     }
-    CDProof cdp(d_pnm);
+    CDProof cdp(d_env);
     Node sret =
         ret.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     std::vector<Node> transEq;
@@ -242,4 +270,4 @@ bool AlphaEquivalence::isProofEnabled() const { return d_pfAlpha != nullptr; }
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

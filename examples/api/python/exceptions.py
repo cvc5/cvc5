@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli
+#   Andres Noetzli, Alex Ozdemir
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -16,13 +16,13 @@
 # A simple demonstration of catching cvc5 exceptions with the legacy Python API.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 import sys
 
 
 def main():
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     slv.setOption("produce-models", "true")
 

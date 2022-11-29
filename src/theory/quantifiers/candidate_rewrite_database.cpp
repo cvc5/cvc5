@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
+ *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,20 +16,19 @@
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "smt/smt_statistics_registry.h"
-#include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
+#include "smt/set_defaults.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -45,6 +44,11 @@ CandidateRewriteDatabase::CandidateRewriteDatabase(
       d_using_sygus(false),
       d_crewrite_filter(env)
 {
+  // determine the options to use for the verification subsolvers we spawn
+  // we start with the provided options
+  d_subOptions.copyValues(options());
+  // disable checking
+  smt::SetDefaults::disableChecking(d_subOptions);
 }
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
                                           SygusSampler* ss)
@@ -143,13 +147,15 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // Notice we don't set produce-models. rrChecker takes the same
         // options as the SolverEngine we belong to, where we ensure that
         // produce-models is set.
+        SubsolverSetupInfo ssi(d_env, d_subOptions);
         std::unique_ptr<SolverEngine> rrChecker;
-        initializeChecker(rrChecker, crr);
+        initializeChecker(rrChecker, crr, ssi);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
-        if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+        if (r.getStatus() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
+          NodeManager* nm = NodeManager::currentNM();
           is_unique_term = true;
           std::vector<Node> vars;
           d_sampler->getVariables(vars);
@@ -166,7 +172,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
               if (itf == d_fv_to_skolem.end())
               {
                 // not in conjecture, can use arbitrary value
-                val = v.getType().mkGroundTerm();
+                val = nm->mkGroundTerm(v.getType());
               }
               else
               {
@@ -186,11 +192,12 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
           // add the solution again
           // by construction of the above point, we should be unique now
           eq_sol = d_sampler->registerTerm(sol);
-          Assert(eq_sol == sol);
+          Assert(eq_sol == sol) << "Model failed to distinguish terms "
+                                << eq_sol << " and " << sol;
         }
         else
         {
-          verified = !r.asSatisfiabilityResult().isUnknown();
+          verified = !r.isUnknown();
         }
       }
       else
@@ -230,7 +237,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // we count this as printed, despite not literally printing it
         rew_print = true;
         // debugging information
-        if (Trace.isOn("sygus-rr-debug"))
+        if (TraceIsOn("sygus-rr-debug"))
         {
           Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
                                   << std::endl;
@@ -260,6 +267,17 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
                                << std::endl;
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
+      }
+      // If we failed to verify, then we return the original term. This is done
+      // so that the user of this method is not told of a rewrite rule that
+      // may not hold. Furthermore, note that the term is not added to the lazy
+      // trie in the sygus sampler. This means that the set of rewrites is not
+      // complete, as we are discarding the current solution. Ideally, we would
+      // store a list of terms (that are pairwise unknown to be equal) at each
+      // leaf of the lazy trie.
+      if (!verified)
+      {
+        eq_sol = sol;
       }
     }
     // We count this as a rewrite if we did not explicitly rule it out.
@@ -297,4 +315,4 @@ void CandidateRewriteDatabase::enableExtendedRewriter()
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

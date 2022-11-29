@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/quantifiers_attributes.h"
 
+#include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -24,16 +25,17 @@
 #include "util/string.h"
 
 using namespace std;
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && !d_isQuantBounded;
+  return !d_sygus && !d_quant_elim && !isFunDef() && !isOracleInterface()
+         && !d_isQuantBounded;
 }
 
 QuantAttributes::QuantAttributes() {}
@@ -113,7 +115,7 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       }else if( q[1][1]==h ){
         return q[1][0];
       }
-      else if (q[1][0].getType().isReal())
+      else if (q[1][0].getType().isRealOrInt())
       {
         // solve for h in the equality
         std::map<Node, Node> msum;
@@ -195,9 +197,8 @@ void QuantAttributes::computeAttributes( Node q ) {
   {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
-      CVC5Message() << "Cannot define function " << f << " more than once."
-                    << std::endl;
-      AlwaysAssert(false);
+      AlwaysAssert(false) << "Cannot define function " << f
+                          << " more than once." << std::endl;
     }
     d_fun_defs[f] = true;
   }
@@ -257,6 +258,13 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
         }
+        // oracles are specified by a distinguished variable kind
+        if (avar.getKind() == kind::ORACLE)
+        {
+          qa.d_oracle = avar;
+          Trace("quant-attr")
+              << "Attribute : oracle interface : " << q << std::endl;
+        }
         if (avar.hasAttribute(SygusSideConditionAttribute()))
         {
           qa.d_sygusSideCondition =
@@ -270,13 +278,12 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           // only set the name if there is a value
           if (q[2][i].getNumChildren() > 1)
           {
-            Trace("quant-attr") << "Attribute : quantifier name : "
-                                << q[2][i][1].getConst<String>().toString()
+            std::string name = q[2][i][1].getName();
+            Trace("quant-attr") << "Attribute : quantifier name : " << name
                                 << " for " << q << std::endl;
             // assign the name to a variable with the given name (to avoid
             // enclosing the name in quotes)
-            qa.d_name = nm->mkBoundVar(q[2][i][1].getConst<String>().toString(),
-                                       nm->booleanType());
+            qa.d_name = nm->mkBoundVar(name, nm->booleanType());
           }
           else
           {
@@ -317,18 +324,26 @@ bool QuantAttributes::isFunDef( Node q ) {
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.isFunDef();
   }
+  return it->second.isFunDef();
 }
 
 bool QuantAttributes::isSygus( Node q ) {
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
     return false;
-  }else{
-    return it->second.d_sygus;
   }
+  return it->second.d_sygus;
+}
+
+bool QuantAttributes::isOracleInterface(Node q)
+{
+  std::map<Node, QAttributes>::iterator it = d_qattr.find(q);
+  if (it == d_qattr.end())
+  {
+    return false;
+  }
+  return it->second.isOracleInterface();
 }
 
 int64_t QuantAttributes::getQuantInstLevel(Node q)
@@ -444,6 +459,18 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, uint64_t level)
   }
 }
 
+Node mkNamedQuant(Kind k, Node bvl, Node body, const std::string& name)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node v = sm->mkDummySkolem(
+      name, nm->booleanType(), "", SkolemManager::SKOLEM_EXACT_NAME);
+  Node attr = nm->mkConst(String("qid"));
+  Node ip = nm->mkNode(INST_ATTRIBUTE, attr, v);
+  Node ipl = nm->mkNode(INST_PATTERN_LIST, ip);
+  return nm->mkNode(k, bvl, body, ipl);
+}
+
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

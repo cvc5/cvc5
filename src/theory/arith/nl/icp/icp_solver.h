@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli
+ *   Gereon Kremer, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,13 +23,14 @@
 #endif /* CVC5_POLY_IMP */
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/arith/bound_inference.h"
 #include "theory/arith/nl/icp/candidate.h"
 #include "theory/arith/nl/icp/contraction_origins.h"
 #include "theory/arith/nl/icp/intersection.h"
 #include "theory/arith/nl/poly_conversion.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
@@ -53,8 +54,19 @@ namespace icp {
  * These contractions can yield to a conflict (if the interval of some variable
  * becomes empty) or shrink the search space for a variable.
  */
-class ICPSolver
+class ICPSolver : protected EnvObj
 {
+ public:
+  ICPSolver(Env& env, InferenceManager& im);
+  /** Reset this solver for the next theory call */
+  void reset(const std::vector<Node>& assertions);
+
+  /**
+   * Performs a full ICP check.
+   */
+  void check();
+
+ private:
   /**
    * This encapsulates the state of the ICP solver that is local to a single
    * theory call. It contains the variable bounds and candidates derived from
@@ -74,12 +86,12 @@ class ICPSolver
     std::vector<Node> d_conflict;
 
     /** Initialized the variable bounds with a variable mapper */
-    ICPState(VariableMapper& vm) {}
+    ICPState(Env& env, VariableMapper& vm) : d_bounds(env) {}
 
     /** Reset this state */
     void reset()
     {
-      d_bounds = BoundInference();
+      d_bounds.reset();
       d_candidates.clear();
       d_assignment.clear();
       d_origins = ContractionOriginManager();
@@ -126,24 +138,14 @@ class ICPSolver
    * is constructed.
    */
   std::vector<Node> generateLemmas() const;
-
- public:
-  ICPSolver(InferenceManager& im) : d_im(im), d_state(d_mapper) {}
-  /** Reset this solver for the next theory call */
-  void reset(const std::vector<Node>& assertions);
-
-  /**
-   * Performs a full ICP check.
-   */
-  void check();
 };
 
 #else /* CVC5_POLY_IMP */
 
-class ICPSolver
+class ICPSolver : protected EnvObj
 {
  public:
-  ICPSolver(InferenceManager& im) {}
+  ICPSolver(Env& env, InferenceManager& im) : EnvObj(env) {}
   void reset(const std::vector<Node>& assertions);
   void check();
 };
@@ -154,6 +156,6 @@ class ICPSolver
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

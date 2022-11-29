@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 #define K 30u
 #define LARGE_K UINT_MAX / 40
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace kind;
 
@@ -95,18 +95,18 @@ TEST_F(TestNodeBlackNodeBuilder, getKind)
   noKind << x << x;
   ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
 
-  noKind << PLUS;
-  ASSERT_EQ(noKind.getKind(), PLUS);
+  noKind << ADD;
+  ASSERT_EQ(noKind.getKind(), ADD);
 
   Node n = noKind;
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(noKind.getKind(), "!isUsed\\(\\)");
 #endif
 
-  NodeBuilder spec(PLUS);
-  ASSERT_EQ(spec.getKind(), PLUS);
+  NodeBuilder spec(ADD);
+  ASSERT_EQ(spec.getKind(), ADD);
   spec << x << x;
-  ASSERT_EQ(spec.getKind(), PLUS);
+  ASSERT_EQ(spec.getKind(), ADD);
 }
 
 TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
@@ -118,7 +118,7 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
-  nb << PLUS << x << x;
+  nb << ADD << x << x;
   ASSERT_EQ(nb.getNumChildren(), 2u);
 
   nb << x << x;
@@ -129,7 +129,7 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
   ASSERT_DEATH(nb.getNumChildren(), "getKind\\(\\) != kind::UNDEFINED_KIND");
 #endif
 
-  nb.clear(PLUS);
+  nb.clear(ADD);
   ASSERT_EQ(nb.getNumChildren(), 0u);
 
   nb << x << x << x;
@@ -139,7 +139,7 @@ TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
   ASSERT_EQ(nb.getNumChildren(), 6u);
 
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb << PLUS, "getKind\\(\\) == kind::UNDEFINED_KIND");
+  ASSERT_DEATH(nb << ADD, "getKind\\(\\) == kind::UNDEFINED_KIND");
   Node n = nb;
   ASSERT_DEATH(nb.getNumChildren(), "!isUsed\\(\\)");
 #endif
@@ -229,7 +229,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 {
 #ifdef CVC5_ASSERTIONS
   NodeBuilder spec(d_specKind);
-  ASSERT_DEATH(spec << PLUS, "can't redefine the Kind of a NodeBuilder");
+  ASSERT_DEATH(spec << ADD, "can't redefine the Kind of a NodeBuilder");
 #endif
 
   NodeBuilder noSpec;
@@ -243,16 +243,16 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
   NodeBuilder nb(d_specKind);
   nb << d_nodeManager->mkConst(true) << d_nodeManager->mkConst(false);
-  nb.clear(PLUS);
+  nb.clear(ADD);
 
 #ifdef CVC5_ASSERTIONS
   Node n;
-  ASSERT_DEATH(n = nb, "Nodes with kind PLUS must have at least 2 children");
-  nb.clear(PLUS);
+  ASSERT_DEATH(n = nb, "Nodes with kind `\\+` must have at least 2 children");
+  nb.clear(ADD);
 #endif
 
 #ifdef CVC5_ASSERTIONS
-  ASSERT_DEATH(nb << PLUS, "can't redefine the Kind of a NodeBuilder");
+  ASSERT_DEATH(nb << ADD, "can't redefine the Kind of a NodeBuilder");
 #endif
 
   NodeBuilder testRef;
@@ -260,7 +260,7 @@ TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 
 #ifdef CVC5_ASSERTIONS
   NodeBuilder testTwo;
-  ASSERT_DEATH(testTwo << d_specKind << PLUS,
+  ASSERT_DEATH(testTwo << d_specKind << ADD,
                "can't redefine the Kind of a NodeBuilder");
 #endif
 
@@ -312,13 +312,13 @@ TEST_F(TestNodeBlackNodeBuilder, append)
 
   Node p = d_nodeManager->mkNode(
       EQUAL,
-      d_nodeManager->mkConst<Rational>(0),
-      d_nodeManager->mkNode(PLUS, r, d_nodeManager->mkNode(UMINUS, s), t));
+      d_nodeManager->mkConst<Rational>(CONST_RATIONAL, 0),
+      d_nodeManager->mkNode(ADD, r, d_nodeManager->mkNode(NEG, s), t));
   Node q = d_nodeManager->mkNode(AND, x, z, d_nodeManager->mkNode(NOT, y));
 
 #ifdef CVC5_ASSERTIONS
   ASSERT_DEATH(d_nodeManager->mkNode(XOR, y, x, x),
-               "Nodes with kind XOR must have at most 2 children");
+               "Nodes with kind `xor` must have at most 2 children");
 #endif
 
   NodeBuilder b(d_specKind);
@@ -413,4 +413,4 @@ TEST_F(TestNodeBlackNodeBuilder, leftist_building)
   ASSERT_EQ(nexpected, n);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

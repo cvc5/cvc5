@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ *   Andrew Reynolds, Andres Noetzli
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,17 +21,14 @@
 #include "proof/lazy_proof.h"
 #include "smt/preprocess_proof_generator.h"
 #include "theory/builtin/proof_checker.h"
-#include "theory/rewriter.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 
-AssertionPipeline::AssertionPipeline()
-    : d_realAssertionsEnd(0),
+AssertionPipeline::AssertionPipeline(Env& env)
+    : EnvObj(env),
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
-      d_assumptionsStart(0),
-      d_numAssumptions(0),
       d_pppg(nullptr)
 {
 }
@@ -39,31 +36,14 @@ AssertionPipeline::AssertionPipeline()
 void AssertionPipeline::clear()
 {
   d_nodes.clear();
-  d_realAssertionsEnd = 0;
-  d_assumptionsStart = 0;
-  d_numAssumptions = 0;
+  d_iteSkolemMap.clear();
 }
 
 void AssertionPipeline::push_back(Node n,
-                                  bool isAssumption,
                                   bool isInput,
                                   ProofGenerator* pgen)
 {
   d_nodes.push_back(n);
-  if (isAssumption)
-  {
-    Assert(pgen == nullptr);
-    if (d_numAssumptions == 0)
-    {
-      d_assumptionsStart = d_nodes.size() - 1;
-    }
-    // Currently, we assume that assumptions are all added one after another
-    // and that we store them in the same vector as the assertions. Once we
-    // split the assertions up into multiple vectors (see issue #2473), we will
-    // not have this limitation anymore.
-    Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
-    d_numAssumptions++;
-  }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
   if (isProofEnabled())
@@ -86,7 +66,7 @@ void AssertionPipeline::pushBackTrusted(TrustNode trn)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, false, trn.getGenerator());
+  push_back(trn.getProven(), false, trn.getGenerator());
 }
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
@@ -117,7 +97,7 @@ void AssertionPipeline::replaceTrusted(size_t i, TrustNode trn)
   replace(i, trn.getNode(), trn.getGenerator());
 }
 
-void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+void AssertionPipeline::enableProofs(smt::PreprocessProofGenerator* pppg)
 {
   d_pppg = pppg;
 }
@@ -147,7 +127,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node newConj = nm->mkNode(kind::AND, d_nodes[i], n);
-  Node newConjr = theory::Rewriter::rewrite(newConj);
+  Node newConjr = rewrite(newConj);
   Trace("assert-pipeline") << "Assertions: conjoin " << n << " to "
                            << d_nodes[i] << std::endl;
   Trace("assert-pipeline-debug") << "conjoin " << n << " to " << d_nodes[i]
@@ -186,7 +166,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
         lcp->addLazyStep(d_nodes[i], d_pppg);
         lcp->addStep(newConj, PfRule::AND_INTRO, {d_nodes[i], n}, {});
       }
-      if (newConjr != newConj)
+      if (!CDProof::isSame(newConjr, newConj))
       {
         lcp->addStep(
             newConjr, PfRule::MACRO_SR_PRED_TRANSFORM, {newConj}, {newConjr});
@@ -200,8 +180,8 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
     }
   }
   d_nodes[i] = newConjr;
-  Assert(theory::Rewriter::rewrite(newConjr) == newConjr);
+  Assert(rewrite(newConjr) == newConjr);
 }
 
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Yancheng Ou
+ *   Yancheng Ou, Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +18,7 @@
 #include "test_smt.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace theory;
 using namespace smt;
@@ -66,7 +66,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, box)
   // Box optimization
   Result r = optSolver.checkOpt(OptimizationSolver::BOX);
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   std::vector<OptimizationResult> results = optSolver.getValues();
 
@@ -107,7 +107,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, lex)
 
   Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   std::vector<OptimizationResult> results = optSolver.getValues();
 
@@ -186,7 +186,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
       {1, 3}, {2, 2}, {3, 1}};
 
   r = optSolver.checkOpt(OptimizationSolver::PARETO);
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
   std::vector<OptimizationResult> results = optSolver.getValues();
   std::pair<uint32_t, uint32_t> res = {
       results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
@@ -201,7 +201,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   possibleResults.erase(res);
 
   r = optSolver.checkOpt(OptimizationSolver::PARETO);
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
   results = optSolver.getValues();
   res = {
       results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
@@ -216,7 +216,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   possibleResults.erase(res);
 
   r = optSolver.checkOpt(OptimizationSolver::PARETO);
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
   results = optSolver.getValues();
   res = {
       results[0].getValue().getConst<BitVector>().toInteger().toUnsignedInt(),
@@ -231,7 +231,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pareto)
   possibleResults.erase(res);
 
   r = optSolver.checkOpt(OptimizationSolver::PARETO);
-  ASSERT_EQ(r.isSat(), Result::UNSAT);
+  ASSERT_EQ(r.getStatus(), Result::UNSAT);
   ASSERT_EQ(possibleResults.size(), 0);
 }
 
@@ -265,7 +265,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   // Lexico optimization
   Result r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
 
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
 
   std::vector<OptimizationResult> results = optSolver.getValues();
 
@@ -284,7 +284,7 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
 
   // now we only have one objective: (minimize x)
   r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
   results = optSolver.getValues();
   ASSERT_EQ(results.size(), 1);
   ASSERT_EQ(results[0].getValue().getConst<BitVector>(), BitVector(32u, 18u));
@@ -292,10 +292,10 @@ TEST_F(TestTheoryWhiteOptMultigoal, pushpop)
   // resetting the assertions also resets the optimization objectives
   d_slvEngine->resetAssertions();
   r = optSolver.checkOpt(OptimizationSolver::LEXICOGRAPHIC);
-  ASSERT_EQ(r.isSat(), Result::SAT);
+  ASSERT_EQ(r.getStatus(), Result::SAT);
   results = optSolver.getValues();
   ASSERT_EQ(results.size(), 0);
 }
 
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

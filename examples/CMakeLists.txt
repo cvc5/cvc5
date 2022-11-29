@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Andres Noetzli
+#   Aina Niemetz, Mudathir Mohamed, Mathias Preiner
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -54,7 +54,7 @@ macro(cvc5_add_example name src_files output_dir)
   endif()
 
   add_executable(${name} ${src_files_list})
-  target_link_libraries(${name} cvc5::cvc5-shared cvc5::cvc5parser-shared)
+  target_link_libraries(${name} cvc5::cvc5 cvc5::cvc5parser)
 
   # The test target is prefixed with the path,
   # e.g., for '<output_dir>/myexample.cpp'
@@ -73,38 +73,36 @@ endmacro()
 
 cvc5_add_example(simple_vc_cxx "" "")
 cvc5_add_example(simple_vc_quant_cxx "" "")
-# TODO(project issue $206): Port example to new API
-# cvc5_add_example(translator "" ""
-#     # argument to binary (for testing)
-#     ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
 add_subdirectory(api/cpp)
-# TODO(project issue $206): Port example to new API
-# add_subdirectory(nra-translate)
-# add_subdirectory(sets-translate)
 
 if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
   include(UseJava)
 
-  ## disabled until bindings for the new API are in place (issue #2284)
-  # get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
-  #
-  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
-  #
-  # add_test(
-  #   NAME java/SimpleVC
-  #   COMMAND
-  #     ${Java_JAVA_EXECUTABLE}
-  #       -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
-  #       -Djava.library.path=${CVC5_JNI_PATH}
-  #       SimpleVC
-  # )
-  # TODO(project wishue #83): enable java examples
-  # add_subdirectory(api/java)
+  # get directory build/install/lib where libcvc5jni.so is installed
+  get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
+  get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
+  message(STATUS "CVC5_JNI_PATH: ${CVC5_JNI_PATH}")
+
+
+  get_target_property(CVC5_JAR cvc5::cvc5jar JAR_FILE)
+  message(STATUS "cvc5jar: ${CVC5_JAR}")
+
+  add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC5_JAR}")
+  add_test(
+    NAME java/SimpleVC
+    COMMAND
+      ${Java_JAVA_EXECUTABLE}
+        -cp "${CVC5_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
+        -Djava.library.path=${CVC5_JNI_PATH}
+        SimpleVC
+  )
+  add_subdirectory(api/java)
 endif()
 
 if(CVC5_BINDINGS_PYTHON)
+  message(STATUS "with Python examples")
   # If legacy Python API has been built
   add_subdirectory(api/python)
 endif()

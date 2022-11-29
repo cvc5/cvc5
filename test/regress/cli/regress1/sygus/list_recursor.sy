@@ -1,0 +1,26 @@
+; EXPECT: feasible
+; COMMAND-LINE: --sygus-out=status --lang=sygus2
+
+(set-logic HO_ALL)
+
+(declare-datatype List ((cons (head Int) (tail List)) (nil)))
+
+(define-fun-rec List_rec ((x Int) (y (-> Int List Int Int)) (l List)) Int
+  (ite ((_ is nil) l) x
+                      (y (head l) (tail l) (List_rec x y (tail l)))))
+
+(synth-fun f () Int
+  ((I Int))
+  ((I Int  (0 1 (+ I I)))))
+
+(synth-fun g ((x Int) (y List) (z Int)) Int
+  ((I Int) (L List))
+  ((I Int  (x z (+ I I) (head L) 0 1))
+   (L List (y (tail y)))))
+
+
+(constraint (= (List_rec f g (cons 0 (cons 1 nil))) 2))
+(constraint (= (List_rec f g (cons 0 (cons 0 nil))) 2))
+(constraint (= (List_rec f g (cons 5 (cons 3 (cons 3 (cons 0 nil))))) 4))
+(constraint (= (List_rec f g nil) 0))
+(check-synth)

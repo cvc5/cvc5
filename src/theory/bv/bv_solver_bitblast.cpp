@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner, Gereon Kremer, Andres Noetzli
+ *   Mathias Preiner, Andres Noetzli, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,12 +17,11 @@
 
 #include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
@@ -110,8 +109,7 @@ class BBRegistrar : public prop::Registrar
 
 BVSolverBitblast::BVSolverBitblast(Env& env,
                                    TheoryState* s,
-                                   TheoryInferenceManager& inferMgr,
-                                   ProofNodeManager* pnm)
+                                   TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
       d_bitblaster(new NodeBitblaster(env, s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
@@ -120,16 +118,17 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bbInputFacts(context()),
       d_assumptions(context()),
       d_assertions(context()),
-      d_epg(pnm ? new EagerProofGenerator(pnm, userContext(), "")
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(env, userContext(), "")
                 : nullptr),
       d_factLiteralCache(context()),
       d_literalFactCache(context()),
       d_propagate(options().bv.bitvectorPropagate),
       d_resetNotify(new NotifyResetAssertions(userContext()))
 {
-  if (pnm != nullptr)
+  if (env.isTheoryProofProducing())
   {
-    d_bvProofChecker.registerTo(pnm->getChecker());
+    d_bvProofChecker.registerTo(env.getProofNodeManager()->getChecker());
   }
 
   initSatSolver();
@@ -224,7 +223,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       for (const prop::SatLiteral& lit : unsat_assumptions)
       {
         conf.push_back(d_literalFactCache[lit]);
-        Debug("bv-bitblast")
+        Trace("bv-bitblast")
             << "unsat assumption (" << lit << "): " << conf.back() << std::endl;
       }
       conflict = nm->mkAnd(conf);
@@ -265,7 +264,7 @@ bool BVSolverBitblast::preNotifyFact(
 
 TrustNode BVSolverBitblast::explain(TNode n)
 {
-  Debug("bv-bitblast") << "explain called on " << n << std::endl;
+  Trace("bv-bitblast") << "explain called on " << n << std::endl;
   return d_im.explainLit(n);
 }
 
@@ -332,17 +331,20 @@ void BVSolverBitblast::initSatSolver()
   {
     case options::SatSolverMode::CRYPTOMINISAT:
       d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
+          statisticsRegistry(),
+          d_env.getResourceManager(),
+          "theory::bv::BVSolverBitblast::"));
       break;
     default:
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          smtStatisticsRegistry(), "theory::bv::BVSolverBitblast::"));
+          statisticsRegistry(),
+          d_env.getResourceManager(),
+          "theory::bv::BVSolverBitblast::"));
   }
-  d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
+  d_cnfStream.reset(new prop::CnfStream(d_env,
+                                        d_satSolver.get(),
                                         d_bbRegistrar.get(),
                                         d_nullContext.get(),
-                                        nullptr,
-                                        d_env.getResourceManager(),
                                         prop::FormulaLitPolicy::INTERNAL,
                                         "theory::bv::BVSolverBitblast"));
 }
@@ -408,4 +410,4 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

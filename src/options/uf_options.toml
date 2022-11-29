@@ -3,8 +3,7 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  alias      = ["uf-symmetry-breaker"]
-  category   = "regular"
+  category   = "expert"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
@@ -46,24 +45,32 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufssFairnessMonotone"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ss-fair-monotone"
   type       = "bool"
   default    = "false"
   help       = "group monotone sorts when enforcing fairness for finite model finding"
 
 [[option]]
-  name       = "ufHo"
-  category   = "regular"
-  long       = "uf-ho"
-  type       = "bool"
-  default    = "false"
-  help       = "enable support for higher-order reasoning"
-
-[[option]]
   name       = "ufHoExt"
-  category   = "regular"
+  category   = "expert"
   long       = "uf-ho-ext"
   type       = "bool"
   default    = "true"
   help       = "apply extensionality on function symbols"
+
+[[option]]
+  name       = "ufHoLazyLambdaLift"
+  category   = "regular"
+  long       = "uf-lazy-ll"
+  type       = "bool"
+  default    = "false"
+  help       = "do lambda lifting lazily"
+
+[[option]]
+  name       = "eagerArithBvConv"
+  category   = "expert"
+  long       = "eager-arith-bv-conv"
+  type       = "bool"
+  default    = "false"
+  help       = "eagerly expand bit-vector to arithmetic conversions during preprocessing"

@@ -1,0 +1,26 @@
+; EXPECT: feasible
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+(set-logic ALL)
+(define-sort FP () (_ FloatingPoint 3 5))
+(synth-fun IC ((t FP)) Bool
+  ((Start Bool) (StartFP FP) (StartRM RoundingMode))
+  ((Start Bool (
+     true
+     false
+     (fp.isZero StartFP)
+     (ite Start Start Start)
+   ))
+   (StartFP FP (
+     t
+     (fp.sub StartRM StartFP StartFP)
+     (fp.max StartFP StartFP)
+   ))
+   (StartRM RoundingMode
+     (RNE))
+))
+
+(constraint (not (IC (fp #b0 #b110 #b1001) )))
+(constraint (not (IC (fp #b1 #b101 #b1101) )))
+(constraint (not (IC (fp #b1 #b001 #b0110) )))
+(constraint (IC (fp #b0 #b001 #b0001) ))
+(check-synth)

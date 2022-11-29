@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,11 +24,11 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
-using namespace cvc5::theory;
+using namespace cvc5::internal::theory;
 
 TheoryPreprocess::TheoryPreprocess(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "theory-preprocess"){};
@@ -64,4 +64,4 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

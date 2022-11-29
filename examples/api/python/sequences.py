@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Andres Noetzli, Makai Mann, Mudathir Mohamed
+#   Andres Noetzli, Makai Mann, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -15,11 +15,11 @@
 # through the Python API. This is a direct translation of sequences.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
     # Set the logic
     slv.setLogic("QF_SLIA")
     # Produce models
@@ -39,18 +39,18 @@ if __name__ == "__main__":
     # Empty sequence
     empty = slv.mkEmptySequence(slv.getIntegerSort())
     # Sequence concatenation: x.y.empty
-    concat = slv.mkTerm(kinds.SeqConcat, x, y, empty)
+    concat = slv.mkTerm(Kind.SEQ_CONCAT, x, y, empty)
     # Sequence length: |x.y.empty|
-    concat_len = slv.mkTerm(kinds.SeqLength, concat)
+    concat_len = slv.mkTerm(Kind.SEQ_LENGTH, concat)
     # |x.y.empty| > 1
-    formula1 = slv.mkTerm(kinds.Gt, concat_len, slv.mkInteger(1))
+    formula1 = slv.mkTerm(Kind.GT, concat_len, slv.mkInteger(1))
     # Sequence unit: seq(1)
-    unit = slv.mkTerm(kinds.SeqUnit, slv.mkInteger(1))
+    unit = slv.mkTerm(Kind.SEQ_UNIT, slv.mkInteger(1))
     # x = seq(1)
-    formula2 = slv.mkTerm(kinds.Equal, x, unit)
+    formula2 = slv.mkTerm(Kind.EQUAL, x, unit)
 
     # Make a query
-    q = slv.mkTerm(kinds.And, formula1, formula2)
+    q = slv.mkTerm(Kind.AND, formula1, formula2)
 
     # Check satisfiability
     result = slv.checkSatAssuming(q)

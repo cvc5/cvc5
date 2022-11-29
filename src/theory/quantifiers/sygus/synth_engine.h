@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -57,7 +57,7 @@ class SynthEngine : public QuantifiersModule
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const override { return "SynthEngine"; }
+  std::string identify() const override;
   /** get synth solutions
    *
    * This function adds entries to sol_map that map functions-to-synthesize
@@ -115,6 +115,6 @@ class SynthEngine : public QuantifiersModule
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

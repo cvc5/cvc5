@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, MikolasJanota, Aina Niemetz
+ *   Andrew Reynolds, Mikolas Janota, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,10 +22,10 @@
 #include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 using namespace cvc5::context;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -35,20 +35,20 @@ InstStrategyEnum::InstStrategyEnum(Env& env,
                                    QuantifiersRegistry& qr,
                                    TermRegistry& tr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(env, qs, qim, qr, tr), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(env, qs, qim, qr, tr), d_rd(rd), d_enumInstLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
 {
-  d_fullSaturateLimit = options::fullSaturateLimit();
+  d_enumInstLimit = options().quantifiers.enumInstLimit;
 }
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
-  if (d_fullSaturateLimit == 0)
+  if (d_enumInstLimit == 0)
   {
     return false;
   }
-  if (options::fullSaturateInterleave())
+  if (options().quantifiers.enumInstInterleave)
   {
     // if interleaved, we run at the same time as E-matching
     if (d_qstate.getInstWhenNeedsCheck(e))
@@ -56,7 +56,7 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
       return true;
     }
   }
-  if (options::fullSaturateQuant())
+  if (options().quantifiers.enumInst)
   {
     if (e >= Theory::EFFORT_LAST_CALL)
     {
@@ -71,14 +71,14 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (d_fullSaturateLimit != 0)
+  if (d_enumInstLimit != 0)
   {
-    if (options::fullSaturateInterleave())
+    if (options().quantifiers.enumInstInterleave)
     {
       // we only add when interleaved with other strategies
       doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
-    if (options::fullSaturateQuant() && !doCheck)
+    if (options().quantifiers.enumInst && !doCheck)
     {
       if (!d_qstate.getValuation().needCheck())
       {
@@ -93,13 +93,13 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   }
   Assert(!d_qstate.isInConflict());
   double clSet = 0;
-  if (Trace.isOn("fs-engine"))
+  if (TraceIsOn("enum-engine"))
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("fs-engine") << "---Full Saturation Round, effort = " << e << "---"
-                       << std::endl;
+    Trace("enum-engine") << "---Full Saturation Round, effort = " << e << "---"
+                         << std::endl;
   }
-  unsigned rstart = options::fullSaturateQuantRd() ? 0 : 1;
+  unsigned rstart = options().quantifiers.enumInstRd ? 0 : 1;
   unsigned rend = fullEffort ? 1 : rstart;
   unsigned addedLemmas = 0;
   // First try in relevant domain of all quantified formulas, if no
@@ -138,7 +138,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
           if (process(q, fullEffort, r == 0))
           {
             // don't need to mark this if we are not stratifying
-            if (!options::fullSaturateStratify())
+            if (!options().quantifiers.enumInstStratify)
             {
               alreadyProc[q] = true;
             }
@@ -152,7 +152,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
         }
       }
       if (d_qstate.isInConflict()
-          || (addedLemmas > 0 && options::fullSaturateStratify()))
+          || (addedLemmas > 0 && options().quantifiers.enumInstStratify))
       {
         // we break if we are in conflict, or if we added any lemma at this
         // effort level and we stratify effort levels.
@@ -160,16 +160,16 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       }
     }
   }
-  if (Trace.isOn("fs-engine"))
+  if (TraceIsOn("enum-engine"))
   {
-    Trace("fs-engine") << "Added lemmas = " << addedLemmas << std::endl;
+    Trace("enum-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("fs-engine") << "Finished full saturation engine, time = "
-                       << (clSet2 - clSet) << std::endl;
+    Trace("enum-engine") << "Finished full saturation engine, time = "
+                         << (clSet2 - clSet) << std::endl;
   }
-  if (d_fullSaturateLimit > 0)
+  if (d_enumInstLimit > 0)
   {
-    d_fullSaturateLimit--;
+    d_enumInstLimit--;
   }
 }
 
@@ -182,18 +182,18 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
     return false;
   }
 
+  Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = fullEffort;
-  ttec.d_increaseSum = options::fullSaturateSum();
+  ttec.d_increaseSum = options().quantifiers.enumInstSum;
+  ttec.d_tr = &d_treg;
   // make the enumerator, which is either relevant domain or term database
   // based on the flag isRd.
   std::unique_ptr<TermTupleEnumeratorInterface> enumerator(
       isRd ? mkTermTupleEnumeratorRd(quantifier, &ttec, d_rd)
-           : mkTermTupleEnumerator(
-                 quantifier, &ttec, d_qstate, d_treg.getTermDatabase()));
+           : mkTermTupleEnumerator(quantifier, &ttec, d_qstate));
   std::vector<Node> terms;
   std::vector<bool> failMask;
-  Instantiate* ie = d_qim.getInstantiate();
   for (enumerator->init(); enumerator->hasNext();)
   {
     if (d_qstate.isInConflict())
@@ -222,4 +222,4 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

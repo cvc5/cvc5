@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 
 #include "theory/inference_id.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class Listener;
 class Options;
@@ -73,13 +73,10 @@ class WallClockTimer
 enum class Resource
 {
   ArithPivotStep,
+  ArithNlCoveringStep,
   ArithNlLemmaStep,
   BitblastStep,
-  BvEagerAssertStep,
-  BvPropagationStep,
-  BvSatConflictsStep,
-  BvSatPropagateStep,
-  BvSatSimplifyStep,
+  BvSatStep,
   CnfStep,
   DecisionStep,
   LemmaStep,
@@ -127,6 +124,8 @@ class ResourceManager
   /** Can not be moved. */
   ResourceManager& operator=(ResourceManager&&) = delete;
 
+  void setEnabled(bool enabled) { d_enabled = enabled; }
+
   /** Checks whether any limit is active. */
   bool limitOn() const;
 
@@ -141,17 +140,19 @@ class ResourceManager
   uint64_t getResourceUsage() const;
   /** Retrieves time used over all calls. */
   uint64_t getTimeUsage() const;
+  /** Retrieves the remaining time until the time limit is reached. */
+  uint64_t getRemainingTime() const;
   /** Retrieves the remaining number of cumulative resources. */
   uint64_t getResourceRemaining() const;
 
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(Resource r);
   /**
-   * Spends a given resource. Throws an UnsafeInterruptException if there are
-   * no remaining resources.
+   * Spends a given resource. Calls the listener to interrupt the solver if
+   * there are no remaining resources.
    */
   void spendResource(theory::InferenceId iid);
 
@@ -175,6 +176,13 @@ class ResourceManager
 
  private:
   const Options& d_options;
+
+  /**
+   * If the resource manager is not enabled, then the checks whether we are out
+   * of resources are disabled. Resources are still spent, however.
+   */
+  bool d_enabled;
+
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
 
@@ -207,6 +215,6 @@ class ResourceManager
   std::unique_ptr<Statistics> d_statistics;
 }; /* class ResourceManager */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__RESOURCE_MANAGER_H */

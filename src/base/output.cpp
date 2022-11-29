@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /* Definitions of the declared globals from output.h... */
 
@@ -29,13 +29,7 @@ NullC nullStream;
 const std::string Cvc5ostream::s_tab = "  ";
 const int Cvc5ostream::s_indentIosIndex = std::ios_base::xalloc();
 
-DebugC DebugChannel(&std::cout);
 WarningC WarningChannel(&std::cerr);
-MessageC MessageChannel(&std::cout);
-NoticeC NoticeChannel(&null_os);
-ChatC ChatChannel(&null_os);
 TraceC TraceChannel(&std::cout);
-std::ostream DumpOutC::dump_cout(std::cout.rdbuf());  // copy cout stream buffer
-DumpOutC DumpOutChannel(&DumpOutC::dump_cout);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal

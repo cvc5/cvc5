@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Clark Barrett, Mathias Preiner
+ *   Aina Niemetz, Mathias Preiner, Clark Barrett
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +18,11 @@
 // for array-constant attributes
 #include "expr/array_store_all.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/builtin/theory_builtin_type_rules.h"
 #include "theory/type_enumerator.h"
 #include "util/cardinality.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
@@ -39,7 +40,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                          "array select operating on non-array");
     }
     TypeNode indexType = n[1].getType(check);
-    if (!indexType.isSubtypeOf(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array select not indexed with correct type for array");
@@ -64,17 +65,17 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       TypeNode indexType = n[1].getType(check);
       TypeNode valueType = n[2].getType(check);
-      if (!indexType.isSubtypeOf(arrayType.getArrayIndexType()))
+      if (indexType != arrayType.getArrayIndexType())
       {
         throw TypeCheckingExceptionPrivate(
             n, "array store not indexed with correct type for array");
       }
-      if (!valueType.isSubtypeOf(arrayType.getArrayConstituentType()))
+      if (valueType != arrayType.getArrayConstituentType())
       {
-        Debug("array-types")
+        Trace("array-types")
             << "array type: " << arrayType.getArrayConstituentType()
             << std::endl;
-        Debug("array-types") << "value types: " << valueType << std::endl;
+        Trace("array-types") << "value types: " << valueType << std::endl;
         throw TypeCheckingExceptionPrivate(
             n, "array store not assigned with correct type for array");
       }
@@ -196,13 +197,13 @@ TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
                                          "array table fun arg 1 is non-array");
     }
     TypeNode indexType = n[2].getType(check);
-    if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 2 does not match type of array");
     }
     indexType = n[3].getType(check);
-    if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
+    if (indexType != arrayType.getArrayIndexType())
     {
       throw TypeCheckingExceptionPrivate(
           n, "array table fun arg 3 does not match type of array");
@@ -249,7 +250,25 @@ bool ArraysProperties::isWellFounded(TypeNode type)
 
 Node ArraysProperties::mkGroundTerm(TypeNode type)
 {
-  return *TypeEnumerator(type);
+  Assert(type.getKind() == kind::ARRAY_TYPE);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode elemType = type.getArrayConstituentType();
+  Node elem = nm->mkGroundTerm(elemType);
+  if (elem.isConst())
+  {
+    return NodeManager::currentNM()->mkConst(ArrayStoreAll(type, elem));
+  }
+  // Note the distinction between mkGroundTerm and mkGroundValue. While
+  // an arbitrary value can be obtained by calling the type enumerator here,
+  // that is wrong for types that are not closed enumerable since it may
+  // return a term containing values that should not appear in e.g. assertions.
+  // For example, arrays whose element type is an uninterpreted sort will
+  // incorrectly introduce uninterpreted sort values if this is done.
+  // It is currently infeasible to construct an ArrayStoreAll with the element
+  // type's mkGroundTerm as an argument when that term is not constant.
+  // Thus, we must simply return a fresh Skolem here, using the same utility
+  // as that of uninterpreted sorts.
+  return builtin::SortProperties::mkGroundTerm(type);
 }
 
 TypeNode ArrayPartialSelectTypeRule::computeType(NodeManager* nodeManager,
@@ -287,18 +306,18 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
     TypeNode indexType = n0_type.getArrayIndexType();
     TypeNode indexRangeType1 = n[2].getType(check);
     TypeNode indexRangeType2 = n[3].getType(check);
-    if (!indexRangeType1.isSubtypeOf(indexType))
+    if (indexRangeType1 != indexType)
     {
       throw TypeCheckingExceptionPrivate(
           n, "eqrange lower index type does not match array index type");
     }
-    if (!indexRangeType2.isSubtypeOf(indexType))
+    if (indexRangeType2 != indexType)
     {
       throw TypeCheckingExceptionPrivate(
           n, "eqrange upper index type does not match array index type");
     }
     if (!indexType.isBitVector() && !indexType.isFloatingPoint()
-        && !indexType.isInteger() && !indexType.isReal())
+        && !indexType.isRealOrInt())
     {
       throw TypeCheckingExceptionPrivate(
           n,
@@ -311,4 +330,4 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
 
 }  // namespace arrays
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

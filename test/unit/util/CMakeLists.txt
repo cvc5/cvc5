@@ -1,10 +1,10 @@
 ###############################################################################
 # Top contributors (to current version):
-#   Aina Niemetz, Yoni Zohar, Gereon Kremer
+#   Mathias Preiner, Gereon Kremer, Aina Niemetz
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -23,6 +23,7 @@ cvc5_add_unit_test_black(cardinality_black util)
 cvc5_add_unit_test_white(check_white util)
 cvc5_add_unit_test_black(configuration_black util)
 cvc5_add_unit_test_black(datatype_black util)
+cvc5_add_unit_test_white(didyoumean_black util)
 cvc5_add_unit_test_black(exception_black util)
 cvc5_add_unit_test_black(floatingpoint_black util)
 cvc5_add_unit_test_black(integer_black util)

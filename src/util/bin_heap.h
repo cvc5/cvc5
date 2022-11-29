@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Tim King, Morgan Deters, Mathias Preiner
+ *   Tim King, Morgan Deters, Yancheng Ou
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +29,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * BinaryHeap that orders its elements greatest-first (i.e., in the opposite
@@ -383,6 +383,6 @@ private:
 template <class Elem, class CmpFcn>
 const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::max()-2)/2;
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BIN_HEAP_H */

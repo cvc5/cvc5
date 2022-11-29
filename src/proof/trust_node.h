@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +20,9 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
+class Options;
 class ProofGenerator;
 class ProofNode;
 
@@ -152,7 +153,10 @@ class TrustNode
    *
    * @param reqNullGen Whether we consider a null generator to be a failure.
    */
-  void debugCheckClosed(const char* c, const char* ctx, bool reqNullGen = true);
+  void debugCheckClosed(const Options& opts,
+                        const char* c,
+                        const char* ctx,
+                        bool reqNullGen = true);
 
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);
@@ -173,6 +177,6 @@ class TrustNode
  */
 std::ostream& operator<<(std::ostream& out, TrustNode n);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__TRUST_NODE_H */

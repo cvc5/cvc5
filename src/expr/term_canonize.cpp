@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +20,9 @@
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace expr {
 
 TermCanonize::TermCanonize(TypeClassCallback* tcc)
@@ -96,7 +96,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   return false;
 }
 
-Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
+Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
 {
   Assert(!tn.isNull());
   NodeManager* nm = NodeManager::currentNM();
@@ -104,15 +104,22 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i, uint32_t tc)
   std::vector<Node>& tvars = d_cn_free_var[key];
   while (tvars.size() <= i)
   {
-    std::stringstream oss;
-    oss << tn;
-    std::string typ_name = oss.str();
-    while (typ_name[0] == '(')
-    {
-      typ_name.erase(typ_name.begin());
-    }
     std::stringstream os;
-    os << typ_name[0] << i;
+    if (tn.isFunction())
+    {
+      os << "f" << i;
+    }
+    else
+    {
+      std::stringstream oss;
+      oss << tn;
+      std::string typ_name = oss.str();
+      while (typ_name[0] == '(')
+      {
+        typ_name.erase(typ_name.begin());
+      }
+      os << typ_name[0] << i;
+    }
     Node x = nm->mkBoundVar(os.str().c_str(), tn);
     d_fvIndex[x] = tvars.size();
     tvars.push_back(x);
@@ -165,7 +172,7 @@ Node TermCanonize::getCanonicalTerm(
     var_count[key]++;
     Node fv = getCanonicalFreeVar(tn, vn, tc);
     visited[n] = fv;
-    Trace("canon-term-debug") << "...allocate variable." << std::endl;
+    Trace("canon-term-debug") << "...allocate variable " << fv << std::endl;
     return fv;
   }
   else if (n.getNumChildren() > 0)
@@ -232,4 +239,4 @@ Node TermCanonize::getCanonicalTerm(TNode n,
 }
 
 }  // namespace expr
-}  // namespace cvc5
+}  // namespace cvc5::internal

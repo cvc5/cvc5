@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 ###############################################################################
 # Top contributors (to current version):
-#   Makai Mann, Andrew Reynolds, Aina Niemetz
+#   Makai Mann, Aina Niemetz, Andrew Reynolds
 #
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -16,8 +16,8 @@
 # datatypes-new.cpp.
 ##
 
-import pycvc5
-from pycvc5 import kinds
+import cvc5
+from cvc5 import Kind
 
 def test(slv, consListSort):
     # Now our old "consListSpec" is useless--the relevant information
@@ -34,14 +34,18 @@ def test(slv, consListSort):
     # which is equivalent to consList["cons"].getConstructor().  Note that
     # "nil" is a constructor too
 
-    t = slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("cons"),
-                   slv.mkInteger(0),
-                   slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("nil")))
+    t = slv.mkTerm(
+            Kind.APPLY_CONSTRUCTOR,
+            consList.getConstructor("cons").getTerm(),
+            slv.mkInteger(0),
+            slv.mkTerm(
+                Kind.APPLY_CONSTRUCTOR,
+                consList.getConstructor("nil").getTerm()))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
-        consList.getConstructorTerm("cons").getSort(),
-        consList.getConstructorTerm("nil").getSort()))
+        consList.getConstructor("cons").getTerm().getSort(),
+        consList.getConstructor("nil").getTerm().getSort()))
 
     # t2 = head(cons 0 nil), and of course this can be evaluated
     #
@@ -49,7 +53,10 @@ def test(slv, consListSort):
     # consList["cons"]) in order to get the "head" selector symbol
     # to apply.
 
-    t2 = slv.mkTerm(kinds.ApplySelector, consList["cons"].getSelectorTerm("head"), t)
+    t2 = slv.mkTerm(
+            Kind.APPLY_SELECTOR,
+            consList["cons"].getSelector("head").getTerm(),
+            t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -61,11 +68,24 @@ def test(slv, consListSort):
             print(" + args:", j)
         print()
 
+    # You can also define a tester term for constructor 'cons': (_ is cons)
+    t_is_cons = slv.mkTerm(
+            Kind.APPLY_TESTER, consList["cons"].getTesterTerm(), t)
+    print("t_is_cons is {}\n\n".format(t_is_cons))
+    slv.assertFormula(t_is_cons)
+    # Updating t at 'head' with value 1 is defined as follows:
+    t_updated = slv.mkTerm(Kind.APPLY_UPDATER,
+                           consList["cons"]["head"].getUpdaterTerm(),
+                           t,
+                           slv.mkInteger(1))
+    print("t_updated is {}\n\n".format(t_updated))
+    slv.assertFormula(slv.mkTerm(Kind.DISTINCT, t, t_updated))
+
     # You can also define parameterized datatypes.
     # This example builds a simple parameterized list of sort T, with one
     # constructor "cons".
     sort = slv.mkParamSort("T")
-    paramConsListSpec = slv.mkDatatypeDecl("paramlist", sort)
+    paramConsListSpec = slv.mkDatatypeDecl("paramlist", [sort])
     paramCons = slv.mkDatatypeConstructorDecl("cons")
     paramNil = slv.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)
@@ -80,11 +100,15 @@ def test(slv, consListSort):
     a = slv.mkConst(paramConsIntListSort, "a")
     print("term {} is of sort {}".format(a, a.getSort()))
 
-    head_a = slv.mkTerm(kinds.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)
+    head_a = slv.mkTerm(
+            Kind.APPLY_SELECTOR,
+            paramConsList["cons"].getSelector("head").getTerm(),
+            a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
-    print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
+    print("sort of cons is",
+          paramConsList.getConstructor("cons").getTerm().getSort())
 
-    assertion = slv.mkTerm(kinds.Gt, head_a, slv.mkInteger(50))
+    assertion = slv.mkTerm(Kind.GT, head_a, slv.mkInteger(50))
     print("Assert", assertion)
     slv.assertFormula(assertion)
     print("Expect sat.")
@@ -92,7 +116,7 @@ def test(slv, consListSort):
 
 
 if __name__ == "__main__":
-    slv = pycvc5.Solver()
+    slv = cvc5.Solver()
 
     # This example builds a simple "cons list" of integers, with
     # two constructors, "cons" and "nil."
@@ -127,6 +151,5 @@ if __name__ == "__main__":
     cons2.addSelector("head", slv.getIntegerSort())
     cons2.addSelectorSelf("tail")
     nil2 = slv.mkDatatypeConstructorDecl("nil")
-    ctors = [cons2, nil2]
-    consListSort2 = slv.declareDatatype("list2", ctors)
+    consListSort2 = slv.declareDatatype("list2", cons2, nil2)
     test(slv, consListSort2)

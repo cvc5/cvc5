@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Christopher L. Conway, Andres Noetzli, Morgan Deters
+ *   Aina Niemetz, Andres Noetzli, Christopher L. Conway
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,7 @@
 
 #include "base/configuration.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 #ifdef CVC5_DEBUG
 #  define IS_DEBUG_BUILD true
@@ -35,12 +35,6 @@ namespace cvc5 {
 #else /* CVC5_TRACING */
 #  define IS_TRACING_BUILD false
 #endif /* CVC5_TRACING */
-
-#ifdef CVC5_DUMPING
-#  define IS_DUMPING_BUILD true
-#else /* CVC5_DUMPING */
-#  define IS_DUMPING_BUILD false
-#endif /* CVC5_DUMPING */
 
 #ifdef CVC5_MUZZLE
 #  define IS_MUZZLED_BUILD true
@@ -90,12 +84,6 @@ namespace cvc5 {
 #  define IS_GLPK_BUILD false
 #endif /* CVC5_USE_GLPK */
 
-#if CVC5_USE_ABC
-#  define IS_ABC_BUILD true
-#else /* CVC5_USE_ABC */
-#  define IS_ABC_BUILD false
-#endif /* CVC5_USE_ABC */
-
 #if CVC5_USE_CRYPTOMINISAT
 #  define IS_CRYPTOMINISAT_BUILD true
 #else /* CVC5_USE_CRYPTOMINISAT */
@@ -113,6 +101,12 @@ namespace cvc5 {
 #else /* CVC5_USE_POLY */
 #define IS_POLY_BUILD false
 #endif /* CVC5_USE_POLY */
+
+#if CVC5_USE_COCOA
+#define IS_COCOA_BUILD true
+#else /* CVC5_USE_COCOA */
+#define IS_COCOA_BUILD false
+#endif /* CVC5_USE_COCOA */
 
 #if HAVE_LIBEDITLINE
 #define IS_EDITLINE_BUILD true
@@ -164,6 +158,6 @@ namespace cvc5 {
 #endif /* __has_feature(thread_sanitizer) */
 #endif /* defined(__has_feature) */
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__CONFIGURATION_PRIVATE_H */

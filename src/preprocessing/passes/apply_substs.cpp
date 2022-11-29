@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
+ *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,10 +21,10 @@
 #include "context/cdo.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/rewriter.h"
+#include "smt/env.h"
 #include "theory/substitutions.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
@@ -36,7 +36,7 @@ ApplySubsts::ApplySubsts(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ApplySubsts::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Chat() << "applying substitutions..." << std::endl;
+  verbose(2) << "applying substitutions..." << std::endl;
   Trace("apply-substs") << "ApplySubsts::processAssertions(): "
                         << "applying substitutions" << std::endl;
   // TODO(#1255): Substitutions in incremental mode should be managed with a
@@ -55,7 +55,8 @@ PreprocessingPassResult ApplySubsts::applyInternal(
                           << std::endl;
     d_preprocContext->spendResource(Resource::PreprocessStep);
     assertionsToPreprocess->replaceTrusted(
-        i, tlsm.applyTrusted((*assertionsToPreprocess)[i]));
+        i,
+        tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
   }
@@ -64,4 +65,4 @@ PreprocessingPassResult ApplySubsts::applyInternal(
 
 }  // namespace passes
 }  // namespace preprocessing
-}  // namespace cvc5
+}  // namespace cvc5::internal

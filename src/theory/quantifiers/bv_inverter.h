@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,8 +25,14 @@
 
 #include "expr/node.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
+
+class Options;
+
 namespace theory {
+
+class Rewriter;
+
 namespace quantifiers {
 
 /** BvInverterQuery
@@ -50,7 +56,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter() {}
+  BvInverter(const Options& opts, Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -96,9 +102,6 @@ class BvInverter
                   BvInverterQuery* m);
 
  private:
-  /** Dummy variables for each type */
-  std::map<TypeNode, Node> d_solve_var;
-
   /** Helper function for getPathToPv */
   Node getPathToPv(Node lit,
                    Node pv,
@@ -125,10 +128,16 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
+  /** Reference to options */
+  const Options& d_opts;
+  /** (Optional) rewriter used as helper in getInversionNode */
+  Rewriter* d_rewriter;
+  /** Dummy variables for each type */
+  std::map<TypeNode, Node> d_solve_var;
 };
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__BV_INVERTER_H */

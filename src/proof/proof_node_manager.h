@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,10 +23,15 @@
 #include "expr/node.h"
 #include "proof/proof_rule.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class ProofChecker;
 class ProofNode;
+class Options;
+
+namespace theory {
+class Rewriter;
+}
 
 /**
  * A manager for proof node objects. This is a trusted interface for creating
@@ -54,7 +59,9 @@ class ProofNode;
 class ProofNodeManager
 {
  public:
-  ProofNodeManager(ProofChecker* pc = nullptr);
+  ProofNodeManager(const Options& opts,
+                   theory::Rewriter* rr,
+                   ProofChecker* pc = nullptr);
   ~ProofNodeManager() {}
   /**
    * This constructs a ProofNode with the given arguments. The expected
@@ -184,6 +191,10 @@ class ProofNodeManager
   static ProofNode* cancelDoubleSymm(ProofNode* pn);
 
  private:
+  /** Reference to the options */
+  const Options& d_opts;
+  /** The rewriter */
+  theory::Rewriter* d_rewriter;
   /** The (optional) proof checker */
   ProofChecker* d_checker;
   /** the true node */
@@ -220,6 +231,6 @@ class ProofNodeManager
       bool needsCheck);
 };
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__PROOF_NODE_H */

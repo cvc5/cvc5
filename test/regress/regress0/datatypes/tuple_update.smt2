@@ -1,6 +1,0 @@
-(set-logic ALL)
-(set-info :status sat)
-(declare-fun x () (Tuple Int Int))
-(declare-fun y () (Tuple Int Int))
-(assert (= ((_ tuple_update 0) x 1) ((_ tuple_update 1) y 2)))
-(check-sat)

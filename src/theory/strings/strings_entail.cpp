@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,9 +24,9 @@
 #include "util/rational.h"
 #include "util/string.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
@@ -123,7 +123,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
   NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(cvc5::Rational(0));
+  Node zero = nm->mkConstInt(cvc5::internal::Rational(0));
   bool ret = false;
   bool success = true;
   unsigned sindex = 0;
@@ -145,14 +145,14 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           Assert(d_arithEntail.check(curr, true));
           Node s = n1[sindex_use];
           size_t slen = Word::getLength(s);
-          Node ncl = nm->mkConst(cvc5::Rational(slen));
-          Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
+          Node ncl = nm->mkConstInt(cvc5::internal::Rational(slen));
+          Node next_s = nm->mkNode(SUB, lowerBound, ncl);
           next_s = d_rr->rewrite(next_s);
           Assert(next_s.isConst());
           // we can remove the entire constant
           if (next_s.getConst<Rational>().sgn() >= 0)
           {
-            curr = d_rr->rewrite(nm->mkNode(MINUS, curr, ncl));
+            curr = d_rr->rewrite(nm->mkNode(SUB, curr, ncl));
             success = true;
             sindex++;
           }
@@ -162,7 +162,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
             // lower bound minus the length of a concrete string is negative,
             // hence lowerBound cannot be larger than long max
             Assert(lbr < Rational(String::maxSize()));
-            curr = d_rr->rewrite(nm->mkNode(MINUS, curr, lowerBound));
+            curr = d_rr->rewrite(nm->mkNode(SUB, curr, lowerBound));
             uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
             Assert(lbsize < slen);
             if (dir == 1)
@@ -190,7 +190,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
     else
     {
       Node next_s = NodeManager::currentNM()->mkNode(
-          MINUS,
+          SUB,
           curr,
           NodeManager::currentNM()->mkNode(STRING_LENGTH, n1[sindex_use]));
       next_s = d_rr->rewrite(next_s);
@@ -202,7 +202,12 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
       }
     }
   }
-  if (sindex > 0 && (!strict || curr == zero))
+  if (strict && curr != zero)
+  {
+    // return false if we did not strip the entire length
+    ret = false;
+  }
+  else if (sindex > 0)
   {
     if (dir == 1)
     {
@@ -254,8 +259,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1re.isNull())
           {
-            n1[i] = d_rr->rewrite(
-                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1[i], n1re));
+            n1[i] =
+                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1[i], n1re);
           }
           if (remainderDir != 1)
           {
@@ -268,8 +273,8 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
           }
           else if (!n1rb.isNull())
           {
-            n1[i] = d_rr->rewrite(
-                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1rb, n1[i]));
+            n1[i] =
+                NodeManager::currentNM()->mkNode(STRING_CONCAT, n1rb, n1[i]);
           }
         }
         return i;
@@ -419,6 +424,13 @@ bool StringsEntail::componentContainsBase(
         }
       }
     }
+    else if (computeRemainder)
+    {
+      // Note the cases below would require constructing new terms
+      // as part of the remainder components. Thus, this is only checked
+      // when computeRemainder is false.
+      return false;
+    }
     else
     {
       // cases for:
@@ -429,7 +441,7 @@ bool StringsEntail::componentContainsBase(
         {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos = nm->mkNode(PLUS, n2[1], n2[2]);
+          Node end_pos = nm->mkNode(ADD, n2[1], n2[2]);
           Node len_n2s = nm->mkNode(STRING_LENGTH, n2[0]);
           if (dir == 1)
           {
@@ -448,31 +460,12 @@ bool StringsEntail::componentContainsBase(
           }
           if (success)
           {
-            if (computeRemainder)
-            {
-              // we can only compute the remainder if start_pos and end_pos
-              // are known to be non-negative.
-              if (!d_arithEntail.check(start_pos)
-                  || !d_arithEntail.check(end_pos))
-              {
-                return false;
-              }
-              if (dir != -1)
-              {
-                n1rb = nm->mkNode(
-                    STRING_SUBSTR, n2[0], nm->mkConst(Rational(0)), start_pos);
-              }
-              if (dir != 1)
-              {
-                n1re = nm->mkNode(STRING_SUBSTR, n2[0], end_pos, len_n2s);
-              }
-            }
             return true;
           }
         }
       }
 
-      if (!computeRemainder && dir == 0)
+      if (dir == 0)
       {
         if (n1.getKind() == STRING_REPLACE)
         {
@@ -607,7 +600,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
         if (n2[index1].isConst())
         {
           Assert(n2[index1].getType().isString());  // string-only
-          cvc5::String t = n2[index1].getConst<String>();
+          cvc5::internal::String t = n2[index1].getConst<String>();
           if (n1.size() == 1)
           {
             // if n1.size()==1, then if n2[index1] is not a number, we can drop
@@ -712,7 +705,7 @@ bool StringsEntail::checkNonEmpty(Node a)
 bool StringsEntail::checkLengthOne(Node s, bool strict)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node one = nm->mkConst(Rational(1));
+  Node one = nm->mkConstInt(Rational(1));
   Node len = nm->mkNode(STRING_LENGTH, s);
   len = d_rr->rewrite(len);
   return d_arithEntail.check(one, len)
@@ -1002,4 +995,4 @@ Node StringsEntail::inferEqsFromContains(Node x, Node y)
 
 }  // namespace strings
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

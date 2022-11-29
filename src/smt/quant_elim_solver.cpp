@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,16 +18,18 @@
 #include "base/modal_exception.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
+#include "expr/subtype_elim_node_converter.h"
+#include "smt/smt_driver.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/string.h"
 
-using namespace cvc5::theory;
-using namespace cvc5::kind;
+using namespace cvc5::internal::theory;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace smt {
 
 QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
@@ -37,8 +39,7 @@ QuantElimSolver::QuantElimSolver(Env& env, SmtSolver& sms)
 
 QuantElimSolver::~QuantElimSolver() {}
 
-Node QuantElimSolver::getQuantifierElimination(Assertions& as,
-                                               Node q,
+Node QuantElimSolver::getQuantifierElimination(Node q,
                                                bool doFull,
                                                bool isInternalSubsolver)
 {
@@ -71,17 +72,17 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
-  // We consider this to be an entailment check, which also avoids incorrect
-  // status reporting (see SolverEngineState::d_expectedStatus).
-  Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, true);
+  // use a single call driver
+  SmtDriverSingleCall sdsc(d_env, d_smtSolver);
+  Result r = sdsc.checkSat(std::vector<Node>{ne.notNode()});
   Trace("smt-qe") << "Query returned " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  if (r.getStatus() != Result::UNSAT)
   {
-    if (r.asSatisfiabilityResult().isSat() != Result::SAT && doFull)
+    if (r.getStatus() != Result::SAT && doFull)
     {
-      Notice()
+      verbose(1)
           << "While performing quantifier elimination, unexpected result : "
-          << r << " for query.";
+          << r << " for query." << std::endl;
       // failed, return original
       return q;
     }
@@ -92,11 +93,20 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
     qe->getInstantiatedQuantifiedFormulas(inst_qs);
-    Assert(inst_qs.size() <= 1);
-    Node ret;
-    if (inst_qs.size() == 1)
+    Node topq;
+    // Find the quantified formula corresponding to the quantifier elimination
+    for (const Node& qinst : inst_qs)
     {
-      Node topq = inst_qs[0];
+      // Should have the same attribute mark as above
+      if (qinst.getNumChildren() == 3 && qinst[2] == n_attr)
+      {
+        topq = qinst;
+        break;
+      }
+    }
+    Node ret;
+    if (!topq.isNull())
+    {
       Assert(topq.getKind() == FORALL);
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
@@ -123,6 +133,9 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     {
       ret = SkolemManager::getOriginalForm(ret);
     }
+    // make so that the returned formula does not involve arithmetic subtyping
+    SubtypeElimNodeConverter senc;
+    ret = senc.convert(ret);
     return ret;
   }
   // otherwise, just true/false
@@ -130,4 +143,4 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
 }
 
 }  // namespace smt
-}  // namespace cvc5
+}  // namespace cvc5::internal

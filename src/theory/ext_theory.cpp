@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Tim King
+ *   Andrew Reynolds, Tim King, Gereon Kremer
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +20,6 @@
 #include "theory/ext_theory.h"
 
 #include "base/check.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -28,7 +27,7 @@
 
 using namespace std;
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 
 const char* toString(ExtReducedId id)
@@ -547,4 +546,4 @@ std::vector<Node> ExtTheory::getActive(Kind k) const
 }
 
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

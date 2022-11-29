@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,14 +22,14 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/smt_solver.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test_smt.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 using namespace preprocessing;
 using namespace preprocessing::passes;
@@ -47,8 +47,8 @@ class TestPPWhiteBVGauss : public TestSmt
 
     d_preprocContext.reset(new preprocessing::PreprocessingPassContext(
         d_slvEngine->getEnv(),
-        d_slvEngine->getTheoryEngine(),
-        d_slvEngine->getPropEngine(),
+        d_slvEngine->d_smtSolver->getTheoryEngine(),
+        d_slvEngine->d_smtSolver->getPropEngine(),
         nullptr));
 
     d_bv_gauss.reset(new BVGauss(d_preprocContext.get()));
@@ -1871,6 +1871,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_partial6)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -1925,9 +1926,9 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
   ASSERT_EQ(ret, BVGauss::Result::PARTIAL);
   ASSERT_EQ(res.size(), 2);
 
-  x = Rewriter::rewrite(x);
-  y = Rewriter::rewrite(y);
-  z = Rewriter::rewrite(z);
+  x = rr->rewrite(x);
+  y = rr->rewrite(y);
+  z = rr->rewrite(z);
 
   Node x1 = d_nodeManager->mkNode(
       kind::BITVECTOR_UREM,
@@ -1986,8 +1987,8 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
      *  9 0 1  7   -->  1 0 5  2
      *  3 1 0  9        0 1 7  3
      */
-    ASSERT_EQ(res[Rewriter::rewrite(y)], y3);
-    ASSERT_EQ(res[Rewriter::rewrite(z)], z3);
+    ASSERT_EQ(res[rr->rewrite(y)], y3);
+    ASSERT_EQ(res[rr->rewrite(z)], z3);
   }
   else if (res.find(y) == res.end())
   {
@@ -2022,6 +2023,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_with_expr_partial)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2096,9 +2098,9 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_nary_partial)
   ASSERT_EQ(ret, BVGauss::Result::PARTIAL);
   ASSERT_EQ(res.size(), 2);
 
-  x_mul_xx = Rewriter::rewrite(x_mul_xx);
-  y_mul_yy = Rewriter::rewrite(y_mul_yy);
-  z_mul_zz = Rewriter::rewrite(z_mul_zz);
+  x_mul_xx = rr->rewrite(x_mul_xx);
+  y_mul_yy = rr->rewrite(y_mul_yy);
+  z_mul_zz = rr->rewrite(z_mul_zz);
 
   Node x1 = d_nodeManager->mkNode(
       kind::BITVECTOR_UREM,
@@ -2241,6 +2243,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   std::unordered_map<Node, Node> res;
   BVGauss::Result ret;
 
@@ -2295,9 +2298,9 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid2)
   ASSERT_EQ(ret, BVGauss::Result::UNIQUE);
   ASSERT_EQ(res.size(), 3);
 
-  n1 = Rewriter::rewrite(n1);
-  n2 = Rewriter::rewrite(n2);
-  z = Rewriter::rewrite(z);
+  n1 = rr->rewrite(n1);
+  n2 = rr->rewrite(n2);
+  z = rr->rewrite(z);
 
   ASSERT_EQ(res[n1], bv::utils::mkConst(48, 4));
   ASSERT_EQ(res[n2], bv::utils::mkConst(48, 2));
@@ -2409,7 +2412,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique1)
   Node a = d_nodeManager->mkNode(
       kind::AND, d_nodeManager->mkNode(kind::AND, eq1, eq2), eq3);
 
-  AssertionPipeline apipe;
+  AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(a);
   passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");
   std::unordered_map<Node, Node> res;
@@ -2496,7 +2499,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_unique2)
   Node a = d_nodeManager->mkNode(
       kind::AND, d_nodeManager->mkNode(kind::AND, eq1, eq2), eq3);
 
-  AssertionPipeline apipe;
+  AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(a);
   apipe.push_back(eq4);
   apipe.push_back(eq5);
@@ -2548,7 +2551,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_partial)
           d_p),
       d_nine);
 
-  AssertionPipeline apipe;
+  AssertionPipeline apipe(d_slvEngine->getEnv());
   apipe.push_back(eq1);
   apipe.push_back(eq2);
   passes::BVGauss bgauss(d_preprocContext.get(), "bv-gauss-unit");
@@ -3005,6 +3008,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5a)
 
 TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
 {
+  Rewriter* rr = d_slvEngine->getEnv().getRewriter();
   /* (bvadd
    *   (bvadd
    *     (bvadd
@@ -3105,7 +3109,7 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw5b)
           kind::BITVECTOR_MULT, bv::utils::mkConst(20, 83), ww));
 
   ASSERT_EQ(d_bv_gauss->getMinBwExpr(plus7), 19);
-  ASSERT_EQ(d_bv_gauss->getMinBwExpr(Rewriter::rewrite(plus7)), 17);
+  ASSERT_EQ(d_bv_gauss->getMinBwExpr(rr->rewrite(plus7)), 17);
 }
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal

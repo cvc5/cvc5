@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Paul Meng, Mathias Preiner, Liana Hadarean
+ *   Paul Meng, Liana Hadarean, Haniel Barbosa
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +21,7 @@
 #ifndef CVC5__PROOF__CLAUSE_ID_H
 #define CVC5__PROOF__CLAUSE_ID_H
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 /**
  * A ClauseId is a shared identifier between the proofs module and the sat
@@ -36,6 +36,6 @@ const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__PROOF__CLAUSE_ID_H */

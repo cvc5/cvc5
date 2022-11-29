@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,6 @@
 #include "expr/skolem_manager.h"
 #include "proof/proof_checker.h"
 #include "smt/solver_engine.h"
-#include "smt/solver_engine_scope.h"
 #include "test.h"
 #include "theory/output_channel.h"
 #include "theory/rewriter.h"
@@ -30,9 +29,8 @@
 #include "theory/theory_state.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
-#include "util/unsafe_interrupt_exception.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace test {
 
 /* -------------------------------------------------------------------------- */
@@ -45,9 +43,8 @@ class TestSmt : public TestInternal
   void SetUp() override
   {
     d_nodeManager = NodeManager::currentNM();
-    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
     d_slvEngine->finishInit();
   }
 
@@ -62,9 +59,8 @@ class TestSmtNoFinishInit : public TestInternal
   void SetUp() override
   {
     d_nodeManager = NodeManager::currentNM();
-    d_nodeManager->init();
     d_skolemManager = d_nodeManager->getSkolemManager();
-    d_slvEngine.reset(new SolverEngine(d_nodeManager));
+    d_slvEngine.reset(new SolverEngine);
   }
 
   NodeManager* d_nodeManager;
@@ -104,7 +100,7 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
-class DummyOutputChannel : public cvc5::theory::OutputChannel
+class DummyOutputChannel : public theory::OutputChannel
 {
  public:
   DummyOutputChannel() {}
@@ -133,7 +129,8 @@ class DummyOutputChannel : public cvc5::theory::OutputChannel
   }
 
   void requirePhase(TNode, bool) override {}
-  void setIncomplete(theory::IncompleteId id) override {}
+  void setModelUnsound(theory::IncompleteId id) override {}
+  void setRefutationUnsound(theory::IncompleteId id) override {}
 
   void clear() { d_callHistory.clear(); }
 
@@ -259,5 +256,5 @@ class DummyTheory : public theory::Theory
 
 /* -------------------------------------------------------------------------- */
 }  // namespace test
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

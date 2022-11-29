@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +22,9 @@
 #include "theory/rewriter.h"
 #include "util/rational.h"
 
-namespace cvc5 {
+using namespace cvc5::internal::kind;
+
+namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
@@ -36,7 +38,7 @@ Node pow2(uint64_t k)
 {
   Assert(k >= 0);
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConst<Rational>(intpow2(k));
+  return nm->mkConstInt(Rational(intpow2(k)));
 }
 
 bool oneBitAnd(bool a, bool b) { return (a && b); }
@@ -58,9 +60,9 @@ Node intExtract(Node x, uint64_t i, uint64_t size)
 IAndUtils::IAndUtils()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_zero = nm->mkConst(Rational(0));
-  d_one = nm->mkConst(Rational(1));
-  d_two = nm->mkConst(Rational(2));
+  d_zero = nm->mkConstInt(Rational(0));
+  d_one = nm->mkConstInt(Rational(1));
+  d_two = nm->mkConstInt(Rational(2));
 }
 
 Node IAndUtils::createITEFromTable(
@@ -78,7 +80,7 @@ Node IAndUtils::createITEFromTable(
   Assert(table.size() == 1 + ((uint64_t)(num_of_values * num_of_values)));
   // start with the default, most common value.
   // this value is represented in the table by (-1, -1).
-  Node ite = nm->mkConst<Rational>(table.at(std::make_pair(-1, -1)));
+  Node ite = nm->mkConstInt(Rational(table.at(std::make_pair(-1, -1))));
   for (uint64_t i = 0; i < num_of_values; i++)
   {
     for (uint64_t j = 0; j < num_of_values; j++)
@@ -92,9 +94,9 @@ Node IAndUtils::createITEFromTable(
       ite = nm->mkNode(
           kind::ITE,
           nm->mkNode(kind::AND,
-                     nm->mkNode(kind::EQUAL, x, nm->mkConst<Rational>(i)),
-                     nm->mkNode(kind::EQUAL, y, nm->mkConst<Rational>(j))),
-          nm->mkConst<Rational>(table.at(std::make_pair(i, j))),
+                     nm->mkNode(kind::EQUAL, x, nm->mkConstInt(Rational(i))),
+                     nm->mkNode(kind::EQUAL, y, nm->mkConstInt(Rational(j)))),
+          nm->mkConstInt(Rational(table.at(std::make_pair(i, j)))),
           ite);
     }
   }
@@ -133,7 +135,7 @@ Node IAndUtils::createSumNode(Node x,
   // number of elements in the sum expression
   uint64_t sumSize = bvsize / granularity;
   // initialize the sum
-  Node sumNode = nm->mkConst<Rational>(0);
+  Node sumNode = nm->mkConstInt(Rational(0));
   // compute the table for the current granularity if needed
   if (d_bvandTable.find(granularity) == d_bvandTable.end())
   {
@@ -150,7 +152,7 @@ Node IAndUtils::createSumNode(Node x,
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
     sumNode =
-        nm->mkNode(kind::PLUS,
+        nm->mkNode(kind::ADD,
                    sumNode,
                    nm->mkNode(kind::MULT, pow2(i * granularity), sumPart));
   }
@@ -180,9 +182,7 @@ Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const
   NodeManager* nm = NodeManager::currentNM();
   //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
   Node n2j = nm->mkNode(kind::INTS_DIVISION_TOTAL, n, twoToK(j));
-  Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
-  ret = Rewriter::rewrite(ret);
-  return ret;
+  return nm->mkNode(kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
 }
 
 void IAndUtils::computeAndTable(uint64_t granularity)
@@ -260,21 +260,17 @@ Node IAndUtils::twoToK(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(kind::POW, d_two, nm->mkConst(Rational(k)));
-  ret = Rewriter::rewrite(ret);
-  return ret;
+  return nm->mkNode(kind::POW, d_two, nm->mkConstInt(Rational(k)));
 }
 
 Node IAndUtils::twoToKMinusOne(unsigned k) const
 {
   // could be faster
   NodeManager* nm = NodeManager::currentNM();
-  Node ret = nm->mkNode(kind::MINUS, twoToK(k), d_one);
-  ret = Rewriter::rewrite(ret);
-  return ret;
+  return nm->mkNode(kind::SUB, twoToK(k), d_one);
 }
 
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal

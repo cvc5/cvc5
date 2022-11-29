@@ -25,6 +25,18 @@
 (declare bvn bitvec)
 (declare bvc (! b bit (! v bitvec bitvec)))
 
+; Returns term t if v1 = v2, and term s otherwise.
+(program mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term
+  (mp_ifzero (mp_add (mp_neg v1) v2) t s)
+)
+
+; Returns true if 0 <= c <= 1
+(program mpq_between_zero_one ((c mpq)) Ok
+  (mp_ifneg c
+    (fail Ok)
+    (let c2 (mp_add c (mp_neg 1/1))
+      (mp_ifneg c2 ok (mp_ifzero c2 ok (fail Ok))))))
+
 ;; ---- Side conditions
 
 ; Get the argument from an f-application t, fail if t is not an f-application.
@@ -56,13 +68,6 @@
         (default w)))
     (default t)
   ))
-
-; Make a skolem, which ensures that the given term is in original form. For
-; consistency, we require that the witness term for all Skolems are in
-; original form. Failure to use this side condition when introducing fresh
-; Skolems will result in proofs failing to check due to mismatched uses of
-; Skolem variables in conclusions.
-(program sc_mk_skolem ((t term)) term (skolem (sc_to_original t)))
 
 ;; ---- Proof rules
 

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner
+ *   Morgan Deters, Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +30,7 @@
 ${type_properties_includes}
 // clang-format on
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace kind {
 
 /**
@@ -97,36 +97,10 @@ ${type_wellfoundednesses}
   }
 }/* isWellFounded(TypeNode) */
 
-inline Node mkGroundTerm(TypeConstant tc)
-{
-  switch (tc)
-  {
-    // clang-format off
-${type_constant_groundterms}
-      // clang-format on
-    default:
-      InternalError() << "No ground term known for type constant: " << tc;
-  }
-} /* mkGroundTerm(TypeConstant) */
-
-inline Node mkGroundTerm(TypeNode typeNode)
-{
-  AssertArgument(!typeNode.isNull(), typeNode);
-  switch (Kind k = typeNode.getKind())
-  {
-    case TYPE_CONSTANT:
-      return mkGroundTerm(typeNode.getConst<TypeConstant>());
-      // clang-format off
-${type_groundterms}
-      // clang-format on
-    default:
-      InternalError() << "A theory kinds file did not provide a ground term "
-                      << "or ground term computer for type:\n"
-                      << typeNode << "\nof kind " << k;
-  }
-} /* mkGroundTerm(TypeNode) */
+Node mkGroundTerm(TypeConstant tc);
+Node mkGroundTerm(TypeNode typeNode);
 
 }  // namespace kind
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif /* CVC5__TYPE_PROPERTIES_H */

@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Mathias Preiner
+ *   Mathias Preiner, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,8 +19,9 @@
 
 #include "proof/proof_generator.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env_obj.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 
 class TConvProofGenerator;
 
@@ -28,10 +29,11 @@ namespace theory {
 namespace bv {
 
 /** Proof generator fot bit-blast proofs. */
-class BitblastProofGenerator : public ProofGenerator
+class BitblastProofGenerator : public ProofGenerator, protected EnvObj
 {
  public:
-  BitblastProofGenerator(ProofNodeManager* pnm, TConvProofGenerator* tcpg);
+  BitblastProofGenerator(Env& env,
+                         TConvProofGenerator* tcpg);
   ~BitblastProofGenerator(){};
 
   /**
@@ -54,8 +56,6 @@ class BitblastProofGenerator : public ProofGenerator
   void addBitblastStep(TNode t, TNode bbt, TNode eq);
 
  private:
-  /** The associated proof node manager. */
-  ProofNodeManager* d_pnm;
   /**
    * The associated term conversion proof generator, which tracks the
    * individual bit-blast steps.
@@ -71,5 +71,5 @@ class BitblastProofGenerator : public ProofGenerator
 
 }  // namespace bv
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 #endif

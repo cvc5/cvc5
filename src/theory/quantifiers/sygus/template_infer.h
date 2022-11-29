@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,9 +21,10 @@
 #include <map>
 
 #include "expr/node.h"
+#include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/transition_inference.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
@@ -31,10 +32,10 @@ namespace quantifiers {
  * This class infers templates for an invariant-to-synthesize based on the
  * template mode. It uses the transition inference to choose a template.
  */
-class SygusTemplateInfer
+class SygusTemplateInfer : protected EnvObj
 {
  public:
-  SygusTemplateInfer() {}
+  SygusTemplateInfer(Env& env);
   ~SygusTemplateInfer() {}
   /**
    * Initialize this class for synthesis conjecture q. If applicable, the
@@ -72,6 +73,6 @@ class SygusTemplateInfer
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace cvc5
+}  // namespace cvc5::internal
 
 #endif

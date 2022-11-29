@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Mathias Preiner
+ *   Morgan Deters, Andres Noetzli, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +23,11 @@
 #include "base/check.h"
 #include "expr/kind.h"
 
-namespace cvc5 {
+namespace cvc5::internal {
+
+// clang-format off
+${metakind_fwd_decls}
+// clang-format on
 
 namespace expr {
   class NodeValue;
@@ -32,57 +36,11 @@ namespace expr {
 namespace kind {
 namespace metakind {
 
-/**
- * Static, compile-time information about types T representing cvc5
- * constants:
- *
- *   typename ConstantMap<T>::OwningTheory
- *
- *     The theory in charge of constructing T when constructing Nodes
- *     with NodeManager::mkConst(T).
- *
- *   typename ConstantMap<T>::kind
- *
- *     The kind to use when constructing Nodes with
- *     NodeManager::mkConst(T).
- */
-template <class T>
-struct ConstantMap;
-
-/**
- * Static, compile-time information about kinds k and what type their
- * corresponding cvc5 constants are:
- *
- *   typename ConstantMapReverse<k>::T
- *
- *     Constant type for kind k.
- */
-template <Kind k>
-struct ConstantMapReverse;
-
-/**
- * Static, compile-time mapping from CONSTANT kinds to comparison
- * functors on NodeValue*.  The single element of this structure is:
- *
- *   static bool NodeValueCompare<K, pool>::compare(NodeValue* x, NodeValue* y)
- *
- *     Compares x and y, given that they are both K-kinded (and the
- *     meta-kind of K is CONSTANT).  If pool == true, one of x and y
- *     (but not both) may be a "non-inlined" NodeValue.  If pool ==
- *     false, neither x nor y may be a "non-inlined" NodeValue.
- */
-template <Kind k, bool pool>
-struct NodeValueConstCompare {
-  inline static bool compare(const ::cvc5::expr::NodeValue* x,
-                             const ::cvc5::expr::NodeValue* y);
-  inline static size_t constHash(const ::cvc5::expr::NodeValue* nv);
-};/* NodeValueConstCompare<k, pool> */
-
 struct NodeValueCompare {
   template <bool pool>
-  static bool compare(const ::cvc5::expr::NodeValue* nv1,
-                      const ::cvc5::expr::NodeValue* nv2);
-  static size_t constHash(const ::cvc5::expr::NodeValue* nv);
+  static bool compare(const cvc5::internal::expr::NodeValue* nv1,
+                      const cvc5::internal::expr::NodeValue* nv2);
+  static size_t constHash(const cvc5::internal::expr::NodeValue* nv);
 };/* struct NodeValueCompare */
 
 /**
@@ -101,88 +59,15 @@ enum MetaKind_t {
   NULLARY_OPERATOR /**< nullary operator */
 };/* enum MetaKind_t */
 
-}  // namespace metakind
-
-// import MetaKind into the "cvc5::kind" namespace but keep the
-// individual MetaKind constants under kind::metakind::
-typedef ::cvc5::kind::metakind::MetaKind_t MetaKind;
-
 /**
- * Get the metakind for a particular kind.
+ * Write the string representation of a payload of a constant node to an output
+ * stream.
+ *
+ * @param out the stream to write to
+ * @param nv the node value representing a constant node
  */
-MetaKind metaKindOf(Kind k);
-}  // namespace kind
-
-namespace expr {
-
-// Comparison predicate
-struct NodeValuePoolEq {
-  inline bool operator()(const NodeValue* nv1, const NodeValue* nv2) const {
-    return ::cvc5::kind::metakind::NodeValueCompare::compare<true>(nv1, nv2);
-  }
-};
-
-}  // namespace expr
-}  // namespace cvc5
-
-#include "expr/node_value.h"
-
-#endif /* CVC5__KIND__METAKIND_H */
-
-#ifdef CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP
-
-namespace cvc5 {
-
-// clang-format off
-${metakind_fwd_decls}
-// clang-format on
-
-namespace expr {
-// clang-format off
-${metakind_getConst_decls}
-// clang-format on
-}  // namespace expr
-
-namespace kind {
-namespace metakind {
-
-template <Kind k, bool pool>
-inline bool NodeValueConstCompare<k, pool>::compare(
-    const ::cvc5::expr::NodeValue* x, const ::cvc5::expr::NodeValue* y)
-{
-  typedef typename ConstantMapReverse<k>::T T;
-  if(pool) {
-    if(x->d_nchildren == 1) {
-      Assert(y->d_nchildren == 0);
-      return compare(y, x);
-    } else if(y->d_nchildren == 1) {
-      Assert(x->d_nchildren == 0);
-      return x->getConst<T>() == *reinterpret_cast<T*>(y->d_children[0]);
-    }
-  }
-
-  Assert(x->d_nchildren == 0);
-  Assert(y->d_nchildren == 0);
-  return x->getConst<T>() == y->getConst<T>();
-}
-
-template <Kind k, bool pool>
-inline size_t NodeValueConstCompare<k, pool>::constHash(
-    const ::cvc5::expr::NodeValue* nv)
-{
-  typedef typename ConstantMapReverse<k>::T T;
-  return nv->getConst<T>().hash();
-}
-
-// clang-format off
-${metakind_constantMaps_decls}
-// clang-format on
-
-struct NodeValueConstPrinter
-{
-  static void toStream(std::ostream& out, const ::cvc5::expr::NodeValue* nv);
-  static void toStream(std::ostream& out, TNode n);
-};
+void nodeValueConstantToStream(std::ostream& out,
+                               const cvc5::internal::expr::NodeValue* nv);
 
 /**
  * Cleanup to be performed when a NodeValue zombie is collected, and
@@ -193,24 +78,45 @@ struct NodeValueConstPrinter
  * This doesn't support "non-inlined" NodeValues, which shouldn't need this
  * kind of cleanup.
  */
-void deleteNodeValueConstant(::cvc5::expr::NodeValue* nv);
+void deleteNodeValueConstant(cvc5::internal::expr::NodeValue* nv);
 
 /** Return the minimum arity of the given kind. */
-uint32_t getMinArityForKind(::cvc5::Kind k);
+uint32_t getMinArityForKind(cvc5::internal::Kind k);
 /** Return the maximum arity of the given kind. */
-uint32_t getMaxArityForKind(::cvc5::Kind k);
+uint32_t getMaxArityForKind(cvc5::internal::Kind k);
 
 }  // namespace metakind
+
+// import MetaKind into the "cvc5::internal::kind" namespace but keep the
+// individual MetaKind constants under kind::metakind::
+typedef cvc5::internal::kind::metakind::MetaKind_t MetaKind;
+
+/**
+ * Get the metakind for a particular kind.
+ */
+MetaKind metaKindOf(Kind k);
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For
  * example, since the kind of functions is just VARIABLE, it should map
  * VARIABLE to APPLY_UF.
  */
-Kind operatorToKind(::cvc5::expr::NodeValue* nv);
+Kind operatorToKind(cvc5::internal::expr::NodeValue* nv);
 
 }  // namespace kind
 
-}  // namespace cvc5
+namespace expr {
 
-#endif /* CVC5__NODE_MANAGER_NEEDS_CONSTANT_MAP */
+// Comparison predicate
+struct NodeValuePoolEq {
+  bool operator()(const NodeValue* nv1, const NodeValue* nv2) const
+  {
+    return cvc5::internal::kind::metakind::NodeValueCompare::compare<true>(nv1,
+                                                                           nv2);
+  }
+};
+
+}  // namespace expr
+}  // namespace cvc5::internal
+
+#endif /* CVC5__KIND__METAKIND_H */

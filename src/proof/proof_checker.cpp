@@ -1,10 +1,10 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
+ *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,80 +16,34 @@
 #include "proof/proof_checker.h"
 
 #include "expr/skolem_manager.h"
-#include "options/proof_options.h"
 #include "proof/proof_node.h"
-#include "smt/smt_statistics_registry.h"
 #include "util/rational.h"
+#include "util/statistics_registry.h"
 
-using namespace cvc5::kind;
+using namespace cvc5::internal::kind;
 
-namespace cvc5 {
+namespace cvc5::internal {
 
-Node ProofRuleChecker::check(PfRule id,
-                             const std::vector<Node>& children,
-                             const std::vector<Node>& args)
-{
-  // call instance-specific checkInternal method
-  return checkInternal(id, children, args);
-}
-
-bool ProofRuleChecker::getUInt32(TNode n, uint32_t& i)
-{
-  // must be a non-negative integer constant that fits an unsigned int
-  if (n.isConst() && n.getType().isInteger()
-      && n.getConst<Rational>().sgn() >= 0
-      && n.getConst<Rational>().getNumerator().fitsUnsignedInt())
-  {
-    i = n.getConst<Rational>().getNumerator().toUnsignedInt();
-    return true;
-  }
-  return false;
-}
-
-bool ProofRuleChecker::getBool(TNode n, bool& b)
-{
-  if (n.isConst() && n.getType().isBoolean())
-  {
-    b = n.getConst<bool>();
-    return true;
-  }
-  return false;
-}
-
-bool ProofRuleChecker::getKind(TNode n, Kind& k)
-{
-  uint32_t i;
-  if (!getUInt32(n, i))
-  {
-    return false;
-  }
-  k = static_cast<Kind>(i);
-  return true;
-}
-
-Node ProofRuleChecker::mkKindNode(Kind k)
-{
-  if (k == UNDEFINED_KIND)
-  {
-    // UNDEFINED_KIND is negative, hence return null to avoid cast
-    return Node::null();
-  }
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(k)));
-}
-
-ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks(smtStatisticsRegistry().registerHistogram<PfRule>(
-          "ProofCheckerStatistics::ruleChecks")),
-      d_totalRuleChecks(smtStatisticsRegistry().registerInt(
-          "ProofCheckerStatistics::totalRuleChecks"))
+ProofCheckerStatistics::ProofCheckerStatistics(StatisticsRegistry& sr)
+    : d_ruleChecks(
+        sr.registerHistogram<PfRule>("ProofCheckerStatistics::ruleChecks")),
+      d_totalRuleChecks(
+          sr.registerInt("ProofCheckerStatistics::totalRuleChecks"))
 {
 }
 
-ProofChecker::ProofChecker(bool eagerCheck,
+ProofChecker::ProofChecker(StatisticsRegistry& sr,
+                           options::ProofCheckMode pcMode,
                            uint32_t pclevel,
                            rewriter::RewriteDb* rdb)
-    : d_eagerCheck(eagerCheck), d_pclevel(pclevel), d_rdb(rdb)
+    : d_stats(sr), d_pcMode(pcMode), d_pclevel(pclevel), d_rdb(rdb)
 {
+}
+
+void ProofChecker::reset()
+{
+  d_checker.clear();
+  d_plevel.clear();
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)
@@ -130,7 +84,7 @@ Node ProofChecker::check(
       return Node::null();
     }
     cchildren.push_back(cres);
-    if (Trace.isOn("pfcheck"))
+    if (TraceIsOn("pfcheck"))
     {
       std::stringstream ssc;
       pc->printDebug(ssc);
@@ -163,7 +117,7 @@ Node ProofChecker::checkDebug(PfRule id,
                               const char* traceTag)
 {
   std::stringstream out;
-  bool traceEnabled = Trace.isOn(traceTag);
+  bool traceEnabled = TraceIsOn(traceTag);
   // Since we are debugging, we want to treat trusted (null) checkers as
   // a failure. We only enable output if the trace is enabled for efficiency.
   Node res =
@@ -207,7 +161,7 @@ Node ProofChecker::checkInternal(PfRule id,
   {
     if (useTrustedChecker)
     {
-      Notice() << "ProofChecker::check: trusting PfRule " << id << std::endl;
+      out << "ProofChecker::check: trusting PfRule " << id << std::endl;
       // trusted checker
       return expected;
     }
@@ -219,6 +173,11 @@ Node ProofChecker::checkInternal(PfRule id,
       }
       return Node::null();
     }
+  }
+  // if we aren't doing checking, trust the expected if it exists
+  if (d_pcMode == options::ProofCheckMode::NONE && !expected.isNull())
+  {
+    return expected;
   }
   // check it with the corresponding checker
   Node res = it->second->check(id, cchildren, args);
@@ -247,7 +206,7 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (d_eagerCheck)
+  if (d_pcMode == options::ProofCheckMode::EAGER)
   {
     std::stringstream serr;
     if (isPedanticFailure(id, serr, enableOutput))
@@ -255,7 +214,7 @@ Node ProofChecker::checkInternal(PfRule id,
       if (enableOutput)
       {
         out << serr.str() << std::endl;
-        if (Trace.isOn("proof-pedantic"))
+        if (TraceIsOn("proof-pedantic"))
         {
           Trace("proof-pedantic")
               << "Failed pedantic check for " << id << std::endl;
@@ -275,8 +234,9 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   if (it != d_checker.end())
   {
     // checker is already provided
-    Notice() << "ProofChecker::registerChecker: checker already exists for "
-             << id << std::endl;
+    Trace("pfcheck")
+        << "ProofChecker::registerChecker: checker already exists for " << id
+        << std::endl;
     return;
   }
   d_checker[id] = psc;
@@ -293,9 +253,10 @@ void ProofChecker::registerTrustedChecker(PfRule id,
   // overwrites if already there
   if (d_plevel.find(id) != d_plevel.end())
   {
-    Notice() << "ProofChecker::registerTrustedRule: already provided pedantic "
-                "level for "
-             << id << std::endl;
+    Trace("proof-pedantic")
+        << "ProofChecker::registerTrustedRule: already provided pedantic "
+           "level for "
+        << id << std::endl;
   }
   d_plevel[id] = plevel;
 }
@@ -340,7 +301,7 @@ bool ProofChecker::isPedanticFailure(PfRule id,
         out << "pedantic level for " << id << " not met (rule level is "
             << itp->second << " which is at or below the pedantic level "
             << d_pclevel << ")";
-        bool pedanticTraceEnabled = Trace.isOn("proof-pedantic");
+        bool pedanticTraceEnabled = TraceIsOn("proof-pedantic");
         if (!pedanticTraceEnabled)
         {
           out << ", use -t proof-pedantic for details";
@@ -352,4 +313,4 @@ bool ProofChecker::isPedanticFailure(PfRule id,
   return false;
 }
 
-}  // namespace cvc5
+}  // namespace cvc5::internal
