@@ -49,7 +49,7 @@ Rational intpow2(uint32_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 IntBlaster::IntBlaster(Env& env,
                        options::SolveBVAsIntMode mode,
-                       uint64_t granularity)
+                       uint32_t granularity)
     : EnvObj(env),
       d_binarizeCache(userContext()),
       d_intblastCache(userContext()),
@@ -67,7 +67,7 @@ IntBlaster::IntBlaster(Env& env,
 IntBlaster::~IntBlaster() {}
 
 void IntBlaster::addRangeConstraint(Node node,
-                                    uint64_t size,
+                                    uint32_t size,
                                     std::vector<Node>& lemmas)
 {
   Node rangeConstraint = mkRangeConstraint(node, size);
@@ -291,7 +291,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_ADD:
     {
       Assert(original.getNumChildren() == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVAddNode(
           translated_children[0], translated_children[1], bvsize);
       break;
@@ -299,7 +299,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_MULT:
     {
       Assert(original.getNumChildren() == 2);
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       Node mult = d_nm->mkNode(kind::MULT, translated_children);
       Node p2 = pow2(bvsize);
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
@@ -308,7 +308,7 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_UDIV:
     {
       // we use an ITE for the case where the second operand is 0.
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       Node pow2BvSize = pow2(bvsize);
       Node divNode =
           d_nm->mkNode(kind::INTS_DIVISION_TOTAL, translated_children);
@@ -467,8 +467,8 @@ Node IntBlaster::translateWithChildren(
     {
       // ((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
       // original = a[i:j]
-      uint64_t i = bv::utils::getExtractHigh(original);
-      uint64_t j = bv::utils::getExtractLow(original);
+      uint32_t i = bv::utils::getExtractHigh(original);
+      uint32_t j = bv::utils::getExtractLow(original);
       Assert(i >= j);
       Node div = d_nm->mkNode(
           kind::INTS_DIVISION_TOTAL, translated_children[0], pow2(j));
@@ -612,7 +612,7 @@ Node IntBlaster::translateWithChildren(
   return returnNode;
 }
 
-Node IntBlaster::uts(Node x, uint64_t bvsize)
+Node IntBlaster::uts(Node x, uint32_t bvsize)
 {
   Node powNode = pow2(bvsize - 1);
   Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, x, powNode);
@@ -708,7 +708,7 @@ Node IntBlaster::translateNoChildren(Node original,
             intCast,
             "__intblast__var",
             "Variable introduced in intblasting for " + original.toString());
-        uint64_t bvsize = original.getType().getBitVectorSize();
+        uint32_t bvsize = original.getType().getBitVectorSize();
         addRangeConstraint(translation, bvsize, lemmas);
         // put new definition of old variable in skolems
         bvCast = castToType(translation, original.getType());
@@ -1091,14 +1091,14 @@ Node IntBlaster::createBVSubNode(Node x, Node y, uint32_t bvsize)
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, minus, p2);
 }
 
-Node IntBlaster::createBVAddNode(Node x, Node y, uint64_t bvsize)
+Node IntBlaster::createBVAddNode(Node x, Node y, uint32_t bvsize)
 {
   Node plus = d_nm->mkNode(kind::ADD, x, y);
   Node p2 = pow2(bvsize);
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, plus, p2);
 }
 
-Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
+Node IntBlaster::createBVNegNode(Node n, uint32_t bvsize)
 {
   // Based on Hacker's Delight section 2-2 equation a:
   // -x = ~x+1
@@ -1106,7 +1106,7 @@ Node IntBlaster::createBVNegNode(Node n, uint64_t bvsize)
   return createBVAddNode(bvNotNode, d_one, bvsize);
 }
 
-Node IntBlaster::createBVNotNode(Node n, uint64_t bvsize)
+Node IntBlaster::createBVNotNode(Node n, uint32_t bvsize)
 {
   return d_nm->mkNode(kind::SUB, maxInt(bvsize), n);
 }

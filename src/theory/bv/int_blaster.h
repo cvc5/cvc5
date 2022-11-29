@@ -106,7 +106,7 @@ class IntBlaster : protected EnvObj
    */
   IntBlaster(Env& env,
              options::SolveBVAsIntMode mode,
-             uint64_t granluarity = 1);
+             uint32_t granluarity = 1);
 
   ~IntBlaster();
 
@@ -151,16 +151,16 @@ class IntBlaster : protected EnvObj
                        bool isLeftShift);
 
   /** Adds the constraint 0 <= node < 2^size to lemmas */
-  void addRangeConstraint(Node node, uint64_t size, std::vector<Node>& lemmas);
+  void addRangeConstraint(Node node, uint32_t size, std::vector<Node>& lemmas);
 
   /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
 
   /** Returns a node that represents the bitwise negation of n. */
-  Node createBVNotNode(Node n, uint64_t bvsize);
+  Node createBVNotNode(Node n, uint32_t bvsize);
 
   /** Returns a node that represents the arithmetic negation of n. */
-  Node createBVNegNode(Node n, uint64_t bvsize);
+  Node createBVNegNode(Node n, uint32_t bvsize);
 
   /** Returns a node that represents the bitwise and of x and y, based on the
    * provided option. */
@@ -177,7 +177,7 @@ class IntBlaster : protected EnvObj
                       std::vector<Node>& lemmas);
 
   /** Returns a node that represents the sum of x and y. */
-  Node createBVAddNode(Node x, Node y, uint64_t bvsize);
+  Node createBVAddNode(Node x, Node y, uint32_t bvsize);
 
   /** Returns a node that represents the difference of x and y. */
   Node createBVSubNode(Node x, Node y, uint32_t bvsize);
@@ -315,7 +315,7 @@ class IntBlaster : protected EnvObj
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node uts(Node n, uint64_t bvsize);
+  Node uts(Node n, uint32_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes
