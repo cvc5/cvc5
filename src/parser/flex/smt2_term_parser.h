@@ -74,10 +74,6 @@ class Smt2TermParser
    */
   std::string parseStr(bool unescape);
 
-  //----------------- utilities
-  /** Unescape a string literal */
-  void unescapeString(std::string& s);
-
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;

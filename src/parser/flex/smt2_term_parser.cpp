@@ -37,7 +37,7 @@ Term Smt2TermParser::parseTerm()
     tok = d_lex.nextToken();
     switch (tok)
     {
-      // open paren
+      // ------------------- open paren
       case Token::LPAREN_TOK: {
         tok = d_lex.nextToken();
         switch (tok)
@@ -54,9 +54,7 @@ Term Smt2TermParser::parseTerm()
           // must be a qualified identifier
         }
         break;
-        case Token::FORALL_TOK: {
-        }
-        break;
+        case Token::FORALL_TOK:
         case Token::EXISTS_TOK: {
         }
         break;
@@ -77,11 +75,11 @@ Term Smt2TermParser::parseTerm()
         }
       }
       break;
-      // close paren
+      // ------------------- close paren
       case Token::RPAREN_TOK: {
       }
       break;
-      // base cases
+      // ------------------- base cases
       case Token::SYMBOL: {
       }
       break;
@@ -108,26 +106,43 @@ Term Smt2TermParser::parseTerm()
 }
 std::vector<Term> Smt2TermParser::parseTermList()
 {
+  d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<Term> terms;
-
+  Token tok = d_lex.peekToken();
+  while (tok!=Token::RPAREN_TOK)
+  {
+    Term t = parseTerm();
+    terms.push_back(t);
+    tok = d_lex.peekToken();
+  }
   return terms;
 }
 
 Term Smt2TermParser::parseSymbolicExpr()
 {
   Term t;
+  // TODO
   return t;
 }
 
 Sort Smt2TermParser::parseSort()
 {
   Sort s;
+  // TODO
   return s;
 }
 
 std::vector<Sort> Smt2TermParser::parseSortList()
 {
+  d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<Sort> sorts;
+  Token tok = d_lex.peekToken();
+  while (tok!=Token::RPAREN_TOK)
+  {
+    Sort s = parseSort();
+    sorts.push_back(s);
+    tok = d_lex.peekToken();
+  }
   return sorts;
 }
 
@@ -150,13 +165,22 @@ std::vector<std::pair<std::string, Sort>> Smt2TermParser::parseSortedVarList()
 
 std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 {
+  // TODO
   return "";
 }
 
 std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
                                                          SymbolType type)
 {
+  d_lex.eatToken(Token::LPAREN_TOK);
   std::vector<std::string> symbols;
+  Token tok = d_lex.peekToken();
+  while (tok!=Token::RPAREN_TOK)
+  {
+    std::string sym = parseSymbol(check, type);
+    symbols.push_back(sym);
+    tok = d_lex.peekToken();
+  }
   return symbols;
 }
 
@@ -212,40 +236,35 @@ std::string Smt2TermParser::parseStr(bool unescape)
   std::string s = d_lex.YYText();
   if (unescape)
   {
-    unescapeString(s);
+    /* strip off the quotes */
+    s = s.substr(1, s.size() - 2);
+    for (size_t i = 0, ssize = s.size(); i < ssize; i++)
+    {
+      if ((unsigned)s[i] > 127 && !isprint(s[i]))
+      {
+        d_state.parseError(
+            "Extended/unprintable characters are not "
+            "part of SMT-LIB, and they must be encoded "
+            "as escape sequences");
+      }
+    }
+    char* p_orig = strdup(s.c_str());
+    char *p = p_orig, *q = p_orig;
+    while (*q != '\0')
+    {
+      if (*q == '"')
+      {
+        // Handle SMT-LIB >=2.5 standard escape '""'.
+        ++q;
+        Assert(*q == '"');
+      }
+      *p++ = *q++;
+    }
+    *p = '\0';
+    s = p_orig;
+    free(p_orig);
   }
   return s;
-}
-
-void Smt2TermParser::unescapeString(std::string& s)
-{
-  /* strip off the quotes */
-  s = s.substr(1, s.size() - 2);
-  for (size_t i = 0, ssize = s.size(); i < ssize; i++)
-  {
-    if ((unsigned)s[i] > 127 && !isprint(s[i]))
-    {
-      d_state.parseError(
-          "Extended/unprintable characters are not "
-          "part of SMT-LIB, and they must be encoded "
-          "as escape sequences");
-    }
-  }
-  char* p_orig = strdup(s.c_str());
-  char *p = p_orig, *q = p_orig;
-  while (*q != '\0')
-  {
-    if (*q == '"')
-    {
-      // Handle SMT-LIB >=2.5 standard escape '""'.
-      ++q;
-      Assert(*q == '"');
-    }
-    *p++ = *q++;
-  }
-  *p = '\0';
-  s = p_orig;
-  free(p_orig);
 }
 
 }  // namespace parser
