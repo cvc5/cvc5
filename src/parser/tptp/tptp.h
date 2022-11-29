@@ -35,6 +35,9 @@ namespace parser {
 
 class Command;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Tptp : public Parser {
  private:
   friend class ParserBuilder;
@@ -89,8 +92,7 @@ class Tptp : public Parser {
  protected:
   Tptp(cvc5::Solver* solver,
        SymbolManager* sm,
-       bool strictMode = false,
-       bool parseOnly = false);
+       bool strictMode = false);
 
  public:
   ~Tptp();

@@ -28,7 +28,7 @@ class Solver;
 
 namespace parser {
 class Command;
-class Parser;
+class InputParser;
 class SymbolManager;
 }  // namespace parser
 
@@ -59,13 +59,13 @@ class InteractiveShell
   /**
    * Return the internal parser being used.
    */
-  cvc5::parser::Parser* getParser() { return d_parser.get(); }
+  cvc5::parser::InputParser* getParser() { return d_parser.get(); }
 
  private:
   Solver* d_solver;
   std::istream& d_in;
   std::ostream& d_out;
-  std::unique_ptr<cvc5::parser::Parser> d_parser;
+  std::unique_ptr<cvc5::parser::InputParser> d_parser;
   /** Only true if we are actually asking the user for input */
   bool d_isInteractive;
   bool d_quit;
