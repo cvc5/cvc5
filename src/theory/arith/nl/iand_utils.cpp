@@ -70,7 +70,7 @@ IAndUtils::IAndUtils()
 Node IAndUtils::createITEFromTable(
     Node x,
     Node y,
-    uint64_t granularity,
+    uint32_t granularity,
     const std::map<std::pair<int64_t, int64_t>, uint64_t>& table)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -164,8 +164,8 @@ Node IAndUtils::createSumNode(Node x,
 
 Node IAndUtils::createBitwiseIAndNode(Node x,
                                       Node y,
-                                      uint64_t high,
-                                      uint64_t low)
+                                      uint32_t high,
+                                      uint32_t low)
 {
   uint64_t granularity = high - low + 1;
   Assert(granularity <= 8);
@@ -180,7 +180,7 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
       iextract(high, low, x), iextract(high, low, y), granularity, table);
 }
 
-Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const
+Node IAndUtils::iextract(uint32_t i, uint32_t j, Node n) const
 {
   NodeManager* nm = NodeManager::currentNM();
   //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
@@ -188,7 +188,7 @@ Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const
   return nm->mkNode(kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
 }
 
-void IAndUtils::computeAndTable(uint64_t granularity)
+void IAndUtils::computeAndTable(uint32_t granularity)
 {
   Assert(d_bvandTable.find(granularity) == d_bvandTable.end());
   // the table was not yet computed

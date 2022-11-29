@@ -101,12 +101,12 @@ class IAndUtils
    *  @return an integer node corresponding to a bitwise AND applied to
    *          integers for the bits between high and low
    */
-  Node createBitwiseIAndNode(Node x, Node y, uint64_t high, uint64_t low);
+  Node createBitwiseIAndNode(Node x, Node y, uint32_t high, uint32_t low);
 
   /** extract from integer
    *  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
    */
-  Node iextract(unsigned i, unsigned j, Node n) const;
+  Node iextract(uint32_t i, uint32_t j, Node n) const;
 
   // Helpers
 
@@ -127,13 +127,13 @@ class IAndUtils
   Node createITEFromTable(
       Node x,
       Node y,
-      uint64_t granularity,
+      uint32_t granularity,
       const std::map<std::pair<int64_t, int64_t>, uint64_t>& table);
 
   /**
    * updates  d_bvandTable[granularity] if it wasn't already computed.
    */
-  void computeAndTable(uint64_t granularity);
+  void computeAndTable(uint32_t granularity);
 
   /**
    * @param table a table that represents integer conjunction

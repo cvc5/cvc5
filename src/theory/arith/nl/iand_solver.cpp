@@ -264,8 +264,8 @@ Node IAndSolver::sumBasedLemma(Node i)
   Assert(i.getKind() == IAND);
   Node x = i[0];
   Node y = i[1];
-  size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint64_t granularity = options().smt.BVAndIntegerGranularity;
+  uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
+  uint32_t granularity = options().smt.BVAndIntegerGranularity;
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
       EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
