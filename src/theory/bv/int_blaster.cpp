@@ -103,20 +103,20 @@ Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
   return rewrite(result);
 }
 
-Node IntBlaster::maxInt(uint64_t k)
+Node IntBlaster::maxInt(uint32_t k)
 {
   Assert(k > 0);
   Rational max_value = intpow2(k) - 1;
   return d_nm->mkConstInt(max_value);
 }
 
-Node IntBlaster::pow2(uint64_t k)
+Node IntBlaster::pow2(uint32_t k)
 {
   Assert(k >= 0);
   return d_nm->mkConstInt(intpow2(k));
 }
 
-Node IntBlaster::modpow2(Node n, uint64_t exponent)
+Node IntBlaster::modpow2(Node n, uint32_t exponent)
 {
   Node p2 = d_nm->mkConstInt(intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
@@ -621,7 +621,7 @@ Node IntBlaster::uts(Node x, uint64_t bvsize)
   return d_nm->mkNode(kind::SUB, twoTimesNode, x);
 }
 
-Node IntBlaster::createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount)
+Node IntBlaster::createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount)
 {
   Node returnNode;
   if (x.isConst())
@@ -1006,7 +1006,7 @@ Node IntBlaster::translateQuantifiedFormula(Node quantifiedNode)
 
 Node IntBlaster::createBVAndNode(Node x,
                                  Node y,
-                                 uint64_t bvsize,
+                                 uint32_t bvsize,
                                  std::vector<Node>& lemmas)
 {
   // We support three configurations:

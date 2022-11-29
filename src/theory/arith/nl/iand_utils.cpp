@@ -34,7 +34,7 @@ static Rational intpow2(uint32_t b)
   return Rational(Integer(2).pow(b), Integer(1));
 }
 
-Node pow2(uint64_t k)
+Node pow2(uint32_t k)
 {
   Assert(k >= 0);
   NodeManager* nm = NodeManager::currentNM();

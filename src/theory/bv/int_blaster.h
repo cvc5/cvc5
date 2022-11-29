@@ -166,7 +166,7 @@ class IntBlaster : protected EnvObj
    * provided option. */
   Node createBVAndNode(Node x,
                        Node y,
-                       uint64_t bvsize,
+                       uint32_t bvsize,
                        std::vector<Node>& lemmas);
 
   /** Returns a node that represents the bitwise or of x and y, by translation
@@ -183,7 +183,7 @@ class IntBlaster : protected EnvObj
   Node createBVSubNode(Node x, Node y, uint64_t bvsize);
 
   /** Returns a node that represents the signed extension of x by amount. */
-  Node createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount);
+  Node createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -212,7 +212,7 @@ class IntBlaster : protected EnvObj
    * @param k A non-negative integer
    * @return A node that represents the constant 2^k
    */
-  Node pow2(uint64_t k);
+  Node pow2(uint32_t k);
 
   /**
    * @param k A positive integer k
@@ -220,14 +220,14 @@ class IntBlaster : protected EnvObj
    * For example, if k is 4, the result is a node representing the
    * constant 15.
    */
-  Node maxInt(uint64_t k);
+  Node maxInt(uint32_t k);
 
   /**
    * @param n A node representing an integer term
    * @param exponent A non-negative integer
    * @return A node representing (n mod (2^exponent))
    */
-  Node modpow2(Node n, uint64_t exponent);
+  Node modpow2(Node n, uint32_t exponent);
 
   /**
    * Returns true iff the type of at least
