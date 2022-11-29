@@ -16,6 +16,7 @@
 #include "theory/arith/nl/iand_utils.h"
 
 #include <cmath>
+#include <limits>
 
 #include "cvc5_private.h"
 #include "theory/arith/nl/nl_model.h"
@@ -44,12 +45,13 @@ Node pow2(uint32_t k)
 bool oneBitAnd(bool a, bool b) { return (a && b); }
 
 // computes (bv_to_int ((_ extract i+size-1 i) (int_to_bv x))))
-Node intExtract(Node x, uint64_t i, uint64_t size)
+Node intExtract(Node x, uint32_t i, uint32_t size)
 {
   Assert(size > 0);
   NodeManager* nm = NodeManager::currentNM();
   // extract definition in integers is:
   // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
+  Assert(i * size <= std::numeric_limits<int32_t>::max());
   Node extract =
       nm->mkNode(kind::INTS_MODULUS_TOTAL,
                  nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i * size)),
@@ -105,8 +107,8 @@ Node IAndUtils::createITEFromTable(
 
 Node IAndUtils::createSumNode(Node x,
                               Node y,
-                              uint64_t bvsize,
-                              uint64_t granularity)
+                              uint32_t bvsize,
+                              uint32_t granularity)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(0 < granularity && granularity <= 8);
@@ -133,7 +135,7 @@ Node IAndUtils::createSumNode(Node x,
   // More details are in bv_to_int.h .
 
   // number of elements in the sum expression
-  uint64_t sumSize = bvsize / granularity;
+  uint32_t sumSize = bvsize / granularity;
   // initialize the sum
   Node sumNode = nm->mkConstInt(Rational(0));
   // compute the table for the current granularity if needed
@@ -143,7 +145,7 @@ Node IAndUtils::createSumNode(Node x,
   }
   const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
       d_bvandTable[granularity];
-  for (uint64_t i = 0; i < sumSize; i++)
+  for (uint32_t i = 0; i < sumSize; i++)
   {
     // compute the current blocks of x and y
     Node xExtract = intExtract(x, i, granularity);
@@ -151,6 +153,7 @@ Node IAndUtils::createSumNode(Node x,
     // compute the ite for this part
     Node sumPart = createITEFromTable(xExtract, yExtract, granularity, table);
     // append the current block to the sum
+    Assert(i * granularity <= std::numeric_limits<int32_t>::max());
     sumNode =
         nm->mkNode(kind::ADD,
                    sumNode,

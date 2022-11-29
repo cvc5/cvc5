@@ -1,4 +1,5 @@
 /******************************************************************************
+```
  * Top contributors (to current version):
  *   Yoni Zohar, Makai Mann, Andrew Reynolds
  *
@@ -83,7 +84,7 @@ class IAndUtils
    *        pass.
    * @return A node that represents the operation, as described above.
    */
-  Node createSumNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
+  Node createSumNode(Node x, Node y, uint32_t bvsize, uint32_t granularity);
 
   /** Create a bitwise integer And node for two integers x and y for bits
    *  between hgih and low Example for high = 0, low = 0 (e.g. granularity 1)
