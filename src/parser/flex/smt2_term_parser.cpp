@@ -377,8 +377,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
       // do not know the arity yet
       continue;
     }
-    unsigned arity = static_cast<unsigned>(arities[i]);
-    d_state.mkUnresolvedType(dnames[i], arity);
+    d_state.mkUnresolvedType(dnames[i], arities[i]);
   }
   d_lex.eatToken(Token::LPAREN_TOK);
   // while the next token is LPAREN, exit if RPAREN
@@ -433,7 +432,6 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     }
     d_lex.eatToken(Token::RPAREN_TOK);
   }
-
   if (dts.size() != dnames.size())
   {
     d_state.parseError("Wrong number of datatypes provided.");
