@@ -75,6 +75,10 @@ class Smt2TermParser
   std::string parseStr(bool unescape);
 
  protected:
+  /** 
+   * Parse constructor definition list, add to declaration type 
+   */
+  void parseConstructorDefinitionList(DatatypeDecl& type);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */

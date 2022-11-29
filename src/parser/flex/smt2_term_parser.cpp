@@ -360,6 +360,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     const std::vector<std::string>& dnames,
     const std::vector<size_t>& arities)
 {
+  Assert (dnames.size()==arities.size() || (dnames.size()==1 && arities.empty()));
   std::vector<DatatypeDecl> dts;
   d_state.pushScope();
   // Declare the datatypes that are currently being defined as unresolved
@@ -424,13 +425,14 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
       // parameters
       d_state.parseError("Wrong number of parameters for datatype.");
     }
-    // TODO: read constructor definition list
-
+    // read constructor definition list, populate into the current datatype
+    parseConstructorDefinitionList(dts.back());
+    d_lex.eatToken(Token::RPAREN_TOK);
     if (pushedScope)
     {
+      d_lex.eatToken(Token::RPAREN_TOK);
       d_state.popScope();
     }
-    d_lex.eatToken(Token::RPAREN_TOK);
   }
   if (dts.size() != dnames.size())
   {
@@ -438,6 +440,32 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
   }
   d_state.popScope();
   return dts;
+}
+
+void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
+{
+  d_lex.eatToken(Token::LPAREN_TOK);
+  // parse another constructor or close the list
+  while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+  {
+    std::string name = parseSymbol(CHECK_NONE,SYM_VARIABLE);
+    DatatypeConstructorDecl* ctor = new DatatypeConstructorDecl(
+            d_state.getSolver()->mkDatatypeConstructorDecl(name));
+    // parse another selector or close the current constructor
+    while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+    {
+      std::string id = parseSymbol(CHECK_NONE,SYM_SORT);
+      Sort t = parseSort();
+      ctor->addSelector(id, t);
+      Trace("parser-idt") << "selector: " << id
+                          << " of type " << t << std::endl;
+      d_lex.eatToken(Token::RPAREN_TOK);
+    }
+    // make the constructor
+    type.addConstructor(*ctor);
+    Trace("parser-idt") << "constructor: " << name<< std::endl;
+    delete ctor;
+  }
 }
 
 std::string Smt2TermParser::parseStr(bool unescape)

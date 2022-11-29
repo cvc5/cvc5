@@ -135,7 +135,6 @@ Command* Smt2CmdParser::parseNextCommand()
       // while the next token is LPAREN, exit if RPAREN
       while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
       {
-        d_lex.eatToken(Token::LPAREN_TOK);
         std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
         size_t arity = d_tparser.parseIntegerNumeral();
         dnames.push_back(name);
@@ -143,7 +142,6 @@ Command* Smt2CmdParser::parseNextCommand()
         d_lex.eatToken(Token::RPAREN_TOK);
       }
       d_lex.eatToken(Token::LPAREN_TOK);
-
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypeDef(isCo, dnames, arities);
