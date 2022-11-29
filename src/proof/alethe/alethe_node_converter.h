@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
-#define CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#define CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
@@ -36,16 +36,23 @@ class AletheNodeConverter
   /** Traverse n and convert it to the internal Alethe representation
    *
    * The return node
- */
+  */
   Node convert(Node n);
-
 
  private:
   /** Should only traverse nodes containing closures. */
   bool shouldTraverse(Node n);
 
+  /**
+   * Make or get an internal symbol with custom name.
+   */
+  Node mkInternalSymbol(const std::string& name);
+
   /** Node cache for convert */
   std::unordered_map<Node, Node> d_cache;
+
+  /** Map from internally generated symbols to the built nodes. */
+  std::unordered_map<std::string, Node> d_symbolsMap;
 };
 
 }  // namespace proof

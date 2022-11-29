@@ -134,10 +134,20 @@ Node AletheNodeConverter::convert(Node n)
         }
         case kind::FORALL:
         {
-          if (nChildren == 3)
-          {
-            res = nm->mkNode(kind::FORALL, children[0], children[1]);
-          }
+          res = nChildren == 3
+                    ? nm->mkNode(kind::FORALL, children[0], children[1])
+                    : Node(cur);
+          break;
+        }
+        // we must make it to be printed with "choice", so as an SEXPR with that
+        // internal symbol as the "head"
+        case kind::WITNESS:
+        {
+          children.insert(children.begin(), mkInternalSymbol("choice"));
+          // std::vector<Node> newChildren{mkInternalSymbol("choice")};
+          // newChildren.insert(
+          //     newChildren.end(), children.begin(), children.end());
+          res = nm->mkNode(kind::SEXPR, children);
           break;
         }
         default:
@@ -150,14 +160,27 @@ Node AletheNodeConverter::convert(Node n)
       d_cache[res] = res;
     }
   } while (!visit.empty());
-  Trace("lean-conv") << "LeanConverter::convert: for " << n << " returns "
-                     << d_cache[n] << "\n";
+  Trace("alethe-conv") << "AletheConverter::convert: for " << n << " returns "
+                       << d_cache[n] << "\n";
   Assert(d_cache.find(n) != d_cache.end());
   Assert(!d_cache.find(n)->second.isNull());
   return d_cache[n];
 }
 
 bool AletheNodeConverter::shouldTraverse(Node n) { return true; }
+
+Node AletheNodeConverter::mkInternalSymbol(const std::string& name)
+{
+  std::unordered_map<std::string, Node>::iterator it = d_symbolsMap.find(name);
+  if (it != d_symbolsMap.end())
+  {
+    return it->second;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node sym = nm->mkBoundVar(name, nm->sExprType());
+  d_symbolsMap[name] = sym;
+  return sym;
+}
 
 }  // namespace proof
 }  // namespace cvc5::internal
