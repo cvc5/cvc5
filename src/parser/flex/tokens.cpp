@@ -133,6 +133,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::STRING_LITERAL: o << "STRING_LITERAL"; break;
     case Token::SYGUS_CONSTANT_TOK: o << "SYGUS_CONSTANT_TOK"; break;
     case Token::SYGUS_VARIABLE_TOK: o << "SYGUS_VARIABLE_TOK"; break;
+    case Token::SYMBOL: o << "SYMBOL"; break;
     case Token::SYMBOL_CHAR: o << "SYMBOL_CHAR"; break;
     case Token::SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE:
       o << "SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE";
@@ -154,6 +155,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
       break;
     case Token::UPDATE_TOK: o << "UPDATE_TOK"; break;
     case Token::WHITESPACE: o << "WHITESPACE"; break;
+    case Token::NONE: o << "NONE"; break;
     default: o << "Unknown Token (" << unsigned(t) << ")"; break;
   }
   return o;

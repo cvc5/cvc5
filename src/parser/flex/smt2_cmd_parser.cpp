@@ -21,8 +21,8 @@
 
 namespace cvc5 {
 namespace parser {
-
-// TODO: optional string, grammar, numeral
+  
+// TODO: d_state.parseError should just be d_lex.parseError ?
 
 Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
                              Smt2State& state,
@@ -392,11 +392,11 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::ECHO_TOK:
     {
-      // TODO: optional
-      bool readStr = true;
-      std::string msg = d_tparser.parseStr(true);
-      if (readStr)
+      // optional
+      tok = d_lex.peekToken();
+      if (tok==Token::STRING_LITERAL)
       {
+        std::string msg = d_tparser.parseStr(true);
         cmd.reset(new EchoCommand(msg));
       }
       else
@@ -415,9 +415,9 @@ Command* Smt2CmdParser::parseNextCommand()
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       Term t = d_tparser.parseTerm();
-      // TODO: optional
+      // optional
       std::vector<Term> emptyVarList;
-      Grammar* g = d_tparser.parseGrammar(emptyVarList, name);
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, name);
       cmd.reset(new GetAbductCommand(name, t, g));
     }
     break;
@@ -456,9 +456,8 @@ Command* Smt2CmdParser::parseNextCommand()
       d_state.checkThatLogicIsSet();
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
       Term t = d_tparser.parseTerm();
-      // TODO: optional
       std::vector<Term> emptyVarList;
-      Grammar* g = d_tparser.parseGrammar(emptyVarList, name);
+      Grammar* g = d_tparser.parseGrammarOrNull(emptyVarList, name);
       cmd.reset(new GetInterpolantCommand(name, t, g));
     }
     break;
@@ -470,15 +469,15 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::GET_LEARNED_LITERALS_TOK:
     {
-      // TODO: optional
-      bool readKeyword = true;
-      std::string key = d_tparser.parseKeyword();
-      d_state.checkThatLogicIsSet();
+      // optional keyword
+      tok = d_lex.peekToken();
       modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
-      if (readKeyword)
+      if (tok==Token::KEYWORD)
       {
+        std::string key = d_tparser.parseKeyword();
         llt = d_state.getLearnedLitType(key);
       }
+      d_state.checkThatLogicIsSet();
       cmd.reset(new GetLearnedLiteralsCommand(llt));
     }
     break;
@@ -496,15 +495,15 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::GET_PROOF_TOK:
     {
-      // TODO: optional
-      bool readKeyword = true;
-      std::string key = d_tparser.parseKeyword();
-      d_state.checkThatLogicIsSet();
+      // optional keyword
+      tok = d_lex.peekToken();
       modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
-      if (readKeyword)
+      if (tok==Token::KEYWORD)
       {
+        std::string key = d_tparser.parseKeyword();
         pc = d_state.getProofComponent(key);
       }
+      d_state.checkThatLogicIsSet();
       cmd.reset(new GetProofCommand(pc));
     }
     break;
@@ -555,11 +554,11 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::POP_TOK:
     {
-      // TODO: optional
-      bool readNumeral = true;
-      size_t num = d_tparser.parseIntegerNumeral();
-      if (readNumeral)
+      // optional integer
+      tok = d_lex.peekToken();
+      if (tok==Token::INTEGER_LITERAL)
       {
+        size_t num = d_tparser.parseIntegerNumeral();
         cmd = d_state.handlePop(num);
       }
       else
@@ -570,11 +569,11 @@ Command* Smt2CmdParser::parseNextCommand()
     break;
     case Token::PUSH_TOK:
     {
-      // TODO: optional
-      bool readNumeral = true;
-      size_t num = d_tparser.parseIntegerNumeral();
-      if (readNumeral)
+      // optional integer
+      tok = d_lex.peekToken();
+      if (tok==Token::INTEGER_LITERAL)
       {
+        size_t num = d_tparser.parseIntegerNumeral();
         cmd = d_state.handlePush(num);
       }
       else
@@ -667,8 +666,7 @@ Command* Smt2CmdParser::parseNextCommand()
       }
       d_state.pushScope();
       std::vector<cvc5::Term> sygusVars = d_state.bindBoundVars(sortedVarNames);
-      // TODO: optional
-      Grammar* g = d_tparser.parseGrammar(sygusVars, name);
+      Grammar* g = d_tparser.parseGrammarOrNull(sygusVars, name);
 
       Trace("parser-sygus") << "Define synth fun : " << name << std::endl;
       Solver* slv = d_state.getSolver();
@@ -686,9 +684,7 @@ Command* Smt2CmdParser::parseNextCommand()
     }
     break;
     default:
-      // TODO: get token text
-      std::string id;
-      d_state.parseError("expected SMT-LIBv2 command, got `" + id + "'.");
+      d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 command");
       break;
   }
   d_lex.eatToken(Token::RPAREN_TOK);

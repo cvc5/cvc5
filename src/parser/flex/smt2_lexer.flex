@@ -14,8 +14,15 @@
 %}
 
 nl          [\n]+
-ws          [ \t\f]+
+ws          [ \t\r\f]+
 string_literal \"(\"\"|[^"])*\"
+unterminated_string_literal \"(\"\"|[^"])*
+nat         [0-9]+
+decimal     [0-9]+\.[0-9]+
+bitstr      #b[01]+
+hexstr      #x[0-9a-fA-F]+
+simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
+
 
 %%
 
@@ -101,9 +108,17 @@ string_literal \"(\"\"|[^"])*\"
 "is"   return cvc5::parser::TESTER_TOK;
 "update"   return cvc5::parser::UPDATE_TOK;
 
-{ws}            bump_span();
-{nl}            add_lines(yyleng); bump_span();
-{string_literal}  return cvc5::parser::STRING_LITERAL;
+{ws}   bump_span();
+{nl}   add_lines(yyleng); bump_span();
+{string_literal}   return cvc5::parser::STRING_LITERAL;
+{unterminated_string_literal}   return cvc5::parser::UNTERMINATED_STRING_LITERAL;
+{nat}   return cvc5::parser::INTEGER_LITERAL;
+{decimal}   return cvc5::parser::DECIMAL_LITERAL;
+{hexstr}   return cvc5::parser::HEX_LITERAL;
+{bitstr}   return cvc5::parser::BINARY_LITERAL;
+\:{simple_symbol}  return cvc5::parser::KEYWORD;
+{simple_symbol} return cvc5::parser::SYMBOL;
+
 
 ";"    {
           int c;

@@ -18,6 +18,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include "base/check.h"
 
 namespace cvc5 {
 namespace parser {
@@ -31,7 +32,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-Lexer::Lexer() : yyFlexLexer() {}
+Lexer::Lexer() : yyFlexLexer(), d_peeked(Token::NONE) {}
 
 void Lexer::warning(const std::string& msg)
 {
@@ -82,19 +83,30 @@ const char* Lexer::token_str() { return YYText(); }
 
 Token Lexer::nextToken()
 {
-  // Call the derived yylex() and convert it to a token
-  return Token(yylex());
+  if (d_peeked==Token::NONE)
+  {
+    // Call the derived yylex() and convert it to a token
+    return Token(yylex());
+  }
+  Token t = d_peeked;
+  d_peeked = Token::NONE;
+  return t;
 }
 
-void Lexer::unexpected_token_error(Token t, const std::string& info)
+Token Lexer::peekToken()
+{
+  Assert (d_peeked==Token::NONE);
+  Token t = Token(yylex());
+  // reinsert it
+  d_peeked = t;
+  return t;
+}
+
+void Lexer::unexpectedTokenError(Token t, const std::string& info)
 {
   std::ostringstream o{};
-  o << "Scanned token " << t << ", `" << YYText()
-    << "`, which is invalid in this position";
-  if (info.length())
-  {
-    o << std::endl << "Note: " << info;
-  }
+  o << info << ", got `" << YYText()
+    << "` (" << t << ").";
   parseError(o.str());
 }
 
@@ -110,8 +122,8 @@ void Lexer::eatToken(Token t)
   if (t != tt)
   {
     std::ostringstream o{};
-    o << "Expected a " << t << ", but got a " << tt << ", `" << YYText() << "`";
-    unexpected_token_error(tt, o.str());
+    o << "Expected a " << t;
+    unexpectedTokenError(tt, o.str());
   }
 }
 
@@ -125,9 +137,8 @@ bool Lexer::eatTokenChoice(Token t, Token f)
   else if (tt != f)
   {
     std::ostringstream o{};
-    o << "Expected " << t << " or " << f << ", but got a " << tt << ", `"
-      << YYText() << "`";
-    unexpected_token_error(tt, o.str());
+    o << "Expected " << t << " or " << f;
+    unexpectedTokenError(tt, o.str());
   }
   return false;
 }

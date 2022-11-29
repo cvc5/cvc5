@@ -58,6 +58,8 @@ class Lexer : public yyFlexLexer
   void initialize(std::istream& input, const std::string& inputName);
   /** Advance to the next token (pop from stack) */
   Token nextToken();
+  // Add a token back into the stream (push to stack)
+  Token peekToken();
   /** Expect a token `t` as the next one. Error o.w. */
   void eatToken(Token t);
   /**
@@ -75,6 +77,8 @@ class Lexer : public yyFlexLexer
   void warning(const std::string&);
   /** Used to report errors, with the current source location attached. */
   void parseError(const std::string&);
+  // Error. Got `t`, expected `info`.
+  void unexpectedTokenError(Token t, const std::string& info);
 
  protected:
   // Used to initialize d_span.
@@ -85,12 +89,12 @@ class Lexer : public yyFlexLexer
   void add_columns(uint32_t columns);
   void add_lines(uint32_t lines);
   // Core functions
-  // Error. Got `t`, expected `info`.
-  void unexpected_token_error(Token t, const std::string& info);
   // Span of last token pulled from underlying lexer (old top of stack)
   Span d_span;
   /** Name of current file */
   std::string d_inputName;
+  /** Peeked */
+  Token d_peeked;
 };
 
 }  // namespace parser

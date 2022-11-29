@@ -58,6 +58,9 @@ class Smt2TermParser
   /** Parse grammar */
   Grammar* parseGrammar(const std::vector<Term>& sygusVars,
                         const std::string& fun);
+  /** Parse grammar, allow null */
+  Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars,
+                        const std::string& fun);
   /** Parse integer numeral */
   size_t parseIntegerNumeral();
   /** Parse datatype def */
@@ -71,6 +74,9 @@ class Smt2TermParser
    */
   std::string parseStr(bool unescape);
 
+  //----------------- utilities
+   /** Unescape a string literal */
+  void unescapeString(std::string& s);
  protected:
   /** The lexer */
   Smt2Lexer& d_lex;
