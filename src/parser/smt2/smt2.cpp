@@ -682,6 +682,13 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::RELATION_TCLOSURE, "rel.tclosure");
     addOperator(cvc5::RELATION_JOIN_IMAGE, "rel.join_image");
     addOperator(cvc5::RELATION_IDEN, "rel.iden");
+    // these operators can be with/without indices
+    addOperator(cvc5::RELATION_GROUP,  "rel.group");
+    addOperator(cvc5::RELATION_AGGREGATE,  "rel.aggr");
+    addOperator(cvc5::RELATION_PROJECT,  "rel.project");
+    addIndexedOperator(cvc5::RELATION_GROUP,  "rel.group");
+    addIndexedOperator(cvc5::RELATION_AGGREGATE,  "rel.aggr");
+    addIndexedOperator(cvc5::RELATION_PROJECT,  "rel.project");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
@@ -708,6 +715,15 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
     addOperator(cvc5::BAG_PARTITION, "table.group");
+    // these operators can be with/without indices
+    addOperator(cvc5::TABLE_PROJECT, "table.project");
+    addOperator(cvc5::TABLE_AGGREGATE,  "table.aggr");
+    addOperator(cvc5::TABLE_JOIN,  "table.join");
+    addOperator(cvc5::TABLE_GROUP,  "table.group");
+    addIndexedOperator(cvc5::TABLE_PROJECT, "table.project");
+    addIndexedOperator(cvc5::TABLE_AGGREGATE,  "table.aggr");
+    addIndexedOperator(cvc5::TABLE_JOIN,  "table.join");
+    addIndexedOperator(cvc5::TABLE_GROUP,  "table.group");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
@@ -1094,11 +1110,12 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
       // special case: tuple projection with zero arguments
-      if (kind == TUPLE_PROJECT)
+      if (kind == TUPLE_PROJECT || kind == TABLE_PROJECT || kind==TABLE_AGGREGATE || kind==TABLE_JOIN || kind==TABLE_GROUP || kind == RELATION_GROUP || kind == RELATION_AGGREGATE || kind == RELATION_PROJECT
+      )
       {
-        kind = NULL_TERM;
         std::vector<uint32_t> indices;
-        op = d_solver->mkOp(TUPLE_PROJECT, indices);
+        op = d_solver->mkOp(kind, indices);
+        kind = NULL_TERM;
         isBuiltinOperator = false;
       }
       Trace("parser") << "Got builtin kind " << kind << " for name"
