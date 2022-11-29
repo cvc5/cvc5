@@ -47,7 +47,18 @@ bool TheoryRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
-
+  if (eq[0].getKind()==APPLY_UF && eq[0].getOperator().getKind()==LAMBDA)
+  {
+    std::vector<Node> args;
+    args.push_back(eq[0].getOperator());
+    args.insert(args.end(), eq[0].begin(), eq[0].end());
+    if (tryRule(cdp, eq, PfRule::BETA_REDUCE, args))
+    {
+      Trace("trewrite-rcons") << "...BETA_REDUCE" << std::endl;
+      return true;
+    }
+  }
+  Trace("trewrite-rcons") << "...(fail)" << std::endl;
   return false;
 }
 
