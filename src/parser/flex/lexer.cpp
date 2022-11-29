@@ -83,7 +83,7 @@ const char* Lexer::token_str() { return YYText(); }
 
 Token Lexer::nextToken()
 {
-  if (d_peeked==Token::NONE)
+  if (d_peeked == Token::NONE)
   {
     // Call the derived yylex() and convert it to a token
     return Token(yylex());
@@ -95,7 +95,7 @@ Token Lexer::nextToken()
 
 Token Lexer::peekToken()
 {
-  Assert (d_peeked==Token::NONE);
+  Assert(d_peeked == Token::NONE);
   Token t = Token(yylex());
   // reinsert it
   d_peeked = t;
@@ -105,8 +105,7 @@ Token Lexer::peekToken()
 void Lexer::unexpectedTokenError(Token t, const std::string& info)
 {
   std::ostringstream o{};
-  o << info << ", got `" << YYText()
-    << "` (" << t << ").";
+  o << info << ", got `" << YYText() << "` (" << t << ").";
   parseError(o.str());
 }
 

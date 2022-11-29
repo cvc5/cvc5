@@ -21,7 +21,7 @@
 
 namespace cvc5 {
 namespace parser {
-  
+
 // TODO: d_state.parseError should just be d_lex.parseError ?
 
 Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
@@ -394,7 +394,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       // optional
       tok = d_lex.peekToken();
-      if (tok==Token::STRING_LITERAL)
+      if (tok == Token::STRING_LITERAL)
       {
         std::string msg = d_tparser.parseStr(true);
         cmd.reset(new EchoCommand(msg));
@@ -405,9 +405,7 @@ Command* Smt2CmdParser::parseNextCommand()
       }
     }
     break;
-    case Token::EXIT_TOK:
-    {
-      cmd.reset(new QuitCommand());
+    case Token::EXIT_TOK: { cmd.reset(new QuitCommand());
     }
     break;
     case Token::GET_ABDUCT_TOK:
@@ -472,7 +470,7 @@ Command* Smt2CmdParser::parseNextCommand()
       // optional keyword
       tok = d_lex.peekToken();
       modes::LearnedLitType llt = modes::LEARNED_LIT_INPUT;
-      if (tok==Token::KEYWORD)
+      if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();
         llt = d_state.getLearnedLitType(key);
@@ -498,7 +496,7 @@ Command* Smt2CmdParser::parseNextCommand()
       // optional keyword
       tok = d_lex.peekToken();
       modes::ProofComponent pc = modes::PROOF_COMPONENT_FULL;
-      if (tok==Token::KEYWORD)
+      if (tok == Token::KEYWORD)
       {
         std::string key = d_tparser.parseKeyword();
         pc = d_state.getProofComponent(key);
@@ -556,7 +554,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       // optional integer
       tok = d_lex.peekToken();
-      if (tok==Token::INTEGER_LITERAL)
+      if (tok == Token::INTEGER_LITERAL)
       {
         size_t num = d_tparser.parseIntegerNumeral();
         cmd = d_state.handlePop(num);
@@ -571,7 +569,7 @@ Command* Smt2CmdParser::parseNextCommand()
     {
       // optional integer
       tok = d_lex.peekToken();
-      if (tok==Token::INTEGER_LITERAL)
+      if (tok == Token::INTEGER_LITERAL)
       {
         size_t num = d_tparser.parseIntegerNumeral();
         cmd = d_state.handlePush(num);
@@ -590,9 +588,7 @@ Command* Smt2CmdParser::parseNextCommand()
       d_state.reset();
     }
     break;
-    case Token::RESET_ASSERTIONS_TOK:
-    {
-      cmd.reset(new ResetAssertionsCommand());
+    case Token::RESET_ASSERTIONS_TOK: { cmd.reset(new ResetAssertionsCommand());
     }
     break;
     case Token::SET_FEATURE_TOK:

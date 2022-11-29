@@ -37,27 +37,22 @@ Term Smt2TermParser::parseTerm()
     tok = d_lex.nextToken();
     switch (tok)
     {
-      case Token::LPAREN_TOK:
-      {
-      }
-        break;
-      case Token::RPAREN_TOK:
-      {
-      }
-        break;
-      case Token::SYMBOL:
-      {
-      }
-        break;
-      case Token::AS_TOK: 
-      {
+      case Token::LPAREN_TOK: {
       }
       break;
-      default:
-        break;
+      case Token::RPAREN_TOK: {
+      }
+      break;
+      case Token::SYMBOL: {
+      }
+      break;
+      case Token::AS_TOK: {
+      }
+      break;
+      default: break;
     }
-  }while (!tstack.empty());
-  
+  } while (!tstack.empty());
+
   return t;
 }
 std::vector<Term> Smt2TermParser::parseTermList()
@@ -85,16 +80,16 @@ std::vector<Sort> Smt2TermParser::parseSortList()
   return sorts;
 }
 
-std::vector<std::pair<std::string, Sort> > Smt2TermParser::parseSortedVarList()
+std::vector<std::pair<std::string, Sort>> Smt2TermParser::parseSortedVarList()
 {
-  std::vector<std::pair<std::string, Sort> > varList;
+  std::vector<std::pair<std::string, Sort>> varList;
   d_lex.eatToken(Token::LPAREN_TOK);
   std::string name;
   Sort t;
   // while the next token is LPAREN, exit if RPAREN
   while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
   {
-    name = parseSymbol(CHECK_NONE,SYM_VARIABLE);
+    name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
     t = parseSort();
     varList.emplace_back(name, t);
     d_lex.eatToken(Token::RPAREN_TOK);
@@ -114,7 +109,8 @@ std::vector<std::string> Smt2TermParser::parseSymbolList(DeclarationCheck check,
   return symbols;
 }
 
-std::string Smt2TermParser::parseKeyword() { 
+std::string Smt2TermParser::parseKeyword()
+{
   d_lex.eatToken(Token::KEYWORD);
   std::string s = d_lex.YYText();
   // strip off the initial colon
@@ -129,17 +125,18 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
 }
 
 Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
-                      const std::string& fun)
+                                            const std::string& fun)
 {
   Token t = d_lex.peekToken();
-  if (t!=Token::LPAREN_TOK)
+  if (t != Token::LPAREN_TOK)
   {
     return nullptr;
   }
   return parseGrammar(sygusVars, fun);
 }
 
-size_t Smt2TermParser::parseIntegerNumeral() { 
+size_t Smt2TermParser::parseIntegerNumeral()
+{
   d_lex.eatToken(Token::INTEGER_LITERAL);
   // TODO: leading zeroes in strict mode?
   size_t result;
