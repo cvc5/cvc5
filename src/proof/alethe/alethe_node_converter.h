@@ -28,28 +28,24 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * the form that Alethe expects.
  */
-class AletheNodeConverter
+class AletheNodeConverter : public NodeConverter
 {
  public:
   AletheNodeConverter();
   ~AletheNodeConverter() {}
-  /** Traverse n and convert it to the internal Alethe representation
-   *
-   * The return node
-  */
-  Node convert(Node n);
+  /** The only pre-conversion is to replace skolems by their witness forms. */
+  Node preConvert(Node n) override;
+  /** The post-conversion may not preserve types, so we use the untyped version.
+   */
+  Node postConvertUntyped(Node orig,
+                          const std::vector<Node>& terms,
+                          bool termsChanged) override;
 
  private:
-  /** Should only traverse nodes containing closures. */
-  bool shouldTraverse(Node n);
-
   /**
    * Make or get an internal symbol with custom name.
    */
   Node mkInternalSymbol(const std::string& name);
-
-  /** Node cache for convert */
-  std::unordered_map<Node, Node> d_cache;
 
   /** Map from internally generated symbols to the built nodes. */
   std::unordered_map<std::string, Node> d_symbolsMap;
