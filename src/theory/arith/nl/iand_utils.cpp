@@ -167,7 +167,7 @@ Node IAndUtils::createBitwiseIAndNode(Node x,
                                       uint32_t high,
                                       uint32_t low)
 {
-  uint64_t granularity = high - low + 1;
+  uint32_t granularity = high - low + 1;
   Assert(granularity <= 8);
   // compute the table for the current granularity if needed
   if (d_bvandTable.find(granularity) == d_bvandTable.end())
