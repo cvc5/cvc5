@@ -39,18 +39,12 @@ Rational Rational::fromDecimal(const std::string& dec) {
   using std::string;
   // Find the decimal point, if there is one
   string::size_type i( dec.find(".") );
-  Assert(i >= 0);
-  Assert(i <= std::numeric_limits<uint32_t>::max());
-  uint32_t index = (uint32_t)i;
-  if( index != string::npos ) {
+  if( i != string::npos ) {
     /* Erase the decimal point, so we have just the numerator. */
     Integer numerator( string(dec).erase(i,1) );
 
     /* Compute the denominator: 10 raise to the number of decimal places */
-    Assert(dec.size() >= (index + 1));
-    Assert(dec.size() <= std::numeric_limits<uint32_t>::max());
-    uint32_t decsize = (uint32_t)dec.size();
-    uint32_t decPlaces = decsize - (i + 1);
+    int decPlaces = dec.size() - (i + 1);
     Integer denominator( Integer(10).pow(decPlaces) );
 
     return Rational( numerator, denominator );
