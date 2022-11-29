@@ -144,9 +144,9 @@ void SolverEngine::finishInit()
     return;
   }
 
-  // Notice that finishInitInternal is called when options are finalized. If we
-  // are parsing smt2, this occurs at the moment we enter "Assert mode", page 52
-  // of SMT-LIB 2.6 standard.
+  // Notice that finishInit is called when options are finalized. If we are
+  // parsing smt2, this occurs at the moment we enter "Assert mode", page 52 of
+  // SMT-LIB 2.6 standard.
 
   // set the logic
   const LogicInfo& logic = getLogicInfo();
