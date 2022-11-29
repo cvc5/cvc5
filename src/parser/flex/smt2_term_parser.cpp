@@ -382,7 +382,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     d_state.mkUnresolvedType(dnames[i], arities[i]);
   }
   d_lex.eatToken(Token::LPAREN_TOK);
-  // while the next token is LPAREN, exit if RPAREN
+  // while we get another datatype declaration, or close the list
   while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
   {
     std::vector<Sort> params;
@@ -428,12 +428,12 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     }
     // read constructor definition list, populate into the current datatype
     parseConstructorDefinitionList(dts.back());
-    d_lex.eatToken(Token::RPAREN_TOK);
     if (pushedScope)
     {
       d_lex.eatToken(Token::RPAREN_TOK);
       d_state.popScope();
     }
+    d_lex.eatToken(Token::RPAREN_TOK);
   }
   if (dts.size() != dnames.size())
   {
