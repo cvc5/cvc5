@@ -37,14 +37,12 @@ namespace parser {
 
 Parser::Parser(cvc5::Solver* solver,
                SymbolManager* sm,
-               bool strictMode,
-               bool parseOnly)
+               bool strictMode)
     : d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode),
-      d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_solver(solver)
 {
@@ -869,17 +867,6 @@ std::wstring Parser::processAdHocStringEsc(const std::string& s)
     }
   }
   return res;
-}
-
-cvc5::Term Parser::mkStringConstant(const std::string& s)
-{
-  if (d_solver->getOption("input-language") == "LANG_SMTLIB_V2_6")
-  {
-    return d_solver->mkString(s, true);
-  }
-  // otherwise, we must process ad-hoc escape sequences
-  std::wstring str = processAdHocStringEsc(s);
-  return d_solver->mkString(str);
 }
 
 cvc5::Term Parser::mkCharConstant(const std::string& s)

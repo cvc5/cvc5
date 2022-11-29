@@ -34,9 +34,8 @@ namespace parser {
 
 Tptp::Tptp(cvc5::Solver* solver,
            SymbolManager* sm,
-           bool strictMode,
-           bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly),
+           bool strictMode)
+    : Parser(solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
       d_hol(false)
