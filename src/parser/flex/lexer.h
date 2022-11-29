@@ -28,8 +28,9 @@
 #include <FlexLexer.h>
 #endif
 
-#include "parser/flex/tokens.h"
 #include <vector>
+
+#include "parser/flex/tokens.h"
 
 namespace cvc5 {
 namespace parser {

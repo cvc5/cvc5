@@ -241,7 +241,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
 {
   // We read a sorted variable list.
   std::vector<std::pair<std::string, Sort>> sortedVarNames =
-          parseSortedVarList();
+      parseSortedVarList();
   // non-terminal symbols in the pre-declaration are locally scoped
   d_state.pushScope();
   std::vector<Term> ntSyms;
@@ -254,9 +254,9 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
     ntSyms.push_back(nts);
   }
   Grammar* ret = d_state.mkGrammar(sygusVars, ntSyms);
-  
+
   d_lex.eatToken(Token::LPAREN_TOK);
-  for (size_t i=0, nnts = ntSyms.size(); i<nnts; i++)
+  for (size_t i = 0, nnts = ntSyms.size(); i < nnts; i++)
   {
     d_lex.eatToken(Token::LPAREN_TOK);
     std::string name = parseSymbol(CHECK_DECLARED, SYM_VARIABLE);
@@ -285,9 +285,9 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
     {
       // lookahead for Constant/Variable
       bool parsedGTerm = false;
-      if (tok==Token::LPAREN_TOK)
+      if (tok == Token::LPAREN_TOK)
       {
-        switch(d_lex.peekToken())
+        switch (d_lex.peekToken())
         {
           case SYGUS_CONSTANT_TOK:
           {
@@ -307,8 +307,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
             parsedGTerm = true;
           }
           break;
-          default:
-            break;
+          default: break;
         }
       }
       if (!parsedGTerm)

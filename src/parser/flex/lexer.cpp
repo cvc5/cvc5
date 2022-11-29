@@ -105,14 +105,11 @@ Token Lexer::peekToken()
   return t;
 }
 
-void Lexer::reinsertToken(Token t)
-{
-  d_peeked.push_back(t);
-}
+void Lexer::reinsertToken(Token t) { d_peeked.push_back(t); }
 
 void Lexer::skipTokens(size_t k)
 {
-  for (size_t i=0; i<k; i++)
+  for (size_t i = 0; i < k; i++)
   {
     nextToken();
   }
