@@ -27,37 +27,6 @@ namespace cvc5::internal {
 
 namespace proof {
 
-/** The Alethe-specific let binder.
- *
- * Differently from the regular let binder, where all letified subterms are
- * replaced by a fresh variable, the Alethe let binder replaces the first
- * occurrence of a term n (first visited on a post-order traversal) by a fresh
- * variable whose name is "(! n :named v)", in which `v` is another fresh
- * variable. The subsequent occurrences of `n` are replaced by `v`.
- */
-class AletheLetBinding : public LetBinding
-{
- public:
-  AletheLetBinding(uint32_t thresh);
-
-  /**
-   * Convert n based on the state of the let binding.
-   *
-   * The conversion is done as summarized as above, but the name of the fresh
-   * variable `v` is prefixed by `prefix`.
-   *
-   * @param n The node to convert
-   * @param prefix The prefix of variables to convert
-   * @return the converted node.
-   */
-  Node convert(Node n, const std::string& prefix);
-
- private:
-  /** The set of terms that have already been "decleared", i.e., already had
-   * their first occurrence replaced. */
-  std::unordered_set<Node> d_declared;
-};
-
 /** A callback for populating a let binder.
  *
  * This callback does not actually update the proof node, but rather just
