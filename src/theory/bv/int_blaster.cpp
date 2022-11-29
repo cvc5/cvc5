@@ -333,7 +333,7 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_NOT:
     {
-      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      uint32_t bvsize = original[0].getType().getBitVectorSize();
       returnNode = createBVNotNode(translated_children[0], bvsize);
       break;
     }
@@ -895,7 +895,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
 }
 
 Node IntBlaster::createShiftNode(std::vector<Node> children,
-                                 uint64_t bvsize,
+                                 uint32_t bvsize,
                                  bool isLeftShift)
 {
   /**
@@ -931,7 +931,7 @@ Node IntBlaster::createShiftNode(std::vector<Node> children,
   // if we do not use the internal pow2 operator, we use ites.
   Node ite = d_zero;
   Node body;
-  for (uint64_t i = 0; i < bvsize; i++)
+  for (uint32_t i = 0; i < bvsize; i++)
   {
     if (isLeftShift)
     {

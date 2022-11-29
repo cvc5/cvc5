@@ -147,7 +147,7 @@ class IntBlaster : protected EnvObj
    *
    */
   Node createShiftNode(std::vector<Node> children,
-                       uint64_t bvsize,
+                       uint32_t bvsize,
                        bool isLeftShift);
 
   /** Adds the constraint 0 <= node < 2^size to lemmas */
