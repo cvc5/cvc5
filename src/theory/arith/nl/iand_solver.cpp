@@ -265,7 +265,8 @@ Node IAndSolver::sumBasedLemma(Node i)
   Node x = i[0];
   Node y = i[1];
   uint32_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint32_t granularity = options().smt.BVAndIntegerGranularity;
+  Assert(options().smt.BVAndIntegerGranularity <= 8);
+  uint32_t granularity = (uint32_t) options().smt.BVAndIntegerGranularity;
   NodeManager* nm = NodeManager::currentNM();
   Node lem = nm->mkNode(
       EQUAL, i, d_iandUtils.createSumNode(x, y, bvsize, granularity));
@@ -279,7 +280,8 @@ Node IAndSolver::bitwiseLemma(Node i)
   Node y = i[1];
 
   unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint32_t granularity = options().smt.BVAndIntegerGranularity;
+  Assert(options().smt.BVAndIntegerGranularity <= 8);
+  uint32_t granularity = (uint32_t) options().smt.BVAndIntegerGranularity;
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
   Rational concI = d_model.computeConcreteModelValue(i).getConst<Rational>();
