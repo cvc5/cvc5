@@ -138,6 +138,10 @@ class AletheProofPostprocessCallback : protected EnvObj,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+
+  /** Nodes corresponding to the Boolean values. */
+  Node d_true;
+  Node d_false;
 };
 
 /**
