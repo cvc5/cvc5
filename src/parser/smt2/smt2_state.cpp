@@ -139,16 +139,16 @@ void Smt2State::addDatatypesOperators()
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
-    // Notice that tuple operators, we use the generic APPLY_CONSTRUCTOR,
-    // APPLY_SELECTOR and APPLY_UPDATER kinds. These are processed based on the
-    // context in which they are parsed, e.g. when parsing identifiers.
+    // Notice that tuple operators, we use the UNDEFINED_KIND kind.
+    // These are processed based on the context in which they are parsed, e.g.
+    // when parsing identifiers.
     // For the tuple constructor "tuple", this is both a nullary operator
     // (for the 0-ary tuple), and a operator, hence we call both addOperator
     // and defineVar here.
     addOperator(cvc5::APPLY_CONSTRUCTOR, "tuple");
     defineVar("tuple", d_solver->mkTuple({}, {}));
-    addIndexedOperator(cvc5::APPLY_SELECTOR, "tuple.select");
-    addIndexedOperator(cvc5::APPLY_UPDATER, "tuple.update");
+    addIndexedOperator(cvc5::UNDEFINED_KIND, "tuple.select");
+    addIndexedOperator(cvc5::UNDEFINED_KIND, "tuple.update");
   }
 }
 
@@ -987,48 +987,95 @@ cvc5::Term Smt2State::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   if (p.d_kind == cvc5::UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
   {
     // Resolve indexed symbols that cannot be resolved without knowing the type
-    // of the arguments. This is currently limited to `to_fp`.
-    Assert(p.d_name == "to_fp");
+    // of the arguments. This is currently limited to `to_fp`, `tuple.select`,
+    // and `tuple.update`.
     size_t nchildren = args.size();
-    if (nchildren == 1)
+    if (p.d_name == "to_fp")
     {
-      kind = cvc5::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
-      op = d_solver->mkOp(kind, p.d_indices);
-    }
-    else if (nchildren > 2)
-    {
-      std::stringstream ss;
-      ss << "Wrong number of arguments for indexed operator to_fp, expected "
-            "1 or 2, got "
-         << nchildren;
-      parseError(ss.str());
-    }
-    else if (!args[0].getSort().isRoundingMode())
-    {
-      std::stringstream ss;
-      ss << "Expected a rounding mode as the first argument, got "
-         << args[0].getSort();
-      parseError(ss.str());
-    }
-    else
-    {
-      cvc5::Sort t = args[1].getSort();
-
-      if (t.isFloatingPoint())
+      if (nchildren == 1)
       {
-        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_FP;
+        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
         op = d_solver->mkOp(kind, p.d_indices);
       }
-      else if (t.isInteger() || t.isReal())
+      else if (nchildren > 2)
       {
-        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_REAL;
-        op = d_solver->mkOp(kind, p.d_indices);
+        std::stringstream ss;
+        ss << "Wrong number of arguments for indexed operator to_fp, expected "
+              "1 or 2, got "
+           << nchildren;
+        parseError(ss.str());
+      }
+      else if (!args[0].getSort().isRoundingMode())
+      {
+        std::stringstream ss;
+        ss << "Expected a rounding mode as the first argument, got "
+           << args[0].getSort();
+        parseError(ss.str());
       }
       else
       {
-        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_SBV;
-        op = d_solver->mkOp(kind, p.d_indices);
+        cvc5::Sort t = args[1].getSort();
+
+        if (t.isFloatingPoint())
+        {
+          kind = cvc5::FLOATINGPOINT_TO_FP_FROM_FP;
+          op = d_solver->mkOp(kind, p.d_indices);
+        }
+        else if (t.isInteger() || t.isReal())
+        {
+          kind = cvc5::FLOATINGPOINT_TO_FP_FROM_REAL;
+          op = d_solver->mkOp(kind, p.d_indices);
+        }
+        else
+        {
+          kind = cvc5::FLOATINGPOINT_TO_FP_FROM_SBV;
+          op = d_solver->mkOp(kind, p.d_indices);
+        }
       }
+    }
+    else if (p.d_name == "tuple.select" || p.d_name == "tuple.update")
+    {
+      bool isSelect = (p.d_name == "tuple.select");
+      if (p.d_indices.size() != 1)
+      {
+        parseError("wrong number of indices for tuple select or update");
+      }
+      uint64_t n = p.d_indices[0];
+      if (args.size() != (isSelect ? 1 : 2))
+      {
+        parseError("wrong number of arguments for tuple select or update");
+      }
+      cvc5::Sort t = args[0].getSort();
+      if (!t.isTuple())
+      {
+        parseError("tuple select or update applied to non-tuple");
+      }
+      size_t length = t.getTupleLength();
+      if (n >= length)
+      {
+        std::stringstream ss;
+        ss << "tuple is of length " << length << "; cannot access index " << n;
+        parseError(ss.str());
+      }
+      const cvc5::Datatype& dt = t.getDatatype();
+      cvc5::Term ret;
+      if (isSelect)
+      {
+        ret = d_solver->mkTerm(cvc5::APPLY_SELECTOR,
+                               {dt[0][n].getTerm(), args[0]});
+      }
+      else
+      {
+        ret = d_solver->mkTerm(cvc5::APPLY_UPDATER,
+                               {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+      }
+      Trace("parser") << "applyParseOp: return selector/updater " << ret
+                      << std::endl;
+      return ret;
+    }
+    else
+    {
+      Assert(false) << "Failed to resolve indexed operator " << p.d_name;
     }
   }
   else if (p.d_kind != cvc5::NULL_TERM)
@@ -1150,47 +1197,6 @@ cvc5::Term Smt2State::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     }
     cvc5::Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
-    return ret;
-  }
-  else if ((p.d_kind == cvc5::APPLY_SELECTOR || p.d_kind == cvc5::APPLY_UPDATER)
-           && !p.d_expr.isNull())
-  {
-    // tuple selector or updater case
-    if (!p.d_expr.isUInt64Value())
-    {
-      parseError(
-          "index of tuple select or update is larger than size of uint64_t");
-    }
-    uint64_t n = p.d_expr.getUInt64Value();
-    if (args.size() != (p.d_kind == cvc5::APPLY_SELECTOR ? 1 : 2))
-    {
-      parseError("wrong number of arguments for tuple select or update");
-    }
-    cvc5::Sort t = args[0].getSort();
-    if (!t.isTuple())
-    {
-      parseError("tuple select or update applied to non-tuple");
-    }
-    size_t length = t.getTupleLength();
-    if (n >= length)
-    {
-      std::stringstream ss;
-      ss << "tuple is of length " << length << "; cannot access index " << n;
-      parseError(ss.str());
-    }
-    const cvc5::Datatype& dt = t.getDatatype();
-    cvc5::Term ret;
-    if (p.d_kind == cvc5::APPLY_SELECTOR)
-    {
-      ret =
-          d_solver->mkTerm(cvc5::APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
-    }
-    else
-    {
-      ret = d_solver->mkTerm(cvc5::APPLY_UPDATER,
-                             {dt[0][n].getUpdaterTerm(), args[0], args[1]});
-    }
-    Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != cvc5::NULL_TERM)
