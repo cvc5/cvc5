@@ -387,7 +387,7 @@ class Smt2State : public ParserState
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */
-  Term applyParseOp(ParseOp& p, std::vector<Term>& args);
+  Term applyParseOp(const ParseOp& p, std::vector<Term>& args);
   /**
    * Returns a (parameterized) sort, given a name and args.
    */

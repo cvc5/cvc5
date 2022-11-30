@@ -137,8 +137,9 @@ Term Smt2TermParser::parseTerm()
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
+        ParseOp& op = tstack.back().first;
         // Construct the application term specified by tstack.back()
-        ret = d_state.applyParseOp(tstack.back().first, tstack.back().second);
+        ret = d_state.applyParseOp(op, tstack.back().second);
         // TODO:
         // - map the attribute if ATTRIBUTE_TOK
         // - process the scope change if closure

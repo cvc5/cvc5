@@ -1080,7 +1080,7 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-Term Smt2State::applyParseOp(ParseOp& p, std::vector<Term>& args)
+Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
