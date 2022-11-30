@@ -1723,7 +1723,7 @@ bool AletheProofPostprocessCallback::updatePost(
           // we also check whether after conversion the child is still not the
           // same (in the case where we'd need to have them different)
           if (args[polIdx] == d_false
-              && args[pivIdx] == d_anc.convert(children[i], false))
+              && args[pivIdx] == d_anc.convert(children[i]))
           {
             continue;
           }
