@@ -44,7 +44,7 @@ enum class ParseCtx : uint32_t
   LET_BODY,
   /**
    * Match terms
-   * 
+   *
    * MATCH_HEAD: in context (match <term>
    * MATCH_NEXT_CASE_PATTERN: in context (match <term> (<case>* (<term>
    * MATCH_CASE_BODY: in context (match <term> (<case>* (<term> <term>
@@ -54,7 +54,7 @@ enum class ParseCtx : uint32_t
   MATCH_CASE_BODY,
   /**
    * Term annotations
-   * 
+   *
    * TERM_ANNOTATE_BODY: in context (! <term>
    * TERM_ANNOTATE_NEXT_LIST_ARG: in context (! <term> <keyword> (<term>* <term>
    */
