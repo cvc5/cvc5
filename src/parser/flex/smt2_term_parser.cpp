@@ -57,19 +57,18 @@ Term Smt2TermParser::parseTerm()
             ParseOp op = continueParseIndexedIdentifier(false);
           }
           break;
-          case Token::LPAREN_TOK:  
+          case Token::LPAREN_TOK:
           {
             tok = d_lex.nextToken();
             switch (tok)
             {
-            case Token::AS_TOK:
-              // a qualified identifier operator
-              break;
-            case Token::INDEX_TOK:
-              // an indexed identifier operator
-              break;
-            default:
-              break;
+              case Token::AS_TOK:
+                // a qualified identifier operator
+                break;
+              case Token::INDEX_TOK:
+                // an indexed identifier operator
+                break;
+              default: break;
             }
             Term op;
             std::vector<Term> args{op};
@@ -102,7 +101,8 @@ Term Smt2TermParser::parseTerm()
       {
         if (tstack.empty())
         {
-          d_lex.unexpectedTokenError(tok, "Mismatched parentheses in SMT-LIBv2 term");
+          d_lex.unexpectedTokenError(
+              tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
         // Construct the application term specified by tstack.back()
         std::tuple<Token, std::string, std::vector<Term>>& t = tstack.back();
@@ -212,7 +212,8 @@ Term Smt2TermParser::parseSymbolicExpr()
       {
         if (sstack.empty())
         {
-          d_lex.unexpectedTokenError(tok, "Mismatched parentheses in SMT-LIBv2 s-expression");
+          d_lex.unexpectedTokenError(
+              tok, "Mismatched parentheses in SMT-LIBv2 s-expression");
         }
         ret = slv->mkTerm(SEXPR, sstack.back());
         // pop the stack
@@ -292,7 +293,8 @@ Sort Smt2TermParser::parseSort()
       {
         if (sstack.empty())
         {
-          d_lex.unexpectedTokenError(tok, "Mismatched parentheses in SMT-LIBv2 sort");
+          d_lex.unexpectedTokenError(
+              tok, "Mismatched parentheses in SMT-LIBv2 sort");
         }
         // Construct the (parametric) sort specified by sstack.back()
         ret = d_state.getParametricSort(sstack.back().first,
@@ -715,17 +717,15 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   {
     switch (tok)
     {
-      case Token::INTEGER_LITERAL:numerals.push_back(tokenStrToUnsigned());
-      break;
-      case Token::SYMBOL:
-      case Token::HEX_LITERAL:
-        symbols.push_back(d_lex.tokenStr());
-      break;
-      default:
+      case Token::INTEGER_LITERAL:
+        numerals.push_back(tokenStrToUnsigned());
         break;
+      case Token::SYMBOL:
+      case Token::HEX_LITERAL: symbols.push_back(d_lex.tokenStr()); break;
+      default: break;
     }
   }
-  if (numerals.empty()==symbols.empty())
+  if (numerals.empty() == symbols.empty())
   {
     std::stringstream ss;
     if (numerals.empty())
@@ -781,8 +781,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   else if (!isOperator)
   {
     // - fmf.card indexed by Type
-    // - char indexed by HEX 
-    
+    // - char indexed by HEX
   }
   else
   {
@@ -803,8 +802,7 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       op = continueParseIndexedIdentifier(isOperator);
     }
     break;
-    default:
-      break;
+    default: break;
   }
   return op;
 }

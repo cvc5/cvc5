@@ -75,6 +75,7 @@ class Smt2TermParser
    * string when `unescape` is set to true.
    */
   std::string parseStr(bool unescape);
+
  protected:
   /** Token to unsigned */
   uint32_t tokenStrToUnsigned();
@@ -86,17 +87,17 @@ class Smt2TermParser
    * Parse constructor definition list, add to declaration type
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
-  /** 
+  /**
    * Continue parse indexed identifier, we've parsed '(_ ', now parse
    * remainder '<symbol> <index>+)' and return the result.
    */
   ParseOp continueParseIndexedIdentifier(bool isOperator);
-  /** 
+  /**
    * Continue parse indexed identifier, we've parsed '(as ', now parse
    * remainder '<identifier> <type>)' and return the result.
    */
   ParseOp continueParseQualifiedIdentifier(bool isOperator);
-  /** 
+  /**
    * Parse identifier. An identifier
    */
   std::tuple<Token, std::string, std::vector<Term>> parseQualifiedIdentifier();
