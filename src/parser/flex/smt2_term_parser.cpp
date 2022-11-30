@@ -101,7 +101,8 @@ Term Smt2TermParser::parseTerm()
       }
       break;
       // ------------------- base cases
-      case Token::SYMBOL: {
+      case Token::SYMBOL:
+      {
         std::string name = d_lex.tokenStr();
         d_state.checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
         ret = d_state.getExpressionForName(name);
@@ -138,7 +139,7 @@ Term Smt2TermParser::parseTerm()
         ret = d_state.getSolver()->mkString(s, true);
       }
       break;
-      default: 
+      default:
         d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
         break;
     }
@@ -176,7 +177,7 @@ Term Smt2TermParser::parseSymbolicExpr()
   Term ret;
   Token tok;
   std::vector<std::vector<Term>> sstack;
-  Solver * slv = d_state.getSolver();
+  Solver* slv = d_state.getSolver();
   do
   {
     tok = d_lex.nextToken();
@@ -207,7 +208,7 @@ Term Smt2TermParser::parseSymbolicExpr()
         std::string str = d_lex.tokenStr();
         slv->mkString(d_state.processAdHocStringEsc(str));
       }
-        break;
+      break;
     }
     if (!ret.isNull())
     {
@@ -346,7 +347,9 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
   std::string id;
   switch (tok)
   {
-    case Token::SYMBOL: { id = d_lex.tokenStr();
+    case Token::SYMBOL:
+    {
+      id = d_lex.tokenStr();
     }
     break;
     case Token::QUOTED_SYMBOL:
