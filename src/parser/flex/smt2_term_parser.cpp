@@ -23,6 +23,38 @@
 namespace cvc5 {
 namespace parser {
 
+/** State when parsing terms */
+enum class ParseCtx : uint32_t
+{
+  /** 
+   * Default state, for (<op> <term>*)
+   */
+  NEXT_ARG,
+  /** 
+   * Closures, for (<closure> <variable_list> <term>*).
+   * Pushes/pops scope.
+   */
+  CLOSURE_NEXT_ARG,
+  /** 
+   * Let bindings 
+   * 
+   * LET_NEXT_BIND: op.d_name is the current binding term
+   */
+  LET_NEXT_BIND,
+  LET_BODY,
+  /** 
+   * Match terms
+   */
+  MATCH_HEAD,
+  MATCH_NEXT_CASE_PATTERN,
+  MATCH_CASE_BODY,
+  /** 
+   * Term annotations 
+   */
+  TERM_ANNOTATE_BODY,
+  TERM_ANNOTATE_NEXT_LIST_ARG
+};
+  
 Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
     : d_lex(lex), d_state(state)
 {
@@ -31,11 +63,15 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 Term Smt2TermParser::parseTerm()
 {
   Term ret;
+  bool needsUpdateCtx = false;
   Token tok;
+  std::vector<ParseCtx> xstack;
   std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
   Solver* slv = d_state.getSolver();
   do
   {
+    Assert (tstack.size()==xstack.size());
+    // At this point, we are setup to parse the next term
     tok = d_lex.nextToken();
     Term currTerm;
     switch (tok)
@@ -48,7 +84,7 @@ Term Smt2TermParser::parseTerm()
         {
           case Token::AS_TOK:
           {
-            // a standalone qualifier identifier
+            // a standalone qualified identifier
             ParseOp op = continueParseQualifiedIdentifier(false);
             ret = op.d_expr;
             Assert(!ret.isNull());
@@ -71,6 +107,7 @@ Term Smt2TermParser::parseTerm()
               {
                 // a qualified identifier operator
                 ParseOp op = continueParseQualifiedIdentifier(true);
+                xstack.emplace_back(ParseCtx::NEXT_ARG);
                 tstack.emplace_back(op, std::vector<Term>());
               }
               break;
@@ -78,6 +115,7 @@ Term Smt2TermParser::parseTerm()
               {
                 // an indexed identifier operator
                 ParseOp op = continueParseIndexedIdentifier(true);
+                xstack.emplace_back(ParseCtx::NEXT_ARG);
                 tstack.emplace_back(op, std::vector<Term>());
               }
               break;
@@ -90,17 +128,23 @@ Term Smt2TermParser::parseTerm()
           break;
           case Token::LET_TOK:
           {
-            // TODO
+            xstack.emplace_back(ParseCtx::LET_NEXT_BIND);
+            tstack.emplace_back(ParseOp(), std::vector<Term>());
+            // 
+            d_lex.eatToken(Token::LPAREN_TOK);
+            needsUpdateCtx = true;
           }
           break;
           case Token::MATCH_TOK:
           {
-            // TODO
+            xstack.emplace_back(ParseCtx::MATCH_HEAD);
+            tstack.emplace_back(ParseOp(), std::vector<Term>());
           }
           break;
           case Token::ATTRIBUTE_TOK:
           {
-            // TODO
+            xstack.emplace_back(ParseCtx::TERM_ANNOTATE_BODY);
+            tstack.emplace_back(ParseOp(), std::vector<Term>());
           }
           break;
           case Token::SYMBOL:
@@ -109,9 +153,10 @@ Term Smt2TermParser::parseTerm()
             ParseOp op;
             op.d_name = d_lex.tokenStr();
             std::vector<Term> args;
-            // if it is a closure, immediate read the bound variable list
             if (d_state.isClosure(op.d_name))
             {
+              xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);
+              // if it is a closure, immediate read the bound variable list
               d_state.pushScope();
               std::vector<std::pair<std::string, Sort>> sortedVarNames =
                   parseSortedVarList();
@@ -119,6 +164,10 @@ Term Smt2TermParser::parseTerm()
                   d_state.bindBoundVars(sortedVarNames);
               Term vl = slv->mkTerm(VARIABLE_LIST, vs);
               args.push_back(vl);
+            }
+            else
+            {
+              xstack.emplace_back(ParseCtx::NEXT_ARG);
             }
             tstack.emplace_back(op, args);
           }
@@ -137,14 +186,25 @@ Term Smt2TermParser::parseTerm()
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
-        ParseOp& op = tstack.back().first;
         // Construct the application term specified by tstack.back()
+        ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
-        // TODO:
+        // process the scope change if a closure
+        switch (xstack.back())
+        {
+          case ParseCtx::CLOSURE_NEXT_ARG:
+            // if we were a closure, pop a scope
+            d_state.popScope();
+            break;
+          default:
+            // do nothing
+            break;
+        }
         // - map the attribute if ATTRIBUTE_TOK
         // - process the scope change if closure
         // pop the stack
         tstack.pop_back();
+        xstack.pop_back();
       }
       break;
       // ------------------- base cases
@@ -190,21 +250,96 @@ Term Smt2TermParser::parseTerm()
         d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
         break;
     }
-    if (!ret.isNull())
+    
+    // Based on the current context, setup next parsed term.
+    // We do this only if a context is allocated (!tstack.empty()) and we
+    // either just finished parsing a term (!ret.isNull()), or otherwise have
+    // indicated that we need to update the context (needsUpdateCtx).
+    while (!tstack.empty() && (!ret.isNull() || needsUpdateCtx))
     {
-      // add it to the list and reset ret
-      if (!tstack.empty())
+      needsUpdateCtx = false;
+      switch (xstack.back())
       {
-        std::pair<ParseOp, std::vector<Term>>& t = tstack.back();
-        t.second.push_back(ret);
-        ret = Term();
-        // TODO: based on the current token, setup next parse
-        // this is for LET_TOK, MATCH_TOK,
+        // ------------------------- argument lists
+        case ParseCtx::NEXT_ARG:
+        case ParseCtx::CLOSURE_NEXT_ARG:
+        {
+          Assert (!ret.isNull());
+          // add it to the list of arguments and clear
+          tstack.back().second.push_back(ret);
+          ret = Term();
+        }
+          break;
+        // ------------------------- let terms
+        case ParseCtx::LET_NEXT_BIND:
+        {
+          // if we parsed a term
+          if (!ret.isNull())
+          {
+            // TODO: add binding x -> ret
+            ret = Term();
+            // close the current binding
+            d_lex.eatToken(Token::RPAREN_TOK);
+          }
+          if (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+          {
+            // (: another binding: setup parsing the next term
+            std::string sym = parseSymbol(CHECK_NONE,SYM_VARIABLE);
+          }
+          else
+          {
+            // ): we are now looking for the body of the let
+            xstack[xstack.size()-1] = ParseCtx::LET_BODY;
+          }
+        }
+          break;
+        case ParseCtx::LET_BODY:
+        {
+          // the let body is the returned term
+          d_lex.eatToken(Token::RPAREN_TOK);
+          xstack.pop_back();
+          tstack.pop_back();
+          // pop scope
+          d_state.popScope();
+        }
+          break;
+        // ------------------------- match terms
+        case ParseCtx::MATCH_HEAD:
+        {
+          Assert (!ret.isNull());
+          // add the head
+          tstack.back().second.push_back(ret);
+          ret = Term();
+          xstack[xstack.size()-1] = ParseCtx::MATCH_NEXT_CASE_PATTERN;
+          needsUpdateCtx = true;
+        }
+          break;
+        case ParseCtx::MATCH_NEXT_CASE_PATTERN:
+        {
+          // TODO
+          if (!ret.isNull())
+          {
+          }
+          // TODO
+        }
+          break;
+        // ------------------------- annotated terms
+        case ParseCtx::TERM_ANNOTATE_BODY:
+        {
+          // add it to the list of arguments and clear
+          tstack.back().second.push_back(ret);
+          ret = Term();
+          // parse the keyword
+          std::string key = parseKeyword();
+          // TODO: based on the keyword, determine the context
+        }
+          break;
+        default:
+          break;
       }
-      // otherwise ret will be returned
     }
+    // otherwise ret will be returned
   } while (!tstack.empty());
-
   return ret;
 }
 std::vector<Term> Smt2TermParser::parseTermList()
