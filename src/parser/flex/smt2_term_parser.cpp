@@ -76,7 +76,9 @@ Term Smt2TermParser::parseTerm()
             // function identifier
           }
           break;
-          default: break;
+          default:
+            d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
+            break;
         }
         // if we parsed an operator, push to the stack
         if (parsedOp)
@@ -136,7 +138,9 @@ Term Smt2TermParser::parseTerm()
         ret = d_state.getSolver()->mkString(s, true);
       }
       break;
-      default: break;
+      default: 
+        d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
+        break;
     }
     if (!ret.isNull())
     {
@@ -169,9 +173,55 @@ std::vector<Term> Smt2TermParser::parseTermList()
 
 Term Smt2TermParser::parseSymbolicExpr()
 {
-  Term t;
-  // TODO
-  return t;
+  Term ret;
+  Token tok;
+  std::vector<std::vector<Term>> sstack;
+  Solver * slv = d_state.getSolver();
+  do
+  {
+    tok = d_lex.nextToken();
+    switch (tok)
+    {
+      // ------------------- open paren
+      case Token::LPAREN_TOK:
+      {
+        sstack.emplace_back(std::vector<Term>());
+      }
+      break;
+      // ------------------- close paren
+      case Token::RPAREN_TOK:
+      {
+        if (sstack.empty())
+        {
+          d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 s-expression");
+        }
+        ret = slv->mkTerm(SEXPR, sstack.back());
+        // pop the stack
+        sstack.pop_back();
+      }
+      break;
+      // ------------------- base case
+      default:
+      {
+        // note that there are no tokens that are forbidden here
+        std::string str = d_lex.tokenStr();
+        slv->mkString(d_state.processAdHocStringEsc(str));
+      }
+        break;
+    }
+    if (!ret.isNull())
+    {
+      // add it to the list and reset ret
+      if (!sstack.empty())
+      {
+        sstack.back().push_back(ret);
+        ret = Term();
+      }
+      // otherwise it will be returned
+    }
+  } while (!sstack.empty());
+  Assert(!ret.isNull());
+  return ret;
 }
 
 Sort Smt2TermParser::parseSort()
@@ -182,7 +232,6 @@ Sort Smt2TermParser::parseSort()
   do
   {
     tok = d_lex.nextToken();
-    Sort currSort;
     switch (tok)
     {
       // ------------------- open paren
@@ -212,7 +261,7 @@ Sort Smt2TermParser::parseSort()
           default:
             // NOTE: it is possible to have sorts e.g.
             // ((_ FixedSizeList 4) Real) where tok would be LPAREN_TOK here.
-            // However, we have no such examples.
+            // However, we have no such examples in cvc5 currently.
             d_lex.unexpectedTokenError(tok,
                                        "Expected SMT-LIBv2 sort constructor");
             break;
