@@ -51,7 +51,7 @@ Term Smt2TermParser::parseTerm()
             // a standalone qualifier identifier
             ParseOp op = continueParseQualifiedIdentifier(false);
             ret = op.d_expr;
-            Assert (!ret.isNull());
+            Assert(!ret.isNull());
           }
           break;
           case Token::INDEX_TOK:
@@ -59,7 +59,7 @@ Term Smt2TermParser::parseTerm()
             // a standalone indexed symbol
             ParseOp op = continueParseIndexedIdentifier(false);
             ret = op.d_expr;
-            Assert (!ret.isNull());
+            Assert(!ret.isNull());
           }
           break;
           case Token::LPAREN_TOK:
@@ -764,9 +764,9 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         }
         break;
       case Token::SYMBOL:
-      case Token::HEX_LITERAL: 
+      case Token::HEX_LITERAL:
         // (_ char <hex_literal>) expects a hex literal
-        symbols.push_back(d_lex.tokenStr()); 
+        symbols.push_back(d_lex.tokenStr());
         break;
       default: break;
     }

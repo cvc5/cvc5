@@ -467,27 +467,27 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
 Term Smt2State::mkIndexedConstant(const std::string& name,
                                   const std::vector<std::string>& symbols)
 {
-
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
-    if (name=="char")
-    {  
-      if (symbols.size()!=1)
+    if (name == "char")
+    {
+      if (symbols.size() != 1)
       {
         parseError("Unexpected number of indices for char");
       }
-      if (symbols[0].length()<=2 || symbols[0].substr(0,2)!="#x")
+      if (symbols[0].length() <= 2 || symbols[0].substr(0, 2) != "#x")
       {
-        parseError(std::string("Unexpected index for char: `") + symbols[0] + "'");
+        parseError(std::string("Unexpected index for char: `") + symbols[0]
+                   + "'");
       }
       return mkCharConstant(symbols[0].substr(2));
     }
   }
   else if (d_logic.hasCardinalityConstraints())
   {
-    if (name=="fmf.card")
+    if (name == "fmf.card")
     {
-      if (symbols.size()!=2)
+      if (symbols.size() != 2)
       {
         parseError("Unexpected number of indices for fmf.card");
       }
