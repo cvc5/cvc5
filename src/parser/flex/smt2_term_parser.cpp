@@ -68,16 +68,17 @@ Term Smt2TermParser::parseTerm()
                 ParseOp op = continueParseQualifiedIdentifier(true);
                 tstack.emplace_back(op, std::vector<Term>());
               }
-                break;
+              break;
               case Token::INDEX_TOK:
               {
                 // an indexed identifier operator
                 ParseOp op = continueParseIndexedIdentifier(true);
                 tstack.emplace_back(op, std::vector<Term>());
               }
-                break;
-              default: 
-                d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 qualified indentifier");
+              break;
+              default:
+                d_lex.unexpectedTokenError(
+                    tok, "Expected SMT-LIBv2 qualified indentifier");
                 break;
             }
           }
@@ -88,13 +89,13 @@ Term Smt2TermParser::parseTerm()
           case Token::MATCH_TOK:
           case Token::ATTRIBUTE_TOK:
           {
-            //tstack.emplace_back(tok, std::string(), std::vector<Term>());
+            // tstack.emplace_back(tok, std::string(), std::vector<Term>());
           }
           break;
           case Token::SYMBOL:
           {
             // function identifier
-            //tstack.emplace_back(tok, d_lex.tokenStr(), std::vector<Term>());
+            // tstack.emplace_back(tok, d_lex.tokenStr(), std::vector<Term>());
           }
           break;
           default:
@@ -797,7 +798,7 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       // special cases:
       // - const
     }
-      break;
+    break;
     default: break;
   }
   return op;
