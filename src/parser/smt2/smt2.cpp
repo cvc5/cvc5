@@ -143,7 +143,7 @@ void Smt2::addDatatypesOperators()
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
-    // Notice that tuple operators, we use the UNDEFINED_KIND kind. 
+    // Notice that tuple operators, we use the UNDEFINED_KIND kind.
     // These are processed based on the context in which they are parsed, e.g.
     // when parsing identifiers.
     // For the tuple constructor "tuple", this is both a nullary operator
@@ -1054,14 +1054,14 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
         std::stringstream ss;
         ss << "Wrong number of arguments for indexed operator to_fp, expected "
               "1 or 2, got "
-          << nchildren;
+           << nchildren;
         parseError(ss.str());
       }
       else if (!args[0].getSort().isRoundingMode())
       {
         std::stringstream ss;
         ss << "Expected a rounding mode as the first argument, got "
-          << args[0].getSort();
+           << args[0].getSort();
         parseError(ss.str());
       }
       else
@@ -1085,10 +1085,10 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
         }
       }
     }
-    else if (p.d_name=="tuple.select" || p.d_name=="tuple.update")
+    else if (p.d_name == "tuple.select" || p.d_name == "tuple.update")
     {
-      bool isSelect = (p.d_name=="tuple.select");
-      if (p.d_indices.size()!=1)
+      bool isSelect = (p.d_name == "tuple.select");
+      if (p.d_indices.size() != 1)
       {
         parseError("wrong number of indices for tuple select or update");
       }
@@ -1113,20 +1113,21 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
       cvc5::Term ret;
       if (isSelect)
       {
-        ret =
-            d_solver->mkTerm(cvc5::APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
+        ret = d_solver->mkTerm(cvc5::APPLY_SELECTOR,
+                               {dt[0][n].getTerm(), args[0]});
       }
       else
       {
         ret = d_solver->mkTerm(cvc5::APPLY_UPDATER,
-                              {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+                               {dt[0][n].getUpdaterTerm(), args[0], args[1]});
       }
-      Trace("parser") << "applyParseOp: return selector/updater " << ret << std::endl;
+      Trace("parser") << "applyParseOp: return selector/updater " << ret
+                      << std::endl;
       return ret;
     }
     else
     {
-      Assert (false) << "Failed to resolve indexed operator " << p.d_name;
+      Assert(false) << "Failed to resolve indexed operator " << p.d_name;
     }
   }
   else if (p.d_kind != cvc5::NULL_TERM)
