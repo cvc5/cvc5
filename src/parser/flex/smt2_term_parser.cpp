@@ -814,22 +814,21 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   {
     case Token::LPAREN_TOK:
       tok = d_lex.nextToken();
-      switch(tok)
+      switch (tok)
       {
-        case INDEX_TOK:
-          op = continueParseIndexedIdentifier(isOperator);
-          break;
+        case INDEX_TOK: op = continueParseIndexedIdentifier(isOperator); break;
         default:
-          d_lex.unexpectedTokenError(tok, "Expected (indexed) identifier while parsing qualified identifier");
+          d_lex.unexpectedTokenError(tok,
+                                     "Expected (indexed) identifier while "
+                                     "parsing qualified identifier");
           break;
       }
-    break;
-    case Token::SYMBOL:
-      op.d_name = d_lex.tokenStr();
-    break;
+      break;
+    case Token::SYMBOL: op.d_name = d_lex.tokenStr(); break;
     default:
-          d_lex.unexpectedTokenError(tok, "Expected identifier while parsing qualified identifier");
-          break;
+      d_lex.unexpectedTokenError(
+          tok, "Expected identifier while parsing qualified identifier");
+      break;
   }
   // parse a sort
   Sort type = parseSort();

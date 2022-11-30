@@ -425,7 +425,7 @@ bool Smt2State::getTesterName(Term cons, std::string& name)
 }
 
 Term Smt2State::mkIndexedConstant(const std::string& name,
-                                        const std::vector<uint32_t>& numerals)
+                                  const std::vector<uint32_t>& numerals)
 {
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
@@ -786,12 +786,10 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     defineType("Float64", d_solver->mkFloatingPointSort(11, 53), true);
     defineType("Float128", d_solver->mkFloatingPointSort(15, 113), true);
 
-    defineVar("RNE",
-              d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
+    defineVar("RNE", d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
     defineVar("roundNearestTiesToEven",
               d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
-    defineVar("RNA",
-              d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_AWAY));
+    defineVar("RNA", d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_AWAY));
     defineVar("roundNearestTiesToAway",
               d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_AWAY));
     defineVar("RTP", d_solver->mkRoundingMode(ROUND_TOWARD_POSITIVE));
@@ -801,8 +799,7 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     defineVar("roundTowardNegative",
               d_solver->mkRoundingMode(ROUND_TOWARD_NEGATIVE));
     defineVar("RTZ", d_solver->mkRoundingMode(ROUND_TOWARD_ZERO));
-    defineVar("roundTowardZero",
-              d_solver->mkRoundingMode(ROUND_TOWARD_ZERO));
+    defineVar("roundTowardZero", d_solver->mkRoundingMode(ROUND_TOWARD_ZERO));
 
     addFloatingPointOperators();
   }
@@ -831,7 +828,7 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 } /* Smt2State::setLogic() */
 
 Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
-                                    const std::vector<Term>& ntSymbols)
+                              const std::vector<Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
       new Grammar(d_solver->mkGrammar(boundVars, ntSymbols)));
@@ -1002,8 +999,7 @@ Term Smt2State::applyParseOp(ParseOp& p, std::vector<Term>& args)
   if (TraceIsOn("parser"))
   {
     Trace("parser") << "applyParseOp: " << p << " to:" << std::endl;
-    for (std::vector<Term>::iterator i = args.begin(); i != args.end();
-         ++i)
+    for (std::vector<Term>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Trace("parser") << "++ " << *i << std::endl;
     }
@@ -1086,8 +1082,7 @@ Term Smt2State::applyParseOp(ParseOp& p, std::vector<Term>& args)
       Term ret;
       if (isSelect)
       {
-        ret = d_solver->mkTerm(APPLY_SELECTOR,
-                               {dt[0][n].getTerm(), args[0]});
+        ret = d_solver->mkTerm(APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
       }
       else
       {
@@ -1179,9 +1174,7 @@ Term Smt2State::applyParseOp(ParseOp& p, std::vector<Term>& args)
         // in which case we may find it after knowing the types of its
         // arguments.
         std::vector<Sort> argTypes;
-        for (std::vector<Term>::iterator i = args.begin();
-             i != args.end();
-             ++i)
+        for (std::vector<Term>::iterator i = args.begin(); i != args.end(); ++i)
         {
           argTypes.push_back((*i).getSort());
         }
@@ -1274,8 +1267,7 @@ Term Smt2State::applyParseOp(ParseOp& p, std::vector<Term>& args)
         }
       }
     }
-    if (!strictModeEnabled() && (kind == AND || kind == OR)
-        && args.size() == 1)
+    if (!strictModeEnabled() && (kind == AND || kind == OR) && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       Trace("parser") << "applyParseOp: return unary " << args[0] << std::endl;
@@ -1492,7 +1484,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
 
 bool Smt2State::isClosure(const std::string& name)
 {
-  return d_closureKindMap.find(name)!=d_closureKindMap.end();
+  return d_closureKindMap.find(name) != d_closureKindMap.end();
 }
 
 std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
