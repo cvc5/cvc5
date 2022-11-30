@@ -20,6 +20,7 @@
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "parser/parser_state.h"
+#include "util/floatingpoint_size.h"
 
 namespace cvc5 {
 namespace parser {
@@ -1415,6 +1416,48 @@ Sort Smt2State::getParametricSort(const std::string& name,
     t = ParserState::getParametricSort(name, args);
   }
   return t;
+}
+
+Sort Smt2State::getIndexedSort(const std::string& name,
+                        const std::vector<uint32_t>& numerals)
+{
+  Sort ret;
+  if (name == "BitVec")
+  {
+    if (numerals.size() != 1)
+    {
+      parseError("Illegal bitvector type.");
+    }
+    if (numerals.front() == 0)
+    {
+      parseError("Illegal bitvector size: 0");
+    }
+    ret = d_solver->mkBitVectorSort(numerals.front());
+  }
+  else if (name == "FloatingPoint")
+  {
+    if (numerals.size() != 2)
+    {
+      parseError("Illegal floating-point type.");
+    }
+    if (!internal::validExponentSize(numerals[0]))
+    {
+      parseError("Illegal floating-point exponent size");
+    }
+    if (!internal::validSignificandSize(numerals[1]))
+    {
+      parseError("Illegal floating-point significand size");
+    }
+    ret = d_solver->mkFloatingPointSort(numerals[0],
+                                                    numerals[1]);
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "unknown indexed sort symbol `" << name << "'";
+    parseError(ss.str());
+  }
+  return ret;
 }
 
 std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)

@@ -19,7 +19,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "util/floatingpoint_size.h"
 
 namespace cvc5 {
 namespace parser {
@@ -155,43 +154,7 @@ Sort Smt2TermParser::parseSort()
             std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
             std::vector<uint32_t> numerals = parseNumeralList();
             d_lex.eatToken(Token::RPAREN_TOK);
-            // TODO: d_state.getIndexedSort(name, numerals);
-
-            if (name == "BitVec")
-            {
-              if (numerals.size() != 1)
-              {
-                d_state.parseError("Illegal bitvector type.");
-              }
-              if (numerals.front() == 0)
-              {
-                d_state.parseError("Illegal bitvector size: 0");
-              }
-              ret = d_state.getSolver()->mkBitVectorSort(numerals.front());
-            }
-            else if (name == "FloatingPoint")
-            {
-              if (numerals.size() != 2)
-              {
-                d_state.parseError("Illegal floating-point type.");
-              }
-              if (!internal::validExponentSize(numerals[0]))
-              {
-                d_state.parseError("Illegal floating-point exponent size");
-              }
-              if (!internal::validSignificandSize(numerals[1]))
-              {
-                d_state.parseError("Illegal floating-point significand size");
-              }
-              ret = d_state.getSolver()->mkFloatingPointSort(numerals[0],
-                                                             numerals[1]);
-            }
-            else
-            {
-              std::stringstream ss;
-              ss << "unknown indexed sort symbol `" << name << "'";
-              d_lex.parseError(ss.str());
-            }
+            ret = d_state.getIndexedSort(name, numerals);
           }
           break;
           case Token::SYMBOL:
