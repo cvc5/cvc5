@@ -710,6 +710,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
 {
   ParseOp p;
   std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+  // parse the list of numerals or symbols
   std::vector<std::string> symbols;
   std::vector<uint32_t> numerals;
   Token tok = d_lex.nextToken();
@@ -725,6 +726,8 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
       default: break;
     }
   }
+  // we currently only have symbols that are indexed by only numerals, or
+  // only symbols
   if (numerals.empty() == symbols.empty())
   {
     std::stringstream ss;
@@ -739,6 +742,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     ss << " symbol " << name;
     d_lex.parseError(ss.str());
   }
+  // if indexed by numerals
   if (!numerals.empty())
   {
     if (!isOperator)
@@ -747,7 +751,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     }
     else
     {
-      // special cases: tuple.select and tuple.update
+      // special cases: to_fp, (_ tuple.select n) and (_ tuple.update n)
       Kind k = d_state.getIndexedOpKind(name);
       if (k == UNDEFINED_KIND)
       {
@@ -802,6 +806,12 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       op = continueParseIndexedIdentifier(isOperator);
     }
     break;
+    case Token::SYMBOL:
+    {
+      // special cases:
+      // - const
+    }
+      break;
     default: break;
   }
   return op;
