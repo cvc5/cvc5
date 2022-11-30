@@ -784,12 +784,13 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     }
     else
     {
-      // special cases: to_fp, (_ tuple.select n) and (_ tuple.update n)
       Kind k = d_state.getIndexedOpKind(name);
       if (k == UNDEFINED_KIND)
       {
         // We don't know which kind to use until we know the type of the
-        // arguments
+        // arguments, which is the case for:
+        // - to_fp
+        // - (_ tuple.select n) and (_ tuple.update n)
         p.d_name = name;
         p.d_indices = numerals;
         p.d_kind = UNDEFINED_KIND;
@@ -800,15 +801,19 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
       }
     }
   }
+  // otherwise, indexed by symbols
   else if (!isOperator)
   {
-    // - fmf.card indexed by Type
+    // handles:
+    // - fmf.card indexed by Type + numeral
     // - char indexed by HEX
     p.d_expr = d_state.mkIndexedConstant(name, symbols);
   }
   else
   {
+    // handles:
     // - testers and updaters indexed by constructor names
+    p.d_expr = d_state.mkIndexedOp(name, symbols);
   }
   return p;
 }
@@ -839,6 +844,8 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   }
   // parse a sort
   Sort type = parseSort();
+  // close parentheses
+  d_lex.eatToken(Token::RPAREN_TOK);
   // apply the type ascription to the parsed op
   d_state.parseOpApplyTypeAscription(op, type);
   return op;

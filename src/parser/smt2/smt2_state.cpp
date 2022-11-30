@@ -504,6 +504,58 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   return Term();
 }
 
+Term Smt2State::mkIndexedOp(const std::string& name,
+                        const std::vector<std::string>& symbols)
+{
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
+  {
+    if (name=="is" || name=="update")
+    {
+      if (symbols.size()!=1)
+      {
+        parseError(std::string("Unexpected number of indices for " + name));
+      }
+      const std::string& cname = symbols[0];
+      // must be declared
+      checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
+      Term f = getExpressionForName(cname);
+      if (name=="is")
+      {
+        if (!f.getSort().isDatatypeConstructor())
+        {
+          parseError(
+              "Bad syntax for (_ is X), X must be a constructor.");
+        }
+        // get the datatype that f belongs to
+        Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+        Datatype d = sf.getDatatype();
+        // lookup by name
+        DatatypeConstructor dc = d.getConstructor(f.toString());
+        return dc.getTesterTerm();
+      }
+      else
+      {
+        Assert (name=="update");
+        if (!f.getSort().isDatatypeSelector())
+        {
+          parseError(
+              "Bad syntax for (_ update X), X must be a selector.");
+        }
+        std::string sname = f.toString();
+        // get the datatype that f belongs to
+        Sort sf = f.getSort().getDatatypeSelectorDomainSort();
+        Datatype d = sf.getDatatype();
+        // find the selector
+        DatatypeSelector ds = d.getSelector(f.toString());
+        // get the updater term
+        return ds.getUpdaterTerm();
+      }
+    }
+  }
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return Term();
+}
+
 Kind Smt2State::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
