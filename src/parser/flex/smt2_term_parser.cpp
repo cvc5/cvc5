@@ -154,6 +154,9 @@ Sort Smt2TermParser::parseSort()
             // a standalone indexed symbol
             std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
             std::vector<uint32_t> numerals = parseNumeralList();
+            d_lex.eatToken(Token::RPAREN_TOK);
+            // TODO: d_state.getIndexedSort(name, numerals);
+            
             if (name == "BitVec")
             {
               if (numerals.size() != 1)
@@ -201,6 +204,9 @@ Sort Smt2TermParser::parseSort()
           }
           break;
           default:
+            // NOTE: it is possible to have sorts e.g.
+            // ((_ FixedSizeList 4) Real) where tok would be LPAREN_TOK here.
+            // However, we have no such examples.
             d_lex.unexpectedTokenError(tok,
                                        "Expected SMT-LIBv2 sort constructor");
             break;
@@ -214,14 +220,15 @@ Sort Smt2TermParser::parseSort()
         {
           d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort");
         }
-        // pop and get
-        ret = popSortStack(sstack);
+        // Construct the (parametric) sort specified by sstack.back()
+        ret = d_state.getParametricSort(sstack.back().first, sstack.back().second);
+        // pop the stack
+        sstack.pop_back();
       }
       break;
-      // ------------------- base cases
+      // ------------------- a simple (defined or builtin) sort
       case Token::SYMBOL:
       {
-        // a simple (defined or builtin) sort
         std::string name = d_lex.tokenStr();
         ret = d_state.getSort(name);
       }
@@ -243,90 +250,6 @@ Sort Smt2TermParser::parseSort()
   } while (!sstack.empty());
   Assert(!ret.isNull());
   return ret;
-}
-
-Sort Smt2TermParser::popSortStack(
-    std::vector<std::pair<std::string, std::vector<Sort>>>& sstack)
-{
-  Assert(!sstack.empty());
-  Sort t;
-  // Construct the (non-simple) type specified by sstack.back()
-  const std::string& name = sstack.back().first;
-  std::vector<Sort>& args = sstack.back().second;
-  if (args.empty())
-  {
-    d_state.parseError(
-        "Extra parentheses around sort name not "
-        "permitted in SMT-LIB");
-  }
-  else if (name == "Array"
-           && d_state.isTheoryEnabled(internal::theory::THEORY_ARRAYS))
-  {
-    if (args.size() != 2)
-    {
-      d_state.parseError("Illegal array type.");
-    }
-    t = d_state.getSolver()->mkArraySort(args[0], args[1]);
-  }
-  else if (name == "Set"
-           && d_state.isTheoryEnabled(internal::theory::THEORY_SETS))
-  {
-    if (args.size() != 1)
-    {
-      d_state.parseError("Illegal set type.");
-    }
-    t = d_state.getSolver()->mkSetSort(args[0]);
-  }
-  else if (name == "Bag"
-           && d_state.isTheoryEnabled(internal::theory::THEORY_BAGS))
-  {
-    if (args.size() != 1)
-    {
-      d_state.parseError("Illegal bag type.");
-    }
-    t = d_state.getSolver()->mkBagSort(args[0]);
-  }
-  else if (name == "Seq" && !d_state.strictModeEnabled()
-           && d_state.isTheoryEnabled(internal::theory::THEORY_STRINGS))
-  {
-    if (args.size() != 1)
-    {
-      d_state.parseError("Illegal sequence type.");
-    }
-    t = d_state.getSolver()->mkSequenceSort(args[0]);
-  }
-  else if (name == "Tuple" && !d_state.strictModeEnabled())
-  {
-    t = d_state.getSolver()->mkTupleSort(args);
-  }
-  else if (name == "Relation" && !d_state.strictModeEnabled())
-  {
-    cvc5::Sort tupleSort = d_state.getSolver()->mkTupleSort(args);
-    t = d_state.getSolver()->mkSetSort(tupleSort);
-  }
-  else if (name == "Table" && !d_state.strictModeEnabled())
-  {
-    cvc5::Sort tupleSort = d_state.getSolver()->mkTupleSort(args);
-    t = d_state.getSolver()->mkBagSort(tupleSort);
-  }
-  else if (name == "->" && d_state.isHoEnabled())
-  {
-    if (args.size() < 2)
-    {
-      d_state.parseError("Arrow types must have at least 2 arguments");
-    }
-    // flatten the type
-    cvc5::Sort rangeType = args.back();
-    args.pop_back();
-    t = d_state.mkFlatFunctionType(args, rangeType);
-  }
-  else
-  {
-    t = d_state.getSort(name, args);
-  }
-  // pop the stack
-  sstack.pop_back();
-  return t;
 }
 
 std::vector<Sort> Smt2TermParser::parseSortList()

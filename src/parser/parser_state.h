@@ -133,7 +133,7 @@ class CVC5_EXPORT ParserState
    * Only returns a variable if its name is not overloaded, returns null
    * otherwise.
    */
-  cvc5::Term getVariable(const std::string& name);
+  Term getVariable(const std::string& name);
 
   /**
    * Gets the function currently bound to name.
@@ -143,7 +143,7 @@ class CVC5_EXPORT ParserState
    * Only returns a function if its name is not overloaded, returns null
    * otherwise.
    */
-  cvc5::Term getFunction(const std::string& name);
+  Term getFunction(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the
@@ -156,7 +156,7 @@ class CVC5_EXPORT ParserState
    * Only returns an expression if its name is not overloaded, returns null
    * otherwise.
    */
-  virtual cvc5::Term getExpressionForName(const std::string& name);
+  virtual Term getExpressionForName(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the
@@ -164,8 +164,8 @@ class CVC5_EXPORT ParserState
    *
    * This is the same as above but where the name has been type cast to t.
    */
-  virtual cvc5::Term getExpressionForNameAndType(const std::string& name,
-                                                 cvc5::Sort t);
+  virtual Term getExpressionForNameAndType(const std::string& name,
+                                                 Sort t);
 
   /**
    * If this method returns true, then name is updated with the tester name
@@ -181,7 +181,7 @@ class CVC5_EXPORT ParserState
    * the above syntax if strict mode is disabled.
    * - In cvc, the syntax for testers is "is_cons".
    */
-  virtual bool getTesterName(cvc5::Term cons, std::string& name);
+  virtual bool getTesterName(Term cons, std::string& name);
 
   /**
    * Returns the kind that should be used for applications of expression fun.
@@ -193,19 +193,19 @@ class CVC5_EXPORT ParserState
    *   APPLY_UF if fun has function type,
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
-  cvc5::Kind getKindForFunction(cvc5::Term fun);
+  Kind getKindForFunction(Term fun);
 
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */
-  cvc5::Sort getSort(const std::string& sort_name);
+  Sort getSort(const std::string& sort_name);
 
   /**
    * Returns a (parameterized) sort, given a name and args.
    */
-  cvc5::Sort getSort(const std::string& sort_name,
-                     const std::vector<cvc5::Sort>& params);
+  virtual Sort getParametricSort(const std::string& sort_name,
+                     const std::vector<Sort>& params);
 
   /**
    * Checks if a symbol has been declared.
@@ -238,7 +238,7 @@ class CVC5_EXPORT ParserState
    * @throws ParserException if checks are enabled and fun is not
    * a function
    */
-  void checkFunctionLike(cvc5::Term fun);
+  void checkFunctionLike(Term fun);
 
   /** Create a new cvc5 variable expression of the given type.
    *
@@ -247,22 +247,22 @@ class CVC5_EXPORT ParserState
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  cvc5::Term bindVar(const std::string& name,
-                     const cvc5::Sort& type,
+  Term bindVar(const std::string& name,
+                     const Sort& type,
                      bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  cvc5::Term bindBoundVar(const std::string& name, const cvc5::Sort& type);
+  Term bindBoundVar(const std::string& name, const Sort& type);
   /**
    * Create a new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
-  std::vector<cvc5::Term> bindBoundVars(
-      std::vector<std::pair<std::string, cvc5::Sort> >& sortedVarNames);
+  std::vector<Term> bindBoundVars(
+      std::vector<std::pair<std::string, Sort> >& sortedVarNames);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.
@@ -272,8 +272,8 @@ class CVC5_EXPORT ParserState
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  std::vector<cvc5::Term> bindBoundVars(const std::vector<std::string> names,
-                                        const cvc5::Sort& type);
+  std::vector<Term> bindBoundVars(const std::vector<std::string> names,
+                                        const Sort& type);
 
   /** Create a new variable definition (e.g., from a let binding).
    * If a symbol with name already exists,
@@ -282,7 +282,7 @@ class CVC5_EXPORT ParserState
    * new expression.
    */
   void defineVar(const std::string& name,
-                 const cvc5::Term& val,
+                 const Term& val,
                  bool doOverload = false);
 
   /**
@@ -295,7 +295,7 @@ class CVC5_EXPORT ParserState
    *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
-                  const cvc5::Sort& type,
+                  const Sort& type,
                   bool skipExisting = false);
 
   /**
@@ -306,47 +306,47 @@ class CVC5_EXPORT ParserState
    * @param type The type that should be associated with the name
    */
   void defineType(const std::string& name,
-                  const std::vector<cvc5::Sort>& params,
-                  const cvc5::Sort& type);
+                  const std::vector<Sort>& params,
+                  const Sort& type);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
-                               const std::vector<cvc5::Sort>& params,
-                               const cvc5::Sort& type);
+                               const std::vector<Sort>& params,
+                               const Sort& type);
 
   /**
    * Creates a new sort with the given name.
    */
-  cvc5::Sort mkSort(const std::string& name);
+  Sort mkSort(const std::string& name);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  cvc5::Sort mkSortConstructor(const std::string& name, size_t arity);
+  Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
    */
-  cvc5::Sort mkUnresolvedType(const std::string& name);
+  Sort mkUnresolvedType(const std::string& name);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity.
    */
-  cvc5::Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
+  Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
   /**
    * Creates a new unresolved (parameterized) type constructor given the type
    * parameters.
    */
-  cvc5::Sort mkUnresolvedTypeConstructor(const std::string& name,
-                                         const std::vector<cvc5::Sort>& params);
+  Sort mkUnresolvedTypeConstructor(const std::string& name,
+                                         const std::vector<Sort>& params);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
    * depending on the arity.
    */
-  cvc5::Sort mkUnresolvedType(const std::string& name, size_t arity);
+  Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
    * Creates and binds sorts of a list of mutually-recursive datatype
@@ -357,8 +357,8 @@ class CVC5_EXPORT ParserState
    * if doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
-  std::vector<cvc5::Sort> bindMutualDatatypeTypes(
-      std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload = false);
+  std::vector<Sort> bindMutualDatatypeTypes(
+      std::vector<DatatypeDecl>& datatypes, bool doOverload = false);
 
   /** make flat function type
    *
@@ -398,9 +398,9 @@ class CVC5_EXPORT ParserState
    * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
-  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
-                                cvc5::Sort range,
-                                std::vector<cvc5::Term>& flattenVars);
+  Sort mkFlatFunctionType(std::vector<Sort>& sorts,
+                                Sort range,
+                                std::vector<Term>& flattenVars);
 
   /** make flat function type
    *
@@ -408,8 +408,8 @@ class CVC5_EXPORT ParserState
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
-  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
-                                cvc5::Sort range);
+  Sort mkFlatFunctionType(std::vector<Sort>& sorts,
+                                Sort range);
 
   /** make higher-order apply
    *
@@ -424,7 +424,7 @@ class CVC5_EXPORT ParserState
    * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  cvc5::Term mkHoApply(cvc5::Term expr, const std::vector<cvc5::Term>& args);
+  Term mkHoApply(Term expr, const std::vector<Term>& args);
 
   /** Apply type ascription
    *
@@ -449,20 +449,20 @@ class CVC5_EXPORT ParserState
    * @param s The sort to ascribe
    * @return Term t with sort s ascribed.
    */
-  cvc5::Term applyTypeAscription(cvc5::Term t, cvc5::Sort s);
+  Term applyTypeAscription(Term t, Sort s);
 
   /**
    * Add an operator to the current legal set.
    *
    * @param kind the built-in operator to add
    */
-  void addOperator(cvc5::Kind kind);
+  void addOperator(Kind kind);
 
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
    * selector.
    */
-  bool isFunctionLike(cvc5::Term fun);
+  bool isFunctionLike(Term fun);
 
   //-------------------- callbacks to parser
   /** Issue a warning to the user. */
@@ -530,7 +530,7 @@ class CVC5_EXPORT ParserState
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(cvc5::Term fun)
+  bool isOverloadedFunction(Term fun)
   {
     return d_symtab->isOverloadedFunction(fun);
   }
@@ -539,7 +539,7 @@ class CVC5_EXPORT ParserState
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
    */
-  cvc5::Term getOverloadedConstantForType(const std::string& name, cvc5::Sort t)
+  Term getOverloadedConstantForType(const std::string& name, Sort t)
   {
     return d_symtab->getOverloadedConstantForType(name, t);
   }
@@ -549,8 +549,8 @@ class CVC5_EXPORT ParserState
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  cvc5::Term getOverloadedFunctionForTypes(const std::string& name,
-                                           std::vector<cvc5::Sort>& argTypes)
+  Term getOverloadedFunctionForTypes(const std::string& name,
+                                           std::vector<Sort>& argTypes)
   {
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
@@ -563,7 +563,7 @@ class CVC5_EXPORT ParserState
    * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
    * the string.
    */
-  cvc5::Term mkStringConstant(const std::string& s);
+  Term mkStringConstant(const std::string& s);
 
   /**
    * Make string constant from a single character in hex representation
@@ -571,7 +571,7 @@ class CVC5_EXPORT ParserState
    * This makes the string constant based on the character from the strings,
    * represented as a hexadecimal code point.
    */
-  cvc5::Term mkCharConstant(const std::string& s);
+  Term mkCharConstant(const std::string& s);
 
   /** ad-hoc string escaping
    *
@@ -619,7 +619,7 @@ class CVC5_EXPORT ParserState
   bool d_canIncludeFile;
 
   /** The set of operators available in the current logic. */
-  std::set<cvc5::Kind> d_logicOperators;
+  std::set<Kind> d_logicOperators;
 
   /** The set of attributes already warned about. */
   std::set<std::string> d_attributesWarnedAbout;
@@ -636,7 +636,7 @@ class CVC5_EXPORT ParserState
   /** Lookup a symbol in the given namespace (as specified by the type).
    * Only returns a symbol if it is not overloaded, returns null otherwise.
    */
-  cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
+  Term getSymbol(const std::string& var_name, SymbolType type);
 }; /* class Parser */
 
 }  // namespace parser

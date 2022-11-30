@@ -153,7 +153,7 @@ void Smt2State::addDatatypesOperators()
 
 void Smt2State::addStringOperators()
 {
-  defineVar("re.all", getSolver()->mkRegexpAll());
+  defineVar("re.all", d_solver->mkRegexpAll());
   addOperator(cvc5::STRING_CONCAT, "str.++");
   addOperator(cvc5::STRING_LENGTH, "str.len");
   addOperator(cvc5::STRING_SUBSTR, "str.substr");
@@ -1339,6 +1339,85 @@ cvc5::Term Smt2State::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   cvc5::Term ret = d_solver->mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
+}
+
+Sort Smt2State::getParametricSort(const std::string& name,
+            const std::vector<cvc5::Sort>& args)
+{
+  if (args.empty())
+  {
+    parseError(
+        "Extra parentheses around sort name not "
+        "permitted in SMT-LIB");
+  }
+  // builtin parametric sorts are handled manually
+  Sort t;
+  if (name == "Array"
+           && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
+  {
+    if (args.size() != 2)
+    {
+      parseError("Illegal array type.");
+    }
+    t = d_solver->mkArraySort(args[0], args[1]);
+  }
+  else if (name == "Set"
+           && isTheoryEnabled(internal::theory::THEORY_SETS))
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal set type.");
+    }
+    t = d_solver->mkSetSort(args[0]);
+  }
+  else if (name == "Bag"
+           && isTheoryEnabled(internal::theory::THEORY_BAGS))
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal bag type.");
+    }
+    t = d_solver->mkBagSort(args[0]);
+  }
+  else if (name == "Seq" && !strictModeEnabled()
+           && isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal sequence type.");
+    }
+    t = d_solver->mkSequenceSort(args[0]);
+  }
+  else if (name == "Tuple" && !strictModeEnabled())
+  {
+    t = d_solver->mkTupleSort(args);
+  }
+  else if (name == "Relation" && !strictModeEnabled())
+  {
+    cvc5::Sort tupleSort = d_solver->mkTupleSort(args);
+    t = d_solver->mkSetSort(tupleSort);
+  }
+  else if (name == "Table" && !strictModeEnabled())
+  {
+    cvc5::Sort tupleSort = d_solver->mkTupleSort(args);
+    t = d_solver->mkBagSort(tupleSort);
+  }
+  else if (name == "->" && isHoEnabled())
+  {
+    if (args.size() < 2)
+    {
+      parseError("Arrow types must have at least 2 arguments");
+    }
+    // flatten the type
+    cvc5::Sort rangeType = args.back();
+    std::vector<Sort> dargs(args.begin(), args.end()-1);
+    t = mkFlatFunctionType(dargs, rangeType);
+  }
+  else
+  {
+    t = ParserState::getParametricSort(name, args);
+  }
+  return t;
 }
 
 std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)

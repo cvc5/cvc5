@@ -369,6 +369,11 @@ class Smt2State : public ParserState
    * as a chain of HO_APPLY terms.
    */
   cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
+  /**
+   * Returns a (parameterized) sort, given a name and args.
+   */
+  Sort getParametricSort(const std::string& name,
+                     const std::vector<cvc5::Sort>& args) override;
   //------------------------- end processing parse operators
 
   /**

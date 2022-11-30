@@ -1924,7 +1924,7 @@ sortSymbol[cvc5::Sort& t]
           args.pop_back();
           t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
         } else {
-          t = PARSER_STATE->getSort(name, args);
+          t = PARSER_STATE->getParametricSort(name, args);
         }
       }
     ) RPAREN_TOK

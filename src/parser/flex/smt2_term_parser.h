@@ -83,9 +83,6 @@ class Smt2TermParser
    * Parse constructor definition list, add to declaration type
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
-  /** Pop sort stack */
-  Sort popSortStack(
-      std::vector<std::pair<std::string, std::vector<Sort>>>& sstack);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */
