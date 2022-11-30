@@ -62,7 +62,9 @@ class Smt2TermParser
   Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars,
                               const std::string& fun);
   /** Parse integer numeral */
-  size_t parseIntegerNumeral();
+  uint32_t parseIntegerNumeral();
+  /** Parse numeral list */
+  std::vector<uint32_t> parseNumeralList();
   /** Parse datatype def */
   std::vector<DatatypeDecl> parseDatatypeDef(
       bool isCo,
@@ -75,10 +77,14 @@ class Smt2TermParser
   std::string parseStr(bool unescape);
 
  protected:
+   /** Token to unsigned */
+   uint32_t tokenStrToUnsigned();
   /**
    * Parse constructor definition list, add to declaration type
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
+  /** Pop sort stack */
+  Sort popSortStack(std::vector<std::pair<std::string, std::vector<Sort>>>& sstack);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */
