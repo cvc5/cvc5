@@ -1548,21 +1548,6 @@ identifier[cvc5::ParseOp& p]
           p.d_indices = numerals;
           p.d_kind = cvc5::UNDEFINED_KIND;
         }
-        else if (k == cvc5::APPLY_SELECTOR || k == cvc5::APPLY_UPDATER)
-        {
-          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
-          // for tuple selectors and updaters
-          if (numerals.size() != 1)
-          {
-            PARSER_STATE->parseError(
-                "Unexpected syntax for tuple selector or updater.");
-          }
-          // The operator is dependent upon inferring the type of the arguments,
-          // and hence the type is not available yet. Hence, we remember the
-          // index as a numeral in the parse operator.
-          p.d_kind = k;
-          p.d_expr = SOLVER->mkInteger(numerals[0]);
-        }
         else
         {
           p.d_op = SOLVER->mkOp(k, numerals);

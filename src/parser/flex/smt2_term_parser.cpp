@@ -32,7 +32,7 @@ Term Smt2TermParser::parseTerm()
 {
   Term ret;
   Token tok;
-  std::vector<std::tuple<Token, std::string, std::vector<Term>>> tstack;
+  std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
   do
   {
     tok = d_lex.nextToken();
@@ -63,16 +63,23 @@ Term Smt2TermParser::parseTerm()
             switch (tok)
             {
               case Token::AS_TOK:
+              {
                 // a qualified identifier operator
+                ParseOp op = continueParseQualifiedIdentifier(true);
+                tstack.emplace_back(op, std::vector<Term>());
+              }
                 break;
               case Token::INDEX_TOK:
+              {
                 // an indexed identifier operator
+                ParseOp op = continueParseIndexedIdentifier(true);
+                tstack.emplace_back(op, std::vector<Term>());
+              }
                 break;
-              default: break;
+              default: 
+                d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 qualified indentifier");
+                break;
             }
-            Term op;
-            std::vector<Term> args{op};
-            tstack.emplace_back(Token::NONE, std::string(), args);
           }
           break;
           case Token::FORALL_TOK:
@@ -81,13 +88,13 @@ Term Smt2TermParser::parseTerm()
           case Token::MATCH_TOK:
           case Token::ATTRIBUTE_TOK:
           {
-            tstack.emplace_back(tok, std::string(), std::vector<Term>());
+            //tstack.emplace_back(tok, std::string(), std::vector<Term>());
           }
           break;
           case Token::SYMBOL:
           {
             // function identifier
-            tstack.emplace_back(tok, d_lex.tokenStr(), std::vector<Term>());
+            //tstack.emplace_back(tok, d_lex.tokenStr(), std::vector<Term>());
           }
           break;
           default:
@@ -105,12 +112,7 @@ Term Smt2TermParser::parseTerm()
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
         // Construct the application term specified by tstack.back()
-        std::tuple<Token, std::string, std::vector<Term>>& t = tstack.back();
-        Token otok = std::get<0>(t);
-        std::string ostr = std::get<1>(t);
-        // TODO: make op from tok/str
-        ParseOp op;
-        ret = d_state.applyParseOp(op, std::get<2>(t));
+        ret = d_state.applyParseOp(tstack.back().first, tstack.back().second);
         // pop the stack
         tstack.pop_back();
       }
@@ -163,13 +165,12 @@ Term Smt2TermParser::parseTerm()
       // add it to the list and reset ret
       if (!tstack.empty())
       {
-        std::tuple<Token, std::string, std::vector<Term>>& t = tstack.back();
-        std::vector<Term>& args = std::get<2>(t);
-        args.push_back(ret);
+        std::pair<ParseOp, std::vector<Term>>& t = tstack.back();
+        t.second.push_back(ret);
         ret = Term();
-        // TODO: based on the current token, parse next
+        // TODO: based on the current token, setup next parse
       }
-      // otherwise it will be returned
+      // otherwise ret will be returned
     }
   } while (!tstack.empty());
 
@@ -760,21 +761,6 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         p.d_name = name;
         p.d_indices = numerals;
         p.d_kind = UNDEFINED_KIND;
-      }
-      else if (k == APPLY_SELECTOR || k == APPLY_UPDATER)
-      {
-        // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
-        // for tuple selectors and updaters
-        if (numerals.size() != 1)
-        {
-          d_state.parseError(
-              "Unexpected syntax for tuple selector or updater.");
-        }
-        // The operator is dependent upon inferring the type of the arguments,
-        // and hence the type is not available yet. Hence, we remember the
-        // index as a numeral in the parse operator.
-        p.d_kind = k;
-        p.d_expr = d_state.getSolver()->mkInteger(numerals[0]);
       }
       else
       {
