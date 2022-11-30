@@ -32,7 +32,7 @@ Term Smt2TermParser::parseTerm()
 {
   Term ret;
   Token tok;
-  std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
+  std::vector<std::tuple<Token, std::string, std::vector<Term>>> tstack;
   do
   {
     tok = d_lex.nextToken();
@@ -43,47 +43,57 @@ Term Smt2TermParser::parseTerm()
       case Token::LPAREN_TOK:
       {
         tok = d_lex.nextToken();
-        bool parsedOp = false;
-        ParseOp op;
-        std::vector<Term> opArgs;
         switch (tok)
         {
           case Token::AS_TOK:
           {
             // a standalone qualifier identifier
+            ParseOp op = continueParseQualifiedIdentifier(false);
           }
           break;
           case Token::INDEX_TOK:
           {
             // a standalone indexed token
-            std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
-            // TODO: special cases
-            // - fmf.card indexed by Type
-            // - char indexed by HEX
-            std::vector<uint32_t> numerals = parseNumeralList();
-            d_lex.eatToken(Token::RPAREN_TOK);
-            ret = d_state.mkIndexedConstant(name, numerals);
+            ParseOp op = continueParseIndexedIdentifier(false);
           }
           break;
-          case Token::LPAREN_TOK:  // a qualified identifier or indexed operator
+          case Token::LPAREN_TOK:  
+          {
+            tok = d_lex.nextToken();
+            switch (tok)
+            {
+            case Token::AS_TOK:
+              // a qualified identifier operator
+              break;
+            case Token::INDEX_TOK:
+              // an indexed identifier operator
+              break;
+            default:
+              break;
+            }
+            Term op;
+            std::vector<Term> args{op};
+            tstack.emplace_back(Token::NONE, std::string(), args);
+          }
+          break;
           case Token::FORALL_TOK:
           case Token::EXISTS_TOK:
           case Token::LET_TOK:
           case Token::MATCH_TOK:
           case Token::ATTRIBUTE_TOK:
+          {
+            tstack.emplace_back(tok, std::string(), std::vector<Term>());
+          }
+          break;
           case Token::SYMBOL:
           {
             // function identifier
+            tstack.emplace_back(tok, d_lex.tokenStr(), std::vector<Term>());
           }
           break;
           default:
-            d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
+            d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 operator");
             break;
-        }
-        // if we parsed an operator, push to the stack
-        if (parsedOp)
-        {
-          tstack.emplace_back(op, opArgs);
         }
       }
       break;
@@ -92,10 +102,15 @@ Term Smt2TermParser::parseTerm()
       {
         if (tstack.empty())
         {
-          d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
+          d_lex.unexpectedTokenError(tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
         // Construct the application term specified by tstack.back()
-        ret = d_state.applyParseOp(tstack.back().first, tstack.back().second);
+        std::tuple<Token, std::string, std::vector<Term>>& t = tstack.back();
+        Token otok = std::get<0>(t);
+        std::string ostr = std::get<1>(t);
+        // TODO: make op from tok/str
+        ParseOp op;
+        ret = d_state.applyParseOp(op, std::get<2>(t));
         // pop the stack
         tstack.pop_back();
       }
@@ -148,8 +163,11 @@ Term Smt2TermParser::parseTerm()
       // add it to the list and reset ret
       if (!tstack.empty())
       {
-        tstack.back().second.push_back(ret);
+        std::tuple<Token, std::string, std::vector<Term>>& t = tstack.back();
+        std::vector<Term>& args = std::get<2>(t);
+        args.push_back(ret);
         ret = Term();
+        // TODO: based on the current token, parse next
       }
       // otherwise it will be returned
     }
@@ -194,7 +212,7 @@ Term Smt2TermParser::parseSymbolicExpr()
       {
         if (sstack.empty())
         {
-          d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 s-expression");
+          d_lex.unexpectedTokenError(tok, "Mismatched parentheses in SMT-LIBv2 s-expression");
         }
         ret = slv->mkTerm(SEXPR, sstack.back());
         // pop the stack
@@ -274,7 +292,7 @@ Sort Smt2TermParser::parseSort()
       {
         if (sstack.empty())
         {
-          d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort");
+          d_lex.unexpectedTokenError(tok, "Mismatched parentheses in SMT-LIBv2 sort");
         }
         // Construct the (parametric) sort specified by sstack.back()
         ret = d_state.getParametricSort(sstack.back().first,
@@ -684,6 +702,111 @@ void Smt2TermParser::unescapeString(std::string& s)
   *p = '\0';
   s = p_orig;
   free(p_orig);
+}
+
+ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
+{
+  ParseOp p;
+  std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+  std::vector<std::string> symbols;
+  std::vector<uint32_t> numerals;
+  Token tok = d_lex.nextToken();
+  while (tok != Token::RPAREN_TOK)
+  {
+    switch (tok)
+    {
+      case Token::INTEGER_LITERAL:numerals.push_back(tokenStrToUnsigned());
+      break;
+      case Token::SYMBOL:
+      case Token::HEX_LITERAL:
+        symbols.push_back(d_lex.tokenStr());
+      break;
+      default:
+        break;
+    }
+  }
+  if (numerals.empty()==symbols.empty())
+  {
+    std::stringstream ss;
+    if (numerals.empty())
+    {
+      ss << "No indices";
+    }
+    else
+    {
+      ss << "Unexpected types for indices of";
+    }
+    ss << " symbol " << name;
+    d_lex.parseError(ss.str());
+  }
+  if (!numerals.empty())
+  {
+    if (!isOperator)
+    {
+      p.d_expr = d_state.mkIndexedConstant(name, numerals);
+    }
+    else
+    {
+      // special cases: tuple.select and tuple.update
+      Kind k = d_state.getIndexedOpKind(name);
+      if (k == UNDEFINED_KIND)
+      {
+        // We don't know which kind to use until we know the type of the
+        // arguments
+        p.d_name = name;
+        p.d_indices = numerals;
+        p.d_kind = UNDEFINED_KIND;
+      }
+      else if (k == APPLY_SELECTOR || k == APPLY_UPDATER)
+      {
+        // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
+        // for tuple selectors and updaters
+        if (numerals.size() != 1)
+        {
+          d_state.parseError(
+              "Unexpected syntax for tuple selector or updater.");
+        }
+        // The operator is dependent upon inferring the type of the arguments,
+        // and hence the type is not available yet. Hence, we remember the
+        // index as a numeral in the parse operator.
+        p.d_kind = k;
+        p.d_expr = d_state.getSolver()->mkInteger(numerals[0]);
+      }
+      else
+      {
+        p.d_op = d_state.getSolver()->mkOp(k, numerals);
+      }
+    }
+  }
+  else if (!isOperator)
+  {
+    // - fmf.card indexed by Type
+    // - char indexed by HEX 
+    
+  }
+  else
+  {
+    // - testers and updaters indexed by constructor names
+  }
+  return p;
+}
+
+ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
+{
+  ParseOp op;
+  Token tok = d_lex.nextToken();
+  switch (tok)
+  {
+    case Token::LPAREN_TOK:
+    {
+      d_lex.eatToken(INDEX_TOK);
+      op = continueParseIndexedIdentifier(isOperator);
+    }
+    break;
+    default:
+      break;
+  }
+  return op;
 }
 
 }  // namespace parser

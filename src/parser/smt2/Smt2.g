@@ -1464,9 +1464,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  */
 qualIdentifier[cvc5::ParseOp& p]
 @init {
-  cvc5::Kind k;
-  std::string baseName;
-  cvc5::Term f;
   cvc5::Sort type;
 }
 : identifier[p]
@@ -1846,30 +1843,7 @@ sortSymbol[cvc5::Sort& t]
              << " ...)";
           PARSER_STATE->parseError(ss.str());
         }
-        if( name == "BitVec" ) {
-          if( numerals.size() != 1 ) {
-            PARSER_STATE->parseError("Illegal bitvector type.");
-          }
-          if(numerals.front() == 0) {
-            PARSER_STATE->parseError("Illegal bitvector size: 0");
-          }
-          t = SOLVER->mkBitVectorSort(numerals.front());
-        } else if ( name == "FloatingPoint" ) {
-          if( numerals.size() != 2 ) {
-            PARSER_STATE->parseError("Illegal floating-point type.");
-          }
-          if(!internal::validExponentSize(numerals[0])) {
-            PARSER_STATE->parseError("Illegal floating-point exponent size");
-          }
-          if(!internal::validSignificandSize(numerals[1])) {
-            PARSER_STATE->parseError("Illegal floating-point significand size");
-          }
-          t = SOLVER->mkFloatingPointSort(numerals[0],numerals[1]);
-        } else {
-          std::stringstream ss;
-          ss << "unknown indexed sort symbol `" << name << "'";
-          PARSER_STATE->parseError(ss.str());
-        }
+        t = PARSER_STATE->getIndexedSort(name, numerals);
       }
     | sortList[args]
       { if( indexed ) {

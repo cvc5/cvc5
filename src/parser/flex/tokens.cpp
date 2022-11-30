@@ -116,9 +116,6 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::POP_TOK: o << "POP_TOK"; break;
     case Token::PUSH_TOK: o << "PUSH_TOK"; break;
     case Token::QUOTED_SYMBOL: o << "QUOTED_SYMBOL"; break;
-    case Token::RELATION_AGGREGATE_TOK: o << "RELATION_AGGREGATE_TOK"; break;
-    case Token::RELATION_GROUP_TOK: o << "RELATION_GROUP_TOK"; break;
-    case Token::RELATION_PROJECT_TOK: o << "RELATION_PROJECT_TOK"; break;
     case Token::RESET_ASSERTIONS_TOK: o << "RESET_ASSERTIONS_TOK"; break;
     case Token::RESET_TOK: o << "RESET_TOK"; break;
     case Token::RPAREN_TOK: o << "RPAREN_TOK"; break;
@@ -148,6 +145,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
       break;
     case Token::UPDATE_TOK: o << "UPDATE_TOK"; break;
     case Token::WHITESPACE: o << "WHITESPACE"; break;
+    case Token::NONE: o << "NONE"; break;
     default: o << "Unknown Token (" << unsigned(t) << ")"; break;
   }
   return o;
