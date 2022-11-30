@@ -373,7 +373,7 @@ class Smt2State : public ParserState
    * Returns a (parameterized) sort, given a name and args.
    */
   Sort getParametricSort(const std::string& name,
-                     const std::vector<cvc5::Sort>& args) override;
+                         const std::vector<cvc5::Sort>& args) override;
   //------------------------- end processing parse operators
 
   /**

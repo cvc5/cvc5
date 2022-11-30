@@ -164,8 +164,7 @@ class CVC5_EXPORT ParserState
    *
    * This is the same as above but where the name has been type cast to t.
    */
-  virtual Term getExpressionForNameAndType(const std::string& name,
-                                                 Sort t);
+  virtual Term getExpressionForNameAndType(const std::string& name, Sort t);
 
   /**
    * If this method returns true, then name is updated with the tester name
@@ -205,7 +204,7 @@ class CVC5_EXPORT ParserState
    * Returns a (parameterized) sort, given a name and args.
    */
   virtual Sort getParametricSort(const std::string& sort_name,
-                     const std::vector<Sort>& params);
+                                 const std::vector<Sort>& params);
 
   /**
    * Checks if a symbol has been declared.
@@ -248,8 +247,8 @@ class CVC5_EXPORT ParserState
    * new expression.
    */
   Term bindVar(const std::string& name,
-                     const Sort& type,
-                     bool doOverload = false);
+               const Sort& type,
+               bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
@@ -273,7 +272,7 @@ class CVC5_EXPORT ParserState
    * new expression.
    */
   std::vector<Term> bindBoundVars(const std::vector<std::string> names,
-                                        const Sort& type);
+                                  const Sort& type);
 
   /** Create a new variable definition (e.g., from a let binding).
    * If a symbol with name already exists,
@@ -339,7 +338,7 @@ class CVC5_EXPORT ParserState
    * parameters.
    */
   Sort mkUnresolvedTypeConstructor(const std::string& name,
-                                         const std::vector<Sort>& params);
+                                   const std::vector<Sort>& params);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
@@ -399,8 +398,8 @@ class CVC5_EXPORT ParserState
    * flattenVars.
    */
   Sort mkFlatFunctionType(std::vector<Sort>& sorts,
-                                Sort range,
-                                std::vector<Term>& flattenVars);
+                          Sort range,
+                          std::vector<Term>& flattenVars);
 
   /** make flat function type
    *
@@ -408,8 +407,7 @@ class CVC5_EXPORT ParserState
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
-  Sort mkFlatFunctionType(std::vector<Sort>& sorts,
-                                Sort range);
+  Sort mkFlatFunctionType(std::vector<Sort>& sorts, Sort range);
 
   /** make higher-order apply
    *
@@ -550,7 +548,7 @@ class CVC5_EXPORT ParserState
    * null expression.
    */
   Term getOverloadedFunctionForTypes(const std::string& name,
-                                           std::vector<Sort>& argTypes)
+                                     std::vector<Sort>& argTypes)
   {
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }

@@ -156,7 +156,7 @@ Sort Smt2TermParser::parseSort()
             std::vector<uint32_t> numerals = parseNumeralList();
             d_lex.eatToken(Token::RPAREN_TOK);
             // TODO: d_state.getIndexedSort(name, numerals);
-            
+
             if (name == "BitVec")
             {
               if (numerals.size() != 1)
@@ -221,7 +221,8 @@ Sort Smt2TermParser::parseSort()
           d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort");
         }
         // Construct the (parametric) sort specified by sstack.back()
-        ret = d_state.getParametricSort(sstack.back().first, sstack.back().second);
+        ret = d_state.getParametricSort(sstack.back().first,
+                                        sstack.back().second);
         // pop the stack
         sstack.pop_back();
       }

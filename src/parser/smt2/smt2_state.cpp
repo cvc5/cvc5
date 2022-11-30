@@ -1342,7 +1342,7 @@ cvc5::Term Smt2State::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 }
 
 Sort Smt2State::getParametricSort(const std::string& name,
-            const std::vector<cvc5::Sort>& args)
+                                  const std::vector<cvc5::Sort>& args)
 {
   if (args.empty())
   {
@@ -1352,8 +1352,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
   }
   // builtin parametric sorts are handled manually
   Sort t;
-  if (name == "Array"
-           && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
+  if (name == "Array" && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
   {
     if (args.size() != 2)
     {
@@ -1361,8 +1360,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
     }
     t = d_solver->mkArraySort(args[0], args[1]);
   }
-  else if (name == "Set"
-           && isTheoryEnabled(internal::theory::THEORY_SETS))
+  else if (name == "Set" && isTheoryEnabled(internal::theory::THEORY_SETS))
   {
     if (args.size() != 1)
     {
@@ -1370,8 +1368,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
     }
     t = d_solver->mkSetSort(args[0]);
   }
-  else if (name == "Bag"
-           && isTheoryEnabled(internal::theory::THEORY_BAGS))
+  else if (name == "Bag" && isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
     if (args.size() != 1)
     {
@@ -1410,7 +1407,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
     }
     // flatten the type
     cvc5::Sort rangeType = args.back();
-    std::vector<Sort> dargs(args.begin(), args.end()-1);
+    std::vector<Sort> dargs(args.begin(), args.end() - 1);
     t = mkFlatFunctionType(dargs, rangeType);
   }
   else

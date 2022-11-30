@@ -159,7 +159,7 @@ cvc5::Sort ParserState::getSort(const std::string& name)
 }
 
 cvc5::Sort ParserState::getParametricSort(const std::string& name,
-                                const std::vector<cvc5::Sort>& params)
+                                          const std::vector<cvc5::Sort>& params)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert(isDeclared(name, SYM_SORT));
