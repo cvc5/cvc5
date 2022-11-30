@@ -54,7 +54,6 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 "check-synth-next"   return cvc5::parser::CHECK_SYNTH_NEXT_TOK;
 "check-synth"   return cvc5::parser::CHECK_SYNTH_TOK;
 "constraint"   return cvc5::parser::CONSTRAINT_TOK;
-"const"   return cvc5::parser::CONST_TOK;
 "declare-codatatypes"   return cvc5::parser::DECLARE_CODATATYPES_TOK;
 "declare-codatatype"   return cvc5::parser::DECLARE_CODATATYPE_TOK;
 "declare-const"   return cvc5::parser::DECLARE_CONST_TOK;

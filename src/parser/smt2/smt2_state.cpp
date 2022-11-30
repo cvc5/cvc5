@@ -464,6 +464,46 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   return Term();
 }
 
+Term Smt2State::mkIndexedConstant(const std::string& name,
+                                  const std::vector<std::string>& symbols)
+{
+
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
+    if (name=="char")
+    {  
+      if (symbols.size()!=1)
+      {
+        parseError("Unexpected number of indices for char");
+      }
+      if (symbols[0].length()<=2 || symbols[0].substr(0,2)!="#x")
+      {
+        parseError(std::string("Unexpected index for char: `") + symbols[0] + "'");
+      }
+      return mkCharConstant(symbols[0].substr(2));
+    }
+  }
+  else if (d_logic.hasCardinalityConstraints())
+  {
+    if (name=="fmf.card")
+    {
+      if (symbols.size()!=2)
+      {
+        parseError("Unexpected number of indices for fmf.card");
+      }
+      Sort t = getSort(symbols[0]);
+      // convert second symbol back to a numeral
+      uint32_t ubound;
+      std::stringstream ss;
+      ss << symbols[1];
+      ss >> ubound;
+      return d_solver->mkCardinalityConstraint(t, ubound);
+    }
+  }
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return Term();
+}
+
 Kind Smt2State::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);

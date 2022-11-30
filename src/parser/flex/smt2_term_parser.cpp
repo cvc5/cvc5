@@ -50,12 +50,16 @@ Term Smt2TermParser::parseTerm()
           {
             // a standalone qualifier identifier
             ParseOp op = continueParseQualifiedIdentifier(false);
+            ret = op.d_expr;
+            Assert (!ret.isNull());
           }
           break;
           case Token::INDEX_TOK:
           {
-            // a standalone indexed token
+            // a standalone indexed symbol
             ParseOp op = continueParseIndexedIdentifier(false);
+            ret = op.d_expr;
+            Assert (!ret.isNull());
           }
           break;
           case Token::LPAREN_TOK:
@@ -740,34 +744,36 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   // parse the list of numerals or symbols
   std::vector<std::string> symbols;
   std::vector<uint32_t> numerals;
+  // we currently only have symbols that are indexed by only numerals, or
+  // are indexed by a symbol, followed by combinations of symbols/numerals.
   Token tok = d_lex.nextToken();
   while (tok != Token::RPAREN_TOK)
   {
     switch (tok)
     {
       case Token::INTEGER_LITERAL:
-        numerals.push_back(tokenStrToUnsigned());
+        if (symbols.empty())
+        {
+          numerals.push_back(tokenStrToUnsigned());
+        }
+        else
+        {
+          // If we parsed a symbol, treat the remaining indices as symbols
+          // This is required for parsing fmf.card.
+          symbols.push_back(d_lex.tokenStr());
+        }
         break;
       case Token::SYMBOL:
-      case Token::HEX_LITERAL: symbols.push_back(d_lex.tokenStr()); break;
+      case Token::HEX_LITERAL: 
+        // (_ char <hex_literal>) expects a hex literal
+        symbols.push_back(d_lex.tokenStr()); 
+        break;
       default: break;
     }
   }
-  // we currently only have symbols that are indexed by only numerals, or
-  // only symbols
-  if (numerals.empty() == symbols.empty())
+  if (numerals.empty() && symbols.empty())
   {
-    std::stringstream ss;
-    if (numerals.empty())
-    {
-      ss << "No indices";
-    }
-    else
-    {
-      ss << "Unexpected types for indices of";
-    }
-    ss << " symbol " << name;
-    d_lex.parseError(ss.str());
+    d_lex.parseError(std::string("No indices provided for symbol " + name));
   }
   // if indexed by numerals
   if (!numerals.empty())
@@ -798,6 +804,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   {
     // - fmf.card indexed by Type
     // - char indexed by HEX
+    p.d_expr = d_state.mkIndexedConstant(name, symbols);
   }
   else
   {
