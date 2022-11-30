@@ -111,7 +111,7 @@ class Smt2State : public ParserState
    *         not valid.
    */
   Term mkIndexedConstant(const std::string& name,
-                               const std::vector<uint32_t>& numerals);
+                         const std::vector<uint32_t>& numerals);
 
   /**
    * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
@@ -207,7 +207,7 @@ class Smt2State : public ParserState
    * @return a pointer to the grammar
    */
   Grammar* mkGrammar(const std::vector<Term>& boundVars,
-                           const std::vector<Term>& ntSymbols);
+                     const std::vector<Term>& ntSymbols);
 
   /** Are we using a sygus language? */
   bool sygus() const;
@@ -255,10 +255,7 @@ class Smt2State : public ParserState
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
-  void clearLastNamedTerm()
-  {
-    d_lastNamedTerm = std::make_pair(Term(), "");
-  }
+  void clearLastNamedTerm() { d_lastNamedTerm = std::make_pair(Term(), ""); }
 
   std::pair<Term, std::string> lastNamedTerm() { return d_lastNamedTerm; }
 
@@ -378,7 +375,7 @@ class Smt2State : public ParserState
    * Returns a (indexed) sort, given a name and numeric indices.
    */
   Sort getIndexedSort(const std::string& name,
-                         const std::vector<uint32_t>& numerals);
+                      const std::vector<uint32_t>& numerals);
   //------------------------- end processing parse operators
 
   /**

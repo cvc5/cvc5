@@ -1419,7 +1419,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
 }
 
 Sort Smt2State::getIndexedSort(const std::string& name,
-                        const std::vector<uint32_t>& numerals)
+                               const std::vector<uint32_t>& numerals)
 {
   Sort ret;
   if (name == "BitVec")
@@ -1448,8 +1448,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal floating-point significand size");
     }
-    ret = d_solver->mkFloatingPointSort(numerals[0],
-                                                    numerals[1]);
+    ret = d_solver->mkFloatingPointSort(numerals[0], numerals[1]);
   }
   else
   {
