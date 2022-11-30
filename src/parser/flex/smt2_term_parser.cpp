@@ -26,35 +26,35 @@ namespace parser {
 /** State when parsing terms */
 enum class ParseCtx : uint32_t
 {
-  /** 
+  /**
    * Default state, for (<op> <term>*)
    */
   NEXT_ARG,
-  /** 
+  /**
    * Closures, for (<closure> <variable_list> <term>*).
    * Pushes/pops scope.
    */
   CLOSURE_NEXT_ARG,
-  /** 
-   * Let bindings 
-   * 
+  /**
+   * Let bindings
+   *
    * LET_NEXT_BIND: op.d_name is the current binding term
    */
   LET_NEXT_BIND,
   LET_BODY,
-  /** 
+  /**
    * Match terms
    */
   MATCH_HEAD,
   MATCH_NEXT_CASE_PATTERN,
   MATCH_CASE_BODY,
-  /** 
-   * Term annotations 
+  /**
+   * Term annotations
    */
   TERM_ANNOTATE_BODY,
   TERM_ANNOTATE_NEXT_LIST_ARG
 };
-  
+
 Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
     : d_lex(lex), d_state(state)
 {
@@ -70,7 +70,7 @@ Term Smt2TermParser::parseTerm()
   Solver* slv = d_state.getSolver();
   do
   {
-    Assert (tstack.size()==xstack.size());
+    Assert(tstack.size() == xstack.size());
     // At this point, we are setup to parse the next term
     tok = d_lex.nextToken();
     Term currTerm;
@@ -130,7 +130,7 @@ Term Smt2TermParser::parseTerm()
           {
             xstack.emplace_back(ParseCtx::LET_NEXT_BIND);
             tstack.emplace_back(ParseOp(), std::vector<Term>());
-            // 
+            //
             d_lex.eatToken(Token::LPAREN_TOK);
             needsUpdateCtx = true;
           }
@@ -250,7 +250,7 @@ Term Smt2TermParser::parseTerm()
         d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
         break;
     }
-    
+
     // Based on the current context, setup next parsed term.
     // We do this only if a context is allocated (!tstack.empty()) and we
     // either just finished parsing a term (!ret.isNull()), or otherwise have
@@ -264,12 +264,12 @@ Term Smt2TermParser::parseTerm()
         case ParseCtx::NEXT_ARG:
         case ParseCtx::CLOSURE_NEXT_ARG:
         {
-          Assert (!ret.isNull());
+          Assert(!ret.isNull());
           // add it to the list of arguments and clear
           tstack.back().second.push_back(ret);
           ret = Term();
         }
-          break;
+        break;
         // ------------------------- let terms
         case ParseCtx::LET_NEXT_BIND:
         {
@@ -284,15 +284,15 @@ Term Smt2TermParser::parseTerm()
           if (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
           {
             // (: another binding: setup parsing the next term
-            std::string sym = parseSymbol(CHECK_NONE,SYM_VARIABLE);
+            std::string sym = parseSymbol(CHECK_NONE, SYM_VARIABLE);
           }
           else
           {
             // ): we are now looking for the body of the let
-            xstack[xstack.size()-1] = ParseCtx::LET_BODY;
+            xstack[xstack.size() - 1] = ParseCtx::LET_BODY;
           }
         }
-          break;
+        break;
         case ParseCtx::LET_BODY:
         {
           // the let body is the returned term
@@ -302,18 +302,18 @@ Term Smt2TermParser::parseTerm()
           // pop scope
           d_state.popScope();
         }
-          break;
+        break;
         // ------------------------- match terms
         case ParseCtx::MATCH_HEAD:
         {
-          Assert (!ret.isNull());
+          Assert(!ret.isNull());
           // add the head
           tstack.back().second.push_back(ret);
           ret = Term();
-          xstack[xstack.size()-1] = ParseCtx::MATCH_NEXT_CASE_PATTERN;
+          xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE_PATTERN;
           needsUpdateCtx = true;
         }
-          break;
+        break;
         case ParseCtx::MATCH_NEXT_CASE_PATTERN:
         {
           // TODO
@@ -322,7 +322,7 @@ Term Smt2TermParser::parseTerm()
           }
           // TODO
         }
-          break;
+        break;
         // ------------------------- annotated terms
         case ParseCtx::TERM_ANNOTATE_BODY:
         {
@@ -333,9 +333,8 @@ Term Smt2TermParser::parseTerm()
           std::string key = parseKeyword();
           // TODO: based on the keyword, determine the context
         }
-          break;
-        default:
-          break;
+        break;
+        default: break;
       }
     }
     // otherwise ret will be returned
