@@ -1232,13 +1232,12 @@ bool AletheProofPostprocessCallback::update(Node res,
       addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
       resChildren.push_back(laGen);
       resChildren.insert(resChildren.end(), children.begin(), children.end());
-      return addAletheStep(
-          AletheRule::RESOLUTION,
-          res,
-          nm->mkNode(kind::SEXPR, d_cl, res),
-          resChildren,
-          d_resPivots ? resArgs : std::vector<Node>(),
-          *cdp);
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           resChildren,
+                           d_resPivots ? resArgs : std::vector<Node>(),
+                           *cdp);
     }
     // Direct translation
     case PfRule::ARITH_MULT_POS:
@@ -1453,12 +1452,11 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 res,
                                 nm->mkNode(kind::SEXPR, d_cl, res),
                                 {vp2, vp_child1, vp_child2},
-                                d_resPivots
-                                    ? std::vector<Node>{vp_child1[1],
-                                                        d_false,
-                                                        vp_child2[0],
-                                                        d_true}
-                                    : std::vector<Node>(),
+                                d_resPivots ? std::vector<Node>{vp_child1[1],
+                                                                d_false,
+                                                                vp_child2[0],
+                                                                d_true}
+                                            : std::vector<Node>(),
                                 *cdp);
       }
       if (res == greater)
@@ -1491,12 +1489,11 @@ bool AletheProofPostprocessCallback::update(Node res,
                                 vp3,
                                 vp3,
                                 {vp2, vp_child1, vp_child2},
-                                d_resPivots
-                                    ? std::vector<Node>{vp_child1[1],
-                                                        d_false,
-                                                        vp_child2[0],
-                                                        d_true}
-                                    : std::vector<Node>(),
+                                d_resPivots ? std::vector<Node>{vp_child1[1],
+                                                                d_false,
+                                                                vp_child2[0],
+                                                                d_true}
+                                            : std::vector<Node>(),
                                 *cdp)
                && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
                && addAletheStep(
@@ -1538,12 +1535,11 @@ bool AletheProofPostprocessCallback::update(Node res,
                               vp3,
                               vp3,
                               {vp2, vp_child1, vp_child2},
-                              d_resPivots
-                                  ? std::vector<Node>{vp_child1,
-                                                      d_false,
-                                                      vp_child2[0],
-                                                      d_true}
-                                  : std::vector<Node>(),
+                              d_resPivots ? std::vector<Node>{vp_child1,
+                                                              d_false,
+                                                              vp_child2[0],
+                                                              d_true}
+                                          : std::vector<Node>(),
                               *cdp)
              && addAletheStep(AletheRule::EQUIV_POS1, vp4, vp4, {}, {}, *cdp)
              && addAletheStep(AletheRule::COMP_SIMPLIFY, vp5, vp5, {}, {}, *cdp)
