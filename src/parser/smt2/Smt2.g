@@ -1402,65 +1402,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
       PARSER_STATE->popScope();
       expr = MK_TERM(cvc5::LAMBDA, args);
     }
-  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-  {
-    std::vector<cvc5::Sort> sorts;
-    std::vector<cvc5::Term> terms;
-    for (const cvc5::Term& arg : args)
-    {
-      sorts.emplace_back(arg.getSort());
-      terms.emplace_back(arg);
-    }
-    expr = SOLVER->mkTuple(sorts, terms);
-  }
-  | LPAREN_TOK TUPLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK TABLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK TABLE_AGGREGATE_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_AGGREGATE, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK TABLE_JOIN_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_JOIN, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK TABLE_GROUP_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::TABLE_GROUP, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK RELATION_GROUP_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_GROUP, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK RELATION_AGGREGATE_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_AGGREGATE, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
-  | LPAREN_TOK RELATION_PROJECT_TOK term[expr,expr2] RPAREN_TOK
-  {
-    std::vector<uint32_t> indices;
-    cvc5::Op op = SOLVER->mkOp(cvc5::RELATION_PROJECT, indices);
-    expr = SOLVER->mkTerm(op, {expr});
-  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1595,62 +1536,6 @@ identifier[cvc5::ParseOp& p]
         // get the updater term
         p.d_expr = ds.getUpdaterTerm();
       }
-    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ tuple.project i_1 ... i_n) where
-        // i_1, ..., i_n are numerals
-        p.d_kind = cvc5::TUPLE_PROJECT;
-        p.d_op = SOLVER->mkOp(cvc5::TUPLE_PROJECT, numerals);
-      }
-    | TABLE_PROJECT_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ table.project i_1 ... i_n) where
-        // i_1, ..., i_n are numerals
-        p.d_kind = cvc5::TABLE_PROJECT;
-        p.d_op = SOLVER->mkOp(cvc5::TABLE_PROJECT, numerals);
-       }
-    | TABLE_AGGREGATE_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ table.aggr i_1 ... i_n) where
-        // i_1, ..., i_n are numerals
-        p.d_kind = cvc5::TABLE_AGGREGATE;
-        p.d_op = SOLVER->mkOp(cvc5::TABLE_AGGREGATE, numerals);
-      }
-    | TABLE_JOIN_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ table.join i_1 j_1 ... i_n j_n) where
-        // i_1, ..., i_n, j_1, ..., j_n are numerals
-        p.d_kind = cvc5::TABLE_JOIN;
-        p.d_op = SOLVER->mkOp(cvc5::TABLE_JOIN, numerals);
-      }
-     | TABLE_GROUP_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ table.group i_1 ... i_n) where
-        // i_1, ..., j_n are numerals
-        p.d_kind = cvc5::TABLE_GROUP;
-        p.d_op = SOLVER->mkOp(cvc5::TABLE_GROUP, numerals);
-      }
-     | RELATION_GROUP_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ rel.group i_1 ... i_n) where
-        // i_1, ..., j_n are numerals
-        p.d_kind = cvc5::RELATION_GROUP;
-        p.d_op = SOLVER->mkOp(cvc5::RELATION_GROUP, numerals);
-      }
-     | RELATION_AGGREGATE_TOK nonemptyNumeralList[numerals]
-      {
-        // we adopt a special syntax (_ rel.aggr i_1 ... i_n) where
-        // i_1, ..., i_n are numerals
-        p.d_kind = cvc5::RELATION_AGGREGATE;
-        p.d_op = SOLVER->mkOp(cvc5::RELATION_AGGREGATE, numerals);
-      }
-     | RELATION_PROJECT_TOK nonemptyNumeralList[numerals]
-      {
-       // we adopt a special syntax (_ rel.project i_1 ... i_n) where
-       // i_1, ..., i_n are numerals
-       p.d_kind = cvc5::RELATION_PROJECT;
-       p.d_op = SOLVER->mkOp(cvc5::RELATION_PROJECT, numerals);
-      }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
         cvc5::Kind k = PARSER_STATE->getIndexedOpKind(opName);
@@ -1677,14 +1562,9 @@ identifier[cvc5::ParseOp& p]
           p.d_kind = k;
           p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
-        else if (numerals.size() == 1 || numerals.size() == 2)
-        {
-          p.d_op = SOLVER->mkOp(k, numerals);
-        }
         else
         {
-          PARSER_STATE->parseError(
-              "Unexpected number of numerals for indexed symbol.");
+          p.d_op = SOLVER->mkOp(k, numerals);
         }
       }
     )
@@ -1751,15 +1631,6 @@ termAtomic[cvc5::Term& atomTerm]
 
   // String constant
   | str[s, true] { atomTerm = SOLVER->mkString(s, true); }
-
-  // NOTE: Theory constants go here
-
-  // Empty tuple constant
-  | TUPLE_CONST_TOK
-    {
-      atomTerm = SOLVER->mkTuple(std::vector<cvc5::Sort>(),
-                                 std::vector<cvc5::Term>());
-    }
   ;
 
 /**
@@ -2040,21 +1911,19 @@ sortSymbol[cvc5::Sort& t]
         } else if (name == "Table" && !PARSER_STATE->strictModeEnabled()) {
           cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
           t = SOLVER->mkBagSort(tupleSort);
+        } else if (name == "->" && PARSER_STATE->isHoEnabled()) {
+          if(args.size()<2) {
+            PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
+          }
+          //flatten the type
+          cvc5::Sort rangeType = args.back();
+          args.pop_back();
+          t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
         } else {
           t = PARSER_STATE->getSort(name, args);
         }
       }
     ) RPAREN_TOK
-  | LPAREN_TOK HO_ARROW_TOK sortList[args] RPAREN_TOK
-    {
-      if(args.size()<2) {
-        PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
-      }
-      //flatten the type
-      cvc5::Sort rangeType = args.back();
-      args.pop_back();
-      t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
-    }
   ;
 
 /**
@@ -2216,7 +2085,7 @@ PAR_TOK : 'par';
 SET_COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }?'set.comprehension';
 TESTER_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'is';
 UPDATE_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'update';
-MATCH_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }?'match';
+MATCH_TOK : 'match';
 GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
@@ -2262,18 +2131,8 @@ EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) }? 'char';
-TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple';
-TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_DATATYPES) }? 'tuple.project';
-TABLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.project';
-TABLE_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.aggr';
-TABLE_JOIN_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.join';
-TABLE_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) }? 'table.group';
-RELATION_GROUP_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.group';
-RELATION_AGGREGATE_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.aggr';
-RELATION_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) }? 'rel.project';
 FMF_CARD_TOK: { !PARSER_STATE->strictModeEnabled() && PARSER_STATE->hasCardinalityConstraints() }? 'fmf.card';
 
-HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
 
 /**

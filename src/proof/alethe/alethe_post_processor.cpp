@@ -249,7 +249,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       // Build vp1
       std::vector<Node> negNode{d_cl};
       std::vector<Node> sanitized_args;
-      for (Node arg : args)
+      for (const Node& arg : args)
       {
         negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
         sanitized_args.push_back(d_anc.convert(arg));
