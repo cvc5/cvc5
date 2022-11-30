@@ -55,10 +55,17 @@ Term Smt2TermParser::parseTerm()
           break;
           case Token::INDEX_TOK:
           {
-            // a standalone qualified identifier
+            // a standalone indexed token
+            std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
+            // TODO: special cases
+            // - fmf.card indexed by Type
+            // - char indexed by HEX
+            std::vector<uint32_t> numerals = parseNumeralList();
+            d_lex.eatToken(Token::RPAREN_TOK);
+            ret = d_state.mkIndexedConstant(name, numerals);
           }
           break;
-          case Token::LPAREN_TOK:  // a qualified identifier operator
+          case Token::LPAREN_TOK:  // a qualified identifier or index operator
           case Token::FORALL_TOK:
           case Token::EXISTS_TOK:
           case Token::LET_TOK:
@@ -69,7 +76,8 @@ Term Smt2TermParser::parseTerm()
             // function identifier
           }
           break;
-          default: break;
+          default: 
+            break;
         }
         // if we parsed an operator, push to the stack
         if (parsedOp)
@@ -82,6 +90,15 @@ Term Smt2TermParser::parseTerm()
       case Token::RPAREN_TOK:
       {
         // apply the topmost
+        if (tstack.empty())
+        {
+          d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
+        }
+        // Construct the application term specified by tstack.back()
+        ret = d_state.applyParseOp(tstack.back().first,
+                                        tstack.back().second);
+        // pop the stack
+        tstack.pop_back();
       }
       break;
       // ------------------- base cases
@@ -89,21 +106,42 @@ Term Smt2TermParser::parseTerm()
       }
       break;
       case Token::INTEGER_LITERAL: {
+        ret = d_state.mkRealOrIntFromNumeral(d_lex.tokenStr());
       }
       break;
       case Token::DECIMAL_LITERAL: {
+        ret = d_state.getSolver()->mkReal(d_lex.tokenStr());
       }
       break;
       case Token::HEX_LITERAL: {
+        std::string hexStr = d_lex.tokenStr();
+        hexStr = hexStr.substr(2);
+        ret = d_state.getSolver()->mkBitVector(hexStr.size() * 4, hexStr, 16);
       }
       break;
       case Token::BINARY_LITERAL: {
+        std::string binStr = d_lex.tokenStr();
+        binStr = binStr.substr(2);
+        ret = d_state.getSolver()->mkBitVector(binStr.size(), binStr, 2);
       }
       break;
       case Token::STRING_LITERAL: {
+        std::string s = d_lex.tokenStr();
+        unescapeString(s);
+        ret = d_state.getSolver()->mkString(s, true);
       }
       break;
       default: break;
+    }
+    if (!ret.isNull())
+    {
+      // add it to the list and reset ret
+      if (!tstack.empty())
+      {
+        tstack.back().second.push_back(ret);
+        ret = Term();
+      }
+      // otherwise it will be returned
     }
   } while (!tstack.empty());
 
@@ -555,35 +593,40 @@ std::string Smt2TermParser::parseStr(bool unescape)
   std::string s = d_lex.tokenStr();
   if (unescape)
   {
-    /* strip off the quotes */
-    s = s.substr(1, s.size() - 2);
-    for (size_t i = 0, ssize = s.size(); i < ssize; i++)
-    {
-      if ((unsigned)s[i] > 127 && !isprint(s[i]))
-      {
-        d_lex.parseError(
-            "Extended/unprintable characters are not "
-            "part of SMT-LIB, and they must be encoded "
-            "as escape sequences");
-      }
-    }
-    char* p_orig = strdup(s.c_str());
-    char *p = p_orig, *q = p_orig;
-    while (*q != '\0')
-    {
-      if (*q == '"')
-      {
-        // Handle SMT-LIB >=2.5 standard escape '""'.
-        ++q;
-        Assert(*q == '"');
-      }
-      *p++ = *q++;
-    }
-    *p = '\0';
-    s = p_orig;
-    free(p_orig);
+    unescapeString(s);
   }
   return s;
+}
+
+void Smt2TermParser::unescapeString(std::string& s)
+{
+  // strip off the quotes
+  s = s.substr(1, s.size() - 2);
+  for (size_t i = 0, ssize = s.size(); i < ssize; i++)
+  {
+    if ((unsigned)s[i] > 127 && !isprint(s[i]))
+    {
+      d_lex.parseError(
+          "Extended/unprintable characters are not "
+          "part of SMT-LIB, and they must be encoded "
+          "as escape sequences");
+    }
+  }
+  char* p_orig = strdup(s.c_str());
+  char *p = p_orig, *q = p_orig;
+  while (*q != '\0')
+  {
+    if (*q == '"')
+    {
+      // Handle SMT-LIB >=2.5 standard escape '""'.
+      ++q;
+      Assert(*q == '"');
+    }
+    *p++ = *q++;
+  }
+  *p = '\0';
+  s = p_orig;
+  free(p_orig);
 }
 
 }  // namespace parser

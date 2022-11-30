@@ -79,6 +79,8 @@ class Smt2TermParser
  protected:
   /** Token to unsigned */
   uint32_t tokenStrToUnsigned();
+  /** unescape string */
+  void unescapeString(std::string& s);
   /**
    * Parse constructor definition list, add to declaration type
    */
