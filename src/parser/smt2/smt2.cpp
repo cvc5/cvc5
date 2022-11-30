@@ -33,8 +33,9 @@ namespace parser {
 Smt2::Smt2(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
-           bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly),
+           bool isSygus)
+    : Parser(solver, sm, strictMode),
+      d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
@@ -120,6 +121,7 @@ void Smt2::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_SMULO, "bvsmulo");
   addOperator(cvc5::BITVECTOR_USUBO, "bvusubo");
   addOperator(cvc5::BITVECTOR_SSUBO, "bvssubo");
+  addOperator(cvc5::BITVECTOR_SDIVO, "bvsdivo");
 
   addIndexedOperator(cvc5::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(cvc5::BITVECTOR_REPEAT, "repeat");
@@ -138,9 +140,17 @@ void Smt2::addDatatypesOperators()
   if (!strictModeEnabled())
   {
     Parser::addOperator(cvc5::APPLY_UPDATER);
-    // Notice that tuple operators, we use the generic APPLY_SELECTOR and
-    // APPLY_UPDATER kinds. These are processed based on the context
-    // in which they are parsed, e.g. when parsing identifiers.
+    // Tuple projection is both indexed and non-indexed (when indices are empty)
+    addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
+    addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
+    // Notice that tuple operators, we use the generic APPLY_CONSTRUCTOR,
+    // APPLY_SELECTOR and APPLY_UPDATER kinds. These are processed based on the
+    // context in which they are parsed, e.g. when parsing identifiers.
+    // For the tuple constructor "tuple", this is both a nullary operator
+    // (for the 0-ary tuple), and a operator, hence we call both addOperator
+    // and defineVar here.
+    addOperator(cvc5::APPLY_CONSTRUCTOR, "tuple");
+    defineVar("tuple", d_solver->mkTuple({}, {}));
     addIndexedOperator(cvc5::APPLY_SELECTOR, "tuple.select");
     addIndexedOperator(cvc5::APPLY_UPDATER, "tuple.update");
   }
@@ -677,6 +687,13 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::RELATION_TCLOSURE, "rel.tclosure");
     addOperator(cvc5::RELATION_JOIN_IMAGE, "rel.join_image");
     addOperator(cvc5::RELATION_IDEN, "rel.iden");
+    // these operators can be with/without indices
+    addOperator(cvc5::RELATION_GROUP, "rel.group");
+    addOperator(cvc5::RELATION_AGGREGATE, "rel.aggr");
+    addOperator(cvc5::RELATION_PROJECT, "rel.project");
+    addIndexedOperator(cvc5::RELATION_GROUP, "rel.group");
+    addIndexedOperator(cvc5::RELATION_AGGREGATE, "rel.aggr");
+    addIndexedOperator(cvc5::RELATION_PROJECT, "rel.project");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
@@ -703,6 +720,15 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
     addOperator(cvc5::BAG_PARTITION, "table.group");
+    // these operators can be with/without indices
+    addOperator(cvc5::TABLE_PROJECT, "table.project");
+    addOperator(cvc5::TABLE_AGGREGATE, "table.aggr");
+    addOperator(cvc5::TABLE_JOIN, "table.join");
+    addOperator(cvc5::TABLE_GROUP, "table.group");
+    addIndexedOperator(cvc5::TABLE_PROJECT, "table.project");
+    addIndexedOperator(cvc5::TABLE_AGGREGATE, "table.aggr");
+    addIndexedOperator(cvc5::TABLE_JOIN, "table.join");
+    addIndexedOperator(cvc5::TABLE_GROUP, "table.group");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
@@ -784,10 +810,7 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
   return d_allocGrammars.back().get();
 }
 
-bool Smt2::sygus() const
-{
-  return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
-}
+bool Smt2::sygus() const { return d_isSygus; }
 
 bool Smt2::hasGrammars() const
 {
@@ -1091,6 +1114,29 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
+      // special case: indexed operators with zero arguments
+      if (kind == TUPLE_PROJECT || kind == TABLE_PROJECT
+          || kind == TABLE_AGGREGATE || kind == TABLE_JOIN
+          || kind == TABLE_GROUP || kind == RELATION_GROUP
+          || kind == RELATION_AGGREGATE || kind == RELATION_PROJECT)
+      {
+        std::vector<uint32_t> indices;
+        op = d_solver->mkOp(kind, indices);
+        kind = NULL_TERM;
+        isBuiltinOperator = false;
+      }
+      else if (kind == cvc5::APPLY_CONSTRUCTOR)
+      {
+        // tuple application
+        std::vector<cvc5::Sort> sorts;
+        std::vector<cvc5::Term> terms;
+        for (const cvc5::Term& arg : args)
+        {
+          sorts.emplace_back(arg.getSort());
+          terms.emplace_back(arg);
+        }
+        return d_solver->mkTuple(sorts, terms);
+      }
       Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;
     }
@@ -1160,7 +1206,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   else if ((p.d_kind == cvc5::APPLY_SELECTOR || p.d_kind == cvc5::APPLY_UPDATER)
            && !p.d_expr.isNull())
   {
-    // tuple selector case
+    // tuple selector or updater case
     if (!p.d_expr.isUInt64Value())
     {
       parseError(
@@ -1196,16 +1242,6 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                              {dt[0][n].getUpdaterTerm(), args[0], args[1]});
     }
     Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
-    return ret;
-  }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
-           || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
-           || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
-           || p.d_kind == cvc5::RELATION_AGGREGATE
-           || p.d_kind == cvc5::RELATION_PROJECT)
-  {
-    cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
-    Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != cvc5::NULL_TERM)

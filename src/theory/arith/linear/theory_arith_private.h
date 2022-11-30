@@ -501,7 +501,7 @@ private:
    * any non-linear terms that were unhandled. Note that this class is not
    * responsible for handling non-linear arithmetic. If the owner of this
    * class does not handle non-linear arithmetic in another way, then
-   * setIncomplete should be called on the output channel of TheoryArith.
+   * setModelUnsound should be called on the output channel of TheoryArith.
    */
   bool foundNonlinear() const;
 

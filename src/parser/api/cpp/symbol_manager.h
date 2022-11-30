@@ -201,6 +201,16 @@ class CVC5_EXPORT SymbolManager
   /** Get the name of the last abduct or interpolant to synthesize */
   const std::string& getLastSynthName() const;
 
+  /**
+   * Force the logic to the given string. Note that this information is
+   * context-independent.
+   */
+  void forceLogic(const std::string& logic);
+  /** Have we called the above method? */
+  bool isLogicForced() const;
+  /** Get the last string in an above call, valid if logic is forced */
+  const std::string& getForcedLogic() const;
+
  private:
   /** The API Solver object. */
   cvc5::Solver* d_solver;
@@ -212,6 +222,10 @@ class CVC5_EXPORT SymbolManager
    * SMT-LIB option :global-declarations. By default, its value is false.
    */
   bool d_globalDeclarations;
+  /** Whether the logic has been forced with --force-logic. */
+  bool d_logicIsForced;
+  /** The logic, if d_logicIsForced == true. */
+  std::string d_forcedLogic;
 };
 
 }  // namespace parser

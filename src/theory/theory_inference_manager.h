@@ -373,10 +373,25 @@ class TheoryInferenceManager : protected EnvObj
    */
   void safePoint(Resource r);
   /**
-   * Notification from a theory that it realizes it is incomplete at
-   * this context level.
+   * Notification from a theory that it realizes it is model unsound at
+   * this SAT context level. In other words, we cannot answer "sat" in this
+   * SAT context.
+   *
+   * Note that we use SAT context for model unsoundness, since the typical use
+   * case is that an asserted literal cannot be verified for the model under
+   * construction, where asserted literals are SAT-context dependent.
    */
-  void setIncomplete(IncompleteId id);
+  void setModelUnsound(IncompleteId id);
+  /**
+   * Notification from a theory that it realizes it is refutation unsound at
+   * this user context level. In other words, we cannot answer "unsat" in this
+   * user context.
+   *
+   * Note that we use user context for refutation unsoundness, since typically
+   * the source of refutation unsoundness is a lemma, which are user context
+   * dependent.
+   */
+  void setRefutationUnsound(IncompleteId id);
   /**
    * Notify this inference manager that a conflict was sent in this SAT context.
    * This method is called via TheoryEngine when a conflict is sent.

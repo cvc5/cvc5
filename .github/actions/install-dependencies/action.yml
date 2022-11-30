@@ -30,7 +30,7 @@ runs:
           flex \
           libfl-dev \
           flexc++
-        python3 -m pip install pexpect setuptools toml
+        python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -73,7 +73,7 @@ runs:
           pkgconfig \
           flex \
           gnu-sed
-        python3 -m pip install pexpect setuptools toml
+        python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
@@ -91,9 +91,10 @@ runs:
       run: |
         echo "::group::Install software for Python bindings"
         python3 -m pip install -q --upgrade pip
-        python3 -m pip install pytest scikit-build
+        python3 -m pip install --user pytest scikit-build
         python3 -m pytest --version
-        python3 -m pip install Cython==0.29.*
+        python3 -m pip install --user Cython==0.29.*
+        # Add binary path of user site-packages to PATH
         echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
         echo "::endgroup::"
 
@@ -103,8 +104,8 @@ runs:
       run: |
         echo "::group::Install software for Python packaging"
         python3 -m pip install -q --upgrade pip
-        python3 -m pip install twine
-        python3 -m pip install -U urllib3 requests
+        python3 -m pip install --user twine
+        python3 -m pip install --user -U urllib3 requests
         echo "::endgroup::"
     
     - name: Install software for documentation
@@ -113,7 +114,7 @@ runs:
       run: |
         echo "::group::Install software for documentation"
         sudo apt-get install -y doxygen python3-docutils python3-jinja2
-        python3 -m pip install \
+        python3 -m pip install --user \
           sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \
           sphinxcontrib-programoutput
         echo "::endgroup::"

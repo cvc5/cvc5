@@ -34,9 +34,8 @@ namespace parser {
 
 Tptp::Tptp(cvc5::Solver* solver,
            SymbolManager* sm,
-           bool strictMode,
-           bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly),
+           bool strictMode)
+    : Parser(solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
       d_hol(false)
@@ -66,6 +65,11 @@ Tptp::Tptp(cvc5::Solver* solver,
     }
   }
   d_hasConjecture = false;
+  // Handle forced logic immediately.
+  if (sm->isLogicForced())
+  {
+    preemptCommand(new SetBenchmarkLogicCommand(sm->getForcedLogic()));
+  }
 }
 
 Tptp::~Tptp() {
@@ -502,12 +506,6 @@ void Tptp::setHol()
   }
   d_hol = true;
   d_solver->setLogic("HO_UF");
-}
-
-void Tptp::forceLogic(const std::string& logic)
-{
-  Parser::forceLogic(logic);
-  preemptCommand(new SetBenchmarkLogicCommand(logic));
 }
 
 void Tptp::addFreeVar(cvc5::Term var)

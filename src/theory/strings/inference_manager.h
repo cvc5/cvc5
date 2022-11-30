@@ -67,7 +67,7 @@ namespace strings {
  * to doPendingLemmas.
  *
  * It also manages other kinds of interaction with the output channel of the
- * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
+ * theory of strings, e.g. sendPhaseRequirement, setModelUnsound, and
  * with the extended theory object e.g. markCongruent.
  */
 class InferenceManager : public InferenceManagerBuffered

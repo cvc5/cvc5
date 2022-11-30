@@ -31,7 +31,7 @@ SubstitutionMap::SubstitutionMap(context::Context* context)
 {
 }
 
-std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions()
+std::unordered_map<Node, Node> SubstitutionMap::getSubstitutions() const
 {
   std::unordered_map<Node, Node> subs;
   for (const auto& sub : d_substitutions)

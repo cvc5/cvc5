@@ -88,6 +88,7 @@ class TheoryBVRewriter : public TheoryRewriter
   static RewriteResponse RewriteSmulo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUsubo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteSsubo(TNode node, bool prerewrite = false);
+  static RewriteResponse RewriteSdivo(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteEagerAtom(TNode node, bool prerewrite = false);
 
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);

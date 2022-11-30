@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
@@ -53,6 +54,38 @@ class SmtDriver : protected EnvObj
    */
   Result checkSat(const std::vector<Node>& assumptions);
 
+  /**
+   * Refresh the assertions that have been asserted to the underlying SMT
+   * solver. This gets the set of unprocessed assertions of the underlying
+   * SMT solver, preprocesses them, pushes them into the SMT solver.
+   *
+   * We ensure that assertions are refreshed eagerly during user pushes to
+   * ensure that assertions are only preprocessed in one context.
+   */
+  void refreshAssertions();
+  // --------------------------------------- callbacks from the context manager
+  /**
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
+   */
+  void notifyPushPre();
+  /**
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
+   */
+  void notifyPopPre();
+  /**
+   * Notify post solve, which is called once per check-sat query. It is
+   * triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
+   */
+  void notifyPostSolve();
+  // ----------------------------------- end callbacks from the context manager
  protected:
   /**
    * Check satisfiability next, return the result.

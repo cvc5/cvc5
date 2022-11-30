@@ -1344,7 +1344,7 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
             && d_fullCheckIncomplete)
         {
-          d_im.setIncomplete(d_fullCheckIncompleteId);
+          d_im.setModelUnsound(d_fullCheckIncompleteId);
         }
       }
     }

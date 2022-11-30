@@ -327,7 +327,7 @@ void RegExpSolver::checkUnfold(const std::map<Node, std::vector<Node> >& mems,
         else
         {
           // otherwise we are incomplete
-          d_im.setIncomplete(IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY);
+          d_im.setModelUnsound(IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY);
         }
       }
       if (d_state.isInConflict())

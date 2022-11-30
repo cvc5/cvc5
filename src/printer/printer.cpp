@@ -216,8 +216,12 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
 
 void Printer::toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const
 {
-  std::string vs = v.getName();
-  toStreamCmdDeclareFunction(out, vs, v.getType());
+  // Must print the variable on the output stream (instead of just getting the
+  // name of v), since this method may be called on variables that do not have
+  // assigned names.
+  std::stringstream ss;
+  toStream(ss, v);
+  toStreamCmdDeclareFunction(out, ss.str(), v.getType());
 }
 
 void Printer::toStreamCmdDeclarePool(std::ostream& out,
