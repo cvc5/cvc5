@@ -306,7 +306,8 @@ void Smt2State::addIndexedOperator(Kind tKind, const std::string& name)
 
 void Smt2State::addClosureKind(Kind tKind, const std::string& name)
 {
-  ParserState::addOperator(tKind);
+  // also include it as a normal operator
+  addOperator(tKind, name);
   d_closureKindMap[name] = tKind;
 }
 
