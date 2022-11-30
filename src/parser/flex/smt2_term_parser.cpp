@@ -780,6 +780,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   {
     if (!isOperator)
     {
+      // resolve the index constant
       p.d_expr = d_state.mkIndexedConstant(name, numerals);
     }
     else
@@ -797,6 +798,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
       }
       else
       {
+        // otherwise, we are ready to make the operator
         p.d_op = d_state.getSolver()->mkOp(k, numerals);
       }
     }
@@ -805,7 +807,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   else if (!isOperator)
   {
     // handles:
-    // - fmf.card indexed by Type + numeral
+    // - fmf.card indexed by Type symbol + numeral
     // - char indexed by HEX
     p.d_expr = d_state.mkIndexedConstant(name, symbols);
   }
