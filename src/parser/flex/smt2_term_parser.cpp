@@ -76,8 +76,7 @@ Term Smt2TermParser::parseTerm()
             // function identifier
           }
           break;
-          default: 
-            break;
+          default: break;
         }
         // if we parsed an operator, push to the stack
         if (parsedOp)
@@ -95,8 +94,7 @@ Term Smt2TermParser::parseTerm()
           d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
         }
         // Construct the application term specified by tstack.back()
-        ret = d_state.applyParseOp(tstack.back().first,
-                                        tstack.back().second);
+        ret = d_state.applyParseOp(tstack.back().first, tstack.back().second);
         // pop the stack
         tstack.pop_back();
       }
@@ -105,27 +103,32 @@ Term Smt2TermParser::parseTerm()
       case Token::SYMBOL: {
       }
       break;
-      case Token::INTEGER_LITERAL: {
+      case Token::INTEGER_LITERAL:
+      {
         ret = d_state.mkRealOrIntFromNumeral(d_lex.tokenStr());
       }
       break;
-      case Token::DECIMAL_LITERAL: {
+      case Token::DECIMAL_LITERAL:
+      {
         ret = d_state.getSolver()->mkReal(d_lex.tokenStr());
       }
       break;
-      case Token::HEX_LITERAL: {
+      case Token::HEX_LITERAL:
+      {
         std::string hexStr = d_lex.tokenStr();
         hexStr = hexStr.substr(2);
         ret = d_state.getSolver()->mkBitVector(hexStr.size() * 4, hexStr, 16);
       }
       break;
-      case Token::BINARY_LITERAL: {
+      case Token::BINARY_LITERAL:
+      {
         std::string binStr = d_lex.tokenStr();
         binStr = binStr.substr(2);
         ret = d_state.getSolver()->mkBitVector(binStr.size(), binStr, 2);
       }
       break;
-      case Token::STRING_LITERAL: {
+      case Token::STRING_LITERAL:
+      {
         std::string s = d_lex.tokenStr();
         unescapeString(s);
         ret = d_state.getSolver()->mkString(s, true);
