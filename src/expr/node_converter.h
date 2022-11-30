@@ -92,9 +92,12 @@ class NodeConverter
    * (f e_1 ... e_m), then terms is {i_1, ..., i_m}, where i_1, ..., i_m
    * is the result of converting e_1, ..., e_m. In contrast to the above
    * method, the type of the returned term does not need to match the type
-   * of orig.
+   * of orig. The method also takes whether any of the elements of terms differ
+   * from the children of orig.
    */
-  virtual Node postConvertUntyped(Node orig, const std::vector<Node>& terms);
+  virtual Node postConvertUntyped(Node orig,
+                                  const std::vector<Node>& terms,
+                                  bool termsChanged);
   /**
    * Run the conversion, same as `preConvert`, but for type nodes, which notice
    * can be built from children similar to Node.
