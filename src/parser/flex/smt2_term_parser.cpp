@@ -65,7 +65,7 @@ Term Smt2TermParser::parseTerm()
             ret = d_state.mkIndexedConstant(name, numerals);
           }
           break;
-          case Token::LPAREN_TOK:  // a qualified identifier or index operator
+          case Token::LPAREN_TOK:  // a qualified identifier or indexed operator
           case Token::FORALL_TOK:
           case Token::EXISTS_TOK:
           case Token::LET_TOK:
@@ -88,7 +88,6 @@ Term Smt2TermParser::parseTerm()
       // ------------------- close paren
       case Token::RPAREN_TOK:
       {
-        // apply the topmost
         if (tstack.empty())
         {
           d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 term");
@@ -101,6 +100,9 @@ Term Smt2TermParser::parseTerm()
       break;
       // ------------------- base cases
       case Token::SYMBOL: {
+        std::string name = d_lex.tokenStr();
+        d_state.checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+        ret = d_state.getExpressionForName(name);
       }
       break;
       case Token::INTEGER_LITERAL:
