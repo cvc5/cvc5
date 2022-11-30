@@ -133,7 +133,7 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
         else
         {
           // use the untyped version
-          Node cret = postConvertUntyped(cur, children);
+          Node cret = postConvertUntyped(cur, children, childChanged);
           if (!cret.isNull())
           {
             ret = cret;
@@ -265,7 +265,8 @@ Node NodeConverter::preConvert(Node n) { return Node::null(); }
 Node NodeConverter::postConvert(Node n) { return Node::null(); }
 
 Node NodeConverter::postConvertUntyped(Node orig,
-                                       const std::vector<Node>& terms)
+                                       const std::vector<Node>& terms,
+                                       bool termsChanged)
 {
   return Node::null();
 }
