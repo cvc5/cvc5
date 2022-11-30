@@ -70,9 +70,7 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 "define-fun"   return cvc5::parser::DEFINE_FUN_TOK;
 "define-sort"   return cvc5::parser::DEFINE_SORT_TOK;
 "echo"   return cvc5::parser::ECHO_TOK;
-"exists"   return cvc5::parser::EXISTS_TOK;
 "exit"   return cvc5::parser::EXIT_TOK;
-"forall"   return cvc5::parser::FORALL_TOK;
 "get-abduct-next"   return cvc5::parser::GET_ABDUCT_NEXT_TOK;
 "get-abduct"   return cvc5::parser::GET_ABDUCT_TOK;
 "get-assertions"   return cvc5::parser::GET_ASSERTIONS_TOK;

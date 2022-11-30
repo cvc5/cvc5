@@ -33,6 +33,7 @@ Term Smt2TermParser::parseTerm()
   Term ret;
   Token tok;
   std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
+  Solver* slv = d_state.getSolver();
   do
   {
     tok = d_lex.nextToken();
@@ -83,19 +84,39 @@ Term Smt2TermParser::parseTerm()
             }
           }
           break;
-          case Token::FORALL_TOK:
-          case Token::EXISTS_TOK:
           case Token::LET_TOK:
+          {
+            // TODO
+          }
+          break;
           case Token::MATCH_TOK:
+          {
+            // TODO
+          }
+          break;
           case Token::ATTRIBUTE_TOK:
           {
-            // tstack.emplace_back(tok, std::string(), std::vector<Term>());
+            // TODO
           }
           break;
           case Token::SYMBOL:
           {
             // function identifier
-            // tstack.emplace_back(tok, d_lex.tokenStr(), std::vector<Term>());
+            ParseOp op;
+            op.d_name = d_lex.tokenStr();
+            std::vector<Term> args;
+            // if it is a closure, immediate read the bound variable list
+            if (d_state.isClosure(op.d_name))
+            {
+              d_state.pushScope();
+              std::vector<std::pair<std::string, Sort>> sortedVarNames =
+                  parseSortedVarList();
+              std::vector<cvc5::Term> vs =
+                  d_state.bindBoundVars(sortedVarNames);
+              Term vl = slv->mkTerm(VARIABLE_LIST, vs);
+              args.push_back(vl);
+            }
+            tstack.emplace_back(op, args);
           }
           break;
           default:
@@ -114,6 +135,9 @@ Term Smt2TermParser::parseTerm()
         }
         // Construct the application term specified by tstack.back()
         ret = d_state.applyParseOp(tstack.back().first, tstack.back().second);
+        // TODO:
+        // - map the attribute if ATTRIBUTE_TOK
+        // - process the scope change if closure
         // pop the stack
         tstack.pop_back();
       }
@@ -170,6 +194,7 @@ Term Smt2TermParser::parseTerm()
         t.second.push_back(ret);
         ret = Term();
         // TODO: based on the current token, setup next parse
+        // this is for LET_TOK, MATCH_TOK,
       }
       // otherwise ret will be returned
     }
@@ -788,19 +813,28 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   switch (tok)
   {
     case Token::LPAREN_TOK:
-    {
-      d_lex.eatToken(INDEX_TOK);
-      op = continueParseIndexedIdentifier(isOperator);
-    }
+      tok = d_lex.nextToken();
+      switch(tok)
+      {
+        case INDEX_TOK:
+          op = continueParseIndexedIdentifier(isOperator);
+          break;
+        default:
+          d_lex.unexpectedTokenError(tok, "Expected (indexed) identifier while parsing qualified identifier");
+          break;
+      }
     break;
     case Token::SYMBOL:
-    {
-      // special cases:
-      // - const
-    }
+      op.d_name = d_lex.tokenStr();
     break;
-    default: break;
+    default:
+          d_lex.unexpectedTokenError(tok, "Expected identifier while parsing qualified identifier");
+          break;
   }
+  // parse a sort
+  Sort type = parseSort();
+  // apply the type ascription to the parsed op
+  d_state.parseOpApplyTypeAscription(op, type);
   return op;
 }
 
