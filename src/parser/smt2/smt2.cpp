@@ -143,9 +143,9 @@ void Smt2::addDatatypesOperators()
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
-    // Notice that tuple operators, we use the generic APPLY_CONSTRUCTOR,
-    // APPLY_SELECTOR and APPLY_UPDATER kinds. These are processed based on the
-    // context in which they are parsed, e.g. when parsing identifiers.
+    // Notice that tuple operators, we use the UNDEFINED_KIND kind. 
+    // These are processed based on the context in which they are parsed, e.g.
+    // when parsing identifiers.
     // For the tuple constructor "tuple", this is both a nullary operator
     // (for the 0-ary tuple), and a operator, hence we call both addOperator
     // and defineVar here.
@@ -244,6 +244,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(cvc5::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(cvc5::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
+  // we delay the resolution of to_fp
   addIndexedOperator(cvc5::UNDEFINED_KIND, "to_fp");
   addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
   addIndexedOperator(cvc5::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
