@@ -1538,7 +1538,7 @@ identifier[cvc5::ParseOp& p]
         if (k == cvc5::UNDEFINED_KIND)
         {
           // We don't know which kind to use until we know the type of the
-          // arguments. This case handles to_tp, tuple.select and tuple.update
+          // arguments. This case handles to_fp, tuple.select and tuple.update
           p.d_name = opName;
           p.d_indices = numerals;
           p.d_kind = cvc5::UNDEFINED_KIND;
