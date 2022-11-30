@@ -59,7 +59,7 @@ Term Smt2TermParser::parseTerm()
             // a standalone qualified identifier
           }
           break;
-          case Token::LPAREN_TOK: // a qualified identifier operator
+          case Token::LPAREN_TOK:  // a qualified identifier operator
           case Token::FORALL_TOK:
           case Token::EXISTS_TOK:
           case Token::LET_TOK:
@@ -86,28 +86,22 @@ Term Smt2TermParser::parseTerm()
       }
       break;
       // ------------------- base cases
-      case Token::SYMBOL:
-      {
+      case Token::SYMBOL: {
       }
       break;
-      case Token::INTEGER_LITERAL:
-      {
+      case Token::INTEGER_LITERAL: {
       }
       break;
-      case Token::DECIMAL_LITERAL:
-      {
+      case Token::DECIMAL_LITERAL: {
       }
       break;
-      case Token::HEX_LITERAL:
-      {
+      case Token::HEX_LITERAL: {
       }
       break;
-      case Token::BINARY_LITERAL:
-      {
+      case Token::BINARY_LITERAL: {
       }
       break;
-      case Token::STRING_LITERAL:
-      {
+      case Token::STRING_LITERAL: {
       }
       break;
       default: break;
@@ -158,28 +152,39 @@ Sort Smt2TermParser::parseSort()
           case Token::INDEX_TOK:
           {
             // a standalone indexed symbol
-            std::string name = parseSymbol(CHECK_NONE,SYM_SORT);
+            std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
             std::vector<uint32_t> numerals = parseNumeralList();
-            if( name == "BitVec" ) {
-              if( numerals.size() != 1 ) {
+            if (name == "BitVec")
+            {
+              if (numerals.size() != 1)
+              {
                 d_state.parseError("Illegal bitvector type.");
               }
-              if(numerals.front() == 0) {
+              if (numerals.front() == 0)
+              {
                 d_state.parseError("Illegal bitvector size: 0");
               }
               ret = d_state.getSolver()->mkBitVectorSort(numerals.front());
-            } else if ( name == "FloatingPoint" ) {
-              if( numerals.size() != 2 ) {
+            }
+            else if (name == "FloatingPoint")
+            {
+              if (numerals.size() != 2)
+              {
                 d_state.parseError("Illegal floating-point type.");
               }
-              if(!internal::validExponentSize(numerals[0])) {
+              if (!internal::validExponentSize(numerals[0]))
+              {
                 d_state.parseError("Illegal floating-point exponent size");
               }
-              if(!internal::validSignificandSize(numerals[1])) {
+              if (!internal::validSignificandSize(numerals[1]))
+              {
                 d_state.parseError("Illegal floating-point significand size");
               }
-              ret = d_state.getSolver()->mkFloatingPointSort(numerals[0],numerals[1]);
-            } else {
+              ret = d_state.getSolver()->mkFloatingPointSort(numerals[0],
+                                                             numerals[1]);
+            }
+            else
+            {
               std::stringstream ss;
               ss << "unknown indexed sort symbol `" << name << "'";
               d_lex.parseError(ss.str());
@@ -196,7 +201,8 @@ Sort Smt2TermParser::parseSort()
           }
           break;
           default:
-            d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort constructor");
+            d_lex.unexpectedTokenError(tok,
+                                       "Expected SMT-LIBv2 sort constructor");
             break;
         }
       }
@@ -208,7 +214,7 @@ Sort Smt2TermParser::parseSort()
         {
           d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort");
         }
-        // pop and get 
+        // pop and get
         ret = popSortStack(sstack);
       }
       break;
@@ -220,7 +226,7 @@ Sort Smt2TermParser::parseSort()
         ret = d_state.getSort(name);
       }
       break;
-      default: 
+      default:
         d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort");
         break;
     }
@@ -235,64 +241,87 @@ Sort Smt2TermParser::parseSort()
       // otherwise it will be returned
     }
   } while (!sstack.empty());
-  Assert (!ret.isNull());
+  Assert(!ret.isNull());
   return ret;
 }
 
-
-Sort Smt2TermParser::popSortStack(std::vector<std::pair<std::string, std::vector<Sort>>>& sstack)
+Sort Smt2TermParser::popSortStack(
+    std::vector<std::pair<std::string, std::vector<Sort>>>& sstack)
 {
-  Assert (!sstack.empty());
+  Assert(!sstack.empty());
   Sort t;
   // Construct the (non-simple) type specified by sstack.back()
-  const std::string& name =  sstack.back().first;
+  const std::string& name = sstack.back().first;
   std::vector<Sort>& args = sstack.back().second;
-  if(args.empty()) {
-    d_state.parseError("Extra parentheses around sort name not "
-                              "permitted in SMT-LIB");
-  } else if(name == "Array" &&
-      d_state.isTheoryEnabled(internal::theory::THEORY_ARRAYS) ) {
-    if(args.size() != 2) {
+  if (args.empty())
+  {
+    d_state.parseError(
+        "Extra parentheses around sort name not "
+        "permitted in SMT-LIB");
+  }
+  else if (name == "Array"
+           && d_state.isTheoryEnabled(internal::theory::THEORY_ARRAYS))
+  {
+    if (args.size() != 2)
+    {
       d_state.parseError("Illegal array type.");
     }
-    t = d_state.getSolver()->mkArraySort( args[0], args[1] );
-  } else if(name == "Set" &&
-            d_state.isTheoryEnabled(internal::theory::THEORY_SETS) ) {
-    if(args.size() != 1) {
+    t = d_state.getSolver()->mkArraySort(args[0], args[1]);
+  }
+  else if (name == "Set"
+           && d_state.isTheoryEnabled(internal::theory::THEORY_SETS))
+  {
+    if (args.size() != 1)
+    {
       d_state.parseError("Illegal set type.");
     }
-    t = d_state.getSolver()->mkSetSort( args[0] );
+    t = d_state.getSolver()->mkSetSort(args[0]);
   }
-  else if(name == "Bag" &&
-            d_state.isTheoryEnabled(internal::theory::THEORY_BAGS) ) {
-    if(args.size() != 1) {
+  else if (name == "Bag"
+           && d_state.isTheoryEnabled(internal::theory::THEORY_BAGS))
+  {
+    if (args.size() != 1)
+    {
       d_state.parseError("Illegal bag type.");
     }
-    t = d_state.getSolver()->mkBagSort( args[0] );
+    t = d_state.getSolver()->mkBagSort(args[0]);
   }
-  else if(name == "Seq" && !d_state.strictModeEnabled() &&
-            d_state.isTheoryEnabled(internal::theory::THEORY_STRINGS) ) {
-    if(args.size() != 1) {
+  else if (name == "Seq" && !d_state.strictModeEnabled()
+           && d_state.isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
+    if (args.size() != 1)
+    {
       d_state.parseError("Illegal sequence type.");
     }
-    t = d_state.getSolver()->mkSequenceSort( args[0] );
-  } else if (name == "Tuple" && !d_state.strictModeEnabled()) {
+    t = d_state.getSolver()->mkSequenceSort(args[0]);
+  }
+  else if (name == "Tuple" && !d_state.strictModeEnabled())
+  {
     t = d_state.getSolver()->mkTupleSort(args);
-  } else if (name == "Relation" && !d_state.strictModeEnabled()) {
+  }
+  else if (name == "Relation" && !d_state.strictModeEnabled())
+  {
     cvc5::Sort tupleSort = d_state.getSolver()->mkTupleSort(args);
     t = d_state.getSolver()->mkSetSort(tupleSort);
-  } else if (name == "Table" && !d_state.strictModeEnabled()) {
+  }
+  else if (name == "Table" && !d_state.strictModeEnabled())
+  {
     cvc5::Sort tupleSort = d_state.getSolver()->mkTupleSort(args);
     t = d_state.getSolver()->mkBagSort(tupleSort);
-  } else if (name == "->" && d_state.isHoEnabled()) {
-    if(args.size()<2) {
+  }
+  else if (name == "->" && d_state.isHoEnabled())
+  {
+    if (args.size() < 2)
+    {
       d_state.parseError("Arrow types must have at least 2 arguments");
     }
-    //flatten the type
+    // flatten the type
     cvc5::Sort rangeType = args.back();
     args.pop_back();
-    t = d_state.mkFlatFunctionType( args, rangeType );
-  } else {
+    t = d_state.mkFlatFunctionType(args, rangeType);
+  }
+  else
+  {
     t = d_state.getSort(name, args);
   }
   // pop the stack
@@ -338,9 +367,7 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
   std::string id;
   switch (tok)
   {
-    case Token::SYMBOL:
-    {
-      id = d_lex.tokenStr();
+    case Token::SYMBOL: { id = d_lex.tokenStr();
     }
     break;
     case Token::QUOTED_SYMBOL:
@@ -514,7 +541,7 @@ std::vector<uint32_t> Smt2TermParser::parseNumeralList()
 {
   std::vector<uint32_t> numerals;
   Token tok = d_lex.nextToken();
-  while (tok==Token::INTEGER_LITERAL)
+  while (tok == Token::INTEGER_LITERAL)
   {
     numerals.push_back(tokenStrToUnsigned());
   }

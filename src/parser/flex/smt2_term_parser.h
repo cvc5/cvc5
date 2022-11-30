@@ -44,7 +44,7 @@ class Smt2TermParser
   /** Parses parentheses-enclosed sort list */
   std::vector<Sort> parseSortList();
   /** Parse parentheses-enclosed sorted variable list */
-  std::vector<std::pair<std::string, Sort> > parseSortedVarList();
+  std::vector<std::pair<std::string, Sort>> parseSortedVarList();
   /** Parse symbol */
   std::string parseSymbol(DeclarationCheck check = CHECK_NONE,
                           SymbolType type = SYM_SORT);
@@ -77,14 +77,15 @@ class Smt2TermParser
   std::string parseStr(bool unescape);
 
  protected:
-   /** Token to unsigned */
-   uint32_t tokenStrToUnsigned();
+  /** Token to unsigned */
+  uint32_t tokenStrToUnsigned();
   /**
    * Parse constructor definition list, add to declaration type
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
   /** Pop sort stack */
-  Sort popSortStack(std::vector<std::pair<std::string, std::vector<Sort>>>& sstack);
+  Sort popSortStack(
+      std::vector<std::pair<std::string, std::vector<Sort>>>& sstack);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */
