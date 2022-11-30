@@ -84,8 +84,7 @@ Term ParserState::getExpressionForName(const std::string& name)
   return getExpressionForNameAndType(name, t);
 }
 
-Term ParserState::getExpressionForNameAndType(const std::string& name,
-                                                    Sort t)
+Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
   Assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
@@ -119,10 +118,7 @@ Term ParserState::getExpressionForNameAndType(const std::string& name,
   return expr;
 }
 
-bool ParserState::getTesterName(Term cons, std::string& name)
-{
-  return false;
-}
+bool ParserState::getTesterName(Term cons, std::string& name) { return false; }
 
 Kind ParserState::getKindForFunction(Term fun)
 {
@@ -159,7 +155,7 @@ Sort ParserState::getSort(const std::string& name)
 }
 
 Sort ParserState::getParametricSort(const std::string& name,
-                                          const std::vector<Sort>& params)
+                                    const std::vector<Sort>& params)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert(isDeclared(name, SYM_SORT));
@@ -179,8 +175,8 @@ bool ParserState::isFunctionLike(Term fun)
 }
 
 Term ParserState::bindVar(const std::string& name,
-                                const Sort& type,
-                                bool doOverload)
+                          const Sort& type,
+                          bool doOverload)
 {
   Trace("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
   Term expr = d_solver->mkConst(type, name);
@@ -188,8 +184,7 @@ Term ParserState::bindVar(const std::string& name,
   return expr;
 }
 
-Term ParserState::bindBoundVar(const std::string& name,
-                                     const Sort& type)
+Term ParserState::bindBoundVar(const std::string& name, const Sort& type)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
@@ -301,20 +296,19 @@ Sort ParserState::mkUnresolvedType(const std::string& name)
 }
 
 Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
-                                                    size_t arity)
+                                              size_t arity)
 {
   Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
   defineType(name, vector<Sort>(arity), unresolved);
   return unresolved;
 }
 
-Sort ParserState::mkUnresolvedTypeConstructor(
-    const std::string& name, const std::vector<Sort>& params)
+Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
+                                              const std::vector<Sort>& params)
 {
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  Sort unresolved =
-      d_solver->mkUnresolvedDatatypeSort(name, params.size());
+  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
   Sort t = getParametricSort(name, params);
   return unresolved;
@@ -422,8 +416,8 @@ std::vector<Sort> ParserState::bindMutualDatatypeTypes(
 }
 
 Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
-                                           Sort range,
-                                           std::vector<Term>& flattenVars)
+                                     Sort range,
+                                     std::vector<Term>& flattenVars)
 {
   if (range.isFunction())
   {
@@ -446,8 +440,7 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
   return d_solver->mkFunctionSort(sorts, range);
 }
 
-Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
-                                           Sort range)
+Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
 {
   if (sorts.empty())
   {
@@ -472,8 +465,7 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
   return d_solver->mkFunctionSort(sorts, range);
 }
 
-Term ParserState::mkHoApply(Term expr,
-                                  const std::vector<Term>& args)
+Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
@@ -634,10 +626,7 @@ void ParserState::checkFunctionLike(Term fun)
   }
 }
 
-void ParserState::addOperator(Kind kind)
-{
-  d_logicOperators.insert(kind);
-}
+void ParserState::addOperator(Kind kind) { d_logicOperators.insert(kind); }
 
 void ParserState::warning(const std::string& msg) { d_psc->warning(msg); }
 

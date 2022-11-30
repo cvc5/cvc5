@@ -505,13 +505,13 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
 }
 
 Term Smt2State::mkIndexedOp(const std::string& name,
-                        const std::vector<std::string>& symbols)
+                            const std::vector<std::string>& symbols)
 {
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
   {
-    if (name=="is" || name=="update")
+    if (name == "is" || name == "update")
     {
-      if (symbols.size()!=1)
+      if (symbols.size() != 1)
       {
         parseError(std::string("Unexpected number of indices for " + name));
       }
@@ -519,12 +519,11 @@ Term Smt2State::mkIndexedOp(const std::string& name,
       // must be declared
       checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
       Term f = getExpressionForName(cname);
-      if (name=="is")
+      if (name == "is")
       {
         if (!f.getSort().isDatatypeConstructor())
         {
-          parseError(
-              "Bad syntax for (_ is X), X must be a constructor.");
+          parseError("Bad syntax for (_ is X), X must be a constructor.");
         }
         // get the datatype that f belongs to
         Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
@@ -535,11 +534,10 @@ Term Smt2State::mkIndexedOp(const std::string& name,
       }
       else
       {
-        Assert (name=="update");
+        Assert(name == "update");
         if (!f.getSort().isDatatypeSelector())
         {
-          parseError(
-              "Bad syntax for (_ update X), X must be a selector.");
+          parseError("Bad syntax for (_ update X), X must be a selector.");
         }
         std::string sname = f.toString();
         // get the datatype that f belongs to
