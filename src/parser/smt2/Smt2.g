@@ -1466,19 +1466,10 @@ qualIdentifier[cvc5::ParseOp& p]
   cvc5::Sort type;
 }
 : identifier[p]
-  | LPAREN_TOK AS_TOK
-    ( CONST_TOK sortSymbol[type]
-      {
-        p.d_kind = cvc5::CONST_ARRAY;
-        PARSER_STATE->parseOpApplyTypeAscription(p, type);
-      }
-    | identifier[p]
-      sortSymbol[type]
-      {
-        PARSER_STATE->parseOpApplyTypeAscription(p, type);
-      }
-    )
-    RPAREN_TOK
+  | LPAREN_TOK AS_TOK identifier[p] sortSymbol[type] RPAREN_TOK
+    {
+      PARSER_STATE->parseOpApplyTypeAscription(p, type);
+    }
   ;
 
 /**
@@ -2074,7 +2065,6 @@ GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
-CONST_TOK : { !PARSER_STATE->strictModeEnabled() }? 'const';
 
 // extended commands
 DECLARE_CODATATYPE_TOK : 'declare-codatatype';
