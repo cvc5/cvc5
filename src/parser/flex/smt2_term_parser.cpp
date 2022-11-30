@@ -27,29 +27,36 @@ namespace parser {
 enum class ParseCtx : uint32_t
 {
   /**
-   * Default state, for (<op> <term>*)
+   * NEXT_ARG: in context (<op> <term>* <term>
    */
   NEXT_ARG,
   /**
-   * Closures, for (<closure> <variable_list> <term>*).
-   * Pushes/pops scope.
+   * CLOSURE_NEXT_ARG: in context (<closure> <variable_list> <term>* <term>
    */
   CLOSURE_NEXT_ARG,
   /**
    * Let bindings
    *
-   * LET_NEXT_BIND: op.d_name is the current binding term
+   * LET_NEXT_BIND: in context (let (<binding>* (<symbol> <term>
+   * LET_BODY: in context (let (<binding>*) <term>
    */
   LET_NEXT_BIND,
   LET_BODY,
   /**
    * Match terms
+   * 
+   * MATCH_HEAD: in context (match <term>
+   * MATCH_NEXT_CASE_PATTERN: in context (match <term> (<case>* (<term>
+   * MATCH_CASE_BODY: in context (match <term> (<case>* (<term> <term>
    */
   MATCH_HEAD,
   MATCH_NEXT_CASE_PATTERN,
   MATCH_CASE_BODY,
   /**
    * Term annotations
+   * 
+   * TERM_ANNOTATE_BODY: in context (! <term>
+   * TERM_ANNOTATE_NEXT_LIST_ARG: in context (! <term> <keyword> (<term>* <term>
    */
   TERM_ANNOTATE_BODY,
   TERM_ANNOTATE_NEXT_LIST_ARG
