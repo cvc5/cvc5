@@ -587,7 +587,7 @@ std::vector<Term> Smt2TermParser::parseTermList()
     d_lex.reinsertToken(tok);
     Term t = parseTerm();
     terms.push_back(t);
-    tok = d_lex.peekToken();
+    tok = d_lex.nextToken();
   }
   return terms;
 }

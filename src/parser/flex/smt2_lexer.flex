@@ -54,6 +54,7 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 "declare-fun"   return cvc5::parser::DECLARE_FUN_TOK;
 "declare-heap"   return cvc5::parser::DECLARE_HEAP;
 "declare-pool"   return cvc5::parser::DECLARE_POOL;
+"declare-sort"   return cvc5::parser::DECLARE_SORT_TOK;
 "declare-var"   return cvc5::parser::DECLARE_VAR_TOK;
 "define-const"   return cvc5::parser::DEFINE_CONST_TOK;
 "define-funs-rec"   return cvc5::parser::DEFINE_FUNS_REC_TOK;
@@ -115,7 +116,6 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 {quoted_symbol} return cvc5::parser::QUOTED_SYMBOL;
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
-. parseError("Error finding token");
 
 ";"    {
           int c;
@@ -128,6 +128,7 @@ unterminated_quoted_symbol \|[^(\||\\)]*
             }
           }
         }
+. parseError("Error finding token");
 %%
 
 namespace cvc5 {
