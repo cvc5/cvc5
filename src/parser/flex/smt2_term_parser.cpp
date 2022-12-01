@@ -385,9 +385,10 @@ Term Smt2TermParser::parseTerm()
             // push the scope
             d_state.pushScope();
             // parse the pattern, which also does the binding
-            Assert (!tstack.back().first.d_type.isNull());
+            Assert(!tstack.back().first.d_type.isNull());
             std::vector<Term> boundVars;
-            Term pattern = parseMatchCasePattern(tstack.back().first.d_type, boundVars);
+            Term pattern =
+                parseMatchCasePattern(tstack.back().first.d_type, boundVars);
             Term vl;
             // either variable, non-nullary constructor, or nullary constructor
             // The former two cases, we construct a variable list vl.
@@ -1230,21 +1231,24 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   return op;
 }
 
-Term Smt2TermParser::parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars)
+Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
+                                           std::vector<Term>& boundVars)
 {
   Term pat;
   if (d_lex.eatTokenChoice(Token::SYMBOL, Token::LPAREN_TOK))
   {
     // a nullary constructor or variable, depending on if the symbol is declared
     std::string name = d_lex.tokenStr();
-    if (d_state.isDeclared(name,SYM_VARIABLE))
+    if (d_state.isDeclared(name, SYM_VARIABLE))
     {
       pat = d_state.getVariable(name);
       Sort type = pat.getSort();
-      if (!type.isDatatypeConstructor() ||
-          !type.getDatatypeConstructorDomainSorts().empty())
+      if (!type.isDatatypeConstructor()
+          || !type.getDatatypeConstructorDomainSorts().empty())
       {
-        d_lex.parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+        d_lex.parseError(
+            "Must apply constructors of arity greater than 0 to arguments in "
+            "pattern.");
       }
       // make nullary constructor application
       pat = d_state.getSolver()->mkTerm(cvc5::APPLY_CONSTRUCTOR, {pat});
