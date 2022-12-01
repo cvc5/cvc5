@@ -57,6 +57,7 @@ enum class ParseCtx : uint32_t
    *
    * ParseOp contains:
    * d_kind: set to MATCH
+   * d_type: set to the type of the head
    */
   MATCH_HEAD,
   MATCH_NEXT_CASE,
@@ -357,6 +358,7 @@ Term Smt2TermParser::parseTerm()
           Assert(!ret.isNull());
           // add the head
           tstack.back().second.push_back(ret);
+          tstack.back().first.d_type = ret.getSort();
           ret = Term();
           xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE;
           needsUpdateCtx = true;
@@ -383,8 +385,9 @@ Term Smt2TermParser::parseTerm()
             // push the scope
             d_state.pushScope();
             // parse the pattern, which also does the binding
+            Assert (!tstack.back().first.d_type.isNull());
             std::vector<Term> boundVars;
-            Term pattern = parseMatchCasePattern(boundVars);
+            Term pattern = parseMatchCasePattern(tstack.back().first.d_type, boundVars);
             Term vl;
             // either variable, non-nullary constructor, or nullary constructor
             // The former two cases, we construct a variable list vl.
@@ -1227,22 +1230,47 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   return op;
 }
 
-Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
+Term Smt2TermParser::parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars)
 {
   Term pat;
+  if (d_lex.eatTokenChoice(Token::SYMBOL, Token::LPAREN_TOK))
+  {
+    // a nullary constructor or variable, depending on if the symbol is declared
+    std::string name = d_lex.tokenStr();
+    if (d_state.isDeclared(name,SYM_VARIABLE))
+    {
+      pat = d_state.getVariable(name);
+      Sort type = pat.getSort();
+      if (!type.isDatatypeConstructor() ||
+          !type.getDatatypeConstructorDomainSorts().empty())
+      {
+        d_lex.parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+      }
+      // make nullary constructor application
+      pat = d_state.getSolver()->mkTerm(cvc5::APPLY_CONSTRUCTOR, {pat});
+    }
+    else
+    {
+      // it has the type of the head expr
+      pat = d_state.bindBoundVar(name, headSort);
+      boundVars.push_back(pat);
+    }
+    return pat;
+  }
+  // a non-nullary constructor
   /*
 
     (
       // case with non-nullary pattern
       LPAREN_TOK LPAREN_TOK term[f, f2] {
           args.clear();
-          PARSER_STATE->pushScope();
+          d_state.pushScope();
           // f should be a constructor
           type = f.getSort();
           Trace("parser-dt") << "Pattern head : " << f << " " << type <<
     std::endl; if (!type.isDatatypeConstructor())
           {
-            PARSER_STATE->parseError("Pattern must be application of a
+            d_state.parseError("Pattern must be application of a
     constructor or a variable.");
           }
           cvc5::Datatype dt =
@@ -1261,10 +1289,10 @@ Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
             if (args.size() >= argTypes.size())
             {
-              PARSER_STATE->parseError("Too many arguments for pattern.");
+              d_state.parseError("Too many arguments for pattern.");
             }
             //make of proper type
-            cvc5::Term arg = PARSER_STATE->bindBoundVar(name,
+            cvc5::Term arg = d_state.bindBoundVar(name,
     argTypes[args.size()]); args.push_back( arg );
           }
         )*
@@ -1278,19 +1306,19 @@ Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
           cvc5::Term mc = MK_TERM(cvc5::MATCH_BIND_CASE, bvla, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
-          PARSER_STATE->popScope();
+          d_state.popScope();
         }
         RPAREN_TOK
       // case with nullary or variable pattern
       | LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] {
-          if (PARSER_STATE->isDeclared(name,SYM_VARIABLE))
+          if (d_state.isDeclared(name,SYM_VARIABLE))
           {
-            f = PARSER_STATE->getVariable(name);
+            f = d_state.getVariable(name);
             type = f.getSort();
             if (!type.isDatatypeConstructor() ||
                 !type.getDatatypeConstructorDomainSorts().empty())
             {
-              PARSER_STATE->parseError("Must apply constructors of arity greater
+              d_state.parseError("Must apply constructors of arity greater
     than 0 to arguments in pattern.");
             }
             // make nullary constructor application
@@ -1299,7 +1327,7 @@ Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
           else
           {
             // it has the type of the head expr
-            f = PARSER_STATE->bindBoundVar(name, expr.getSort());
+            f = d_state.bindBoundVar(name, expr.getSort());
           }
         }
         term[f3, f2] {

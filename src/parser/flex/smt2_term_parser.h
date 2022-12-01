@@ -100,7 +100,7 @@ class Smt2TermParser
   /**
    * Parse match case pattern
    */
-  Term parseMatchCasePattern(std::vector<Term>& boundVars);
+  Term parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */
