@@ -174,10 +174,11 @@ Term Smt2TermParser::parseTerm()
           }
           break;
           case Token::SYMBOL:
+          case Token::QUOTED_SYMBOL:
           {
             // function identifier
             ParseOp op;
-            op.d_name = d_lex.tokenStr();
+            op.d_name = tokenStrToSymbol(tok);
             std::vector<Term> args;
             if (d_state.isClosure(op.d_name))
             {
@@ -227,8 +228,9 @@ Term Smt2TermParser::parseTerm()
       break;
       // ------------------- base cases
       case Token::SYMBOL:
+      case Token::QUOTED_SYMBOL:
       {
-        std::string name = d_lex.tokenStr();
+        std::string name = tokenStrToSymbol(tok);
         d_state.checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
         ret = d_state.getExpressionForName(name);
       }
@@ -672,9 +674,10 @@ Sort Smt2TermParser::parseSort()
           }
           break;
           case Token::SYMBOL:
+          case Token::QUOTED_SYMBOL:
           {
             // sort constructor identifier
-            std::string name = d_lex.tokenStr();
+            std::string name = tokenStrToSymbol(tok);
             // open a new stack frame
             std::vector<Sort> emptyArgs;
             sstack.emplace_back(name, emptyArgs);
@@ -707,8 +710,9 @@ Sort Smt2TermParser::parseSort()
       break;
       // ------------------- a simple (defined or builtin) sort
       case Token::SYMBOL:
+      case Token::QUOTED_SYMBOL:
       {
-        std::string name = d_lex.tokenStr();
+        std::string name = tokenStrToSymbol(tok);
         ret = d_state.getSort(name);
       }
       break;
@@ -766,25 +770,7 @@ std::vector<std::pair<std::string, Sort>> Smt2TermParser::parseSortedVarList()
 std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 {
   Token tok = d_lex.nextToken();
-  std::string id;
-  switch (tok)
-  {
-    case Token::SYMBOL:
-    {
-      id = d_lex.tokenStr();
-    }
-    break;
-    case Token::QUOTED_SYMBOL:
-    {
-      id = d_lex.tokenStr();
-      // strip off the quotes
-      id = id.substr(1, id.size() - 2);
-    }
-    break;
-    default:
-      d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 symbol");
-      break;
-  }
+  std::string id = tokenStrToSymbol(tok);
   // run the check
   if (!d_state.isAbstractValue(id))
   {
@@ -941,6 +927,26 @@ uint32_t Smt2TermParser::tokenStrToUnsigned()
   return result;
 }
 
+std::string Smt2TermParser::tokenStrToSymbol(Token tok)
+{
+  std::string id;
+  switch (tok)
+  {
+    case Token::SYMBOL:
+      id = d_lex.tokenStr();
+    break;
+    case Token::QUOTED_SYMBOL:
+      id = d_lex.tokenStr();
+      // strip off the quotes
+      id = id.substr(1, id.size() - 2);
+    break;
+    default:
+      d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 symbol");
+      break;
+  }
+  return id;
+}
+
 std::vector<uint32_t> Smt2TermParser::parseNumeralList()
 {
   std::vector<uint32_t> numerals;
@@ -1011,6 +1017,8 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     else
     {
       d_lex.reinsertToken(tok);
+      // we will parse the parentheses-enclosed construct list below
+      d_lex.reinsertToken(Token::LPAREN_TOK);
       dts.push_back(
           d_state.getSolver()->mkDatatypeDecl(dnames[i], params, isCo));
     }
@@ -1032,7 +1040,6 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
       d_lex.eatToken(Token::RPAREN_TOK);
       d_state.popScope();
     }
-    d_lex.eatToken(Token::RPAREN_TOK);
   }
   if (dts.size() != dnames.size())
   {
@@ -1211,7 +1218,10 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
           break;
       }
       break;
-    case Token::SYMBOL: op.d_name = d_lex.tokenStr(); break;
+    case Token::SYMBOL:
+    case Token::QUOTED_SYMBOL:
+      op.d_name = tokenStrToSymbol(tok); 
+      break;
     default:
       d_lex.unexpectedTokenError(
           tok, "Expected identifier while parsing qualified identifier");

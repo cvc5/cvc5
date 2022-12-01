@@ -45,7 +45,7 @@ void Lexer::warning(const std::string& msg)
   std::cerr << std::endl << msg << std::endl;
 }
 
-void Lexer::parseError(const std::string& msg)
+void Lexer::parseError(const std::string& msg, bool eofException)
 {
   if (d_inputName.length())
   {
@@ -53,6 +53,21 @@ void Lexer::parseError(const std::string& msg)
   }
   std::cerr << std::endl << msg << std::endl;
   exit(1);
+  
+  /*
+  
+  if(eofException) {
+    throw ParserEndOfFileException(message,
+                                   (const char*)d_lexer->rec->state->tokSource->fileName->chars,
+                                   d_lexer->getLine(d_lexer),
+                                   d_lexer->getCharPositionInLine(d_lexer));
+  } else {
+    throw ParserException(updatedMessage,
+                          (const char*)d_lexer->rec->state->tokSource->fileName->chars,
+                          d_lexer->getLine(d_lexer),
+                          d_lexer->getCharPositionInLine(d_lexer));
+  }
+  */
 }
 
 void Lexer::init_d_span()

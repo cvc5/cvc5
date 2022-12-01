@@ -67,7 +67,9 @@ class Smt2TermParser
    * Parse numeral list without parentheses
    */
   std::vector<uint32_t> parseNumeralList();
-  /** Parse datatype def */
+  /**
+   * Parse datatype def 
+   */
   std::vector<DatatypeDecl> parseDatatypeDef(
       bool isCo,
       const std::vector<std::string>& dnames,
@@ -83,6 +85,8 @@ class Smt2TermParser
   uint32_t tokenStrToUnsigned();
   /** Token to string literal */
   std::string tokenStrToStrLiteral();
+  /** Token to string literal */
+  std::string tokenStrToSymbol(Token tok);
   /** unescape string */
   void unescapeString(std::string& s);
   /**

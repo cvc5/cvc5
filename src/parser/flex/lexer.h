@@ -87,7 +87,7 @@ class Lexer : public yyFlexLexer
   /** Used to report warnings, with the current source location attached. */
   void warning(const std::string&);
   /** Used to report errors, with the current source location attached. */
-  void parseError(const std::string&);
+  void parseError(const std::string&, bool eofException = false);
   // Error. Got `t`, expected `info`.
   void unexpectedTokenError(Token t, const std::string& info);
 
