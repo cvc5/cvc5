@@ -212,6 +212,8 @@ Term Smt2TermParser::parseTerm()
           d_lex.unexpectedTokenError(
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
+        // should only be here if we are expecting arguments
+        Assert (xstack.back()==ParseCtx::NEXT_ARG || xstack.back()==ParseCtx::CLOSURE_NEXT_ARG);
         // Construct the application term specified by tstack.back()
         ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
@@ -447,7 +449,9 @@ Term Smt2TermParser::parseTerm()
           if (d_lex.eatTokenChoice(Token::KEYWORD, Token::RPAREN_TOK))
           {
             std::string key = d_lex.tokenStr();
-            // based on the keyword, determine the context
+            // Based on the keyword, determine the context.
+            // Set needsUpdateCtx to true if we are finished parsing the
+            // current attribute.
             Kind attrKind = NULL_TERM;
             Term attrValue;
             if (key == ":inst-add-to-pool")
@@ -466,6 +470,7 @@ Term Smt2TermParser::parseTerm()
               // expression is the body of the term annotation
               std::string sym = parseSymbol(CHECK_UNDECLARED, SYM_VARIABLE);
               d_state.notifyNamedExpression(tstack.back().first.d_expr, sym);
+              needsUpdateCtx = true;
             }
             else if (key == ":no-pattern")
             {
@@ -507,7 +512,6 @@ Term Smt2TermParser::parseTerm()
                   // finished with this attribute, go to the next one if it
                   // exists.
                   d_lex.reinsertToken(tok);
-                  needsUpdateCtx = true;
                   break;
                 default:
                   // ignore the symbolic expression that follows
@@ -531,10 +535,11 @@ Term Smt2TermParser::parseTerm()
             else if (!attrValue.isNull())
             {
               // if we constructed a term as the attribute value, make into
-              // an INST_ATTRIBUTE.
+              // an INST_ATTRIBUTE and add it to args
               Term keyword = slv->mkString(key);
               Term iattr = slv->mkTerm(INST_ATTRIBUTE, {keyword, attrValue});
               tstack.back().second.push_back(iattr);
+              needsUpdateCtx = true;
             }
           }
           // if we instead saw a RPAREN_TOK, we are finished

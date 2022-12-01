@@ -147,7 +147,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       {
         d_lex.parseError("Empty list of datatypes");
       }
-      bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
+      bool isCo = (tok == Token::DECLARE_CODATATYPES_TOK);
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
