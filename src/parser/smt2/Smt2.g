@@ -1620,10 +1620,9 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   cvc5::Term patexpr;
   std::vector<cvc5::Term> patexprs;
   cvc5::Term e2;
-  bool hasValue = false;
   cvc5::Kind k;
 }
-  : KEYWORD ( simpleSymbolicExprNoKeyword[s] { hasValue = true; } )?
+  : KEYWORD ( simpleSymbolicExprNoKeyword[s] )?
   {
     PARSER_STATE->attributeNotSupported(AntlrInput::tokenText($KEYWORD));
   }

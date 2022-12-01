@@ -38,14 +38,6 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 "assert"   return cvc5::parser::ASSERT_TOK;
 "assume"   return cvc5::parser::ASSUME_TOK;
 "as"   return cvc5::parser::AS_TOK;
-":inst-add-to-pool"   return cvc5::parser::ATTRIBUTE_INST_ADD_TO_POOL_TOK;
-":quant-inst-max-level"  return cvc5::parser::ATTRIBUTE_INST_LEVEL;
-":named"   return cvc5::parser::ATTRIBUTE_NAMED_TOK;
-":no-pattern"   return cvc5::parser::ATTRIBUTE_NO_PATTERN_TOK;
-":pattern"   return cvc5::parser::ATTRIBUTE_PATTERN_TOK;
-":pool"   return cvc5::parser::ATTRIBUTE_POOL_TOK;
-":qid"   return cvc5::parser::ATTRIBUTE_QUANTIFIER_ID_TOK;
-":skolem-add-to-pool"   return cvc5::parser::ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK;
 "!"   return cvc5::parser::ATTRIBUTE_TOK;
 "block-model"   return cvc5::parser::BLOCK_MODEL_TOK;
 "block-model-values"   return cvc5::parser::BLOCK_MODEL_VALUES_TOK;

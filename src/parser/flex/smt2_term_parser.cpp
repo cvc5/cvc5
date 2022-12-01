@@ -56,10 +56,10 @@ enum class ParseCtx : uint32_t
    * Term annotations
    *
    * TERM_ANNOTATE_BODY: in context (! <term>
-   * TERM_ANNOTATE_NEXT_LIST_ARG: in context (! <term> <keyword> (<term>* <term>
+   * TERM_ANNOTATE_NEXT_ATTR: in context (! <term> <attr>* <keyword> <term>
    */
   TERM_ANNOTATE_BODY,
-  TERM_ANNOTATE_NEXT_LIST_ARG
+  TERM_ANNOTATE_NEXT_ATTR
 };
 
 Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
@@ -148,6 +148,7 @@ Term Smt2TermParser::parseTerm()
           case Token::MATCH_TOK:
           {
             xstack.emplace_back(ParseCtx::MATCH_HEAD);
+            // will be constructing a match term
             ParseOp op;
             op.d_kind = MATCH;
             tstack.emplace_back(op, std::vector<Term>());
@@ -172,7 +173,7 @@ Term Smt2TermParser::parseTerm()
               d_state.pushScope();
               std::vector<std::pair<std::string, Sort>> sortedVarNames =
                   parseSortedVarList();
-              std::vector<cvc5::Term> vs =
+              std::vector<Term> vs =
                   d_state.bindBoundVars(sortedVarNames);
               Term vl = slv->mkTerm(VARIABLE_LIST, vs);
               args.push_back(vl);
@@ -289,7 +290,7 @@ Term Smt2TermParser::parseTerm()
           if (!ret.isNull())
           {
             Assert (!letBinders.empty());
-            std::vector<std::pair<std::string, cvc5::Term>>& bs = letBinders.back();
+            std::vector<std::pair<std::string, Term>>& bs = letBinders.back();
             // add binding from the symbol to ret
             bs.emplace_back(tstack.back().first.d_name, ret);
             ret = Term();
@@ -310,8 +311,8 @@ Term Smt2TermParser::parseTerm()
             d_state.pushScope();
             // implement the bindings
             Assert (!letBinders.empty());
-            const std::vector<std::pair<std::string, cvc5::Term>>& bs = letBinders.back();
-            for (const std::pair<std::string, cvc5::Term>& b : bs)
+            const std::vector<std::pair<std::string, Term>>& bs = letBinders.back();
+            for (const std::pair<std::string, Term>& b : bs)
             {
               {
                 d_state.defineVar(b.first, b.second);
@@ -355,12 +356,140 @@ Term Smt2TermParser::parseTerm()
         // ------------------------- annotated terms
         case ParseCtx::TERM_ANNOTATE_BODY:
         {
-          // add it to the list of arguments and clear
-          tstack.back().second.push_back(ret);
+          // save ret as the expression and clear
+          tstack.back().first.d_expr = ret;
           ret = Term();
-          // parse the keyword
-          std::string key = parseKeyword();
-          // TODO: based on the keyword, determine the context
+          xstack[xstack.size() - 1] = ParseCtx::TERM_ANNOTATE_NEXT_ATTR;
+          needsUpdateCtx = true;
+        }
+        break;
+        case ParseCtx::TERM_ANNOTATE_NEXT_ATTR:
+        {
+          if (!ret.isNull())
+          {
+            // if we got here, must have set attrKind below
+            tstack.back().second.push_back(ret);
+            ret = Term();
+          }
+          bool finished = true;
+          // see if there is another keyword
+          if (d_lex.eatTokenChoice(Token::KEYWORD, Token::RPAREN_TOK))
+          {
+            finished = false;
+            std::string key = d_lex.tokenStr();
+            // based on the keyword, determine the context
+            Kind attrKind = UNDEFINED_KIND;
+            Term attrValue;
+            if (key==":inst-add-to-pool")
+            {
+              attrKind = INST_ADD_TO_POOL;
+            }
+            else if (key==":quant-inst-max-level")
+            {
+              // a numeral
+              d_lex.eatToken(Token::INTEGER_LITERAL);
+              attrValue = slv->mkInteger(d_lex.tokenStr());
+            }
+            else if (key==":named")
+            {
+              Assert (!tstack.back().first.d_expr.isNull());
+              // expression is the body of the term annotation
+              std::string sym = parseSymbol(CHECK_UNDECLARED,SYM_VARIABLE);
+              d_state.notifyNamedExpression(tstack.back().first.d_expr, sym);
+            }
+            else if (key==":no-pattern")
+            {
+              // TODO: a single term
+            }
+            else if (key==":pattern")
+            {
+              attrKind = INST_PATTERN;
+            }
+            else if (key==":pool")
+            {
+              attrKind = INST_POOL;
+            }
+            else if (key==":qid")
+            {
+              std::string sym = parseSymbol(CHECK_UNDECLARED,SYM_VARIABLE);
+              // must create a variable whose name is the name of the quantified
+              // formula, not a string.
+              attrValue = slv->mkConst(slv->getBooleanSort(), sym);
+            }
+            else if (key==":skolem-add-to-pool")
+            {
+              attrKind = SKOLEM_ADD_TO_POOL;
+            }
+            else
+            {
+              // warn that the attribute is not supported
+              d_state.attributeNotSupported(d_lex.tokenStr());
+              tok = d_lex.nextToken();
+              // keyword, rparen, else parse as generic SEXPR
+              switch(tok)
+              {
+                case Token::KEYWORD:
+                  // finished with this attribute, go to the next one
+                  d_lex.reinsertToken(tok);
+                  needsUpdateCtx = true;
+                  break;
+                case Token::RPAREN_TOK:
+                  // finished with the term annotation
+                  finished = true;
+                  break;
+                default:
+                  // ignore the symbolic expression that follows
+                  d_lex.reinsertToken(tok);
+                  parseSymbolicExpr();
+                  needsUpdateCtx = true;
+                  break;
+              }
+            }
+            if (attrKind != UNDEFINED_KIND)
+            {
+              // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
+              d_lex.eatToken(Token::LPAREN_TOK);
+              // will parse list as arguments to the kind
+              ParseOp op;
+              op.d_kind = attrKind;
+              tstack.emplace_back(op, std::vector<Term>());
+            }
+            else if (!attrValue.isNull())
+            {
+              // if we constructed a term as the attribute value, make into
+              // an INST_ATTRIBUTE.
+              Term keyword = slv->mkString(key);
+              Term iattr = slv->mkTerm(INST_ATTRIBUTE, {keyword, attrValue});
+              tstack.back().second.push_back(iattr);
+            }
+          }
+          if (finished)
+          {
+            Assert (!tstack.back().first.d_expr.isNull());
+            // finished parsing attributes, we will return the original term
+            ret = tstack.back().first.d_expr;
+            Term ipl;
+            // if args non-empty, construct an instantiation pattern list
+            if (!tstack.back().second.empty())
+            {
+              ipl = slv->mkTerm(INST_PATTERN_LIST, tstack.back().second);
+            }
+            xstack.pop_back();
+            tstack.pop_back();
+            // If we constructed an instantiation pattern list, it should have
+            // been a quantified formula body. Check the next scope up.
+            if (!ipl.isNull())
+            {
+              if (tstack.empty() || xstack.back()!=ParseCtx::CLOSURE_NEXT_ARG || tstack.back().second.size()!=1)
+              {
+                d_lex.parseError("Patterns and quantifier attributes should be applied to quantified formula bodies only.");
+              }
+              // push ret and the instantiation pattern list
+              tstack.back().second.push_back(ret);
+              tstack.back().second.push_back(ipl);
+              ret = Term();
+            }
+          }
         }
         break;
         default: break;
