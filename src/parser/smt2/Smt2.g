@@ -1414,7 +1414,8 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  * (2) A string name.
  * (3) An expression expr.
  * (4) A type t.
- * (5) A list of indices.
+ * (5) An operator
+ * (6) A list of indices.
  *
  * A qualified identifier is the generic case of function heads.
  * With respect to the standard definition (Section 3.6 of SMT-LIB version 2.6)
@@ -1432,7 +1433,7 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
  * - For floating-point conversion to_fp, tuple selectors (_ tuple_select n)
- * and updaters (_ tuple_update n), we return (5). cvc5::Kind is set to
+ * and updaters (_ tuple_update n), we return (6). cvc5::Kind is set to
  * UNDEFINED_KIND. We do this since there is no AST expression representing
  * the generic version of these operators, and we do not have
  * enough type information at this point to know the proper kind to use.
