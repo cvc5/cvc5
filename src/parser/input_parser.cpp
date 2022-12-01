@@ -29,7 +29,7 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
 {
   d_useFlex = solver->getOptionInfo("flex-parser").boolValue();
   // flex not supported with TPTP yet
-  if (d_solver->getOption("input-language")=="LANG_TPTP")
+  if (d_solver->getOption("input-language") == "LANG_TPTP")
   {
     d_useFlex = false;
   }

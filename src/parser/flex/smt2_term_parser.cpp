@@ -932,14 +932,12 @@ std::string Smt2TermParser::tokenStrToSymbol(Token tok)
   std::string id;
   switch (tok)
   {
-    case Token::SYMBOL:
-      id = d_lex.tokenStr();
-    break;
+    case Token::SYMBOL: id = d_lex.tokenStr(); break;
     case Token::QUOTED_SYMBOL:
       id = d_lex.tokenStr();
       // strip off the quotes
       id = id.substr(1, id.size() - 2);
-    break;
+      break;
     default:
       d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 symbol");
       break;
@@ -1219,9 +1217,7 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       }
       break;
     case Token::SYMBOL:
-    case Token::QUOTED_SYMBOL:
-      op.d_name = tokenStrToSymbol(tok); 
-      break;
+    case Token::QUOTED_SYMBOL: op.d_name = tokenStrToSymbol(tok); break;
     default:
       d_lex.unexpectedTokenError(
           tok, "Expected identifier while parsing qualified identifier");

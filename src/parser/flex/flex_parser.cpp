@@ -54,16 +54,16 @@ void FlexParser::initializeInput(const std::string& name)
   d_done = false;
   d_lex->initialize(d_flexInput->getStream(), name);
   // lex only?
-  if (d_solver->getOption("flex-lex-only")=="true")
+  if (d_solver->getOption("flex-lex-only") == "true")
   {
     std::cout << "Get tokens" << std::endl;
     Token t;
     while ((t = d_lex->nextToken()) != Token::EOF_TOK)
     {
-      std::cout  << "Token: " << t << " / '" << d_lex->tokenStr() << "'"
-                        << std::endl;
+      std::cout << "Token: " << t << " / '" << d_lex->tokenStr() << "'"
+                << std::endl;
     }
-    std::cout  << "Finished" << std::endl;
+    std::cout << "Finished" << std::endl;
     exit(1);
   }
 }
@@ -74,9 +74,7 @@ void FlexParser::parseError(const std::string& msg) { d_lex->parseError(msg); }
 
 void FlexParser::unexpectedEOF(const std::string& msg) {}
 
-void FlexParser::preemptCommand(Command* cmd) {
-  d_commandQueue.push_back(cmd);
-}
+void FlexParser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
 
 Command* FlexParser::nextCommand()
 {

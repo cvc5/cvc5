@@ -53,17 +53,19 @@ void Lexer::parseError(const std::string& msg, bool eofException)
   }
   std::cerr << std::endl << msg << std::endl;
   exit(1);
-  
+
   /*
-  
+
   if(eofException) {
     throw ParserEndOfFileException(message,
-                                   (const char*)d_lexer->rec->state->tokSource->fileName->chars,
+                                   (const
+  char*)d_lexer->rec->state->tokSource->fileName->chars,
                                    d_lexer->getLine(d_lexer),
                                    d_lexer->getCharPositionInLine(d_lexer));
   } else {
     throw ParserException(updatedMessage,
-                          (const char*)d_lexer->rec->state->tokSource->fileName->chars,
+                          (const
+  char*)d_lexer->rec->state->tokSource->fileName->chars,
                           d_lexer->getLine(d_lexer),
                           d_lexer->getCharPositionInLine(d_lexer));
   }
