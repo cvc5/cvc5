@@ -407,14 +407,16 @@ Term Smt2TermParser::parseTerm()
             {
               op.d_kind = MATCH_CASE;
             }
+            args.push_back(pattern);
             // we now look for the body of the case + closing right parenthesis
             xstack.emplace_back(ParseCtx::NEXT_ARG);
             tstack.emplace_back(op, args);
           }
           else
           {
-            // finished with match, now just wait for the closing right
-            // parenthesis
+            // Finished with match, now just wait for the closing right
+            // parenthesis. Clear the head sort.
+            tstack.back().first.d_type = Sort();
             xstack[xstack.size() - 1] = ParseCtx::NEXT_ARG;
           }
         }

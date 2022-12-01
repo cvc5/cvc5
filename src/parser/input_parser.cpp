@@ -20,6 +20,7 @@
 #include "parser/flex/smt2_lexer.h"
 #include "parser/input.h"
 #include "parser/parser_builder.h"
+#include "theory/logic_info.h"
 
 namespace cvc5 {
 namespace parser {
@@ -33,7 +34,17 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
   {
     d_useFlex = false;
   }
-  if (!d_useFlex)
+  if (d_useFlex)
+  {
+    // process the forced logic
+    auto info = d_solver->getOptionInfo("force-logic");
+    if (info.setByUser)
+    {
+      internal::LogicInfo tmp(info.stringValue());
+      d_sm->forceLogic(tmp.getLogicString());
+    }
+  }
+  else
   {
     // Allocate an ANTLR parser
     ParserBuilder parserBuilder(solver, sm, useOptions);
