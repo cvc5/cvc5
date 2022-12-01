@@ -215,18 +215,11 @@ Term Smt2TermParser::parseTerm()
         ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
         // process the scope change if a closure
-        switch (xstack.back())
+        if (xstack.back()==ParseCtx::CLOSURE_NEXT_ARG)
         {
-          case ParseCtx::CLOSURE_NEXT_ARG:
-            // if we were a closure, pop a scope
-            d_state.popScope();
-            break;
-          default:
-            // do nothing
-            break;
+          // if we were a closure, pop a scope
+          d_state.popScope();
         }
-        // - map the attribute if ATTRIBUTE_TOK
-        // - process the scope change if closure
         // pop the stack
         tstack.pop_back();
         xstack.pop_back();
@@ -358,7 +351,12 @@ Term Smt2TermParser::parseTerm()
           Assert(!ret.isNull());
           // add the head
           tstack.back().second.push_back(ret);
-          tstack.back().first.d_type = ret.getSort();
+          Sort retSort = ret.getSort();
+          // eagerly check if datatype
+          if( !retSort.isDatatype() ){
+            d_lex.parseError("Cannot match on non-datatype term.");
+          }
+          tstack.back().first.d_type = retSort;
           ret = Term();
           xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE;
           needsUpdateCtx = true;
@@ -955,6 +953,7 @@ std::vector<uint32_t> Smt2TermParser::parseNumeralList()
   while (tok == Token::INTEGER_LITERAL)
   {
     numerals.push_back(tokenStrToUnsigned());
+    tok = d_lex.nextToken();
   }
   d_lex.reinsertToken(tok);
   return numerals;
@@ -1234,14 +1233,13 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
 Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
                                            std::vector<Term>& boundVars)
 {
-  Term pat;
   if (d_lex.eatTokenChoice(Token::SYMBOL, Token::LPAREN_TOK))
   {
     // a nullary constructor or variable, depending on if the symbol is declared
     std::string name = d_lex.tokenStr();
     if (d_state.isDeclared(name, SYM_VARIABLE))
     {
-      pat = d_state.getVariable(name);
+      Term pat = d_state.getVariable(name);
       Sort type = pat.getSort();
       if (!type.isDatatypeConstructor()
           || !type.getDatatypeConstructorDomainSorts().empty())
@@ -1251,106 +1249,43 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
             "pattern.");
       }
       // make nullary constructor application
-      pat = d_state.getSolver()->mkTerm(cvc5::APPLY_CONSTRUCTOR, {pat});
+      return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR, {pat});
     }
-    else
-    {
-      // it has the type of the head expr
-      pat = d_state.bindBoundVar(name, headSort);
-      boundVars.push_back(pat);
-    }
+    // it has the type of the head expr
+    Term pat = d_state.bindBoundVar(name, headSort);
+    boundVars.push_back(pat);
     return pat;
   }
   // a non-nullary constructor
-  /*
-
-    (
-      // case with non-nullary pattern
-      LPAREN_TOK LPAREN_TOK term[f, f2] {
-          args.clear();
-          d_state.pushScope();
-          // f should be a constructor
-          type = f.getSort();
-          Trace("parser-dt") << "Pattern head : " << f << " " << type <<
-    std::endl; if (!type.isDatatypeConstructor())
-          {
-            d_state.parseError("Pattern must be application of a
-    constructor or a variable.");
-          }
-          cvc5::Datatype dt =
-              type.getDatatypeConstructorCodomainSort().getDatatype();
-          if (dt.isParametric())
-          {
-            // lookup constructor by name
-            cvc5::DatatypeConstructor dc = dt.getConstructor(f.toString());
-            cvc5::Term scons = dc.getInstantiatedTerm(expr.getSort());
-            // take the type of the specialized constructor instead
-            type = scons.getSort();
-          }
-          argTypes = type.getDatatypeConstructorDomainSorts();
-        }
-        // arguments of the pattern
-        ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
-            if (args.size() >= argTypes.size())
-            {
-              d_state.parseError("Too many arguments for pattern.");
-            }
-            //make of proper type
-            cvc5::Term arg = d_state.bindBoundVar(name,
-    argTypes[args.size()]); args.push_back( arg );
-          }
-        )*
-        RPAREN_TOK term[f3, f2] {
-          // make the match case
-          std::vector<cvc5::Term> cargs;
-          cargs.push_back(f);
-          cargs.insert(cargs.end(),args.begin(),args.end());
-          cvc5::Term c = MK_TERM(cvc5::APPLY_CONSTRUCTOR,cargs);
-          cvc5::Term bvla = MK_TERM(cvc5::VARIABLE_LIST,args);
-          cvc5::Term mc = MK_TERM(cvc5::MATCH_BIND_CASE, bvla, c, f3);
-          matchcases.push_back(mc);
-          // now, pop the scope
-          d_state.popScope();
-        }
-        RPAREN_TOK
-      // case with nullary or variable pattern
-      | LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] {
-          if (d_state.isDeclared(name,SYM_VARIABLE))
-          {
-            f = d_state.getVariable(name);
-            type = f.getSort();
-            if (!type.isDatatypeConstructor() ||
-                !type.getDatatypeConstructorDomainSorts().empty())
-            {
-              d_state.parseError("Must apply constructors of arity greater
-    than 0 to arguments in pattern.");
-            }
-            // make nullary constructor application
-            f = MK_TERM(cvc5::APPLY_CONSTRUCTOR, f);
-          }
-          else
-          {
-            // it has the type of the head expr
-            f = d_state.bindBoundVar(name, expr.getSort());
-          }
-        }
-        term[f3, f2] {
-          cvc5::Term mc;
-          if (f.getKind() == cvc5::VARIABLE)
-          {
-            cvc5::Term bvlf = MK_TERM(cvc5::VARIABLE_LIST, f);
-            mc = MK_TERM(cvc5::MATCH_BIND_CASE, bvlf, f, f3);
-          }
-          else
-          {
-            mc = MK_TERM(cvc5::MATCH_CASE, f, f3);
-          }
-          matchcases.push_back(mc);
-        }
-        RPAREN_TOK
-    )+
-    */
-  return pat;
+  // We parse a constructor name
+  const Datatype& dt = headSort.getDatatype();
+  std::string cname = parseSymbol(CHECK_DECLARED, SYM_VARIABLE);
+  const DatatypeConstructor& dc = dt.getConstructor(cname);
+  // get the constructor, which could be instantiated based on the head type
+  // if we are a parametric datatype
+  Term f = dt.isParametric() ? dc.getInstantiatedTerm(headSort) : dc.getTerm();
+  // f should be a constructor
+  Sort type = f.getSort();
+  Assert (type.isDatatypeConstructor());
+  Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl; 
+  std::vector<Sort> argTypes = type.getDatatypeConstructorDomainSorts();
+  // now, parse symbols that are interpreted as bindings for the argument
+  // types
+  while (d_lex.eatTokenChoice(Token::SYMBOL, Token::RPAREN_TOK))
+  {
+    if (boundVars.size() >= argTypes.size())
+    {
+      d_state.parseError("Too many arguments for pattern.");
+    }
+    //make of proper type
+    Term arg = d_state.bindBoundVar(d_lex.tokenStr(), argTypes[boundVars.size()]);
+    boundVars.push_back( arg );
+  }
+  std::vector<Term> cargs;
+  cargs.push_back(f);
+  cargs.insert(cargs.end(),boundVars.begin(),boundVars.end());
+  // make the pattern term
+  return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR,cargs);
 }
 
 }  // namespace parser
