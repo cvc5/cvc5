@@ -986,7 +986,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
   }
   // while we get another datatype declaration, or close the list
   Token tok = d_lex.nextToken();
-  while (tok==Token::LPAREN_TOK)
+  while (tok == Token::LPAREN_TOK)
   {
     std::vector<Sort> params;
     size_t i = dts.size();
