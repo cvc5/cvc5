@@ -63,8 +63,8 @@ class Smt2TermParser
                               const std::string& fun);
   /** Parse integer numeral */
   uint32_t parseIntegerNumeral();
-  /** 
-   * Parse numeral list without parentheses 
+  /**
+   * Parse numeral list without parentheses
    */
   std::vector<uint32_t> parseNumeralList();
   /** Parse datatype def */

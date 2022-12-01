@@ -215,7 +215,7 @@ Term Smt2TermParser::parseTerm()
         ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
         // process the scope change if a closure
-        if (xstack.back()==ParseCtx::CLOSURE_NEXT_ARG)
+        if (xstack.back() == ParseCtx::CLOSURE_NEXT_ARG)
         {
           // if we were a closure, pop a scope
           d_state.popScope();
@@ -353,7 +353,8 @@ Term Smt2TermParser::parseTerm()
           tstack.back().second.push_back(ret);
           Sort retSort = ret.getSort();
           // eagerly check if datatype
-          if( !retSort.isDatatype() ){
+          if (!retSort.isDatatype())
+          {
             d_lex.parseError("Cannot match on non-datatype term.");
           }
           tstack.back().first.d_type = retSort;
@@ -613,7 +614,9 @@ Term Smt2TermParser::parseSymbolicExpr()
     switch (tok)
     {
       // ------------------- open paren
-      case Token::LPAREN_TOK: { sstack.emplace_back(std::vector<Term>());
+      case Token::LPAREN_TOK:
+      {
+        sstack.emplace_back(std::vector<Term>());
       }
       break;
       // ------------------- close paren
@@ -776,7 +779,9 @@ std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
   std::string id;
   switch (tok)
   {
-    case Token::SYMBOL: { id = d_lex.tokenStr();
+    case Token::SYMBOL:
+    {
+      id = d_lex.tokenStr();
     }
     break;
     case Token::QUOTED_SYMBOL:
@@ -1266,8 +1271,8 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
   Term f = dt.isParametric() ? dc.getInstantiatedTerm(headSort) : dc.getTerm();
   // f should be a constructor
   Sort type = f.getSort();
-  Assert (type.isDatatypeConstructor());
-  Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl; 
+  Assert(type.isDatatypeConstructor());
+  Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
   std::vector<Sort> argTypes = type.getDatatypeConstructorDomainSorts();
   // now, parse symbols that are interpreted as bindings for the argument
   // types
@@ -1277,15 +1282,16 @@ Term Smt2TermParser::parseMatchCasePattern(Sort headSort,
     {
       d_state.parseError("Too many arguments for pattern.");
     }
-    //make of proper type
-    Term arg = d_state.bindBoundVar(d_lex.tokenStr(), argTypes[boundVars.size()]);
-    boundVars.push_back( arg );
+    // make of proper type
+    Term arg =
+        d_state.bindBoundVar(d_lex.tokenStr(), argTypes[boundVars.size()]);
+    boundVars.push_back(arg);
   }
   std::vector<Term> cargs;
   cargs.push_back(f);
-  cargs.insert(cargs.end(),boundVars.begin(),boundVars.end());
+  cargs.insert(cargs.end(), boundVars.begin(), boundVars.end());
   // make the pattern term
-  return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR,cargs);
+  return d_state.getSolver()->mkTerm(APPLY_CONSTRUCTOR, cargs);
 }
 
 }  // namespace parser
