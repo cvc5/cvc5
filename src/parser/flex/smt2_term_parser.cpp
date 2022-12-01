@@ -487,7 +487,8 @@ Term Smt2TermParser::parseTerm()
                     "Patterns and quantifier attributes should be applied to "
                     "quantified formula bodies only.");
               }
-              // push ret and the instantiation pattern list
+              // Push ret and the instantiation pattern list and clear. We
+              // wait for the closing parenthesis, which should follow.
               tstack.back().second.push_back(ret);
               tstack.back().second.push_back(ipl);
               ret = Term();
