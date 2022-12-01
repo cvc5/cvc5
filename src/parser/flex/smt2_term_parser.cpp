@@ -388,38 +388,28 @@ Term Smt2TermParser::parseTerm()
             std::vector<Term> boundVars;
             Term pattern =
                 parseMatchCasePattern(tstack.back().first.d_type, boundVars);
-            Term vl;
-            // either variable, non-nullary constructor, or nullary constructor
-            // The former two cases, we construct a variable list vl.
-            if (pattern.getKind() == VARIABLE)
-            {
-              vl = slv->mkTerm(VARIABLE_LIST, {pattern});
-            }
-            else
-            {
-              Assert(pattern.getKind() == APPLY_CONSTRUCTOR);
-              if (pattern.getNumChildren() > 0)
-              {
-                // TODO
-              }
-            }
+            // If we bound variables when parsing the pattern, we will construct
+            // a match bind case
             ParseOp op;
             std::vector<Term> args;
-            if (boundVars.empty())
+            if (!boundVars.empty())
+            {
+              op.d_kind = MATCH_BIND_CASE;
+              Term vl = slv->mkTerm(VARIABLE_LIST, boundVars);
+              args.push_back(slv->mkTerm(VARIABLE_LIST, boundVars));
+            }
+            else
             {
               op.d_kind = MATCH_CASE;
             }
-            else
-            {
-              op.d_kind = MATCH_BIND_CASE;
-              args.push_back(slv->mkTerm(VARIABLE_LIST, boundVars));
-            }
+            // we now look for the body of the case + closing right parenthesis
             xstack.emplace_back(ParseCtx::NEXT_ARG);
             tstack.emplace_back(op, args);
           }
           else
           {
-            // finished with match, now just wait for the right parenthesis
+            // finished with match, now just wait for the closing right
+            // parenthesis
             xstack[xstack.size() - 1] = ParseCtx::NEXT_ARG;
           }
         }
