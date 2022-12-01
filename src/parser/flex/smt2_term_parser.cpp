@@ -28,13 +28,13 @@ enum class ParseCtx : uint32_t
 {
   /**
    * NEXT_ARG: in context (<op> <term>* <term>
-   * 
+   *
    * Arguments contain the accumulated list of arguments
    */
   NEXT_ARG,
   /**
    * CLOSURE_NEXT_ARG: in context (<closure> <variable_list> <term>* <term>
-   * 
+   *
    * Arguments contain the variable list and the accumulated list of arguments
    */
   CLOSURE_NEXT_ARG,
@@ -43,7 +43,7 @@ enum class ParseCtx : uint32_t
    *
    * LET_NEXT_BIND: in context (let (<binding>* (<symbol> <term>
    * LET_BODY: in context (let (<binding>*) <term>
-   * 
+   *
    * ParseOp contains:
    * d_name: the name of last bound variable
    */
@@ -54,7 +54,7 @@ enum class ParseCtx : uint32_t
    *
    * MATCH_HEAD: in context (match <term>
    * MATCH_NEXT_CASE: in context (match <term> (<case>* (<pattern> <term>
-   * 
+   *
    * ParseOp contains:
    * d_kind: set to MATCH
    */
@@ -66,7 +66,7 @@ enum class ParseCtx : uint32_t
    * TERM_ANNOTATE_BODY: in context (! <term>
    * TERM_ANNOTATE_NEXT_ATTR: in context (! <term> <attr>* <keyword> <term_spec>
    * where notice that <term_spec> may be a term or a list of terms.
-   * 
+   *
    * ParseOp contains:
    * d_expr: the body of the term annotation
    * d_kind: the kind to apply to the current <term_spec> (if any).
@@ -334,7 +334,7 @@ Term Smt2TermParser::parseTerm()
             for (const std::pair<std::string, Term>& b : bs)
             {
               d_state.defineVar(b.first, b.second);
-              names.insert(b.first);  
+              names.insert(b.first);
             }
             // done with the binders
             letBinders.pop_back();
@@ -388,14 +388,14 @@ Term Smt2TermParser::parseTerm()
             Term vl;
             // either variable, non-nullary constructor, or nullary constructor
             // The former two cases, we construct a variable list vl.
-            if (pattern.getKind()==VARIABLE)
+            if (pattern.getKind() == VARIABLE)
             {
               vl = slv->mkTerm(VARIABLE_LIST, {pattern});
             }
             else
             {
-              Assert (pattern.getKind()==APPLY_CONSTRUCTOR);
-              if (pattern.getNumChildren()>0)
+              Assert(pattern.getKind() == APPLY_CONSTRUCTOR);
+              if (pattern.getNumChildren() > 0)
               {
                 // TODO
               }
@@ -439,7 +439,7 @@ Term Smt2TermParser::parseTerm()
             // if we got here, we either:
             // (1) parsed a single term (the current ParseOp::d_kind was set)
             // (2) a list of terms in a nested context.
-            if (tstack.back().first.d_kind!=UNDEFINED_KIND)
+            if (tstack.back().first.d_kind != UNDEFINED_KIND)
             {
               // if (1), apply d_kind to the argument and reset d_kind
               ret = slv->mkTerm(tstack.back().first.d_kind, {ret});
@@ -1227,7 +1227,6 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   return op;
 }
 
-
 Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
 {
   Term pat;
@@ -1240,10 +1239,11 @@ Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
           PARSER_STATE->pushScope();
           // f should be a constructor
           type = f.getSort();
-          Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
-          if (!type.isDatatypeConstructor())
+          Trace("parser-dt") << "Pattern head : " << f << " " << type <<
+    std::endl; if (!type.isDatatypeConstructor())
           {
-            PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
+            PARSER_STATE->parseError("Pattern must be application of a
+    constructor or a variable.");
           }
           cvc5::Datatype dt =
               type.getDatatypeConstructorCodomainSort().getDatatype();
@@ -1264,8 +1264,8 @@ Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
               PARSER_STATE->parseError("Too many arguments for pattern.");
             }
             //make of proper type
-            cvc5::Term arg = PARSER_STATE->bindBoundVar(name, argTypes[args.size()]);
-            args.push_back( arg );
+            cvc5::Term arg = PARSER_STATE->bindBoundVar(name,
+    argTypes[args.size()]); args.push_back( arg );
           }
         )*
         RPAREN_TOK term[f3, f2] {
@@ -1290,7 +1290,8 @@ Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
             if (!type.isDatatypeConstructor() ||
                 !type.getDatatypeConstructorDomainSorts().empty())
             {
-              PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+              PARSER_STATE->parseError("Must apply constructors of arity greater
+    than 0 to arguments in pattern.");
             }
             // make nullary constructor application
             f = MK_TERM(cvc5::APPLY_CONSTRUCTOR, f);
