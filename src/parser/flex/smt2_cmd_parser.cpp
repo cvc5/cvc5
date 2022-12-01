@@ -31,8 +31,12 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
 
 std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
 {
+  // if we are at the end of file, return the null command
+  if (d_lex.eatTokenChoice(Token::EOF_TOK, LPAREN_TOK))
+  {
+    return nullptr;
+  }
   std::unique_ptr<Command> cmd;
-  d_lex.eatToken(Token::LPAREN_TOK);
   Token tok = d_lex.nextToken();
   switch (tok)
   {
@@ -681,10 +685,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
     }
     break;
-    case Token::EOF_TOK:
-      // return null
-      return nullptr;
-      break;
     default:
       d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 command");
       break;
