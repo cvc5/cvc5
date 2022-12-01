@@ -213,7 +213,8 @@ Term Smt2TermParser::parseTerm()
               tok, "Mismatched parentheses in SMT-LIBv2 term");
         }
         // should only be here if we are expecting arguments
-        Assert (xstack.back()==ParseCtx::NEXT_ARG || xstack.back()==ParseCtx::CLOSURE_NEXT_ARG);
+        Assert(xstack.back() == ParseCtx::NEXT_ARG
+               || xstack.back() == ParseCtx::CLOSURE_NEXT_ARG);
         // Construct the application term specified by tstack.back()
         ParseOp& op = tstack.back().first;
         ret = d_state.applyParseOp(op, tstack.back().second);
