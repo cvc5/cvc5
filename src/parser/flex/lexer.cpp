@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "base/output.h"
 
 namespace cvc5 {
 namespace parser {
@@ -92,7 +93,9 @@ Token Lexer::nextToken()
   if (d_peeked.empty())
   {
     // Call the derived yylex() and convert it to a token
-    return Token(yylex());
+    Token t = Token(yylex());
+    Trace("lex") << "Token: " << t << " / " << tokenStr() << std::endl;
+    return t;
   }
   Token t = d_peeked.back();
   d_peeked.pop_back();

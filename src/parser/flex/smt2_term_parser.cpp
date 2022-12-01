@@ -627,7 +627,7 @@ Term Smt2TermParser::parseSymbolicExpr()
       {
         // note that there are no tokens that are forbidden here
         std::string str = d_lex.tokenStr();
-        slv->mkString(d_state.processAdHocStringEsc(str));
+        ret = slv->mkString(d_state.processAdHocStringEsc(str));
       }
       break;
     }
@@ -1142,6 +1142,7 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
         break;
       default: break;
     }
+    tok = d_lex.nextToken();
   }
   if (numerals.empty() && symbols.empty())
   {
