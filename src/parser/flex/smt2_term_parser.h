@@ -98,9 +98,9 @@ class Smt2TermParser
    */
   ParseOp continueParseQualifiedIdentifier(bool isOperator);
   /**
-   * Parse identifier. An identifier
+   * Parse match case pattern
    */
-  std::tuple<Token, std::string, std::vector<Term>> parseQualifiedIdentifier();
+  Term parseMatchCasePattern(std::vector<Term>& boundVars);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */

@@ -28,10 +28,14 @@ enum class ParseCtx : uint32_t
 {
   /**
    * NEXT_ARG: in context (<op> <term>* <term>
+   * 
+   * Arguments contain the accumulated list of arguments
    */
   NEXT_ARG,
   /**
    * CLOSURE_NEXT_ARG: in context (<closure> <variable_list> <term>* <term>
+   * 
+   * Arguments contain the variable list and the accumulated list of arguments
    */
   CLOSURE_NEXT_ARG,
   /**
@@ -39,6 +43,9 @@ enum class ParseCtx : uint32_t
    *
    * LET_NEXT_BIND: in context (let (<binding>* (<symbol> <term>
    * LET_BODY: in context (let (<binding>*) <term>
+   * 
+   * ParseOp contains:
+   * d_name: the name of last bound variable
    */
   LET_NEXT_BIND,
   LET_BODY,
@@ -46,17 +53,24 @@ enum class ParseCtx : uint32_t
    * Match terms
    *
    * MATCH_HEAD: in context (match <term>
-   * MATCH_NEXT_CASE_PATTERN: in context (match <term> (<case>* (<term>
-   * MATCH_CASE_BODY: in context (match <term> (<case>* (<term> <term>
+   * MATCH_NEXT_CASE: in context (match <term> (<case>* (<pattern> <term>
+   * 
+   * ParseOp contains:
+   * d_kind: set to MATCH
    */
   MATCH_HEAD,
-  MATCH_NEXT_CASE_PATTERN,
-  MATCH_CASE_BODY,
+  MATCH_NEXT_CASE,
   /**
    * Term annotations
    *
    * TERM_ANNOTATE_BODY: in context (! <term>
-   * TERM_ANNOTATE_NEXT_ATTR: in context (! <term> <attr>* <keyword> <term>
+   * TERM_ANNOTATE_NEXT_ATTR: in context (! <term> <attr>* <keyword> <term_spec>
+   * where notice that <term_spec> may be a term or a list of terms.
+   * 
+   * ParseOp contains:
+   * d_expr: the body of the term annotation
+   * d_kind: the kind to apply to the current <term_spec> (if any).
+   * Arguments contain the accumulated patterns or quantifier attributes
    */
   TERM_ANNOTATE_BODY,
   TERM_ANNOTATE_NEXT_ATTR
@@ -139,18 +153,16 @@ Term Smt2TermParser::parseTerm()
           {
             xstack.emplace_back(ParseCtx::LET_NEXT_BIND);
             tstack.emplace_back(ParseOp(), std::vector<Term>());
-            // eat the opening left parenthesis of the binding list
-            d_lex.eatToken(Token::LPAREN_TOK);
             needsUpdateCtx = true;
             letBinders.emplace_back();
           }
           break;
           case Token::MATCH_TOK:
           {
-            xstack.emplace_back(ParseCtx::MATCH_HEAD);
             // will be constructing a match term
             ParseOp op;
             op.d_kind = MATCH;
+            xstack.emplace_back(ParseCtx::MATCH_HEAD);
             tstack.emplace_back(op, std::vector<Term>());
           }
           break;
@@ -168,7 +180,6 @@ Term Smt2TermParser::parseTerm()
             std::vector<Term> args;
             if (d_state.isClosure(op.d_name))
             {
-              xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);
               // if it is a closure, immediate read the bound variable list
               d_state.pushScope();
               std::vector<std::pair<std::string, Sort>> sortedVarNames =
@@ -176,6 +187,7 @@ Term Smt2TermParser::parseTerm()
               std::vector<Term> vs = d_state.bindBoundVars(sortedVarNames);
               Term vl = slv->mkTerm(VARIABLE_LIST, vs);
               args.push_back(vl);
+              xstack.emplace_back(ParseCtx::CLOSURE_NEXT_ARG);
             }
             else
             {
@@ -296,6 +308,12 @@ Term Smt2TermParser::parseTerm()
             // close the current binding
             d_lex.eatToken(Token::RPAREN_TOK);
           }
+          else
+          {
+            // eat the opening left parenthesis of the binding list
+            d_lex.eatToken(Token::LPAREN_TOK);
+          }
+          // see if there is another binding
           if (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
           {
             // (, another binding: setup parsing the next term
@@ -312,11 +330,11 @@ Term Smt2TermParser::parseTerm()
             Assert(!letBinders.empty());
             const std::vector<std::pair<std::string, Term>>& bs =
                 letBinders.back();
+            std::unordered_set<std::string> names;
             for (const std::pair<std::string, Term>& b : bs)
             {
-              {
-                d_state.defineVar(b.first, b.second);
-              }
+              d_state.defineVar(b.first, b.second);
+              names.insert(b.first);  
             }
             // done with the binders
             letBinders.pop_back();
@@ -340,17 +358,67 @@ Term Smt2TermParser::parseTerm()
           // add the head
           tstack.back().second.push_back(ret);
           ret = Term();
-          xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE_PATTERN;
+          xstack[xstack.size() - 1] = ParseCtx::MATCH_NEXT_CASE;
           needsUpdateCtx = true;
         }
         break;
-        case ParseCtx::MATCH_NEXT_CASE_PATTERN:
+        case ParseCtx::MATCH_NEXT_CASE:
         {
-          // TODO
           if (!ret.isNull())
           {
+            // add it to the list of arguments and clear
+            tstack.back().second.push_back(ret);
+            ret = Term();
+            // pop the scope
+            d_state.popScope();
           }
-          // TODO
+          else
+          {
+            // eat the opening left parenthesis of the case list
+            d_lex.eatToken(Token::LPAREN_TOK);
+          }
+          // see if there is another case
+          if (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+          {
+            // push the scope
+            d_state.pushScope();
+            // parse the pattern, which also does the binding
+            std::vector<Term> boundVars;
+            Term pattern = parseMatchCasePattern(boundVars);
+            Term vl;
+            // either variable, non-nullary constructor, or nullary constructor
+            // The former two cases, we construct a variable list vl.
+            if (pattern.getKind()==VARIABLE)
+            {
+              vl = slv->mkTerm(VARIABLE_LIST, {pattern});
+            }
+            else
+            {
+              Assert (pattern.getKind()==APPLY_CONSTRUCTOR);
+              if (pattern.getNumChildren()>0)
+              {
+                // TODO
+              }
+            }
+            ParseOp op;
+            std::vector<Term> args;
+            if (boundVars.empty())
+            {
+              op.d_kind = MATCH_CASE;
+            }
+            else
+            {
+              op.d_kind = MATCH_BIND_CASE;
+              args.push_back(slv->mkTerm(VARIABLE_LIST, boundVars));
+            }
+            xstack.emplace_back(ParseCtx::NEXT_ARG);
+            tstack.emplace_back(op, args);
+          }
+          else
+          {
+            // finished with match, now just wait for the right parenthesis
+            xstack[xstack.size() - 1] = ParseCtx::NEXT_ARG;
+          }
         }
         break;
         // ------------------------- annotated terms
@@ -359,6 +427,7 @@ Term Smt2TermParser::parseTerm()
           // save ret as the expression and clear
           tstack.back().first.d_expr = ret;
           ret = Term();
+          // now parse attribute list
           xstack[xstack.size() - 1] = ParseCtx::TERM_ANNOTATE_NEXT_ATTR;
           needsUpdateCtx = true;
         }
@@ -367,15 +436,21 @@ Term Smt2TermParser::parseTerm()
         {
           if (!ret.isNull())
           {
-            // if we got here, must have set attrKind below
+            // if we got here, we either:
+            // (1) parsed a single term (the current ParseOp::d_kind was set)
+            // (2) a list of terms in a nested context.
+            if (tstack.back().first.d_kind!=UNDEFINED_KIND)
+            {
+              // if (1), apply d_kind to the argument and reset d_kind
+              ret = slv->mkTerm(tstack.back().first.d_kind, {ret});
+              tstack.back().first.d_kind = UNDEFINED_KIND;
+            }
             tstack.back().second.push_back(ret);
             ret = Term();
           }
-          bool finished = true;
           // see if there is another keyword
           if (d_lex.eatTokenChoice(Token::KEYWORD, Token::RPAREN_TOK))
           {
-            finished = false;
             std::string key = d_lex.tokenStr();
             // based on the keyword, determine the context
             Kind attrKind = UNDEFINED_KIND;
@@ -399,7 +474,8 @@ Term Smt2TermParser::parseTerm()
             }
             else if (key == ":no-pattern")
             {
-              // TODO: a single term
+              // a single term, set the current kind
+              tstack.back().first.d_kind = INST_NO_PATTERN;
             }
             else if (key == ":pattern")
             {
@@ -425,25 +501,27 @@ Term Smt2TermParser::parseTerm()
               // warn that the attribute is not supported
               d_state.attributeNotSupported(d_lex.tokenStr());
               tok = d_lex.nextToken();
-              // keyword, rparen, else parse as generic SEXPR
+              // We don't know whether to expect an attribute value. Thus,
+              // we will either see keyword (the next attribute), rparen
+              // (the term annotation is finished), or else parse as generic
+              // symbolic expression for the current attribute.
               switch (tok)
               {
                 case Token::KEYWORD:
-                  // finished with this attribute, go to the next one
+                case Token::RPAREN_TOK:
+                  // finished with this attribute, go to the next one if it
+                  // exists.
                   d_lex.reinsertToken(tok);
                   needsUpdateCtx = true;
-                  break;
-                case Token::RPAREN_TOK:
-                  // finished with the term annotation
-                  finished = true;
                   break;
                 default:
                   // ignore the symbolic expression that follows
                   d_lex.reinsertToken(tok);
                   parseSymbolicExpr();
-                  needsUpdateCtx = true;
+                  // will parse another attribute
                   break;
               }
+              needsUpdateCtx = true;
             }
             if (attrKind != UNDEFINED_KIND)
             {
@@ -453,6 +531,7 @@ Term Smt2TermParser::parseTerm()
               ParseOp op;
               op.d_kind = attrKind;
               tstack.emplace_back(op, std::vector<Term>());
+              xstack.emplace_back(ParseCtx::NEXT_ARG);
             }
             else if (!attrValue.isNull())
             {
@@ -463,7 +542,8 @@ Term Smt2TermParser::parseTerm()
               tstack.back().second.push_back(iattr);
             }
           }
-          if (finished)
+          // if we instead saw a RPAREN_TOK, we are finished
+          else
           {
             Assert(!tstack.back().first.d_expr.isNull());
             // finished parsing attributes, we will return the original term
@@ -493,6 +573,7 @@ Term Smt2TermParser::parseTerm()
               tstack.back().second.push_back(ipl);
               ret = Term();
             }
+            // TODO: check empty list of attributes?
           }
         }
         break;
@@ -1144,6 +1225,99 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
   // apply the type ascription to the parsed op
   d_state.parseOpApplyTypeAscription(op, type);
   return op;
+}
+
+
+Term Smt2TermParser::parseMatchCasePattern(std::vector<Term>& boundVars)
+{
+  Term pat;
+  /*
+
+    (
+      // case with non-nullary pattern
+      LPAREN_TOK LPAREN_TOK term[f, f2] {
+          args.clear();
+          PARSER_STATE->pushScope();
+          // f should be a constructor
+          type = f.getSort();
+          Trace("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
+          if (!type.isDatatypeConstructor())
+          {
+            PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
+          }
+          cvc5::Datatype dt =
+              type.getDatatypeConstructorCodomainSort().getDatatype();
+          if (dt.isParametric())
+          {
+            // lookup constructor by name
+            cvc5::DatatypeConstructor dc = dt.getConstructor(f.toString());
+            cvc5::Term scons = dc.getInstantiatedTerm(expr.getSort());
+            // take the type of the specialized constructor instead
+            type = scons.getSort();
+          }
+          argTypes = type.getDatatypeConstructorDomainSorts();
+        }
+        // arguments of the pattern
+        ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
+            if (args.size() >= argTypes.size())
+            {
+              PARSER_STATE->parseError("Too many arguments for pattern.");
+            }
+            //make of proper type
+            cvc5::Term arg = PARSER_STATE->bindBoundVar(name, argTypes[args.size()]);
+            args.push_back( arg );
+          }
+        )*
+        RPAREN_TOK term[f3, f2] {
+          // make the match case
+          std::vector<cvc5::Term> cargs;
+          cargs.push_back(f);
+          cargs.insert(cargs.end(),args.begin(),args.end());
+          cvc5::Term c = MK_TERM(cvc5::APPLY_CONSTRUCTOR,cargs);
+          cvc5::Term bvla = MK_TERM(cvc5::VARIABLE_LIST,args);
+          cvc5::Term mc = MK_TERM(cvc5::MATCH_BIND_CASE, bvla, c, f3);
+          matchcases.push_back(mc);
+          // now, pop the scope
+          PARSER_STATE->popScope();
+        }
+        RPAREN_TOK
+      // case with nullary or variable pattern
+      | LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] {
+          if (PARSER_STATE->isDeclared(name,SYM_VARIABLE))
+          {
+            f = PARSER_STATE->getVariable(name);
+            type = f.getSort();
+            if (!type.isDatatypeConstructor() ||
+                !type.getDatatypeConstructorDomainSorts().empty())
+            {
+              PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+            }
+            // make nullary constructor application
+            f = MK_TERM(cvc5::APPLY_CONSTRUCTOR, f);
+          }
+          else
+          {
+            // it has the type of the head expr
+            f = PARSER_STATE->bindBoundVar(name, expr.getSort());
+          }
+        }
+        term[f3, f2] {
+          cvc5::Term mc;
+          if (f.getKind() == cvc5::VARIABLE)
+          {
+            cvc5::Term bvlf = MK_TERM(cvc5::VARIABLE_LIST, f);
+            mc = MK_TERM(cvc5::MATCH_BIND_CASE, bvlf, f, f3);
+          }
+          else
+          {
+            mc = MK_TERM(cvc5::MATCH_CASE, f, f3);
+          }
+          matchcases.push_back(mc);
+        }
+        RPAREN_TOK
+    )+
+    */
+  return pat;
 }
 
 }  // namespace parser
