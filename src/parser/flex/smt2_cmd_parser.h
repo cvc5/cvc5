@@ -35,7 +35,7 @@ class Smt2CmdParser
   Smt2CmdParser(Smt2Lexer& lex, Smt2State& state, Smt2TermParser& tparser);
   virtual ~Smt2CmdParser() {}
   /**
-   * Parse and return the next command.
+   * Parse and return the next command, or nullptr if we are at the end of file.
    */
   std::unique_ptr<Command> parseNextCommand();
 
