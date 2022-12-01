@@ -109,7 +109,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   cvc5::Result res;
   bool resultSet = false;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
-  if(cs != nullptr) 
+  if (cs != nullptr)
   {
     d_result = res = cs->getResult();
     resultSet = true;
@@ -187,9 +187,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 }
 
 bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
-                  SymbolManager* sm,
-                  Command* cmd,
-                  std::ostream& out)
+                                   SymbolManager* sm,
+                                   Command* cmd,
+                                   std::ostream& out)
 {
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
@@ -200,8 +200,7 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // In parse-only mode, we do not invoke any of the commands except define-fun
   // commands. We invoke define-fun commands because they add function names
   // to the symbol table.
-  if (d_parseOnly
-      && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
+  if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr)
   {

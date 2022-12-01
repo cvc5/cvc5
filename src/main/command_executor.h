@@ -51,7 +51,7 @@ class CommandExecutor
   std::unique_ptr<parser::SymbolManager> d_symman;
 
   cvc5::Result d_result;
-  
+
   /** Cache of the current verbosity */
   int64_t d_verbosity;
   /** Cache of parse only */
