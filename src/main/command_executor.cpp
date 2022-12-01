@@ -50,7 +50,7 @@ void setNoLimitCPU() {
 }
 
 CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
-    : d_solver(solver), d_symman(new SymbolManager(d_solver.get())), d_result()
+    : d_solver(solver), d_symman(new SymbolManager(d_solver.get())), d_result(), d_verbosity(0), d_parseOnly(false)
 {
 }
 CommandExecutor::~CommandExecutor()
@@ -60,6 +60,7 @@ CommandExecutor::~CommandExecutor()
 void CommandExecutor::storeOptionsAsOriginal()
 {
   d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
+  // also cache the values
   d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
@@ -114,16 +115,24 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_result = res = cs->getResult();
     resultSet = true;
   }
-  else
+  const CheckSatAssumingCommand* csa =
+      dynamic_cast<const CheckSatAssumingCommand*>(cmd);
+  if (csa != nullptr)
   {
-    const CheckSatAssumingCommand* csa =
-        dynamic_cast<const CheckSatAssumingCommand*>(cmd);
-    if (csa != nullptr)
+    d_result = res = csa->getResult();
+    resultSet = true;
+  }
+  // since verbosity is cached, we must check if it was changed by a command
+  const SetOptionCommand* cso = 
+    dynamic_cast<const SetOptionCommand*>(cmd);
+  if (cso != nullptr)
+  {
+    if (cso->getFlag()=="verbosity")
     {
-      d_result = res = csa->getResult();
-      resultSet = true;
+      d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
     }
   }
+  
   // if we didnt set a result, return the status
   if (!resultSet)
   {
