@@ -50,7 +50,11 @@ void setNoLimitCPU() {
 }
 
 CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
-    : d_solver(solver), d_symman(new SymbolManager(d_solver.get())), d_result()
+    : d_solver(solver),
+      d_symman(new SymbolManager(d_solver.get())),
+      d_result(),
+      d_verbosity(0),
+      d_parseOnly(false)
 {
 }
 CommandExecutor::~CommandExecutor()
@@ -60,6 +64,9 @@ CommandExecutor::~CommandExecutor()
 void CommandExecutor::storeOptionsAsOriginal()
 {
   d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
+  // also cache the values
+  d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
+  d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
@@ -86,11 +93,10 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if (d_solver->getOptionInfo("verbosity").intValue() > 2)
+  if (d_verbosity > 2)
   {
     d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
   }
-
   return doCommandSingleton(cmd);
 }
 
@@ -106,22 +112,40 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
 
   cvc5::Result res;
+  bool resultSet = false;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
-  if(cs != nullptr) {
+  if (cs != nullptr)
+  {
     d_result = res = cs->getResult();
+    resultSet = true;
   }
   const CheckSatAssumingCommand* csa =
       dynamic_cast<const CheckSatAssumingCommand*>(cmd);
   if (csa != nullptr)
   {
     d_result = res = csa->getResult();
+    resultSet = true;
+  }
+  // since verbosity is cached, we must check if it was changed by a command
+  const SetOptionCommand* cso = dynamic_cast<const SetOptionCommand*>(cmd);
+  if (cso != nullptr)
+  {
+    if (cso->getFlag() == "verbosity")
+    {
+      d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
+    }
   }
 
-  bool isResultUnsat = res.isUnsat();
-  bool isResultSat = res.isSat();
+  // if we didnt set a result, return the status
+  if (!resultSet)
+  {
+    return status;
+  }
 
   // dump the model/proof/unsat core if option is set
   if (status) {
+    bool isResultUnsat = res.isUnsat();
+    bool isResultSat = res.isSat();
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
@@ -173,10 +197,10 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool solverInvoke(cvc5::Solver* solver,
-                  SymbolManager* sm,
-                  Command* cmd,
-                  std::ostream& out)
+bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
+                                   SymbolManager* sm,
+                                   Command* cmd,
+                                   std::ostream& out)
 {
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
@@ -187,8 +211,7 @@ bool solverInvoke(cvc5::Solver* solver,
   // In parse-only mode, we do not invoke any of the commands except define-fun
   // commands. We invoke define-fun commands because they add function names
   // to the symbol table.
-  if (solver->getOptionInfo("parse-only").boolValue()
-      && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
+  if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr)
   {

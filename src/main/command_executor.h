@@ -52,6 +52,11 @@ class CommandExecutor
 
   cvc5::Result d_result;
 
+  /** Cache of the current verbosity */
+  int64_t d_verbosity;
+  /** Cache of parse only */
+  bool d_parseOnly;
+
  public:
   CommandExecutor(std::unique_ptr<cvc5::Solver>& solver);
 
@@ -105,12 +110,12 @@ protected:
 private:
   CommandExecutor();
 
+  bool solverInvoke(cvc5::Solver* solver,
+                    parser::SymbolManager* sm,
+                    parser::Command* cmd,
+                    std::ostream& out);
 }; /* class CommandExecutor */
 
-bool solverInvoke(cvc5::Solver* solver,
-                  parser::SymbolManager* sm,
-                  parser::Command* cmd,
-                  std::ostream& out);
 
 }  // namespace main
 }  // namespace cvc5
