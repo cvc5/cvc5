@@ -897,7 +897,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
   d_lex.eatToken(Token::RPAREN_TOK);
   // pop scope from the pre-declaration
   d_state.popScope();
-  return nullptr;
+  return ret;
 }
 
 Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
@@ -958,7 +958,7 @@ std::vector<uint32_t> Smt2TermParser::parseNumeralList()
   return numerals;
 }
 
-std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
+std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
     bool isCo,
     const std::vector<std::string>& dnames,
     const std::vector<size_t>& arities)
@@ -984,9 +984,9 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     }
     d_state.mkUnresolvedType(dnames[i], arities[i]);
   }
-  d_lex.eatToken(Token::LPAREN_TOK);
   // while we get another datatype declaration, or close the list
-  while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+  Token tok = d_lex.nextToken();
+  while (tok==Token::LPAREN_TOK)
   {
     std::vector<Sort> params;
     size_t i = dts.size();
@@ -995,7 +995,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
     {
       d_lex.parseError("Too many datatypes defined in this block.");
     }
-    Token tok = d_lex.nextToken();
+    tok = d_lex.nextToken();
     bool pushedScope = false;
     if (tok == PAR_TOK)
     {
@@ -1038,7 +1038,9 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypeDef(
       d_lex.eatToken(Token::RPAREN_TOK);
       d_state.popScope();
     }
+    tok = d_lex.nextToken();
   }
+  d_lex.reinsertToken(tok);
   if (dts.size() != dnames.size())
   {
     d_lex.parseError("Wrong number of datatypes provided.");

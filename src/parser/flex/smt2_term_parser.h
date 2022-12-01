@@ -68,9 +68,9 @@ class Smt2TermParser
    */
   std::vector<uint32_t> parseNumeralList();
   /**
-   * Parse datatype def
+   * Parse datatype def, not parentheses enclosed
    */
-  std::vector<DatatypeDecl> parseDatatypeDef(
+  std::vector<DatatypeDecl> parseDatatypesDef(
       bool isCo,
       const std::vector<std::string>& dnames,
       const std::vector<size_t>& arities);
