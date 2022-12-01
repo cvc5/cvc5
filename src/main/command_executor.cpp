@@ -60,6 +60,8 @@ CommandExecutor::~CommandExecutor()
 void CommandExecutor::storeOptionsAsOriginal()
 {
   d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
+  d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
+  d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
 void CommandExecutor::printStatistics(std::ostream& out) const
@@ -86,11 +88,10 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if (d_solver->getOptionInfo("verbosity").intValue() > 2)
+  if (d_verbosity > 2)
   {
     d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
   }
-
   return doCommandSingleton(cmd);
 }
 
@@ -106,22 +107,34 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
 
   cvc5::Result res;
+  bool resultSet = false;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
-  if(cs != nullptr) {
-    d_result = res = cs->getResult();
-  }
-  const CheckSatAssumingCommand* csa =
-      dynamic_cast<const CheckSatAssumingCommand*>(cmd);
-  if (csa != nullptr)
+  if(cs != nullptr) 
   {
-    d_result = res = csa->getResult();
+    d_result = res = cs->getResult();
+    resultSet = true;
+  }
+  else
+  {
+    const CheckSatAssumingCommand* csa =
+        dynamic_cast<const CheckSatAssumingCommand*>(cmd);
+    if (csa != nullptr)
+    {
+      d_result = res = csa->getResult();
+      resultSet = true;
+    }
+  }
+  // if we didnt set a result, return the status
+  if (!resultSet)
+  {
+    return status;
   }
 
-  bool isResultUnsat = res.isUnsat();
-  bool isResultSat = res.isSat();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
+    bool isResultUnsat = res.isUnsat();
+    bool isResultSat = res.isSat();
     std::vector<std::unique_ptr<Command> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
@@ -173,7 +186,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool solverInvoke(cvc5::Solver* solver,
+bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
                   SymbolManager* sm,
                   Command* cmd,
                   std::ostream& out)
@@ -187,7 +200,7 @@ bool solverInvoke(cvc5::Solver* solver,
   // In parse-only mode, we do not invoke any of the commands except define-fun
   // commands. We invoke define-fun commands because they add function names
   // to the symbol table.
-  if (solver->getOptionInfo("parse-only").boolValue()
+  if (d_parseOnly
       && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr)

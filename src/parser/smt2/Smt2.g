@@ -573,7 +573,7 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       if (name != ":grammars")
       {
         std::stringstream ss;
-        ss << "SyGuS feature " << name << " not currently supported";
+        ss << "SyGuS feature " << name.substr(1) << " not currently supported";
         PARSER_STATE->warning(ss.str());
       }
       cmd.reset(new EmptyCommand());
