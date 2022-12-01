@@ -46,7 +46,8 @@ void Lexer::warning(const std::string& msg)
   }
   std::cerr << std::endl << msg << std::endl;
   */
-  Warning() << d_inputName << ':' << d_span.d_start.d_line << '.' << d_span.d_start.d_column << ": " << msg << std::endl;
+  Warning() << d_inputName << ':' << d_span.d_start.d_line << '.'
+            << d_span.d_start.d_column << ": " << msg << std::endl;
 }
 
 void Lexer::parseError(const std::string& msg, bool eofException)
@@ -60,16 +61,15 @@ void Lexer::parseError(const std::string& msg, bool eofException)
   exit(1);
   */
 
-  if(eofException) {
-    throw ParserEndOfFileException(msg,
-                                   d_inputName,
-                                   d_span.d_start.d_line,
-                                   d_span.d_start.d_column);
-  } else {
-    throw ParserException(msg,
-                          d_inputName,
-                          d_span.d_start.d_line,
-                          d_span.d_start.d_column);
+  if (eofException)
+  {
+    throw ParserEndOfFileException(
+        msg, d_inputName, d_span.d_start.d_line, d_span.d_start.d_column);
+  }
+  else
+  {
+    throw ParserException(
+        msg, d_inputName, d_span.d_start.d_line, d_span.d_start.d_column);
   }
 }
 
