@@ -74,6 +74,8 @@ Term Smt2TermParser::parseTerm()
   Token tok;
   std::vector<ParseCtx> xstack;
   std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
+  // let bindings, dynamically allocated;
+  std::vector<std::vector<std::pair<std::string, Term>>> letBinders;
   Solver* slv = d_state.getSolver();
   do
   {
@@ -137,21 +139,24 @@ Term Smt2TermParser::parseTerm()
           {
             xstack.emplace_back(ParseCtx::LET_NEXT_BIND);
             tstack.emplace_back(ParseOp(), std::vector<Term>());
-            //
+            // eat the opening left parenthesis of the binding list
             d_lex.eatToken(Token::LPAREN_TOK);
             needsUpdateCtx = true;
+            letBinders.emplace_back();
           }
           break;
           case Token::MATCH_TOK:
           {
             xstack.emplace_back(ParseCtx::MATCH_HEAD);
-            tstack.emplace_back(ParseOp(), std::vector<Term>());
+            ParseOp op;
+            op.d_kind = MATCH;
+            tstack.emplace_back(op, std::vector<Term>());
           }
           break;
           case Token::ATTRIBUTE_TOK:
           {
             xstack.emplace_back(ParseCtx::TERM_ANNOTATE_BODY);
-            tstack.emplace_back(ParseOp(), std::vector<Term>());
+            tstack.emplace_back();
           }
           break;
           case Token::SYMBOL:
@@ -283,20 +288,37 @@ Term Smt2TermParser::parseTerm()
           // if we parsed a term
           if (!ret.isNull())
           {
-            // TODO: add binding x -> ret
+            Assert (!letBinders.empty());
+            std::vector<std::pair<std::string, cvc5::Term>>& bs = letBinders.back();
+            // add binding from the symbol to ret
+            bs.emplace_back(tstack.back().first.d_name, ret);
             ret = Term();
             // close the current binding
             d_lex.eatToken(Token::RPAREN_TOK);
           }
           if (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
           {
-            // (: another binding: setup parsing the next term
-            std::string sym = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+            // (, another binding: setup parsing the next term
+            // get the symbol and store in the ParseOp
+            tstack.back().first.d_name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
           }
           else
           {
-            // ): we are now looking for the body of the let
+            // ), we are now looking for the body of the let
             xstack[xstack.size() - 1] = ParseCtx::LET_BODY;
+            // push scope
+            d_state.pushScope();
+            // implement the bindings
+            Assert (!letBinders.empty());
+            const std::vector<std::pair<std::string, cvc5::Term>>& bs = letBinders.back();
+            for (const std::pair<std::string, cvc5::Term>& b : bs)
+            {
+              {
+                d_state.defineVar(b.first, b.second);
+              }
+            }
+            // done with the binders
+            letBinders.pop_back();
           }
         }
         break;
