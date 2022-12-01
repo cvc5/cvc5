@@ -520,6 +520,11 @@ Term Smt2State::mkIndexedOp(const std::string& name,
       // must be declared
       checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
       Term f = getExpressionForName(cname);
+      if (f.getKind() == APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
+      {
+        // for nullary constructors, must get the operator
+        f = f[0];
+      }
       if (name == "is")
       {
         if (!f.getSort().isDatatypeConstructor())

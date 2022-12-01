@@ -101,8 +101,6 @@ unterminated_quoted_symbol \|[^(\||\\)]*
 "Variable"   return cvc5::parser::SYGUS_VARIABLE_TOK;
 "synth-fun"   return cvc5::parser::SYNTH_FUN_TOK;
 "synth-inv"   return cvc5::parser::SYNTH_INV_TOK;
-"is"   return cvc5::parser::TESTER_TOK;
-"update"   return cvc5::parser::UPDATE_TOK;
 
 {ws}   bump_span();
 {nl}   add_lines(yyleng); bump_span();

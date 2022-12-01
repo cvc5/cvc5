@@ -21,6 +21,7 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "parser/parser_exception.h"
 
 namespace cvc5 {
 namespace parser {
@@ -38,38 +39,38 @@ Lexer::Lexer() : yyFlexLexer() {}
 
 void Lexer::warning(const std::string& msg)
 {
+  /*
   if (d_inputName.length())
   {
     std::cerr << "Warning: " << d_inputName << " at " << d_span;
   }
   std::cerr << std::endl << msg << std::endl;
+  */
+  Warning() << d_inputName << ':' << d_span.d_start.d_line << '.' << d_span.d_start.d_column << ": " << msg << std::endl;
 }
 
 void Lexer::parseError(const std::string& msg, bool eofException)
 {
+  /*
   if (d_inputName.length())
   {
     std::cerr << "Error: " << d_inputName << " at " << d_span;
   }
   std::cerr << std::endl << msg << std::endl;
   exit(1);
-
-  /*
+  */
 
   if(eofException) {
-    throw ParserEndOfFileException(message,
-                                   (const
-  char*)d_lexer->rec->state->tokSource->fileName->chars,
-                                   d_lexer->getLine(d_lexer),
-                                   d_lexer->getCharPositionInLine(d_lexer));
+    throw ParserEndOfFileException(msg,
+                                   d_inputName,
+                                   d_span.d_start.d_line,
+                                   d_span.d_start.d_column);
   } else {
-    throw ParserException(updatedMessage,
-                          (const
-  char*)d_lexer->rec->state->tokSource->fileName->chars,
-                          d_lexer->getLine(d_lexer),
-                          d_lexer->getCharPositionInLine(d_lexer));
+    throw ParserException(msg,
+                          d_inputName,
+                          d_span.d_start.d_line,
+                          d_span.d_start.d_column);
   }
-  */
 }
 
 void Lexer::init_d_span()

@@ -434,11 +434,11 @@ Term Smt2TermParser::parseTerm()
             // if we got here, we either:
             // (1) parsed a single term (the current ParseOp::d_kind was set)
             // (2) a list of terms in a nested context.
-            if (tstack.back().first.d_kind != UNDEFINED_KIND)
+            if (tstack.back().first.d_kind != NULL_TERM)
             {
               // if (1), apply d_kind to the argument and reset d_kind
               ret = slv->mkTerm(tstack.back().first.d_kind, {ret});
-              tstack.back().first.d_kind = UNDEFINED_KIND;
+              tstack.back().first.d_kind = NULL_TERM;
             }
             tstack.back().second.push_back(ret);
             ret = Term();
@@ -448,7 +448,7 @@ Term Smt2TermParser::parseTerm()
           {
             std::string key = d_lex.tokenStr();
             // based on the keyword, determine the context
-            Kind attrKind = UNDEFINED_KIND;
+            Kind attrKind = NULL_TERM;
             Term attrValue;
             if (key == ":inst-add-to-pool")
             {
@@ -518,7 +518,7 @@ Term Smt2TermParser::parseTerm()
               }
               needsUpdateCtx = true;
             }
-            if (attrKind != UNDEFINED_KIND)
+            if (attrKind != NULL_TERM)
             {
               // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
               d_lex.eatToken(Token::LPAREN_TOK);

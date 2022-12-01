@@ -72,7 +72,7 @@ void FlexParser::warning(const std::string& msg) { d_lex->warning(msg); }
 
 void FlexParser::parseError(const std::string& msg) { d_lex->parseError(msg); }
 
-void FlexParser::unexpectedEOF(const std::string& msg) {}
+void FlexParser::unexpectedEOF(const std::string& msg) { d_lex->parseError(msg, true); }
 
 void FlexParser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
 
