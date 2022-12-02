@@ -71,7 +71,6 @@ class Smt2 : public Parser
   Smt2(cvc5::Solver* solver,
        SymbolManager* sm,
        bool strictMode = false,
-       bool parseOnly = false,
        bool isSygus = false);
 
  public:

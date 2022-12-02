@@ -33,9 +33,8 @@ namespace parser {
 Smt2::Smt2(cvc5::Solver* solver,
            SymbolManager* sm,
            bool strictMode,
-           bool parseOnly,
            bool isSygus)
-    : Parser(solver, sm, strictMode, parseOnly),
+    : Parser(solver, sm, strictMode),
       d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
@@ -141,11 +140,19 @@ void Smt2::addDatatypesOperators()
   if (!strictModeEnabled())
   {
     Parser::addOperator(cvc5::APPLY_UPDATER);
-    // Notice that tuple operators, we use the generic APPLY_SELECTOR and
-    // APPLY_UPDATER kinds. These are processed based on the context
-    // in which they are parsed, e.g. when parsing identifiers.
-    addIndexedOperator(cvc5::APPLY_SELECTOR, "tuple.select");
-    addIndexedOperator(cvc5::APPLY_UPDATER, "tuple.update");
+    // Tuple projection is both indexed and non-indexed (when indices are empty)
+    addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
+    addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
+    // Notice that tuple operators, we use the UNDEFINED_KIND kind.
+    // These are processed based on the context in which they are parsed, e.g.
+    // when parsing identifiers.
+    // For the tuple constructor "tuple", this is both a nullary operator
+    // (for the 0-ary tuple), and a operator, hence we call both addOperator
+    // and defineVar here.
+    addOperator(cvc5::APPLY_CONSTRUCTOR, "tuple");
+    defineVar("tuple", d_solver->mkTuple({}, {}));
+    addIndexedOperator(cvc5::UNDEFINED_KIND, "tuple.select");
+    addIndexedOperator(cvc5::UNDEFINED_KIND, "tuple.update");
   }
 }
 
@@ -237,6 +244,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(cvc5::FLOATINGPOINT_IS_POS, "fp.isPositive");
   addOperator(cvc5::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
+  // we delay the resolution of to_fp
   addIndexedOperator(cvc5::UNDEFINED_KIND, "to_fp");
   addIndexedOperator(cvc5::FLOATINGPOINT_TO_FP_FROM_UBV, "to_fp_unsigned");
   addIndexedOperator(cvc5::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
@@ -680,6 +688,13 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::RELATION_TCLOSURE, "rel.tclosure");
     addOperator(cvc5::RELATION_JOIN_IMAGE, "rel.join_image");
     addOperator(cvc5::RELATION_IDEN, "rel.iden");
+    // these operators can be with/without indices
+    addOperator(cvc5::RELATION_GROUP, "rel.group");
+    addOperator(cvc5::RELATION_AGGREGATE, "rel.aggr");
+    addOperator(cvc5::RELATION_PROJECT, "rel.project");
+    addIndexedOperator(cvc5::RELATION_GROUP, "rel.group");
+    addIndexedOperator(cvc5::RELATION_AGGREGATE, "rel.aggr");
+    addIndexedOperator(cvc5::RELATION_PROJECT, "rel.project");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
@@ -706,6 +721,15 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(cvc5::BAG_PARTITION, "bag.partition");
     addOperator(cvc5::TABLE_PRODUCT, "table.product");
     addOperator(cvc5::BAG_PARTITION, "table.group");
+    // these operators can be with/without indices
+    addOperator(cvc5::TABLE_PROJECT, "table.project");
+    addOperator(cvc5::TABLE_AGGREGATE, "table.aggr");
+    addOperator(cvc5::TABLE_JOIN, "table.join");
+    addOperator(cvc5::TABLE_GROUP, "table.group");
+    addIndexedOperator(cvc5::TABLE_PROJECT, "table.project");
+    addIndexedOperator(cvc5::TABLE_AGGREGATE, "table.aggr");
+    addIndexedOperator(cvc5::TABLE_JOIN, "table.join");
+    addIndexedOperator(cvc5::TABLE_GROUP, "table.group");
   }
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
   {
@@ -871,7 +895,8 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
   Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
-  if (p.d_kind == cvc5::CONST_ARRAY)
+  if (!strictModeEnabled() && p.d_name == "const"
+      && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
   {
     if (!type.isArray())
     {
@@ -881,6 +906,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
          << "cast type: " << type;
       parseError(ss.str());
     }
+    p.d_kind = CONST_ARRAY;
     p.d_type = type;
     return;
   }
@@ -956,48 +982,95 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   if (p.d_kind == cvc5::UNDEFINED_KIND && isIndexedOperatorEnabled(p.d_name))
   {
     // Resolve indexed symbols that cannot be resolved without knowing the type
-    // of the arguments. This is currently limited to `to_fp`.
-    Assert(p.d_name == "to_fp");
+    // of the arguments. This is currently limited to `to_fp`, `tuple.select`,
+    // and `tuple.update`.
     size_t nchildren = args.size();
-    if (nchildren == 1)
+    if (p.d_name == "to_fp")
     {
-      kind = cvc5::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
-      op = d_solver->mkOp(kind, p.d_indices);
-    }
-    else if (nchildren > 2)
-    {
-      std::stringstream ss;
-      ss << "Wrong number of arguments for indexed operator to_fp, expected "
-            "1 or 2, got "
-         << nchildren;
-      parseError(ss.str());
-    }
-    else if (!args[0].getSort().isRoundingMode())
-    {
-      std::stringstream ss;
-      ss << "Expected a rounding mode as the first argument, got "
-         << args[0].getSort();
-      parseError(ss.str());
-    }
-    else
-    {
-      cvc5::Sort t = args[1].getSort();
-
-      if (t.isFloatingPoint())
+      if (nchildren == 1)
       {
-        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_FP;
+        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_IEEE_BV;
         op = d_solver->mkOp(kind, p.d_indices);
       }
-      else if (t.isInteger() || t.isReal())
+      else if (nchildren > 2)
       {
-        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_REAL;
-        op = d_solver->mkOp(kind, p.d_indices);
+        std::stringstream ss;
+        ss << "Wrong number of arguments for indexed operator to_fp, expected "
+              "1 or 2, got "
+           << nchildren;
+        parseError(ss.str());
+      }
+      else if (!args[0].getSort().isRoundingMode())
+      {
+        std::stringstream ss;
+        ss << "Expected a rounding mode as the first argument, got "
+           << args[0].getSort();
+        parseError(ss.str());
       }
       else
       {
-        kind = cvc5::FLOATINGPOINT_TO_FP_FROM_SBV;
-        op = d_solver->mkOp(kind, p.d_indices);
+        cvc5::Sort t = args[1].getSort();
+
+        if (t.isFloatingPoint())
+        {
+          kind = cvc5::FLOATINGPOINT_TO_FP_FROM_FP;
+          op = d_solver->mkOp(kind, p.d_indices);
+        }
+        else if (t.isInteger() || t.isReal())
+        {
+          kind = cvc5::FLOATINGPOINT_TO_FP_FROM_REAL;
+          op = d_solver->mkOp(kind, p.d_indices);
+        }
+        else
+        {
+          kind = cvc5::FLOATINGPOINT_TO_FP_FROM_SBV;
+          op = d_solver->mkOp(kind, p.d_indices);
+        }
       }
+    }
+    else if (p.d_name == "tuple.select" || p.d_name == "tuple.update")
+    {
+      bool isSelect = (p.d_name == "tuple.select");
+      if (p.d_indices.size() != 1)
+      {
+        parseError("wrong number of indices for tuple select or update");
+      }
+      uint64_t n = p.d_indices[0];
+      if (args.size() != (isSelect ? 1 : 2))
+      {
+        parseError("wrong number of arguments for tuple select or update");
+      }
+      cvc5::Sort t = args[0].getSort();
+      if (!t.isTuple())
+      {
+        parseError("tuple select or update applied to non-tuple");
+      }
+      size_t length = t.getTupleLength();
+      if (n >= length)
+      {
+        std::stringstream ss;
+        ss << "tuple is of length " << length << "; cannot access index " << n;
+        parseError(ss.str());
+      }
+      const cvc5::Datatype& dt = t.getDatatype();
+      cvc5::Term ret;
+      if (isSelect)
+      {
+        ret = d_solver->mkTerm(cvc5::APPLY_SELECTOR,
+                               {dt[0][n].getTerm(), args[0]});
+      }
+      else
+      {
+        ret = d_solver->mkTerm(cvc5::APPLY_UPDATER,
+                               {dt[0][n].getUpdaterTerm(), args[0], args[1]});
+      }
+      Trace("parser") << "applyParseOp: return selector/updater " << ret
+                      << std::endl;
+      return ret;
+    }
+    else
+    {
+      Assert(false) << "Failed to resolve indexed operator " << p.d_name;
     }
   }
   else if (p.d_kind != cvc5::NULL_TERM)
@@ -1032,6 +1105,29 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     {
       // a builtin operator, convert to kind
       kind = getOperatorKind(p.d_name);
+      // special case: indexed operators with zero arguments
+      if (kind == TUPLE_PROJECT || kind == TABLE_PROJECT
+          || kind == TABLE_AGGREGATE || kind == TABLE_JOIN
+          || kind == TABLE_GROUP || kind == RELATION_GROUP
+          || kind == RELATION_AGGREGATE || kind == RELATION_PROJECT)
+      {
+        std::vector<uint32_t> indices;
+        op = d_solver->mkOp(kind, indices);
+        kind = NULL_TERM;
+        isBuiltinOperator = false;
+      }
+      else if (kind == cvc5::APPLY_CONSTRUCTOR)
+      {
+        // tuple application
+        std::vector<cvc5::Sort> sorts;
+        std::vector<cvc5::Term> terms;
+        for (const cvc5::Term& arg : args)
+        {
+          sorts.emplace_back(arg.getSort());
+          terms.emplace_back(arg);
+        }
+        return d_solver->mkTuple(sorts, terms);
+      }
       Trace("parser") << "Got builtin kind " << kind << " for name"
                       << std::endl;
     }
@@ -1096,57 +1192,6 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
     }
     cvc5::Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
-    return ret;
-  }
-  else if ((p.d_kind == cvc5::APPLY_SELECTOR || p.d_kind == cvc5::APPLY_UPDATER)
-           && !p.d_expr.isNull())
-  {
-    // tuple selector case
-    if (!p.d_expr.isUInt64Value())
-    {
-      parseError(
-          "index of tuple select or update is larger than size of uint64_t");
-    }
-    uint64_t n = p.d_expr.getUInt64Value();
-    if (args.size() != (p.d_kind == cvc5::APPLY_SELECTOR ? 1 : 2))
-    {
-      parseError("wrong number of arguments for tuple select or update");
-    }
-    cvc5::Sort t = args[0].getSort();
-    if (!t.isTuple())
-    {
-      parseError("tuple select or update applied to non-tuple");
-    }
-    size_t length = t.getTupleLength();
-    if (n >= length)
-    {
-      std::stringstream ss;
-      ss << "tuple is of length " << length << "; cannot access index " << n;
-      parseError(ss.str());
-    }
-    const cvc5::Datatype& dt = t.getDatatype();
-    cvc5::Term ret;
-    if (p.d_kind == cvc5::APPLY_SELECTOR)
-    {
-      ret =
-          d_solver->mkTerm(cvc5::APPLY_SELECTOR, {dt[0][n].getTerm(), args[0]});
-    }
-    else
-    {
-      ret = d_solver->mkTerm(cvc5::APPLY_UPDATER,
-                             {dt[0][n].getUpdaterTerm(), args[0], args[1]});
-    }
-    Trace("parser") << "applyParseOp: return selector " << ret << std::endl;
-    return ret;
-  }
-  else if (p.d_kind == cvc5::TUPLE_PROJECT || p.d_kind == cvc5::TABLE_PROJECT
-           || p.d_kind == cvc5::TABLE_AGGREGATE || p.d_kind == cvc5::TABLE_JOIN
-           || p.d_kind == cvc5::TABLE_GROUP || p.d_kind == cvc5::RELATION_GROUP
-           || p.d_kind == cvc5::RELATION_AGGREGATE
-           || p.d_kind == cvc5::RELATION_PROJECT)
-  {
-    cvc5::Term ret = d_solver->mkTerm(p.d_op, args);
-    Trace("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != cvc5::NULL_TERM)

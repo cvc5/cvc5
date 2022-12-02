@@ -506,6 +506,7 @@ set(regress_0_tests
   regress0/bv/unsound1-reduced.smt2
   regress0/chained-equality.smt2
   regress0/constant-rewrite.smtv1.smt2
+  regress0/cores/dd.uc-min-wrong.smt2
   regress0/cores/issue3455.smt2
   regress0/cores/issue3651.smt2
   regress0/cores/issue4925.smt2
@@ -2759,6 +2760,7 @@ set(regress_1_tests
   regress1/strings/issue9003-deq-split.smt2
   regress1/strings/issue9040-re-inter-comp.smt2
   regress1/strings/issue9269-rei-nconst.smt2
+  regress1/strings/issue9287-trivial-deq-disl.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
