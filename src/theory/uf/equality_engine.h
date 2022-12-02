@@ -481,7 +481,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
   /**
    * This method gets called on backtracks from the context manager.
    */
-  void contextNotifyPop() override;
+  void contextNotifyPop() override { backtrack(); }
 
   /**
    * Constructor initialization stuff.
@@ -665,9 +665,6 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
 
   /** Name of the equality engine */
   std::string d_name;
-
-  /** The initial context level (for debugging) */
-  int d_initLevel;
 
   /** The internal addTerm */
   void addTermInternal(TNode t, bool isOperator = false);

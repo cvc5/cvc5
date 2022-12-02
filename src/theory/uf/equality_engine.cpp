@@ -79,8 +79,6 @@ void EqualityEngine::init() {
   // Note that we previously checked whether the context level was zero here,
   // to ensure that true/false could never be removed. However, this assertion
   // restricts our ability to construct equality engines in nested contexts.
-  // Instead we track the level (for debugging).
-  d_initLevel = d_context->getLevel();
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -124,8 +122,7 @@ EqualityEngine::EqualityEngine(Env& env,
       d_deducedDisequalitiesSize(c, 0),
       d_deducedDisequalityReasonsSize(c, 0),
       d_propagatedDisequalities(c),
-      d_name(name),
-      d_initLevel(0)
+      d_name(name)
 {
   init();
 }
@@ -157,8 +154,7 @@ EqualityEngine::EqualityEngine(Env& env,
       d_deducedDisequalitiesSize(c, 0),
       d_deducedDisequalityReasonsSize(c, 0),
       d_propagatedDisequalities(c),
-      d_name(name),
-      d_initLevel(0)
+      d_name(name)
 {
   init();
   // since init makes notifications (e.g. new eq class for true/false), and
@@ -1845,13 +1841,6 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
   }
 
   Trace("equality") << d_name << "::eq::addTrigger(" << t1 << "," << t2 << ") => (" << t1NewTriggerId << ", " << t2NewTriggerId << ")" << std::endl;
-}
-
-void EqualityEngine::contextNotifyPop()
-{
-  backtrack();
-  // ensure we haven't popped beyond the level we started
-  Assert(d_initLevel <= d_context->getLevel());
 }
 
 Node EqualityEngine::evaluateTerm(TNode node) {
