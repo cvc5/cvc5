@@ -279,8 +279,6 @@ class Smt2 : public Parser
     }
   }
 
-  void includeFile(const std::string& filename);
-
   void setLastNamedTerm(cvc5::Term e, std::string name)
   {
     d_lastNamedTerm = std::make_pair(e, name);
