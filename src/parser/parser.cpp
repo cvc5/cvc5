@@ -895,7 +895,7 @@ cvc5::Term Parser::mkCharConstant(const std::string& s)
   return d_solver->mkString(std::wstring(1, val));
 }
 
-/* The include are managed in the lexer but called in the parser */
+/* The includes are managed in the lexer but called in the parser */
 // Inspired by http://www.antlr3.org/api/C/interop.html
 
 bool newInputStream(std::string fileName,
