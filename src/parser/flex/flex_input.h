@@ -56,8 +56,6 @@ class FlexInput
   static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
   /** get stream */
   virtual std::istream& getStream() = 0;
-  /** Generic error report */
-  static void reportError(const std::string&);
 };
 
 }  // namespace parser

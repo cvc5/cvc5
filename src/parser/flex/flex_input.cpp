@@ -17,6 +17,8 @@
 
 #include <fstream>
 
+#include "parser/parser_exception.h"
+
 namespace cvc5 {
 namespace parser {
 
@@ -30,8 +32,8 @@ class FlexFileInput : public FlexInput
     if (!d_fs.is_open())
     {
       std::stringstream ss;
-      ss << "Could not open file " << filename << " for reading.";
-      FlexInput::reportError(ss.str());
+      ss << "Couldn't open file: " << filename;
+      throw InputStreamException(ss.str());
     }
   }
   std::istream& getStream() override { return d_fs; }
@@ -68,11 +70,6 @@ std::unique_ptr<FlexInput> FlexInput::mkStringInput(const std::string& input)
 {
   // TODO
   return nullptr;
-}
-
-void FlexInput::reportError(const std::string&)
-{
-  // TODO
 }
 
 }  // namespace parser
