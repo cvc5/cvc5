@@ -42,7 +42,12 @@ Command* Smt2Parser::parseNextCommand()
 
 Term Smt2Parser::parseNextExpression()
 {
-  // TODO: check for EOF here and return null if so
+  // check for EOF here and return null if so
+  Token tok = d_slex.peekToken();
+  if (tok==Token::EOF_TOK)
+  {
+    return Term();
+  }
   return d_termParser.parseTerm();
 }
 
