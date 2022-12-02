@@ -624,13 +624,13 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::MATCH_CASE:
     {
       // ignore the binder for MATCH_BIND_CASE
-      size_t patIndex = (k==kind::MATCH_BIND_CASE ? 1 : 0);
+      size_t patIndex = (k == kind::MATCH_BIND_CASE ? 1 : 0);
       // The pattern should be printed as a pattern (symbol applied to symbols),
       // not as a term. In particular, this means we should not print any
       // type ascriptions (if any).
-      if (n[patIndex].getKind()==kind::APPLY_CONSTRUCTOR)
+      if (n[patIndex].getKind() == kind::APPLY_CONSTRUCTOR)
       {
-        if (n[patIndex].getNumChildren()>0)
+        if (n[patIndex].getNumChildren() > 0)
         {
           out << "(";
         }
@@ -643,7 +643,7 @@ void Smt2Printer::toStream(std::ostream& out,
           out << " ";
           toStream(out, nc, toDepth, lbind);
         }
-        if (n[patIndex].getNumChildren()>0)
+        if (n[patIndex].getNumChildren() > 0)
         {
           out << ")";
         }
@@ -651,11 +651,11 @@ void Smt2Printer::toStream(std::ostream& out,
       else
       {
         // otherwise, a variable, just print
-        Assert (n[patIndex].isVar());
+        Assert(n[patIndex].isVar());
         toStream(out, n[patIndex], toDepth, lbind);
       }
       out << " ";
-      toStream(out, n[patIndex+1], toDepth, lbind);
+      toStream(out, n[patIndex + 1], toDepth, lbind);
       out << ")";
     }
       return;
