@@ -66,8 +66,6 @@ class ParserStateCallback
  * This class encapsulates all of the state of a parser, including the
  * name of the file, line number and column information, and in-scope
  * declarations.
- *
- * This class is deprecated and used only for the ANTLR parser.
  */
 class CVC5_EXPORT ParserState
 {

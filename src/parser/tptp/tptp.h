@@ -35,8 +35,8 @@ namespace parser {
 
 class Command;
 
-/*
- * This class is deprecated and used only for the ANTLR parser.
+/**
+ * The state information when parsing TPTP inputs.
  */
 class TptpState : public ParserState
 {

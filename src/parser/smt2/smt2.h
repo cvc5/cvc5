@@ -34,7 +34,7 @@ namespace cvc5 {
 namespace parser {
 
 /*
- * This class is deprecated and used only for the ANTLR parser.
+ * The state information when parsing smt2 inputs.
  */
 class Smt2State : public ParserState
 {
