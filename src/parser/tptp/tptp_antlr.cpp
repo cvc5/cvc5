@@ -23,8 +23,7 @@ Tptp::Tptp(cvc5::Solver* solver, SymbolManager* sm, bool strictMode)
 {
 }
 
-Tptp::~Tptp() {
-}
+Tptp::~Tptp() {}
 ParserState* Tptp::getState() { return &d_state; }
 TptpState* Tptp::getTptpState() { return &d_state; }
 

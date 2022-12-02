@@ -69,21 +69,29 @@ Command* Parser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
   Command* cmd = NULL;
-  if (!d_commandQueue.empty()) {
+  if (!d_commandQueue.empty())
+  {
     cmd = d_commandQueue.front();
     d_commandQueue.pop_front();
     setDone(cmd == NULL);
-  } else {
-    try {
+  }
+  else
+  {
+    try
+    {
       cmd = d_input->parseCommand();
       d_commandQueue.push_back(cmd);
       cmd = d_commandQueue.front();
       d_commandQueue.pop_front();
       setDone(cmd == NULL);
-    } catch (ParserException& e) {
+    }
+    catch (ParserException& e)
+    {
       setDone();
       throw;
-    } catch (exception& e) {
+    }
+    catch (exception& e)
+    {
       setDone();
       parseError(e.what());
     }
@@ -96,14 +104,20 @@ cvc5::Term Parser::nextExpression()
 {
   Trace("parser") << "nextExpression()" << std::endl;
   cvc5::Term result;
-  if (!done()) {
-    try {
+  if (!done())
+  {
+    try
+    {
       result = d_input->parseExpr();
       setDone(result.isNull());
-    } catch (ParserException& e) {
+    }
+    catch (ParserException& e)
+    {
       setDone();
       throw;
-    } catch (exception& e) {
+    }
+    catch (exception& e)
+    {
       setDone();
       parseError(e.what());
     }

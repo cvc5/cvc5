@@ -31,8 +31,10 @@ namespace parser {
 /*
  * This class is deprecated and used only for the ANTLR parser.
  */
-class Tptp : public Parser {
+class Tptp : public Parser
+{
   friend class ParserBuilder;
+
  protected:
   Tptp(cvc5::Solver* solver, SymbolManager* sm, bool strictMode = false);
 
@@ -47,8 +49,7 @@ class Tptp : public Parser {
  private:
   /** The state */
   TptpState d_state;
-};/* class Tptp */
-
+}; /* class Tptp */
 
 namespace tptp {
 /**
@@ -63,7 +64,8 @@ struct myExpr : public cvc5::Term
   myExpr(const myExpr& e) : cvc5::Term(e) {}
 }; /* struct myExpr*/
 
-enum NonAssoc {
+enum NonAssoc
+{
   NA_IFF,
   NA_IMPLIES,
   NA_REVIMPLIES,

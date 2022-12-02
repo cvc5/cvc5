@@ -614,9 +614,7 @@ Term Smt2TermParser::parseSymbolicExpr()
     switch (tok)
     {
       // ------------------- open paren
-      case Token::LPAREN_TOK:
-      {
-        sstack.emplace_back(std::vector<Term>());
+      case Token::LPAREN_TOK: { sstack.emplace_back(std::vector<Term>());
       }
       break;
       // ------------------- close paren

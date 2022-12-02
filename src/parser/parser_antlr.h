@@ -28,8 +28,8 @@
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input.h"
 #include "parser/parse_op.h"
-#include "parser/parser_exception.h"
 #include "parser/parser.h"
+#include "parser/parser_exception.h"
 #include "parser/parser_utils.h"
 #include "symbol_table.h"
 
@@ -49,62 +49,61 @@ class Input;
 class CVC5_EXPORT Parser : public ParserStateCallback
 {
   friend class ParserBuilder;
-private:
 
- /** The input that we're parsing. */
- std::unique_ptr<Input> d_input;
+ private:
+  /** The input that we're parsing. */
+  std::unique_ptr<Input> d_input;
 
- /** Are we done */
- bool d_done;
- /**
-  * Can we include files?  (Set to false for security purposes in
-  * e.g. the online version.)
-  */
- bool d_canIncludeFile;
+  /** Are we done */
+  bool d_done;
+  /**
+   * Can we include files?  (Set to false for security purposes in
+   * e.g. the online version.)
+   */
+  bool d_canIncludeFile;
 
- /**
-  * "Preemption commands": extra commands implied by subterms that
-  * should be issued before the currently-being-parsed command is
-  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-  *
-  * Owns the memory of the Commands in the queue.
-  */
- std::list<Command*> d_commandQueue;
+  /**
+   * "Preemption commands": extra commands implied by subterms that
+   * should be issued before the currently-being-parsed command is
+   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   *
+   * Owns the memory of the Commands in the queue.
+   */
+  std::list<Command*> d_commandQueue;
 
- /** Memory allocation for included files */
- class IncludeFileCache;
- std::unique_ptr<IncludeFileCache> d_incCache;
+  /** Memory allocation for included files */
+  class IncludeFileCache;
+  std::unique_ptr<IncludeFileCache> d_incCache;
 
- /** Get the include file cache */
- IncludeFileCache* getIncludeFileCache();
+  /** Get the include file cache */
+  IncludeFileCache* getIncludeFileCache();
 
-protected:
+ protected:
+  /**
+   * Create a parser state.
+   *
+   * @attention The parser takes "ownership" of the given
+   * input and will delete it on destruction.
+   *
+   * @param solver solver API object
+   * @param symm reference to the symbol manager
+   * @param input the parser input
+   * @param strictMode whether to incorporate strict(er) compliance checks
+   */
+  Parser();
 
- /**
-  * Create a parser state.
-  *
-  * @attention The parser takes "ownership" of the given
-  * input and will delete it on destruction.
-  *
-  * @param solver solver API object
-  * @param symm reference to the symbol manager
-  * @param input the parser input
-  * @param strictMode whether to incorporate strict(er) compliance checks
-  */
- Parser();
+  /** Get the state */
+  virtual ParserState* getState() = 0;
 
- /** Get the state */
- virtual ParserState* getState() = 0;
-
-public:
-
+ public:
   virtual ~Parser();
 
   /** Get the associated input. */
   Input* getInput() const { return d_input.get(); }
 
   /** Deletes and replaces the current parser input. */
-  void setInput(Input* input)  {
+  void setInput(Input* input)
+  {
     d_input.reset(input);
     d_input->setParser(*this);
     d_done = false;
@@ -122,7 +121,8 @@ public:
   /** Enable semantic checks during parsing. */
   void enableChecks();
 
-  /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
+  /** Disable semantic checks during parsing. Disabling checks may lead to
+   * crashes on bad inputs. */
   void disableChecks();
 
   void allowIncludeFile() { d_canIncludeFile = true; }

@@ -31,6 +31,7 @@ namespace parser {
 class Smt2 : public Parser
 {
   friend class ParserBuilder;
+
  protected:
   Smt2(Solver* solver,
        SymbolManager* sm,

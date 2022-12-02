@@ -930,10 +930,7 @@ Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
   return d_allocGrammars.back().get();
 }
 
-bool Smt2State::sygus() const
-{
-  return d_isSygus;
-}
+bool Smt2State::sygus() const { return d_isSygus; }
 
 bool Smt2State::hasGrammars() const
 {
