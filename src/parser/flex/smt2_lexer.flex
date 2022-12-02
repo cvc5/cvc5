@@ -26,8 +26,8 @@ decimal     [0-9]+\.[0-9]+
 bitstr      #b[01]+
 hexstr      #x[0-9a-fA-F]+
 simple_symbol [a-zA-Z~!@\$%\^&\*+=<>\.\?/_-][a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]*
-quoted_symbol \|[^(\|)]*\|
-unterminated_quoted_symbol \|[^(\|)]*
+quoted_symbol \|[^\|\\]*\|
+unterminated_quoted_symbol \|[^\|\\]*
 
 %%
 
