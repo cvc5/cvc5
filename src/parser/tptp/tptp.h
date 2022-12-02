@@ -38,7 +38,8 @@ class Command;
 /*
  * This class is deprecated and used only for the ANTLR parser.
  */
-class TptpState : public ParserState {
+class TptpState : public ParserState
+{
  public:
   bool cnf() const { return d_cnf; }
   void setCnf(bool cnf) { d_cnf = cnf; }
@@ -87,10 +88,10 @@ class TptpState : public ParserState {
 
   bool hasConjecture() const { return d_hasConjecture; }
 
-  TptpState(ParserStateCallback *psc,
-       Solver* solver,
-       SymbolManager* sm,
-       bool strictMode = false);
+  TptpState(ParserStateCallback* psc,
+            Solver* solver,
+            SymbolManager* sm,
+            bool strictMode = false);
 
   ~TptpState();
   /**
@@ -215,7 +216,7 @@ class TptpState : public ParserState {
   bool d_cnf; // in a cnf formula
   bool d_fof; // in an fof formula
   bool d_hol;  // in a thf formula
-};/* class Tptp */
+};             /* class Tptp */
 
 }  // namespace parser
 }  // namespace cvc5

@@ -23,11 +23,11 @@
 namespace cvc5 {
 namespace parser {
 
-Smt2State::Smt2State(ParserStateCallback *psc,
+Smt2State::Smt2State(ParserStateCallback* psc,
                      Solver* solver,
-           SymbolManager* sm,
-           bool strictMode,
-           bool isSygus)
+                     SymbolManager* sm,
+                     bool strictMode,
+                     bool isSygus)
     : ParserState(psc, solver, sm, strictMode),
       d_isSygus(isSygus),
       d_logicSet(false),
@@ -37,7 +37,8 @@ Smt2State::Smt2State(ParserStateCallback *psc,
 
 Smt2State::~Smt2State() {}
 
-void Smt2State::addArithmeticOperators() {
+void Smt2State::addArithmeticOperators()
+{
   addOperator(cvc5::ADD, "+");
   addOperator(cvc5::SUB, "-");
   // cvc5::SUB is converted to cvc5::NEG if there is only a single operand
@@ -73,11 +74,10 @@ void Smt2State::addTranscendentalOperators()
   addOperator(cvc5::SQRT, "sqrt");
 }
 
-void Smt2State::addQuantifiersOperators()
-{
-}
+void Smt2State::addQuantifiersOperators() {}
 
-void Smt2State::addBitvectorOperators() {
+void Smt2State::addBitvectorOperators()
+{
   addOperator(cvc5::BITVECTOR_CONCAT, "concat");
   addOperator(cvc5::BITVECTOR_NOT, "bvnot");
   addOperator(cvc5::BITVECTOR_AND, "bvand");
@@ -150,7 +150,8 @@ void Smt2State::addDatatypesOperators()
   }
 }
 
-void Smt2State::addStringOperators() {
+void Smt2State::addStringOperators()
+{
   defineVar("re.all", getSolver()->mkRegexpAll());
   addOperator(cvc5::STRING_CONCAT, "str.++");
   addOperator(cvc5::STRING_LENGTH, "str.len");
@@ -210,7 +211,8 @@ void Smt2State::addStringOperators() {
   addOperator(cvc5::STRING_LEQ, "str.<=");
 }
 
-void Smt2State::addFloatingPointOperators() {
+void Smt2State::addFloatingPointOperators()
+{
   addOperator(cvc5::FLOATINGPOINT_FP, "fp");
   addOperator(cvc5::FLOATINGPOINT_EQ, "fp.eq");
   addOperator(cvc5::FLOATINGPOINT_ABS, "fp.abs");
@@ -253,7 +255,8 @@ void Smt2State::addFloatingPointOperators() {
   }
 }
 
-void Smt2State::addSepOperators() {
+void Smt2State::addSepOperators()
+{
   defineVar("sep.emp", d_solver->mkSepEmp());
   // the Boolean sort is a placeholder here since we don't have type info
   // without type annotation
@@ -309,7 +312,8 @@ cvc5::Kind Smt2State::getOperatorKind(const std::string& name) const
   return d_operatorKindMap.find(name)->second;
 }
 
-bool Smt2State::isOperatorEnabled(const std::string& name) const {
+bool Smt2State::isOperatorEnabled(const std::string& name) const
+{
   return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
@@ -390,11 +394,12 @@ bool Smt2State::isTheoryEnabled(internal::theory::TheoryId theory) const
 
 bool Smt2State::isHoEnabled() const { return d_logic.isHigherOrder(); }
 
-bool Smt2State::hasCardinalityConstraints() const { return d_logic.hasCardinalityConstraints(); }
-
-bool Smt2State::logicIsSet() {
-  return d_logicSet;
+bool Smt2State::hasCardinalityConstraints() const
+{
+  return d_logic.hasCardinalityConstraints();
 }
+
+bool Smt2State::logicIsSet() { return d_logicSet; }
 
 bool Smt2State::getTesterName(cvc5::Term cons, std::string& name)
 {
@@ -411,7 +416,7 @@ bool Smt2State::getTesterName(cvc5::Term cons, std::string& name)
 }
 
 cvc5::Term Smt2State::mkIndexedConstant(const std::string& name,
-                                   const std::vector<uint32_t>& numerals)
+                                        const std::vector<uint32_t>& numerals)
 {
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
   {
@@ -500,7 +505,8 @@ void Smt2State::pushDefineFunRecScope(
   bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
 }
 
-void Smt2State::reset() {
+void Smt2State::reset()
+{
   d_logicSet = false;
   d_seenSetLogic = false;
   d_logic = internal::LogicInfo();
@@ -798,7 +804,7 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 } /* Smt2State::setLogic() */
 
 cvc5::Grammar* Smt2State::mkGrammar(const std::vector<cvc5::Term>& boundVars,
-                               const std::vector<cvc5::Term>& ntSymbols)
+                                    const std::vector<cvc5::Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
       new cvc5::Grammar(d_solver->mkGrammar(boundVars, ntSymbols)));

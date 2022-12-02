@@ -61,11 +61,11 @@ class Smt2State : public ParserState
   std::vector<std::unique_ptr<cvc5::Grammar>> d_allocGrammars;
 
  public:
-  Smt2State(ParserStateCallback *psc,
+  Smt2State(ParserStateCallback* psc,
             Solver* solver,
-       SymbolManager* sm,
-       bool strictMode = false,
-       bool isSygus = false);
+            SymbolManager* sm,
+            bool strictMode = false,
+            bool isSygus = false);
 
   ~Smt2State();
 

@@ -28,10 +28,10 @@
 namespace cvc5 {
 namespace parser {
 
-TptpState::TptpState(ParserStateCallback *psc,
-           Solver* solver,
-           SymbolManager* sm,
-           bool strictMode)
+TptpState::TptpState(ParserStateCallback* psc,
+                     Solver* solver,
+                     SymbolManager* sm,
+                     bool strictMode)
     : ParserState(psc, solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
@@ -69,10 +69,10 @@ TptpState::TptpState(ParserStateCallback *psc,
   }
 }
 
-TptpState::~TptpState() {
-}
+TptpState::~TptpState() {}
 
-void TptpState::addTheory(Theory theory) {
+void TptpState::addTheory(Theory theory)
+{
   switch(theory) {
   case THEORY_CORE:
     //TPTP (CNF and FOF) is unsorted so we define this common type
@@ -104,9 +104,9 @@ void TptpState::addTheory(Theory theory) {
 }
 
 void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
-                           cvc5::Term lhs,
-                           cvc5::Term rhs,
-                           bool formula)
+                                cvc5::Term lhs,
+                                cvc5::Term rhs,
+                                bool formula)
 {
   if (lhs.getKind() != cvc5::APPLY_UF)
   {
