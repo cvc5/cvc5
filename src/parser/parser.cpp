@@ -155,7 +155,7 @@ cvc5::Sort Parser::getSort(const std::string& name)
   return t;
 }
 
-cvc5::Sort Parser::getSort(const std::string& name,
+cvc5::Sort Parser::getParametricSort(const std::string& name,
                            const std::vector<cvc5::Sort>& params)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
@@ -308,7 +308,7 @@ cvc5::Sort Parser::mkUnresolvedTypeConstructor(
   cvc5::Sort unresolved =
       d_solver->mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
-  cvc5::Sort t = getSort(name, params);
+  cvc5::Sort t = getParametricSort(name, params);
   return unresolved;
 }
 

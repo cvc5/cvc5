@@ -20,6 +20,7 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
+#include "util/floatingpoint_size.h"
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -1337,21 +1338,6 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                       << std::endl;
       return ret;
     }
-    if (kind == cvc5::CARDINALITY_CONSTRAINT)
-    {
-      if (args.size() != 2)
-      {
-        parseError("Incorrect arguments for cardinality constraint");
-      }
-      cvc5::Sort sort = args[0].getSort();
-      if (!sort.isUninterpretedSort())
-      {
-        parseError("Expected uninterpreted sort for cardinality constraint");
-      }
-      uint64_t ubound = args[1].getUInt32Value();
-      cvc5::Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
-      return ret;
-    }
     cvc5::Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
@@ -1399,6 +1385,124 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
                   << " #args = " << args.size() << "..." << std::endl;
   cvc5::Term ret = d_solver->mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
+  return ret;
+}
+
+
+Sort Smt2::getParametricSort(const std::string& name,
+                                  const std::vector<Sort>& args)
+{
+  if (args.empty())
+  {
+    parseError(
+        "Extra parentheses around sort name not "
+        "permitted in SMT-LIB");
+  }
+  // builtin parametric sorts are handled manually
+  Sort t;
+  if (name == "Array" && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
+  {
+    if (args.size() != 2)
+    {
+      parseError("Illegal array type.");
+    }
+    t = d_solver->mkArraySort(args[0], args[1]);
+  }
+  else if (name == "Set" && isTheoryEnabled(internal::theory::THEORY_SETS))
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal set type.");
+    }
+    t = d_solver->mkSetSort(args[0]);
+  }
+  else if (name == "Bag" && isTheoryEnabled(internal::theory::THEORY_BAGS))
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal bag type.");
+    }
+    t = d_solver->mkBagSort(args[0]);
+  }
+  else if (name == "Seq" && !strictModeEnabled()
+           && isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
+    if (args.size() != 1)
+    {
+      parseError("Illegal sequence type.");
+    }
+    t = d_solver->mkSequenceSort(args[0]);
+  }
+  else if (name == "Tuple" && !strictModeEnabled())
+  {
+    t = d_solver->mkTupleSort(args);
+  }
+  else if (name == "Relation" && !strictModeEnabled())
+  {
+    Sort tupleSort = d_solver->mkTupleSort(args);
+    t = d_solver->mkSetSort(tupleSort);
+  }
+  else if (name == "Table" && !strictModeEnabled())
+  {
+    Sort tupleSort = d_solver->mkTupleSort(args);
+    t = d_solver->mkBagSort(tupleSort);
+  }
+  else if (name == "->" && isHoEnabled())
+  {
+    if (args.size() < 2)
+    {
+      parseError("Arrow types must have at least 2 arguments");
+    }
+    // flatten the type
+    Sort rangeType = args.back();
+    std::vector<Sort> dargs(args.begin(), args.end() - 1);
+    t = mkFlatFunctionType(dargs, rangeType);
+  }
+  else
+  {
+    t = Parser::getParametricSort(name, args);
+  }
+  return t;
+}
+
+Sort Smt2::getIndexedSort(const std::string& name,
+                               const std::vector<uint32_t>& numerals)
+{
+  Sort ret;
+  if (name == "BitVec")
+  {
+    if (numerals.size() != 1)
+    {
+      parseError("Illegal bitvector type.");
+    }
+    if (numerals.front() == 0)
+    {
+      parseError("Illegal bitvector size: 0");
+    }
+    ret = d_solver->mkBitVectorSort(numerals.front());
+  }
+  else if (name == "FloatingPoint")
+  {
+    if (numerals.size() != 2)
+    {
+      parseError("Illegal floating-point type.");
+    }
+    if (!internal::validExponentSize(numerals[0]))
+    {
+      parseError("Illegal floating-point exponent size");
+    }
+    if (!internal::validSignificandSize(numerals[1]))
+    {
+      parseError("Illegal floating-point significand size");
+    }
+    ret = d_solver->mkFloatingPointSort(numerals[0], numerals[1]);
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << "unknown indexed sort symbol `" << name << "'";
+    parseError(ss.str());
+  }
   return ret;
 }
 
