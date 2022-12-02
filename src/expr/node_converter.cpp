@@ -23,7 +23,7 @@ namespace cvc5::internal {
 
 NodeConverter::NodeConverter(bool forceIdem) : d_forceIdem(forceIdem) {}
 
-Node NodeConverter::convert(Node n)
+Node NodeConverter::convert(Node n, bool preserveTypes)
 {
   if (n.isNull())
   {
@@ -54,6 +54,8 @@ Node NodeConverter::convert(Node n)
       {
         Trace("nconv-debug2")
             << "..pre-rewrite changed " << cur << " into " << curp << std::endl;
+        AlwaysAssert(!preserveTypes || cur.getType() == curp.getType())
+            << "Pre-converting " << cur << " to " << curp << " changes type";
         visit.push_back(cur);
         visit.push_back(curp);
       }
@@ -109,21 +111,33 @@ Node NodeConverter::convert(Node n)
           childChanged = childChanged || cn != it->second;
           children.push_back(it->second);
         }
-        if (childChanged)
+        if (preserveTypes)
         {
-          ret = nm->mkNode(ret.getKind(), children);
-          Trace("nconv-debug2") << "..from children changed " << cur << " into "
-                                << ret << std::endl;
+          if (childChanged)
+          {
+            ret = nm->mkNode(ret.getKind(), children);
+            Trace("nconv-debug2") << "..from children changed " << cur
+                                  << " into " << ret << std::endl;
+          }
+          // run the callback for the current application
+          Node cret = postConvert(ret);
+          if (!cret.isNull() && ret != cret)
+          {
+            AlwaysAssert(cret.getType() == ret.getType())
+                << "Converting " << ret << " to " << cret << " changes type";
+            Trace("nconv-debug2") << "..post-rewrite changed " << ret
+                                  << " into " << cret << std::endl;
+            ret = cret;
+          }
         }
-        // run the callback for the current application
-        Node cret = postConvert(ret);
-        if (!cret.isNull() && ret != cret)
+        else
         {
-          AlwaysAssert(cret.getType() == ret.getType())
-              << "Converting " << ret << " to " << cret << " changes type";
-          Trace("nconv-debug2") << "..post-rewrite changed " << ret << " into "
-                                << cret << std::endl;
-          ret = cret;
+          // use the untyped version
+          Node cret = postConvertUntyped(cur, children, childChanged);
+          if (!cret.isNull())
+          {
+            ret = cret;
+          }
         }
         addToCache(cur, ret);
       }
@@ -166,7 +180,6 @@ TypeNode NodeConverter::convertType(TypeNode tn)
       }
       else
       {
-        curp = curp.isNull() ? cur : curp;
         if (cur.getNumChildren() == 0)
         {
           TypeNode ret = postConvertType(cur);
@@ -250,6 +263,13 @@ void NodeConverter::addToTypeCache(TypeNode cur, TypeNode ret)
 
 Node NodeConverter::preConvert(Node n) { return Node::null(); }
 Node NodeConverter::postConvert(Node n) { return Node::null(); }
+
+Node NodeConverter::postConvertUntyped(Node orig,
+                                       const std::vector<Node>& terms,
+                                       bool termsChanged)
+{
+  return Node::null();
+}
 
 TypeNode NodeConverter::preConvertType(TypeNode tn) { return TypeNode::null(); }
 TypeNode NodeConverter::postConvertType(TypeNode tn)

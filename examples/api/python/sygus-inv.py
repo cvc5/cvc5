@@ -53,7 +53,7 @@ if __name__ == "__main__":
   post_f = slv.defineFun("post-f", [x], boolean, slv.mkTerm(Kind.LEQ, x, ten))
 
   # declare the invariant-to-synthesize
-  inv_f = slv.synthInv("inv-f", {x})
+  inv_f = slv.synthInv("inv-f", [x])
 
   slv.addSygusInvConstraint(inv_f, pre_f, trans_f, post_f)
 
