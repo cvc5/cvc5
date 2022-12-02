@@ -57,7 +57,9 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void requirePhase(TNode n, bool phase) override;
 
-  void setIncomplete(IncompleteId id) override;
+  void setModelUnsound(IncompleteId id) override;
+
+  void setRefutationUnsound(IncompleteId id) override;
 
   void spendResource(Resource r) override;
 

@@ -675,15 +675,17 @@ bool ArithVariables::inMaps(ArithVar x) const{
 ArithVariables::LowerBoundCleanUp::LowerBoundCleanUp(ArithVariables* pm)
   : d_pm(pm)
 {}
-void ArithVariables::LowerBoundCleanUp::operator()(AVCPair* p){
-  d_pm->popLowerBound(p);
+void ArithVariables::LowerBoundCleanUp::operator()(AVCPair& p)
+{
+  d_pm->popLowerBound(&p);
 }
 
 ArithVariables::UpperBoundCleanUp::UpperBoundCleanUp(ArithVariables* pm)
   : d_pm(pm)
 {}
-void ArithVariables::UpperBoundCleanUp::operator()(AVCPair* p){
-  d_pm->popUpperBound(p);
+void ArithVariables::UpperBoundCleanUp::operator()(AVCPair& p)
+{
+  d_pm->popUpperBound(&p);
 }
 
 }  // namespace arith

@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
-#define CVC4__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
+#define CVC5__PROOF__ALETHE__ALETHE_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
@@ -26,17 +26,30 @@ namespace proof {
 
 /**
  * This is a helper class for the Alethe post-processor that converts nodes into
- * form that Alethe expects.
+ * the form that Alethe expects.
  */
 class AletheNodeConverter : public NodeConverter
 {
  public:
-  AletheNodeConverter();
+  AletheNodeConverter() {}
   ~AletheNodeConverter() {}
-  /** Convert by removing attributes of quantifiers. */
+  /** convert at pre-order traversal */
+  Node preConvert(Node n) override;
+  /** convert at post-order traversal */
   Node postConvert(Node n) override;
-  /** Should only traverse nodes containing closures. */
-  bool shouldTraverse(Node n) override;
+
+ private:
+  /**
+   * Make or get an internal symbol with custom name and type.
+   */
+  Node mkInternalSymbol(const std::string& name, TypeNode tn);
+  /**
+   * As above but uses the s-expression type.
+   */
+  Node mkInternalSymbol(const std::string& name);
+
+  /** Maps from internally generated symbols to the built nodes. */
+  std::map<std::pair<TypeNode, std::string>, Node> d_symbolsMap;
 };
 
 }  // namespace proof

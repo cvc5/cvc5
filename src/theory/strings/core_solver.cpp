@@ -1754,7 +1754,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     // note we cannot convert looping word equations into regular expressions if
     // we are handling sequences, since there is no analog for regular
     // expressions over sequences currently
-    d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
+    d_im.setModelUnsound(IncompleteId::STRINGS_LOOP_SKIP);
     return ProcessLoopResult::SKIPPED;
   }
 
@@ -1900,7 +1900,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     else if (options().strings.stringProcessLoopMode
              == options::ProcessLoopMode::SIMPLE)
     {
-      d_im.setIncomplete(IncompleteId::STRINGS_LOOP_SKIP);
+      d_im.setModelUnsound(IncompleteId::STRINGS_LOOP_SKIP);
       return ProcessLoopResult::SKIPPED;
     }
 
@@ -2194,8 +2194,18 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
+          Node lenConstraint = nm->mkNode(GT, uxLen, uyLen);
+          Node lenConstraintr = rewrite(lenConstraint);
+          // If the length constraint rewrites to false, don't bother sending
+          // the lemma. If it rewrites to true, then we include it as a
+          // (trivial) antecedant for the sake of consistency (for proofs).
+          // It will be removed when the lemma is rewritten.
+          if (lenConstraintr.isConst() && !lenConstraintr.getConst<bool>())
+          {
+            continue;
+          }
           std::vector<Node> antecLen;
-          antecLen.push_back(nm->mkNode(GT, uxLen, uyLen));
+          antecLen.push_back(lenConstraint);
           d_im.sendInference(antecLen,
                              antecLen,
                              conc,

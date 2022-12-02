@@ -29,80 +29,21 @@
 #include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
+#include "parser/parser_utils.h"
 #include "symbol_table.h"
 
 namespace cvc5 {
-
-// Forward declarations
-class ResourceManager;
-
 namespace parser {
 
 class Command;
 class Input;
 
-/** Types of checks for the symbols */
-enum DeclarationCheck {
-  /** Enforce that the symbol has been declared */
-  CHECK_DECLARED,
-  /** Enforce that the symbol has not been declared */
-  CHECK_UNDECLARED,
-  /** Don't check anything */
-  CHECK_NONE
-};/* enum DeclarationCheck */
-
-/**
- * Returns a string representation of the given object (for
- * debugging).
- */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
-  switch(check) {
-  case CHECK_NONE:
-    return out << "CHECK_NONE";
-  case CHECK_DECLARED:
-    return out << "CHECK_DECLARED";
-  case CHECK_UNDECLARED:
-    return out << "CHECK_UNDECLARED";
-  default:
-    return out << "DeclarationCheck!UNKNOWN";
-  }
-}
-
-/**
- * Types of symbols. Used to define namespaces.
- */
-enum SymbolType {
-  /** Variables */
-  SYM_VARIABLE,
-  /** Sorts */
-  SYM_SORT,
-  /** Symbols that should be preserved verbatim */
-  SYM_VERBATIM
-};/* enum SymbolType */
-
-/**
- * Returns a string representation of the given object (for
- * debugging).
- */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type);
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
-  switch(type) {
-  case SYM_VARIABLE:
-    return out << "SYM_VARIABLE";
-  case SYM_SORT:
-    return out << "SYM_SORT";
-  case SYM_VERBATIM:
-    return out << "SYM_VERBATIM";
-  default:
-    return out << "SymbolType!UNKNOWN";
-  }
-}
-
 /**
  * This class encapsulates all of the state of a parser, including the
  * name of the file, line number and column information, and in-scope
  * declarations.
+ *
+ * This class is deprecated and used only for the ANTLR parser.
  */
 class CVC5_EXPORT Parser
 {
@@ -123,16 +64,6 @@ private:
   */
  internal::parser::SymbolTable* d_symtab;
 
- /**
-  * The level of the assertions in the declaration scope.  Things declared
-  * after this level are bindings from e.g. a let, a quantifier, or a
-  * lambda.
-  */
- size_t d_assertionLevel;
-
- /** How many anonymous functions we've created. */
- size_t d_anonymousFunctionCount;
-
  /** Are we done */
  bool d_done;
 
@@ -142,24 +73,11 @@ private:
  /** Are we parsing in strict mode? */
  bool d_strictMode;
 
- /** Are we only parsing? */
- bool d_parseOnly;
-
  /**
   * Can we include files?  (Set to false for security purposes in
   * e.g. the online version.)
   */
  bool d_canIncludeFile;
-
- /**
-  * Whether the logic has been forced with --force-logic.
-  */
- bool d_logicIsForced;
-
- /**
-  * The logic, if d_logicIsForced == true.
-  */
- std::string d_forcedLogic;
 
  /** The set of operators available in the current logic. */
  std::set<cvc5::Kind> d_logicOperators;
@@ -176,6 +94,12 @@ private:
   */
  std::list<Command*> d_commandQueue;
 
+ /** Memory allocation for included files */
+ class IncludeFileCache;
+ std::unique_ptr<IncludeFileCache> d_incCache;
+
+ /** Get the include file cache */
+ IncludeFileCache* getIncludeFileCache();
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
@@ -195,14 +119,10 @@ protected:
   * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
-  * @param parseOnly whether we are parsing only (and therefore certain checks
-  * need not be performed, like those about unimplemented features, @see
-  * unimplementedFeature())
   */
  Parser(cvc5::Solver* solver,
         SymbolManager* sm,
-        bool strictMode = false,
-        bool parseOnly = false);
+        bool strictMode = false);
 
 public:
 
@@ -254,14 +174,12 @@ public:
   void disallowIncludeFile() { d_canIncludeFile = false; }
   bool canIncludeFile() const { return d_canIncludeFile; }
 
+  const std::string& getForcedLogic() const;
+  bool logicIsForced() const;
+
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
-
-  virtual void forceLogic(const std::string& logic);
-
-  const std::string& getForcedLogic() const { return d_forcedLogic; }
-  bool logicIsForced() const { return d_logicIsForced; }
 
   /**
    * Gets the variable currently bound to name.
@@ -342,11 +260,6 @@ public:
                      const std::vector<cvc5::Sort>& params);
 
   /**
-   * Returns arity of a (parameterized) sort, given a name and args.
-   */
-  size_t getArity(const std::string& sort_name);
-
-  /**
    * Checks if a symbol has been declared.
    * @param name the symbol name
    * @param type the symbol type
@@ -389,18 +302,6 @@ public:
   cvc5::Term bindVar(const std::string& name,
                      const cvc5::Sort& type,
                      bool doOverload = false);
-
-  /**
-   * Create a set of new cvc5 variable expressions of the given type.
-   *
-   * For each name, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the
-   * new expression.
-   */
-  std::vector<cvc5::Term> bindVars(const std::vector<std::string> names,
-                                   const cvc5::Sort& type,
-                                   bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
@@ -617,17 +518,11 @@ public:
    */
   void preemptCommand(Command* cmd);
 
-  /** Is the symbol bound to a boolean variable? */
-  bool isBoolean(const std::string& name);
-
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
    * selector.
    */
   bool isFunctionLike(cvc5::Term fun);
-
-  /** Is the symbol bound to a predicate? */
-  bool isPredicate(const std::string& name);
 
   /** Parse and return the next command. */
   Command* nextCommand();
@@ -649,24 +544,11 @@ public:
   }
 
   /**
-   * If we are parsing only, don't raise an exception; if we are not,
-   * raise a parse error with the given message.  There is no actual
-   * parse error, everything is as expected, but we cannot create the
-   * Expr, Type, or other requested thing yet due to internal
-   * limitations.  Even though it's not a parse error, we throw a
-   * parse error so that the input line and column information is
-   * available.
-   *
-   * Think quantifiers.  We don't have a TheoryQuantifiers yet, so we
-   * have no kind::FORALL or kind::EXISTS.  But we might want to
-   * support parsing quantifiers (just not doing anything with them).
-   * So this mechanism gives you a way to do it with --parse-only.
+   * Raise a parse error with the given message.
    */
-  inline void unimplementedFeature(const std::string& msg)
+  void unimplementedFeature(const std::string& msg)
   {
-    if(!d_parseOnly) {
-      parseError("Unimplemented feature: " + msg);
-    }
+    parseError("Unimplemented feature: " + msg);
   }
 
   /**
@@ -728,15 +610,6 @@ public:
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
-  /**
-   * Make string constant
-   *
-   * This makes the string constant based on the string s. This may involve
-   * processing ad-hoc escape sequences (if the language is not
-   * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
-   * the string.
-   */
-  cvc5::Term mkStringConstant(const std::string& s);
 
   /**
    * Make string constant from a single character in hex representation
@@ -757,6 +630,16 @@ public:
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::wstring processAdHocStringEsc(const std::string& s);
+
+  /**
+   * Include smt2 file
+   */
+  void includeSmt2File(const std::string& filename);
+  /**
+   * Include tptp file
+   */
+  void includeTptpFile(const std::string& filename, const std::string& tptpDir);
+
 }; /* class Parser */
 
 }  // namespace parser

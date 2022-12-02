@@ -19,9 +19,7 @@
 #include "parser/input.h"
 
 #include "base/output.h"
-#include "parser/parser.h"
 #include "parser/parser_exception.h"
-
 
 using namespace std;
 using namespace cvc5;
@@ -29,10 +27,6 @@ using namespace cvc5::parser;
 
 namespace cvc5 {
 namespace parser {
-
-InputStreamException::InputStreamException(const std::string& msg) :
-  Exception(msg) {
-}
 
 const std::string InputStream::getName() const {
   return d_name;

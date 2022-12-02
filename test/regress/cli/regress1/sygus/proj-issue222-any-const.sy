@@ -1,0 +1,26 @@
+; COMMAND-LINE: --sygus-out=status --sygus-enum=smart --no-sygus-repair-const
+; EXPECT: fail
+(set-logic ALL)
+(define-fun clamp-int((x Int)) Int (ite (< 5 x) 5 (ite (< x 0) 0 x)))
+(synth-fun f 
+	((r Int)) Bool
+	((B Bool) (fv_I Int) (I Int) (IClamp Int) (IConst Int))
+	(
+		(B Bool ((Variable Bool) (> fv_I I)))
+		(fv_I Int (r IClamp))
+		(I Int (IClamp))
+		(IClamp Int ((clamp-int IConst)))
+		(IConst Int ((Constant Int)))
+	)
+)
+(synth-fun int_const
+	() Int 
+	((IConst Int))
+	(
+		(IConst Int ((Constant Int)))
+	)
+)
+(constraint (f 4))
+(constraint (not (f 1)))
+; currently does not solve, due to overpruning from smart enumeration, however it is feasible.
+(check-synth)

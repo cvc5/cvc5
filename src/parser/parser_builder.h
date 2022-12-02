@@ -60,9 +60,6 @@ class CVC5_EXPORT ParserBuilder
   /** Should we allow include-file commands? */
   bool d_canIncludeFile;
 
-  /** Are we parsing only? */
-  bool d_parseOnly;
-
   /** Is the logic forced by the user? */
   bool d_logicIsForced;
 
@@ -77,7 +74,7 @@ class CVC5_EXPORT ParserBuilder
   ParserBuilder(cvc5::Solver* solver, SymbolManager* sm, bool useOptions);
 
   /** Build the parser, using the current settings. */
-  Parser* build();
+  std::unique_ptr<Parser> build();
 
   /** Should semantic checks be enabled in the parser? (Default: yes) */
   ParserBuilder& withChecks(bool flag = true);
@@ -88,19 +85,6 @@ class CVC5_EXPORT ParserBuilder
    * (Default: LANG_AUTO)
    */
   ParserBuilder& withInputLanguage(const std::string& lang);
-
-  /**
-   * Are we only parsing, or doing something with the resulting
-   * commands and expressions?  This setting affects whether the
-   * parser will raise certain errors about unimplemented features,
-   * even if there isn't a parsing error, because the result of the
-   * parse would otherwise be an incorrect parse tree and the error
-   * would go undetected.  This is specifically for circumstances
-   * where the parser is ahead of the functionality present elsewhere
-   * in cvc5 (such as quantifiers, subtypes, records, etc. in the CVC
-   * language parser).
-   */
-  ParserBuilder& withParseOnly(bool flag = true);
 
   /** Derive settings from the solver's options. */
   ParserBuilder& withOptions();
