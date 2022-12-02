@@ -128,7 +128,7 @@ class TestParserBlackParser : public TestInternal
     {
       /* Use QF_LIA to make multiplication ("*") available */
       std::unique_ptr<Command> cmd(
-          static_cast<Smt2*>(parser.get())->setLogic("QF_LIA"));
+          static_cast<Smt2*>(parser.get())->getState()->setLogic("QF_LIA"));
     }
 
     ASSERT_FALSE(parser->done());
