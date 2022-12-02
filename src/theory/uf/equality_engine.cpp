@@ -1848,10 +1848,10 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
 }
 
 void EqualityEngine::contextNotifyPop()
-{ 
-  backtrack(); 
+{
+  backtrack();
   // ensure we haven't popped beyond the level we started
-  Assert(d_initLevel<=d_context->getLevel());
+  Assert(d_initLevel <= d_context->getLevel());
 }
 
 Node EqualityEngine::evaluateTerm(TNode node) {

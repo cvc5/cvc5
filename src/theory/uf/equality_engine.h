@@ -665,7 +665,7 @@ class EqualityEngine : public context::ContextNotifyObj, protected EnvObj
 
   /** Name of the equality engine */
   std::string d_name;
-  
+
   /** The initial context level (for debugging) */
   int d_initLevel;
 
