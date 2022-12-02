@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * ParserState state implementation.
+ * Parser state implementation.
  */
 
 #include "parser/parser.h"
