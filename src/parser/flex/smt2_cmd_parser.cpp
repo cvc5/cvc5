@@ -84,6 +84,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     break;
     case Token::CHECK_SAT_TOK:
     {
+      d_state.checkThatLogicIsSet();
       if (d_state.sygus())
       {
         d_lex.parseError("Sygus does not support check-sat command.");

@@ -529,7 +529,7 @@ Term Smt2TermParser::parseTerm()
             {
               // e.g. `:pattern (t1 ... tn)`, where we have parsed `:pattern (`
               d_lex.eatToken(Token::LPAREN_TOK);
-              // will parse list as arguments to the kind
+              // Will parse list as arguments to the kind + closing parenthesis.
               ParseOp op;
               op.d_kind = attrKind;
               tstack.emplace_back(op, std::vector<Term>());
