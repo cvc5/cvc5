@@ -69,8 +69,8 @@ unterminated_quoted_symbol \|[^\|\\]*
 "get-assignment"   return cvc5::parser::GET_ASSIGNMENT_TOK;
 "get-difficulty"   return cvc5::parser::GET_DIFFICULTY_TOK;
 "get-info"   return cvc5::parser::GET_INFO_TOK;
-"get-interpol-next"   return cvc5::parser::GET_INTERPOL_NEXT_TOK;
-"get-interpol"   return cvc5::parser::GET_INTERPOL_TOK;
+"get-interpolant-next"   return cvc5::parser::GET_INTERPOL_NEXT_TOK;
+"get-interpolant"   return cvc5::parser::GET_INTERPOL_TOK;
 "get-learned-literals"   return cvc5::parser::GET_LEARNED_LITERALS_TOK;
 "get-model"   return cvc5::parser::GET_MODEL_TOK;
 "get-option"   return cvc5::parser::GET_OPTION_TOK;

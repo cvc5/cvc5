@@ -539,7 +539,8 @@ Term Smt2TermParser::parseTerm()
             {
               // if we constructed a term as the attribute value, make into
               // an INST_ATTRIBUTE and add it to args
-              Term keyword = slv->mkString(key);
+              std::string keyName = key.substr(1);
+              Term keyword = slv->mkString(keyName);
               Term iattr = slv->mkTerm(INST_ATTRIBUTE, {keyword, attrValue});
               tstack.back().second.push_back(iattr);
               needsUpdateCtx = true;
