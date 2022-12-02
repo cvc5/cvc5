@@ -23,7 +23,7 @@
 #include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
-#include "smt2/smt2.h"
+#include "smt2/smt2_antlr.h"
 #include "tptp/tptp.h"
 
 namespace cvc5 {

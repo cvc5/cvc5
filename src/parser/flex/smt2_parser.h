@@ -23,7 +23,7 @@
 #include "parser/flex/smt2_cmd_parser.h"
 #include "parser/flex/smt2_lexer.h"
 #include "parser/flex/smt2_term_parser.h"
-#include "parser/smt2/smt2_state.h"
+#include "parser/smt2/smt2.h"
 
 namespace cvc5 {
 namespace parser {

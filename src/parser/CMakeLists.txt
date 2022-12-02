@@ -58,10 +58,10 @@ set(libcvc5parser_src_files
   parser_utils.h
   smt2/smt2.cpp
   smt2/smt2.h
+  smt2/smt2_antlr.cpp
+  smt2/smt2_antlr.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
-  smt2/smt2_state.cpp
-  smt2/smt2_state.h
   smt2/sygus_input.cpp
   smt2/sygus_input.h
   symbol_table.cpp

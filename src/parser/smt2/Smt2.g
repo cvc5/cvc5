@@ -62,7 +62,7 @@ options {
 }/* @lexer::includes */
 
 @lexer::postinclude {
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_antlr.h"
 #include "parser/antlr_input.h"
 
 using namespace cvc5;
@@ -104,7 +104,7 @@ class Sort;
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_antlr.h"
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 

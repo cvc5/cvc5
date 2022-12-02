@@ -20,7 +20,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "parser/flex/smt2_lexer.h"
-#include "parser/smt2/smt2_state.h"
+#include "parser/smt2/smt2.h"
 
 namespace cvc5 {
 namespace parser {
