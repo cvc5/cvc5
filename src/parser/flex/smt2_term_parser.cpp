@@ -35,18 +35,20 @@ namespace parser {
  * the current one.
  *
  * In each state, the stack contains a topmost ParseOp `op` and a list of
- * arguments `args`. The data in these depend on the context we are in,
- * as documented below.
+ * arguments `args`, which give a recipe for the term we are parsing. The data
+ * in these depend on the context we are in, as documented below.
  */
 enum class ParseCtx : uint32_t
 {
   /**
    * NEXT_ARG: in context (<op> <term>* <term>
+   * `op` specifies the operator we parsed.
    * `args` contain the accumulated list of arguments.
    */
   NEXT_ARG,
   /**
    * CLOSURE_NEXT_ARG: in context (<closure> <variable_list> <term>* <term>
+   * `op` specifies the (closure) operator we parsed.
    * `args` contain the variable list and the accumulated list of arguments.
    */
   CLOSURE_NEXT_ARG,
@@ -55,7 +57,7 @@ enum class ParseCtx : uint32_t
    *
    * LET_NEXT_BIND: in context (let (<binding>* (<symbol> <term>
    * `op` contains:
-   * d_name: the name of last bound variable.
+   * - d_name: the name of last bound variable.
    *
    * LET_BODY: in context (let (<binding>*) <term>
    */
@@ -68,8 +70,7 @@ enum class ParseCtx : uint32_t
    *
    * MATCH_NEXT_CASE: in context (match <term> (<case>* (<pattern> <term>
    * `op` contains:
-   * d_kind: set to MATCH.
-   * d_type: set to the type of the head.
+   * - d_type: set to the type of the head.
    * `args` contain the head term and the accumulated list of case terms.
    */
   MATCH_HEAD,
@@ -82,8 +83,8 @@ enum class ParseCtx : uint32_t
    * TERM_ANNOTATE_NEXT_ATTR: in context (! <term> <attr>* <keyword> <term_spec>
    * where notice that <term_spec> may be a term or a list of terms.
    * `op` contains:
-   * d_expr: the body of the term annotation.
-   * d_kind: the kind to apply to the current <term_spec> (if any).
+   * - d_expr: the body of the term annotation.
+   * - d_kind: the kind to apply to the current <term_spec> (if any).
    * `args` contain the accumulated patterns or quantifier attributes.
    */
   TERM_ANNOTATE_BODY,
@@ -97,18 +98,23 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 
 Term Smt2TermParser::parseTerm()
 {
+  // the last parsed term
   Term ret;
+  // a request was made to update the current parse context
   bool needsUpdateCtx = false;
+  // the last token we read
   Token tok;
+  // The stack(s) containing the parse context, and the recipe for the
+  // current we are building.
   std::vector<ParseCtx> xstack;
   std::vector<std::pair<ParseOp, std::vector<Term>>> tstack;
-  // let bindings, dynamically allocated;
+  // Let bindings, dynamically allocated for each let in scope.
   std::vector<std::vector<std::pair<std::string, Term>>> letBinders;
   Solver* slv = d_state.getSolver();
   do
   {
     Assert(tstack.size() == xstack.size());
-    // At this point, we are setup to parse the next term
+    // At this point, we are ready to parse the next term
     tok = d_lex.nextToken();
     Term currTerm;
     switch (tok)
@@ -173,11 +179,8 @@ Term Smt2TermParser::parseTerm()
           break;
           case Token::MATCH_TOK:
           {
-            // will be constructing a match term
-            ParseOp op;
-            op.d_kind = MATCH;
             xstack.emplace_back(ParseCtx::MATCH_HEAD);
-            tstack.emplace_back(op, std::vector<Term>());
+            tstack.emplace_back();
           }
           break;
           case Token::ATTRIBUTE_TOK:
@@ -428,8 +431,11 @@ Term Smt2TermParser::parseTerm()
           else
           {
             // Finished with match, now just wait for the closing right
-            // parenthesis. Clear the head sort.
-            tstack.back().first.d_type = Sort();
+            // parenthesis. Set the kind to construct as MATCH and clear the
+            // head sort.
+            ParseOp& op = tstack.back().first;
+            op.d_kind = MATCH;
+            op.d_type = Sort();
             xstack[xstack.size() - 1] = ParseCtx::NEXT_ARG;
           }
         }
