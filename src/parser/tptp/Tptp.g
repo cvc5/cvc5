@@ -62,7 +62,7 @@ options {
 
 @lexer::postinclude {
 
-#include "parser/tptp/tptp.h"
+#include "parser/tptp/tptp_antlr.h"
 #include "parser/antlr_input.h"
 
 using namespace cvc5;
@@ -89,7 +89,7 @@ using namespace cvc5::parser;
 #include "parser/api/cpp/command.h"
 #include "parser/parse_op.h"
 #include "parser/parser_antlr.h"
-#include "parser/tptp/tptp.h"
+#include "parser/tptp/tptp_antlr.h"
 
 }/* @parser::includes */
 
@@ -103,7 +103,7 @@ using namespace cvc5::parser;
 #include "base/output.h"
 #include "parser/antlr_input.h"
 #include "parser/parser_antlr.h"
-#include "parser/tptp/tptp.h"
+#include "parser/tptp/tptp_antlr.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;

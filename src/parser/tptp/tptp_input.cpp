@@ -25,7 +25,7 @@
 #include "parser/parser_exception.h"
 #include "parser/tptp/TptpLexer.h"
 #include "parser/tptp/TptpParser.h"
-#include "parser/tptp/tptp.h"
+#include "parser/tptp/tptp_antlr.h"
 
 namespace cvc5 {
 namespace parser {

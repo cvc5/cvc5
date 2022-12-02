@@ -24,7 +24,7 @@
 #include "parser/input.h"
 #include "parser/parser_antlr.h"
 #include "smt2/smt2_antlr.h"
-#include "tptp/tptp.h"
+#include "tptp/tptp_antlr.h"
 
 namespace cvc5 {
 namespace parser {

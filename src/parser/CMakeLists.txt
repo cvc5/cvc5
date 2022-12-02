@@ -68,10 +68,10 @@ set(libcvc5parser_src_files
   symbol_table.h
   tptp/tptp.cpp
   tptp/tptp.h
+  tptp/tptp_antlr.cpp
+  tptp/tptp_antlr.h
   tptp/tptp_input.cpp
   tptp/tptp_input.h
-  tptp/tptp_state.cpp
-  tptp/tptp_state.h
   flex/lexer.cpp
   flex/lexer.h
   flex/flex_input.cpp	
