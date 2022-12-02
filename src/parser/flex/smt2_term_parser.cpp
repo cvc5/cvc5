@@ -23,9 +23,9 @@
 namespace cvc5 {
 namespace parser {
 
-/** 
+/**
  * State when parsing terms
- * 
+ *
  * This is required for non-recursive parsing of terms. Note that in SMT-LIB,
  * terms generally are of the form (...anything not involving terms... <term>*)
  * However, let-terms, match-terms, and terms appearing within attributes
@@ -33,7 +33,7 @@ namespace parser {
  * Thus, in the main parsing loop in parseTerm below, we require tracking
  * the context we are in, which dictates how to setup parsing the term after
  * the current one.
- * 
+ *
  * In each state, the stack contains a topmost ParseOp `op` and a list of
  * arguments `args`. The data in these depend on the context we are in,
  * as documented below.
@@ -445,9 +445,10 @@ Term Smt2TermParser::parseTerm()
           needsUpdateCtx = true;
           // ensure there is at least one attribute
           tok = d_lex.peekToken();
-          if (tok==Token::RPAREN_TOK)
+          if (tok == Token::RPAREN_TOK)
           {
-            d_lex.parseError("Expecting at least one attribute for term annotation.");
+            d_lex.parseError(
+                "Expecting at least one attribute for term annotation.");
           }
         }
         break;
