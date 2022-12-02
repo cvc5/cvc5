@@ -109,10 +109,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   return result;
 }
 
-void SmtDriver::refreshAssertions()
-{
-  d_smt.refreshAssertions();
-}
+void SmtDriver::refreshAssertions() { d_smt.refreshAssertions(); }
 
 void SmtDriver::notifyPushPre()
 {
@@ -142,7 +139,6 @@ Result SmtDriverSingleCall::checkSatNext()
 }
 
 void SmtDriverSingleCall::getNextAssertions(Assertions& as) { Unreachable(); }
-
 
 }  // namespace smt
 }  // namespace cvc5::internal

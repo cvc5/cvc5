@@ -512,7 +512,7 @@ public:
  void unimplementedFeature(const std::string& msg)
  {
    parseError("Unimplemented feature: " + msg);
-  }
+ }
 
   /**
    * Gets the current declaration level.
