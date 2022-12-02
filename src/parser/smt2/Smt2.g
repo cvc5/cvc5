@@ -1414,6 +1414,8 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  * (2) A string name.
  * (3) An expression expr.
  * (4) A type t.
+ * (5) An operator
+ * (6) A list of indices.
  *
  * A qualified identifier is the generic case of function heads.
  * With respect to the standard definition (Section 3.6 of SMT-LIB version 2.6)
@@ -1430,13 +1432,11 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  * - For declared functions f, we return (2).
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
- * - For tuple selectors (_ tuple_select n) and updaters (_ tuple_update n), we
- * return (1) and (3). cvc5::Kind is set to APPLY_SELECTOR or APPLY_UPDATER
- * respectively, and expr is set to n, which is to be interpreted by the
- * caller as the n^th generic tuple selector or updater. We do this since there
- * is no AST expression representing generic tuple select, and we do not have
- * enough type information at this point to know the type of the tuple we will
- * be selecting from.
+ * - For floating-point conversion to_fp, tuple selectors (_ tuple_select n)
+ * and updaters (_ tuple_update n), we return (6). cvc5::Kind is set to
+ * UNDEFINED_KIND. We do this since there is no AST expression representing
+ * the generic version of these operators, and we do not have
+ * enough type information at this point to know the proper kind to use.
  *
  * (Ascripted Identifiers)
  *
@@ -1460,9 +1460,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  */
 qualIdentifier[cvc5::ParseOp& p]
 @init {
-  cvc5::Kind k;
-  std::string baseName;
-  cvc5::Term f;
   cvc5::Sort type;
 }
 : identifier[p]
@@ -1542,25 +1539,10 @@ identifier[cvc5::ParseOp& p]
         if (k == cvc5::UNDEFINED_KIND)
         {
           // We don't know which kind to use until we know the type of the
-          // arguments
+          // arguments. This case handles to_fp, tuple.select and tuple.update
           p.d_name = opName;
           p.d_indices = numerals;
           p.d_kind = cvc5::UNDEFINED_KIND;
-        }
-        else if (k == cvc5::APPLY_SELECTOR || k == cvc5::APPLY_UPDATER)
-        {
-          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
-          // for tuple selectors and updaters
-          if (numerals.size() != 1)
-          {
-            PARSER_STATE->parseError(
-                "Unexpected syntax for tuple selector or updater.");
-          }
-          // The operator is dependent upon inferring the type of the arguments,
-          // and hence the type is not available yet. Hence, we remember the
-          // index as a numeral in the parse operator.
-          p.d_kind = k;
-          p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
         else
         {
