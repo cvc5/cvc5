@@ -202,6 +202,10 @@ Term Smt2TermParser::parseTerm()
               d_state.pushScope();
               std::vector<std::pair<std::string, Sort>> sortedVarNames =
                   parseSortedVarList();
+              if (sortedVarNames.empty())
+              {
+                d_lex.parseError("Expected non-empty sorted variable list");
+              }
               std::vector<Term> vs = d_state.bindBoundVars(sortedVarNames);
               Term vl = slv->mkTerm(VARIABLE_LIST, vs);
               args.push_back(vl);
@@ -312,7 +316,7 @@ Term Smt2TermParser::parseTerm()
         // ------------------------- let terms
         case ParseCtx::LET_NEXT_BIND:
         {
-          // if we parsed a term
+          // if we parsed a term, process it as a binding
           if (!ret.isNull())
           {
             Assert(!letBinders.empty());
@@ -1037,6 +1041,10 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
       d_state.pushScope();
       std::vector<std::string> symList =
           parseSymbolList(CHECK_UNDECLARED, SYM_SORT);
+      if (symList.empty())
+      {
+        d_lex.parseError("Expected non-empty parameter list");
+      }
       for (const std::string& sym : symList)
       {
         params.push_back(d_state.mkSort(sym));
