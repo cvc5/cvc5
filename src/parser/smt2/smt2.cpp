@@ -873,65 +873,6 @@ void Smt2::checkLogicAllowsFunctions()
   }
 }
 
-/* The include are managed in the lexer but called in the parser */
-// Inspired by http://www.antlr3.org/api/C/interop.html
-
-static bool newInputStream(const std::string& filename, pANTLR3_LEXER lexer) {
-  Trace("parser") << "Including " << filename << std::endl;
-  // Create a new input stream and take advantage of built in stream stacking
-  // in C target runtime.
-  //
-  pANTLR3_INPUT_STREAM    in;
-#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
-  in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) filename.c_str());
-#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  in = antlr3FileStreamNew((pANTLR3_UINT8) filename.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  if( in == NULL ) {
-    Trace("parser") << "Can't open " << filename << std::endl;
-    return false;
-  }
-  // Same thing as the predefined PUSHSTREAM(in);
-  lexer->pushCharStream(lexer, in);
-  // restart it
-  //lexer->rec->state->tokenStartCharIndex      = -10;
-  //lexer->emit(lexer);
-
-  // Note that the input stream is not closed when it EOFs, I don't bother
-  // to do it here, but it is up to you to track streams created like this
-  // and destroy them when the whole parse session is complete. Remember that you
-  // don't want to do this until all tokens have been manipulated all the way through
-  // your tree parsers etc as the token does not store the text it just refers
-  // back to the input stream and trying to get the text for it will abort if you
-  // close the input stream too early.
-
-  //TODO what said before
-  return true;
-}
-
-void Smt2::includeFile(const std::string& filename) {
-  // security for online version
-  if(!canIncludeFile()) {
-    parseError("include-file feature was disabled for this run.");
-  }
-
-  // Get the lexer
-  AntlrInput* ai = static_cast<AntlrInput*>(getInput());
-  pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
-  // get the name of the current stream "Does it work inside an include?"
-  const std::string inputName = ai->getInputStreamName();
-
-  // Find the directory of the current input file
-  std::string path;
-  size_t pos = inputName.rfind('/');
-  if(pos != std::string::npos) {
-    path = std::string(inputName, 0, pos + 1);
-  }
-  path.append(filename);
-  if(!newInputStream(path, lexer)) {
-    parseError("Couldn't open include file `" + path + "'");
-  }
-}
 bool Smt2::isAbstractValue(const std::string& name)
 {
   return name.length() >= 2 && name[0] == '@' && name[1] != '0'

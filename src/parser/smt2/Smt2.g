@@ -163,7 +163,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
         PARSER_STATE->parseError("Extended commands are not permitted while "
                                  "operating in strict compliance mode.");
       }
-      PARSER_STATE->includeFile(name);
+      PARSER_STATE->includeSmt2File(name);
       // The command of the included file will be produced at the next
       // parseCommand() call
       cmd.reset(new EmptyCommand("include::" + name));
