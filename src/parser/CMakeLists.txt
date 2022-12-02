@@ -48,6 +48,8 @@ set(libcvc5parser_src_files
   parse_op.h
   parser.cpp
   parser.h
+  parser_antlr.cpp
+  parser_antlr.h
   parser_builder.cpp
   parser_builder.h
   parser_exception.h
@@ -55,6 +57,8 @@ set(libcvc5parser_src_files
   parser_utils.h
   smt2/smt2.cpp
   smt2/smt2.h
+  smt2/smt2_antlr.cpp
+  smt2/smt2_antlr.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
   smt2/sygus_input.cpp
@@ -63,6 +67,8 @@ set(libcvc5parser_src_files
   symbol_table.h
   tptp/tptp.cpp
   tptp/tptp.h
+  tptp/tptp_antlr.cpp
+  tptp/tptp_antlr.h
   tptp/tptp_input.cpp
   tptp/tptp_input.h
 )

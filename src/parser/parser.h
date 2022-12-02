@@ -39,20 +39,42 @@ class Command;
 class Input;
 
 /**
+ * Callback from the parser state to the parser, for command preemption
+ * and error handling.
+ */
+class ParserStateCallback
+{
+ public:
+  ParserStateCallback() {}
+  virtual ~ParserStateCallback() {}
+  /** Issue a warning to the user. */
+  virtual void warning(const std::string& msg) = 0;
+  /** Raise a parse error with the given message. */
+  virtual void parseError(const std::string& msg) = 0;
+  /** Unexpectedly encountered an EOF */
+  virtual void unexpectedEOF(const std::string& msg) = 0;
+  /**
+   * Preempt the next returned command with other ones; used to
+   * support the :named attribute in SMT-LIBv2, which implicitly
+   * inserts a new command before the current one. Also used in TPTP
+   * because function and predicate symbols are implicitly declared.
+   */
+  virtual void preemptCommand(Command* cmd) = 0;
+};
+
+/**
  * This class encapsulates all of the state of a parser, including the
  * name of the file, line number and column information, and in-scope
  * declarations.
  *
  * This class is deprecated and used only for the ANTLR parser.
  */
-class CVC5_EXPORT Parser
+class CVC5_EXPORT ParserState
 {
-  friend class ParserBuilder;
 private:
 
- /** The input that we're parsing. */
- std::unique_ptr<Input> d_input;
-
+  /** The callback */
+  ParserStateCallback* d_psc;
  /**
   * Reference to the symbol manager, which manages the symbol table used by
   * this parser.
@@ -64,20 +86,11 @@ private:
   */
  internal::parser::SymbolTable* d_symtab;
 
- /** Are we done */
- bool d_done;
-
  /** Are semantic checks enabled during parsing? */
  bool d_checksEnabled;
 
  /** Are we parsing in strict mode? */
  bool d_strictMode;
-
- /**
-  * Can we include files?  (Set to false for security purposes in
-  * e.g. the online version.)
-  */
- bool d_canIncludeFile;
 
  /** The set of operators available in the current logic. */
  std::set<cvc5::Kind> d_logicOperators;
@@ -85,21 +98,6 @@ private:
  /** The set of attributes already warned about. */
  std::set<std::string> d_attributesWarnedAbout;
 
- /**
-  * "Preemption commands": extra commands implied by subterms that
-  * should be issued before the currently-being-parsed command is
-  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-  *
-  * Owns the memory of the Commands in the queue.
-  */
- std::list<Command*> d_commandQueue;
-
- /** Memory allocation for included files */
- class IncludeFileCache;
- std::unique_ptr<IncludeFileCache> d_incCache;
-
- /** Get the include file cache */
- IncludeFileCache* getIncludeFileCache();
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
@@ -108,52 +106,29 @@ private:
 protected:
  /** The API Solver object. */
  cvc5::Solver* d_solver;
-
+public:
  /**
   * Create a parser state.
   *
   * @attention The parser takes "ownership" of the given
   * input and will delete it on destruction.
   *
+  * @param psc the callback to the parser
   * @param solver solver API object
   * @param symm reference to the symbol manager
   * @param input the parser input
   * @param strictMode whether to incorporate strict(er) compliance checks
   */
- Parser(cvc5::Solver* solver,
+ ParserState(ParserStateCallback *psc,
+             cvc5::Solver* solver,
         SymbolManager* sm,
         bool strictMode = false);
 
-public:
 
-  virtual ~Parser();
+  virtual ~ParserState();
 
   /** Get the associated solver. */
   cvc5::Solver* getSolver() const;
-
-  /** Get the associated input. */
-  Input* getInput() const { return d_input.get(); }
-
-  /** Deletes and replaces the current parser input. */
-  void setInput(Input* input)  {
-    d_input.reset(input);
-    d_input->setParser(*this);
-    d_done = false;
-  }
-
-  /**
-   * Check if we are done -- either the end of input has been reached, or some
-   * error has been encountered.
-   * @return true if parser is done
-   */
-  inline bool done() const {
-    return d_done;
-  }
-
-  /** Sets the done flag */
-  inline void setDone(bool done = true) {
-    d_done = done;
-  }
 
   /** Enable semantic checks during parsing. */
   void enableChecks() { d_checksEnabled = true; }
@@ -169,10 +144,6 @@ public:
   void disableStrictMode() { d_strictMode = false; }
 
   bool strictModeEnabled() { return d_strictMode; }
-
-  void allowIncludeFile() { d_canIncludeFile = true; }
-  void disallowIncludeFile() { d_canIncludeFile = false; }
-  bool canIncludeFile() const { return d_canIncludeFile; }
 
   const std::string& getForcedLogic() const;
   bool logicIsForced() const;
@@ -510,13 +481,6 @@ public:
    */
   void addOperator(cvc5::Kind kind);
 
-  /**
-   * Preempt the next returned command with other ones; used to
-   * support the :named attribute in SMT-LIBv2, which implicitly
-   * inserts a new command before the current one. Also used in TPTP
-   * because function and predicate symbols are implicitly declared.
-   */
-  void preemptCommand(Command* cmd);
 
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
@@ -524,24 +488,22 @@ public:
    */
   bool isFunctionLike(cvc5::Term fun);
 
-  /** Parse and return the next command. */
-  Command* nextCommand();
-
-  /** Parse and return the next expression. */
-  cvc5::Term nextExpression();
-
-  /** Issue a warning to the user. */
-  void warning(const std::string& msg) { d_input->warning(msg); }
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
-
+  
+  /** Issue a warning to the user. */
+  void warning(const std::string& msg);
   /** Raise a parse error with the given message. */
-  inline void parseError(const std::string& msg) { d_input->parseError(msg); }
+  void parseError(const std::string& msg);
   /** Unexpectedly encountered an EOF */
-  inline void unexpectedEOF(const std::string& msg)
-  {
-    d_input->parseError(msg, true);
-  }
+  void unexpectedEOF(const std::string& msg);
+  /**
+   * Preempt the next returned command with other ones; used to
+   * support the :named attribute in SMT-LIBv2, which implicitly
+   * inserts a new command before the current one. Also used in TPTP
+   * because function and predicate symbols are implicitly declared.
+   */
+  void preemptCommand(Command* cmd);
 
   /**
    * Raise a parse error with the given message.

@@ -17,37 +17,31 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "parser/antlr_input.h"
-#include "parser/parser.h"
-#include "parser/smt2/smt2_input.h"
-
-// ANTLR defines these, which is really bad!
-#undef true
-#undef false
-// ANTLR pulls in arpa/nameser_compat.h which defines this (again, bad!)
-#undef ADD
+#include "base/output.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 namespace parser {
 
-Smt2::Smt2(cvc5::Solver* solver,
+Smt2State::Smt2State(ParserStateCallback *psc,
+                     Solver* solver,
            SymbolManager* sm,
            bool strictMode,
            bool isSygus)
-    : Parser(solver, sm, strictMode),
+    : ParserState(psc, solver, sm, strictMode),
       d_isSygus(isSygus),
       d_logicSet(false),
       d_seenSetLogic(false)
 {
 }
 
-Smt2::~Smt2() {}
+Smt2State::~Smt2State() {}
 
-void Smt2::addArithmeticOperators() {
+void Smt2State::addArithmeticOperators() {
   addOperator(cvc5::ADD, "+");
   addOperator(cvc5::SUB, "-");
   // cvc5::SUB is converted to cvc5::NEG if there is only a single operand
-  Parser::addOperator(cvc5::NEG);
+  ParserState::addOperator(cvc5::NEG);
   addOperator(cvc5::MULT, "*");
   addOperator(cvc5::LT, "<");
   addOperator(cvc5::LEQ, "<=");
@@ -61,7 +55,7 @@ void Smt2::addArithmeticOperators() {
   }
 }
 
-void Smt2::addTranscendentalOperators()
+void Smt2State::addTranscendentalOperators()
 {
   addOperator(cvc5::EXPONENTIAL, "exp");
   addOperator(cvc5::SINE, "sin");
@@ -79,11 +73,11 @@ void Smt2::addTranscendentalOperators()
   addOperator(cvc5::SQRT, "sqrt");
 }
 
-void Smt2::addQuantifiersOperators()
+void Smt2State::addQuantifiersOperators()
 {
 }
 
-void Smt2::addBitvectorOperators() {
+void Smt2State::addBitvectorOperators() {
   addOperator(cvc5::BITVECTOR_CONCAT, "concat");
   addOperator(cvc5::BITVECTOR_NOT, "bvnot");
   addOperator(cvc5::BITVECTOR_AND, "bvand");
@@ -131,15 +125,15 @@ void Smt2::addBitvectorOperators() {
   addIndexedOperator(cvc5::BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
-void Smt2::addDatatypesOperators()
+void Smt2State::addDatatypesOperators()
 {
-  Parser::addOperator(cvc5::APPLY_CONSTRUCTOR);
-  Parser::addOperator(cvc5::APPLY_TESTER);
-  Parser::addOperator(cvc5::APPLY_SELECTOR);
+  ParserState::addOperator(cvc5::APPLY_CONSTRUCTOR);
+  ParserState::addOperator(cvc5::APPLY_TESTER);
+  ParserState::addOperator(cvc5::APPLY_SELECTOR);
 
   if (!strictModeEnabled())
   {
-    Parser::addOperator(cvc5::APPLY_UPDATER);
+    ParserState::addOperator(cvc5::APPLY_UPDATER);
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(cvc5::TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(cvc5::TUPLE_PROJECT, "tuple.project");
@@ -156,7 +150,7 @@ void Smt2::addDatatypesOperators()
   }
 }
 
-void Smt2::addStringOperators() {
+void Smt2State::addStringOperators() {
   defineVar("re.all", getSolver()->mkRegexpAll());
   addOperator(cvc5::STRING_CONCAT, "str.++");
   addOperator(cvc5::STRING_LENGTH, "str.len");
@@ -216,7 +210,7 @@ void Smt2::addStringOperators() {
   addOperator(cvc5::STRING_LEQ, "str.<=");
 }
 
-void Smt2::addFloatingPointOperators() {
+void Smt2State::addFloatingPointOperators() {
   addOperator(cvc5::FLOATINGPOINT_FP, "fp");
   addOperator(cvc5::FLOATINGPOINT_EQ, "fp.eq");
   addOperator(cvc5::FLOATINGPOINT_ABS, "fp.abs");
@@ -259,7 +253,7 @@ void Smt2::addFloatingPointOperators() {
   }
 }
 
-void Smt2::addSepOperators() {
+void Smt2State::addSepOperators() {
   defineVar("sep.emp", d_solver->mkSepEmp());
   // the Boolean sort is a placeholder here since we don't have type info
   // without type annotation
@@ -267,12 +261,12 @@ void Smt2::addSepOperators() {
   addOperator(cvc5::SEP_STAR, "sep");
   addOperator(cvc5::SEP_PTO, "pto");
   addOperator(cvc5::SEP_WAND, "wand");
-  Parser::addOperator(cvc5::SEP_STAR);
-  Parser::addOperator(cvc5::SEP_PTO);
-  Parser::addOperator(cvc5::SEP_WAND);
+  ParserState::addOperator(cvc5::SEP_STAR);
+  ParserState::addOperator(cvc5::SEP_PTO);
+  ParserState::addOperator(cvc5::SEP_WAND);
 }
 
-void Smt2::addCoreSymbols()
+void Smt2State::addCoreSymbols()
 {
   defineType("Bool", d_solver->getBooleanSort(), true);
   Sort tupleSort = d_solver->mkTupleSort({});
@@ -290,36 +284,36 @@ void Smt2::addCoreSymbols()
   addOperator(cvc5::XOR, "xor");
 }
 
-void Smt2::addOperator(cvc5::Kind kind, const std::string& name)
+void Smt2State::addOperator(cvc5::Kind kind, const std::string& name)
 {
-  Trace("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
+  Trace("parser") << "Smt2State::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
-  Parser::addOperator(kind);
+  ParserState::addOperator(kind);
   d_operatorKindMap[name] = kind;
 }
 
-void Smt2::addIndexedOperator(cvc5::Kind tKind, const std::string& name)
+void Smt2State::addIndexedOperator(cvc5::Kind tKind, const std::string& name)
 {
-  Parser::addOperator(tKind);
+  ParserState::addOperator(tKind);
   d_indexedOpKindMap[name] = tKind;
 }
 
-bool Smt2::isIndexedOperatorEnabled(const std::string& name) const
+bool Smt2State::isIndexedOperatorEnabled(const std::string& name) const
 {
   return d_indexedOpKindMap.find(name) != d_indexedOpKindMap.end();
 }
 
-cvc5::Kind Smt2::getOperatorKind(const std::string& name) const
+cvc5::Kind Smt2State::getOperatorKind(const std::string& name) const
 {
   // precondition: isOperatorEnabled(name)
   return d_operatorKindMap.find(name)->second;
 }
 
-bool Smt2::isOperatorEnabled(const std::string& name) const {
+bool Smt2State::isOperatorEnabled(const std::string& name) const {
   return d_operatorKindMap.find(name) != d_operatorKindMap.end();
 }
 
-modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
+modes::BlockModelsMode Smt2State::getBlockModelsMode(const std::string& mode)
 {
   if (mode == "literals")
   {
@@ -333,7 +327,7 @@ modes::BlockModelsMode Smt2::getBlockModelsMode(const std::string& mode)
   return modes::BlockModelsMode::LITERALS;
 }
 
-modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
+modes::LearnedLitType Smt2State::getLearnedLitType(const std::string& mode)
 {
   if (mode == "preprocess_solved")
   {
@@ -363,7 +357,7 @@ modes::LearnedLitType Smt2::getLearnedLitType(const std::string& mode)
   return modes::LEARNED_LIT_UNKNOWN;
 }
 
-modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
+modes::ProofComponent Smt2State::getProofComponent(const std::string& pc)
 {
   if (pc == "raw_preprocess")
   {
@@ -389,20 +383,20 @@ modes::ProofComponent Smt2::getProofComponent(const std::string& pc)
   return modes::ProofComponent::PROOF_COMPONENT_FULL;
 }
 
-bool Smt2::isTheoryEnabled(internal::theory::TheoryId theory) const
+bool Smt2State::isTheoryEnabled(internal::theory::TheoryId theory) const
 {
   return d_logic.isTheoryEnabled(theory);
 }
 
-bool Smt2::isHoEnabled() const { return d_logic.isHigherOrder(); }
+bool Smt2State::isHoEnabled() const { return d_logic.isHigherOrder(); }
 
-bool Smt2::hasCardinalityConstraints() const { return d_logic.hasCardinalityConstraints(); }
+bool Smt2State::hasCardinalityConstraints() const { return d_logic.hasCardinalityConstraints(); }
 
-bool Smt2::logicIsSet() {
+bool Smt2State::logicIsSet() {
   return d_logicSet;
 }
 
-bool Smt2::getTesterName(cvc5::Term cons, std::string& name)
+bool Smt2State::getTesterName(cvc5::Term cons, std::string& name)
 {
   if (strictModeEnabled())
   {
@@ -416,7 +410,7 @@ bool Smt2::getTesterName(cvc5::Term cons, std::string& name)
   return true;
 }
 
-cvc5::Term Smt2::mkIndexedConstant(const std::string& name,
+cvc5::Term Smt2State::mkIndexedConstant(const std::string& name,
                                    const std::vector<uint32_t>& numerals)
 {
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FP))
@@ -456,7 +450,7 @@ cvc5::Term Smt2::mkIndexedConstant(const std::string& name,
   return cvc5::Term();
 }
 
-cvc5::Kind Smt2::getIndexedOpKind(const std::string& name)
+cvc5::Kind Smt2State::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())
@@ -467,7 +461,7 @@ cvc5::Kind Smt2::getIndexedOpKind(const std::string& name)
   return cvc5::UNDEFINED_KIND;
 }
 
-cvc5::Term Smt2::bindDefineFunRec(
+cvc5::Term Smt2State::bindDefineFunRec(
     const std::string& fname,
     const std::vector<std::pair<std::string, cvc5::Sort>>& sortedVarNames,
     cvc5::Sort t,
@@ -487,7 +481,7 @@ cvc5::Term Smt2::bindDefineFunRec(
   return bindVar(fname, ft, true);
 }
 
-void Smt2::pushDefineFunRecScope(
+void Smt2State::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, cvc5::Sort>>& sortedVarNames,
     cvc5::Term func,
     const std::vector<cvc5::Term>& flattenVars,
@@ -506,7 +500,7 @@ void Smt2::pushDefineFunRecScope(
   bvs.insert(bvs.end(), flattenVars.begin(), flattenVars.end());
 }
 
-void Smt2::reset() {
+void Smt2State::reset() {
   d_logicSet = false;
   d_seenSetLogic = false;
   d_logic = internal::LogicInfo();
@@ -514,7 +508,7 @@ void Smt2::reset() {
   d_lastNamedTerm = std::pair<cvc5::Term, std::string>();
 }
 
-std::unique_ptr<Command> Smt2::invConstraint(
+std::unique_ptr<Command> Smt2State::invConstraint(
     const std::vector<std::string>& names)
 {
   checkThatLogicIsSet();
@@ -544,7 +538,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
   return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
 }
 
-Command* Smt2::setLogic(std::string name, bool fromCommand)
+Command* Smt2State::setLogic(std::string name, bool fromCommand)
 {
   if (fromCommand)
   {
@@ -578,7 +572,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_UF))
   {
-    Parser::addOperator(cvc5::APPLY_UF);
+    ParserState::addOperator(cvc5::APPLY_UF);
   }
 
   if (d_logic.isHigherOrder())
@@ -801,9 +795,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
   Command* cmd = new SetBenchmarkLogicCommand(logic);
   return cmd;
-} /* Smt2::setLogic() */
+} /* Smt2State::setLogic() */
 
-cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
+cvc5::Grammar* Smt2State::mkGrammar(const std::vector<cvc5::Term>& boundVars,
                                const std::vector<cvc5::Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
@@ -811,15 +805,15 @@ cvc5::Grammar* Smt2::mkGrammar(const std::vector<cvc5::Term>& boundVars,
   return d_allocGrammars.back().get();
 }
 
-bool Smt2::sygus() const { return d_isSygus; }
+bool Smt2State::sygus() const { return d_isSygus; }
 
-bool Smt2::hasGrammars() const
+bool Smt2State::hasGrammars() const
 {
   return sygus() || d_solver->getOption("produce-abducts") == "true"
          || d_solver->getOption("produce-interpolants") == "true";
 }
 
-void Smt2::checkThatLogicIsSet()
+void Smt2State::checkThatLogicIsSet()
 {
   if (!logicIsSet())
   {
@@ -849,7 +843,7 @@ void Smt2::checkThatLogicIsSet()
   }
 }
 
-void Smt2::checkLogicAllowsFreeSorts()
+void Smt2State::checkLogicAllowsFreeSorts()
 {
   if (!d_logic.isTheoryEnabled(internal::theory::THEORY_UF)
       && !d_logic.isTheoryEnabled(internal::theory::THEORY_ARRAYS)
@@ -861,7 +855,7 @@ void Smt2::checkLogicAllowsFreeSorts()
   }
 }
 
-void Smt2::checkLogicAllowsFunctions()
+void Smt2State::checkLogicAllowsFunctions()
 {
   if (!d_logic.isTheoryEnabled(internal::theory::THEORY_UF) && !isHoEnabled())
   {
@@ -873,13 +867,13 @@ void Smt2::checkLogicAllowsFunctions()
   }
 }
 
-bool Smt2::isAbstractValue(const std::string& name)
+bool Smt2State::isAbstractValue(const std::string& name)
 {
   return name.length() >= 2 && name[0] == '@' && name[1] != '0'
          && name.find_first_not_of("0123456789", 1) == std::string::npos;
 }
 
-cvc5::Term Smt2::mkRealOrIntFromNumeral(const std::string& str)
+cvc5::Term Smt2State::mkRealOrIntFromNumeral(const std::string& str)
 {
   // if arithmetic is enabled, and integers are disabled
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH)
@@ -890,7 +884,7 @@ cvc5::Term Smt2::mkRealOrIntFromNumeral(const std::string& str)
   return d_solver->mkInteger(str);
 }
 
-void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
+void Smt2State::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
 {
   Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
@@ -936,7 +930,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
   p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
-cvc5::Term Smt2::parseOpToExpr(ParseOp& p)
+cvc5::Term Smt2State::parseOpToExpr(ParseOp& p)
 {
   Trace("parser") << "parseOpToExpr: " << p << std::endl;
   cvc5::Term expr;
@@ -963,7 +957,7 @@ cvc5::Term Smt2::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
+cvc5::Term Smt2State::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
@@ -1343,7 +1337,7 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return ret;
 }
 
-std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
+std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
 {
   checkThatLogicIsSet();
 
@@ -1365,7 +1359,7 @@ std::unique_ptr<Command> Smt2::handlePush(std::optional<uint32_t> nscopes)
   return std::make_unique<PushCommand>(*nscopes);
 }
 
-std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
+std::unique_ptr<Command> Smt2State::handlePop(std::optional<uint32_t> nscopes)
 {
   checkThatLogicIsSet();
 
@@ -1387,7 +1381,7 @@ std::unique_ptr<Command> Smt2::handlePop(std::optional<uint32_t> nscopes)
   return std::make_unique<PopCommand>(*nscopes);
 }
 
-void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
+void Smt2State::notifyNamedExpression(cvc5::Term& expr, std::string name)
 {
   checkUserSymbol(name);
   // remember the expression name in the symbol manager
@@ -1415,7 +1409,7 @@ void Smt2::notifyNamedExpression(cvc5::Term& expr, std::string name)
   setLastNamedTerm(expr, name);
 }
 
-cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
+cvc5::Term Smt2State::mkAnd(const std::vector<cvc5::Term>& es) const
 {
   if (es.size() == 0)
   {
@@ -1428,7 +1422,7 @@ cvc5::Term Smt2::mkAnd(const std::vector<cvc5::Term>& es) const
   return d_solver->mkTerm(cvc5::AND, es);
 }
 
-bool Smt2::isConstInt(const cvc5::Term& t)
+bool Smt2State::isConstInt(const cvc5::Term& t)
 {
   return t.getKind() == cvc5::CONST_INTEGER;
 }
