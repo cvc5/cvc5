@@ -23,29 +23,41 @@
 namespace cvc5 {
 namespace parser {
 
-/** State when parsing terms */
+/** 
+ * State when parsing terms
+ * 
+ * This is required for non-recursive parsing of terms. Note that in SMT-LIB,
+ * terms generally are of the form (...anything not involving terms... <term>*)
+ * However, let-terms, match-terms, and terms appearing within attributes
+ * for term annotations (e.g. quantifier patterns) are exceptions to this.
+ * Thus, in the main parsing loop in parseTerm below, we require tracking
+ * the context we are in, which dictates how to setup parsing the term after
+ * the current one.
+ * 
+ * In each state, the stack contains a topmost ParseOp `op` and a list of
+ * arguments `args`. The data in these depend on the context we are in,
+ * as documented below.
+ */
 enum class ParseCtx : uint32_t
 {
   /**
    * NEXT_ARG: in context (<op> <term>* <term>
-   *
-   * Arguments contain the accumulated list of arguments
+   * `args` contain the accumulated list of arguments.
    */
   NEXT_ARG,
   /**
    * CLOSURE_NEXT_ARG: in context (<closure> <variable_list> <term>* <term>
-   *
-   * Arguments contain the variable list and the accumulated list of arguments
+   * `args` contain the variable list and the accumulated list of arguments.
    */
   CLOSURE_NEXT_ARG,
   /**
    * Let bindings
    *
    * LET_NEXT_BIND: in context (let (<binding>* (<symbol> <term>
-   * LET_BODY: in context (let (<binding>*) <term>
+   * `op` contains:
+   * d_name: the name of last bound variable.
    *
-   * ParseOp contains:
-   * d_name: the name of last bound variable
+   * LET_BODY: in context (let (<binding>*) <term>
    */
   LET_NEXT_BIND,
   LET_BODY,
@@ -53,11 +65,12 @@ enum class ParseCtx : uint32_t
    * Match terms
    *
    * MATCH_HEAD: in context (match <term>
-   * MATCH_NEXT_CASE: in context (match <term> (<case>* (<pattern> <term>
    *
-   * ParseOp contains:
-   * d_kind: set to MATCH
-   * d_type: set to the type of the head
+   * MATCH_NEXT_CASE: in context (match <term> (<case>* (<pattern> <term>
+   * `op` contains:
+   * d_kind: set to MATCH.
+   * d_type: set to the type of the head.
+   * `args` contain the head term and the accumulated list of case terms.
    */
   MATCH_HEAD,
   MATCH_NEXT_CASE,
@@ -65,13 +78,13 @@ enum class ParseCtx : uint32_t
    * Term annotations
    *
    * TERM_ANNOTATE_BODY: in context (! <term>
+   *
    * TERM_ANNOTATE_NEXT_ATTR: in context (! <term> <attr>* <keyword> <term_spec>
    * where notice that <term_spec> may be a term or a list of terms.
-   *
-   * ParseOp contains:
-   * d_expr: the body of the term annotation
+   * `op` contains:
+   * d_expr: the body of the term annotation.
    * d_kind: the kind to apply to the current <term_spec> (if any).
-   * Arguments contain the accumulated patterns or quantifier attributes
+   * `args` contain the accumulated patterns or quantifier attributes.
    */
   TERM_ANNOTATE_BODY,
   TERM_ANNOTATE_NEXT_ATTR
@@ -430,6 +443,12 @@ Term Smt2TermParser::parseTerm()
           // now parse attribute list
           xstack[xstack.size() - 1] = ParseCtx::TERM_ANNOTATE_NEXT_ATTR;
           needsUpdateCtx = true;
+          // ensure there is at least one attribute
+          tok = d_lex.peekToken();
+          if (tok==Token::RPAREN_TOK)
+          {
+            d_lex.parseError("Expecting at least one attribute for term annotation.");
+          }
         }
         break;
         case ParseCtx::TERM_ANNOTATE_NEXT_ATTR:
@@ -577,7 +596,6 @@ Term Smt2TermParser::parseTerm()
               tstack.back().second.push_back(ipl);
               ret = Term();
             }
-            // TODO: check empty list of attributes?
           }
         }
         break;
