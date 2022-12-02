@@ -312,7 +312,7 @@ public:
    * Returns a (parameterized) sort, given a name and args.
    */
   virtual cvc5::Sort getParametricSort(const std::string& sort_name,
-                     const std::vector<cvc5::Sort>& params);
+                                       const std::vector<cvc5::Sort>& params);
 
   /**
    * Checks if a symbol has been declared.

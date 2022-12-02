@@ -1388,9 +1388,8 @@ cvc5::Term Smt2::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return ret;
 }
 
-
 Sort Smt2::getParametricSort(const std::string& name,
-                                  const std::vector<Sort>& args)
+                             const std::vector<Sort>& args)
 {
   if (args.empty())
   {
@@ -1466,7 +1465,7 @@ Sort Smt2::getParametricSort(const std::string& name,
 }
 
 Sort Smt2::getIndexedSort(const std::string& name,
-                               const std::vector<uint32_t>& numerals)
+                          const std::vector<uint32_t>& numerals)
 {
   Sort ret;
   if (name == "BitVec")
