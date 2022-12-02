@@ -126,7 +126,7 @@ unterminated_quoted_symbol \|[^\|\\]*
             }
           }
         }
-. parseError("Error finding token");
+. parseError("Error finding token"); break;
 %%
 
 namespace cvc5 {
