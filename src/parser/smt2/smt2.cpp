@@ -954,7 +954,8 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
   Trace("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
-  if (p.d_kind == cvc5::CONST_ARRAY)
+  if (!strictModeEnabled() && p.d_name == "const"
+      && isTheoryEnabled(internal::theory::THEORY_ARRAYS))
   {
     if (!type.isArray())
     {
@@ -964,6 +965,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
          << "cast type: " << type;
       parseError(ss.str());
     }
+    p.d_kind = CONST_ARRAY;
     p.d_type = type;
     return;
   }
