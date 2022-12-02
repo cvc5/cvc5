@@ -101,7 +101,7 @@ class ParserEndOfFileException : public ParserException
 class InputStreamException : public internal::Exception
 {
  public:
-  InputStreamException(const std::string& msg) : Exception(msg) {}
+  InputStreamException(const std::string& msg) : Exception(msg){}
 };
 
 }  // namespace parser
