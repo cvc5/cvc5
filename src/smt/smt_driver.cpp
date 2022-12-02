@@ -166,7 +166,7 @@ void SmtDriverSingleCall::getNextAssertions(
   Assertions& as = d_smt.getAssertions();
   const context::CDList<Node>& al = as.getAssertionList();
   size_t alsize = al.size();
-  for (size_t i = d_assertionListIndex.get(); i < alsize; i++)
+  for (size_t i = d_assertionListIndex.get(); i < alsize; ++i)
   {
     ap.push_back(al[i], true);
   }

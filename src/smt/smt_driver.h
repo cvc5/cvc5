@@ -105,7 +105,7 @@ class SmtDriver : protected EnvObj
   virtual Result checkSatNext(preprocessing::AssertionPipeline& ap) = 0;
   /**
    * Get the next assertions. This is called:
-   * (1) immediately before calls to checkSatNext, where we populates ap with
+   * (1) immediately before calls to checkSatNext, where we populate ap with
    * those that will be checked on the next call to checkSatNext.
    * (2) in calls to refreshAssertions, where we populate ap with all
    * assertions that require being pushed to the SAT solver.
