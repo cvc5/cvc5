@@ -487,8 +487,7 @@ void JustificationStrategy::addAssertion(TNode lem, TNode skolem, bool isLemma)
   Trace("jh-assert") << "addAssertion " << lem << " / " << skolem << std::endl;
   if (skolem.isNull())
   {
-    std::vector<TNode> toProcess;
-    toProcess.push_back(lem);
+    std::vector<TNode> toProcess{lem};
     insertToAssertionList(toProcess, false);
   }
   else if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
