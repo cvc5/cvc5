@@ -29,34 +29,15 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::ASSERT_TOK: o << "ASSERT_TOK"; break;
     case Token::ASSUME_TOK: o << "ASSUME_TOK"; break;
     case Token::AS_TOK: o << "AS_TOK"; break;
-    case Token::ATTRIBUTE_INST_ADD_TO_POOL_TOK:
-      o << "ATTRIBUTE_INST_ADD_TO_POOL_TOK";
-      break;
-    case Token::ATTRIBUTE_INST_LEVEL: o << "ATTRIBUTE_INST_LEVEL"; break;
-    case Token::ATTRIBUTE_NAMED_TOK: o << "ATTRIBUTE_NAMED_TOK"; break;
-    case Token::ATTRIBUTE_NO_PATTERN_TOK:
-      o << "ATTRIBUTE_NO_PATTERN_TOK";
-      break;
-    case Token::ATTRIBUTE_PATTERN_TOK: o << "ATTRIBUTE_PATTERN_TOK"; break;
-    case Token::ATTRIBUTE_POOL_TOK: o << "ATTRIBUTE_POOL_TOK"; break;
-    case Token::ATTRIBUTE_QUANTIFIER_ID_TOK:
-      o << "ATTRIBUTE_QUANTIFIER_ID_TOK";
-      break;
-    case Token::ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK:
-      o << "ATTRIBUTE_SKOLEM_ADD_TO_POOL_TOK";
-      break;
     case Token::ATTRIBUTE_TOK: o << "ATTRIBUTE_TOK"; break;
     case Token::BINARY_LITERAL: o << "BINARY_LITERAL"; break;
     case Token::BLOCK_MODEL_TOK: o << "BLOCK_MODEL_TOK"; break;
     case Token::BLOCK_MODEL_VALUES_TOK: o << "BLOCK_MODEL_VALUES_TOK"; break;
-    case Token::CHAR_TOK: o << "CHAR_TOK"; break;
     case Token::CHECK_SAT_ASSUMING_TOK: o << "CHECK_SAT_ASSUMING_TOK"; break;
     case Token::CHECK_SAT_TOK: o << "CHECK_SAT_TOK"; break;
     case Token::CHECK_SYNTH_NEXT_TOK: o << "CHECK_SYNTH_NEXT_TOK"; break;
     case Token::CHECK_SYNTH_TOK: o << "CHECK_SYNTH_TOK"; break;
-    case Token::COMMENT: o << "COMMENT"; break;
     case Token::CONSTRAINT_TOK: o << "CONSTRAINT_TOK"; break;
-    case Token::CONST_TOK: o << "CONST_TOK"; break;
     case Token::DECIMAL_LITERAL: o << "DECIMAL_LITERAL"; break;
     case Token::DECLARE_CODATATYPES_TOK: o << "DECLARE_CODATATYPES_TOK"; break;
     case Token::DECLARE_CODATATYPE_TOK: o << "DECLARE_CODATATYPE_TOK"; break;
@@ -73,12 +54,8 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::DEFINE_FUN_REC_TOK: o << "DEFINE_FUN_REC_TOK"; break;
     case Token::DEFINE_FUN_TOK: o << "DEFINE_FUN_TOK"; break;
     case Token::DEFINE_SORT_TOK: o << "DEFINE_SORT_TOK"; break;
-    case Token::DIGIT: o << "DIGIT"; break;
     case Token::ECHO_TOK: o << "ECHO_TOK"; break;
-    case Token::EXISTS_TOK: o << "EXISTS_TOK"; break;
     case Token::EXIT_TOK: o << "EXIT_TOK"; break;
-    case Token::FMF_CARD_TOK: o << "FMF_CARD_TOK"; break;
-    case Token::FORALL_TOK: o << "FORALL_TOK"; break;
     case Token::GET_ABDUCT_NEXT_TOK: o << "GET_ABDUCT_NEXT_TOK"; break;
     case Token::GET_ABDUCT_TOK: o << "GET_ABDUCT_TOK"; break;
     case Token::GET_ASSERTIONS_TOK: o << "GET_ASSERTIONS_TOK"; break;
@@ -100,9 +77,7 @@ std::ostream& operator<<(std::ostream& o, Token t)
       break;
     case Token::GET_UNSAT_CORE_TOK: o << "GET_UNSAT_CORE_TOK"; break;
     case Token::GET_VALUE_TOK: o << "GET_VALUE_TOK"; break;
-    case Token::HEX_DIGIT: o << "HEX_DIGIT"; break;
     case Token::HEX_LITERAL: o << "HEX_LITERAL"; break;
-    case Token::HO_LAMBDA_TOK: o << "HO_LAMBDA_TOK"; break;
     case Token::INCLUDE_TOK: o << "INCLUDE_TOK"; break;
     case Token::INDEX_TOK: o << "INDEX_TOK"; break;
     case Token::INTEGER_LITERAL: o << "INTEGER_LITERAL"; break;
@@ -119,32 +94,23 @@ std::ostream& operator<<(std::ostream& o, Token t)
     case Token::RESET_ASSERTIONS_TOK: o << "RESET_ASSERTIONS_TOK"; break;
     case Token::RESET_TOK: o << "RESET_TOK"; break;
     case Token::RPAREN_TOK: o << "RPAREN_TOK"; break;
-    case Token::SET_COMPREHENSION_TOK: o << "SET_COMPREHENSION_TOK"; break;
     case Token::SET_FEATURE_TOK: o << "SET_FEATURE_TOK"; break;
     case Token::SET_INFO_TOK: o << "SET_INFO_TOK"; break;
     case Token::SET_LOGIC_TOK: o << "SET_LOGIC_TOK"; break;
     case Token::SET_OPTION_TOK: o << "SET_OPTION_TOK"; break;
-    case Token::SIMPLE_SYMBOL: o << "SIMPLE_SYMBOL"; break;
     case Token::SIMPLIFY_TOK: o << "SIMPLIFY_TOK"; break;
     case Token::STRING_LITERAL: o << "STRING_LITERAL"; break;
     case Token::SYGUS_CONSTANT_TOK: o << "SYGUS_CONSTANT_TOK"; break;
     case Token::SYGUS_VARIABLE_TOK: o << "SYGUS_VARIABLE_TOK"; break;
     case Token::SYMBOL: o << "SYMBOL"; break;
-    case Token::SYMBOL_CHAR: o << "SYMBOL_CHAR"; break;
-    case Token::SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE:
-      o << "SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE";
-      break;
     case Token::SYNTH_FUN_TOK: o << "SYNTH_FUN_TOK"; break;
     case Token::SYNTH_INV_TOK: o << "SYNTH_INV_TOK"; break;
-    case Token::TESTER_TOK: o << "TESTER_TOK"; break;
     case Token::UNTERMINATED_QUOTED_SYMBOL:
       o << "UNTERMINATED_QUOTED_SYMBOL";
       break;
     case Token::UNTERMINATED_STRING_LITERAL:
       o << "UNTERMINATED_STRING_LITERAL";
       break;
-    case Token::UPDATE_TOK: o << "UPDATE_TOK"; break;
-    case Token::WHITESPACE: o << "WHITESPACE"; break;
     case Token::NONE: o << "NONE"; break;
     default: o << "Unknown Token (" << unsigned(t) << ")"; break;
   }
