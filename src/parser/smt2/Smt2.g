@@ -159,7 +159,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
   | LPAREN_TOK INCLUDE_TOK str[name, true] RPAREN_TOK
-    { if(!PARSER_STATE->canIncludeFile()) {
+    { if(!PARSER_BASE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this "
                                  "run.");
       }

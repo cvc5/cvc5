@@ -46,8 +46,7 @@ ParserState::ParserState(ParserStateCallback* psc,
       d_symtab(sm->getSymbolTable()),
       d_done(true),
       d_checksEnabled(true),
-      d_strictMode(strictMode),
-      d_canIncludeFile(true)
+      d_strictMode(strictMode)
 {
 }
 

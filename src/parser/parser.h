@@ -114,10 +114,6 @@ class CVC5_EXPORT ParserState
 
   bool strictModeEnabled() { return d_strictMode; }
 
-  void allowIncludeFile() { d_canIncludeFile = true; }
-  void disallowIncludeFile() { d_canIncludeFile = false; }
-  bool canIncludeFile() const { return d_canIncludeFile; }
-
   const std::string& getForcedLogic() const;
   bool logicIsForced() const;
 
@@ -609,12 +605,6 @@ class CVC5_EXPORT ParserState
 
   /** Are we parsing in strict mode? */
   bool d_strictMode;
-
-  /**
-   * Can we include files?  (Set to false for security purposes in
-   * e.g. the online version.)
-   */
-  bool d_canIncludeFile;
 
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
