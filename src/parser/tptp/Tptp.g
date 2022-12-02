@@ -88,7 +88,7 @@ using namespace cvc5::parser;
 
 #include "parser/api/cpp/command.h"
 #include "parser/parse_op.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/tptp/tptp.h"
 
 }/* @parser::includes */
@@ -102,7 +102,7 @@ using namespace cvc5::parser;
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "parser/antlr_input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/tptp/tptp.h"
 
 using namespace cvc5;

@@ -19,7 +19,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
-#include "parser/parser_state.h"
 #include "util/floatingpoint_size.h"
 
 namespace cvc5 {
@@ -933,7 +932,7 @@ Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
 
 bool Smt2State::sygus() const
 {
-  return d_solver->getOption("input-language") == "LANG_SYGUS_V2";
+  return d_isSygus;
 }
 
 bool Smt2State::hasGrammars() const

@@ -21,7 +21,7 @@
 
 #include "base/check.h"
 #include "parser/input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_exception.h"
 #include "parser/tptp/TptpLexer.h"
 #include "parser/tptp/TptpParser.h"

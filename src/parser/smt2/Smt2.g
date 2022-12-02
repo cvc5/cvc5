@@ -80,7 +80,7 @@ using namespace cvc5::parser;
 
 #include "base/check.h"
 #include "parser/parse_op.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/api/cpp/command.h"
 
 namespace cvc5 {
@@ -103,7 +103,7 @@ class Sort;
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "parser/antlr_input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/smt2/smt2_antlr.h"
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"

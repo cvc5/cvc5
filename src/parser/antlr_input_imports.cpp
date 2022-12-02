@@ -56,7 +56,7 @@
 
 #include "base/check.h"
 #include "parser/antlr_input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_exception.h"
 
 using namespace std;

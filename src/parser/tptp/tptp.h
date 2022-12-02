@@ -21,7 +21,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "parser/parse_op.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/tptp/tptp_state.h"
 #include "util/hash.h"
 

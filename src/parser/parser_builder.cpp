@@ -22,7 +22,7 @@
 #include "base/check.h"
 #include "parser/antlr_input.h"
 #include "parser/input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "smt2/smt2_antlr.h"
 #include "tptp/tptp.h"
 

@@ -23,7 +23,7 @@
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
 #include "parser/flex/flex_parser.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 
 namespace cvc5 {
 namespace parser {
