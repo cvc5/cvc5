@@ -44,7 +44,7 @@ Term Smt2Parser::parseNextExpression()
 {
   // check for EOF here and return null if so
   Token tok = d_slex.peekToken();
-  if (tok==Token::EOF_TOK)
+  if (tok == Token::EOF_TOK)
   {
     return Term();
   }
