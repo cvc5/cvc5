@@ -207,7 +207,6 @@ public:
   * - In cvc, the syntax for testers is "is_cons".
   */
  virtual bool getTesterName(cvc5::Term cons, std::string& name);
-
  /**
   * Returns the kind that should be used for applications of expression fun.
   * This is a generalization of ExprManager::operatorToKind that also
@@ -226,11 +225,11 @@ public:
   */
  cvc5::Sort getSort(const std::string& sort_name);
 
- /**
-  * Returns a (parameterized) sort, given a name and args.
-  */
- cvc5::Sort getSort(const std::string& sort_name,
-                    const std::vector<cvc5::Sort>& params);
+  /**
+   * Returns a (parameterized) sort, given a name and args.
+   */
+  virtual cvc5::Sort getParametricSort(const std::string& sort_name,
+                                       const std::vector<cvc5::Sort>& params);
 
  /**
   * Checks if a symbol has been declared.
