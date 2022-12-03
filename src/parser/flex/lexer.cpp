@@ -111,7 +111,7 @@ Token Lexer::nextToken()
   if (d_peeked.empty())
   {
     // Call the derived yylex() and convert it to a token
-    Token t = Token(yylex());
+    Token t = processTokenInternal(Token(yylex()));
     Trace("lex") << "Token: " << t << " / " << tokenStr() << std::endl;
     return t;
   }
@@ -132,14 +132,6 @@ Token Lexer::peekToken()
 
 void Lexer::reinsertToken(Token t) { d_peeked.push_back(t); }
 
-void Lexer::skipTokens(size_t k)
-{
-  for (size_t i = 0; i < k; i++)
-  {
-    nextToken();
-  }
-}
-
 void Lexer::unexpectedTokenError(Token t, const std::string& info)
 {
   Assert(d_peeked.empty());
@@ -148,10 +140,10 @@ void Lexer::unexpectedTokenError(Token t, const std::string& info)
   parseError(o.str());
 }
 
-std::string Lexer::prefix_id()
+Token Lexer::processTokenInternal(Token t)
 {
-  nextToken();
-  return tokenStr();
+  // TODO: update line numbers?
+  return t;
 }
 
 void Lexer::eatToken(Token t)

@@ -24,12 +24,18 @@ namespace cvc5 {
 namespace parser {
 
 /**
+ * Used to implement SyGuS-specific tokens.
  */
 class SygusLexer : public Smt2Lexer
 {
  public:
-  SygusLexer();
+  SygusLexer() {}
   virtual ~SygusLexer() {}
+ protected:
+  /** 
+   * Virtual function to process token. Can assume that tokenStr() is available.
+   */
+  Token processTokenInternal(Token t) override; 
 };
 
 }  // namespace parser

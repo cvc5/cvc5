@@ -73,25 +73,24 @@ class Lexer : public yyFlexLexer
   bool eatTokenChoice(Token t, Token f);
   /** reinsert token, read back first in, last out */
   void reinsertToken(Token t);
-  /** skip k tokens */
-  void skipTokens(size_t k);
   /**
    * String corresponding to the last token (old top of stack). This is only
    * valid if no tokens are currently peeked.
    */
   const char* tokenStr();
-  // Derived functions
-  // Interpret the next token as an identifier (even if it isn't) and return its
-  // string
-  std::string prefix_id();
   /** Used to report warnings, with the current source location attached. */
   void warning(const std::string&);
   /** Used to report errors, with the current source location attached. */
   void parseError(const std::string&, bool eofException = false);
-  // Error. Got `t`, expected `info`.
+  /** Error. Got `t`, expected `info`. */
   void unexpectedTokenError(Token t, const std::string& info);
 
  protected:
+  /** 
+   * Virtual function to process token. Can assume that tokenStr() is available.
+   * Can be used to manually override tokens.
+   */
+  virtual Token processTokenInternal(Token t); 
   // Used to initialize d_span.
   void init_d_span();
   // Sets the spans start to its current end.
