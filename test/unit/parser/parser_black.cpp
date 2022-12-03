@@ -56,7 +56,7 @@ class TestParserBlackParser : public TestInternal
   /* Set up declaration context for expr inputs */
   void setupContext(Parser& parser)
   {
-    ParserState * ps = parser.getState();
+    ParserState* ps = parser.getState();
     /* a, b, c: BOOLEAN */
     ps->bindVar("a", d_solver.get()->getBooleanSort());
     ps->bindVar("b", d_solver.get()->getBooleanSort());
