@@ -18,6 +18,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
@@ -81,10 +82,6 @@ void SmtSolver::finishInit()
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
-  if (options().smt.produceProofs)
-  {
-    d_asserts.enableProofs(d_pp.getPreprocessProofGenerator());
-  }
 }
 
 void SmtSolver::resetAssertions()
@@ -102,10 +99,6 @@ void SmtSolver::resetAssertions()
   d_propEngine->finishInit();
   // must reset the preprocessor as well
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
-  if (options().smt.produceProofs)
-  {
-    d_asserts.enableProofs(d_pp.getPreprocessProofGenerator());
-  }
 }
 
 void SmtSolver::interrupt()
@@ -160,22 +153,11 @@ Result SmtSolver::checkSatInternal()
   return result;
 }
 
-void SmtSolver::refreshAssertions()
-{
-  // preprocess
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
-  preprocess(ap);
-  // assert to internal
-  assertToInternal(ap);
-}
-
 void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
-  // must first refresh the assertions, in the case global declarations is true
-  d_asserts.refresh();
   // process the assertions with the preprocessor
   d_pp.process(ap);
 
@@ -231,8 +213,6 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
-  // clear the current assertions
-  ap.clear();
 }
 
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const

@@ -1392,21 +1392,6 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
                       << std::endl;
       return ret;
     }
-    if (kind == CARDINALITY_CONSTRAINT)
-    {
-      if (args.size() != 2)
-      {
-        parseError("Incorrect arguments for cardinality constraint");
-      }
-      Sort sort = args[0].getSort();
-      if (!sort.isUninterpretedSort())
-      {
-        parseError("Expected uninterpreted sort for cardinality constraint");
-      }
-      uint64_t ubound = args[1].getUInt32Value();
-      Term ret = d_solver->mkCardinalityConstraint(sort, ubound);
-      return ret;
-    }
     Term ret = d_solver->mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
