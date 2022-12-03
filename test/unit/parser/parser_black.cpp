@@ -22,9 +22,8 @@
 #include "options/options.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_antlr.h"
 #include "test.h"
 
 using namespace cvc5::parser;
