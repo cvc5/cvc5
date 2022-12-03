@@ -88,10 +88,11 @@ class CVC5_EXPORT Parser : public ParserStateCallback
    */
   Parser();
 
+ public:
+
   /** Get the state */
   virtual ParserState* getState() = 0;
-
- public:
+  
   virtual ~Parser();
 
   /** Get the associated input. */
