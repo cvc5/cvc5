@@ -1208,10 +1208,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
 }
   : LPAREN_TOK quantOp[kind]
     {
-      if (!PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_QUANTIFIERS))
-      {
-        PARSER_STATE->parseError("Quantifier used in non-quantified logic.");
-      }
       PARSER_STATE->pushScope();
     }
     boundVarList[bvl]
