@@ -40,6 +40,7 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
+#include "theory/theory_engine_module.h"
 
 namespace cvc5::internal {
 
@@ -629,6 +630,8 @@ class TheoryEngine : protected EnvObj
    * used.
    */
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
+  /** The list of modules */
+  std::vector<theory::TheoryEngineModule*> d_modules;
 
 }; /* class TheoryEngine */
 

@@ -20,8 +20,12 @@
 
 #include "expr/node.h"
 #include "theory/theory.h"
+#include "theory/engine_output_channel.h"
 
 namespace cvc5::internal {
+
+class TheoryEngine;
+
 namespace theory {
 
 class TheoryModel;
@@ -34,7 +38,10 @@ class TheoryEngineModule : protected EnvObj
   /**
    * @param env The environment
    */
-  TheoryEngineModule(Env& env);
+  TheoryEngineModule(Env& env,
+                     StatisticsRegistry& sr,
+                      TheoryEngine* engine,
+                      const std::string& name);
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */
@@ -42,11 +49,14 @@ class TheoryEngineModule : protected EnvObj
   /**
    * postCheck, called at the end of a check in TheoryEngine.
    */
-  virtual void postCheck();
-  /** Notify lemma, for difficulty measurements */
-  virtual void notifyLemma(TNode n);
-  /** Notify that m is a (candidate) model, for difficulty measurements */
+  virtual void postCheck(Theory::Effort effort);
+  /** Notify that a lemma was sent */
+  virtual void notifyLemma(TNode n, theory::LemmaProperty p, const std::vector<Node>& skAsserts, const std::vector<Node>& sks);
+  /** Notify that m is a (candidate) model */
   virtual void notifyCandidateModel(TheoryModel* m);
+protected:
+  /** The output channel, for sending lemmas */
+  EngineOutputChannel d_out;
 };
 
 }  // namespace theory

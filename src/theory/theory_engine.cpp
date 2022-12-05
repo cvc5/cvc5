@@ -415,6 +415,11 @@ void TheoryEngine::check(Theory::Effort effort) {
         lemma(tl, LemmaProperty::NONE, THEORY_LAST);
       }
     }
+    // check with the theory modules
+    for (TheoryEngineModule* tem : d_modules)
+    {
+      tem->check(effort);
+    }
 
     // Check until done
     while (d_factsAsserted && !d_inConflict && !d_lemmasAdded) {
@@ -498,11 +503,21 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         d_relManager->notifyCandidateModel(getModel());
       }
+      // notify the theory modules of the model
+      for (TheoryEngineModule* tem : d_modules)
+      {
+        tem->notifyCandidateModel(getModel());
+      }
     }
 
     Trace("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Trace("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
+    // post check with the theory modules
+    for (TheoryEngineModule* tem : d_modules)
+    {
+      tem->postCheck(effort);
+    }
     if (Theory::fullEffort(effort))
     {
       if (d_relManager != nullptr)
@@ -1342,6 +1357,12 @@ void TheoryEngine::lemma(TrustNode tlemma,
       d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
+    
+    // notify the modules of the lemma
+    for (TheoryEngineModule* tem : d_modules)
+    {
+      tem->notifyLemma(retLemma, p, skAsserts, sks);
+    }
   }
 
   // Mark that we added some lemmas
