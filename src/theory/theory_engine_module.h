@@ -33,7 +33,7 @@ class TheoryModel;
 /**
  * A theory engine module shares some functionality with a theory solver
  * but is not associated with a theory.
- * 
+ *
  * A theory engine module is allowed to send lemmas or conflicts via its
  * output channel (d_out) during check and postCheck.
  */
@@ -56,7 +56,7 @@ class TheoryEngineModule : protected EnvObj
   virtual void postCheck(Theory::Effort effort);
   /**
    * Notify that a lemma was sent
-   * 
+   *
    * @param n The lemma, which has been theory preprocessed
    * @param p The property of the lemma
    * @param skAsserts The skolem assertions for the given lemma
