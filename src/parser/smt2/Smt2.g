@@ -1815,30 +1815,7 @@ sortSymbol[cvc5::Sort& t]
              << " ...)";
           PARSER_STATE->parseError(ss.str());
         }
-        if( name == "BitVec" ) {
-          if( numerals.size() != 1 ) {
-            PARSER_STATE->parseError("Illegal bitvector type.");
-          }
-          if(numerals.front() == 0) {
-            PARSER_STATE->parseError("Illegal bitvector size: 0");
-          }
-          t = SOLVER->mkBitVectorSort(numerals.front());
-        } else if ( name == "FloatingPoint" ) {
-          if( numerals.size() != 2 ) {
-            PARSER_STATE->parseError("Illegal floating-point type.");
-          }
-          if(!internal::validExponentSize(numerals[0])) {
-            PARSER_STATE->parseError("Illegal floating-point exponent size");
-          }
-          if(!internal::validSignificandSize(numerals[1])) {
-            PARSER_STATE->parseError("Illegal floating-point significand size");
-          }
-          t = SOLVER->mkFloatingPointSort(numerals[0],numerals[1]);
-        } else {
-          std::stringstream ss;
-          ss << "unknown indexed sort symbol `" << name << "'";
-          PARSER_STATE->parseError(ss.str());
-        }
+        t = PARSER_STATE->getIndexedSort(name, numerals);
       }
     | sortList[args]
       { if( indexed ) {
@@ -1847,54 +1824,7 @@ sortSymbol[cvc5::Sort& t]
              << "', try leaving it out";
           PARSER_STATE->parseError(ss.str());
         }
-        if(args.empty()) {
-          PARSER_STATE->parseError("Extra parentheses around sort name not "
-                                   "permitted in SMT-LIB");
-        } else if(name == "Array" &&
-           PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_ARRAYS) ) {
-          if(args.size() != 2) {
-            PARSER_STATE->parseError("Illegal array type.");
-          }
-          t = SOLVER->mkArraySort( args[0], args[1] );
-        } else if(name == "Set" &&
-                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) ) {
-          if(args.size() != 1) {
-            PARSER_STATE->parseError("Illegal set type.");
-          }
-          t = SOLVER->mkSetSort( args[0] );
-        }
-        else if(name == "Bag" &&
-                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) ) {
-          if(args.size() != 1) {
-            PARSER_STATE->parseError("Illegal bag type.");
-          }
-          t = SOLVER->mkBagSort( args[0] );
-        }
-        else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
-                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) ) {
-          if(args.size() != 1) {
-            PARSER_STATE->parseError("Illegal sequence type.");
-          }
-          t = SOLVER->mkSequenceSort( args[0] );
-        } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
-          t = SOLVER->mkTupleSort(args);
-        } else if (name == "Relation" && !PARSER_STATE->strictModeEnabled()) {
-          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
-          t = SOLVER->mkSetSort(tupleSort);
-        } else if (name == "Table" && !PARSER_STATE->strictModeEnabled()) {
-          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
-          t = SOLVER->mkBagSort(tupleSort);
-        } else if (name == "->" && PARSER_STATE->isHoEnabled()) {
-          if(args.size()<2) {
-            PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
-          }
-          //flatten the type
-          cvc5::Sort rangeType = args.back();
-          args.pop_back();
-          t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
-        } else {
-          t = PARSER_STATE->getSort(name, args);
-        }
+        t = PARSER_STATE->getParametricSort(name, args);
       }
     ) RPAREN_TOK
   ;

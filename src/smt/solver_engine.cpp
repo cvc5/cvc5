@@ -1870,8 +1870,6 @@ void SolverEngine::resetAssertions()
   Trace("smt") << "SMT resetAssertions()" << endl;
 
   d_ctxManager->notifyResetAssertions();
-  // push the state to maintain global context around everything
-  d_ctxManager->setup(d_smtDriver.get());
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();
