@@ -88,11 +88,7 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
   // make the theory preregistrar
   d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  if (d_decisionEngine->needsActiveSkolemDefs()
-      || d_prr->needsActiveSkolemDefs())
-  {
-    d_trackActiveSkDefs = true;
-  }
+  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs();
   d_cnfStream = cs;
 }
 

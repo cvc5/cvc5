@@ -33,12 +33,6 @@ namespace cvc5::parser {
 
 class Command;
 
-class InputStreamException : public internal::Exception
-{
- public:
-  InputStreamException(const std::string& msg);
-};
-
 /** Wrapper around an input stream. */
 class InputStream
 {
@@ -75,6 +69,8 @@ class Parser;
  * <code>newFileInput</code>, <code>newStringInput</code>) create a parser
  * for the given input language and attach it to an input source of the
  * appropriate type.
+ *
+ * This class is deprecated and used only for the ANTLR parser.
  */
 class CVC5_EXPORT Input
 {
