@@ -1357,7 +1357,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
       d_relManager->notifyPreprocessedAssertions(skAsserts, false);
     }
     d_relManager->notifyLemma(retLemma);
-    
+
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
     {

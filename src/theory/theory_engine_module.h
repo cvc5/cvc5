@@ -19,8 +19,8 @@
 #define CVC5__THEORY__THEORY_ENGINE_MODULE_H
 
 #include "expr/node.h"
-#include "theory/theory.h"
 #include "theory/engine_output_channel.h"
+#include "theory/theory.h"
 
 namespace cvc5::internal {
 
@@ -40,8 +40,8 @@ class TheoryEngineModule : protected EnvObj
    */
   TheoryEngineModule(Env& env,
                      StatisticsRegistry& sr,
-                      TheoryEngine* engine,
-                      const std::string& name);
+                     TheoryEngine* engine,
+                     const std::string& name);
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */
@@ -51,10 +51,14 @@ class TheoryEngineModule : protected EnvObj
    */
   virtual void postCheck(Theory::Effort effort);
   /** Notify that a lemma was sent */
-  virtual void notifyLemma(TNode n, theory::LemmaProperty p, const std::vector<Node>& skAsserts, const std::vector<Node>& sks);
+  virtual void notifyLemma(TNode n,
+                           theory::LemmaProperty p,
+                           const std::vector<Node>& skAsserts,
+                           const std::vector<Node>& sks);
   /** Notify that m is a (candidate) model */
   virtual void notifyCandidateModel(TheoryModel* m);
-protected:
+
+ protected:
   /** The output channel, for sending lemmas */
   EngineOutputChannel d_out;
 };

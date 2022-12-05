@@ -19,12 +19,20 @@ namespace cvc5::internal {
 namespace theory {
 
 TheoryEngineModule::TheoryEngineModule(Env& env,
-                     StatisticsRegistry& sr,
-                      TheoryEngine* engine,
-                      const std::string& name) : EnvObj(env), d_out(sr, engine, name) {}
+                                       StatisticsRegistry& sr,
+                                       TheoryEngine* engine,
+                                       const std::string& name)
+    : EnvObj(env), d_out(sr, engine, name)
+{
+}
 void TheoryEngineModule::check(Theory::Effort effort) {}
 void TheoryEngineModule::postCheck(Theory::Effort effort) {}
-void TheoryEngineModule::notifyLemma(TNode n, theory::LemmaProperty p, const std::vector<Node>& skAsserts, const std::vector<Node>& sks) {}
+void TheoryEngineModule::notifyLemma(TNode n,
+                                     theory::LemmaProperty p,
+                                     const std::vector<Node>& skAsserts,
+                                     const std::vector<Node>& sks)
+{
+}
 void TheoryEngineModule::notifyCandidateModel(TheoryModel* m) {}
 
 }  // namespace theory
