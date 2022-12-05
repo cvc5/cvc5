@@ -129,6 +129,7 @@ std::string getTheoryString(theory::TheoryId id)
 
 void TheoryEngine::finishInit()
 {
+  d_modules.clear();
   Trace("theory") << "Begin TheoryEngine::finishInit" << std::endl;
   // NOTE: This seems to be required since
   // theory::TheoryTraits<THEORY>::isParametric cannot be accessed without
@@ -161,6 +162,7 @@ void TheoryEngine::finishInit()
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
     d_relManager.reset(new RelevanceManager(d_env, this));
+    d_modules.push_back(d_relManager.get());
   }
 
   // initialize the quantifiers engine
@@ -210,6 +212,7 @@ void TheoryEngine::finishInit()
   {
     d_partitionGen =
         std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
+    d_modules.push_back(d_partitionGen.get());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -398,19 +401,9 @@ void TheoryEngine::check(Theory::Effort effort) {
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
-      // Reset round for the relevance manager, which notice only sets a flag
-      // to indicate that its information must be recomputed.
-      if (d_relManager != nullptr)
-      {
-        d_relManager->check(effort);
-      }
       d_tc->resetRound();
     }
 
-    if (d_partitionGen != nullptr)
-    {
-      d_partitionGen->check(effort);
-    }
     // check with the theory modules
     for (TheoryEngineModule* tem : d_modules)
     {
@@ -494,11 +487,6 @@ void TheoryEngine::check(Theory::Effort effort) {
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
       }
-      // notify the relevant manager
-      if (d_relManager != nullptr)
-      {
-        d_relManager->notifyCandidateModel(getModel());
-      }
       // notify the theory modules of the model
       for (TheoryEngineModule* tem : d_modules)
       {
@@ -516,10 +504,6 @@ void TheoryEngine::check(Theory::Effort effort) {
     }
     if (Theory::fullEffort(effort))
     {
-      if (d_relManager != nullptr)
-      {
-        d_relManager->postCheck(effort);
-      }
       if (!d_inConflict && !needCheck())
       {
         // Do post-processing of model from the theories (e.g. used for
@@ -1347,7 +1331,6 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    d_relManager->notifyLemma(retLemma, p, skAsserts, sks);
 
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
