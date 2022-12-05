@@ -29,8 +29,6 @@ class TheoryEngine;
 
 namespace theory {
 
-class Theory;
-
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine
  * for a given Theory.
@@ -46,7 +44,7 @@ class EngineOutputChannel : public theory::OutputChannel
  public:
   EngineOutputChannel(StatisticsRegistry& sr,
                       TheoryEngine* engine,
-                      theory::TheoryId theory);
+                      const std::string& name);
 
   void safePoint(Resource r) override;
 
@@ -86,7 +84,7 @@ class EngineOutputChannel : public theory::OutputChannel
   class Statistics
   {
    public:
-    Statistics(StatisticsRegistry& sr, theory::TheoryId theory);
+    Statistics(StatisticsRegistry& sr, const std::string& statPrefix);
     /** Number of calls to conflict, propagate, lemma, requirePhase */
     IntStat conflicts, propagations, lemmas, requirePhase, trustedConflicts,
         trustedLemmas;
@@ -97,11 +95,6 @@ class EngineOutputChannel : public theory::OutputChannel
   Statistics d_statistics;
   /** The theory owning this channel. */
   theory::TheoryId d_theory;
-  /** A helper function for registering lemma recipes with the proof engine */
-  void registerLemmaRecipe(Node lemma,
-                           Node originalLemma,
-                           bool preprocess,
-                           theory::TheoryId theoryId);
 };
 
 }  // namespace theory

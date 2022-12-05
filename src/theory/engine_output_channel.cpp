@@ -25,21 +25,21 @@ namespace cvc5::internal {
 namespace theory {
 
 EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
-                                            theory::TheoryId theory)
-    : conflicts(sr.registerInt(getStatsPrefix(theory) + "conflicts")),
-      propagations(sr.registerInt(getStatsPrefix(theory) + "propagations")),
-      lemmas(sr.registerInt(getStatsPrefix(theory) + "lemmas")),
-      requirePhase(sr.registerInt(getStatsPrefix(theory) + "requirePhase")),
+                                            const std::string& statPrefix)
+    : conflicts(sr.registerInt(statPrefix + "conflicts")),
+      propagations(sr.registerInt(statPrefix + "propagations")),
+      lemmas(sr.registerInt(statPrefix + "lemmas")),
+      requirePhase(sr.registerInt(statPrefix + "requirePhase")),
       trustedConflicts(
-          sr.registerInt(getStatsPrefix(theory) + "trustedConflicts")),
-      trustedLemmas(sr.registerInt(getStatsPrefix(theory) + "trustedLemmas"))
+          sr.registerInt(statPrefix + "trustedConflicts")),
+      trustedLemmas(sr.registerInt(statPrefix + "trustedLemmas"))
 {
 }
 
 EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
                                          TheoryEngine* engine,
-                                         theory::TheoryId theory)
-    : d_engine(engine), d_statistics(sr, theory), d_theory(theory)
+                                         const std::string& name)
+    : d_engine(engine), d_statistics(sr, name), d_name(name)
 {
 }
 
@@ -59,22 +59,22 @@ void EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
 
 bool EngineOutputChannel::propagate(TNode literal)
 {
-  Trace("theory::propagate") << "EngineOutputChannel<" << d_theory
+  Trace("theory::propagate") << "EngineOutputChannel<" << d_name
                              << ">::propagate(" << literal << ")" << std::endl;
   ++d_statistics.propagations;
   d_engine->d_outputChannelUsed = true;
-  return d_engine->propagate(literal, d_theory);
+  return d_engine->propagate(literal, d_name);
 }
 
 void EngineOutputChannel::conflict(TNode conflictNode)
 {
   Trace("theory::conflict")
-      << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
+      << "EngineOutputChannel<" << d_name << ">::conflict(" << conflictNode
       << ")" << std::endl;
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
-  d_engine->conflict(tConf, d_theory);
+  d_engine->conflict(tConf, d_name);
 }
 
 void EngineOutputChannel::requirePhase(TNode n, bool phase)
@@ -88,13 +88,13 @@ void EngineOutputChannel::requirePhase(TNode n, bool phase)
 void EngineOutputChannel::setModelUnsound(IncompleteId id)
 {
   Trace("theory") << "setModelUnsound(" << id << ")" << std::endl;
-  d_engine->setModelUnsound(d_theory, id);
+  d_engine->setModelUnsound(d_name, id);
 }
 
 void EngineOutputChannel::setRefutationUnsound(IncompleteId id)
 {
   Trace("theory") << "setRefutationUnsound(" << id << ")" << std::endl;
-  d_engine->setRefutationUnsound(d_theory, id);
+  d_engine->setRefutationUnsound(d_name, id);
 }
 
 void EngineOutputChannel::spendResource(Resource r)
@@ -106,7 +106,7 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("theory::conflict")
-      << "EngineOutputChannel<" << d_theory << ">::trustedConflict("
+      << "EngineOutputChannel<" << d_name << ">::trustedConflict("
       << pconf.getNode() << ")" << std::endl;
   if (pconf.getGenerator() != nullptr)
   {
@@ -114,12 +114,12 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
   }
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
-  d_engine->conflict(pconf, d_theory);
+  d_engine->conflict(pconf, d_name);
 }
 
 void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 {
-  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory
+  Trace("theory::lemma") << "EngineOutputChannel<" << d_name
                          << ">::trustedLemma(" << plem << ")" << std::endl;
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
@@ -130,12 +130,12 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
   d_engine->d_outputChannelUsed = true;
   if (isLemmaPropertySendAtoms(p))
   {
-    d_engine->ensureLemmaAtoms(plem.getNode(), d_theory);
+    d_engine->ensureLemmaAtoms(plem.getNode(), d_name);
   }
   // now, call the normal interface for lemma
   d_engine->lemma(plem,
                   p,
-                  d_theory);
+                  d_name);
 }
 
 }  // namespace theory
