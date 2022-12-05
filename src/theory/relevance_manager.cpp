@@ -142,13 +142,16 @@ void RelevanceManager::addInputToAtomsMap(TNode input)
   } while (!visit.empty());
 }
 
-void RelevanceManager::beginRound()
+void RelevanceManager::check(Theory::Effort effort)
 {
-  d_inFullEffortCheck = true;
-  d_fullEffortCheckFail = false;
+  if (Theory::fullEffort(effort))
+  {
+    d_inFullEffortCheck = true;
+    d_fullEffortCheckFail = false;
+  }
 }
 
-void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
+void RelevanceManager::postCheck(Theory::Effort effort) { d_inFullEffortCheck = false; }
 
 void RelevanceManager::computeRelevance()
 {
@@ -526,8 +529,17 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
   return rset;
 }
 
-void RelevanceManager::notifyLemma(TNode n)
+void RelevanceManager::notifyLemma(TNode n,
+                           theory::LemmaProperty p,
+                           const std::vector<Node>& skAsserts,
+                           const std::vector<Node>& sks)
 {
+  // add to assertions
+  if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
+  {
+    notifyPreprocessedAssertion(n, false);
+    notifyPreprocessedAssertions(skAsserts, false);
+  }
   // notice that we may be in FULL or STANDARD effort here.
   if (d_dman != nullptr)
   {

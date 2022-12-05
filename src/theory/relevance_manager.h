@@ -109,9 +109,9 @@ class RelevanceManager : public TheoryEngineModule
    * Begin round, called at the beginning of a full effort check in
    * TheoryEngine.
    */
-  void beginRound();
+  void check(Theory::Effort effort) override;
   /** End round, called at the end of a full effort check in TheoryEngine. */
-  void endRound();
+  void postCheck(Theory::Effort effort) override;
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a
@@ -141,7 +141,10 @@ class RelevanceManager : public TheoryEngineModule
    */
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
-  void notifyLemma(TNode n);
+  void notifyLemma(TNode n,
+                           theory::LemmaProperty p,
+                           const std::vector<Node>& skAsserts,
+                           const std::vector<Node>& sks) override;
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m) override;
   /**

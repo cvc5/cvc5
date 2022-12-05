@@ -402,7 +402,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       // to indicate that its information must be recomputed.
       if (d_relManager != nullptr)
       {
-        d_relManager->beginRound();
+        d_relManager->check(effort);
       }
       d_tc->resetRound();
     }
@@ -518,7 +518,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     {
       if (d_relManager != nullptr)
       {
-        d_relManager->endRound();
+        d_relManager->postCheck(effort);
       }
       if (!d_inConflict && !needCheck())
       {
@@ -1347,12 +1347,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
-    {
-      d_relManager->notifyPreprocessedAssertion(retLemma, false);
-      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
-    }
-    d_relManager->notifyLemma(retLemma);
+    d_relManager->notifyLemma(retLemma, p, skAsserts, sks);
 
     // notify the modules of the lemma
     for (TheoryEngineModule* tem : d_modules)
@@ -1856,10 +1851,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasRelevantAssertions = false;
   if (d_relManager != nullptr)
   {
-    d_relManager->beginRound();
+    Theory::Effort e = Theory::Effort::EFFORT_FULL;
+    d_relManager->check(e);
     relevantAssertions =
         d_relManager->getRelevantAssertions(hasRelevantAssertions);
-    d_relManager->endRound();
+    d_relManager->postCheck(e);
   }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
