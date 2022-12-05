@@ -284,13 +284,13 @@ def test_mk_sequence_sort(solver):
 
 
 
-def test_mk_sequence_sort(solver):
-    solver.mkAbstractSort(Kind.ARRAY_SORT)
-    solver.mkAbstractSort(Kind.BITVECTOR_SORT)
-    solver.mkAbstractSort(Kind.TUPLE_SORT)
-    solver.mkAbstractSort(Kind.SET_SORT)
+def test_mk_abstract_sort(solver):
+    solver.mkAbstractSort(SortKind.ARRAY_SORT)
+    solver.mkAbstractSort(SortKind.BITVECTOR_SORT)
+    solver.mkAbstractSort(SortKind.TUPLE_SORT)
+    solver.mkAbstractSort(SortKind.SET_SORT)
     with pytest.raises(RuntimeError):
-        solver.mkAbstractSort(Kind.BOOLEAN_SORT)
+        solver.mkAbstractSort(SortKind.BOOLEAN_SORT)
 
 
 def test_mk_uninterpreted_sort(solver):

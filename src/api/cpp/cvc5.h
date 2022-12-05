@@ -3429,7 +3429,7 @@ class CVC5_EXPORT Solver
    *
    * @warning This method is experimental and may change in future versions.
    */
-  Sort mkAbstractSort(Kind k) const;
+  Sort mkAbstractSort(SortKind k) const;
 
   /**
    * Create an uninterpreted sort.
