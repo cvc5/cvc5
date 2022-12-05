@@ -146,7 +146,7 @@ add_custom_command(
 )
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
-add_dependencies(generate-jni-headers generate-java-kinds generate-java-types)
+add_dependencies(generate-jni-headers generate-java-kinds generate-java-sort-kinds generate-java-types)
 
 # find jni package
 find_package(JNI REQUIRED)

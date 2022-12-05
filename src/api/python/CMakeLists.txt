@@ -129,7 +129,7 @@ add_cython_target(cvc5_python_base CXX)
 add_library(cvc5_python_base
             MODULE
             cvc5_python_base)
-add_dependencies(cvc5_python_base cvc5kinds cvc5types)
+add_dependencies(cvc5_python_base cvc5kinds cvc5sortkinds cvc5types)
 
 target_include_directories(cvc5_python_base
   PRIVATE
