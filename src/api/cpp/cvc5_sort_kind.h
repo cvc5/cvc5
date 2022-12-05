@@ -65,11 +65,11 @@ enum SortKind : int32_t
   /**
    * Null kind.
    *
-   * The kind of a null term (Term::Term()).
+   * The kind of a null sort (Sort::Sort()).
    *
    * \rst
    * .. note:: May not be explicitly created via API functions other than
-   *           :cpp:func:`Term::Term()`.
+   *           :cpp:func:`Sort::Sort()`.
    * \endrst
    */
   NULL_SORT,
