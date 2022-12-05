@@ -151,7 +151,10 @@ void RelevanceManager::check(Theory::Effort effort)
   }
 }
 
-void RelevanceManager::postCheck(Theory::Effort effort) { d_inFullEffortCheck = false; }
+void RelevanceManager::postCheck(Theory::Effort effort)
+{
+  d_inFullEffortCheck = false;
+}
 
 void RelevanceManager::computeRelevance()
 {
@@ -530,9 +533,9 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 }
 
 void RelevanceManager::notifyLemma(TNode n,
-                           theory::LemmaProperty p,
-                           const std::vector<Node>& skAsserts,
-                           const std::vector<Node>& sks)
+                                   theory::LemmaProperty p,
+                                   const std::vector<Node>& skAsserts,
+                                   const std::vector<Node>& sks)
 {
   // add to assertions
   if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))

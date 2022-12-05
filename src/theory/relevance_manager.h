@@ -142,9 +142,9 @@ class RelevanceManager : public TheoryEngineModule
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(TNode n,
-                           theory::LemmaProperty p,
-                           const std::vector<Node>& skAsserts,
-                           const std::vector<Node>& sks) override;
+                   theory::LemmaProperty p,
+                   const std::vector<Node>& skAsserts,
+                   const std::vector<Node>& sks) override;
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m) override;
   /**
