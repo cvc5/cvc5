@@ -451,7 +451,7 @@ const static std::unordered_map<SortKind, std::pair<internal::Kind, std::string>
         SORT_KIND_ENUM(STRING_SORT, internal::Kind::TYPE_CONSTANT),
         SORT_KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
         SORT_KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
-        KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
+        SORT_KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
 };
         
 /* Mapping from internal kind to external (API) kind. */
