@@ -421,6 +421,8 @@ class CVC5_EXPORT Sort
 
   /**
    * @return The kind of the sort.
+   *
+   * @warning This method is experimental and may change in future versions.
    */
   SortKind getKind() const;
 

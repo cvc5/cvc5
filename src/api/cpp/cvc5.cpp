@@ -419,7 +419,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
     };
 
 /* -------------------------------------------------------------------------- */
-/* Kind                                                                       */
+/* SortKind                                                                   */
 /* -------------------------------------------------------------------------- */
 
 #define SORT_KIND_ENUM(external_name, internal_name)             \

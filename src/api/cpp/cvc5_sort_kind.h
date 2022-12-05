@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * The term kinds of the cvc5 C++ API.
+ * The sort kinds of the cvc5 C++ API.
  */
 
 #include "cvc5_export.h"

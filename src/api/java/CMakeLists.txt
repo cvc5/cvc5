@@ -111,6 +111,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Utils.java
   ${JAVA_KIND_FILE}
+  ${JAVA_SORT_KIND_FILE}
 )
 
 # specify generated jni headers
