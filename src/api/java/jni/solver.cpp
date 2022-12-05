@@ -418,7 +418,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_mkAbstractSort(
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
   Solver* solver = reinterpret_cast<Solver*>(pointer);
-  Kind kind = (Kind)kindValue;
+  SortKind kind = (SortKind)kindValue;
   Sort* sort = new Sort(solver->mkAbstractSort(kind));
   return reinterpret_cast<jlong>(sort);
 

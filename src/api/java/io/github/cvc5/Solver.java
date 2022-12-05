@@ -354,7 +354,7 @@ public class Solver implements IPointer
    *
    * @api.note This method is experimental and may change in future versions.
    */
-  public Sort mkAbstractSort(Kind kind)
+  public Sort mkAbstractSort(SortKind kind)
   {
     long sortPointer = mkAbstractSort(pointer, kind.getValue());
     return new Sort(sortPointer);
