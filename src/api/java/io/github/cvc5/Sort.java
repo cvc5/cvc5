@@ -721,7 +721,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public SortKind getAbstractKind() throws CVC5ApiException
   {
     int value = getAbstractKind(pointer);
-    return Kind.fromInt(value);
+    return SortKind.fromInt(value);
   }
 
   private native int getAbstractKind(long pointer);
