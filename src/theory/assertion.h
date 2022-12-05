@@ -26,10 +26,10 @@ namespace theory {
 /** Information about an assertion for the theories. */
 struct Assertion {
   /** The assertion expression. */
-  const Node d_assertion;
+  Node d_assertion;
 
   /** Has this assertion been preregistered with this theory. */
-  const bool d_isPreregistered;
+  bool d_isPreregistered;
 
   Assertion(TNode assertion, bool isPreregistered)
       : d_assertion(assertion), d_isPreregistered(isPreregistered)
