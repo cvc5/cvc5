@@ -19,6 +19,7 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  api/cpp/cvc5_sort_kind.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_types.h
   decision/assertion_list.cpp
@@ -1456,6 +1457,7 @@ add_subdirectory(main)
 install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
+          api/cpp/cvc5_sort_kind.h
           api/cpp/cvc5_types.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
