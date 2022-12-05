@@ -518,6 +518,9 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
 
 std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 {
+  // set in full effort check temporarily
+  d_inFullEffortCheck = true;
+  d_fullEffortCheckFail = false;
   computeRelevance();
   // update success flag
   success = d_success;
@@ -529,6 +532,8 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
       rset.insert(a);
     }
   }
+  // reset in full effort check
+  d_inFullEffortCheck = false;
   return rset;
 }
 
