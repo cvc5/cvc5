@@ -102,7 +102,7 @@ add_custom_command(
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
 )
-add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
+add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_KINDS_FILES})
 
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
