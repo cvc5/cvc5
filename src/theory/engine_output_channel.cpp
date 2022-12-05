@@ -38,8 +38,8 @@ EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
 
 EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
                                          TheoryEngine* engine,
-                                         const std::string& name)
-    : d_engine(engine), d_statistics(sr, name), d_name(name)
+                                         theory::TheoryId theory)
+    : d_engine(engine), d_name(getStatsPrefix(theory)), d_statistics(sr, d_name), d_theory(theory)
 {
 }
 
@@ -59,22 +59,22 @@ void EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
 
 bool EngineOutputChannel::propagate(TNode literal)
 {
-  Trace("theory::propagate") << "EngineOutputChannel<" << d_name
+  Trace("theory::propagate") << "EngineOutputChannel<" << d_theory
                              << ">::propagate(" << literal << ")" << std::endl;
   ++d_statistics.propagations;
   d_engine->d_outputChannelUsed = true;
-  return d_engine->propagate(literal, d_name);
+  return d_engine->propagate(literal, d_theory);
 }
 
 void EngineOutputChannel::conflict(TNode conflictNode)
 {
   Trace("theory::conflict")
-      << "EngineOutputChannel<" << d_name << ">::conflict(" << conflictNode
+      << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
   TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
-  d_engine->conflict(tConf, d_name);
+  d_engine->conflict(tConf, d_theory);
 }
 
 void EngineOutputChannel::requirePhase(TNode n, bool phase)
@@ -88,13 +88,13 @@ void EngineOutputChannel::requirePhase(TNode n, bool phase)
 void EngineOutputChannel::setModelUnsound(IncompleteId id)
 {
   Trace("theory") << "setModelUnsound(" << id << ")" << std::endl;
-  d_engine->setModelUnsound(d_name, id);
+  d_engine->setModelUnsound(d_theory, id);
 }
 
 void EngineOutputChannel::setRefutationUnsound(IncompleteId id)
 {
   Trace("theory") << "setRefutationUnsound(" << id << ")" << std::endl;
-  d_engine->setRefutationUnsound(d_name, id);
+  d_engine->setRefutationUnsound(d_theory, id);
 }
 
 void EngineOutputChannel::spendResource(Resource r)
@@ -106,7 +106,7 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("theory::conflict")
-      << "EngineOutputChannel<" << d_name << ">::trustedConflict("
+      << "EngineOutputChannel<" << d_theory << ">::trustedConflict("
       << pconf.getNode() << ")" << std::endl;
   if (pconf.getGenerator() != nullptr)
   {
@@ -114,12 +114,12 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
   }
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
-  d_engine->conflict(pconf, d_name);
+  d_engine->conflict(pconf, d_theory);
 }
 
 void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 {
-  Trace("theory::lemma") << "EngineOutputChannel<" << d_name
+  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory
                          << ">::trustedLemma(" << plem << ")" << std::endl;
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
@@ -130,12 +130,12 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
   d_engine->d_outputChannelUsed = true;
   if (isLemmaPropertySendAtoms(p))
   {
-    d_engine->ensureLemmaAtoms(plem.getNode(), d_name);
+    d_engine->ensureLemmaAtoms(plem.getNode(), d_theory);
   }
   // now, call the normal interface for lemma
   d_engine->lemma(plem,
                   p,
-                  d_name);
+                  d_theory);
 }
 
 }  // namespace theory

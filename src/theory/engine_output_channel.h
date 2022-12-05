@@ -29,6 +29,8 @@ class TheoryEngine;
 
 namespace theory {
 
+class Theory;
+
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine
  * for a given Theory.
@@ -44,7 +46,7 @@ class EngineOutputChannel : public theory::OutputChannel
  public:
   EngineOutputChannel(StatisticsRegistry& sr,
                       TheoryEngine* engine,
-                      const std::string& name);
+                      theory::TheoryId theory);
 
   void safePoint(Resource r) override;
 
@@ -91,6 +93,8 @@ class EngineOutputChannel : public theory::OutputChannel
   };
   /** The theory engine we're communicating with. */
   TheoryEngine* d_engine;
+  /** The name of the owner of this channel. */
+  std::string d_name;
   /** The statistics of the theory interractions. */
   Statistics d_statistics;
   /** The theory owning this channel. */
