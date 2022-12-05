@@ -18,12 +18,11 @@
 namespace cvc5::internal {
 namespace theory {
 
-  TheoryEngineModule::TheoryEngineModule(Env& env) : EnvObj(env){}
-  void TheoryEngineModule::check(Theory::Effort effort){}
-  void TheoryEngineModule::postCheck(Theory::Effort effort){}
-  void TheoryEngineModule::notifyLemma(TNode n){}
-  void TheoryEngineModule::notifyCandidateModel(TheoryModel* m){}
-
+TheoryEngineModule::TheoryEngineModule(Env& env) : EnvObj(env) {}
+void TheoryEngineModule::check(Theory::Effort effort) {}
+void TheoryEngineModule::postCheck(Theory::Effort effort) {}
+void TheoryEngineModule::notifyLemma(TNode n) {}
+void TheoryEngineModule::notifyCandidateModel(TheoryModel* m) {}
 
 }  // namespace theory
 }  // namespace cvc5::internal

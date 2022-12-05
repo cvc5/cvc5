@@ -30,7 +30,6 @@ class TheoryModel;
  */
 class TheoryEngineModule : protected EnvObj
 {
-  
  public:
   /**
    * @param env The environment
@@ -40,7 +39,7 @@ class TheoryEngineModule : protected EnvObj
    * check, called at the beginning of a check in TheoryEngine.
    */
   virtual void check(Theory::Effort effort);
-  /** 
+  /**
    * postCheck, called at the end of a check in TheoryEngine.
    */
   virtual void postCheck();

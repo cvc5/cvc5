@@ -30,8 +30,7 @@ EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
       propagations(sr.registerInt(statPrefix + "propagations")),
       lemmas(sr.registerInt(statPrefix + "lemmas")),
       requirePhase(sr.registerInt(statPrefix + "requirePhase")),
-      trustedConflicts(
-          sr.registerInt(statPrefix + "trustedConflicts")),
+      trustedConflicts(sr.registerInt(statPrefix + "trustedConflicts")),
       trustedLemmas(sr.registerInt(statPrefix + "trustedLemmas"))
 {
 }
@@ -39,14 +38,20 @@ EngineOutputChannel::Statistics::Statistics(StatisticsRegistry& sr,
 EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
                                          TheoryEngine* engine,
                                          theory::TheoryId theory)
-    : d_engine(engine), d_name(toString(theory)), d_statistics(sr, getStatsPrefix(theory)), d_theory(theory)
+    : d_engine(engine),
+      d_name(toString(theory)),
+      d_statistics(sr, getStatsPrefix(theory)),
+      d_theory(theory)
 {
 }
 
 EngineOutputChannel::EngineOutputChannel(StatisticsRegistry& sr,
                                          TheoryEngine* engine,
                                          const std::string& name)
-    : d_engine(engine), d_name(name), d_statistics(sr, name + "::"), d_theory(THEORY_NONE)
+    : d_engine(engine),
+      d_name(name),
+      d_statistics(sr, name + "::"),
+      d_theory(THEORY_NONE)
 {
 }
 
