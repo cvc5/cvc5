@@ -251,13 +251,13 @@ public:
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */
-  cvc5::Sort getSort(const std::string& sort_name);
+  virtual cvc5::Sort getSort(const std::string& sort_name);
 
   /**
    * Returns a (parameterized) sort, given a name and args.
    */
-  cvc5::Sort getSort(const std::string& sort_name,
-                     const std::vector<cvc5::Sort>& params);
+  virtual cvc5::Sort getParametricSort(const std::string& sort_name,
+                                       const std::vector<cvc5::Sort>& params);
 
   /**
    * Checks if a symbol has been declared.
