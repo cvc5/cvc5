@@ -44,9 +44,11 @@ class EngineOutputChannel : public theory::OutputChannel
   friend class internal::TheoryEngine;
 
  public:
+  /** Constructor for use by theory */
   EngineOutputChannel(StatisticsRegistry& sr,
                       TheoryEngine* engine,
                       theory::TheoryId theory);
+  /** Constructor for use by non-theory */
   EngineOutputChannel(StatisticsRegistry& sr,
                       TheoryEngine* engine,
                       const std::string& name);
