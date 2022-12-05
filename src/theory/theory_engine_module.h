@@ -42,7 +42,7 @@ class TheoryEngineModule : protected EnvObj
    * @param engine The parent theory engine
    */
   TheoryEngineModule(Env& env, TheoryEngine* engine, const std::string& name);
-  virtual ~TheoryEngineModule(){}
+  virtual ~TheoryEngineModule() {}
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */
