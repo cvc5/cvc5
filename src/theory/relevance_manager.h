@@ -26,8 +26,8 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/term_context.h"
-#include "theory/theory_engine_module.h"
 #include "theory/difficulty_manager.h"
+#include "theory/theory_engine_module.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {
@@ -91,8 +91,7 @@ class RelevanceManager : public TheoryEngineModule
    * @param env The environment
    * @param engine The parent theory engine
    */
-  RelevanceManager(Env& env,
-                     TheoryEngine* engine);
+  RelevanceManager(Env& env, TheoryEngine* engine);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before

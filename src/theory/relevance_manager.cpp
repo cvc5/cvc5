@@ -28,7 +28,7 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-RelevanceManager::RelevanceManager(Env& env, TheoryEngine * engine)
+RelevanceManager::RelevanceManager(Env& env, TheoryEngine* engine)
     : TheoryEngineModule(env, engine),
       d_val(engine),
       d_input(userContext()),

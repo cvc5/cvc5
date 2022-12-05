@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "proof/trust_node.h"
-#include "theory/theory_engine_module.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_module.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {

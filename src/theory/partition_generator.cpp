@@ -255,7 +255,8 @@ Node PartitionGenerator::makeRevisedPartitions(bool strict, bool emitZLL)
   }
 }
 
-Node PartitionGenerator::makeFullTrailPartitions(LiteralListType litType, bool emitZLL)
+Node PartitionGenerator::makeFullTrailPartitions(LiteralListType litType,
+                                                 bool emitZLL)
 {
   std::vector<Node> literals = collectLiterals(litType);
   uint64_t numVar = static_cast<uint64_t>(log2(d_numPartitions));
@@ -364,13 +365,13 @@ void PartitionGenerator::check(Theory::Effort e)
       lem = makeFullTrailPartitions(/*litType=*/HEAP, emitZLL);
       break;
     case options::PartitionMode::DECISION_TRAIL:
-      lem =  makeFullTrailPartitions(/*litType=*/DECISION, emitZLL);
+      lem = makeFullTrailPartitions(/*litType=*/DECISION, emitZLL);
       break;
     case options::PartitionMode::STRICT_CUBE:
-      lem =  makeRevisedPartitions(/*strict=*/true, emitZLL);
+      lem = makeRevisedPartitions(/*strict=*/true, emitZLL);
       break;
     case options::PartitionMode::REVISED:
-      lem =  makeRevisedPartitions(/*strict=*/false, emitZLL);
+      lem = makeRevisedPartitions(/*strict=*/false, emitZLL);
       break;
     default: return;
   }
@@ -380,10 +381,7 @@ void PartitionGenerator::check(Theory::Effort e)
     d_out.lemma(lem);
   }
 }
-std::string PartitionGenerator::getName()
-{
-  return "PartitionGenerator";
-}
+std::string PartitionGenerator::getName() { return "PartitionGenerator"; }
 
 }  // namespace theory
 }  // namespace cvc5::internal

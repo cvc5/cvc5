@@ -39,8 +39,7 @@ class TheoryEngineModule : protected EnvObj
    * @param env The environment
    * @param engine The parent theory engine
    */
-  TheoryEngineModule(Env& env,
-                     TheoryEngine* engine);
+  TheoryEngineModule(Env& env, TheoryEngine* engine);
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */
@@ -58,6 +57,7 @@ class TheoryEngineModule : protected EnvObj
   virtual void notifyCandidateModel(TheoryModel* m);
   /** Get name, for debugging and statistics. */
   virtual std::string getName() = 0;
+
  protected:
   /** The output channel, for sending lemmas */
   EngineOutputChannel d_out;

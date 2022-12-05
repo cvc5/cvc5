@@ -18,8 +18,7 @@
 namespace cvc5::internal {
 namespace theory {
 
-TheoryEngineModule::TheoryEngineModule(Env& env,
-                                       TheoryEngine* engine)
+TheoryEngineModule::TheoryEngineModule(Env& env, TheoryEngine* engine)
     : EnvObj(env), d_out(statisticsRegistry(), engine, getName())
 {
 }
