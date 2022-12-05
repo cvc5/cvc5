@@ -28,11 +28,11 @@ namespace cvc5 {
 
 // clang-format off
 /**
- * The kind of a cvc5 Term.
+ * The kind of a cvc5 Sort.
  *
  * \internal
  *
- * Note that the API type `cvc5::Kind` roughly corresponds to
+ * Note that the API type `cvc5::SortKind` roughly corresponds to
  * `cvc5::internal::Kind`, but is a different type. It hides internal kinds
  * that should not be exported to the API, and maps all kinds that we want to
  * export to its corresponding internal kinds. The underlying type of

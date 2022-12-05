@@ -414,7 +414,6 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(SKOLEM_ADD_TO_POOL, internal::Kind::SKOLEM_ADD_TO_POOL),
         KIND_ENUM(INST_ATTRIBUTE, internal::Kind::INST_ATTRIBUTE),
         KIND_ENUM(INST_PATTERN_LIST, internal::Kind::INST_PATTERN_LIST),
-        
         KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
     };
 

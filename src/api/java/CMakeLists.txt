@@ -23,6 +23,7 @@ configure_file(genenums.py.in genenums.py)
 # Generate Kind.java
 set(JAVA_KIND_FILE
   "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/Kind.java"
+  "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/SortKind.java"
 )
 add_custom_command(
   OUTPUT
