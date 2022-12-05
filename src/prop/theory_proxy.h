@@ -22,6 +22,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
+#include "decision/decision_engine.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
@@ -60,13 +61,12 @@ class TheoryProxy : protected EnvObj, public Registrar
   TheoryProxy(Env& env,
               PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm);
 
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CnfStream* cnfStream);
+  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
@@ -203,14 +203,14 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The CNF engine we are using. */
   CnfStream* d_cnfStream;
 
-  /** The decision engine we are using. */
-  decision::DecisionEngine* d_decisionEngine;
+  /** The decision engine we will be using */
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
    * Whether the decision engine needs notification of active skolem
    * definitions, see DecisionEngine::needsActiveSkolemDefs.
    */
-  bool d_dmNeedsActiveDefs;
+  bool d_trackActiveSkDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
