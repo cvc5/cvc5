@@ -422,7 +422,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
 /* Kind                                                                       */
 /* -------------------------------------------------------------------------- */
 
-#define SORT_KIND_ENUM(external_name, internal_name)                  \
+#define SORT_KIND_ENUM(external_name, internal_name)             \
   {                                                              \
     external_name, std::make_pair(internal_name, #external_name) \
   }
@@ -451,7 +451,7 @@ const static std::unordered_map<SortKind, std::pair<internal::Kind, std::string>
         SORT_KIND_ENUM(STRING_SORT, internal::Kind::TYPE_CONSTANT),
         SORT_KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
         SORT_KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
-        SORT_KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
+        SORT_KIND_ENUM(LAST_SORT_KIND, internal::Kind::LAST_KIND),
 };
         
 /* Mapping from internal kind to external (API) kind. */
@@ -7892,6 +7892,11 @@ std::string Solver::getVersion() const
 namespace std {
 
 size_t hash<cvc5::Kind>::operator()(cvc5::Kind k) const
+{
+  return static_cast<size_t>(k);
+}
+
+size_t hash<cvc5::SortKind>::operator()(cvc5::SortKind k) const
 {
   return static_cast<size_t>(k);
 }
