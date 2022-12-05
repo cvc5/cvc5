@@ -28,9 +28,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-RelevanceManager::RelevanceManager(Env& env, Valuation val)
-    : EnvObj(env),
-      d_val(val),
+RelevanceManager::RelevanceManager(Env& env, TheoryEngine * engine)
+    : TheoryEngineModule(env, engine),
+      d_val(engine),
       d_input(userContext()),
       d_atomMap(userContext()),
       d_rset(context()),
@@ -44,7 +44,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options().smt.produceDifficulty)
   {
-    d_dman = std::make_unique<DifficultyManager>(env, this, val);
+    d_dman = std::make_unique<DifficultyManager>(env, this, d_val);
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -149,6 +149,8 @@ void RelevanceManager::beginRound()
 }
 
 void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
+
+std::string RelevanceManager::getName() { return "RelevanceManager"; }
 
 void RelevanceManager::computeRelevance()
 {

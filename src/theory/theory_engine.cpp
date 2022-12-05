@@ -160,7 +160,7 @@ void TheoryEngine::finishInit()
   // create the relevance filter if any option requires it
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
-    d_relManager.reset(new RelevanceManager(d_env, Valuation(this)));
+    d_relManager.reset(new RelevanceManager(d_env, this));
   }
 
   // initialize the quantifiers engine
@@ -409,11 +409,7 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     if (d_partitionGen != nullptr)
     {
-      TrustNode tl = d_partitionGen->check(effort);
-      if (!tl.isNull())
-      {
-        lemma(tl, LemmaProperty::NONE, THEORY_LAST);
-      }
+      d_partitionGen->check(effort);
     }
     // check with the theory modules
     for (TheoryEngineModule* tem : d_modules)
