@@ -31,6 +31,8 @@
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
+#include "api/cpp/cvc5_sort_kind.h"
+#include "api/cpp/cvc5_sort_kind.h"
 #include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
@@ -420,7 +422,7 @@ class CVC5_EXPORT Sort
   /**
    * @return The kind of the sort.
    */
-  Kind getKind() const;
+  SortKind getKind() const;
 
   /**
    * Does this sort have a symbol, that is, a name?
@@ -798,7 +800,7 @@ class CVC5_EXPORT Sort
    *
    * @warning This method is experimental and may change in future versions.
    */
-  Kind getAbstractKind() const;
+  SortKind getAbstractKind() const;
 
   /* Uninterpreted sort constructor sort --------------------------------- */
 

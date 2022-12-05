@@ -2969,7 +2969,7 @@ cdef class Sort:
         """
             :return: The :py:class:`Kind` of this sort.
         """
-        return Kind(<int> self.csort.getKind())
+        return SortKind(<int> self.csort.getKind())
 
     def hasSymbol(self):
         """
@@ -3447,7 +3447,7 @@ cdef class Sort:
             .. warning:: This method is experimental and may change in future
                          versions.
         """
-        return Kind(<int> self.csort.getAbstractKind())
+        return SortKind(<int> self.csort.getAbstractKind())
 
     def getUninterpretedSortConstructorArity(self):
         """

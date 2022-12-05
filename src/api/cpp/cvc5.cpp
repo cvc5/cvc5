@@ -414,27 +414,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(SKOLEM_ADD_TO_POOL, internal::Kind::SKOLEM_ADD_TO_POOL),
         KIND_ENUM(INST_ATTRIBUTE, internal::Kind::INST_ATTRIBUTE),
         KIND_ENUM(INST_PATTERN_LIST, internal::Kind::INST_PATTERN_LIST),
-        /* Sorts ------------------------------------------------------------ */
-        // Note that this mapping is only given for completeness and is rarely
-        // used since we do not construct sorts based on kinds.
-        KIND_ENUM(ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
-        KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
-        KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
-        KIND_ENUM(BITVECTOR_SORT, internal::Kind::BITVECTOR_TYPE),
-        KIND_ENUM(BOOLEAN_SORT, internal::Kind::TYPE_CONSTANT),
-        KIND_ENUM(DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
-        KIND_ENUM(FINITE_FIELD_SORT, internal::Kind::FINITE_FIELD_TYPE),
-        KIND_ENUM(FLOATINGPOINT_SORT, internal::Kind::FLOATINGPOINT_TYPE),
-        KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
-        KIND_ENUM(INTEGER_SORT, internal::Kind::TYPE_CONSTANT),
-        KIND_ENUM(REAL_SORT, internal::Kind::TYPE_CONSTANT),
-        KIND_ENUM(REGLAN_SORT, internal::Kind::TYPE_CONSTANT),
-        KIND_ENUM(ROUNDINGMODE_SORT, internal::Kind::TYPE_CONSTANT),
-        KIND_ENUM(SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
-        KIND_ENUM(SET_SORT, internal::Kind::SET_TYPE),
-        KIND_ENUM(STRING_SORT, internal::Kind::TYPE_CONSTANT),
-        KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
-        KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
+        
         KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
     };
 
@@ -763,7 +743,17 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SKOLEM_ADD_TO_POOL, SKOLEM_ADD_TO_POOL},
         {internal::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
         {internal::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
-        /* Sorts ------------------------------------------------------------ */
+        /* ----------------------------------------------------------------- */
+        {internal::Kind::LAST_KIND, LAST_KIND},
+    };
+
+/* Mapping from internal kind to external (API) sort kind. */
+const static std::unordered_map<internal::Kind,
+                                SortKind,
+                                internal::kind::KindHashFunction>
+    s_sort_kinds_internal{
+        {internal::Kind::UNDEFINED_KIND, UNDEFINED_SORT_KIND},
+        {internal::Kind::NULL_EXPR, NULL_SORT},
         {internal::Kind::ABSTRACT_TYPE, ABSTRACT_SORT},
         {internal::Kind::ARRAY_TYPE, ARRAY_SORT},
         {internal::Kind::BAG_TYPE, BAG_SORT},
@@ -775,10 +765,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
         {internal::Kind::SET_TYPE, SET_SORT},
         {internal::Kind::TUPLE_TYPE, TUPLE_SORT},
-        /* ----------------------------------------------------------------- */
-        {internal::Kind::LAST_KIND, LAST_KIND},
     };
-
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind> s_indexed_kinds(
     {DIVISIBLE,
@@ -969,6 +956,17 @@ cvc5::Kind intToExtKind(internal::Kind k)
   if (it == s_kinds_internal.end())
   {
     return INTERNAL_KIND;
+  }
+  return it->second;
+}
+/** Convert a internal::Kind (internal) to a cvc5::Kind (external).
+ */
+SortKind intToExtSortKind(internal::Kind k)
+{
+  auto it = s_sort_kinds_internal.find(k);
+  if (it == s_sort_kinds_internal.end())
+  {
+    return INTERNAL_SORT_KIND;
   }
   return it->second;
 }
@@ -1249,7 +1247,7 @@ bool Sort::operator>=(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
-Kind Sort::getKind() const
+SortKind Sort::getKind() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
@@ -1267,11 +1265,11 @@ Kind Sort::getKind() const
       case internal::STRING_TYPE: return STRING_SORT; break;
       case internal::REGEXP_TYPE: return REGLAN_SORT; break;
       case internal::ROUNDINGMODE_TYPE: return ROUNDINGMODE_SORT; break;
-      default: return INTERNAL_KIND; break;
+      default: return INTERNAL_SORT_KIND; break;
     }
   }
   // otherwise we rely on the mapping
-  return intToExtKind(tk);
+  return intToExtSortKind(tk);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1827,13 +1825,13 @@ Sort Sort::getSequenceElementSort() const
 
 /* Abstract sort ------------------------------------------------------- */
 
-Kind Sort::getAbstractKind() const
+SortKind Sort::getAbstractKind() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(isAbstract()) << "Not an abstract sort.";
   //////// all checks before this line
-  return intToExtKind(d_type->getAbstractKind());
+  return intToExtSortKind(d_type->getAbstractKind());
   ////////
   CVC5_API_TRY_CATCH_END;
 }
