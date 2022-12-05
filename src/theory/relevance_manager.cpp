@@ -29,7 +29,7 @@ namespace cvc5::internal {
 namespace theory {
 
 RelevanceManager::RelevanceManager(Env& env, TheoryEngine* engine)
-    : TheoryEngineModule(env, engine),
+    : TheoryEngineModule(env, engine, "RelevanceManager"),
       d_val(engine),
       d_input(userContext()),
       d_atomMap(userContext()),
@@ -149,8 +149,6 @@ void RelevanceManager::beginRound()
 }
 
 void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
-
-std::string RelevanceManager::getName() { return "RelevanceManager"; }
 
 void RelevanceManager::computeRelevance()
 {

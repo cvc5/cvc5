@@ -112,8 +112,6 @@ class RelevanceManager : public TheoryEngineModule
   void beginRound();
   /** End round, called at the end of a full effort check in TheoryEngine. */
   void endRound();
-  /** Get name */
-  std::string getName() override;
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a

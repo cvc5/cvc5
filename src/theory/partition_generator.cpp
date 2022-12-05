@@ -35,7 +35,7 @@ namespace theory {
 PartitionGenerator::PartitionGenerator(Env& env,
                                        TheoryEngine* theoryEngine,
                                        prop::PropEngine* propEngine)
-    : TheoryEngineModule(env, theoryEngine),
+    : TheoryEngineModule(env, theoryEngine, "PartitionGenerator"),
       d_numPartitions(options().parallel.computePartitions),
       d_numChecks(0),
       d_betweenChecks(0),
@@ -381,7 +381,6 @@ void PartitionGenerator::check(Theory::Effort e)
     d_out.lemma(lem);
   }
 }
-std::string PartitionGenerator::getName() { return "PartitionGenerator"; }
 
 }  // namespace theory
 }  // namespace cvc5::internal

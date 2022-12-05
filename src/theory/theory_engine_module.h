@@ -31,6 +31,8 @@ namespace theory {
 class TheoryModel;
 
 /**
+ * A theory engine module shares some functionality with a theory solver
+ * but is not associated with a theory.
  */
 class TheoryEngineModule : protected EnvObj
 {
@@ -39,7 +41,8 @@ class TheoryEngineModule : protected EnvObj
    * @param env The environment
    * @param engine The parent theory engine
    */
-  TheoryEngineModule(Env& env, TheoryEngine* engine);
+  TheoryEngineModule(Env& env, TheoryEngine* engine, const std::string& name);
+  virtual ~TheoryEngineModule(){}
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */
@@ -56,11 +59,13 @@ class TheoryEngineModule : protected EnvObj
   /** Notify that m is a (candidate) model */
   virtual void notifyCandidateModel(TheoryModel* m);
   /** Get name, for debugging and statistics. */
-  virtual std::string getName() = 0;
+  const std::string& getName();
 
  protected:
   /** The output channel, for sending lemmas */
   EngineOutputChannel d_out;
+  /** The name */
+  std::string d_name;
 };
 
 }  // namespace theory

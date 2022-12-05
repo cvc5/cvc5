@@ -46,8 +46,6 @@ class PartitionGenerator : public TheoryEngineModule
    * search.
    */
   void check(Theory::Effort e) override;
-  /** Get name */
-  std::string getName() override;
 
  private:
   /* LiteralListType is used to specify where to pull literals from when calling
