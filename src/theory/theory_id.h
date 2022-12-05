@@ -48,7 +48,8 @@ enum TheoryId
   THEORY_STRINGS,
   THEORY_QUANTIFIERS,
 
-  THEORY_LAST
+  THEORY_LAST,
+  THEORY_NONE
 };
 
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
@@ -56,6 +57,7 @@ const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
 TheoryId& operator++(TheoryId& id);
 
+std::string toString(TheoryId theoryId);
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
 
 std::string getStatsPrefix(TheoryId theoryId);

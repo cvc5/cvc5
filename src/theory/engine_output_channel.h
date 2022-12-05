@@ -47,6 +47,9 @@ class EngineOutputChannel : public theory::OutputChannel
   EngineOutputChannel(StatisticsRegistry& sr,
                       TheoryEngine* engine,
                       theory::TheoryId theory);
+  EngineOutputChannel(StatisticsRegistry& sr,
+                      TheoryEngine* engine,
+                      const std::string& name);
 
   void safePoint(Resource r) override;
 
