@@ -232,7 +232,8 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
         inclArgs.erase(it);
       }
       */
-      PARSER_STATE->includeFile(name /* , inclArgs */ );
+      const std::string& tptpDir = PARSER_STATE->getTptpDir();
+      PARSER_STATE->includeTptpFile(name, tptpDir);
       // The command of the included file will be produced at the next parseCommand() call
       cmd = new EmptyCommand("include::" + name);
     }
