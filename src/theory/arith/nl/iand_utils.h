@@ -1,5 +1,4 @@
 /******************************************************************************
-```
  * Top contributors (to current version):
  *   Yoni Zohar, Makai Mann, Andrew Reynolds
  *
