@@ -68,8 +68,6 @@ configure_file(genenums.py.in genenums.py)
 set(GENERATED_KINDS_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds.pxi"
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxd"
-  "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxi"
 )
 add_custom_command(
   OUTPUT
