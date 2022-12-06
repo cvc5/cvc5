@@ -87,13 +87,13 @@ add_custom_command(
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
 # Generate cvc5sortkinds.{pxd,pxi}
-set(GENERATED_KINDS_FILES
+set(GENERATED_SORT_KINDS_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxd"
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds.pxi"
 )
 add_custom_command(
   OUTPUT
-    ${GENERATED_KINDS_FILES}
+    ${GENERATED_SORT_KINDS_FILES}
   COMMAND
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
@@ -104,7 +104,7 @@ add_custom_command(
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
 )
-add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_KINDS_FILES})
+add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_SORT_KINDS_FILES})
 
 set(GENERATED_TYPES_FILES
   "${CMAKE_CURRENT_BINARY_DIR}/cvc5types.pxd"
