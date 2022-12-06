@@ -15,6 +15,7 @@
 
 package tests;
 import static io.github.cvc5.Kind.*;
+import static io.github.cvc5.SortKind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
