@@ -232,15 +232,15 @@ enum SortKind : int32_t
 
 /**
  * Get the string representation of a given kind.
- * @param k the kind
+ * @param k the sort kind
  * @return the string representation of kind k
  */
-std::string kindToString(SortKind k) CVC5_EXPORT;
+std::string sortKindToString(SortKind k) CVC5_EXPORT;
 
 /**
  * Serialize a kind to given stream.
  * @param out the output stream
- * @param k the kind to be serialized to the given output stream
+ * @param k the sort kind to be serialized to the given output stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, SortKind k) CVC5_EXPORT;

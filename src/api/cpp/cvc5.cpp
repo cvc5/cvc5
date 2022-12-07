@@ -430,8 +430,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
 const static std::unordered_map<SortKind, std::pair<internal::Kind, std::string>>
     s_sort_kinds{
         /* Sorts ------------------------------------------------------------ */
-        // Note that this mapping is only given for completeness and is rarely
-        // used since we do not construct sorts based on kinds.
+        // Note that many entries in this map (e.g. for type constants) are
+        // given only for completeness and are not used since we don't
+        // construct sorts based on SortKind.
         SORT_KIND_ENUM(ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
         SORT_KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
         SORT_KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
@@ -1107,6 +1108,21 @@ std::string kindToString(Kind k)
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
   return out << kindToString(k);
+}
+
+std::string sortKindToString(SortKind k)
+{
+  auto it = s_sort_kinds.find(k);
+  if (it == s_sort_kinds.end())
+  {
+    return "UNDEFINED_KIND";
+  }
+  return it->second.second;
+}
+
+std::ostream& operator<<(std::ostream& out, SortKind k)
+{
+  return out << sortKindToString(k);
 }
 
 /* -------------------------------------------------------------------------- */
