@@ -85,6 +85,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   /**
    * @return The kind of this sort.
+   * @api.note This method is experimental and may change in future versions.
    */
   public SortKind getKind() throws CVC5ApiException
   {

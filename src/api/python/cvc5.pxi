@@ -1080,7 +1080,7 @@ cdef class Solver:
                          versions.
         """
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.mkAbstractSort(<c_Kind> k.value)
+        sort.csort = self.csolver.mkAbstractSort(<c_SortKind> k.value)
         return sort
 
     def mkUninterpretedSort(self, str name = None):
@@ -2968,7 +2968,10 @@ cdef class Sort:
 
     def getKind(self):
         """
-            :return: The :py:class:`Kind` of this sort.
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :return: The :py:class:`SortKind` of this sort.
         """
         return SortKind(<int> self.csort.getKind())
 
