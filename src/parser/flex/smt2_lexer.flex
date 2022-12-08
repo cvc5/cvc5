@@ -132,7 +132,7 @@ unterminated_quoted_symbol \|[^\|\\]*
 namespace cvc5 {
 namespace parser {
 
-Smt2Lexer::Smt2Lexer() : Lexer()
+Smt2Lexer::Smt2Lexer(bool isSygus, bool isStrict) : Lexer(), d_sygus(isSygus), d_strict(isStrict)
 {
 }
 

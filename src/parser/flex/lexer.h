@@ -86,11 +86,6 @@ class Lexer : public yyFlexLexer
   void unexpectedTokenError(Token t, const std::string& info);
 
  protected:
-  /** 
-   * Virtual function to process token. Can assume that tokenStr() is available.
-   * Can be used to manually override tokens.
-   */
-  virtual Token processTokenInternal(Token t); 
   // Used to initialize d_span.
   void init_d_span();
   // Sets the spans start to its current end.

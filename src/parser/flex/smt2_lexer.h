@@ -32,10 +32,18 @@ namespace parser {
 class Smt2Lexer : public Lexer
 {
  public:
-  Smt2Lexer();
+  Smt2Lexer(bool isSygus = true, bool isStrict = false);
   virtual ~Smt2Lexer() {}
   /** Inherited from yyFlexLexer */
   int yylex() override;
+private:
+  /** Are we lexing sygus? */
+  bool d_sygus;
+  /** 
+   * Are we in strict mode? This disables lexing for non-standard smt2 commands
+   * (e.g. get-learned-literals) that we support.
+   */
+  bool d_strict;
 };
 
 }  // namespace parser
