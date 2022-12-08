@@ -112,19 +112,19 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
 
   cvc5::Result res;
-  bool resultSet = false;
+  bool hasResult = false;
   const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
   if (cs != nullptr)
   {
     d_result = res = cs->getResult();
-    resultSet = true;
+    hasResult = true;
   }
   const CheckSatAssumingCommand* csa =
       dynamic_cast<const CheckSatAssumingCommand*>(cmd);
   if (csa != nullptr)
   {
     d_result = res = csa->getResult();
-    resultSet = true;
+    hasResult = true;
   }
   // since verbosity is cached, we must check if it was changed by a command
   const SetOptionCommand* cso = dynamic_cast<const SetOptionCommand*>(cmd);
@@ -137,7 +137,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   // if we didnt set a result, return the status
-  if (!resultSet)
+  if (!hasResult)
   {
     return status;
   }
