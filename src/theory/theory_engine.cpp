@@ -238,8 +238,7 @@ TheoryEngine::TheoryEngine(Env& env)
       d_propagatedLiterals(context()),
       d_propagatedLiteralsIndex(context(), 0),
       d_atomRequests(context()),
-      d_combineTheoriesTime(statisticsRegistry().registerTimer(
-          "TheoryEngine::combineTheoriesTime")),
+      d_stats(statisticsRegistry()),
       d_true(),
       d_false(),
       d_interrupted(false),
@@ -451,7 +450,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         // Do the combination
         Trace("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         {
-          TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
+          TimerStat::CodeTimer combineTheoriesTimer(d_stats.d_combineTheoriesTime);
           d_tc->combineTheories();
         }
         if (logicInfo().isQuantified())

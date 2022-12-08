@@ -40,6 +40,7 @@
 #include "theory/valuation.h"
 #include "util/hash.h"
 #include "util/statistics_stats.h"
+#include "theory/theory_engine_statistics.h"
 
 namespace cvc5::internal {
 
@@ -599,8 +600,8 @@ class TheoryEngine : protected EnvObj
   /** sort inference module */
   std::unique_ptr<theory::SortInference> d_sortInfer;
 
-  /** Time spent in theory combination */
-  TimerStat d_combineTheoriesTime;
+  /** Statistics */
+  theory::TheoryEngineStatistics d_stats;
 
   Node d_true;
   Node d_false;
