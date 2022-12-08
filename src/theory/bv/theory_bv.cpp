@@ -128,8 +128,6 @@ void TheoryBV::finishInit()
     //    ee->addFunctionKind(kind::BITVECTOR_SLE);
     //    ee->addFunctionKind(kind::BITVECTOR_SGT);
     //    ee->addFunctionKind(kind::BITVECTOR_SGE);
-    ee->addFunctionKind(kind::BITVECTOR_TO_NAT);
-    ee->addFunctionKind(kind::INT_TO_BITVECTOR);
   }
 }
 
