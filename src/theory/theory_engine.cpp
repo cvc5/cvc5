@@ -450,7 +450,8 @@ void TheoryEngine::check(Theory::Effort effort) {
         // Do the combination
         Trace("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         {
-          TimerStat::CodeTimer combineTheoriesTimer(d_stats.d_combineTheoriesTime);
+          TimerStat::CodeTimer combineTheoriesTimer(
+              d_stats.d_combineTheoriesTime);
           d_tc->combineTheories();
         }
         if (logicInfo().isQuantified())
