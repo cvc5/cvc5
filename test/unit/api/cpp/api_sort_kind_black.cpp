@@ -32,7 +32,7 @@ TEST_F(TestApiKind, sortKindToString)
 {
   for (int32_t k = INTERNAL_SORT_KIND; k < LAST_SORT_KIND; ++k)
   {
-    auto kindstr = sortKindToString(static_cast<Kind>(k));
+    auto kindstr = sortKindToString(static_cast<SortKind>(k));
     if (k == INTERNAL_SORT_KIND)
     {
       ASSERT_EQ(kindstr, "INTERNAL_SORT_KIND");
