@@ -38,11 +38,16 @@ namespace parser {
 
 class Command;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class Smt2 : public Parser
 {
   friend class ParserBuilder;
 
  private:
+  /** Are we parsing a sygus file? */
+  bool d_isSygus;
   /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */
@@ -66,7 +71,7 @@ class Smt2 : public Parser
   Smt2(cvc5::Solver* solver,
        SymbolManager* sm,
        bool strictMode = false,
-       bool parseOnly = false);
+       bool isSygus = false);
 
  public:
   ~Smt2();
@@ -274,8 +279,6 @@ class Smt2 : public Parser
     }
   }
 
-  void includeFile(const std::string& filename);
-
   void setLastNamedTerm(cvc5::Term e, std::string name)
   {
     d_lastNamedTerm = std::make_pair(e, name);
@@ -395,6 +398,16 @@ class Smt2 : public Parser
    * as a chain of HO_APPLY terms.
    */
   cvc5::Term applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args);
+  /**
+   * Returns a (parameterized) sort, given a name and args.
+   */
+  Sort getParametricSort(const std::string& name,
+                         const std::vector<Sort>& args) override;
+  /**
+   * Returns a (indexed) sort, given a name and numeric indices.
+   */
+  Sort getIndexedSort(const std::string& name,
+                      const std::vector<uint32_t>& numerals);
   //------------------------- end processing parse operators
 
   /**

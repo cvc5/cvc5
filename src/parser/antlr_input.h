@@ -94,6 +94,8 @@ class Parser;
  * <code>newFileInput</code>, <code>newStringInput</code>) create a parser
  * for the given input language and attach it to an input source of the
  * appropriate type.
+ *
+ * This class is deprecated and used only for the ANTLR parser.
  */
 class AntlrInput : public Input {
   /** The token lookahead used to lex and parse the input. This should usually be equal to
