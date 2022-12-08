@@ -38,6 +38,8 @@ class TheoryEngineStatistics
   IntStat d_stdEffortChecks;
   /** Number of full effort checks */
   IntStat d_fullEffortChecks;
+  /** Number of last call effort checks */
+  IntStat d_lcEffortChecks;
 };
 
 }  // namespace theory

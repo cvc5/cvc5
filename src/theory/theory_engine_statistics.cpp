@@ -22,7 +22,8 @@ namespace theory {
   d_combineTheoriesTime(sr.registerTimer(
           "TheoryEngine::combineTheoriesTime")),
           d_stdEffortChecks(sr.registerInt("TheoryEngine::Check_Standard"),
-          d_fullEffortChecks(sr.registerInt("TheoryEngine::Checks_Full") {}
+          d_fullEffortChecks(sr.registerInt("TheoryEngine::Checks_Full"),
+          d_lcEffortChecks(sr.registerInt("TheoryEngine::Checks_Last_Call") {}
 
   }  // namespace theory
   }  // namespace cvc5::internal
