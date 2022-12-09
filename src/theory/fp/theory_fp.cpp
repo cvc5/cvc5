@@ -404,7 +404,7 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
 
   size_t newSize = d_wordBlaster->d_additionalAssertions.size();
 
-  if (wordBlasted != node)
+  if (TraceIsOn("fp-wordBlastTerm") && wordBlasted != node)
   {
     Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
