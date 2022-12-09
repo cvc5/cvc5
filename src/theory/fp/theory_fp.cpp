@@ -433,7 +433,8 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
   }
 
   // Equate the floating-point atom and the wordBlasted one.
-  // Also adds the bit-vectors to the bit-vector solver.
+  // Adds the bit-vectors to the bit-vector solver via sending the equality
+  // as lemma to the inference manager.
   if (node.getType().isBoolean())
   {
     if (wordBlasted != node)
@@ -616,8 +617,8 @@ void TheoryFp::preRegisterTerm(TNode node)
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())
     {
-      unsigned exp_sz = tn.getFloatingPointExponentSize();
-      unsigned sig_sz = tn.getFloatingPointSignificandSize();
+      uint32_t exp_sz = tn.getFloatingPointExponentSize();
+      uint32_t sig_sz = tn.getFloatingPointSignificandSize();
       if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
       {
         std::stringstream ss;
