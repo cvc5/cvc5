@@ -159,16 +159,6 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
         << "Expected floating-point kind " << k << " to be removed";
   }
 
-  Node res = node;
-
-
-  if (res != node)
-  {
-    Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
-                          << " rewritten to " << res << std::endl;
-    return TrustNode::mkTrustRewrite(node, res, nullptr);
-  }
-
   return TrustNode::null();
 }
 
