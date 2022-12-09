@@ -292,7 +292,7 @@ def generate_option_enum_and_table(modules):
     res.append("};")
     res.append("const std::unordered_map<std::string, OptionEnum> NAME_TO_ENUM = {")
     for module, option in all_options(modules, True):
-        if not option.name or not option.long:
+        if not option.long:
             continue
         for name in option.names:
             res.append("  {{ \"{}\", OptionEnum::{} }},"

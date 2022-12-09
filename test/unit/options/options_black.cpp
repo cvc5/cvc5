@@ -167,5 +167,23 @@ TEST_F(TestBlackOptions, set)
   }
 }
 
+TEST_F(TestBlackOptions, getOptionInfoBenchmark)
+{
+  const auto names = options::getNames();
+  size_t ct = 0;
+  for (size_t i = 0; i < 100; ++i)
+  {
+    for (const auto& name : names)
+    {
+      auto info = d_solver.getOptionInfo(name);
+      if (info.name != name)
+      {
+        ++ct;
+      }
+    }
+  }
+  std::cout << ct << std::endl;
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
