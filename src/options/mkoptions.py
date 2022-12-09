@@ -294,20 +294,20 @@ def generate_option_enum_and_table(modules):
     It would probably be even faster with a better hash function.
     """
     res = []
-    res.append("enum class OptionEnum {")
+    res.append('enum class OptionEnum {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
-        res.append("  {n},".format(n=option.enum_name()))
-    res.append("};")
-    res.append("const std::unordered_map<std::string, OptionEnum> NAME_TO_ENUM = {")
+        res.append('  {n},'.format(n=option.enum_name()))
+    res.append('};')
+    res.append('const std::unordered_map<std::string, OptionEnum> NAME_TO_ENUM = {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
         for name in option.names:
-            res.append("  {{ \"{}\", OptionEnum::{} }},"
+            res.append('  {{ \"{}\", OptionEnum::{} }},'
                        .format(name, option.enum_name()))
-    res.append("};")
+    res.append('};')
     return '\n    '.join(res)
 
 
@@ -323,11 +323,11 @@ def generate_getnames_impl(modules):
 def generate_get_impl(modules):
     """Generates the implementation for options::get()."""
     res = []
-    res.append("auto it = NAME_TO_ENUM.find(name);")
-    res.append("if (it == NAME_TO_ENUM.end()) {")
-    res.append("  throw OptionException(\"Unrecognized option key or setting: \" + name);")
-    res.append("}")
-    res.append("switch (it->second) {")
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.name or not option.long:
             continue
@@ -343,12 +343,12 @@ def generate_get_impl(modules):
         else:
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
-        res.append("  case OptionEnum::{}: {}".format(option.enum_name(), ret))
-    res.append("  default:".format(option.enum_name()))
-    res.append("  {")
-    res.append("    throw OptionException(\"Ungettable option key or setting: \" + name);")
-    res.append("  }")
-    res.append("}")
+        res.append('  case OptionEnum::{}: {}'.format(option.enum_name(), ret))
+    res.append('  default:'.format(option.enum_name()))
+    res.append('  {')
+    res.append('    throw OptionException(\"Ungettable option key or setting: \" + name);')
+    res.append('  }')
+    res.append('}')
     return '\n    '.join(res)
 
 
@@ -384,16 +384,16 @@ def _set_predicates(module, option):
 def generate_set_impl(modules):
     """Generates the implementation for options::set()."""
     res = []
-    res.append("auto it = NAME_TO_ENUM.find(name);")
-    res.append("if (it == NAME_TO_ENUM.end()) {")
-    res.append("  throw OptionException(\"Unrecognized option key or setting: \" + name);")
-    res.append("}")
-    res.append("switch (it->second) {")
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
-        res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        res.append("  {")
+        res.append('  case OptionEnum::{}:'.format(option.enum_name()))
+        res.append('  {')
         res.append('    auto value = {};'.format(_set_handlers(option)))
         for pred in _set_predicates(module, option):
             res.append('    {}'.format(pred))
@@ -402,20 +402,20 @@ def generate_set_impl(modules):
                 module=module.id_capitalized, name=option.name))
             res.append('    opts.write{module}().{name}WasSetByUser = true;'.format(
                 module=module.id_capitalized, name=option.name))
-        res.append("    break;")
-        res.append("  }")
-    res.append("}")
+        res.append('    break;')
+        res.append('  }')
+    res.append('}')
     return '\n    '.join(res)
 
 
 def generate_getinfo_impl(modules):
     """Generates the implementation for options::getInfo()."""
     res = []
-    res.append("auto it = NAME_TO_ENUM.find(name);")
-    res.append("if (it == NAME_TO_ENUM.end()) {")
-    res.append("  throw OptionException(\"Unrecognized option key or setting: \" + name);")
-    res.append("}")
-    res.append("switch (it->second) {")
+    res.append('auto it = NAME_TO_ENUM.find(name);')
+    res.append('if (it == NAME_TO_ENUM.end()) {')
+    res.append('  throw OptionException(\"Unrecognized option key or setting: \" + name);')
+    res.append('}')
+    res.append('switch (it->second) {')
     for module, option in all_options(modules, True):
         if not option.long:
             continue
