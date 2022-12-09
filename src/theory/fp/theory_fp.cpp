@@ -159,16 +159,6 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
         << "Expected floating-point kind " << k << " to be removed";
   }
 
-  Node res = node;
-
-
-  if (res != node)
-  {
-    Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
-                          << " rewritten to " << res << std::endl;
-    return TrustNode::mkTrustRewrite(node, res, nullptr);
-  }
-
   return TrustNode::null();
 }
 
@@ -414,7 +404,7 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
 
   size_t newSize = d_wordBlaster->d_additionalAssertions.size();
 
-  if (wordBlasted != node)
+  if (TraceIsOn("fp-wordBlastTerm") && wordBlasted != node)
   {
     Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
@@ -650,10 +640,11 @@ void TheoryFp::preRegisterTerm(TNode node)
 void TheoryFp::handleLemma(Node node, InferenceId id)
 {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-  if (rewrite(node) != d_true)
+  Node lemma = rewrite(node);
+  if (lemma != d_true)
   {
     /* We only send non-trivial lemmas. */
-    d_im.lemma(node, id);
+    d_im.lemma(lemma, id);
   }
 }
 

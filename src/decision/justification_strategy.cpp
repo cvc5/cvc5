@@ -23,8 +23,10 @@ using namespace cvc5::internal::prop;
 namespace cvc5::internal {
 namespace decision {
 
-JustificationStrategy::JustificationStrategy(Env& env)
-    : DecisionEngine(env),
+JustificationStrategy::JustificationStrategy(Env& env,
+                                             prop::CDCLTSatSolverInterface* ss,
+                                             prop::CnfStream* cs)
+    : DecisionEngine(env, ss, cs),
       d_assertions(
           userContext(),
           context(),
@@ -480,21 +482,15 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
-void JustificationStrategy::addAssertion(TNode assertion, bool isLemma)
+void JustificationStrategy::addAssertion(TNode lem, TNode skolem, bool isLemma)
 {
-  Trace("jh-assert") << "addAssertion " << assertion << std::endl;
-  std::vector<TNode> toProcess;
-  toProcess.push_back(assertion);
-  insertToAssertionList(toProcess, false);
-}
-
-void JustificationStrategy::addSkolemDefinition(TNode lem,
-                                                TNode skolem,
-                                                bool isLemma)
-{
-  Trace("jh-assert") << "addSkolemDefinition " << lem << " / " << skolem
-                     << std::endl;
-  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
+  Trace("jh-assert") << "addAssertion " << lem << " / " << skolem << std::endl;
+  if (skolem.isNull())
+  {
+    std::vector<TNode> toProcess{lem};
+    insertToAssertionList(toProcess, false);
+  }
+  else if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
   {
     // just add to main assertions list
     std::vector<TNode> toProcess;
@@ -510,13 +506,15 @@ bool JustificationStrategy::needsActiveSkolemDefs() const
 void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
   Trace("jh-assert") << "notifyActiveSkolemDefs: " << defs << std::endl;
-  Assert(d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT);
-  // assertion processed makes all skolems in assertion active,
-  // which triggers their definitions to becoming relevant
-  insertToAssertionList(defs, true);
-  // NOTE: if we had a notifyAsserted callback, we could update tracking
-  // triggers, pop stack to where a child implied that a node on the current
-  // stack is justified.
+  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
+  {
+    // assertion processed makes all skolems in assertion active,
+    // which triggers their definitions to becoming relevant
+    insertToAssertionList(defs, true);
+    // NOTE: if we had a notifyAsserted callback, we could update tracking
+    // triggers, pop stack to where a child implied that a node on the current
+    // stack is justified.
+  }
 }
 
 void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
