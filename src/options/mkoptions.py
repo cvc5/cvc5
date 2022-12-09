@@ -282,9 +282,19 @@ def generate_public_includes(modules):
 
 
 def generate_option_enum_and_table(modules):
-    """ TODO """
+    """
+    Generate an enum class OptionEnum with one variant for each option.
+    Also, generate a map NAME_TO_ENUM from string names to enum variants.
+
+    This enum is used to branch (in C++) on an option string name.
+    First, you lookup the enum in the map.
+    Then, you switch-case on the enum, which generates a jump table.
+
+    When we measured, this was about 5x faster than a huge if-else chain.
+    It would probably be even faster with a better hash function.
+    """
     res = []
-    res.append("enum OptionEnum {")
+    res.append("enum class OptionEnum {")
     for module, option in all_options(modules, True):
         if not option.long:
             continue
