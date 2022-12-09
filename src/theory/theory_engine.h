@@ -34,6 +34,7 @@
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_statistics.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
@@ -599,8 +600,8 @@ class TheoryEngine : protected EnvObj
   /** sort inference module */
   std::unique_ptr<theory::SortInference> d_sortInfer;
 
-  /** Time spent in theory combination */
-  TimerStat d_combineTheoriesTime;
+  /** Statistics */
+  theory::TheoryEngineStatistics d_stats;
 
   Node d_true;
   Node d_false;
