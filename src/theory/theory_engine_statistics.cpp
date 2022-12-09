@@ -18,13 +18,16 @@
 namespace cvc5::internal {
 namespace theory {
 
-  TheoryEngineStatistics::TheoryEngineStatistics(StatisticsRegistry& sr) : 
-  d_combineTheoriesTime(sr.registerTimer(
-          "TheoryEngine::combineTheoriesTime")),
-          d_stdEffortChecks(sr.registerInt("TheoryEngine::Check_Standard")),
-          d_fullEffortChecks(sr.registerInt("TheoryEngine::Checks_Full")),
-                             d_combineTheoriesCalls(sr.registerInt("TheoryEngine::combineTheoriesCalls")),
-          d_lcEffortChecks(sr.registerInt("TheoryEngine::Checks_Last_Call")) {}
+TheoryEngineStatistics::TheoryEngineStatistics(StatisticsRegistry& sr)
+    : d_combineTheoriesTime(
+        sr.registerTimer("TheoryEngine::combineTheoriesTime")),
+      d_stdEffortChecks(sr.registerInt("TheoryEngine::Check_Standard")),
+      d_fullEffortChecks(sr.registerInt("TheoryEngine::Checks_Full")),
+      d_combineTheoriesCalls(
+          sr.registerInt("TheoryEngine::combineTheoriesCalls")),
+      d_lcEffortChecks(sr.registerInt("TheoryEngine::Checks_Last_Call"))
+{
+}
 
-  }  // namespace theory
-  }  // namespace cvc5::internal
+}  // namespace theory
+}  // namespace cvc5::internal

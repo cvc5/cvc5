@@ -447,13 +447,13 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         d_stats.d_fullEffortChecks++;
         // We do combination if all has been processed and we are in fullcheck
-        if (logicInfo().isSharingEnabled()
-            && !d_factsAsserted && !needCheck() && !d_inConflict)
+        if (logicInfo().isSharingEnabled() && !d_factsAsserted && !needCheck()
+            && !d_inConflict)
         {
-          
           d_stats.d_combineTheoriesCalls++;
           // Do the combination
-          Trace("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
+          Trace("theory") << "TheoryEngine::check(" << effort
+                          << "): running combination" << endl;
           {
             TimerStat::CodeTimer combineTheoriesTimer(
                 d_stats.d_combineTheoriesTime);
@@ -467,7 +467,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       else
       {
-        Assert (effort==Theory::EFFORT_STANDARD);
+        Assert(effort == Theory::EFFORT_STANDARD);
         d_stats.d_stdEffortChecks++;
       }
     }
