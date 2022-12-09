@@ -63,7 +63,8 @@ CommandExecutor::~CommandExecutor()
 void CommandExecutor::storeOptionsAsOriginal()
 {
   d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
-  // cache the value of parse-only, which is set by the command line
+  // cache the value of parse-only, which is set by the command line only
+  // and thus will not change in a run.
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
