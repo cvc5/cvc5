@@ -343,10 +343,7 @@ def generate_get_impl(modules):
         else:
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
-        res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        res.append("  {")
-        res.append("    {};".format(ret))
-        res.append("  }")
+        res.append("  case OptionEnum::{}: {}".format(option.enum_name(), ret))
     res.append("  default:".format(option.enum_name()))
     res.append("  {")
     res.append("    throw OptionException(\"Ungettable option key or setting: \" + name);")
@@ -450,10 +447,8 @@ def generate_getinfo_impl(modules):
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
         res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        res.append("  {")
         line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
         res.append(line.format(**fmt))
-        res.append("  }")
     res.append("}")
     return '\n  '.join(res)
 
