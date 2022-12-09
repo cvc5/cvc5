@@ -169,17 +169,24 @@ TEST_F(TestBlackOptions, set)
 
 TEST_F(TestBlackOptions, getOptionInfoBenchmark)
 {
-  const auto names = options::getNames();
+  auto names = options::getNames();
+  std::unordered_set<std::string> ignore = {
+    "output",
+    "quiet",
+    "rweight",
+    "trace",
+    "verbose",
+  };
+  auto end = std::remove_if(names.begin(), names.end(), [&](const auto& i){
+      return ignore.count(i);
+  });
+  names.erase(end, names.end());
   size_t ct = 0;
-  for (size_t i = 0; i < 100; ++i)
+  for (size_t i = 0; i < 10000; ++i)
   {
     for (const auto& name : names)
     {
-      auto info = d_solver.getOptionInfo(name);
-      if (info.name != name)
-      {
-        ++ct;
-      }
+      ct += d_solver.getOption(name).size();
     }
   }
   std::cout << ct << std::endl;
