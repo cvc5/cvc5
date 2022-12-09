@@ -182,7 +182,7 @@ TEST_F(TestBlackOptions, getOptionInfoBenchmark)
   });
   names.erase(end, names.end());
   size_t ct = 0;
-  for (size_t i = 0; i < 10000; ++i)
+  for (size_t i = 0; i < 1000; ++i)
   {
     for (const auto& name : names)
     {
