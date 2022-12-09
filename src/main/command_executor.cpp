@@ -53,7 +53,6 @@ CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
     : d_solver(solver),
       d_symman(new SymbolManager(d_solver.get())),
       d_result(),
-      d_verbosity(0),
       d_parseOnly(false)
 {
 }
@@ -64,8 +63,7 @@ CommandExecutor::~CommandExecutor()
 void CommandExecutor::storeOptionsAsOriginal()
 {
   d_solver->d_originalOptions->copyValues(d_solver->d_slv->getOptions());
-  // also cache the values
-  d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
+  // cache the value of parse-only, which is set by the command line
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
@@ -93,10 +91,8 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if (d_verbosity > 2)
-  {
-    d_solver->getDriverOptions().out() << "Invoking: " << *cmd << std::endl;
-  }
+  // formerly was guarded by verbosity > 2
+  Trace("cmd-exec") << "Invoking: " << *cmd << std::endl;
   return doCommandSingleton(cmd);
 }
 
@@ -125,15 +121,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   {
     d_result = res = csa->getResult();
     hasResult = true;
-  }
-  // since verbosity is cached, we must check if it was changed by a command
-  const SetOptionCommand* cso = dynamic_cast<const SetOptionCommand*>(cmd);
-  if (cso != nullptr)
-  {
-    if (cso->getFlag() == "verbosity")
-    {
-      d_verbosity = d_solver->getOptionInfo("verbosity").intValue();
-    }
   }
 
   // if we didnt set a result, return the status
