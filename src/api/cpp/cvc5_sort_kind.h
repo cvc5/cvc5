@@ -85,7 +85,7 @@ enum SortKind : int32_t
    *
    * - Create Sort of this Kind with:
    *
-   *   - Solver::mkAbstractSort(Kind) const
+   *   - Solver::mkAbstractSort(SortKind) const
    */
   ABSTRACT_SORT,
   /**
