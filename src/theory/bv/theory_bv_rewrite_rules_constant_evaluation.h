@@ -501,7 +501,7 @@ inline bool RewriteRule<EvalEagerAtom>::applies(TNode node)
 template <>
 inline Node RewriteRule<EvalEagerAtom>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<EvalComp>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<EvalEagerAtom>(" << node << ")" << std::endl;
   return node[0];
 }
 }  // namespace bv
