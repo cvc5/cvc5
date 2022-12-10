@@ -340,7 +340,7 @@ public class Solver implements IPointer
    *  {@link SortKind#BITVECTOR_SORT} can be passed as the {@link SortKind} k to this method, while
    *  {@link SortKind#INTEGER_SORT} and  {@link SortKind#STRING_SORT} cannot.
    *
-   * @api.note Providing the kind  {@link Kind#ABSTRACT_SORT} as an argument to this method
+   * @api.note Providing the kind  {@link SortKind#ABSTRACT_SORT} as an argument to this method
    * returns the (fully) unspecified sort, often denoted {@code ?}.
    *
    * @api.note Providing a kind {@code k} that has no indices and a fixed arity
