@@ -15,7 +15,7 @@ import pytest
 import cvc5
 import sys
 
-from cvc5 import Kind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent
+from cvc5 import Kind, SortKind, BlockModelsMode, RoundingMode, LearnedLitType, ProofComponent
 
 
 @pytest.fixture
