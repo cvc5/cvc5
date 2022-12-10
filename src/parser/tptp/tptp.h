@@ -138,10 +138,6 @@ class Tptp : public Parser {
       token */
   cvc5::Term d_tmp_expr;
 
-  /** Push a new stream in the lexer. When EOF is reached the previous stream
-      is reused */
-  void includeFile(std::string fileName);
-
   /** Check a TPTP let binding for well-formedness. */
   void checkLetBinding(const std::vector<cvc5::Term>& bvlist,
                        cvc5::Term lhs,
@@ -179,6 +175,9 @@ class Tptp : public Parser {
   cvc5::Term mkDecimal(
       std::string& snum, std::string& sden, bool pos, size_t exp, bool posE);
 
+  /** Get TPTP directory */
+  const std::string& getTptpDir() const;
+
  private:
   void addArithmeticOperators();
   /** is the name declared, if so, return the term for that name */
@@ -205,8 +204,6 @@ class Tptp : public Parser {
    * scopes.
    */
   std::unordered_map<std::string, cvc5::Term> d_auxSymbolTable;
-
-  std::vector< pANTLR3_INPUT_STREAM > d_in_created;
 
   // TPTP directory where to find includes;
   // empty if none could be determined

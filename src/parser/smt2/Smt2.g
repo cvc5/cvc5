@@ -163,7 +163,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
         PARSER_STATE->parseError("Extended commands are not permitted while "
                                  "operating in strict compliance mode.");
       }
-      PARSER_STATE->includeFile(name);
+      PARSER_STATE->includeSmt2File(name);
       // The command of the included file will be produced at the next
       // parseCommand() call
       cmd.reset(new EmptyCommand("include::" + name));
@@ -1414,6 +1414,8 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  * (2) A string name.
  * (3) An expression expr.
  * (4) A type t.
+ * (5) An operator
+ * (6) A list of indices.
  *
  * A qualified identifier is the generic case of function heads.
  * With respect to the standard definition (Section 3.6 of SMT-LIB version 2.6)
@@ -1430,13 +1432,11 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  * - For declared functions f, we return (2).
  * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
- * - For tuple selectors (_ tuple_select n) and updaters (_ tuple_update n), we
- * return (1) and (3). cvc5::Kind is set to APPLY_SELECTOR or APPLY_UPDATER
- * respectively, and expr is set to n, which is to be interpreted by the
- * caller as the n^th generic tuple selector or updater. We do this since there
- * is no AST expression representing generic tuple select, and we do not have
- * enough type information at this point to know the type of the tuple we will
- * be selecting from.
+ * - For floating-point conversion to_fp, tuple selectors (_ tuple_select n)
+ * and updaters (_ tuple_update n), we return (6). cvc5::Kind is set to
+ * UNDEFINED_KIND. We do this since there is no AST expression representing
+ * the generic version of these operators, and we do not have
+ * enough type information at this point to know the proper kind to use.
  *
  * (Ascripted Identifiers)
  *
@@ -1460,25 +1460,13 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
  */
 qualIdentifier[cvc5::ParseOp& p]
 @init {
-  cvc5::Kind k;
-  std::string baseName;
-  cvc5::Term f;
   cvc5::Sort type;
 }
 : identifier[p]
-  | LPAREN_TOK AS_TOK
-    ( CONST_TOK sortSymbol[type]
-      {
-        p.d_kind = cvc5::CONST_ARRAY;
-        PARSER_STATE->parseOpApplyTypeAscription(p, type);
-      }
-    | identifier[p]
-      sortSymbol[type]
-      {
-        PARSER_STATE->parseOpApplyTypeAscription(p, type);
-      }
-    )
-    RPAREN_TOK
+  | LPAREN_TOK AS_TOK identifier[p] sortSymbol[type] RPAREN_TOK
+    {
+      PARSER_STATE->parseOpApplyTypeAscription(p, type);
+    }
   ;
 
 /**
@@ -1542,25 +1530,10 @@ identifier[cvc5::ParseOp& p]
         if (k == cvc5::UNDEFINED_KIND)
         {
           // We don't know which kind to use until we know the type of the
-          // arguments
+          // arguments. This case handles to_fp, tuple.select and tuple.update
           p.d_name = opName;
           p.d_indices = numerals;
           p.d_kind = cvc5::UNDEFINED_KIND;
-        }
-        else if (k == cvc5::APPLY_SELECTOR || k == cvc5::APPLY_UPDATER)
-        {
-          // we adopt a special syntax (_ tuple_select n) and (_ tuple_update n)
-          // for tuple selectors and updaters
-          if (numerals.size() != 1)
-          {
-            PARSER_STATE->parseError(
-                "Unexpected syntax for tuple selector or updater.");
-          }
-          // The operator is dependent upon inferring the type of the arguments,
-          // and hence the type is not available yet. Hence, we remember the
-          // index as a numeral in the parse operator.
-          p.d_kind = k;
-          p.d_expr = SOLVER->mkInteger(numerals[0]);
         }
         else
         {
@@ -1842,30 +1815,7 @@ sortSymbol[cvc5::Sort& t]
              << " ...)";
           PARSER_STATE->parseError(ss.str());
         }
-        if( name == "BitVec" ) {
-          if( numerals.size() != 1 ) {
-            PARSER_STATE->parseError("Illegal bitvector type.");
-          }
-          if(numerals.front() == 0) {
-            PARSER_STATE->parseError("Illegal bitvector size: 0");
-          }
-          t = SOLVER->mkBitVectorSort(numerals.front());
-        } else if ( name == "FloatingPoint" ) {
-          if( numerals.size() != 2 ) {
-            PARSER_STATE->parseError("Illegal floating-point type.");
-          }
-          if(!internal::validExponentSize(numerals[0])) {
-            PARSER_STATE->parseError("Illegal floating-point exponent size");
-          }
-          if(!internal::validSignificandSize(numerals[1])) {
-            PARSER_STATE->parseError("Illegal floating-point significand size");
-          }
-          t = SOLVER->mkFloatingPointSort(numerals[0],numerals[1]);
-        } else {
-          std::stringstream ss;
-          ss << "unknown indexed sort symbol `" << name << "'";
-          PARSER_STATE->parseError(ss.str());
-        }
+        t = PARSER_STATE->getIndexedSort(name, numerals);
       }
     | sortList[args]
       { if( indexed ) {
@@ -1874,54 +1824,7 @@ sortSymbol[cvc5::Sort& t]
              << "', try leaving it out";
           PARSER_STATE->parseError(ss.str());
         }
-        if(args.empty()) {
-          PARSER_STATE->parseError("Extra parentheses around sort name not "
-                                   "permitted in SMT-LIB");
-        } else if(name == "Array" &&
-           PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_ARRAYS) ) {
-          if(args.size() != 2) {
-            PARSER_STATE->parseError("Illegal array type.");
-          }
-          t = SOLVER->mkArraySort( args[0], args[1] );
-        } else if(name == "Set" &&
-                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_SETS) ) {
-          if(args.size() != 1) {
-            PARSER_STATE->parseError("Illegal set type.");
-          }
-          t = SOLVER->mkSetSort( args[0] );
-        }
-        else if(name == "Bag" &&
-                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_BAGS) ) {
-          if(args.size() != 1) {
-            PARSER_STATE->parseError("Illegal bag type.");
-          }
-          t = SOLVER->mkBagSort( args[0] );
-        }
-        else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
-                  PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_STRINGS) ) {
-          if(args.size() != 1) {
-            PARSER_STATE->parseError("Illegal sequence type.");
-          }
-          t = SOLVER->mkSequenceSort( args[0] );
-        } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
-          t = SOLVER->mkTupleSort(args);
-        } else if (name == "Relation" && !PARSER_STATE->strictModeEnabled()) {
-          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
-          t = SOLVER->mkSetSort(tupleSort);
-        } else if (name == "Table" && !PARSER_STATE->strictModeEnabled()) {
-          cvc5::Sort tupleSort = SOLVER->mkTupleSort(args);
-          t = SOLVER->mkBagSort(tupleSort);
-        } else if (name == "->" && PARSER_STATE->isHoEnabled()) {
-          if(args.size()<2) {
-            PARSER_STATE->parseError("Arrow types must have at least 2 arguments");
-          }
-          //flatten the type
-          cvc5::Sort rangeType = args.back();
-          args.pop_back();
-          t = PARSER_STATE->mkFlatFunctionType( args, rangeType );
-        } else {
-          t = PARSER_STATE->getSort(name, args);
-        }
+        t = PARSER_STATE->getParametricSort(name, args);
       }
     ) RPAREN_TOK
   ;
@@ -2074,7 +1977,6 @@ GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
-CONST_TOK : { !PARSER_STATE->strictModeEnabled() }? 'const';
 
 // extended commands
 DECLARE_CODATATYPE_TOK : 'declare-codatatype';

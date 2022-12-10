@@ -28,8 +28,16 @@ namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx)
+    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
 {
+  // set up proofs, this is done after options are finalized, so the
+  // preprocess proof has been setup
+  PreprocessProofGenerator* pppg =
+      d_smt.getPreprocessor()->getPreprocessProofGenerator();
+  if (pppg != nullptr)
+  {
+    d_ap.enableProofs(pppg);
+  }
 }
 
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
@@ -60,21 +68,16 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
       bool checkAgain = true;
       do
       {
+        // get the next assertions, store in d_ap
+        getNextAssertionsInternal(d_ap);
         // check sat based on the driver strategy
-        result = checkSatNext();
+        result = checkSatNext(d_ap);
         // if we were asked to check again
         if (result.getStatus() == Result::UNKNOWN
             && result.getUnknownExplanation() == REQUIRES_CHECK_AGAIN)
         {
-          Assert(d_ctx != nullptr);
-          as.getAssertionPipeline().clear();
-          d_ctx->notifyResetAssertions();
-          // get the next assertions based on the driver strategy
-          getNextAssertions(as);
           // finish init to construct new theory/prop engine
           d_smt.finishInit();
-          // setup
-          d_ctx->setup(this);
         }
         else
         {
@@ -109,16 +112,30 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   return result;
 }
 
+void SmtDriver::getNextAssertionsInternal(preprocessing::AssertionPipeline& ap)
+{
+  ap.clear();
+  // must first refresh the assertions, in the case global declarations is true
+  d_smt.getAssertions().refresh();
+  // get the next assertions based on the implementation of this driver
+  getNextAssertions(ap);
+}
+
 void SmtDriver::refreshAssertions()
 {
-  d_smt.refreshAssertions();
+  // get the next assertions, store in d_ap
+  getNextAssertionsInternal(d_ap);
+  // preprocess
+  d_smt.preprocess(d_ap);
+  // assert to internal
+  d_smt.assertToInternal(d_ap);
 }
 
 void SmtDriver::notifyPushPre()
 {
   // must preprocess the assertions and push them to the SAT solver, to make
   // the state accurate prior to pushing
-  d_smt.refreshAssertions();
+  refreshAssertions();
 }
 
 void SmtDriver::notifyPushPost() { d_smt.pushPropContext(); }
@@ -128,20 +145,29 @@ void SmtDriver::notifyPopPre() { d_smt.popPropContext(); }
 void SmtDriver::notifyPostSolve() { d_smt.postsolve(); }
 
 SmtDriverSingleCall::SmtDriverSingleCall(Env& env, SmtSolver& smt)
-    : SmtDriver(env, smt, nullptr)
+    : SmtDriver(env, smt, nullptr), d_assertionListIndex(userContext(), 0)
 {
 }
 
-Result SmtDriverSingleCall::checkSatNext()
+Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
 {
-  preprocessing::AssertionPipeline& ap =
-      d_smt.getAssertions().getAssertionPipeline();
   d_smt.preprocess(ap);
   d_smt.assertToInternal(ap);
   return d_smt.checkSatInternal();
 }
 
-void SmtDriverSingleCall::getNextAssertions(Assertions& as) { Unreachable(); }
+void SmtDriverSingleCall::getNextAssertions(
+    preprocessing::AssertionPipeline& ap)
+{
+  Assertions& as = d_smt.getAssertions();
+  const context::CDList<Node>& al = as.getAssertionList();
+  size_t alsize = al.size();
+  for (size_t i = d_assertionListIndex.get(); i < alsize; ++i)
+  {
+    ap.push_back(al[i], true);
+  }
+  d_assertionListIndex = alsize;
+}
 
 
 }  // namespace smt

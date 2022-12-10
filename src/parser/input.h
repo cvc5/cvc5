@@ -33,12 +33,6 @@ namespace cvc5::parser {
 
 class Command;
 
-class InputStreamException : public internal::Exception
-{
- public:
-  InputStreamException(const std::string& msg);
-};
-
 /** Wrapper around an input stream. */
 class InputStream
 {
