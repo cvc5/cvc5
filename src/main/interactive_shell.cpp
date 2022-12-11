@@ -98,7 +98,9 @@ InteractiveShell::InteractiveShell(Solver* solver,
   }
   /* Create parser with bogus input. */
   d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
-
+  // initialize for incremental string input
+  d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
+                                      INPUT_FILENAME);
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
@@ -177,9 +179,6 @@ std::optional<InteractiveShell::CmdSeq> InteractiveShell::readCommand()
 {
   char* lineBuf = NULL;
   string line = "";
-
-  d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
-                                      INPUT_FILENAME);
 restart:
 
   /* Don't do anything if the input is closed or if we've seen a
