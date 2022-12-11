@@ -1115,7 +1115,7 @@ std::string sortKindToString(SortKind k)
   auto it = s_sort_kinds.find(k);
   if (it == s_sort_kinds.end())
   {
-    return "UNDEFINED_KIND";
+    return "UNDEFINED_SORT_KIND";
   }
   return it->second.second;
 }
