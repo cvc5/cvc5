@@ -429,6 +429,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
 /* Mapping from external (API) kind to internal kind. */
 const static std::unordered_map<SortKind, std::pair<internal::Kind, std::string>>
     s_sort_kinds{
+        SORT_KIND_ENUM(INTERNAL_SORT_KIND, internal::Kind::UNDEFINED_KIND),
+        SORT_KIND_ENUM(UNDEFINED_SORT_KIND, internal::Kind::UNDEFINED_KIND),
+        SORT_KIND_ENUM(NULL_SORT, internal::Kind::NULL_EXPR),
         /* Sorts ------------------------------------------------------------ */
         // Note that many entries in this map (e.g. for type constants) are
         // given only for completeness and are not used since we don't
