@@ -48,7 +48,8 @@ CoreSolver::CoreSolver(Env& env,
       d_termReg(tr),
       d_bsolver(bs),
       d_nfPairs(context()),
-      d_extDeq(userContext())
+      d_extDeq(userContext()),
+      d_stringsMnf(env, s, im, tr, bs)
 {
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
@@ -529,16 +530,24 @@ void CoreSolver::checkNormalFormsEq()
   std::map<Node, Node> nf_to_eqc;
   std::map<Node, Node> eqc_to_nf;
   std::map<Node, Node> eqc_to_exp;
+  std::vector<CoreInferInfo> pinfer;
   for (const Node& eqc : d_strings_eqc)
   {
+    Assert(pinfer.empty());
     TypeNode stype = eqc.getType();
     Trace("strings-process-debug") << "- Verify normal forms are the same for "
                                    << eqc << std::endl;
-    normalizeEquivalenceClass(eqc, stype);
+    normalizeEquivalenceClass(eqc, stype, pinfer);
     Trace("strings-debug") << "Finished normalizing eqc..." << std::endl;
     if (d_im.hasProcessed())
     {
       return;
+    }
+    if (!pinfer.empty())
+    {
+      // if we had a possible inference, we were unable to assign
+      // a normal form to this equivalence class, we break.
+      break;
     }
     NormalForm& nfe = getNormalForm(eqc);
     Node nf_term = d_termReg.mkNConcat(nfe.d_nf, stype);
@@ -569,6 +578,17 @@ void CoreSolver::checkNormalFormsEq()
     Trace("strings-process-debug")
         << "Done verifying normal forms are the same for " << eqc << std::endl;
   }
+  if (!pinfer.empty())
+  {
+    if (options().strings.stringModelNormalForms)
+    {
+      // if we are using model normal forms, eagerly check if there is a model
+      // here before sending the lemma in processPossibleInferInfo.
+    }
+    // add one inference from our list of possible inferences
+    processPossibleInferInfo(pinfer);
+    return;
+  }
   if (TraceIsOn("strings-nf"))
   {
     Trace("strings-nf") << "**** Normal forms are : " << std::endl;
@@ -586,7 +606,9 @@ void CoreSolver::checkNormalFormsEq()
 }
 
 //compute d_normal_forms_(base,exp,exp_depend)[eqc]
-void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
+void CoreSolver::normalizeEquivalenceClass(Node eqc,
+                                           TypeNode stype,
+                                           std::vector<CoreInferInfo>& pinfer)
 {
   Trace("strings-process-debug") << "Process equivalence class " << eqc << std::endl;
   Node emp = Word::mkEmptyWord(stype);
@@ -619,8 +641,8 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
       return;
     }
     // process the normal forms
-    processNEqc(eqc, normal_forms, stype);
-    if (d_im.hasProcessed())
+    processNEqc(eqc, normal_forms, stype, pinfer);
+    if (d_im.hasProcessed() || !pinfer.empty())
     {
       return;
     }
@@ -1026,7 +1048,8 @@ void CoreSolver::getNormalForms(Node eqc,
 
 void CoreSolver::processNEqc(Node eqc,
                              std::vector<NormalForm>& normal_forms,
-                             TypeNode stype)
+                             TypeNode stype,
+                             std::vector<CoreInferInfo>& pinfer)
 {
   if (normal_forms.size() <= 1)
   {
@@ -1035,8 +1058,6 @@ void CoreSolver::processNEqc(Node eqc,
   // if equivalence class is constant, approximate as containment, infer
   // conflicts
   Node c = d_bsolver.getConstantEqc(eqc);
-  // the possible inferences
-  std::vector<CoreInferInfo> pinfer;
   // compute normal forms that are effectively unique
   std::unordered_map<Node, size_t> nfCache;
   std::vector<size_t> nfIndices;
@@ -1162,40 +1183,6 @@ void CoreSolver::processNEqc(Node eqc,
     {
       break;
     }
-  }
-  if (d_im.hasProcessed() || pinfer.empty())
-  {
-    // either already sent a lemma or fact, or there are no possible inferences
-    return;
-  }
-  // now, determine which of the possible inferences we want to add
-  unsigned use_index = 0;
-  bool set_use_index = false;
-  Trace("strings-solve") << "Possible inferences (" << pinfer.size()
-                         << ") : " << std::endl;
-  InferenceId min_id = InferenceId::UNKNOWN;
-  unsigned max_index = 0;
-  for (unsigned i = 0, psize = pinfer.size(); i < psize; i++)
-  {
-    CoreInferInfo& ipii = pinfer[i];
-    InferInfo& ii = ipii.d_infer;
-    Trace("strings-solve") << "#" << i << ": From " << ipii.d_i << " / "
-                           << ipii.d_j << " (rev=" << ipii.d_rev << ") : ";
-    Trace("strings-solve") << ii.d_conc << " by " << ii.getId() << std::endl;
-    if (!set_use_index || ii.getId() < min_id
-        || (ii.getId() == min_id && ipii.d_index > max_index))
-    {
-      min_id = ii.getId();
-      max_index = ipii.d_index;
-      use_index = i;
-      set_use_index = true;
-    }
-  }
-  Trace("strings-solve") << "...choose #" << use_index << std::endl;
-  if (!processInferInfo(pinfer[use_index]))
-  {
-    Unhandled() << "Failed to process infer info " << pinfer[use_index].d_infer
-                << std::endl;
   }
 }
 
@@ -2653,6 +2640,39 @@ void CoreSolver::checkLengthsEqc() {
         d_im.sendInference(ant, eq, InferenceId::STRINGS_LEN_NORM, false, true);
       }
     }
+  }
+}
+
+void CoreSolver::processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer)
+{
+  // now, determine which of the possible inferences we want to add
+  unsigned use_index = 0;
+  bool set_use_index = false;
+  Trace("strings-solve") << "Possible inferences (" << pinfer.size()
+                         << ") : " << std::endl;
+  InferenceId min_id = InferenceId::UNKNOWN;
+  unsigned max_index = 0;
+  for (unsigned i = 0, psize = pinfer.size(); i < psize; i++)
+  {
+    CoreInferInfo& ipii = pinfer[i];
+    InferInfo& ii = ipii.d_infer;
+    Trace("strings-solve") << "#" << i << ": From " << ipii.d_i << " / "
+                           << ipii.d_j << " (rev=" << ipii.d_rev << ") : ";
+    Trace("strings-solve") << ii.d_conc << " by " << ii.getId() << std::endl;
+    if (!set_use_index || ii.getId() < min_id
+        || (ii.getId() == min_id && ipii.d_index > max_index))
+    {
+      min_id = ii.getId();
+      max_index = ipii.d_index;
+      use_index = i;
+      set_use_index = true;
+    }
+  }
+  Trace("strings-solve") << "...choose #" << use_index << std::endl;
+  if (!processInferInfo(pinfer[use_index]))
+  {
+    Unhandled() << "Failed to process infer info " << pinfer[use_index].d_infer
+                << std::endl;
   }
 }
 

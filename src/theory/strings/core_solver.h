@@ -28,6 +28,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/strings_mnf.h"
 #include "theory/strings/term_registry.h"
 
 namespace cvc5::internal {
@@ -286,6 +287,10 @@ class CoreSolver : protected EnvObj
 
  private:
   /**
+   * This processes one infer info in pinfer using processInferInfo.
+   */
+  void processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer);
+  /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, and updates the set of
    * normal form pairs. Returns true if the conclusion of ii was not true
@@ -326,7 +331,9 @@ class CoreSolver : protected EnvObj
    *
    * stype is the string-like type of the equivalence class we are processing.
    */
-  void normalizeEquivalenceClass(Node n, TypeNode stype);
+  void normalizeEquivalenceClass(Node n,
+                                 TypeNode stype,
+                                 std::vector<CoreInferInfo>& pinfer);
   /**
    * For each term in the equivalence class of eqc, this adds data regarding its
    * normal form to normal_forms. The map term_to_nf_index maps terms to the
@@ -355,7 +362,8 @@ class CoreSolver : protected EnvObj
    */
   void processNEqc(Node eqc,
                    std::vector<NormalForm>& normal_forms,
-                   TypeNode stype);
+                   TypeNode stype,
+                   std::vector<CoreInferInfo>& pinfer);
   /** process simple normal equality
    *
    * This method is called when two equal terms have normal forms nfi and nfj.
@@ -536,6 +544,8 @@ class CoreSolver : protected EnvObj
   std::map<Node, std::vector<int> > d_flat_form_index;
   /** Set of equalities for which we have applied extensionality. */
   NodeSet d_extDeq;
+  /** Model normal form finding module */
+  StringsMnf d_stringsMnf;
 }; /* class CoreSolver */
 
 }  // namespace strings
