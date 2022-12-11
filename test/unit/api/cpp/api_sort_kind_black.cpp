@@ -37,7 +37,7 @@ TEST_F(TestApiKind, sortKindToString)
     {
       ASSERT_EQ(kindstr, "INTERNAL_SORT_KIND");
     }
-    else if (k == UNDEFINED_KIND)
+    else if (k == UNDEFINED_SORT_KIND)
     {
       ASSERT_EQ(kindstr, "UNDEFINED_SORT_KIND");
     }
