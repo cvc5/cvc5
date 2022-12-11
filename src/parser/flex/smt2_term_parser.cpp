@@ -218,6 +218,9 @@ Term Smt2TermParser::parseTerm()
             tstack.emplace_back(op, args);
           }
           break;
+          case Token::UNTERMINATED_QUOTED_SYMBOL:
+            d_lex.parseError("Expected SMT-LIBv2 operator", true);
+            break;
           default:
             d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 operator");
             break;
@@ -257,6 +260,9 @@ Term Smt2TermParser::parseTerm()
         ret = d_state.getExpressionForName(name);
       }
       break;
+      case Token::UNTERMINATED_QUOTED_SYMBOL:
+        d_lex.parseError("Expected SMT-LIBv2 term", true);
+        break;
       case Token::INTEGER_LITERAL:
       {
         ret = d_state.mkRealOrIntFromNumeral(d_lex.tokenStr());
@@ -975,6 +981,9 @@ std::string Smt2TermParser::tokenStrToSymbol(Token tok)
       // strip off the quotes
       id = id.substr(1, id.size() - 2);
       break;
+    case Token::UNTERMINATED_QUOTED_SYMBOL:
+      d_lex.parseError("Expected SMT-LIBv2 symbol", true);
+      break;
     default:
       d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 symbol");
       break;
@@ -1261,6 +1270,9 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       break;
     case Token::SYMBOL:
     case Token::QUOTED_SYMBOL: op.d_name = tokenStrToSymbol(tok); break;
+    case Token::UNTERMINATED_QUOTED_SYMBOL:
+      d_lex.parseError("Expected identifier while parsing qualified identifier", true);
+      break;
     default:
       d_lex.unexpectedTokenError(
           tok, "Expected identifier while parsing qualified identifier");

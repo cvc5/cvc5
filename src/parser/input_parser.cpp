@@ -123,5 +123,25 @@ void InputParser::setStringInput(const std::string& lang,
   }
 }
 
+void InputParser::appendStringInput(const std::string& lang,
+                                 const std::string& input,
+                                 const std::string& name)
+{
+  Trace("parser") << "appendStringInput(" << lang << ", ..., " << name << ")"
+                  << std::endl;
+  if (d_useFlex)
+  {
+    if (d_fparser==nullptr)
+    {
+      d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
+    }
+    d_fparser->setStringInput(input, name);
+  }
+  else
+  {
+    d_state->setInput(Input::newStringInput(lang, input, name));
+  }
+}
+
 }  // namespace parser
 }  // namespace cvc5

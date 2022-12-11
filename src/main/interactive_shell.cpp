@@ -318,7 +318,7 @@ restart:
     }
   }
 
-  d_parser->setStringInput(
+  d_parser->appendStringInput(
       d_solver->getOption("input-language"), input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
