@@ -682,6 +682,9 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
     }
     break;
+    case Token::EOF_TOK:
+      d_lex.parseError("Expected SMT-LIBv2 command", true);
+      break;
     default:
       d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 command");
       break;

@@ -72,12 +72,9 @@ class CVC5_EXPORT InputParser
    * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  void setStringInput(const std::string& lang,
-                      const std::string& input,
+  void setIncrementalStringInput(const std::string& lang,
                       const std::string& name);
-  void appendStringInput(const std::string& lang,
-                         const std::string& input,
-                         const std::string& name);
+  void appendIncrementalStringInput(const std::string& input);
 
   /**
    * Parse and return the next command.
@@ -104,6 +101,10 @@ class CVC5_EXPORT InputParser
   /** The underlying input */
   std::unique_ptr<Input> d_input;
   //!!!!!!!!!!!!!!
+  /** Incremental string input language */
+  std::string d_istringLang;
+  /** Incremental string name */
+  std::string d_istringName;
   //!!!!!!!!!!!!!! new implementation
   std::unique_ptr<FlexParser> d_fparser;
   //!!!!!!!!!!!!!!

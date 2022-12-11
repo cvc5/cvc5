@@ -106,40 +106,31 @@ void InputParser::setStreamInput(const std::string& lang,
   }
 }
 
-void InputParser::setStringInput(const std::string& lang,
-                                 const std::string& input,
-                                 const std::string& name)
+void InputParser::setIncrementalStringInput(const std::string& lang,
+                    const std::string& name)
 {
-  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
+  Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
+  d_istringLang = lang;
+  d_istringName = name;
   if (d_useFlex)
   {
+    // initialize the parser
     d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
-    d_fparser->setStringInput(input, name);
   }
-  else
-  {
-    d_state->setInput(Input::newStringInput(lang, input, name));
-  }
+  // otherwise, it is already initialized
 }
-
-void InputParser::appendStringInput(const std::string& lang,
-                                    const std::string& input,
-                                    const std::string& name)
+void InputParser::appendIncrementalStringInput(const std::string& input)
 {
-  Trace("parser") << "appendStringInput(" << lang << ", ..., " << name << ")"
+  Trace("parser") << "appendIncrementalStringInput(...)"
                   << std::endl;
   if (d_useFlex)
   {
-    if (d_fparser == nullptr)
-    {
-      d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
-    }
-    d_fparser->setStringInput(input, name);
+    d_fparser->setStringInput(input, d_istringName);
   }
   else
   {
-    d_state->setInput(Input::newStringInput(lang, input, name));
+    d_state->setInput(Input::newStringInput(d_istringLang, input, d_istringName));
   }
 }
 

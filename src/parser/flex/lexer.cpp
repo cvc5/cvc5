@@ -135,7 +135,9 @@ void Lexer::unexpectedTokenError(Token t, const std::string& info)
   Assert(d_peeked.empty());
   std::ostringstream o{};
   o << info << ", got `" << tokenStr() << "` (" << t << ").";
-  parseError(o.str());
+  // Note that we treat this as an EOF exception if the token is EOF_TOK.
+  // This is important for exception handling in interactive mode.
+  parseError(o.str(), t==Token::EOF_TOK);
 }
 
 void Lexer::eatToken(Token t)
