@@ -76,8 +76,8 @@ class CVC5_EXPORT InputParser
                       const std::string& input,
                       const std::string& name);
   void appendStringInput(const std::string& lang,
-                      const std::string& input,
-                      const std::string& name);
+                         const std::string& input,
+                         const std::string& name);
 
   /**
    * Parse and return the next command.

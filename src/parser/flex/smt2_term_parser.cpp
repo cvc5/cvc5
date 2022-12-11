@@ -649,9 +649,7 @@ Term Smt2TermParser::parseSymbolicExpr()
     switch (tok)
     {
       // ------------------- open paren
-      case Token::LPAREN_TOK:
-      {
-        sstack.emplace_back(std::vector<Term>());
+      case Token::LPAREN_TOK: { sstack.emplace_back(std::vector<Term>());
       }
       break;
       // ------------------- close paren
@@ -1271,7 +1269,8 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
     case Token::SYMBOL:
     case Token::QUOTED_SYMBOL: op.d_name = tokenStrToSymbol(tok); break;
     case Token::UNTERMINATED_QUOTED_SYMBOL:
-      d_lex.parseError("Expected identifier while parsing qualified identifier", true);
+      d_lex.parseError("Expected identifier while parsing qualified identifier",
+                       true);
       break;
     default:
       d_lex.unexpectedTokenError(

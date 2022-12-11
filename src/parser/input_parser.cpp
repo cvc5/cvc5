@@ -124,14 +124,14 @@ void InputParser::setStringInput(const std::string& lang,
 }
 
 void InputParser::appendStringInput(const std::string& lang,
-                                 const std::string& input,
-                                 const std::string& name)
+                                    const std::string& input,
+                                    const std::string& name)
 {
   Trace("parser") << "appendStringInput(" << lang << ", ..., " << name << ")"
                   << std::endl;
   if (d_useFlex)
   {
-    if (d_fparser==nullptr)
+    if (d_fparser == nullptr)
     {
       d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
     }

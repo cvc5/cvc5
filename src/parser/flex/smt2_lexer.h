@@ -36,10 +36,11 @@ class Smt2Lexer : public Lexer
   virtual ~Smt2Lexer() {}
   /** Inherited from yyFlexLexer */
   int yylex() override;
-private:
+
+ private:
   /** Are we lexing sygus? */
   bool d_sygus;
-  /** 
+  /**
    * Are we in strict mode? This disables lexing for non-standard smt2 commands
    * (e.g. get-learned-literals) that we support.
    */

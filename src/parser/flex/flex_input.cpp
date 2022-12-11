@@ -57,10 +57,7 @@ class FlexStreamInput : public FlexInput
 class FlexStringInput : public FlexInput
 {
  public:
-  FlexStringInput(const std::string& input) : FlexInput()
-  {
-    d_input << input;
-  }
+  FlexStringInput(const std::string& input) : FlexInput() { d_input << input; }
   std::istream& getStream() override { return d_input; }
 
  private:
