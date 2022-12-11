@@ -48,8 +48,7 @@ CoreSolver::CoreSolver(Env& env,
       d_termReg(tr),
       d_bsolver(bs),
       d_nfPairs(context()),
-      d_extDeq(userContext()),
-      d_stringsMnf(env, s, im, tr, bs)
+      d_extDeq(userContext())
 {
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
@@ -580,11 +579,6 @@ void CoreSolver::checkNormalFormsEq()
   }
   if (!pinfer.empty())
   {
-    if (options().strings.stringModelNormalForms)
-    {
-      // if we are using model normal forms, eagerly check if there is a model
-      // here before sending the lemma in processPossibleInferInfo.
-    }
     // add one inference from our list of possible inferences
     processPossibleInferInfo(pinfer);
     return;
