@@ -137,7 +137,7 @@ void Lexer::unexpectedTokenError(Token t, const std::string& info)
   o << info << ", got `" << tokenStr() << "` (" << t << ").";
   // Note that we treat this as an EOF exception if the token is EOF_TOK.
   // This is important for exception handling in interactive mode.
-  parseError(o.str(), t==Token::EOF_TOK);
+  parseError(o.str(), t == Token::EOF_TOK);
 }
 
 void Lexer::eatToken(Token t)

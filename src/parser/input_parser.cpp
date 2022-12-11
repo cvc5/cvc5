@@ -107,10 +107,10 @@ void InputParser::setStreamInput(const std::string& lang,
 }
 
 void InputParser::setIncrementalStringInput(const std::string& lang,
-                    const std::string& name)
+                                            const std::string& name)
 {
-  Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name << ")"
-                  << std::endl;
+  Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
+                  << ")" << std::endl;
   d_istringLang = lang;
   d_istringName = name;
   if (d_useFlex)
@@ -122,15 +122,15 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
-  Trace("parser") << "appendIncrementalStringInput(...)"
-                  << std::endl;
+  Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
   if (d_useFlex)
   {
     d_fparser->setStringInput(input, d_istringName);
   }
   else
   {
-    d_state->setInput(Input::newStringInput(d_istringLang, input, d_istringName));
+    d_state->setInput(
+        Input::newStringInput(d_istringLang, input, d_istringName));
   }
 }
 

@@ -178,8 +178,8 @@ std::optional<InteractiveShell::CmdSeq> InteractiveShell::readCommand()
   char* lineBuf = NULL;
   string line = "";
 
-  d_parser->setIncrementalStringInput(
-      d_solver->getOption("input-language"), INPUT_FILENAME);
+  d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
+                                      INPUT_FILENAME);
 restart:
 
   /* Don't do anything if the input is closed or if we've seen a
