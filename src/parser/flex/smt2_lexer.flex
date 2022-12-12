@@ -104,25 +104,49 @@ unterminated_quoted_symbol \|[^\|\\]*
 
 {ws}   bump_span();
 {nl}   add_lines(yyleng); bump_span();
-{string_literal}   return cvc5::parser::STRING_LITERAL;
+{string_literal}    {
+                      // increment location for each line
+                      for (const char * c=yytext; *c; ++c)
+                      {
+                        if (*c == '\n')
+                        {
+                          add_lines(1);
+                          bump_span();
+                        }
+                      }
+                      return cvc5::parser::STRING_LITERAL;
+                    }
 {unterminated_string_literal}   return cvc5::parser::UNTERMINATED_STRING_LITERAL;
 {nat}   return cvc5::parser::INTEGER_LITERAL;
 {decimal}   return cvc5::parser::DECIMAL_LITERAL;
 {hexstr}   return cvc5::parser::HEX_LITERAL;
 {bitstr}   return cvc5::parser::BINARY_LITERAL;
 \:{simple_symbol}  return cvc5::parser::KEYWORD;
-{quoted_symbol} return cvc5::parser::QUOTED_SYMBOL;
+{quoted_symbol} {
+                  // increment location for each line
+                  for (const char * c=yytext; *c; ++c)
+                  {
+                    if (*c == '\n')
+                    {
+                      add_lines(1);
+                      bump_span();
+                    }
+                  }
+                  return cvc5::parser::QUOTED_SYMBOL;
+                }
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
 
 ";"    {
           int c;
-          while((c = yyinput()) != 0)
+          // parse characters until a new line is reached
+          while ((c = yyinput()) != 0)
           {
-            if(c == '\n') {
-                add_lines(1);
-                bump_span();
-                break;
+            if (c == '\n')
+            {
+              add_lines(1);
+              bump_span();
+              break;
             }
           }
         }
