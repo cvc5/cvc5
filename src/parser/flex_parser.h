@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "api/cpp/cvc5.h"
-#include "parser/flex/flex_input.h"
+#include "parser/flex_input.h"
 #include "parser/parser.h"
 
 namespace cvc5 {

@@ -39,6 +39,12 @@ set(libcvc5parser_src_files
   bounded_token_buffer.h
   bounded_token_factory.cpp
   bounded_token_factory.h
+  flex_lexer.cpp
+  flex_lexer.h
+  flex_input.cpp
+  flex_input.h
+  flex_parser.cpp
+  flex_parser.h
   input.cpp
   input.h
   input_parser.cpp
@@ -60,43 +66,35 @@ set(libcvc5parser_src_files
   smt2/smt2.h
   smt2/smt2_antlr.cpp
   smt2/smt2_antlr.h
+  smt2/smt2_lexer.cpp
+  smt2/smt2_lexer.h
+  smt2/smt2_cmd_parser.cpp
+  smt2/smt2_cmd_parser.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_parser.cpp
+  smt2/smt2_parser.h
+  smt2/smt2_term_parser.cpp
+  smt2/smt2_term_parser.h
   smt2/sygus_input.cpp
   smt2/sygus_input.h
   symbol_table.cpp
   symbol_table.h
+  tokens.cpp
+  tokens.h
   tptp/tptp.cpp
   tptp/tptp.h
   tptp/tptp_antlr.cpp
   tptp/tptp_antlr.h
   tptp/tptp_input.cpp
   tptp/tptp_input.h
-  flex/lexer.cpp
-  flex/lexer.h
-  flex/flex_input.cpp	
-  flex/flex_input.h	
-  flex/flex_parser.cpp	
-  flex/flex_parser.h	
-  flex/smt2_lexer.cpp	
-  flex/smt2_lexer.h	
-  flex/smt2_cmd_parser.cpp	
-  flex/smt2_cmd_parser.h	
-  flex/smt2_parser.cpp	
-  flex/smt2_parser.h	
-  flex/smt2_term_parser.cpp	
-  flex/smt2_term_parser.h
-  flex/tokens.cpp
-  flex/tokens.h
-  flex/smt2_lexer.cpp
-  flex/smt2_lexer.h
 )
 
 #-----------------------------------------------------------------------------#
 # Generate parsers for all supported languages
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/flex)
-flex_target(Lexer flex/smt2_lexer.flex ${CMAKE_CURRENT_BINARY_DIR}/flex/smt2_lexer.cpp)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/smt2)
+flex_target(Lexer smt2/smt2_lexer.flex ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
 add_library (objlib OBJECT ${srcfiles} ${FLEX_Lexer_OUTPUTS})
 
 foreach(lang Smt2 Tptp)

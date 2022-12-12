@@ -15,14 +15,14 @@
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__SMT2_LEXER_H
-#define CVC5__PARSER__SMT2_LEXER_H
+#ifndef CVC5__PARSER__SMT2__SMT2_LEXER_H
+#define CVC5__PARSER__SMT2__SMT2_LEXER_H
 
 #include <fstream>
 #include <iosfwd>
 #include <string>
 
-#include "parser/flex/lexer.h"
+#include "parser/flex_lexer.h"
 
 namespace cvc5 {
 namespace parser {

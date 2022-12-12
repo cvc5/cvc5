@@ -13,7 +13,7 @@
  * Definitions of SMT2 tokens.
  */
 
-#include "parser/flex/flex_input.h"
+#include "parser/flex_input.h"
 
 #include <fstream>
 

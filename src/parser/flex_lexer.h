@@ -30,7 +30,7 @@
 
 #include <vector>
 
-#include "parser/flex/tokens.h"
+#include "parser/tokens.h"
 
 namespace cvc5 {
 namespace parser {

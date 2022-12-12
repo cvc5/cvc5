@@ -17,7 +17,7 @@
 
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
-#include "parser/flex/smt2_lexer.h"
+#include "parser/smt2/smt2_lexer.h"
 #include "parser/input.h"
 #include "parser/parser_builder.h"
 #include "theory/logic_info.h"

@@ -13,7 +13,7 @@
  * Term parser for smt2
  */
 
-#include "parser/flex/smt2_term_parser.h"
+#include "parser/smt2/smt2_term_parser.h"
 
 #include <string.h>
 

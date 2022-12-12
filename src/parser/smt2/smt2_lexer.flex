@@ -1,6 +1,6 @@
 
 %{
-#include "parser/flex/smt2_lexer.h"
+#include "parser/smt2/smt2_lexer.h"
 
 // Alternatively we could lex simple_symbol as:
 //  [a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]+

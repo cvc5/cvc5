@@ -13,7 +13,7 @@
  * Base class lexer
  */
 
-#include "parser/flex/lexer.h"
+#include "parser/flex_lexer.h"
 
 #include <cassert>
 #include <iostream>

@@ -13,7 +13,7 @@
  * Definitions of SMT2 tokens.
  */
 
-#include "parser/flex/smt2_cmd_parser.h"
+#include "parser/smt2/smt2_cmd_parser.h"
 
 #include "base/check.h"
 #include "base/output.h"

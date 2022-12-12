@@ -15,11 +15,11 @@
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__SMT2_TERM_PARSER_H
-#define CVC5__PARSER__SMT2_TERM_PARSER_H
+#ifndef CVC5__PARSER__SMT2__SMT2_TERM_PARSER_H
+#define CVC5__PARSER__SMT2__SMT2_TERM_PARSER_H
 
 #include "api/cpp/cvc5.h"
-#include "parser/flex/smt2_lexer.h"
+#include "parser/smt2/smt2_lexer.h"
 #include "parser/smt2/smt2.h"
 
 namespace cvc5 {
