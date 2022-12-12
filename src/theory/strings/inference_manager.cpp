@@ -36,7 +36,7 @@ InferenceManager::InferenceManager(Env& env,
                                    TermRegistry& tr,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics)
-    : InferenceManagerBuffered(env, t, s, "theory::strings::", false),
+    : InferenceManagerBuffered(env, t, s, "theory::strings::"),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
