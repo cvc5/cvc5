@@ -52,9 +52,7 @@ class CommandExecutor
 
   cvc5::Result d_result;
 
-  /** Cache of the current verbosity */
-  int64_t d_verbosity;
-  /** Cache of parse only */
+  /** Cache option value of parse-only option. */
   bool d_parseOnly;
 
  public:

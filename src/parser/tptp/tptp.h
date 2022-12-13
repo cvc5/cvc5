@@ -29,7 +29,8 @@
 namespace cvc5 {
 namespace parser {
 
-/*
+/**
+ * The state information when parsing TPTP inputs.
  */
 class TptpState : public ParserState
 {

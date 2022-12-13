@@ -35,6 +35,10 @@ namespace parser {
 
 class Command;
 
+/**
+ * Callback from the parser state to the parser, for command preemption
+ * and error handling.
+ */
 class ParserStateCallback
 {
  public:
@@ -84,19 +88,6 @@ class CVC5_EXPORT ParserState
 
   /** Get the associated solver. */
   Solver* getSolver() const;
-
-  /** Deletes and replaces the current parser input. */
-  void setInput() { d_done = false; }
-
-  /**
-   * Check if we are done -- either the end of input has been reached, or some
-   * error has been encountered.
-   * @return true if parser is done
-   */
-  bool done() const { return d_done; }
-
-  /** Sets the done flag */
-  void setDone(bool done = true) { d_done = done; }
 
   /** Enable semantic checks during parsing. */
   void enableChecks() { d_checksEnabled = true; }
@@ -202,27 +193,27 @@ class CVC5_EXPORT ParserState
   virtual Sort getParametricSort(const std::string& sort_name,
                                  const std::vector<Sort>& params);
 
-  /**
-   * Checks if a symbol has been declared.
-   * @param name the symbol name
-   * @param type the symbol type
-   * @return true iff the symbol has been declared with the given type
-   */
-  bool isDeclared(const std::string& name, SymbolType type = SYM_VARIABLE);
+ /**
+  * Checks if a symbol has been declared.
+  * @param name the symbol name
+  * @param type the symbol type
+  * @return true iff the symbol has been declared with the given type
+  */
+ bool isDeclared(const std::string& name, SymbolType type = SYM_VARIABLE);
 
-  /**
-   * Checks if the declaration policy we want to enforce holds
-   * for the given symbol.
-   * @param name the symbol to check
-   * @param check the kind of check to perform
-   * @param type the type of the symbol
-   * @param notes notes to add to a parse error (if one is generated)
-   * @throws ParserException if checks are enabled and the check fails
-   */
-  void checkDeclaration(const std::string& name,
-                        DeclarationCheck check,
-                        SymbolType type = SYM_VARIABLE,
-                        std::string notes = "");
+ /**
+  * Checks if the declaration policy we want to enforce holds
+  * for the given symbol.
+  * @param name the symbol to check
+  * @param check the kind of check to perform
+  * @param type the type of the symbol
+  * @param notes notes to add to a parse error (if one is generated)
+  * @throws ParserException if checks are enabled and the check fails
+  */
+ void checkDeclaration(const std::string& name,
+                       DeclarationCheck check,
+                       SymbolType type = SYM_VARIABLE,
+                       std::string notes = "");
 
   /**
    * Checks whether the given expression is function-like, i.e.
@@ -596,9 +587,6 @@ class CVC5_EXPORT ParserState
    * This current symbol table used by this parser, from symbol manager.
    */
   internal::parser::SymbolTable* d_symtab;
-
-  /** Are we done */
-  bool d_done;
 
   /** Are semantic checks enabled during parsing? */
   bool d_checksEnabled;

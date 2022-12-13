@@ -33,9 +33,8 @@
 namespace cvc5 {
 namespace parser {
 
-class Command;
-
 /*
+ * The state information when parsing smt2 inputs.
  */
 class Smt2State : public ParserState
 {

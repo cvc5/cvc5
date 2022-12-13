@@ -14,7 +14,7 @@
  */
 
 #include "cvc5parser_private.h"
-#include "parser/antlr_input.h"  // Needs to go first.
+#include "parser/antlr_input.h"
 
 #ifndef CVC5__PARSER__TPTP_ANTLR_H
 #define CVC5__PARSER__TPTP_ANTLR_H

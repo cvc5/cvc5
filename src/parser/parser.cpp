@@ -44,7 +44,6 @@ ParserState::ParserState(ParserStateCallback* psc,
       d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
-      d_done(true),
       d_checksEnabled(true),
       d_strictMode(strictMode)
 {
