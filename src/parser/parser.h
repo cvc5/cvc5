@@ -299,7 +299,9 @@ public:
  std::vector<cvc5::Term> bindBoundVars(const std::vector<std::string> names,
                                        const cvc5::Sort& type);
 
- /** Create a new variable definition (e.g., from a let binding).
+ /**
+  * Create a new variable definition (e.g., from a let binding).
+  *
   * If a symbol with name already exists,
   *  then if doOverload is true, we create overloaded operators.
   *  else if doOverload is false, the existing expression is shadowed by the
@@ -384,7 +386,8 @@ public:
  std::vector<cvc5::Sort> bindMutualDatatypeTypes(
      std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload = false);
 
- /** make flat function type
+ /**
+  * Make flat function type.
   *
   * Returns the "flat" function type corresponding to the function taking
   * argument types "sorts" and range type "range".  A flat function type is
@@ -426,7 +429,8 @@ public:
                                cvc5::Sort range,
                                std::vector<cvc5::Term>& flattenVars);
 
- /** make flat function type
+ /**
+  * Make flat function type.
   *
   * Same as above, but does not take argument flattenVars.
   * This is used when the arguments of the function are not important (for
@@ -435,7 +439,8 @@ public:
  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
                                cvc5::Sort range);
 
- /** make higher-order apply
+ /**
+  * Make higher-order apply.
   *
   * This returns the left-associative curried application of (function) expr to
   * the arguments in args.
@@ -450,7 +455,8 @@ public:
   */
  cvc5::Term mkHoApply(cvc5::Term expr, const std::vector<cvc5::Term>& args);
 
- /** Apply type ascription
+ /**
+  * Apply type ascription.
   *
   * Return term t with a type ascription applied to it. This is used for
   * syntax like (as t T) in smt2 and t::T in the CVC language. This includes:
