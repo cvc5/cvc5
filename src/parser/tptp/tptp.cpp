@@ -420,7 +420,8 @@ void Tptp::setHol()
     return;
   }
   d_hol = true;
-  d_solver->setLogic("HO_UF");
+  // since we can include arithmetic, just set the logic to include all
+  d_solver->setLogic("HO_ALL");
 }
 
 void Tptp::addFreeVar(cvc5::Term var)
