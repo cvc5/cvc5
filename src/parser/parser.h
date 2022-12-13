@@ -193,27 +193,27 @@ class CVC5_EXPORT ParserState
   virtual Sort getParametricSort(const std::string& sort_name,
                                  const std::vector<Sort>& params);
 
- /**
-  * Checks if a symbol has been declared.
-  * @param name the symbol name
-  * @param type the symbol type
-  * @return true iff the symbol has been declared with the given type
-  */
- bool isDeclared(const std::string& name, SymbolType type = SYM_VARIABLE);
+  /**
+   * Checks if a symbol has been declared.
+   * @param name the symbol name
+   * @param type the symbol type
+   * @return true iff the symbol has been declared with the given type
+   */
+  bool isDeclared(const std::string& name, SymbolType type = SYM_VARIABLE);
 
- /**
-  * Checks if the declaration policy we want to enforce holds
-  * for the given symbol.
-  * @param name the symbol to check
-  * @param check the kind of check to perform
-  * @param type the type of the symbol
-  * @param notes notes to add to a parse error (if one is generated)
-  * @throws ParserException if checks are enabled and the check fails
-  */
- void checkDeclaration(const std::string& name,
-                       DeclarationCheck check,
-                       SymbolType type = SYM_VARIABLE,
-                       std::string notes = "");
+  /**
+   * Checks if the declaration policy we want to enforce holds
+   * for the given symbol.
+   * @param name the symbol to check
+   * @param check the kind of check to perform
+   * @param type the type of the symbol
+   * @param notes notes to add to a parse error (if one is generated)
+   * @throws ParserException if checks are enabled and the check fails
+   */
+  void checkDeclaration(const std::string& name,
+                        DeclarationCheck check,
+                        SymbolType type = SYM_VARIABLE,
+                        std::string notes = "");
 
   /**
    * Checks whether the given expression is function-like, i.e.
