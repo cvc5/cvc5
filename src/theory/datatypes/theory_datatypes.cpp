@@ -421,27 +421,17 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
   }
   Trace("datatypes-merge") << "Merge " << t1 << " " << t2 << std::endl;
   Assert(d_equalityEngine->areEqual(t1, t2));
-  TNode trep1 = t1;
-  TNode trep2 = t2;
   EqcInfo* eqc2 = getOrMakeEqcInfo(t2);
   if (eqc2 == nullptr)
   {
     return;
   }
   bool checkInst = false;
-  if (!eqc2->d_constructor.get().isNull())
-  {
-    trep2 = eqc2->d_constructor.get();
-  }
   EqcInfo* eqc1 = getOrMakeEqcInfo(t1);
   if (eqc1)
   {
     Trace("datatypes-debug")
         << "  merge eqc info " << eqc2 << " into " << eqc1 << std::endl;
-    if (!eqc1->d_constructor.get().isNull())
-    {
-      trep1 = eqc1->d_constructor.get();
-    }
     // check for clash
     TNode cons1 = eqc1->d_constructor.get();
     TNode cons2 = eqc2->d_constructor.get();
@@ -794,8 +784,6 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
         return;
       }
     }
-    //add it to the vector
-    //sel->push_back( s );
     d_selector_apps[n] = n_sel + 1;
     if (n_sel < d_selector_apps_data[n].size())
     {
@@ -979,10 +967,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   std::map< Node, Node > eqc_cons;
   while( !eqccs_i.isFinished() ){
     Node eqc = (*eqccs_i);
-    //for all equivalence classes that are datatypes
-    //if( termSet.find( eqc )==termSet.end() ){
-    //  Trace("dt-cmi-debug") << "Irrelevant eqc : " << eqc << std::endl;
-    //}
     if( eqc.getType().isDatatype() ){
       EqcInfo* ei = getOrMakeEqcInfo( eqc );
       if( ei && !ei->d_constructor.get().isNull() ){
@@ -1001,7 +985,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
     ++eqccs_i;
   }
 
-  //unsigned orig_size = nodes.size();
   std::map< TypeNode, int > typ_enum_map;
   std::vector< TypeEnumerator > typ_enum;
   size_t index = 0;
@@ -1056,8 +1039,6 @@ bool TheoryDatatypes::collectModelValues(TheoryModel* m,
   for( std::map< Node, Node >::iterator it = eqc_cons.begin(); it != eqc_cons.end(); ++it ){
     Node eqc = it->first;
     if( eqc.getType().isCodatatype() ){
-      //until models are implemented for codatatypes
-      //throw Exception("Models for codatatypes are not supported in this version.");
       //must proactive expand to avoid looping behavior in model builder
       if( !it->second.isNull() ){
         std::map< Node, int > vmap;
@@ -1724,7 +1705,6 @@ void TheoryDatatypes::printModelDebug( const char* c ){
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
-    //if( !eqc.getType().isBoolean() ){
       if( eqc.getType().isDatatype() ){
         Trace( c ) << "DATATYPE : ";
       }

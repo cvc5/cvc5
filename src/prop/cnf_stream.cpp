@@ -218,10 +218,9 @@ const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
 }
 
 void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
-  context::CDList<TNode>::const_iterator it, it_end;
-  for (it = d_booleanVariables.begin(); it != d_booleanVariables.end(); ++ it) {
-    outputVariables.push_back(*it);
-  }
+  outputVariables.insert(outputVariables.end(),
+                         d_booleanVariables.begin(),
+                         d_booleanVariables.end());
 }
 
 bool CnfStream::isNotifyFormula(TNode node) const

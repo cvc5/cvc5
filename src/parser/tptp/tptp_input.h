@@ -37,6 +37,9 @@ namespace parser {
 
 class Tptp;
 
+/*
+ * This class is deprecated and used only for the ANTLR parser.
+ */
 class TptpInput : public AntlrInput {
   typedef AntlrInput super;
 

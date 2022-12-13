@@ -44,9 +44,7 @@
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/input.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
+#include "parser/input_parser.h"
 #include "theory/logic_info.h"
 
 using namespace std;
@@ -98,9 +96,8 @@ InteractiveShell::InteractiveShell(Solver* solver,
     LogicInfo tmp(d_solver->getOption("force-logic"));
     sm->forceLogic(tmp.getLogicString());
   }
-  ParserBuilder parserBuilder(solver, sm, true);
   /* Create parser with bogus input. */
-  d_parser.reset(parserBuilder.build());
+  d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
 
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
@@ -321,8 +318,8 @@ restart:
     }
   }
 
-  d_parser->setInput(Input::newStringInput(
-      d_solver->getOption("input-language"), input, INPUT_FILENAME));
+  d_parser->setStringInput(
+      d_solver->getOption("input-language"), input, INPUT_FILENAME);
 
   /* There may be more than one command in the input. Build up a
      sequence. */

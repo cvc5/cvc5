@@ -25,6 +25,7 @@
 #include "context/cdo.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
@@ -90,28 +91,7 @@ class TheoryFp : public Theory
   using ConversionAbstractionMap = context::CDHashMap<TypeNode, Node>;
   using AbstractionMap = context::CDHashMap<Node, Node>;
 
-  /** Equality engine. */
-  class NotifyClass : public eq::EqualityEngineNotify {
-   protected:
-    TheoryFp& d_theorySolver;
-
-   public:
-    NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
-  };
-  friend NotifyClass;
-
   void notifySharedTerm(TNode n) override;
-
-  NotifyClass d_notification;
 
   /** General utility. */
   void registerTerm(TNode node);
@@ -142,6 +122,7 @@ class TheoryFp : public Theory
   bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
 
  private:
+  /** Map abstraction skolem to abstracted FP_TO_REAL/FP_FROM_REAL node. */
   AbstractionMap d_abstractionMap;  // abstract -> original
 
   /** The theory rewriter for this theory. */
@@ -150,6 +131,9 @@ class TheoryFp : public Theory
   TheoryState d_state;
   /** A (default) inference manager. */
   TheoryInferenceManager d_im;
+  /** The notify class for equality engine. */
+  TheoryEqNotifyClass d_notify;
+
   /** Cache of word-blasted facts. */
   context::CDHashSet<Node> d_wbFactsCache;
 
