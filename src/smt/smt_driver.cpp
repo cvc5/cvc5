@@ -76,12 +76,8 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
         if (result.getStatus() == Result::UNKNOWN
             && result.getUnknownExplanation() == REQUIRES_CHECK_AGAIN)
         {
-          Assert(d_ctx != nullptr);
-          d_ctx->notifyResetAssertions();
           // finish init to construct new theory/prop engine
           d_smt.finishInit();
-          // setup
-          d_ctx->setup(this);
         }
         else
         {
