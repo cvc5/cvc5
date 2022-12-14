@@ -536,7 +536,7 @@ void CoreSolver::checkNormalFormsEq()
   // A set of possible inferences, in case we failed to compute a normal form
   // in a call to normalizeEquivalenceClass. This set typically contains
   // lemmas that require splitting. We delay processing these lemmas until
-  // the invocation of processPossibleInferInfo below.
+  // the invocation of processInferInfo below.
   std::vector<CoreInferInfo> pinfer;
   for (const Node& eqc : d_strings_eqc)
   {
@@ -589,7 +589,13 @@ void CoreSolver::checkNormalFormsEq()
   if (!pinfer.empty())
   {
     // add one inference from our list of possible inferences
-    processPossibleInferInfo(pinfer);
+    size_t use_index = choosePossibleInferInfo(pinfer);
+    Trace("strings-solve") << "...choose #" << use_index << std::endl;
+    if (!processInferInfo(pinfer[use_index]))
+    {
+      Unhandled() << "Failed to process infer info " << pinfer[use_index].d_infer
+                  << std::endl;
+    }
     return;
   }
   if (TraceIsOn("strings-nf"))
@@ -2649,9 +2655,9 @@ void CoreSolver::checkLengthsEqc() {
   }
 }
 
-void CoreSolver::processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer)
+size_t CoreSolver::choosePossibleInferInfo(const std::vector<CoreInferInfo>& pinfer)
 {
-  // determine which of the possible inferences we want to add
+  // now, determine which of the possible inferences we want to add
   unsigned use_index = 0;
   bool set_use_index = false;
   Trace("strings-solve") << "Possible inferences (" << pinfer.size()
@@ -2660,8 +2666,8 @@ void CoreSolver::processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer)
   unsigned max_index = 0;
   for (unsigned i = 0, psize = pinfer.size(); i < psize; i++)
   {
-    CoreInferInfo& ipii = pinfer[i];
-    InferInfo& ii = ipii.d_infer;
+    const CoreInferInfo& ipii = pinfer[i];
+    const InferInfo& ii = ipii.d_infer;
     Trace("strings-solve") << "#" << i << ": From " << ipii.d_i << " / "
                            << ipii.d_j << " (rev=" << ipii.d_rev << ") : ";
     Trace("strings-solve") << ii.d_conc << " by " << ii.getId() << std::endl;
@@ -2674,12 +2680,7 @@ void CoreSolver::processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer)
       set_use_index = true;
     }
   }
-  Trace("strings-solve") << "...choose #" << use_index << std::endl;
-  if (!processInferInfo(pinfer[use_index]))
-  {
-    Unhandled() << "Failed to process infer info " << pinfer[use_index].d_infer
-                << std::endl;
-  }
+  return use_index;
 }
 
 bool CoreSolver::processInferInfo(CoreInferInfo& cii)

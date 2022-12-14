@@ -286,9 +286,10 @@ class CoreSolver : protected EnvObj
 
  private:
   /**
-   * This processes one infer info in pinfer using processInferInfo.
+   * This returns the index of an infer info in pinfer that we should process
+   * based on our heuristics.
    */
-  void processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer);
+  size_t choosePossibleInferInfo(const std::vector<CoreInferInfo>& pinfer);
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, and updates the set of
