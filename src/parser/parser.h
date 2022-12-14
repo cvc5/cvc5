@@ -540,15 +540,6 @@ class CVC5_EXPORT ParserState
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
-  /**
-   * Make string constant
-   *
-   * This makes the string constant based on the string s. This may involve
-   * processing ad-hoc escape sequences (if the language is not
-   * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
-   * the string.
-   */
-  Term mkStringConstant(const std::string& s);
 
   /**
    * Make string constant from a single character in hex representation

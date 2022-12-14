@@ -949,9 +949,14 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
   {
     expr = p.d_expr;
   }
+  else if (!isDeclared(p.d_name, SYM_VARIABLE))
+  {
+    std::stringstream ss;
+    ss << "Symbol " << p.d_name << " is not declared.";
+    parseError(ss.str());
+  }
   else
   {
-    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
     expr = getExpressionForName(p.d_name);
   }
   Assert(!expr.isNull());
