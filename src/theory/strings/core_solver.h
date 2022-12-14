@@ -325,7 +325,7 @@ class CoreSolver : protected EnvObj
    * of string term n (for more details on normal forms, see normal_form.h
    * or see Liang et al CAV 2014). In particular, this method checks whether the
    * current normal form for each term in this equivalence class is identical.
-   * If it is not, then we add an inference via sendInference and abort the
+   * If it is not, then we add (at least one) inference to pinfer and abort the
    * call.
    *
    * stype is the string-like type of the equivalence class we are processing.
