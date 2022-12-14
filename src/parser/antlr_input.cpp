@@ -16,7 +16,6 @@
 #include "parser/antlr_input.h"
 
 #include <antlr3.h>
-
 #include <limits>
 
 #include "base/check.h"
@@ -25,7 +24,7 @@
 #include "parser/bounded_token_buffer.h"
 #include "parser/bounded_token_factory.h"
 #include "parser/input.h"
-#include "parser/parser_antlr.h"
+#include "parser/parser.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_input.h"
 #include "parser/smt2/sygus_input.h"

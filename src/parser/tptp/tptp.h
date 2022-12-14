@@ -14,6 +14,7 @@
  */
 
 #include "cvc5parser_private.h"
+#include "parser/antlr_input.h"  // Needs to go first.
 
 #ifndef CVC5__PARSER__TPTP_H
 #define CVC5__PARSER__TPTP_H
@@ -27,7 +28,12 @@
 #include "util/hash.h"
 
 namespace cvc5 {
+
+class Solver;
+
 namespace parser {
+
+class Command;
 
 /**
  * The state information when parsing TPTP inputs.
@@ -35,12 +41,6 @@ namespace parser {
 class TptpState : public ParserState
 {
  public:
-  TptpState(ParserStateCallback* psc,
-            Solver* solver,
-            SymbolManager* sm,
-            bool strictMode = false);
-  ~TptpState();
-
   bool cnf() const { return d_cnf; }
   void setCnf(bool cnf) { d_cnf = cnf; }
 
@@ -65,13 +65,11 @@ class TptpState : public ParserState
   // This is also the cvc5::Sort of $i in TFF.
   cvc5::Sort d_unsorted;
 
-  enum Theory
-  {
+  enum Theory {
     THEORY_CORE,
-  }; /* enum Theory */
+  };/* enum Theory */
 
-  enum FormulaRole
-  {
+  enum FormulaRole {
     FR_AXIOM,
     FR_HYPOTHESIS,
     FR_DEFINITION,
@@ -86,10 +84,16 @@ class TptpState : public ParserState
     FR_FI_FUNCTORS,
     FR_FI_PREDICATES,
     FR_TYPE,
-  }; /* enum FormulaRole */
+  };/* enum FormulaRole */
 
   bool hasConjecture() const { return d_hasConjecture; }
 
+  TptpState(ParserStateCallback* psc,
+            Solver* solver,
+            SymbolManager* sm,
+            bool strictMode = false);
+
+  ~TptpState();
   /**
    * Add theory symbols to the parser state.
    *
@@ -106,11 +110,10 @@ class TptpState : public ParserState
   cvc5::Term mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType);
 
   /** get assertion expression, based on the formula role.
-   * expr should have Boolean type.
-   * This returns the expression that should be asserted, given the formula role
-   * fr. For example, if the role is "conjecture", then the return value is the
-   * negation of expr.
-   */
+  * expr should have Boolean type.
+  * This returns the expression that should be asserted, given the formula role fr.
+  * For example, if the role is "conjecture", then the return value is the negation of expr.
+  */
   cvc5::Term getAssertionExpr(FormulaRole fr, cvc5::Term expr);
 
   /** get assertion for distinct constants
@@ -210,8 +213,8 @@ class TptpState : public ParserState
   // hack to make output SZS ontology-compliant
   bool d_hasConjecture;
 
-  bool d_cnf;  // in a cnf formula
-  bool d_fof;  // in an fof formula
+  bool d_cnf; // in a cnf formula
+  bool d_fof; // in an fof formula
   bool d_hol;  // in a thf formula
 };             /* class Tptp */
 
