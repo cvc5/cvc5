@@ -66,7 +66,7 @@ class CVC5_EXPORT InputParser
                       const std::string& name);
 
   /**
-   * Set that we will be feeding strings to this parser via 
+   * Set that we will be feeding strings to this parser via
    * appendIncrementalStringInput below.
    *
    * @param lang the input language

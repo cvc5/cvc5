@@ -73,8 +73,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
   Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
-  d_state->setInput(
-      Input::newStringInput(d_istringLang, input, d_istringName));
+  d_state->setInput(Input::newStringInput(d_istringLang, input, d_istringName));
 }
 
 }  // namespace parser
