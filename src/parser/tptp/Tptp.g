@@ -587,6 +587,10 @@ definedFun[cvc5::ParseOp& p]
     {
       p.d_kind = cvc5::DIVISION;
     }
+  | '$ite'
+    {
+      p.d_kind = cvc5::ITE;
+    }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
