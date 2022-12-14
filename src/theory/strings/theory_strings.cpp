@@ -1127,27 +1127,21 @@ void TheoryStrings::checkCodes()
       {
         continue;
       }
-
-      NormalForm& nfe = d_csolver.getNormalForm(eqc);
-      Node c;
-      if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
+      if (eqc.isConst())
       {
-        c = nfe.d_nf[0];
-      }
-      else if (nfe.d_nf.empty())
-      {
-        c = Word::mkEmptyWord(eqc.getType());
-      }
-      if (!c.isNull())
-      {
+        Node c = eqc;
         Trace("strings-code-debug") << "Get proxy variable for " << c
                                     << std::endl;
-        Node codeProxyLem = d_termReg.getCodeProxyLemma(c);
-        if (!codeProxyLem.isNull())
+        Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
+        cc = rewrite(cc);
+        Assert(cc.isConst());
+        Node cp = d_termReg.ensureProxyVariableFor(c);
+        Node vc = nm->mkNode(STRING_TO_CODE, cp);
+        if (!d_state.areEqual(cc, vc))
         {
           std::vector<Node> emptyVec;
           d_im.sendInference(
-              emptyVec, codeProxyLem, InferenceId::STRINGS_CODE_PROXY);
+              emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
         }
         // only relevant in comparisons if length is 1 (e.g. it has a valid
         // code point)
