@@ -31,20 +31,13 @@
 #include "theory/logic_info.h"
 
 namespace cvc5 {
-
-class Solver;
-
 namespace parser {
 
-class Command;
-
 /*
- * This class is deprecated and used only for the ANTLR parser.
+ * The state information when parsing smt2 inputs.
  */
-class Smt2 : public Parser
+class Smt2State : public ParserState
 {
-  friend class ParserBuilder;
-
  private:
   /** Are we parsing a sygus file? */
   bool d_isSygus;
@@ -67,14 +60,14 @@ class Smt2 : public Parser
    */
   std::vector<std::unique_ptr<cvc5::Grammar>> d_allocGrammars;
 
- protected:
-  Smt2(cvc5::Solver* solver,
-       SymbolManager* sm,
-       bool strictMode = false,
-       bool isSygus = false);
-
  public:
-  ~Smt2();
+  Smt2State(ParserStateCallback* psc,
+            Solver* solver,
+            SymbolManager* sm,
+            bool strictMode = false,
+            bool isSygus = false);
+
+  ~Smt2State();
 
   /**
    * Add core theory symbols to the parser state.
@@ -164,9 +157,9 @@ class Smt2 : public Parser
    *
    * This function will create a bind a new function term to name fname.
    * The type of this function is
-   * Parser::mkFlatFunctionType(sorts,t,flattenVars),
+   * ParserState::mkFlatFunctionType(sorts,t,flattenVars),
    * where sorts are the types in the second components of sortedVarNames.
-   * As descibed in Parser::mkFlatFunctionType, new bound variables may be
+   * As descibed in ParserState::mkFlatFunctionType, new bound variables may be
    * added to flattenVars in this function if the function is given a function
    * range type.
    */
@@ -178,7 +171,7 @@ class Smt2 : public Parser
 
   /** Push scope for define-fun-rec
    *
-   * This calls Parser::pushScope() and sets up
+   * This calls ParserState::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
    * The input parameters func/flattenVars are the result
@@ -189,7 +182,7 @@ class Smt2 : public Parser
    * flattenVars : the implicit variables introduced when defining func.
    *
    * This function:
-   * (1) Calls Parser::pushScope().
+   * (1) Calls ParserState::pushScope().
    * (2) Computes the bound variable list for the quantified formula
    *     that defined this definition and stores it in bvs.
    */
@@ -319,10 +312,10 @@ class Smt2 : public Parser
       std::stringstream ss;
       ss << notes << "You may have intended to apply unary minus: `(- "
          << name.substr(1) << ")'\n";
-      this->Parser::checkDeclaration(name, check, type, ss.str());
+      this->ParserState::checkDeclaration(name, check, type, ss.str());
       return;
     }
-    this->Parser::checkDeclaration(name, check, type, notes);
+    this->ParserState::checkDeclaration(name, check, type, notes);
   }
   /**
    * Notify that expression expr was given name std::string via a :named
