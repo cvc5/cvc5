@@ -940,8 +940,8 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, cvc5::Sort type)
 cvc5::Term Smt2State::parseOpToExpr(ParseOp& p)
 {
   Trace("parser") << "parseOpToExpr: " << p << std::endl;
-  cvc5::Term expr;
-  if (p.d_kind != cvc5::NULL_TERM || !p.d_type.isNull())
+  Term expr;
+  if (p.d_kind != NULL_TERM || !p.d_type.isNull())
   {
     parseError(
         "Bad syntax for qualified identifier operator in term position.");
@@ -950,14 +950,9 @@ cvc5::Term Smt2State::parseOpToExpr(ParseOp& p)
   {
     expr = p.d_expr;
   }
-  else if (!isDeclared(p.d_name, SYM_VARIABLE))
-  {
-    std::stringstream ss;
-    ss << "Symbol " << p.d_name << " is not declared.";
-    parseError(ss.str());
-  }
   else
   {
+    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
     expr = getExpressionForName(p.d_name);
   }
   Assert(!expr.isNull());

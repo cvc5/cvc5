@@ -1,5 +1,5 @@
-; SCRUBBER: grep -o "Symbol a is not declared"
-; EXPECT: Symbol a is not declared
+; SCRUBBER: grep -o "Symbol 'a' not declared as a variable"
+; EXPECT: Symbol 'a' not declared as a variable
 ; EXIT: 1
 (set-logic ALL)
 (define-fun a () Bool false)
