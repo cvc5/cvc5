@@ -645,6 +645,9 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
     }
     // process the normal forms
     processNEqc(eqc, normal_forms, stype, pinfer);
+    // If we sent a lemma, or if pinfer is non-empty (a normal form could not
+    // be assigned to this equivalence class), then we return. The possible
+    // inferences (if necessary) will be processed in checkNormalFormsEq.
     if (d_im.hasProcessed() || !pinfer.empty())
     {
       return;
