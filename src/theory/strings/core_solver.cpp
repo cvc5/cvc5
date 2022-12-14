@@ -2084,11 +2084,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
     Node yLenTerm = d_state.getLength(y, lenExp);
     if (d_state.areDisequal(xLenTerm, yLenTerm))
     {
-      if (!d_state.areEqual(xLenTerm, yLenTerm))
-      {
-        d_im.sendSplit(xLenTerm, yLenTerm, InferenceId::STRINGS_DEQ_DISL_EMP_SPLIT);
-        return;
-      }
       // Below, we deal with the cases where the components at the current
       // index are of different lengths in the current context.
       //
@@ -2315,7 +2310,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
         cc.push_back(nfk[k].eqNode(emp));
       }
       Node conc = NodeManager::currentNM()->mkAnd(cc);
-      d_im.sendInference(ant, antn, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
+      //d_im.sendInference(ant, antn, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
       return true;
     }
 
