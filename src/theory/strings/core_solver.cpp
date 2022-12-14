@@ -2639,7 +2639,7 @@ void CoreSolver::checkLengthsEqc() {
 
 void CoreSolver::processPossibleInferInfo(std::vector<CoreInferInfo>& pinfer)
 {
-  // now, determine which of the possible inferences we want to add
+  // determine which of the possible inferences we want to add
   unsigned use_index = 0;
   bool set_use_index = false;
   Trace("strings-solve") << "Possible inferences (" << pinfer.size()
