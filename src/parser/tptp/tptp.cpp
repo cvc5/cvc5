@@ -25,22 +25,19 @@
 #include "parser/parser.h"
 #include "theory/logic_info.h"
 
-// ANTLR defines these, which is really bad!
-#undef true
-#undef false
-
 namespace cvc5 {
 namespace parser {
 
-Tptp::Tptp(cvc5::Solver* solver,
-           SymbolManager* sm,
-           bool strictMode)
-    : Parser(solver, sm, strictMode),
+TptpState::TptpState(ParserStateCallback* psc,
+                     Solver* solver,
+                     SymbolManager* sm,
+                     bool strictMode)
+    : ParserState(psc, solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
       d_hol(false)
 {
-  addTheory(Tptp::THEORY_CORE);
+  addTheory(TptpState::THEORY_CORE);
 
   /* Try to find TPTP dir */
   // From tptp4x FileUtilities
@@ -72,10 +69,10 @@ Tptp::Tptp(cvc5::Solver* solver,
   }
 }
 
-Tptp::~Tptp() {
-}
+TptpState::~TptpState() {}
 
-void Tptp::addTheory(Theory theory) {
+void TptpState::addTheory(Theory theory)
+{
   switch(theory) {
   case THEORY_CORE:
     //TPTP (CNF and FOF) is unsorted so we define this common type
@@ -101,15 +98,15 @@ void Tptp::addTheory(Theory theory) {
 
   default:
     std::stringstream ss;
-    ss << "internal error: Tptp::addTheory(): unhandled theory " << theory;
+    ss << "internal error: TptpState::addTheory(): unhandled theory " << theory;
     throw ParserException(ss.str());
   }
 }
 
-void Tptp::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
-                           cvc5::Term lhs,
-                           cvc5::Term rhs,
-                           bool formula)
+void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
+                                cvc5::Term lhs,
+                                cvc5::Term rhs,
+                                bool formula)
 {
   if (lhs.getKind() != cvc5::APPLY_UF)
   {
@@ -145,7 +142,7 @@ void Tptp::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
   }
 }
 
-cvc5::Term Tptp::parseOpToExpr(ParseOp& p)
+cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
 {
   cvc5::Term expr;
   if (!p.d_expr.isNull())
@@ -167,7 +164,7 @@ cvc5::Term Tptp::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-cvc5::Term Tptp::isTptpDeclared(const std::string& name)
+cvc5::Term TptpState::isTptpDeclared(const std::string& name)
 {
   if (isDeclared(name))
   {  // already appeared
@@ -183,7 +180,7 @@ cvc5::Term Tptp::isTptpDeclared(const std::string& name)
   return cvc5::Term();
 }
 
-Term Tptp::makeApplyUf(std::vector<Term>& args)
+Term TptpState::makeApplyUf(std::vector<Term>& args)
 {
   std::vector<Sort> argSorts = args[0].getSort().getFunctionDomainSorts();
   if (argSorts.size() + 1 != args.size())
@@ -201,7 +198,7 @@ Term Tptp::makeApplyUf(std::vector<Term>& args)
   return d_solver->mkTerm(APPLY_UF, args);
 }
 
-cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
+cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 {
   if (TraceIsOn("parser"))
   {
@@ -351,7 +348,7 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return d_solver->mkTerm(kind, args);
 }
 
-cvc5::Term Tptp::mkDecimal(
+cvc5::Term TptpState::mkDecimal(
     std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
   // the numerator and the denominator
@@ -410,26 +407,27 @@ cvc5::Term Tptp::mkDecimal(
   return d_solver->mkReal(ss.str());
 }
 
-const std::string& Tptp::getTptpDir() const { return d_tptpDir; }
+const std::string& TptpState::getTptpDir() const { return d_tptpDir; }
 
-bool Tptp::hol() const { return d_hol; }
-void Tptp::setHol()
+bool TptpState::hol() const { return d_hol; }
+void TptpState::setHol()
 {
   if (d_hol)
   {
     return;
   }
   d_hol = true;
-  d_solver->setLogic("HO_UF");
+  // since we can include arithmetic, just set the logic to include all
+  d_solver->setLogic("HO_ALL");
 }
 
-void Tptp::addFreeVar(cvc5::Term var)
+void TptpState::addFreeVar(cvc5::Term var)
 {
   Assert(cnf());
   d_freeVar.push_back(var);
 }
 
-std::vector<cvc5::Term> Tptp::getFreeVar()
+std::vector<cvc5::Term> TptpState::getFreeVar()
 {
   Assert(cnf());
   std::vector<cvc5::Term> r;
@@ -437,7 +435,7 @@ std::vector<cvc5::Term> Tptp::getFreeVar()
   return r;
 }
 
-cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
+cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
 {
   // Create the conversion function If they doesn't exists
   if (d_rtu_op.isNull()) {
@@ -470,7 +468,7 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
   return cvc5::Term(ret);
 }
 
-cvc5::Term Tptp::convertStrToUnsorted(std::string str)
+cvc5::Term TptpState::convertStrToUnsorted(std::string str)
 {
   cvc5::Term& e = d_distinct_objects[str];
   if (e.isNull())
@@ -480,7 +478,7 @@ cvc5::Term Tptp::convertStrToUnsorted(std::string str)
   return e;
 }
 
-cvc5::Term Tptp::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
+cvc5::Term TptpState::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
 {
   Trace("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
                   << "\n";
@@ -503,7 +501,7 @@ cvc5::Term Tptp::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
   return wrapper;
 }
 
-cvc5::Term Tptp::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
+cvc5::Term TptpState::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
 {
   switch (fr) {
     case FR_AXIOM:
@@ -532,7 +530,7 @@ cvc5::Term Tptp::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
   return d_nullExpr;
 }
 
-cvc5::Term Tptp::getAssertionDistinctConstants()
+cvc5::Term TptpState::getAssertionDistinctConstants()
 {
   std::vector<cvc5::Term> constants;
   for (std::pair<const std::string, cvc5::Term>& cs : d_distinct_objects)
@@ -546,7 +544,7 @@ cvc5::Term Tptp::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* Tptp::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
+Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
