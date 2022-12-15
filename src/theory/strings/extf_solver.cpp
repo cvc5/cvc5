@@ -270,22 +270,6 @@ void ExtfSolver::doReduction(Node n, int pol)
 
 void ExtfSolver::checkExtfReductions(int effort)
 {
-  // return value is ignored
-  checkExtfReductionsInternal(effort, true);
-}
-
-bool ExtfSolver::maybeHasCandidateModel()
-{
-  if (checkExtfReductionsInternal(2, false))
-  {
-    // cannot construct candidate model if reductions are waiting
-    return false;
-  }
-  return true;
-}
-
-bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
-{
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
   // stratifying effort levels are done in doReduction below.
@@ -293,7 +277,7 @@ bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
   // active (see getRelevantActive).
   std::vector<Node> extf = getRelevantActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
-                           << ", doSend = " << doSend << std::endl;
+                           << std::endl;
   for (const Node& n : extf)
   {
     Assert(!d_state.isInConflict());
@@ -312,20 +296,14 @@ bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
     }
     if (shouldDoReduction(effort, n, pol))
     {
-      if (!doSend)
-      {
-        // do not process, simply return true
-        return true;
-      }
       doReduction(n, pol);
       // we do not mark as reduced, since we may want to evaluate
       if (d_im.hasProcessed())
       {
-        return true;
+        return;
       }
     }
   }
-  return false;
 }
 
 void ExtfSolver::checkExtfEval(int effort)
