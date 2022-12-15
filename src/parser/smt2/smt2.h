@@ -15,8 +15,8 @@
 
 #include "cvc5parser_private.h"
 
-#ifndef CVC5__PARSER__SMT2_STATE_H
-#define CVC5__PARSER__SMT2_STATE_H
+#ifndef CVC5__PARSER__SMT2__SMT2_H
+#define CVC5__PARSER__SMT2__SMT2_H
 
 #include <optional>
 #include <sstream>
@@ -450,8 +450,9 @@ class Smt2State : public ParserState
   bool d_logicSet;
   /** Have we seen a set-logic command yet? */
   bool d_seenSetLogic;
-
+  /** The current logic */
   internal::LogicInfo d_logic;
+  /** Maps strings to the operator it is bound to */
   std::unordered_map<std::string, Kind> d_operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
@@ -460,6 +461,7 @@ class Smt2State : public ParserState
   std::unordered_map<std::string, Kind> d_indexedOpKindMap;
   /** Closure map */
   std::unordered_map<std::string, Kind> d_closureKindMap;
+  /** The last named term and its name */
   std::pair<Term, std::string> d_lastNamedTerm;
   /**
    * A list of sygus grammar objects. We keep track of them here to ensure that

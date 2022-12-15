@@ -67,7 +67,7 @@ class CVC5_EXPORT InputParser
                       const std::string& name);
 
   /**
-   * Set that we will be feeding strings to this parser via 
+   * Set that we will be feeding strings to this parser via
    * appendIncrementalStringInput below.
    *
    * @param lang the input language
@@ -102,6 +102,10 @@ class CVC5_EXPORT InputParser
   bool d_useOptions;
   /** whether to use flex */
   bool d_useFlex;
+  /** Incremental string input language */
+  std::string d_istringLang;
+  /** Incremental string name */
+  std::string d_istringName;
   //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
   // replaced (wishue #142).
   /**  The parser state. */
@@ -109,10 +113,6 @@ class CVC5_EXPORT InputParser
   /** The underlying input */
   std::unique_ptr<Input> d_input;
   //!!!!!!!!!!!!!!
-  /** Incremental string input language */
-  std::string d_istringLang;
-  /** Incremental string name */
-  std::string d_istringName;
   //!!!!!!!!!!!!!! new implementation
   std::unique_ptr<FlexParser> d_fparser;
   //!!!!!!!!!!!!!!

@@ -118,7 +118,7 @@ void InputParser::setIncrementalStringInput(const std::string& lang,
     // initialize the parser
     d_fparser = FlexParser::mkFlexParser(lang, d_solver, d_sm);
   }
-  // otherwise, it is already initialized
+  // if ANTLR, parser is already initialized
 }
 void InputParser::appendIncrementalStringInput(const std::string& input)
 {
