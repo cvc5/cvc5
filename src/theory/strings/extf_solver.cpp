@@ -83,7 +83,7 @@ ExtfSolver::~ExtfSolver() {}
 bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
 {
   Trace("strings-extf-debug")
-      << "shouldDoReduction " << n << ", effort " << effort << std::endl;
+      << "shouldDoReduction " << n << ", pol " << pol << ", effort " << effort << std::endl;
   if (!isActiveInModel(n))
   {
     // n is not active in the model, no need to reduce
@@ -177,7 +177,7 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
 void ExtfSolver::doReduction(Node n, int pol)
 {
   Trace("strings-extf-debug")
-      << "doReduction " << n << ", effort " << effort << std::endl;
+      << "doReduction " << n << ", pol " << pol << std::endl;
   // polarity : 1 true, -1 false, 0 neither
   Kind k = n.getKind();
   if (k == STRING_CONTAINS && pol == -1)
@@ -249,12 +249,6 @@ void ExtfSolver::doReduction(Node n, int pol)
     new_nodes.push_back(n.eqNode(res));
     Node nnlem =
         new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(AND, new_nodes);
-    Trace("strings-red-lemma")
-        << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
-    Trace("strings-red-lemma") << "...from " << n << std::endl;
-    Trace("strings-red-lemma")
-        << "Reduction_" << effort << " rewritten : " << rewrite(nnlem)
-        << std::endl;
     // in rare case where it rewrites to true, just record it is reduced
     if (rewrite(nnlem) == d_true)
     {
