@@ -82,8 +82,8 @@ ExtfSolver::~ExtfSolver() {}
 
 bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
 {
-  Trace("strings-extf-debug")
-      << "shouldDoReduction " << n << ", pol " << pol << ", effort " << effort << std::endl;
+  Trace("strings-extf-debug") << "shouldDoReduction " << n << ", pol " << pol
+                              << ", effort " << effort << std::endl;
   if (!isActiveInModel(n))
   {
     // n is not active in the model, no need to reduce
