@@ -124,6 +124,10 @@ class ExtfSolver : protected EnvObj
    * the rest.
    */
   void checkExtfReductions(int effort);
+  /**
+   * Return false if the above method has a reduction to send at full effort.
+   */
+  bool maybeHasCandidateModel();
   /** get preprocess module */
   StringsPreprocess* getPreprocess() { return &d_preproc; }
 
@@ -178,6 +182,16 @@ class ExtfSolver : protected EnvObj
   std::string debugPrintModel();
 
  private:
+  /**
+   * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
+   * true if a reduction lemma was sent if doSend = true, or would have been
+   * sent if doSend = false.
+   */
+  bool checkExtfReductionsInternal(int effort, bool doSend);
+  /**
+   * Determines if n should be reduced based on the effort level.
+   */
+  bool shouldDoReduction(int effort, Node n, int pol);
   /** do reduction
    *
    * This is called when an extended function application n is not able to be
@@ -188,7 +202,7 @@ class ExtfSolver : protected EnvObj
    * SAT-context. The argument effort has the same meaning as in
    * checkExtfReductions.
    */
-  bool doReduction(int effort, Node n);
+  void doReduction(Node n, int pol);
   /** check extended function inferences
    *
    * This function makes additional inferences for n that do not contribute
