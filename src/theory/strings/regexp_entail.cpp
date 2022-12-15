@@ -803,7 +803,8 @@ bool RegExpEntail::regExpIncludes(Node r1,
   // if the right hand side is a constant string, this is a membership test
   if (k2 == STRING_TO_REGEXP)
   {
-    if (r2[0].isConst())
+    // only check if r1 is a constant regular expression
+    if (r2[0].isConst() && isConstRegExp(r1))
     {
       String s = r2[0].getConst<String>();
       ret = testConstStringInRegExp(s, 0, r1);

@@ -21,18 +21,16 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
-#include "smt/smt_solver.h"
+#include "smt/smt_driver.h"
 #include "smt/solver_engine_state.h"
 
 namespace cvc5::internal {
 namespace smt {
 
-ContextManager::ContextManager(Env& env,
-                               SolverEngineState& state,
-                               SmtSolver& smt)
+ContextManager::ContextManager(Env& env, SolverEngineState& state)
     : EnvObj(env),
       d_state(state),
-      d_smt(smt),
+      d_smt(nullptr),
       d_pendingPops(0),
       d_needPostsolve(false)
 {
@@ -49,6 +47,8 @@ void ContextManager::notifyResetAssertions()
   // (see solver execution modes in the SMT-LIB standard)
   Assert(d_userLevels.size() == 0 && userContext()->getLevel() == 1);
   popto(0);
+  // push the state to maintain global context around everything
+  push();
 }
 
 void ContextManager::notifyCheckSat(bool hasAssumptions)
@@ -70,9 +70,10 @@ void ContextManager::notifyCheckSatResult(bool hasAssumptions)
   }
 }
 
-void ContextManager::setup()
+void ContextManager::setup(SmtDriver* smt)
 {
-  // push a context
+  d_smt = smt;
+  // push the state to maintain global context around everything
   push();
 }
 
@@ -148,10 +149,10 @@ void ContextManager::internalPush()
   if (options().base.incrementalSolving)
   {
     // notifies the SolverEngine to process the assertions immediately
-    d_smt.notifyPushPre();
+    d_smt->notifyPushPre();
     userContext()->push();
     // the context push is done inside of the SAT solver
-    d_smt.notifyPushPost();
+    d_smt->notifyPushPost();
   }
 }
 
@@ -175,13 +176,13 @@ void ContextManager::doPendingPops()
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {
-    d_smt.notifyPostSolve();
+    d_smt->notifyPostSolve();
     d_needPostsolve = false;
   }
   while (d_pendingPops > 0)
   {
     // the context pop is done inside of the SAT solver
-    d_smt.notifyPopPre();
+    d_smt->notifyPopPre();
     // pop the context
     userContext()->pop();
     --d_pendingPops;

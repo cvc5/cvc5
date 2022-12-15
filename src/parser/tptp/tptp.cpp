@@ -25,23 +25,19 @@
 #include "parser/parser.h"
 #include "theory/logic_info.h"
 
-// ANTLR defines these, which is really bad!
-#undef true
-#undef false
-
 namespace cvc5 {
 namespace parser {
 
-Tptp::Tptp(cvc5::Solver* solver,
-           SymbolManager* sm,
-           bool strictMode,
-           bool parseOnly)
-    : Parser(solver, sm, strictMode, parseOnly),
+TptpState::TptpState(ParserStateCallback* psc,
+                     Solver* solver,
+                     SymbolManager* sm,
+                     bool strictMode)
+    : ParserState(psc, solver, sm, strictMode),
       d_cnf(false),
       d_fof(false),
       d_hol(false)
 {
-  addTheory(Tptp::THEORY_CORE);
+  addTheory(TptpState::THEORY_CORE);
 
   /* Try to find TPTP dir */
   // From tptp4x FileUtilities
@@ -66,15 +62,17 @@ Tptp::Tptp(cvc5::Solver* solver,
     }
   }
   d_hasConjecture = false;
-}
-
-Tptp::~Tptp() {
-  for( unsigned i=0; i<d_in_created.size(); i++ ){
-    d_in_created[i]->free(d_in_created[i]);
+  // Handle forced logic immediately.
+  if (sm->isLogicForced())
+  {
+    preemptCommand(new SetBenchmarkLogicCommand(sm->getForcedLogic()));
   }
 }
 
-void Tptp::addTheory(Theory theory) {
+TptpState::~TptpState() {}
+
+void TptpState::addTheory(Theory theory)
+{
   switch(theory) {
   case THEORY_CORE:
     //TPTP (CNF and FOF) is unsorted so we define this common type
@@ -100,99 +98,15 @@ void Tptp::addTheory(Theory theory) {
 
   default:
     std::stringstream ss;
-    ss << "internal error: Tptp::addTheory(): unhandled theory " << theory;
+    ss << "internal error: TptpState::addTheory(): unhandled theory " << theory;
     throw ParserException(ss.str());
   }
 }
 
-
-/* The include are managed in the lexer but called in the parser */
-// Inspired by http://www.antlr3.org/api/C/interop.html
-
-bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANTLR3_INPUT_STREAM >& inc ) {
-  Trace("parser") << "Including " << fileName << std::endl;
-  // Create a new input stream and take advantage of built in stream stacking
-  // in C target runtime.
-  //
-  pANTLR3_INPUT_STREAM    in;
-#ifdef CVC5_ANTLR3_OLD_INPUT_STREAM
-  in = antlr3AsciiFileStreamNew((pANTLR3_UINT8) fileName.c_str());
-#else  /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  in = antlr3FileStreamNew((pANTLR3_UINT8) fileName.c_str(), ANTLR3_ENC_8BIT);
-#endif /* CVC5_ANTLR3_OLD_INPUT_STREAM */
-  if(in == NULL) {
-    Trace("parser") << "Can't open " << fileName << std::endl;
-    return false;
-  }
-  // Same thing as the predefined PUSHSTREAM(in);
-  lexer->pushCharStream(lexer,in);
-  // restart it
-  //lexer->rec->state->tokenStartCharIndex  = -10;
-  //lexer->emit(lexer);
-
-  // Note that the input stream is not closed when it EOFs, I don't bother
-  // to do it here, but it is up to you to track streams created like this
-  // and destroy them when the whole parse session is complete. Remember that you
-  // don't want to do this until all tokens have been manipulated all the way through
-  // your tree parsers etc as the token does not store the text it just refers
-  // back to the input stream and trying to get the text for it will abort if you
-  // close the input stream too early.
-  //
-  inc.push_back( in );
-
-  //TODO what said before
-  return true;
-}
-
-void Tptp::includeFile(std::string fileName) {
-  // security for online version
-  if(!canIncludeFile()) {
-    parseError("include-file feature was disabled for this run.");
-  }
-
-  // Get the lexer
-  AntlrInput * ai = static_cast<AntlrInput *>(getInput());
-  pANTLR3_LEXER lexer = ai->getAntlr3Lexer();
-
-  // push the inclusion scope; will be popped by our special popCharStream
-  // would be necessary for handling symbol filtering in inclusions
-  //pushScope();
-
-  // get the name of the current stream "Does it work inside an include?"
-  const std::string inputName = ai->getInputStreamName();
-
-  // Test in the directory of the actual parsed file
-  std::string currentDirFileName;
-  if(inputName != "<stdin>") {
-    // TODO: Use dirname or Boost::filesystem?
-    size_t pos = inputName.rfind('/');
-    if(pos != std::string::npos) {
-      currentDirFileName = std::string(inputName, 0, pos + 1);
-    }
-    currentDirFileName.append(fileName);
-    if(newInputStream(currentDirFileName,lexer, d_in_created)) {
-      return;
-    }
-  } else {
-    currentDirFileName = "<unknown current directory for stdin>";
-  }
-
-  if(d_tptpDir.empty()) {
-    parseError("Couldn't open included file: " + fileName
-               + " at " + currentDirFileName + " and the TPTP directory is not specified (environment variable TPTP)");
-  };
-
-  std::string tptpDirFileName = d_tptpDir + fileName;
-  if(! newInputStream(tptpDirFileName,lexer, d_in_created)) {
-    parseError("Couldn't open included file: " + fileName
-               + " at " + currentDirFileName + " or " + tptpDirFileName);
-  }
-}
-
-void Tptp::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
-                           cvc5::Term lhs,
-                           cvc5::Term rhs,
-                           bool formula)
+void TptpState::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
+                                cvc5::Term lhs,
+                                cvc5::Term rhs,
+                                bool formula)
 {
   if (lhs.getKind() != cvc5::APPLY_UF)
   {
@@ -228,7 +142,7 @@ void Tptp::checkLetBinding(const std::vector<cvc5::Term>& bvlist,
   }
 }
 
-cvc5::Term Tptp::parseOpToExpr(ParseOp& p)
+cvc5::Term TptpState::parseOpToExpr(ParseOp& p)
 {
   cvc5::Term expr;
   if (!p.d_expr.isNull())
@@ -250,7 +164,7 @@ cvc5::Term Tptp::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-cvc5::Term Tptp::isTptpDeclared(const std::string& name)
+cvc5::Term TptpState::isTptpDeclared(const std::string& name)
 {
   if (isDeclared(name))
   {  // already appeared
@@ -266,7 +180,7 @@ cvc5::Term Tptp::isTptpDeclared(const std::string& name)
   return cvc5::Term();
 }
 
-Term Tptp::makeApplyUf(std::vector<Term>& args)
+Term TptpState::makeApplyUf(std::vector<Term>& args)
 {
   std::vector<Sort> argSorts = args[0].getSort().getFunctionDomainSorts();
   if (argSorts.size() + 1 != args.size())
@@ -284,7 +198,7 @@ Term Tptp::makeApplyUf(std::vector<Term>& args)
   return d_solver->mkTerm(APPLY_UF, args);
 }
 
-cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
+cvc5::Term TptpState::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
 {
   if (TraceIsOn("parser"))
   {
@@ -434,7 +348,7 @@ cvc5::Term Tptp::applyParseOp(ParseOp& p, std::vector<cvc5::Term>& args)
   return d_solver->mkTerm(kind, args);
 }
 
-cvc5::Term Tptp::mkDecimal(
+cvc5::Term TptpState::mkDecimal(
     std::string& snum, std::string& sden, bool pos, size_t exp, bool posE)
 {
   // the numerator and the denominator
@@ -493,30 +407,27 @@ cvc5::Term Tptp::mkDecimal(
   return d_solver->mkReal(ss.str());
 }
 
-bool Tptp::hol() const { return d_hol; }
-void Tptp::setHol()
+const std::string& TptpState::getTptpDir() const { return d_tptpDir; }
+
+bool TptpState::hol() const { return d_hol; }
+void TptpState::setHol()
 {
   if (d_hol)
   {
     return;
   }
   d_hol = true;
-  d_solver->setLogic("HO_UF");
+  // since we can include arithmetic, just set the logic to include all
+  d_solver->setLogic("HO_ALL");
 }
 
-void Tptp::forceLogic(const std::string& logic)
-{
-  Parser::forceLogic(logic);
-  preemptCommand(new SetBenchmarkLogicCommand(logic));
-}
-
-void Tptp::addFreeVar(cvc5::Term var)
+void TptpState::addFreeVar(cvc5::Term var)
 {
   Assert(cnf());
   d_freeVar.push_back(var);
 }
 
-std::vector<cvc5::Term> Tptp::getFreeVar()
+std::vector<cvc5::Term> TptpState::getFreeVar()
 {
   Assert(cnf());
   std::vector<cvc5::Term> r;
@@ -524,7 +435,7 @@ std::vector<cvc5::Term> Tptp::getFreeVar()
   return r;
 }
 
-cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
+cvc5::Term TptpState::convertRatToUnsorted(cvc5::Term expr)
 {
   // Create the conversion function If they doesn't exists
   if (d_rtu_op.isNull()) {
@@ -557,7 +468,7 @@ cvc5::Term Tptp::convertRatToUnsorted(cvc5::Term expr)
   return cvc5::Term(ret);
 }
 
-cvc5::Term Tptp::convertStrToUnsorted(std::string str)
+cvc5::Term TptpState::convertStrToUnsorted(std::string str)
 {
   cvc5::Term& e = d_distinct_objects[str];
   if (e.isNull())
@@ -567,7 +478,7 @@ cvc5::Term Tptp::convertStrToUnsorted(std::string str)
   return e;
 }
 
-cvc5::Term Tptp::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
+cvc5::Term TptpState::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
 {
   Trace("parser") << "mkLambdaWrapper: kind " << k << " and type " << argType
                   << "\n";
@@ -590,7 +501,7 @@ cvc5::Term Tptp::mkLambdaWrapper(cvc5::Kind k, cvc5::Sort argType)
   return wrapper;
 }
 
-cvc5::Term Tptp::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
+cvc5::Term TptpState::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
 {
   switch (fr) {
     case FR_AXIOM:
@@ -619,7 +530,7 @@ cvc5::Term Tptp::getAssertionExpr(FormulaRole fr, cvc5::Term expr)
   return d_nullExpr;
 }
 
-cvc5::Term Tptp::getAssertionDistinctConstants()
+cvc5::Term TptpState::getAssertionDistinctConstants()
 {
   std::vector<cvc5::Term> constants;
   for (std::pair<const std::string, cvc5::Term>& cs : d_distinct_objects)
@@ -633,7 +544,7 @@ cvc5::Term Tptp::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* Tptp::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
+Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or

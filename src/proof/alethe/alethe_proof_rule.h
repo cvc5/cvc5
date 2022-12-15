@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_RULE_H
-#define CVC4__PROOF__ALETHE_PROOF_RULE_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H
 
 #include <iostream>
 
@@ -447,4 +447,4 @@ AletheRule getAletheRule(Node n);
 
 }  // namespace cvc5::internal
 
-#endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */
+#endif /* CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H */

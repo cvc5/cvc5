@@ -238,8 +238,7 @@ TheoryEngine::TheoryEngine(Env& env)
       d_propagatedLiterals(context()),
       d_propagatedLiteralsIndex(context(), 0),
       d_atomRequests(context()),
-      d_combineTheoriesTime(statisticsRegistry().registerTimer(
-          "TheoryEngine::combineTheoriesTime")),
+      d_stats(statisticsRegistry()),
       d_true(),
       d_false(),
       d_interrupted(false),
@@ -444,25 +443,38 @@ void TheoryEngine::check(Theory::Effort effort) {
       // We are still satisfiable, propagate as much as possible
       propagate(effort);
 
-      // We do combination if all has been processed and we are in fullcheck
-      if (Theory::fullEffort(effort) && logicInfo().isSharingEnabled()
-          && !d_factsAsserted && !needCheck() && !d_inConflict)
+      if (Theory::fullEffort(effort))
       {
-        // Do the combination
-        Trace("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
+        d_stats.d_fullEffortChecks++;
+        // We do combination if all has been processed and we are in fullcheck
+        if (logicInfo().isSharingEnabled() && !d_factsAsserted && !needCheck()
+            && !d_inConflict)
         {
-          TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
-          d_tc->combineTheories();
+          d_stats.d_combineTheoriesCalls++;
+          // Do the combination
+          Trace("theory") << "TheoryEngine::check(" << effort
+                          << "): running combination" << endl;
+          {
+            TimerStat::CodeTimer combineTheoriesTimer(
+                d_stats.d_combineTheoriesTime);
+            d_tc->combineTheories();
+          }
+          if (logicInfo().isQuantified())
+          {
+            d_quantEngine->notifyCombineTheories();
+          }
         }
-        if (logicInfo().isQuantified())
-        {
-          d_quantEngine->notifyCombineTheories();
-        }
+      }
+      else
+      {
+        Assert(effort == Theory::EFFORT_STANDARD);
+        d_stats.d_stdEffortChecks++;
       }
     }
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) {
+      d_stats.d_lcEffortChecks++;
       Trace("theory::assertions-model") << endl;
       if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
