@@ -1147,8 +1147,6 @@ void TheoryStrings::checkCodes()
         // code point)
         if (Word::getLength(c) == 1)
         {
-          Node v = d_termReg.ensureProxyVariableFor(c);
-          Node vc = nm->mkNode(STRING_TO_CODE, v);
           const_codes.push_back(vc);
         }
       }
