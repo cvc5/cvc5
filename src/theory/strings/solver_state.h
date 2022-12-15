@@ -34,6 +34,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
+class ModelCons;
+
 /**
  * Solver state for strings.
  *
@@ -85,6 +87,12 @@ class SolverState : public TheoryState
   /** get the pending conflict, or null if none exist */
   bool getPendingConflict(InferInfo& ii) const;
   //------------------------------------------ end conflicts
+  /**
+   * Has candidate model? Returns true if we can definitely construct a model
+   * that is ready to check at LAST_CALL effort. In other words, if this is
+   * true, then we can abort a FULL effort check.
+   */
+  bool hasCandidateModel() const;
   /** get length with explanation
    *
    * If possible, this returns an arithmetic term that exists in the current
@@ -130,6 +138,7 @@ class SolverState : public TheoryState
    * This calls entailmentCheck on the Valuation object of theory of strings.
    */
   std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
+  //------------------------------ for model construction
   /** Separate by length
    *
    * Separate the string representatives in argument n into a partition cols
@@ -137,10 +146,18 @@ class SolverState : public TheoryState
    * lts[i] for all elements in col. These vectors are furthmore separated
    * by string-like type.
    */
-  void separateByLength(
+  void separateByLengthTyped(
       const std::vector<Node>& n,
       std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
       std::map<TypeNode, std::vector<Node>>& lts);
+  /** Same as above, but with a fixed type */
+  void separateByLength(const std::vector<Node>& n,
+                        std::vector<std::vector<Node>>& cols,
+                        std::vector<Node>& lts);
+  /** Set the model constructor */
+  void setModelConstructor(ModelCons* mc);
+  /** Get the model constructor */
+  ModelCons* getModelConstructor();
 
  private:
   /** Common constants */
@@ -157,6 +174,8 @@ class SolverState : public TheoryState
   InferInfo d_pendingConflict;
   /** Map from representatives to their equivalence class information */
   std::map<Node, EqcInfo*> d_eqcInfo;
+  /** The model constructor */
+  ModelCons* d_modelCons;
 };
 
 }  // namespace strings
