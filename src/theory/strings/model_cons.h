@@ -37,11 +37,11 @@ class ModelCons : protected EnvObj
 
   /**
    * Get string representatives from
-   * 
+   *
    * Based on the current set of relevant terms in termSet, this gets all
    * representatives of string-like type to be used for model construction,
    * and groups them by type.
-   * 
+   *
    * @param termSet The relevant term set
    * @param repTypes The set of types of terms in the domain of repSet
    * @param repSet Map from types to the representatives of that type
