@@ -87,12 +87,6 @@ class SolverState : public TheoryState
   /** get the pending conflict, or null if none exist */
   bool getPendingConflict(InferInfo& ii) const;
   //------------------------------------------ end conflicts
-  /**
-   * Has candidate model? Returns true if we can definitely construct a model
-   * that is ready to check at LAST_CALL effort. In other words, if this is
-   * true, then we can abort a FULL effort check.
-   */
-  bool hasCandidateModel() const;
   /** get length with explanation
    *
    * If possible, this returns an arithmetic term that exists in the current

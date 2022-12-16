@@ -29,8 +29,6 @@ ModelConsDefault::ModelConsDefault(Env& env,
 {
 }
 
-bool ModelConsDefault::hasCandidateModel() { return false; }
-
 void ModelConsDefault::getStringRepresentativesFrom(
     const std::set<Node>& termSet,
     std::unordered_set<TypeNode>& repTypes,

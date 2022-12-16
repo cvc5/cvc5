@@ -33,6 +33,7 @@
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/model_cons_default.h"
 #include "theory/strings/normal_form.h"
 #include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
@@ -248,7 +249,7 @@ class TheoryStrings : public Theory {
   Node mkSkeletonFromBase(Node r, size_t currIndex, size_t nextIndex);
   //-----------------------end inference steps
   /** run the given inference step */
-  void runInferStep(InferStep s, int effort);
+  void runInferStep(InferStep s, Theory::Effort e, int effort);
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
   /** print strings equivalence classes for debugging */
@@ -308,6 +309,8 @@ class TheoryStrings : public Theory {
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */
   StringsFmf d_stringsFmf;
+  /** Model constructor (default) */
+  ModelConsDefault d_mcd;
   /** The representation of the strategy */
   Strategy d_strat;
   /**

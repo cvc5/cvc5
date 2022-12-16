@@ -176,12 +176,6 @@ bool SolverState::getPendingConflict(InferInfo& ii) const
   return false;
 }
 
-bool SolverState::hasCandidateModel() const
-{
-  Assert(d_modelCons != nullptr);
-  return d_modelCons->hasCandidateModel();
-}
-
 std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
                                                    TNode lit)
 {

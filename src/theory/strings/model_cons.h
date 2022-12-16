@@ -31,12 +31,6 @@ class ModelCons : protected EnvObj
  public:
   ModelCons(Env& env) : EnvObj(env) {}
   virtual ~ModelCons() {}
-  /**
-   * Has candidate model? Returns true if we can definitely construct a model
-   * that is ready to check at LAST_CALL effort. In other words, if this is
-   * true, then we can abort a FULL effort check.
-   */
-  virtual bool hasCandidateModel() = 0;
 
   /** Get string representatives from */
   virtual void getStringRepresentativesFrom(

@@ -36,12 +36,6 @@ class ModelConsDefault : public ModelCons
  public:
   ModelConsDefault(Env& env, SolverState& state, CoreSolver& csolver);
   virtual ~ModelConsDefault() {}
-
-  /**
-   * Has candidate model, which returns false, since by default we don't
-   * proactively look to see if the model exists.
-   */
-  bool hasCandidateModel() override;
   /**
    * Get string representatives from, which simply takes the representatives
    * of all terms in termSet.
