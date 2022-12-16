@@ -982,7 +982,14 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 cvc5::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  sm->bindType(d_symbol, d_sort);
+  if (d_arity==0)
+  {
+    sm->bindType(d_symbol, d_sort);
+  }
+  else
+  {
+    sm->bindType(d_symbol, std::vector<Sort>(d_arity), d_sort);
+  }
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
   if (d_arity == 0)
