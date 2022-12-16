@@ -28,7 +28,6 @@ namespace cvc5 {
 namespace parser {
 
 class Command;
-class Input;
 class Parser;
 class SymbolManager;
 
@@ -66,15 +65,23 @@ class CVC5_EXPORT InputParser
                       std::istream& input,
                       const std::string& name);
 
-  /** Set the input for the given string
+  /**
+   * Set that we will be feeding strings to this parser via
+   * appendIncrementalStringInput below.
    *
    * @param lang the input language
-   * @param input the input string
    * @param name the name of the stream, for use in error messages
    */
-  void setStringInput(const std::string& lang,
-                      const std::string& input,
-                      const std::string& name);
+  void setIncrementalStringInput(const std::string& lang,
+                                 const std::string& name);
+  /**
+   * Append string to the input being parsed by this parser. Should be
+   * called after calling setIncrementalStringInput and only after the
+   * previous string (if one was provided) is finished being parsed.
+   *
+   * @param input The input string
+   */
+  void appendIncrementalStringInput(const std::string& input);
 
   /**
    * Parse and return the next command.
@@ -86,6 +93,16 @@ class CVC5_EXPORT InputParser
   Term nextExpression();
 
  private:
+  /** Solver */
+  Solver* d_solver;
+  /** Symbol manager */
+  SymbolManager* d_sm;
+  /** use options */
+  bool d_useOptions;
+  /** Incremental string input language */
+  std::string d_istringLang;
+  /** Incremental string name */
+  std::string d_istringName;
   //!!!!!!!!!!!!!! TODO: this implementation is deprecated and should be
   // replaced (wishue #142).
   /**  The parser state. */

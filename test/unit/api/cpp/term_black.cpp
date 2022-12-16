@@ -915,6 +915,25 @@ TEST_F(TestApiBlackTerm, getBitVector)
   ASSERT_EQ("f", b7.getBitVectorValue(16));
 }
 
+TEST_F(TestApiBlackTerm, isFiniteFieldValue)
+{
+  Sort fS = d_solver.mkFiniteFieldSort("7");
+  Term fV = d_solver.mkFiniteFieldElem("1", fS);
+  ASSERT_TRUE(fV.isFiniteFieldValue());
+  Term b1 = d_solver.mkBitVector(8, 15);
+  ASSERT_FALSE(b1.isFiniteFieldValue());
+}
+
+TEST_F(TestApiBlackTerm, getFiniteFieldValue)
+{
+  Sort fS = d_solver.mkFiniteFieldSort("7");
+  Term fV = d_solver.mkFiniteFieldElem("1", fS);
+  ASSERT_EQ("1", fV.getFiniteFieldValue());
+  ASSERT_THROW(Term().getFiniteFieldValue(), CVC5ApiException);
+  Term b1 = d_solver.mkBitVector(8, 15);
+  ASSERT_THROW(b1.getFiniteFieldValue(), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackTerm, getUninterpretedSortValue)
 {
   d_solver.setOption("produce-models", "true");

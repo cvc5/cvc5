@@ -36,22 +36,40 @@ namespace cvc5::internal {
 namespace theory {
 namespace ff {
 
-// An incremental dependency graph for CoCoA polynomials in Groebner basis
-// computation.
+/**
+ * An incremental dependency graph for CoCoA polynomials in Groebner basis
+ * computation.
+ */
 class IncrementalTracer
 {
  public:
-  // Empty graph
+  /**
+   * Empty graph
+   */
   IncrementalTracer();
-  // Hook up to CoCoA handlers.
+  /**
+   * Hook up to CoCoA handlers.
+   */
   void setFunctionPointers();
-  // Add an input to the graph
+  /**
+   * Unhook from CoCoA handlers.
+   */
+  void unsetFunctionPointers();
+  /**
+   * Add an input to the graph
+   */
   void addInput(const CoCoA::RingElem& i);
-  // Get the index of inputs responsible for this element.
+  /**
+   * Get the index of inputs responsible for this element.
+   */
   std::vector<size_t> trace(const CoCoA::RingElem& i) const;
-  // Enter a new context
+  /**
+   * Enter a new context
+   */
   void push();
-  // Remove last context. Resets graph to its state before that context.
+  /**
+   * Remove last context. Resets graph to its state before that context.
+   */
   void pop();
 
  private:
