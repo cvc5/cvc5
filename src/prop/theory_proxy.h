@@ -218,12 +218,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
 
-  /**
-   * Set of all lemmas that have been "shared" in the portfolio---i.e.,
-   * all imported and exported lemmas.
-   */
-  std::unordered_set<Node> d_shared;
-
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
 
