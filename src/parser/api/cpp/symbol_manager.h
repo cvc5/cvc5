@@ -94,7 +94,7 @@ class CVC5_EXPORT SymbolManager
    * @param t the type to bind to <code>name</code>
    */
   void bindType(const std::string& name, cvc5::Sort t);
-  
+
   //---------------------------- named expressions
   /** Set name of term t to name
    *
