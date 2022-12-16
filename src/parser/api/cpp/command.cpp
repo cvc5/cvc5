@@ -170,6 +170,7 @@ void Command::invoke(cvc5::Solver* solver, SymbolManager* sm, std::ostream& out)
   else if (!isMuted())
   {
     printResult(solver, out);
+    out << std::flush;
   }
 }
 
