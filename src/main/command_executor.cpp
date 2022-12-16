@@ -203,7 +203,7 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr
-      && dynamic_cast<DeclareFunctionCommand*>(cmd) == nullptr)
+      && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr)
   {
     return true;
   }

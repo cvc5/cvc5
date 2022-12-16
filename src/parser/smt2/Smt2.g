@@ -289,7 +289,6 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
       }
       else
       {
-        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED);
         cvc5::Term func = SOLVER->mkConst(t, name);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
@@ -761,8 +760,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
         PARSER_STATE->parseError("declare-const is not allowed in sygus "
                                  "version 2.0");
       }
-      cvc5::Term c =
-          PARSER_STATE->bindVar(name, t, true);
+      cvc5::Term c = SOLVER->mkConst(t, name);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -960,7 +958,6 @@ extendedCommand[std::unique_ptr<cvc5::parser::Command>* cmd]
     )* RPAREN_TOK
     { Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       cvc5::Term pool = SOLVER->declarePool(name, t, terms);
-      PARSER_STATE->defineVar(name, pool);
       cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
     }
   | BLOCK_MODEL_TOK KEYWORD { PARSER_STATE->checkThatLogicIsSet(); }
