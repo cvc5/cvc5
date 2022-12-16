@@ -262,9 +262,6 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
     }
     sortSymbol[t]
     { PARSER_STATE->popScope();
-      // Do NOT call mkSort, since that creates a new sort!
-      // This name is not its own distinct sort, it's an alias.
-      PARSER_STATE->defineParameterizedType(name, sorts, t);
       cmd->reset(new DefineSortCommand(name, sorts, t));
     }
   | /* function declaration */

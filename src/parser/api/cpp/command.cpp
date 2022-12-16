@@ -1033,6 +1033,8 @@ const std::vector<cvc5::Sort>& DefineSortCommand::getParameters() const
 cvc5::Sort DefineSortCommand::getSort() const { return d_sort; }
 void DefineSortCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  // This name is not its own distinct sort, it's an alias.
+  sm->bindType(d_symbol, d_params, d_sort);
   d_commandStatus = CommandSuccess::instance();
 }
 
