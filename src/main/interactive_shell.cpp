@@ -329,7 +329,7 @@ restart:
   // remember the scope level of the symbol manager, in case we hit an end of
   // line (when catching ParserEndOfFileException).
   size_t lastScopeLevel = d_symman->scopeLevel();
-  
+
   try
   {
     while ((cmd = d_parser->nextCommand()))
@@ -371,7 +371,7 @@ restart:
   catch (ParserEndOfFileException& pe)
   {
     // pop back to the scope we were at prior to reading the last command
-    while (d_symman->scopeLevel()>lastScopeLevel)
+    while (d_symman->scopeLevel() > lastScopeLevel)
     {
       d_symman->popScope();
     }
