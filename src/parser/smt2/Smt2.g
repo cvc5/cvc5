@@ -240,10 +240,10 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
+        cvc5::Sort type = SOLVER->mkUninterpretedSort(name);
         cmd->reset(new DeclareSortCommand(name, 0, type));
       } else {
-        cvc5::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
+        cvc5::Sort type = SOLVER->mkUninterpretedSortConstructorSort(arity, name);
         cmd->reset(new DeclareSortCommand(name, arity, type));
       }
     }

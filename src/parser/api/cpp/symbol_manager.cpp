@@ -334,6 +334,11 @@ bool SymbolManager::bind(const std::string& name,
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
 }
 
+void SymbolManager::bindType(const std::string& name, cvc5::Sort t)
+{
+  return d_implementation->getSymbolTable().bindType(name, t);
+}
+
 NamingResult SymbolManager::setExpressionName(cvc5::Term t,
                                               const std::string& name,
                                               bool isAssertion)
