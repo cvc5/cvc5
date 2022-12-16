@@ -492,6 +492,7 @@ cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  sm->bind(d_symbol, d_var, true);
   d_commandStatus = CommandSuccess::instance();
 }
 

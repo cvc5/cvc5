@@ -494,7 +494,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
     sortSymbol[t]
     {
       cvc5::Term var = SOLVER->declareSygusVar(name, t);
-      PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
@@ -529,7 +528,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
-      PARSER_STATE->defineVar(name, fun);
       cmd = std::unique_ptr<cvc5::parser::Command>(
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
