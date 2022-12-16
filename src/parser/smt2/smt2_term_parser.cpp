@@ -711,7 +711,7 @@ Sort Smt2TermParser::parseSort()
           {
             // a standalone indexed symbol
             std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
-            std::vector<uint32_t> numerals = parseNumeralList();
+            std::vector<std::string> numerals = parseNumeralList();
             d_lex.eatToken(Token::RPAREN_TOK);
             ret = d_state.getIndexedSort(name, numerals);
           }
@@ -991,13 +991,13 @@ std::string Smt2TermParser::tokenStrToSymbol(Token tok)
   return id;
 }
 
-std::vector<uint32_t> Smt2TermParser::parseNumeralList()
+std::vector<std::string> Smt2TermParser::parseNumeralList()
 {
-  std::vector<uint32_t> numerals;
+  std::vector<std::string> numerals;
   Token tok = d_lex.nextToken();
   while (tok == Token::INTEGER_LITERAL)
   {
-    numerals.push_back(tokenStrToUnsigned());
+    numerals.emplace_back(d_lex.tokenStr());
     tok = d_lex.nextToken();
   }
   d_lex.reinsertToken(tok);

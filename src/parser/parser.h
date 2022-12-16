@@ -606,6 +606,9 @@ class CVC5_EXPORT ParserState
   Term getSymbol(const std::string& var_name, SymbolType type);
 }; /* class Parser */
 
+/** Compute the unsigned integer for a token. */
+uint32_t stringToUnsigned(const std::string& str);
+
 }  // namespace parser
 }  // namespace cvc5
 
