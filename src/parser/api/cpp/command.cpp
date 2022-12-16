@@ -848,6 +848,10 @@ cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 
 void DeclareFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  if (!sm->bind(d_symbol, d_func, true))
+  {
+    // fail?
+  }
   // mark that it will be printed in the model
   sm->addModelDeclarationTerm(d_func);
   d_commandStatus = CommandSuccess::instance();

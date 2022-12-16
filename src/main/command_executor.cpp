@@ -202,7 +202,8 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // to the symbol table.
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
-      && dynamic_cast<ResetCommand*>(cmd) == nullptr)
+      && dynamic_cast<ResetCommand*>(cmd) == nullptr
+      && dynamic_cast<DeclareFunctionCommand*>(cmd) == nullptr)
   {
     return true;
   }

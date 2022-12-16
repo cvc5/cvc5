@@ -289,8 +289,8 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
       }
       else
       {
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
+        PARSER_STATE->checkDeclaration(name, CHECK_UNDECLARED);
+        cvc5::Term func = SOLVER->mkConst(t, name);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
