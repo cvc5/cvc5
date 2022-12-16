@@ -45,11 +45,16 @@ class ModelConsDefault : public ModelCons
       std::unordered_set<TypeNode>& repTypes,
       std::map<TypeNode, std::unordered_set<Node>>& repSet,
       std::vector<Node>& auxEq) override;
-  /** Separate by length */
+  /**
+   * Separate by length, which separates the equivalence classes in ns
+   * based on the arrangement of their length terms in the equality engine.
+   * It furthermore computes the model value for each of these length
+   * terms based on the valuation class.
+   */
   void separateByLength(const std::vector<Node>& ns,
                         std::vector<std::vector<Node>>& cols,
                         std::vector<Node>& lts) override;
-  /** Get the normal form, from the core solver */
+  /** Get the normal form for n from the core solver */
   std::vector<Node> getNormalForm(Node n) override;
 
  protected:
