@@ -228,7 +228,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        Sort type = d_state.getSolver()->mkUninterpretedSortConstructorSort(arity, name);
+        Sort type = d_state.getSolver()->mkUninterpretedSortConstructorSort(
+            arity, name);
         cmd.reset(new DeclareSortCommand(name, arity, type));
       }
     }
