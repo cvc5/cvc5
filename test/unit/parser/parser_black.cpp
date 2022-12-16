@@ -88,6 +88,7 @@ class TestParserBlackParser : public TestInternal
     while ((cmd = parser->nextCommand()) != NULL)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
+      cmd->invoke(d_solver.get(), d_symman.get());
       delete cmd;
     }
 
@@ -109,6 +110,7 @@ class TestParserBlackParser : public TestInternal
           while ((cmd = parser->nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
+            cmd->invoke(d_solver.get(), d_symman.get());
             delete cmd;
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
