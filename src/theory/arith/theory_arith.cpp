@@ -28,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/cocoa_globals.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -52,6 +53,10 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(d_opElim),
       d_arithModelCacheSet(false)
 {
+#ifdef CVC5_USE_COCOA
+  // must be initialized before using CoCoA.
+  initCocoaGlobalManager();
+#endif /* CVC5_USE_COCOA */
   // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager

@@ -21,7 +21,7 @@ namespace theory {
 TheoryEngineStatistics::TheoryEngineStatistics(StatisticsRegistry& sr)
     : d_combineTheoriesTime(
         sr.registerTimer("TheoryEngine::combineTheoriesTime")),
-      d_stdEffortChecks(sr.registerInt("TheoryEngine::Check_Standard")),
+      d_stdEffortChecks(sr.registerInt("TheoryEngine::Checks_Standard")),
       d_fullEffortChecks(sr.registerInt("TheoryEngine::Checks_Full")),
       d_combineTheoriesCalls(
           sr.registerInt("TheoryEngine::combineTheoriesCalls")),
