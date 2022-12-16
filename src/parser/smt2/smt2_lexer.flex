@@ -5,11 +5,12 @@
 // Alternatively we could lex simple_symbol as:
 //  [a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]+
 // ??
+// Note that `%option full` could make lexing faster but it is incompatible
+// with interactive inputs.
 %}
 
 %option noyywrap
 %option nounput
-%option full
 %option c++
 %option yyclass="cvc5::parser::Smt2Lexer"
 
