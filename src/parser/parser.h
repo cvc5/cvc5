@@ -584,7 +584,7 @@ class CVC5_EXPORT ParserState
 
   /** Are we parsing in strict mode? */
   bool d_strictMode;
-  
+
   /** Are we in parse-only mode? */
   bool d_parseOnly;
 

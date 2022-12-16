@@ -94,7 +94,7 @@ class CVC5_EXPORT SymbolManager
    * @param t the type to bind to <code>name</code>
    */
   void bindType(const std::string& name, cvc5::Sort t);
-  
+
   /**
    * Bind a type to a name in the current scope.  If <code>name</code>
    * is already bound to a type or type constructor in the current

@@ -982,7 +982,7 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 cvc5::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  if (d_arity==0)
+  if (d_arity == 0)
   {
     sm->bindType(d_symbol, d_sort);
   }
