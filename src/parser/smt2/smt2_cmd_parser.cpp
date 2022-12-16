@@ -186,7 +186,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       else
       {
-        Term func = d_state.bindVar(name, t, true);
+        Term func = d_state.getSolver()->mkConst(t, name);
         cmd.reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -209,7 +209,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<Term> terms = d_tparser.parseTermList();
       Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       Term pool = d_state.getSolver()->declarePool(name, t, terms);
-      d_state.defineVar(name, pool);
       cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
     }
     break;
@@ -224,12 +223,12 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
                       << std::endl;
       if (arity == 0)
       {
-        Sort type = d_state.mkSort(name);
+        Sort type = d_state.getSolver()->mkUninterpretedSort(name);
         cmd.reset(new DeclareSortCommand(name, 0, type));
       }
       else
       {
-        Sort type = d_state.mkSortConstructor(name, arity);
+        Sort type = d_state.getSolver()->mkUninterpretedSortConstructorSort(arity, name);
         cmd.reset(new DeclareSortCommand(name, arity, type));
       }
     }
@@ -241,7 +240,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_state.checkUserSymbol(name);
       Sort t = d_tparser.parseSort();
       Term var = d_state.getSolver()->declareSygusVar(name, t);
-      d_state.defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
     break;
@@ -387,9 +385,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
       Sort t = d_tparser.parseSort();
       d_state.popScope();
-      // Do NOT call mkSort, since that creates a new sort!
-      // This name is not its own distinct sort, it's an alias.
-      d_state.defineParameterizedType(name, sorts, t);
       cmd.reset(new DefineSortCommand(name, sorts, t));
     }
     break;
@@ -681,8 +676,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
 
       Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       d_state.popScope();
-      // we do not allow overloading for synth fun
-      d_state.defineVar(name, fun);
       cmd.reset(new SynthFunCommand(name, fun, sygusVars, range, isInv, g));
     }
     break;
