@@ -80,6 +80,41 @@ class BaseSolver : protected EnvObj
   //-----------------------end inference steps
 
   //-----------------------query functions
+  enum class CardinalityResponse
+  {
+    // we don't have to check cardinality for the given type
+    NO_REQ,
+    // we have to check cardinality
+    REQ,
+    // we don't know how to check cardinality
+    UNHANDLED
+  };
+  /**
+   * Get the cardinality requirement for type tn, which is either:
+   * - NO_REQ, meaning there is no restriction on the number of equivalence
+   * classes for tn,
+   * - REQ, meaning we have a finite cardinality based on which we need to
+   * check cardinality for. In this case, typeCardSize is set of the cardinality
+   * of tn.
+   * - UNHANDLED, meaning we don't know how to handle cardinality for tn, in
+   * which case model construction is not guaranteed to succeed.
+   */
+  CardinalityResponse getCardinalityReq(TypeNode tn,
+                                        size_t& typeCardSize) const;
+  /**
+   * If there are eqcCount equivalence classes of a type with fixed cardinality
+   * typeCardSize all having length lr, this returns false if we have to
+   * add a cardinality inference.
+   *
+   * If this method returns false, then lenNeed is set to the length that
+   * is required for the equivalence classes to have.
+   */
+  bool isCardinalityOk(size_t typeCardSize,
+                       Node lr,
+                       size_t eqcCount,
+                       size_t& lenNeed) const;
+  /** Same as above, without tracking lenNeed. */
+  bool isCardinalityOk(size_t typeCardSize, Node lr, size_t eqcCount) const;
   /**
    * Is n congruent to another term in the current context that has not been
    * marked congruent? If so, we can ignore n.
