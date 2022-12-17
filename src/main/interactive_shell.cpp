@@ -42,11 +42,11 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
+#include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input_parser.h"
 #include "theory/logic_info.h"
-#include "main/command_executor.h"
 
 using namespace std;
 using namespace cvc5::parser;
@@ -81,7 +81,7 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(main::CommandExecutor * cexec,
+InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
                                    std::istream& in,
                                    std::ostream& out,
                                    bool isInteractive)

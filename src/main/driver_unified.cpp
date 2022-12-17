@@ -180,10 +180,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // (via isatty). If we are not interactive, we disable certain output
       // information, e.g. for querying the user.
       bool isInteractive = isatty(fileno(stdin));
-      InteractiveShell shell(pExecutor.get(),
-                             dopts.in(),
-                             dopts.out(),
-                             isInteractive);
+      InteractiveShell shell(
+          pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
 
       if (isInteractive)
       {

@@ -41,7 +41,7 @@ namespace internal {
 class InteractiveShell
 {
  public:
-  InteractiveShell(main::CommandExecutor * cexec,
+  InteractiveShell(main::CommandExecutor* cexec,
                    std::istream& in,
                    std::ostream& out,
                    bool isInteractive = true);
@@ -64,7 +64,7 @@ class InteractiveShell
   cvc5::parser::InputParser* getParser() { return d_parser.get(); }
 
  private:
-  main::CommandExecutor * d_cexec;
+  main::CommandExecutor* d_cexec;
   Solver* d_solver;
   cvc5::parser::SymbolManager* d_symman;
   std::istream& d_in;
