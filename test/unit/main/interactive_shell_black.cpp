@@ -47,15 +47,14 @@ class TestMainBlackInteractiveShell : public TestInternal
     d_solver.reset(new cvc5::Solver());
     d_solver->setOption("input-language", "smt2");
     d_cexec.reset(new main::CommandExecutor(d_solver));
-    d_symman = d_cexec->getSymbolManager();
   }
 
   void TearDown() override
   {
     d_sin.reset(nullptr);
     d_sout.reset(nullptr);
-    // ensure that symbol manager is destroyed before solver
-    d_symman.reset(nullptr);
+    // ensure that command executor is destroyed before solver
+    d_cexec.reset(nullptr);
     d_solver.reset(nullptr);
   }
 
@@ -87,7 +86,6 @@ class TestMainBlackInteractiveShell : public TestInternal
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
   std::unique_ptr<main::CommandExecutor> d_cexec;
-  SymbolManager* d_symman;
   std::unique_ptr<cvc5::Solver> d_solver;
 };
 
