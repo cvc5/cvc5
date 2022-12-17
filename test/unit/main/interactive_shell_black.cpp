@@ -26,6 +26,7 @@
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser_builder.h"
 #include "test.h"
+#include "main/command_executor.h"
 
 using namespace cvc5::parser;
 using namespace cvc5::internal::parser;
