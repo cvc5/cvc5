@@ -186,6 +186,10 @@ class ExtfSolver : protected EnvObj
   bool checkExtfReductionsInternal(int effort, bool doSend);
   /**
    * Determines if n should be reduced based on the effort level.
+   *
+   * @param effort the effort level
+   * @param n the term to reduce
+   * @param pol polarity of n, where 1 true, -1 false, 0 neither
    */
   bool shouldDoReduction(int effort, Node n, int pol);
   /** do reduction
@@ -197,6 +201,9 @@ class ExtfSolver : protected EnvObj
    * caches that the reduction lemma was sent, or marks n as reduced in this
    * SAT-context. The argument effort has the same meaning as in
    * checkExtfReductions.
+   *
+   * @param n the term to reduce
+   * @param pol polarity of n, where 1 true, -1 false, 0 neither
    */
   void doReduction(Node n, int pol);
   /** check extended function inferences
