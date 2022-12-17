@@ -787,44 +787,16 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
           << "TheoryFp::collectModelInfo(): relevantTerms " << *i << std::endl;
     }
   }
-
-  std::unordered_set<TNode> visited;
-  std::vector<TNode> working;
-  std::set<TNode> relevantVariables;
-  for (const Node& n : relevantTerms)
+  for (const Node& node : relevantTerms)
   {
-    working.emplace_back(n);
-  }
-
-  while (!working.empty()) {
-    TNode current = working.back();
-    working.pop_back();
-
-    if (visited.find(current) != visited.end() || current.isClosure())
+    TypeNode t = node.getType();
+    if ((!t.isRoundingMode() && !t.isFloatingPoint()) || !this->isLeaf(node))
     {
-      // Ignore things that have already been explored and closures. For
-      // variables in closures (e.g., set comprehension), we rely on the
-      // reduction of the closures to handle the body.
       continue;
     }
 
-    visited.insert(current);
-
-    TypeNode t = current.getType();
-
-    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current))
-    {
-      relevantVariables.insert(current);
-    }
-
-    working.insert(working.end(), current.begin(), current.end());
-  }
-
-  for (const TNode& node : relevantVariables)
-  {
     Trace("fp-collectModelInfo")
-        << "TheoryFp::collectModelInfo(): relevantVariable " << node
-        << std::endl;
+        << "TheoryFp::collectModelInfo(): " << node << std::endl;
 
     Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
     // We only assign the value if the FpWordBlaster actually has one, that is,

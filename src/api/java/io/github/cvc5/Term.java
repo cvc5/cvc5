@@ -519,6 +519,30 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   private native String getBitVectorValue(long pointer, int base);
 
   /**
+   * @return True if the term is a finite field value.
+   */
+  public boolean isFiniteFieldValue()
+  {
+    return isFiniteFieldValue(pointer);
+  }
+
+  private native boolean isFiniteFieldValue(long pointer);
+
+  /**
+   * Get the string representation of a finite field value.
+   *
+   * @api.note Asserts {@code Term#isFiniteFieldValue()}.
+   *
+   * @return The string representation of a finite field value.
+   */
+  public String getFiniteFieldValue() throws CVC5ApiException
+  {
+    return getFiniteFieldValue(pointer);
+  }
+
+  private native String getFiniteFieldValue(long pointer);
+
+  /**
    * @return True if the term is an uninterpreted sort value.
    */
   public boolean isUninterpretedSortValue()
