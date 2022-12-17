@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Model normal form finder for strings
+ * The default model constructor for strings
  */
 
 #include "cvc5_private.h"

@@ -36,7 +36,7 @@ class ModelCons : protected EnvObj
   virtual ~ModelCons() {}
 
   /**
-   * Get string representatives from
+   * Get string representatives from relevant term set.
    *
    * Based on the current set of relevant terms in termSet, this gets all
    * representatives of string-like type to be used for model construction,
@@ -54,7 +54,7 @@ class ModelCons : protected EnvObj
       std::map<TypeNode, std::unordered_set<Node>>& repSet,
       std::vector<Node>& auxEq) = 0;
   /**
-   * Separate by length
+   * Separate by length.
    *
    * Separate the string representatives in argument n into a partition cols
    * whose collections have equal length. The i^th vector in cols has length

@@ -144,7 +144,7 @@ class SolverState : public TheoryState
       const std::vector<Node>& n,
       std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
       std::map<TypeNode, std::vector<Node>>& lts);
-  /** Same as above, but with a fixed type */
+  /** Same as separateByLengthTyped, but with a fixed type */
   void separateByLength(const std::vector<Node>& n,
                         std::vector<std::vector<Node>>& cols,
                         std::vector<Node>& lts);
