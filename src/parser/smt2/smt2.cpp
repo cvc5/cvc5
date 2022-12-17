@@ -126,6 +126,13 @@ void Smt2State::addBitvectorOperators()
   addIndexedOperator(BITVECTOR_ROTATE_RIGHT, "rotate_right");
 }
 
+void Smt2State::addFiniteFieldOperators()
+{
+  addOperator(cvc5::FINITE_FIELD_ADD, "ff.add");
+  addOperator(cvc5::FINITE_FIELD_MULT, "ff.mul");
+  addOperator(cvc5::FINITE_FIELD_NEG, "ff.neg");
+}
+
 void Smt2State::addDatatypesOperators()
 {
   ParserState::addOperator(APPLY_CONSTRUCTOR);
@@ -780,6 +787,11 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     addFloatingPointOperators();
   }
 
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_FF))
+  {
+    addFiniteFieldOperators();
+  }
+
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SEP))
   {
     addSepOperators();
@@ -921,6 +933,18 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
       p.d_expr = getExpressionForNameAndType(p.d_name, type);
       p.d_name = std::string("");
     }
+    if (p.d_name.find("ff") == 0)
+    {
+      std::string rest = p.d_name.substr(2);
+      if (!type.isFiniteField())
+      {
+        std::stringstream ss;
+        ss << "expected finite field sort to ascribe " << p.d_name
+           << " but found sort: " << type;
+        parseError(ss.str());
+      }
+      p.d_expr = d_solver->mkFiniteFieldElem(rest, type);
+    }
     if (p.d_expr.isNull())
     {
       std::stringstream ss;
@@ -949,14 +973,9 @@ Term Smt2State::parseOpToExpr(ParseOp& p)
   {
     expr = p.d_expr;
   }
-  else if (!isDeclared(p.d_name, SYM_VARIABLE))
-  {
-    std::stringstream ss;
-    ss << "Symbol " << p.d_name << " is not declared.";
-    parseError(ss.str());
-  }
   else
   {
+    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
     expr = getExpressionForName(p.d_name);
   }
   Assert(!expr.isNull());
@@ -1400,7 +1419,7 @@ Sort Smt2State::getParametricSort(const std::string& name,
 }
 
 Sort Smt2State::getIndexedSort(const std::string& name,
-                               const std::vector<uint32_t>& numerals)
+                               const std::vector<std::string>& numerals)
 {
   Sort ret;
   if (name == "BitVec")
@@ -1409,11 +1428,20 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal bitvector type.");
     }
-    if (numerals.front() == 0)
+    uint32_t n0 = stringToUnsigned(numerals[0]);
+    if (n0 == 0)
     {
       parseError("Illegal bitvector size: 0");
     }
-    ret = d_solver->mkBitVectorSort(numerals.front());
+    ret = d_solver->mkBitVectorSort(n0);
+  }
+  else if (name == "FiniteField")
+  {
+    if (numerals.size() != 1)
+    {
+      parseError("Illegal finite field type.");
+    }
+    ret = d_solver->mkFiniteFieldSort(numerals.front());
   }
   else if (name == "FloatingPoint")
   {
@@ -1421,15 +1449,17 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal floating-point type.");
     }
-    if (!internal::validExponentSize(numerals[0]))
+    uint32_t n0 = stringToUnsigned(numerals[0]);
+    uint32_t n1 = stringToUnsigned(numerals[1]);
+    if (!internal::validExponentSize(n0))
     {
       parseError("Illegal floating-point exponent size");
     }
-    if (!internal::validSignificandSize(numerals[1]))
+    if (!internal::validSignificandSize(n1))
     {
       parseError("Illegal floating-point significand size");
     }
-    ret = d_solver->mkFloatingPointSort(numerals[0], numerals[1]);
+    ret = d_solver->mkFloatingPointSort(n0, n1);
   }
   else
   {

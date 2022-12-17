@@ -560,6 +560,12 @@ class CVC5_EXPORT Sort
   bool isArray() const;
 
   /**
+   * Determine if this is a finite field sort.
+   * @return True if the sort is a finite field sort.
+   */
+  bool isFiniteField() const;
+
+  /**
    * Determine if this is a Set sort.
    * @return True if the sort is a Set sort.
    */
@@ -791,6 +797,13 @@ class CVC5_EXPORT Sort
    * @return The bit-width of the bit-vector sort.
    */
   uint32_t getBitVectorSize() const;
+
+  /* Finite field sort --------------------------------------------------- */
+
+  /**
+   * @return The size of the finite field sort.
+   */
+  std::string getFiniteFieldSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
@@ -1530,6 +1543,22 @@ class CVC5_EXPORT Term
    * @return The string representation of a bit-vector value.
    */
   std::string getBitVectorValue(uint32_t base = 2) const;
+
+  /**
+   * @return True if the term is a finite field value.
+   */
+  bool isFiniteFieldValue() const;
+  /**
+   * Get the string representation of a finite field value (base 10).
+   *
+   * @note Asserts isFiniteFieldValue().
+   *
+   * @note Uses the integer representative of smallest absolute value.
+   *
+   * @return The string representation of the integer representation of this
+   * finite field value.
+   */
+  std::string getFiniteFieldValue() const;
 
   /**
    * @return True if the term is an abstract value.
@@ -3302,6 +3331,13 @@ class CVC5_EXPORT Solver
   Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 
   /**
+   * Create a finite-field sort.
+   * @param size the modulus of the field. Must be prime.
+   * @return The finite-field sort.
+   */
+  Sort mkFiniteFieldSort(const std::string& size) const;
+
+  /**
    * Create a datatype sort.
    * @param dtypedecl The datatype declaration from which the sort is created.
    * @return The datatype sort.
@@ -3673,6 +3709,18 @@ class CVC5_EXPORT Solver
    * @return The bit-vector constant.
    */
   Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
+
+  /**
+   * Create a finite field constant in a given field from a given string
+   *
+   * @param value The string representation of the constant.
+   * @param sort The field sort
+   *
+   * If size is the field size, the constant needs not be in the range [0,size).
+   * If it is outside this range, it will be reduced modulo size before being
+   * constructed.
+   */
+  Term mkFiniteFieldElem(const std::string& value, const Sort& sort) const;
 
   /**
    * Create a constant array with the provided constant value stored at every

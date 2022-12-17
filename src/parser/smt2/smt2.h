@@ -374,7 +374,7 @@ class Smt2State : public ParserState
    * Returns a (indexed) sort, given a name and numeric indices.
    */
   Sort getIndexedSort(const std::string& name,
-                      const std::vector<uint32_t>& numerals);
+                      const std::vector<std::string>& numerals);
   //------------------------- end processing parse operators
 
   /**
@@ -398,6 +398,8 @@ class Smt2State : public ParserState
   void addQuantifiersOperators();
 
   void addBitvectorOperators();
+
+  void addFiniteFieldOperators();
 
   void addDatatypesOperators();
 
