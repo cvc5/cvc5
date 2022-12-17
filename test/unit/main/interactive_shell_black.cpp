@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5.h"
+#include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
 #include "options/language.h"
@@ -26,7 +27,6 @@
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/parser_builder.h"
 #include "test.h"
-#include "main/command_executor.h"
 
 using namespace cvc5::parser;
 using namespace cvc5::internal::parser;
