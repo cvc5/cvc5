@@ -901,6 +901,16 @@ cdef class Solver:
         sort.csort = self.csolver.mkFloatingPointSort(exp, sig)
         return sort
 
+    def mkFiniteFieldSort(self, size):
+        """
+            Create a finite field sort.
+
+            :param size: The size of the field. Must be a prime-power.
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkFiniteFieldSort(str(size).encode())
+        return sort
+
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
         """
             Create a datatype sort.
@@ -1435,6 +1445,18 @@ cdef class Solver:
                 <uint32_t> base)
         else:
             raise ValueError("Unexpected inputs to mkBitVector")
+        return term
+
+    def mkFiniteFieldElem(self, value, Sort sort):
+        """
+            Create finite field value.
+
+            :return: A Term representing a finite field value.
+            :param value: The value of the element's integer representation.
+            :param sort: The field to create the element in.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkFiniteFieldElem(str(value).encode(), sort.csort)
         return term
 
     def mkConstArray(self, Sort sort, Term val):
@@ -3104,6 +3126,14 @@ cdef class Sort:
         """
         return self.csort.isArray()
 
+    def isFiniteField(self):
+        """
+            Determine if this is a finite field sort.
+
+            :return: True if the sort is an array sort.
+        """
+        return self.csort.isFiniteField()
+
     def isSet(self):
         """
             Determine if this is a set sort.
@@ -3399,6 +3429,12 @@ cdef class Sort:
             :return: The bit-width of the bit-vector sort.
         """
         return self.csort.getBitVectorSize()
+
+    def getFiniteFieldSize(self):
+        """
+            :return: The size of the finite field sort.
+        """
+        return int(self.csort.getFiniteFieldSize().decode())
 
     def getFloatingPointExponentSize(self):
         """
@@ -4041,6 +4077,22 @@ cdef class Term:
         """
         return self.cterm.getBitVectorValue(base).decode()
 
+    def isFiniteFieldValue(self):
+        """
+            :return: True iff this term is a finite field value.
+        """
+        return self.cterm.isFiniteFieldValue()
+
+    def getFiniteFieldValue(self):
+        """
+           .. note:: Asserts :py:meth:`isFiniteFieldValue()`.
+
+           .. note:: Uses the integer representative of smallest absolute value.
+
+           :return: The representation of a finite field value as an integer.
+        """
+        return int(self.cterm.getFiniteFieldValue().decode())
+
     def toPythonObj(self):
         """
             Converts a constant value Term to a Python object.
@@ -4051,6 +4103,7 @@ cdef class Term:
             - **Int    :** Returns a Python int
             - **Real   :** Returns a Python Fraction
             - **BV     :** Returns a Python int (treats BV as unsigned)
+            - **FF     :** Returns a Python int (gives the FF integer representative of smallest absolute value)
             - **String :** Returns a Python Unicode string
             - **Array  :** Returns a Python dict mapping indices to values. The constant base is returned as the default value.
 
@@ -4064,6 +4117,8 @@ cdef class Term:
             return self.getRealValue()
         elif self.isBitVectorValue():
             return int(self.getBitVectorValue(), 2)
+        elif self.isFiniteFieldValue():
+            return self.getFiniteFieldValue()
         elif self.isStringValue():
             return self.getStringValue()
         elif self.getSort().isArray():
