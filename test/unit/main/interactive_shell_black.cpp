@@ -45,7 +45,8 @@ class TestMainBlackInteractiveShell : public TestInternal
 
     d_solver.reset(new cvc5::Solver());
     d_solver->setOption("input-language", "smt2");
-    d_symman.reset(new SymbolManager(d_solver.get()));
+    d_cexec.reset(new main::CommandExecutor(d_solver));
+    d_symman = d_cexec->getSymbolManager();
   }
 
   void TearDown() override
@@ -58,71 +59,72 @@ class TestMainBlackInteractiveShell : public TestInternal
   }
 
   /**
-   * Read up to maxCommands+1 from the shell and throw an assertion error if
-   * it's fewer than minCommands and more than maxCommands.  Note that an
+   * Read up to maxIterations+1 from the shell and throw an assertion error if
+   * it's fewer than minIterations and more than maxIterations.  Note that an
    * empty string followed by EOF may be returned as an empty command, and
-   * not NULL (subsequent calls to readCommand() should return NULL). E.g.,
+   * not NULL (subsequent calls to readAndExecCommands() should return NULL). E.g.,
    * "CHECKSAT;\n" may return two commands: the CHECKSAT, followed by an
    * empty command, followed by NULL.
    */
   void countCommands(InteractiveShell& shell,
-                     uint32_t minCommands,
-                     uint32_t maxCommands)
+                     uint32_t minIterations,
+                     uint32_t maxIterations)
   {
     uint32_t n = 0;
-    while (n <= maxCommands)
+    while (n <= maxIterations)
     {
-      std::optional<InteractiveShell::CmdSeq> cmds = shell.readCommand();
-      if (!cmds)
+      if (!shell.readAndExecCommands())
       {
         break;
       }
-      n += cmds->size();
+      n++;
     }
-    ASSERT_LE(n, maxCommands);
-    ASSERT_GE(n, minCommands);
+    ASSERT_LE(n, maxIterations);
+    ASSERT_GE(n, minIterations);
   }
 
   std::unique_ptr<std::stringstream> d_sin;
   std::unique_ptr<std::stringstream> d_sout;
-  std::unique_ptr<SymbolManager> d_symman;
+  std::unique_ptr<main::CommandExecutor> d_cexec;
+  SymbolManager* d_symman;
   std::unique_ptr<cvc5::Solver> d_solver;
 };
 
 TEST_F(TestMainBlackInteractiveShell, assert_true)
 {
   *d_sin << "(assert true)\n" << std::flush;
-  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, query_false)
 {
   *d_sin << "(check-sat)\n" << std::flush;
-  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, def_use1)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   *d_sin << "(declare-const x Real) (assert (> x 0))\n" << std::flush;
-  countCommands(shell, 2, 2);
+  // may read two commands in a single line
+  countCommands(shell, 1, 2);
 }
 
 TEST_F(TestMainBlackInteractiveShell, def_use2)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   /* readCommand may return a sequence, see above. */
   *d_sin << "(declare-const x Real)\n" << std::flush;
-  shell.readCommand();
+  shell.readAndExecCommands();
   *d_sin << "(assert (> x 0))\n" << std::flush;
   countCommands(shell, 1, 1);
 }
 
 TEST_F(TestMainBlackInteractiveShell, empty_line)
 {
-  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   *d_sin << std::flush;
   countCommands(shell, 0, 0);
 }
@@ -130,7 +132,7 @@ TEST_F(TestMainBlackInteractiveShell, empty_line)
 TEST_F(TestMainBlackInteractiveShell, repeated_empty_lines)
 {
   *d_sin << "\n\n\n";
-  InteractiveShell shell(d_solver.get(), d_symman.get(), *d_sin, *d_sout);
+  InteractiveShell shell(d_cexec.get(), *d_sin, *d_sout);
   /* Might return up to four empties, might return nothing */
   countCommands(shell, 0, 3);
 }
