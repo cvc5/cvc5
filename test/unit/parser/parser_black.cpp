@@ -77,6 +77,7 @@ class TestParserBlackParser : public TestInternal
 
   void tryGoodInput(const std::string goodInput)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(
         ParserBuilder(d_solver.get(), d_symman.get(), true)
@@ -97,6 +98,7 @@ class TestParserBlackParser : public TestInternal
 
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(
         ParserBuilder(d_solver.get(), d_symman.get(), true)
