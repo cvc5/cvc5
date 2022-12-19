@@ -2293,14 +2293,16 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
           << "Disequality normalize empty" << std::endl;
       // the antecedant
       std::vector<Node> ant;
-      // the antecedant that is not explainable in this context
       std::vector<Node> antn;
-      Node niLenTerm = d_state.getLengthExp(ni, ant, nfni.d_base);
-      Node njLenTerm = d_state.getLengthExp(nj, ant, nfnj.d_base);
+      // Get the length explanation, where we do not minimize the explanation.
+      // Minimizing the explanation here may return a pair of length terms
+      // that are not equal in the current context, which can lead to duplicate
+      // lemmas below.
+      Node niLenTerm = d_state.getLengthExp(ni, ant, nfni.d_base, false);
+      Node njLenTerm = d_state.getLengthExp(nj, ant, nfnj.d_base, false);
       // length is not guaranteed to hold
       Node leq = niLenTerm.eqNode(njLenTerm);
       ant.push_back(leq);
-      antn.push_back(leq);
       ant.insert(ant.end(), nfni.d_exp.begin(), nfni.d_exp.end());
       ant.insert(ant.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
       std::vector<Node> cc;
@@ -2310,7 +2312,8 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
         cc.push_back(nfk[k].eqNode(emp));
       }
       Node conc = NodeManager::currentNM()->mkAnd(cc);
-      //d_im.sendInference(ant, antn, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
+      Assert(d_state.areEqual(niLenTerm, njLenTerm)) << "Lengths not equal " << niLenTerm << " " << njLenTerm;
+      d_im.sendInference(ant, antn, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
       return true;
     }
 
@@ -2546,7 +2549,7 @@ void CoreSolver::checkNormalFormsDeq()
       {
         // if they have equal lengths, we must process the disequality below
         relevantDeqs.push_back(eq);
-        Trace("str-deq") << "...relevant" << std::endl;
+        Trace("str-deq") << "...relevant, lengths equal " << lt[0] << " via " << n[0] << " " << lt[1] << " via " << n[1] << std::endl;
       }
       else if (!d_state.areDisequal(lt[0], lt[1]))
       {

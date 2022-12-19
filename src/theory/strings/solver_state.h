@@ -97,7 +97,7 @@ class SolverState : public TheoryState
    * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
    * adds nothing to exp.
    */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
+  Node getLengthExp(Node t, std::vector<Node>& exp, Node te, bool minExp = true);
   /** shorthand for getLengthExp(t, exp, t) */
   Node getLength(Node t, std::vector<Node>& exp);
   /** explain non-empty
