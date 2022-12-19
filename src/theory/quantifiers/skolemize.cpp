@@ -64,11 +64,12 @@ TrustNode Skolemize::process(Node q)
     // if using proofs and not using induction, we use the justified
     // skolemization
     NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* skm = nm->getSkolemManager();
     std::vector<Node> echildren(q.begin(), q.end());
     echildren[1] = echildren[1].notNode();
     Node existsq = nm->mkNode(EXISTS, echildren);
-    Node res = skm->mkSkolemize(existsq, d_skolem_constants[q], "skv");
+    std::vector<Node> vars(existsq[0].begin(), existsq[0].end());
+    std::vector<Node> skolems = getSkolemConstants(existsq);
+    Node res = existsq[1].substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
     Node qnot = q.notNode();
     CDProof cdp(d_env);
     cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
@@ -89,7 +90,7 @@ TrustNode Skolemize::process(Node q)
   {
     // otherwise, we use the more general skolemization with inductive
     // strengthening, which does not support proofs
-    Node body = getSkolemizedBody(q);
+    Node body = getSkolemizedBodyInduction(q);
     NodeBuilder nb(kind::OR);
     nb << q << body.notNode();
     lem = nb;
@@ -170,7 +171,19 @@ void Skolemize::getSelfSel(const DType& dt,
   }
 }
 
-Node Skolemize::mkSkolemizedBody(const Options& opts,
+bool Skolemize::getSkolemConstantsInduction(Node q, std::vector<Node>& skolems)
+{
+  std::unordered_map<Node, std::vector<Node>>::iterator it =
+      d_skolem_constants.find(q);
+  if (it != d_skolem_constants.end())
+  {
+    skolems.insert(skolems.end(), it->second.begin(), it->second.end());
+    return true;
+  }
+  return false;
+}
+
+Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
                                  Node f,
                                  Node n,
                                  std::vector<TNode>& fvs,
@@ -323,7 +336,7 @@ Node Skolemize::mkSkolemizedBody(const Options& opts,
   return ret;
 }
 
-Node Skolemize::getSkolemizedBody(Node f)
+Node Skolemize::getSkolemizedBodyInduction(Node f)
 {
   Assert(f.getKind() == FORALL);
   std::unordered_map<Node, Node>::iterator it = d_skolem_body.find(f);
@@ -332,7 +345,7 @@ Node Skolemize::getSkolemizedBody(Node f)
     std::vector<TNode> fvs;
     Node sub;
     std::vector<unsigned> sub_vars;
-    Node ret = mkSkolemizedBody(
+    Node ret = mkSkolemizedBodyInduction(
         options(), f, f[1], fvs, d_skolem_constants[f], sub, sub_vars);
     d_skolem_body[f] = ret;
     // store sub quantifier information

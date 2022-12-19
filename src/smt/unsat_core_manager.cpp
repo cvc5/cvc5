@@ -17,6 +17,7 @@
 
 #include "expr/skolem_manager.h"
 #include "proof/proof_node_algorithm.h"
+#include "theory/quantifiers/skolemize.h"
 #include "smt/assertions.h"
 
 namespace cvc5::internal {
@@ -125,10 +126,7 @@ void UnsatCoreManager::getRelevantQuantTermVectors(
       }
       if (!exists.isNull())
       {
-        std::vector<Node> skolems;
-        SkolemManager* sm = nm->getSkolemManager();
-        Node res = sm->mkSkolemize(q, skolems, "k");
-        sks[q] = skolems;
+        sks[q] = theory::quantifiers::Skolemize::getSkolemConstants(exists);
       }
     }
     for (const std::shared_ptr<ProofNode>& cp : cs)
