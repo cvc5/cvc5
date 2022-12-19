@@ -101,13 +101,16 @@ class SolverState : public TheoryState
    * then getLengthExp( z, exp, y ) returns len( x ) and adds { y = x } to
    * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
    * adds nothing to exp.
-   * 
+   *
    * @param t The representative
    * @param exp The explanation vector to add to
    * @param te The explain target term
    * @param minExp Whether we attempt to return the length of te directly
    */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te, bool minExp = true);
+  Node getLengthExp(Node t,
+                    std::vector<Node>& exp,
+                    Node te,
+                    bool minExp = true);
   /** shorthand for getLengthExp(t, exp, t, minExp) */
   Node getLength(Node t, std::vector<Node>& exp, bool minExp = true);
   /** explain non-empty

@@ -2311,7 +2311,8 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
         cc.push_back(nfk[k].eqNode(emp));
       }
       Node conc = NodeManager::currentNM()->mkAnd(cc);
-      Assert(d_state.areEqual(niLenTerm, njLenTerm)) << "Lengths not equal " << niLenTerm << " " << njLenTerm;
+      Assert(d_state.areEqual(niLenTerm, njLenTerm))
+          << "Lengths not equal " << niLenTerm << " " << njLenTerm;
       d_im.sendInference(ant, antn, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
       return true;
     }
@@ -2536,7 +2537,7 @@ void CoreSolver::checkNormalFormsDeq()
     if( processed[n[0]].find( n[1] )==processed[n[0]].end() ){
       processed[n[0]][n[1]] = true;
       Node lt[2];
-      for ( size_t i=0; i<2; i++ )
+      for (size_t i = 0; i < 2; i++)
       {
         std::vector<Node> exp;
         lt[i] = d_state.getLength(n[i], exp, false);
@@ -2545,7 +2546,8 @@ void CoreSolver::checkNormalFormsDeq()
       {
         // if they have equal lengths, we must process the disequality below
         relevantDeqs.push_back(eq);
-        Trace("str-deq") << "...relevant, lengths equal (" << lt[0] << " " << lt[1] << ")" << std::endl;
+        Trace("str-deq") << "...relevant, lengths equal (" << lt[0] << " "
+                         << lt[1] << ")" << std::endl;
       }
       else if (!d_state.areDisequal(lt[0], lt[1]))
       {

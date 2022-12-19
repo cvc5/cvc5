@@ -76,7 +76,10 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 
 TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
 
-Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te, bool minExp)
+Node SolverState::getLengthExp(Node t,
+                               std::vector<Node>& exp,
+                               Node te,
+                               bool minExp)
 {
   Assert(areEqual(t, te));
   // if we are minimizing explanations
@@ -102,8 +105,8 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te, bool min
   {
     lengthTerm = lengthTerm[0];
   }
-  Trace("strings") << "SolverState::getLengthTerm " << t << "/" << te << " is " << lengthTerm
-                   << std::endl;
+  Trace("strings") << "SolverState::getLengthTerm " << t << "/" << te << " is "
+                   << lengthTerm << std::endl;
   if (te != lengthTerm)
   {
     exp.push_back(te.eqNode(lengthTerm));
