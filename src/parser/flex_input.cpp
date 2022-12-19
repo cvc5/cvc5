@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * Flex input class.
  */
 
 #include "parser/flex_input.h"
