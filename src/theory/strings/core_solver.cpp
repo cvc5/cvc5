@@ -2672,7 +2672,6 @@ void CoreSolver::checkRegisterTermsNormalForms()
   }
 }
 
-
 size_t CoreSolver::choosePossibleInferInfo(const std::vector<CoreInferInfo>& pinfer)
 {
   // now, determine which of the possible inferences we want to add

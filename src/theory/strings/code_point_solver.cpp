@@ -15,10 +15,10 @@
 
 #include "theory/strings/code_point_solver.h"
 
+#include "theory/strings/base_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/strings/base_solver.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
 
@@ -27,17 +27,13 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 namespace strings {
-  
+
 CodePointSolver::CodePointSolver(Env& env,
-                       SolverState& s,
-                       InferenceManager& im,
-                       TermRegistry& tr,
-                       BaseSolver& bs)
-    : EnvObj(env),
-      d_state(s),
-      d_im(im),
-      d_termReg(tr),
-      d_bsolver(bs)
+                                 SolverState& s,
+                                 InferenceManager& im,
+                                 TermRegistry& tr,
+                                 BaseSolver& bs)
+    : EnvObj(env), d_state(s), d_im(im), d_termReg(tr), d_bsolver(bs)
 {
   d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
 }
@@ -67,8 +63,8 @@ void CodePointSolver::checkCodes()
     if (eqc.isConst())
     {
       Node c = eqc;
-      Trace("strings-code-debug") << "Get proxy variable for " << c
-                                  << std::endl;
+      Trace("strings-code-debug")
+          << "Get proxy variable for " << c << std::endl;
       Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
       cc = rewrite(cc);
       Assert(cc.isConst());

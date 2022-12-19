@@ -1205,7 +1205,9 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
     case CHECK_SEQUENCES_ARRAY_CONCAT: d_asolver.checkArrayConcat(); break;
     case CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
     case CHECK_SEQUENCES_ARRAY_EAGER: d_asolver.checkArrayEager(); break;
-    case CHECK_REGISTER_TERMS_NF: d_csolver.checkRegisterTermsNormalForms(); break;
+    case CHECK_REGISTER_TERMS_NF:
+      d_csolver.checkRegisterTermsNormalForms();
+      break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(effort); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
