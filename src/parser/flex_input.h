@@ -54,7 +54,7 @@ class FlexInput
    * @param name the name of the stream, for use in error messages
    */
   static std::unique_ptr<FlexInput> mkStringInput(const std::string& input);
-  /** get stream */
+  /** Get the stream to pass to the flex lexer. */
   virtual std::istream& getStream() = 0;
 };
 

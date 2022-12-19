@@ -43,6 +43,7 @@ class FlexFileInput : public FlexInput
   std::ifstream d_fs;
 };
 
+/** Stream reference input class */
 class FlexStreamInput : public FlexInput
 {
  public:
@@ -54,6 +55,7 @@ class FlexStreamInput : public FlexInput
   std::istream& d_input;
 };
 
+/** String input class, which buffers to a std::stringstream */
 class FlexStringInput : public FlexInput
 {
  public:
