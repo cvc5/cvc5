@@ -88,7 +88,7 @@ bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 
 void TheoryUF::finishInit() {
   Assert(d_equalityEngine != nullptr);
-  // combined cardinality constraints are not evaluated in getModelValue
+  // combined cardinality constraints are not evaluated in getCandidateModelValue
   d_valuation.setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by

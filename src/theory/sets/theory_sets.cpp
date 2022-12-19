@@ -126,7 +126,7 @@ TrustNode TheorySets::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, exp, nullptr);
 }
 
-Node TheorySets::getModelValue(TNode node) {
+Node TheorySets::getCandidateModelValue(TNode node) {
   return Node::null();
 }
 

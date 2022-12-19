@@ -469,7 +469,7 @@ bool TheoryStrings::collectModelInfoType(
         // str.unit is applied to integers, where we are guaranteed the model
         // exists. We preempitively get the model value here, so that we
         // avoid repeated model values for strings.
-        Node val = d_valuation.getModelValue(nfe[0][0]);
+        Node val = d_valuation.getCandidateModelValue(nfe[0][0]);
         assignedValue = utils::mkUnit(eqc.getType(), val);
         assignedValue = rewrite(assignedValue);
         Trace("strings-model")
@@ -507,7 +507,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           // its value must be equal to its code
           Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
-          Node ctv = d_valuation.getModelValue(ct);
+          Node ctv = d_valuation.getCandidateModelValue(ct);
           unsigned cvalue =
               ctv.getConst<Rational>().getNumerator().toUnsignedInt();
           Trace("strings-model") << "(code: " << cvalue << ") ";
@@ -532,7 +532,7 @@ bool TheoryStrings::collectModelInfoType(
           for (const std::pair<const Node, Node>& w : writeModel)
           {
             Trace("strings-model") << "  " << w.first << " -> " << w.second;
-            Node ivalue = d_valuation.getModelValue(w.first);
+            Node ivalue = d_valuation.getCandidateModelValue(w.first);
             Assert(ivalue.isConst() && ivalue.getType().isInteger());
             // ignore if out of bounds
             Rational irat = ivalue.getConst<Rational>();
