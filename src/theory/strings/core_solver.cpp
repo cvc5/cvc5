@@ -2523,7 +2523,6 @@ void CoreSolver::checkNormalFormsDeq()
 
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
 
-  NodeManager* nm = NodeManager::currentNM();
   Trace("str-deq") << "Process disequalites..." << std::endl;
   std::vector<Node> relevantDeqs;
   // for each pair of disequal strings, must determine whether their lengths
@@ -2538,18 +2537,16 @@ void CoreSolver::checkNormalFormsDeq()
     if( processed[n[0]].find( n[1] )==processed[n[0]].end() ){
       processed[n[0]][n[1]] = true;
       Node lt[2];
-      for( unsigned i=0; i<2; i++ ){
-        EqcInfo* ei = d_state.getOrMakeEqcInfo(n[i], false);
-        lt[i] = ei ? ei->d_lengthTerm : Node::null();
-        if( lt[i].isNull() ){
-          lt[i] = nm->mkNode(STRING_LENGTH, eq[i]);
-        }
+      for ( size_t i=0; i<2; i++ )
+      {
+        std::vector<Node> exp;
+        lt[i] = d_state.getLength(n[i], exp, false);
       }
       if (d_state.areEqual(lt[0], lt[1]))
       {
         // if they have equal lengths, we must process the disequality below
         relevantDeqs.push_back(eq);
-        Trace("str-deq") << "...relevant, lengths equal " << lt[0] << " via " << n[0] << " " << lt[1] << " via " << n[1] << std::endl;
+        Trace("str-deq") << "...relevant, lengths equal (" << lt[0] << " " << lt[1] << ")" << std::endl;
       }
       else if (!d_state.areDisequal(lt[0], lt[1]))
       {

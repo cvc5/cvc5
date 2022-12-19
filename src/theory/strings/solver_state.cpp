@@ -77,6 +77,7 @@ TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
 Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te, bool minExp)
 {
   Assert(areEqual(t, te));
+  // if we are minimizing explanations
   if (minExp)
   {
     Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, te);
@@ -105,12 +106,12 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te, bool min
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm);
+  return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 
-Node SolverState::getLength(Node t, std::vector<Node>& exp)
+Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
 {
-  return getLengthExp(t, exp, t);
+  return getLengthExp(t, exp, t, minExp);
 }
 
 Node SolverState::explainNonEmpty(Node s)
