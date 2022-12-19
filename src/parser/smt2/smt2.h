@@ -65,6 +65,14 @@ class Smt2State : public ParserState
    */
   void addIndexedOperator(Kind tKind, const std::string& name);
   /**
+   * Registers a closure kind
+   *
+   * @param tKind The kind of the term that uses the operator kind (e.g.
+   *              LAMBDA).
+   * @param name The name of the symbol (e.g. "lambda")
+   */
+  void addClosureKind(Kind tKind, const std::string& name);
+  /**
    * Checks whether an indexed operator is enabled. All indexed operators in
    * the current logic are considered to be enabled. This includes operators
    * such as `to_fp`, which do not correspond to a single kind.
@@ -111,6 +119,12 @@ class Smt2State : public ParserState
    */
   Term mkIndexedConstant(const std::string& name,
                          const std::vector<uint32_t>& numerals);
+  /** Same as above, for constants indexed by symbols. */
+  Term mkIndexedConstant(const std::string& name,
+                         const std::vector<std::string>& symbols);
+  /** Same as above, for constants indexed by symbols. */
+  Term mkIndexedOp(const std::string& name,
+                   const std::vector<std::string>& symbols);
 
   /**
    * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
@@ -120,6 +134,14 @@ class Smt2State : public ParserState
    *         error if the name is not valid.
    */
   Kind getIndexedOpKind(const std::string& name);
+  /**
+   * Creates the closure kind, e.g. FORALL for "forall".
+   *
+   * @param name The name of the operator (e.g. "forall")
+   * @return The kind corresponding to the closure or a parse
+   *         error if the name is not valid.
+   */
+  Kind getClosureKind(const std::string& name);
 
   /**
    * If we are in a version < 2.6, this updates name to the tester name of cons,
@@ -375,6 +397,8 @@ class Smt2State : public ParserState
    */
   Sort getIndexedSort(const std::string& name,
                       const std::vector<std::string>& numerals);
+  /** is closure? */
+  bool isClosure(const std::string& name);
   //------------------------- end processing parse operators
 
   /**
@@ -437,6 +461,8 @@ class Smt2State : public ParserState
    * BITVECTOR_EXTRACT).
    */
   std::unordered_map<std::string, Kind> d_indexedOpKindMap;
+  /** Closure map */
+  std::unordered_map<std::string, Kind> d_closureKindMap;
   /** The last named term and its name */
   std::pair<Term, std::string> d_lastNamedTerm;
   /**
