@@ -764,7 +764,8 @@ TrustNode TheoryFp::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
-Node TheoryFp::getCandidateModelValue(TNode var) {
+Node TheoryFp::getCandidateModelValue(TNode var)
+{
   return d_wordBlaster->getValue(d_valuation, var);
 }
 

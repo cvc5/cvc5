@@ -1118,7 +1118,8 @@ theory::IncompleteId TheoryEngine::getRefutationUnsoundId() const
   return d_refutationUnsoundId.get();
 }
 
-Node TheoryEngine::getCandidateModelValue(TNode var) {
+Node TheoryEngine::getCandidateModelValue(TNode var)
+{
   if (var.isConst())
   {
     // the model value of a constant must be itself

@@ -448,7 +448,7 @@ class Theory : protected EnvObj
    * available). A candidate model value is one computed at full effort,
    * prior to running theory combination and final model construction.
    * Typically only non-parametric theories are able to implement this method,
-   * since model construction for parametric theories involves running final 
+   * since model construction for parametric theories involves running final
    * model construction.
    */
   virtual Node getCandidateModelValue(TNode var) { return Node::null(); }

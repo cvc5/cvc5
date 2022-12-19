@@ -482,7 +482,6 @@ private:
 
   Node getCandidateModelValue(TNode var);
 
-
   std::pair<bool, Node> entailmentCheck(TNode lit);
 
   //--------------------------------- standard check
