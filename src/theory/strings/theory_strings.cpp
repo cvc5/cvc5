@@ -1142,7 +1142,7 @@ void TheoryStrings::checkCodes()
           d_im.sendInference(
               emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
         }
-        // only relevant in comparisons if length is 1 (e.g. it has a valid
+        // only relevant for injectivity if length is 1 (e.g. it has a valid
         // code point)
         if (Word::getLength(c) == 1)
         {
@@ -1155,7 +1155,7 @@ void TheoryStrings::checkCodes()
         if (ei && !ei->d_codeTerm.get().isNull())
         {
           Node vc = nm->mkNode(kind::STRING_TO_CODE, ei->d_codeTerm.get());
-          // only relevant in comparisons if not already equal to negative one
+          // only relevant for injectivity if not already equal to negative one
           if (!d_state.areEqual(vc, d_neg_one))
           {
             nconst_codes.push_back(vc);
