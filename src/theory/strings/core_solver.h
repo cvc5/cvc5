@@ -201,6 +201,13 @@ class CoreSolver : protected EnvObj
    * shown to be helpful.
    */
   void checkLengthsEqc();
+  /** check register terms for normal forms
+   *
+   * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
+   * (t1, ..., tn) of all string equivalence classes { s1, ..., sm } such that
+   * there does not exist a term of the form str.len(si) in the current context.
+   */
+  void checkRegisterTermsNormalForms();
   //-----------------------end inference steps
 
   //--------------------------- query functions

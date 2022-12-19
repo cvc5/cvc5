@@ -33,14 +33,14 @@ class SolverState;
  * Subsolver for handling code points, see "A Decision Procedure for String to
  * Code Point Conversion", Reynolds et al IJCAR 2020.
  */
-class CodePointSolver {
+class CodePointSolver : protected EnvObj {
  public:
 CodePointSolver(Env& env,
                        SolverState& s,
                        InferenceManager& im,
                        TermRegistry& tr,
                        BaseSolver& bs);
-  ~CodePointSolver();
+  ~CodePointSolver() {}
   /** check codes
    *
    * This inference schema ensures that constraints between str.code terms
@@ -51,6 +51,17 @@ CodePointSolver(Env& env,
    *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
    */
   void checkCodes();
+protected:
+  /** The solver state object */
+  SolverState& d_state;
+  /** The (custom) output channel of the theory of strings */
+  InferenceManager& d_im;
+  /** Reference to the term registry of theory of strings */
+  TermRegistry& d_termReg;
+  /** reference to the base solver, used for certain queries */
+  BaseSolver& d_bsolver;
+  /** Commonly used constants */
+  Node d_negOne;
 };
 
 }  // namespace strings

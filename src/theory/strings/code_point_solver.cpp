@@ -17,7 +17,12 @@
 
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/term_registry.h"
 #include "theory/strings/base_solver.h"
+#include "theory/strings/word.h"
+#include "util/rational.h"
+
+using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
@@ -34,9 +39,10 @@ CodePointSolver::CodePointSolver(Env& env,
       d_termReg(tr),
       d_bsolver(bs)
 {
+  d_negOne = NodeManager::currentNM()->mkConstInt(Rational(-1));
 }
 
-void TheoryStrings::checkCodes()
+void CodePointSolver::checkCodes()
 {
   // ensure that lemmas regarding str.code been added for each constant string
   // of length one
@@ -88,7 +94,7 @@ void TheoryStrings::checkCodes()
       {
         Node vc = nm->mkNode(kind::STRING_TO_CODE, ei->d_codeTerm.get());
         // only relevant for injectivity if not already equal to negative one
-        if (!d_state.areEqual(vc, d_neg_one))
+        if (!d_state.areEqual(vc, d_negOne))
         {
           nconst_codes.push_back(vc);
         }
@@ -113,7 +119,7 @@ void TheoryStrings::checkCodes()
           << "Compare codes : " << c1 << " " << c2 << std::endl;
       if (!d_state.areDisequal(c1, c2))
       {
-        Node eq_no = c1.eqNode(d_neg_one);
+        Node eq_no = c1.eqNode(d_negOne);
         Node deq = c1.eqNode(c2).negate();
         Node eqn = c1[0].eqNode(c2[0]);
         // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
