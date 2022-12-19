@@ -100,30 +100,28 @@ TrustNode Skolemize::process(Node q)
   return TrustNode::mkTrustLemma(lem, pg);
 }
 
-bool Skolemize::getSkolemConstants(Node q, std::vector<Node>& skolems)
+std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 {
-  std::unordered_map<Node, std::vector<Node>>::iterator it =
-      d_skolem_constants.find(q);
-  if (it != d_skolem_constants.end())
+  Assert (q.getKind()==EXISTS);
+  std::vector<Node> skolems;
+  for (size_t i=0, nvars = q[0].getNumChildren(); i<nvars; i++)
   {
-    skolems.insert(skolems.end(), it->second.begin(), it->second.end());
-    return true;
+    skolems.push_back(getSkolemConstant(q, i));
   }
-  return false;
+  return skolems;
 }
 
-Node Skolemize::getSkolemConstant(Node q, unsigned i)
+Node Skolemize::getSkolemConstant(const Node& q, size_t i)
 {
-  std::unordered_map<Node, std::vector<Node>>::iterator it =
-      d_skolem_constants.find(q);
-  if (it != d_skolem_constants.end())
-  {
-    if (i < it->second.size())
-    {
-      return it->second[i];
-    }
-  }
-  return Node::null();
+  Assert (q.getKind()==EXISTS);
+  Assert (i<q[0].getNumChildren());
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager * sm = nm->getSkolemManager();
+  Node r = nm->mkConstInt(Rational(i));
+  std::vector<Node> cacheVals{q, r};
+  return sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
+                              q[0][i].getType(),
+                              cacheVals);
 }
 
 void Skolemize::getSelfSel(const DType& dt,

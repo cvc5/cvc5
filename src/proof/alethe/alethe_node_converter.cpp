@@ -28,7 +28,7 @@ Node AletheNodeConverter::preConvert(Node n)
   {
     Trace("alethe-conv") << "AletheNodeConverter: [PRE] handling skolem " << n
                          << "\n";
-    Node wi = SkolemManager::getWitnessForm(n);
+    Node wi = n;//SkolemManager::getWitnessForm(n);
     // true skolem with witness form, just convert that
     if (!wi.isNull())
     {

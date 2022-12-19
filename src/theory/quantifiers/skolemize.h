@@ -77,10 +77,10 @@ class Skolemize : protected EnvObj
    * lemmas are constructed once per user-context.
    */
   TrustNode process(Node q);
-  /** get skolem constants for quantified formula q */
-  bool getSkolemConstants(Node q, std::vector<Node>& skolems);
+  /** get the skolem constants */
+  static std::vector<Node> getSkolemConstants(const Node& q);
   /** get the i^th skolem constant for quantified formula q */
-  Node getSkolemConstant(Node q, unsigned i);
+  static Node getSkolemConstant(const Node& q, size_t i);
   /** make skolemized body
    *
    * This returns the skolemized body n of a

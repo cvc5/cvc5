@@ -382,7 +382,7 @@ Node RemoveTermFormulas::runCurrentInternal(TNode node,
           // (exists x. node[1])
           // -------------------- SKOLEMIZE
           // node[1] * { x -> skolem }
-          ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
+          ProofGenerator* expg = nullptr;//sm->getProofGenerator(existsAssertion);
           d_lp->addLazyStep(existsAssertion,
                             expg,
                             PfRule::WITNESS_AXIOM,

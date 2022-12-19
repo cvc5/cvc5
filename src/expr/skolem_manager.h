@@ -46,10 +46,10 @@ enum class SkolemFunId
    * is between -pi and pi
    */
   TRANSCENDENTAL_PURIFY_ARG,
-  /** a wrongly applied selector */
-  SELECTOR_WRONG,
   /** a shared selector */
   SHARED_SELECTOR,
+  /** The n^th skolem for quantified formula Q. */
+  QUANTIFIERS_SKOLEMIZE,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
   STRINGS_NUM_OCCUR,
@@ -311,43 +311,6 @@ class SkolemManager
                       const std::string& comment = "",
                       int flags = SKOLEM_DEFAULT);
   /**
-   * Make skolemized form of existentially quantified formula q, and store its
-   * Skolems into the argument skolems.
-   *
-   * For example, calling this method on:
-   *   (exists ((x Int) (y Int)) (P x y))
-   * returns:
-   *   (P w1 w2)
-   * where w1 and w2 are skolems with witness forms:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   *   (witness ((y Int)) (P w1 y))
-   * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is *not* renamed in the witness form of w1. This is not
-   * necessary since w1 is skolem. Although its witness form contains
-   * quantification on y, we never construct a term where the witness form
-   * of w1 is expanded in the witness form of w2. This avoids variable
-   * shadowing.
-   *
-   * Notice that the proof generator is for the *entire* existentially
-   * quantified formula q, which may have multiple variables in its prefix.
-   *
-   * @param q The existentially quantified formula to skolemize,
-   * @param skolems Vector to add Skolems of q to,
-   * @param prefix The prefix of the name of each of the Skolems
-   * @param comment Debug information about each of the Skolems
-   * @param flags The flags for the Skolem (see SkolemFlags)
-   * @param pg The proof generator for this skolem. If non-null, this proof
-   * generator must respond to a call to getProofFor(q) during
-   * the lifetime of the current node manager.
-   * @return The skolemized form of q.
-   */
-  Node mkSkolemize(Node q,
-                   std::vector<Node>& skolems,
-                   const std::string& prefix,
-                   const std::string& comment = "",
-                   int flags = SKOLEM_DEFAULT,
-                   ProofGenerator* pg = nullptr);
-  /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemFunId. The user of this
    * method is responsible for providing a proper type for the identifier that
@@ -412,24 +375,9 @@ class SkolemManager
                      const TypeNode& type,
                      const std::string& comment = "",
                      int flags = SKOLEM_DEFAULT);
-  /**
-   * Get proof generator for existentially quantified formula q. This returns
-   * the proof generator that was provided in a call to `mkSkolemize` above.
-   */
-  ProofGenerator* getProofGenerator(Node q) const;
 
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;
-
-  /**
-   * Convert to witness form, which gets the witness form of a skolem k.
-   * Notice this method is *not* recursive, instead, it is a simple attribute
-   * lookup.
-   *
-   * @param k The variable to convert to witness form described above
-   * @return k in witness form.
-   */
-  static Node getWitnessForm(Node k);
   /**
    * Convert to original form, which recursively replaces all skolems terms in
    * n by the term they purify.
@@ -455,10 +403,6 @@ class SkolemManager
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */
   std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
-  /**
-   * Mapping from witness terms to proof generators.
-   */
-  std::map<Node, ProofGenerator*> d_gens;
 
   /**
    * A counter used to produce unique skolem names.
@@ -474,25 +418,6 @@ class SkolemManager
                         const std::string& prefix,
                         const std::string& comment,
                         int flags);
-  /**
-   * Skolemize the first variable of existentially quantified formula q.
-   * For example, calling this method on:
-   *   (exists ((x Int) (y Int)) (P x y))
-   * will return:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   * If q is not an existentially quantified formula, then null is
-   * returned and an assertion failure is thrown.
-   *
-   * This method additionally updates qskolem to be the skolemized form of q.
-   * In the above example, this is set to:
-   *   (exists
-   *       ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y'))) y))
-   */
-  Node skolemize(Node q,
-                 Node& qskolem,
-                 const std::string& prefix,
-                 const std::string& comment = "",
-                 int flags = SKOLEM_DEFAULT);
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
