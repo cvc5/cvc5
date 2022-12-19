@@ -80,10 +80,10 @@ ExtfSolver::ExtfSolver(Env& env,
 
 ExtfSolver::~ExtfSolver() {}
 
-bool ExtfSolver::doReduction(int effort, Node n)
+bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
 {
-  Trace("strings-extf-debug")
-      << "doReduction " << n << ", effort " << effort << std::endl;
+  Trace("strings-extf-debug") << "shouldDoReduction " << n << ", pol " << pol
+                              << ", effort " << effort << std::endl;
   if (!isActiveInModel(n))
   {
     // n is not active in the model, no need to reduce
@@ -96,13 +96,7 @@ bool ExtfSolver::doReduction(int effort, Node n)
     Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
     return false;
   }
-  // polarity : 1 true, -1 false, 0 neither
-  int pol = 0;
   Kind k = n.getKind();
-  if (n.getType().isBoolean() && !d_extfInfoTmp[n].d_const.isNull())
-  {
-    pol = d_extfInfoTmp[n].d_const.getConst<bool>() ? 1 : -1;
-  }
   // determine if it is the right effort
   if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
   {
@@ -125,24 +119,19 @@ bool ExtfSolver::doReduction(int effort, Node n)
       Node lens = d_state.getLength(s, lexp);
       if (d_state.areEqual(lenx, lens))
       {
-        Trace("strings-extf-debug")
-            << "  resolve extf : " << n
-            << " based on equal lengths disequality." << std::endl;
         // We can reduce negative contains to a disequality when lengths are
         // equal. In other words, len( x ) = len( s ) implies
         //   ~contains( x, s ) reduces to x != s.
-        if (!d_state.areDisequal(x, s))
+        if (d_state.areDisequal(x, s))
         {
-          // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
-          lexp.push_back(lenx.eqNode(lens));
-          lexp.push_back(n.negate());
-          Node xneqs = x.eqNode(s).negate();
-          d_im.sendInference(
-              lexp, xneqs, InferenceId::STRINGS_CTN_NEG_EQUAL, false, true);
+          Trace("strings-extf-debug")
+              << "  resolve extf : " << n
+              << " based on equal lengths disequality." << std::endl;
+          // this depends on the current assertions, so this
+          // inference is context-dependent
+          d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
+          return true;
         }
-        // this depends on the current assertions, so this
-        // inference is context-dependent
-        d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
         return true;
       }
     }
@@ -180,6 +169,44 @@ bool ExtfSolver::doReduction(int effort, Node n)
     {
       // all other operators reduce at level 2
       return false;
+    }
+  }
+  return true;
+}
+
+void ExtfSolver::doReduction(Node n, int pol)
+{
+  Trace("strings-extf-debug")
+      << "doReduction " << n << ", pol " << pol << std::endl;
+  // polarity : 1 true, -1 false, 0 neither
+  Kind k = n.getKind();
+  if (k == STRING_CONTAINS && pol == -1)
+  {
+    Node x = n[0];
+    Node s = n[1];
+    std::vector<Node> lexp;
+    Node lenx = d_state.getLength(x, lexp);
+    Node lens = d_state.getLength(s, lexp);
+    // we use an optimized reduction for negative string contains if the
+    // lengths are equal
+    if (d_state.areEqual(lenx, lens))
+    {
+      Trace("strings-extf-debug")
+          << "  resolve extf : " << n << " based on equal lengths disequality."
+          << std::endl;
+      // We can reduce negative contains to a disequality when lengths are
+      // equal. In other words, len( x ) = len( s ) implies
+      //   ~contains( x, s ) reduces to x != s.
+      // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
+      lexp.push_back(lenx.eqNode(lens));
+      lexp.push_back(n.negate());
+      Node xneqs = x.eqNode(s).negate();
+      d_im.sendInference(
+          lexp, xneqs, InferenceId::STRINGS_CTN_NEG_EQUAL, false, true);
+      // this depends on the current assertions, so this
+      // inference is context-dependent
+      d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
+      return;
     }
   }
   Node c_n = pol == -1 ? n.negate() : n;
@@ -222,19 +249,23 @@ bool ExtfSolver::doReduction(int effort, Node n)
     new_nodes.push_back(n.eqNode(res));
     Node nnlem =
         new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(AND, new_nodes);
-    Trace("strings-red-lemma")
-        << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
-    Trace("strings-red-lemma") << "...from " << n << std::endl;
-    Trace("strings-red-lemma")
-        << "Reduction_" << effort << " rewritten : " << rewrite(nnlem)
-        << std::endl;
-    d_im.sendInference(d_emptyVec, nnlem, InferenceId::STRINGS_REDUCTION, false, true);
-    Trace("strings-extf-debug")
-        << "  resolve extf : " << n << " based on reduction." << std::endl;
-    // add as reduction lemma
+    // in rare case where it rewrites to true, just record it is reduced
+    if (rewrite(nnlem) == d_true)
+    {
+      Trace("strings-extf-debug")
+          << "  resolve extf : " << n << " based on (trivial) reduction."
+          << std::endl;
+    }
+    else
+    {
+      InferInfo ii(InferenceId::STRINGS_REDUCTION);
+      ii.d_conc = nnlem;
+      d_im.sendInference(ii, true);
+      Trace("strings-extf-debug")
+          << "  resolve extf : " << n << " based on reduction." << std::endl;
+    }
     d_reduced.insert(n);
   }
-  return true;
 }
 
 void ExtfSolver::checkExtfReductions(int effort)
@@ -253,9 +284,19 @@ void ExtfSolver::checkExtfReductions(int effort)
     Trace("strings-extf-debug")
         << "  check " << n
         << ", active in model=" << d_extfInfoTmp[n].d_modelActive << std::endl;
-    bool ret = doReduction(effort, n);
-    if (ret)
+    // polarity, 1: positive, -1: negative, 0: neither
+    int pol = 0;
+    if (n.getType().isBoolean())
     {
+      Node rep = d_state.getRepresentative(n);
+      if (rep.isConst())
+      {
+        pol = rep.getConst<bool>() ? 1 : -1;
+      }
+    }
+    if (shouldDoReduction(effort, n, pol))
+    {
+      doReduction(n, pol);
       // we do not mark as reduced, since we may want to evaluate
       if (d_im.hasProcessed())
       {

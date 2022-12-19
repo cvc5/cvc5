@@ -93,6 +93,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
           options().strings.regExpElim == options::RegExpElimMode::AGG,
           userContext()),
       d_stringsFmf(env, valuation, d_termReg),
+      d_mcd(env, d_state, d_csolver),
       d_strat(d_env),
       d_absModelCounter(0),
       d_strGapModelCounter(0),
@@ -240,15 +241,22 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
   std::map<TypeNode, std::unordered_set<Node>> repSet;
   std::unordered_set<TypeNode> toProcess;
   // Generate model
+  ModelCons* mc = d_state.getModelConstructor();
+  Assert(mc != nullptr);
   // get the relevant string equivalence classes
-  for (const Node& s : termSet)
+  std::vector<Node> auxEq;
+  mc->getStringRepresentativesFrom(termSet, toProcess, repSet, auxEq);
+  // assert the auxiliary equalities
+  for (const Node& aeq : auxEq)
   {
-    TypeNode tn = s.getType();
-    if (tn.isStringLike())
+    Assert(aeq.getKind() == EQUAL);
+    Trace("strings-model") << "-> auxiliary equality " << aeq << std::endl;
+    if (!m->assertEquality(aeq[0], aeq[1], true))
     {
-      Node r = d_state.getRepresentative(s);
-      repSet[tn].insert(r);
-      toProcess.insert(tn);
+      Unreachable() << "TheoryStrings::collectModelValues: Inconsistent "
+                       "auxiliary equality"
+                    << std::endl;
+      return false;
     }
   }
 
@@ -303,14 +311,13 @@ bool TheoryStrings::collectModelInfoType(
   toProcess.erase(tn);
 
   SEnumLenSet sels;
+  ModelCons* mc = d_state.getModelConstructor();
   // get partition of strings of equal lengths for the representatives of the
   // current type
-  std::map<TypeNode, std::vector<std::vector<Node> > > colT;
-  std::map<TypeNode, std::vector<Node> > ltsT;
+  std::vector<std::vector<Node>> col;
+  std::vector<Node> lts;
   const std::vector<Node> repVec(repSet.at(tn).begin(), repSet.at(tn).end());
-  d_state.separateByLength(repVec, colT, ltsT);
-  const std::vector<std::vector<Node> >& col = colT[tn];
-  const std::vector<Node>& lts = ltsT[tn];
+  mc->separateByLength(repVec, col, lts);
   // indices in col that have lengths that are too big to represent
   std::unordered_set<size_t> oobIndices;
 
@@ -324,18 +331,7 @@ bool TheoryStrings::collectModelInfoType(
   {
     Trace("strings-model") << "Checking length for { " << col[i];
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
-    Node len_value;
-    if( lts[i].isConst() ) {
-      len_value = lts[i];
-      Trace("strings-model") << "  length is constant" << std::endl;
-    }
-    else if (!lts[i].isNull())
-    {
-      // get the model value for lts[i]
-      len_value = d_valuation.getModelValue(lts[i]);
-      Trace("strings-model")
-          << "  length from model is " << len_value << std::endl;
-    }
+    Node len_value = lts[i];
     if (len_value.isNull())
     {
       lts_values.push_back(Node::null());
@@ -423,12 +419,12 @@ bool TheoryStrings::collectModelInfoType(
         Trace("strings-model") << "-> constant" << std::endl;
         continue;
       }
-      NormalForm& nfe = d_csolver.getNormalForm(eqc);
-      if (nfe.d_nf.size() != 1)
+      std::vector<Node> nfe = mc->getNormalForm(eqc);
+      if (nfe.size() != 1)
       {
         // will be assigned via a concatenation of normal form eqc
         Trace("strings-model")
-            << "  -> will be assigned by normal form " << nfe.d_nf << std::endl;
+            << "  -> will be assigned by normal form " << nfe << std::endl;
         continue;
       }
       // check if the length is too big to represent
@@ -468,26 +464,26 @@ bool TheoryStrings::collectModelInfoType(
       }
       // is it an equivalence class with a seq.unit term?
       Node assignedValue;
-      if (nfe.d_nf[0].getKind() == STRING_UNIT)
+      if (nfe[0].getKind() == STRING_UNIT)
       {
         // str.unit is applied to integers, where we are guaranteed the model
         // exists. We preempitively get the model value here, so that we
         // avoid repeated model values for strings.
-        Node val = d_valuation.getModelValue(nfe.d_nf[0][0]);
+        Node val = d_valuation.getModelValue(nfe[0][0]);
         assignedValue = utils::mkUnit(eqc.getType(), val);
         assignedValue = rewrite(assignedValue);
         Trace("strings-model")
             << "-> assign via str.unit: " << assignedValue << std::endl;
       }
-      else if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+      else if (nfe[0].getKind() == SEQ_UNIT)
       {
-        if (nfe.d_nf[0][0].getType().isStringLike())
+        if (nfe[0][0].getType().isStringLike())
         {
           // By this point, we should have assigned model values for the
           // elements of this sequence type because of the check in the
           // beginning of this method
-          Node argVal = m->getRepresentative(nfe.d_nf[0][0]);
-          Assert(nfe.d_nf[0].getKind() == SEQ_UNIT);
+          Node argVal = m->getRepresentative(nfe[0][0]);
+          Assert(nfe[0].getKind() == SEQ_UNIT);
           assignedValue = utils::mkUnit(eqc.getType(), argVal);
         }
         else
@@ -496,7 +492,7 @@ bool TheoryStrings::collectModelInfoType(
           // value of this term, since it might not be available yet, as
           // it may belong to a theory that has not built its model yet.
           // Hence, we assign a (non-constant) skeleton (seq.unit argVal).
-          assignedValue = nfe.d_nf[0];
+          assignedValue = nfe[0];
         }
         assignedValue = rewrite(assignedValue);
         Trace("strings-model")
@@ -726,14 +722,14 @@ bool TheoryStrings::collectModelInfoType(
       continue;
     }
 
-    NormalForm& nf = d_csolver.getNormalForm(rn);
+    std::vector<Node> nf = mc->getNormalForm(rn);
     if (TraceIsOn("strings-model"))
     {
       Trace("strings-model")
           << "Construct model for " << rn << " based on normal form ";
-      for (unsigned j = 0, size = nf.d_nf.size(); j < size; j++)
+      for (unsigned j = 0, size = nf.size(); j < size; j++)
       {
-        Node n = nf.d_nf[j];
+        Node n = nf[j];
         if (j > 0)
         {
           Trace("strings-model") << " ++ ";
@@ -748,7 +744,7 @@ bool TheoryStrings::collectModelInfoType(
     }
     Trace("strings-model") << std::endl;
     std::vector<Node> nc;
-    for (const Node& n : nf.d_nf)
+    for (const Node& n : nf)
     {
       Node r = d_state.getRepresentative(n);
       Assert(r.isConst() || processed.find(r) != processed.end());
@@ -935,9 +931,12 @@ void TheoryStrings::postCheck(Effort e)
     ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
     bool hadPending = false;
-    Trace("strings-check") << "Full effort check..." << std::endl;
+    Trace("strings-check") << "Check at effort " << e << "..." << std::endl;
     do{
       d_im.reset();
+      // assume the default model constructor in case we answer sat after this
+      // check
+      d_state.setModelConstructor(&d_mcd);
       ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
@@ -1128,10 +1127,9 @@ void TheoryStrings::checkCodes()
         continue;
       }
 
-      NormalForm& nfe = d_csolver.getNormalForm(eqc);
-      if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
+      if (eqc.isConst())
       {
-        Node c = nfe.d_nf[0];
+        Node c = eqc;
         Trace("strings-code-debug") << "Get proxy variable for " << c
                                     << std::endl;
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
@@ -1282,7 +1280,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 }
 
 /** run the given inference step */
-void TheoryStrings::runInferStep(InferStep s, int effort)
+void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
 {
   Trace("strings-process") << "Run " << s;
   if (effort > 0)
@@ -1327,8 +1325,10 @@ void TheoryStrings::runStrategy(Theory::Effort e)
   while (it != stepEnd)
   {
     InferStep curr = it->first;
+    int effort = it->second;
     if (curr == BREAK)
     {
+      // if we have a pending inference or lemma, we will process it
       if (d_im.hasProcessed())
       {
         break;
@@ -1336,7 +1336,7 @@ void TheoryStrings::runStrategy(Theory::Effort e)
     }
     else
     {
-      runInferStep(curr, it->second);
+      runInferStep(curr, e, effort);
       if (d_state.isInConflict())
       {
         break;
