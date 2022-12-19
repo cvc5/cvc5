@@ -159,6 +159,20 @@ public class Solver implements IPointer
   private native long mkBitVectorSort(long pointer, int size);
 
   /**
+   * Create a finite field sort.
+   * @param size The size of the finite field sort.
+   * @return The finite field sort.
+   * @throws CVC5ApiException
+   */
+  public Sort mkFiniteFieldSort(String size) throws CVC5ApiException
+  {
+    long sortPointer = mkFiniteFieldSort(pointer, size);
+    return new Sort(sortPointer);
+  }
+
+  private native long mkFiniteFieldSort(long pointer, String size);
+
+  /**
    * Create a floating-point sort.
    * @param exp The bit-width of the exponent of the floating-point sort.
    * @param sig The bit-width of the significand of the floating-point sort.
@@ -1062,6 +1076,24 @@ public class Solver implements IPointer
   }
 
   private native long mkBitVector(long pointer, int size, String s, int base);
+
+  /**
+   * Create a finite field constant in a given field and for a given value.
+   *
+   * @api.note The given value must fit into a the given finite field.
+   *
+   * @param val The value of the constant.
+   * @param sort The sort of the finite field.
+   * @return The finite field constant.
+   * @throws CVC5ApiException
+   */
+  public Term mkFiniteFieldElem(String val, Sort sort) throws CVC5ApiException
+  {
+    long termPointer = mkFiniteFieldElem(pointer, val, sort.getPointer());
+    return new Term(termPointer);
+  }
+
+  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer);
 
   /**
    * Create a constant array with the provided constant value stored at

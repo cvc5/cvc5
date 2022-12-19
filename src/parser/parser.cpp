@@ -37,23 +37,23 @@ namespace cvc5 {
 namespace parser {
 
 ParserState::ParserState(ParserStateCallback* psc,
-                         cvc5::Solver* solver,
+                         Solver* solver,
                          SymbolManager* sm,
                          bool strictMode)
-    : d_psc(psc),
+    : d_solver(solver),
+      d_psc(psc),
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_checksEnabled(true),
-      d_strictMode(strictMode),
-      d_solver(solver)
+      d_strictMode(strictMode)
 {
 }
 
 ParserState::~ParserState() {}
 
-cvc5::Solver* ParserState::getSolver() const { return d_solver; }
+Solver* ParserState::getSolver() const { return d_solver; }
 
-cvc5::Term ParserState::getSymbol(const std::string& name, SymbolType type)
+Term ParserState::getSymbol(const std::string& name, SymbolType type)
 {
   checkDeclaration(name, CHECK_DECLARED, type);
   Assert(isDeclared(name, type));
@@ -67,153 +67,155 @@ const std::string& ParserState::getForcedLogic() const
 }
 bool ParserState::logicIsForced() const { return d_symman->isLogicForced(); }
 
-cvc5::Term ParserState::getVariable(const std::string& name)
+Term ParserState::getVariable(const std::string& name)
 {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-cvc5::Term ParserState::getFunction(const std::string& name)
+Term ParserState::getFunction(const std::string& name)
 {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-cvc5::Term ParserState::getExpressionForName(const std::string& name)
+Term ParserState::getExpressionForName(const std::string& name)
 {
-  cvc5::Sort t;
+  Sort t;
   return getExpressionForNameAndType(name, t);
 }
 
-cvc5::Term ParserState::getExpressionForNameAndType(const std::string& name,
-                                                    cvc5::Sort t)
+Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
 {
   Assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
-  cvc5::Term expr = getVariable(name);
-  if(expr.isNull()) {
+  Term expr = getVariable(name);
+  if (expr.isNull())
+  {
     // the variable is overloaded, try with type if the type exists
-    if(!t.isNull()) {
+    if (!t.isNull())
+    {
       // if we decide later to support annotations for function types, this will
       // update to separate t into ( argument types, return type )
       expr = getOverloadedConstantForType(name, t);
-      if(expr.isNull()) {
+      if (expr.isNull())
+      {
         parseError("Cannot get overloaded constant for type ascription.");
       }
-    }else{
+    }
+    else
+    {
       parseError("Overloaded constants must be type cast.");
     }
   }
   // now, post-process the expression
   Assert(!expr.isNull());
-  cvc5::Sort te = expr.getSort();
+  Sort te = expr.getSort();
   if (te.isDatatypeConstructor() && te.getDatatypeConstructorArity() == 0)
   {
     // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = d_solver->mkTerm(cvc5::APPLY_CONSTRUCTOR, {expr});
+    expr = d_solver->mkTerm(APPLY_CONSTRUCTOR, {expr});
   }
   return expr;
 }
 
-bool ParserState::getTesterName(cvc5::Term cons, std::string& name)
-{
-  return false;
-}
+bool ParserState::getTesterName(Term cons, std::string& name) { return false; }
 
-cvc5::Kind ParserState::getKindForFunction(cvc5::Term fun)
+Kind ParserState::getKindForFunction(Term fun)
 {
-  cvc5::Sort t = fun.getSort();
+  Sort t = fun.getSort();
   if (t.isFunction())
   {
-    return cvc5::APPLY_UF;
+    return APPLY_UF;
   }
   else if (t.isDatatypeConstructor())
   {
-    return cvc5::APPLY_CONSTRUCTOR;
+    return APPLY_CONSTRUCTOR;
   }
   else if (t.isDatatypeSelector())
   {
-    return cvc5::APPLY_SELECTOR;
+    return APPLY_SELECTOR;
   }
   else if (t.isDatatypeTester())
   {
-    return cvc5::APPLY_TESTER;
+    return APPLY_TESTER;
   }
   else if (t.isDatatypeUpdater())
   {
-    return cvc5::APPLY_UPDATER;
+    return APPLY_UPDATER;
   }
-  return cvc5::UNDEFINED_KIND;
+  return UNDEFINED_KIND;
 }
 
-cvc5::Sort ParserState::getSort(const std::string& name)
+Sort ParserState::getSort(const std::string& name)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert(isDeclared(name, SYM_SORT));
-  cvc5::Sort t = d_symtab->lookupType(name);
+  Sort t = d_symtab->lookupType(name);
   return t;
 }
 
-cvc5::Sort ParserState::getParametricSort(const std::string& name,
-                                          const std::vector<cvc5::Sort>& params)
+Sort ParserState::getParametricSort(const std::string& name,
+                                    const std::vector<Sort>& params)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   Assert(isDeclared(name, SYM_SORT));
-  cvc5::Sort t = d_symtab->lookupType(name, params);
+  Sort t = d_symtab->lookupType(name, params);
   return t;
 }
 
-bool ParserState::isFunctionLike(cvc5::Term fun)
+bool ParserState::isFunctionLike(Term fun)
 {
-  if(fun.isNull()) {
+  if (fun.isNull())
+  {
     return false;
   }
-  cvc5::Sort type = fun.getSort();
+  Sort type = fun.getSort();
   return type.isFunction() || type.isDatatypeConstructor()
          || type.isDatatypeTester() || type.isDatatypeSelector();
 }
 
-cvc5::Term ParserState::bindVar(const std::string& name,
-                                const cvc5::Sort& type,
-                                bool doOverload)
+Term ParserState::bindVar(const std::string& name,
+                          const Sort& type,
+                          bool doOverload)
 {
   Trace("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  cvc5::Term expr = d_solver->mkConst(type, name);
+  Term expr = d_solver->mkConst(type, name);
   defineVar(name, expr, doOverload);
   return expr;
 }
 
-cvc5::Term ParserState::bindBoundVar(const std::string& name,
-                                     const cvc5::Sort& type)
+Term ParserState::bindBoundVar(const std::string& name, const Sort& type)
 {
   Trace("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
-  cvc5::Term expr = d_solver->mkVar(type, name);
+  Term expr = d_solver->mkVar(type, name);
   defineVar(name, expr);
   return expr;
 }
 
-std::vector<cvc5::Term> ParserState::bindBoundVars(
-    std::vector<std::pair<std::string, cvc5::Sort> >& sortedVarNames)
+std::vector<Term> ParserState::bindBoundVars(
+    std::vector<std::pair<std::string, Sort> >& sortedVarNames)
 {
-  std::vector<cvc5::Term> vars;
-  for (std::pair<std::string, cvc5::Sort>& i : sortedVarNames)
+  std::vector<Term> vars;
+  for (std::pair<std::string, Sort>& i : sortedVarNames)
   {
     vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
 }
 
-std::vector<cvc5::Term> ParserState::bindBoundVars(
-    const std::vector<std::string> names, const cvc5::Sort& type)
+std::vector<Term> ParserState::bindBoundVars(
+    const std::vector<std::string> names, const Sort& type)
 {
-  std::vector<cvc5::Term> vars;
-  for (unsigned i = 0; i < names.size(); ++i) {
+  std::vector<Term> vars;
+  for (unsigned i = 0; i < names.size(); ++i)
+  {
     vars.push_back(bindBoundVar(names[i], type));
   }
   return vars;
 }
 
 void ParserState::defineVar(const std::string& name,
-                            const cvc5::Term& val,
+                            const Term& val,
                             bool doOverload)
 {
   Trace("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
@@ -228,7 +230,7 @@ void ParserState::defineVar(const std::string& name,
 }
 
 void ParserState::defineType(const std::string& name,
-                             const cvc5::Sort& type,
+                             const Sort& type,
                              bool skipExisting)
 {
   if (skipExisting && isDeclared(name, SYM_SORT))
@@ -241,24 +243,26 @@ void ParserState::defineType(const std::string& name,
 }
 
 void ParserState::defineType(const std::string& name,
-                             const std::vector<cvc5::Sort>& params,
-                             const cvc5::Sort& type)
+                             const std::vector<Sort>& params,
+                             const Sort& type)
 {
   d_symtab->bindType(name, params, type);
   Assert(isDeclared(name, SYM_SORT));
 }
 
 void ParserState::defineParameterizedType(const std::string& name,
-                                          const std::vector<cvc5::Sort>& params,
-                                          const cvc5::Sort& type)
+                                          const std::vector<Sort>& params,
+                                          const Sort& type)
 {
-  if (TraceIsOn("parser")) {
+  if (TraceIsOn("parser"))
+  {
     Trace("parser") << "defineParameterizedType(" << name << ", "
                     << params.size() << ", [";
-    if (params.size() > 0) {
+    if (params.size() > 0)
+    {
       copy(params.begin(),
            params.end() - 1,
-           ostream_iterator<cvc5::Sort>(Trace("parser"), ", "));
+           ostream_iterator<Sort>(Trace("parser"), ", "));
       Trace("parser") << params.back();
     }
     Trace("parser") << "], " << type << ")" << std::endl;
@@ -266,51 +270,50 @@ void ParserState::defineParameterizedType(const std::string& name,
   defineType(name, params, type);
 }
 
-cvc5::Sort ParserState::mkSort(const std::string& name)
+Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
-  cvc5::Sort type = d_solver->mkUninterpretedSort(name);
+  Sort type = d_solver->mkUninterpretedSort(name);
   defineType(name, type);
   return type;
 }
 
-cvc5::Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
+Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  cvc5::Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
-  defineType(name, vector<cvc5::Sort>(arity), type);
+  Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
+  defineType(name, vector<Sort>(arity), type);
   return type;
 }
 
-cvc5::Sort ParserState::mkUnresolvedType(const std::string& name)
+Sort ParserState::mkUnresolvedType(const std::string& name)
 {
-  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name);
+  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name);
   defineType(name, unresolved);
   return unresolved;
 }
 
-cvc5::Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
-                                                    size_t arity)
+Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
+                                              size_t arity)
 {
-  cvc5::Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
-  defineType(name, vector<cvc5::Sort>(arity), unresolved);
+  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, arity);
+  defineType(name, vector<Sort>(arity), unresolved);
   return unresolved;
 }
 
-cvc5::Sort ParserState::mkUnresolvedTypeConstructor(
-    const std::string& name, const std::vector<cvc5::Sort>& params)
+Sort ParserState::mkUnresolvedTypeConstructor(const std::string& name,
+                                              const std::vector<Sort>& params)
 {
   Trace("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  cvc5::Sort unresolved =
-      d_solver->mkUnresolvedDatatypeSort(name, params.size());
+  Sort unresolved = d_solver->mkUnresolvedDatatypeSort(name, params.size());
   defineType(name, params, unresolved);
-  cvc5::Sort t = getParametricSort(name, params);
+  Sort t = getParametricSort(name, params);
   return unresolved;
 }
 
-cvc5::Sort ParserState::mkUnresolvedType(const std::string& name, size_t arity)
+Sort ParserState::mkUnresolvedType(const std::string& name, size_t arity)
 {
   if (arity == 0)
   {
@@ -319,52 +322,60 @@ cvc5::Sort ParserState::mkUnresolvedType(const std::string& name, size_t arity)
   return mkUnresolvedTypeConstructor(name, arity);
 }
 
-std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
-    std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload)
+std::vector<Sort> ParserState::bindMutualDatatypeTypes(
+    std::vector<DatatypeDecl>& datatypes, bool doOverload)
 {
-  try {
-    std::vector<cvc5::Sort> types = d_solver->mkDatatypeSorts(datatypes);
+  try
+  {
+    std::vector<Sort> types = d_solver->mkDatatypeSorts(datatypes);
 
     Assert(datatypes.size() == types.size());
 
-    for (unsigned i = 0; i < datatypes.size(); ++i) {
-      cvc5::Sort t = types[i];
-      const cvc5::Datatype& dt = t.getDatatype();
+    for (unsigned i = 0; i < datatypes.size(); ++i)
+    {
+      Sort t = types[i];
+      const Datatype& dt = t.getDatatype();
       const std::string& name = dt.getName();
       Trace("parser-idt") << "define " << name << " as " << t << std::endl;
-      if (isDeclared(name, SYM_SORT)) {
+      if (isDeclared(name, SYM_SORT))
+      {
         throw ParserException(name + " already declared");
       }
       if (dt.isParametric())
       {
-        std::vector<cvc5::Sort> paramTypes = dt.getParameters();
+        std::vector<Sort> paramTypes = dt.getParameters();
         defineType(name, paramTypes, t);
       }
       else
       {
         defineType(name, t);
       }
-      std::unordered_set< std::string > consNames;
-      std::unordered_set< std::string > selNames;
+      std::unordered_set<std::string> consNames;
+      std::unordered_set<std::string> selNames;
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
-        const cvc5::DatatypeConstructor& ctor = dt[j];
-        cvc5::Term constructor = ctor.getTerm();
+        const DatatypeConstructor& ctor = dt[j];
+        Term constructor = ctor.getTerm();
         Trace("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
-        if(consNames.find(constructorName)==consNames.end()) {
-          if(!doOverload) {
+        if (consNames.find(constructorName) == consNames.end())
+        {
+          if (!doOverload)
+          {
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
           defineVar(constructorName, constructor, doOverload);
           consNames.insert(constructorName);
-        }else{
-          throw ParserException(constructorName + " already declared in this datatype");
+        }
+        else
+        {
+          throw ParserException(constructorName
+                                + " already declared in this datatype");
         }
         std::string testerName;
         if (getTesterName(constructor, testerName))
         {
-          cvc5::Term tester = ctor.getTesterTerm();
+          Term tester = ctor.getTesterTerm();
           Trace("parser-idt") << "+ define " << testerName << std::endl;
           if (!doOverload)
           {
@@ -374,18 +385,23 @@ std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
         }
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
-          const cvc5::DatatypeSelector& sel = ctor[k];
-          cvc5::Term selector = sel.getTerm();
+          const DatatypeSelector& sel = ctor[k];
+          Term selector = sel.getTerm();
           Trace("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = sel.getName();
-          if(selNames.find(selectorName)==selNames.end()) {
-            if(!doOverload) {
+          if (selNames.find(selectorName) == selNames.end())
+          {
+            if (!doOverload)
+            {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
             defineVar(selectorName, selector, doOverload);
             selNames.insert(selectorName);
-          }else{
-            throw ParserException(selectorName + " already declared in this datatype");
+          }
+          else
+          {
+            throw ParserException(selectorName
+                                  + " already declared in this datatype");
           }
         }
       }
@@ -398,20 +414,20 @@ std::vector<cvc5::Sort> ParserState::bindMutualDatatypeTypes(
   }
 }
 
-cvc5::Sort ParserState::mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
-                                           cvc5::Sort range,
-                                           std::vector<cvc5::Term>& flattenVars)
+Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts,
+                                     Sort range,
+                                     std::vector<Term>& flattenVars)
 {
   if (range.isFunction())
   {
-    std::vector<cvc5::Sort> domainTypes = range.getFunctionDomainSorts();
+    std::vector<Sort> domainTypes = range.getFunctionDomainSorts();
     for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
     {
       sorts.push_back(domainTypes[i]);
       // the introduced variable is internal (not parsable)
       std::stringstream ss;
       ss << "__flatten_var_" << i;
-      cvc5::Term v = d_solver->mkVar(domainTypes[i], ss.str());
+      Term v = d_solver->mkVar(domainTypes[i], ss.str());
       flattenVars.push_back(v);
     }
     range = range.getFunctionCodomainSort();
@@ -423,8 +439,7 @@ cvc5::Sort ParserState::mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
   return d_solver->mkFunctionSort(sorts, range);
 }
 
-cvc5::Sort ParserState::mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
-                                           cvc5::Sort range)
+Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
 {
   if (sorts.empty())
   {
@@ -434,7 +449,7 @@ cvc5::Sort ParserState::mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
   if (TraceIsOn("parser"))
   {
     Trace("parser") << "mkFlatFunctionType: range " << range << " and domains ";
-    for (cvc5::Sort t : sorts)
+    for (Sort t : sorts)
     {
       Trace("parser") << " " << t;
     }
@@ -442,35 +457,34 @@ cvc5::Sort ParserState::mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
   }
   while (range.isFunction())
   {
-    std::vector<cvc5::Sort> domainTypes = range.getFunctionDomainSorts();
+    std::vector<Sort> domainTypes = range.getFunctionDomainSorts();
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
     range = range.getFunctionCodomainSort();
   }
   return d_solver->mkFunctionSort(sorts, range);
 }
 
-cvc5::Term ParserState::mkHoApply(cvc5::Term expr,
-                                  const std::vector<cvc5::Term>& args)
+Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
-    expr = d_solver->mkTerm(cvc5::HO_APPLY, {expr, args[i]});
+    expr = d_solver->mkTerm(HO_APPLY, {expr, args[i]});
   }
   return expr;
 }
 
-cvc5::Term ParserState::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
+Term ParserState::applyTypeAscription(Term t, Sort s)
 {
-  cvc5::Kind k = t.getKind();
-  if (k == cvc5::SET_EMPTY)
+  Kind k = t.getKind();
+  if (k == SET_EMPTY)
   {
     t = d_solver->mkEmptySet(s);
   }
-  else if (k == cvc5::BAG_EMPTY)
+  else if (k == BAG_EMPTY)
   {
     t = d_solver->mkEmptyBag(s);
   }
-  else if (k == cvc5::CONST_SEQUENCE)
+  else if (k == CONST_SEQUENCE)
   {
     if (!s.isSequence())
     {
@@ -486,30 +500,30 @@ cvc5::Term ParserState::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
     }
     t = d_solver->mkEmptySequence(s.getSequenceElementSort());
   }
-  else if (k == cvc5::SET_UNIVERSE)
+  else if (k == SET_UNIVERSE)
   {
     t = d_solver->mkUniverseSet(s);
   }
-  else if (k == cvc5::SEP_NIL)
+  else if (k == SEP_NIL)
   {
     t = d_solver->mkSepNil(s);
   }
-  else if (k == cvc5::APPLY_CONSTRUCTOR)
+  else if (k == APPLY_CONSTRUCTOR)
   {
-    std::vector<cvc5::Term> children(t.begin(), t.end());
+    std::vector<Term> children(t.begin(), t.end());
     // apply type ascription to the operator and reconstruct
     children[0] = applyTypeAscription(children[0], s);
-    t = d_solver->mkTerm(cvc5::APPLY_CONSTRUCTOR, children);
+    t = d_solver->mkTerm(APPLY_CONSTRUCTOR, children);
   }
   // !!! temporary until datatypes are refactored in the new API
-  cvc5::Sort etype = t.getSort();
+  Sort etype = t.getSort();
   if (etype.isDatatypeConstructor())
   {
     // Type ascriptions only have an effect on the node structure if this is a
     // parametric datatype.
     // get the datatype that t belongs to
-    cvc5::Sort etyped = etype.getDatatypeConstructorCodomainSort();
-    cvc5::Datatype d = etyped.getDatatype();
+    Sort etyped = etype.getDatatypeConstructorCodomainSort();
+    Datatype d = etyped.getDatatype();
     // Note that we check whether the datatype is parametric, and not whether
     // etyped is a parametric datatype, since e.g. the smt2 parser constructs
     // an arbitrary instantitated constructor term before it is resolved.
@@ -518,7 +532,7 @@ cvc5::Term ParserState::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
     if (d.isParametric())
     {
       // lookup by name
-      cvc5::DatatypeConstructor dc = d.getConstructor(t.toString());
+      DatatypeConstructor dc = d.getConstructor(t.toString());
       // ask the constructor for the specialized constructor term
       t = dc.getInstantiatedTerm(s);
     }
@@ -536,7 +550,7 @@ cvc5::Term ParserState::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
   // Otherwise, check that the type is correct. Type ascriptions in SMT-LIB 2.6
   // referred to the range of function sorts. Note that this is only a check
   // and does not impact the returned term.
-  cvc5::Sort checkSort = t.getSort();
+  Sort checkSort = t.getSort();
   if (checkSort.isFunction())
   {
     checkSort = checkSort.getFunctionCodomainSort();
@@ -553,12 +567,11 @@ cvc5::Term ParserState::applyTypeAscription(cvc5::Term t, cvc5::Sort s)
 
 bool ParserState::isDeclared(const std::string& name, SymbolType type)
 {
-  switch (type) {
+  switch (type)
+  {
     case SYM_VARIABLE: return d_symtab->isBound(name);
-    case SYM_SORT:
-      return d_symtab->isBoundType(name);
-    case SYM_VERBATIM:
-      Unreachable();
+    case SYM_SORT: return d_symtab->isBoundType(name);
+    case SYM_VERBATIM: Unreachable();
   }
   Assert(false);  // Unhandled(type);
   return false;
@@ -569,37 +582,41 @@ void ParserState::checkDeclaration(const std::string& varName,
                                    SymbolType type,
                                    std::string notes)
 {
-  if (!d_checksEnabled) {
+  if (!d_checksEnabled)
+  {
     return;
   }
 
-  switch (check) {
+  switch (check)
+  {
     case CHECK_DECLARED:
-      if (!isDeclared(varName, type)) {
-        parseError("Symbol '" + varName + "' not declared as a " +
-                   (type == SYM_VARIABLE ? "variable" : "type") +
-                   (notes.size() == 0 ? notes : "\n" + notes));
+      if (!isDeclared(varName, type))
+      {
+        parseError("Symbol '" + varName + "' not declared as a "
+                   + (type == SYM_VARIABLE ? "variable" : "type")
+                   + (notes.size() == 0 ? notes : "\n" + notes));
       }
       break;
 
     case CHECK_UNDECLARED:
-      if (isDeclared(varName, type)) {
-        parseError("Symbol '" + varName + "' previously declared as a " +
-                   (type == SYM_VARIABLE ? "variable" : "type") +
-                   (notes.size() == 0 ? notes : "\n" + notes));
+      if (isDeclared(varName, type))
+      {
+        parseError("Symbol '" + varName + "' previously declared as a "
+                   + (type == SYM_VARIABLE ? "variable" : "type")
+                   + (notes.size() == 0 ? notes : "\n" + notes));
       }
       break;
 
-    case CHECK_NONE:
-      break;
+    case CHECK_NONE: break;
 
     default: Assert(false);  // Unhandled(check);
   }
 }
 
-void ParserState::checkFunctionLike(cvc5::Term fun)
+void ParserState::checkFunctionLike(Term fun)
 {
-  if (d_checksEnabled && !isFunctionLike(fun)) {
+  if (d_checksEnabled && !isFunctionLike(fun))
+  {
     stringstream ss;
     ss << "Expecting function-like symbol, found '";
     ss << fun;
@@ -608,14 +625,23 @@ void ParserState::checkFunctionLike(cvc5::Term fun)
   }
 }
 
-void ParserState::addOperator(cvc5::Kind kind)
+void ParserState::addOperator(Kind kind) { d_logicOperators.insert(kind); }
+
+void ParserState::warning(const std::string& msg) { d_psc->warning(msg); }
+
+void ParserState::parseError(const std::string& msg) { d_psc->parseError(msg); }
+
+void ParserState::unexpectedEOF(const std::string& msg)
 {
-  d_logicOperators.insert(kind);
+  d_psc->unexpectedEOF(msg);
 }
+
+void ParserState::preemptCommand(Command* cmd) { d_psc->preemptCommand(cmd); }
 
 void ParserState::attributeNotSupported(const std::string& attr)
 {
-  if (d_attributesWarnedAbout.find(attr) == d_attributesWarnedAbout.end()) {
+  if (d_attributesWarnedAbout.find(attr) == d_attributesWarnedAbout.end())
+  {
     stringstream ss;
     ss << "warning: Attribute '" << attr
        << "' not supported (ignoring this and all following uses)";
@@ -623,14 +649,6 @@ void ParserState::attributeNotSupported(const std::string& attr)
     d_attributesWarnedAbout.insert(attr);
   }
 }
-
-void ParserState::warning(const std::string& msg) { d_psc->warning(msg); }
-void ParserState::parseError(const std::string& msg) { d_psc->parseError(msg); }
-void ParserState::unexpectedEOF(const std::string& msg)
-{
-  d_psc->unexpectedEOF(msg);
-}
-void ParserState::preemptCommand(Command* cmd) { d_psc->preemptCommand(cmd); }
 
 size_t ParserState::scopeLevel() const { return d_symman->scopeLevel(); }
 
@@ -645,14 +663,14 @@ void ParserState::pushGetValueScope()
   // we must bind all relevant uninterpreted constants, which coincide with
   // the set of uninterpreted constants that are printed in the definition
   // of a model.
-  std::vector<cvc5::Sort> declareSorts = d_symman->getModelDeclareSorts();
+  std::vector<Sort> declareSorts = d_symman->getModelDeclareSorts();
   Trace("parser") << "Push get value scope, with " << declareSorts.size()
                   << " declared sorts" << std::endl;
-  for (const cvc5::Sort& s : declareSorts)
+  for (const Sort& s : declareSorts)
   {
-    std::vector<cvc5::Term> elements = d_solver->getModelDomainElements(s);
+    std::vector<Term> elements = d_solver->getModelDomainElements(s);
     Trace("parser") << "elements for " << s << ":" << std::endl;
-    for (const cvc5::Term& e : elements)
+    for (const Term& e : elements)
     {
       Trace("parser") << "  " << e.getKind() << " " << e << std::endl;
       if (e.getKind() == Kind::UNINTERPRETED_SORT_VALUE)
@@ -682,14 +700,20 @@ std::wstring ParserState::processAdHocStringEsc(const std::string& s)
     std::mbtowc(nullptr, nullptr, 0);
     const char* end = s.data() + s.size();
     const char* ptr = s.data();
-    for (wchar_t c; ptr != end; ) {
+    for (wchar_t c; ptr != end;)
+    {
       int res = std::mbtowc(&c, ptr, end - ptr);
-      if (res == -1) {
+      if (res == -1)
+      {
         std::cerr << "Invalid escape sequence in " << s << std::endl;
         break;
-      } else if (res == 0) {
+      }
+      else if (res == 0)
+      {
         break;
-      } else {
+      }
+      else
+      {
         ws += c;
         ptr += res;
       }
@@ -829,13 +853,22 @@ std::wstring ParserState::processAdHocStringEsc(const std::string& s)
   return res;
 }
 
-cvc5::Term ParserState::mkCharConstant(const std::string& s)
+Term ParserState::mkCharConstant(const std::string& s)
 {
   Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
          && s.size() <= 5 && s.size() > 0)
       << "Unexpected string for hexadecimal character " << s;
   wchar_t val = static_cast<wchar_t>(std::stoul(s, 0, 16));
   return d_solver->mkString(std::wstring(1, val));
+}
+
+uint32_t stringToUnsigned(const std::string& str)
+{
+  uint32_t result;
+  std::stringstream ss;
+  ss << str;
+  ss >> result;
+  return result;
 }
 
 }  // namespace parser

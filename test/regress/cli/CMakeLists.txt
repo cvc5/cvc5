@@ -651,6 +651,37 @@ set(regress_0_tests
   regress0/expect/scrub.06.cvc.smt2
   regress0/expect/scrub.08.sy
   regress0/expect/scrub.09.p
+  regress0/ff/as.smt2
+  regress0/ff/bigff_is_zero_sound.smt2
+  regress0/ff/bigff_is_zero_unsound.smt2
+  regress0/ff/bool_nary_or_sound.smt2
+  regress0/ff/bool_nary_or_unsound.smt2
+  regress0/ff/combination.smt2
+  regress0/ff/ctx.smt2
+  regress0/ff/ff_is_zero_sound.smt2
+  regress0/ff/ff_is_zero_unsound.smt2
+  regress0/ff/ff_xor_sound.smt2
+  regress0/ff/ff_xor_unsound.smt2
+  regress0/ff/ff_xor_unsound_model.smt2
+  regress0/ff/multicheck.smt2
+  regress0/ff/negneg.smt2
+  regress0/ff/randcompile-sound-3i-5t-circ.smt2
+  regress0/ff/randcompile-sound-3i-5t-zokcirc.smt2
+  regress0/ff/randcompile-sound-3i-5t-zokref.smt2
+  regress0/ff/rewriter.smt2
+  regress0/ff/simple.smt2
+  regress0/ff/univar_conjunction_sat.smt2
+  regress0/ff/univar_conjunction_unsat.smt2
+  regress0/ff/with_uf.smt2
+  regress0/ff/with_uf2.smt2
+  regress0/ff/with_uf3.smt2
+  regress0/ff/with_uf4.smt2
+  regress0/ff/with_uf5.smt2
+  regress0/ff/with_uf6.smt2
+  regress0/ff/with_uf7.smt2
+  regress0/ff/with_uf8.smt2
+  regress0/ff/with_uf9.smt2
+  regress0/ff/xor_unsound_missing.smt2
   regress0/flet.smtv1.smt2
   regress0/flet2.smtv1.smt2
   regress0/fmf/array_card.smt2
@@ -953,6 +984,7 @@ set(regress_0_tests
   regress0/parser/issue8377-resolve-indexed.smt2
   regress0/parser/issue8767-exception.smt2
   regress0/parser/issue9140-check-to-fp-args.smt2
+  regress0/parser/issue9350-ishell-scope-reset.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -961,6 +993,7 @@ set(regress_0_tests
   regress0/parser/non-strict-real-vs-int.smt2
   regress0/parser/non_well_founded_dt.smt2
   regress0/parser/non_well_founded_dts.smt2
+  regress0/parser/parser-line-error.smt2
   regress0/parser/proj-issue370-push-pop-global.smt2
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/real-numerals.smt2
