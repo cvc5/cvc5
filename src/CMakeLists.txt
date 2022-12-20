@@ -1391,6 +1391,10 @@ install(TARGETS cvc5
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
+if(BUILD_SHARED_LIBS)
+  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+endif()
+
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)
 
