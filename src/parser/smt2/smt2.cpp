@@ -500,10 +500,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       }
       Sort t = getSort(symbols[0]);
       // convert second symbol back to a numeral
-      uint32_t ubound;
-      std::stringstream ss;
-      ss << symbols[1];
-      ss >> ubound;
+      uint32_t ubound = stringToUnsigned(symbols[1]);
       return d_solver->mkCardinalityConstraint(t, ubound);
     }
   }
