@@ -91,7 +91,7 @@ BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v)
     BoundVarType bvt = d_bint->getBoundVarType(q, v);
     // If the bounded integer module has a bound, use it. Otherwise, we fall
     // through.
-    if (bvt!=BOUND_NONE)
+    if (bvt != BOUND_NONE)
     {
       return bvt;
     }

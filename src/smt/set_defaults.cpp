@@ -316,7 +316,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 
   // Set default options associated with strings-exp, which is enabled by
   // default if the logic includes strings.
-  if (logic.isTheoryEnabled(THEORY_STRINGS) && !options().strings.stringExpWasSetByUser)
+  if (logic.isTheoryEnabled(THEORY_STRINGS)
+      && !options().strings.stringExpWasSetByUser)
   {
     opts.writeStrings().stringExp = true;
     Trace("smt") << "Turning stringExp on since strings are enabled\n";
@@ -325,7 +326,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   // if we are using eager string preprocessing or aggressive regular expression
   // elimination, which may introduce quantified formulas at preprocess time.
   if (opts.strings.stringExp || !opts.strings.stringLazyPreproc
-    || opts.strings.regExpElim == options::RegExpElimMode::AGG)
+      || opts.strings.regExpElim == options::RegExpElimMode::AGG)
   {
     // We require quantifiers since extended functions reduce using them.
     if (!logic.isQuantified())
