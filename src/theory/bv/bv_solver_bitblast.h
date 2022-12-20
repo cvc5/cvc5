@@ -48,7 +48,7 @@ class BVSolverBitblast : public BVSolver
                    TheoryInferenceManager& inferMgr);
   ~BVSolverBitblast() = default;
 
-  bool needsEqualityEngine(EeSetupInfo& esi) override { return true; }
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
 
   void preRegisterTerm(TNode n) override {}
 

@@ -134,6 +134,11 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
   initSatSolver();
 }
 
+bool BVSolverBitblast::needsEqualityEngine(EeSetupInfo& esi) 
+{ 
+  return options().bv.bvEqEngine; 
+}
+
 void BVSolverBitblast::postCheck(Theory::Effort level)
 {
   if (level != Theory::Effort::EFFORT_FULL)
