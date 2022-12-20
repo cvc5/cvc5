@@ -287,6 +287,18 @@ Term Smt2TermParser::parseTerm()
         ret = d_state.getSolver()->mkBitVector(binStr.size(), binStr, 2);
       }
       break;
+      case Token::FIELD_LITERAL:
+      {
+        std::string ffStr = d_lex.tokenStr();
+        Assert(ffStr.find("#f") == 0);
+        size_t mPos = ffStr.find("m");
+        Assert(mPos > 2);
+        std::string ffValStr = ffStr.substr(2, mPos - 2);
+        std::string ffModStr = ffStr.substr(mPos + 1);
+        Sort ffSort = d_state.getSolver()->mkFiniteFieldSort(ffModStr);
+        ret = d_state.getSolver()->mkFiniteFieldElem(ffValStr, ffSort);
+      }
+      break;
       case Token::STRING_LITERAL:
       {
         std::string s = d_lex.tokenStr();
