@@ -123,6 +123,7 @@ unterminated_quoted_symbol \|[^\|\\]*
 {decimal}   return cvc5::parser::DECIMAL_LITERAL;
 {hexstr}   return cvc5::parser::HEX_LITERAL;
 {bitstr}   return cvc5::parser::BINARY_LITERAL;
+{ffstr}   return cvc5::parser::FIELD_LITERAL;
 \:{simple_symbol}  return cvc5::parser::KEYWORD;
 {quoted_symbol} {
                   // increment location for each line
