@@ -186,6 +186,7 @@ const char* toString(Rewrite r)
     case Rewrite::STR_LEQ_ID: return "STR_LEQ_ID";
     case Rewrite::STR_REV_CONST: return "STR_REV_CONST";
     case Rewrite::STR_REV_IDEM: return "STR_REV_IDEM";
+    case Rewrite::STR_REV_UNIT: return "STR_REV_UNIT";
     case Rewrite::STR_REV_MINSCOPE_CONCAT: return "STR_REV_MINSCOPE_CONCAT";
     case Rewrite::SUBSTR_REPL_SWAP: return "SUBSTR_REPL_SWAP";
     case Rewrite::SUF_PREFIX_CONST: return "SUF_PREFIX_CONST";

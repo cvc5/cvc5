@@ -1178,7 +1178,7 @@ bool SetDefaults::safeUnsatCores(const Options& opts) const
   return opts.smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS;
 }
 
-bool SetDefaults::incompatibleWithSygus(Options& opts,
+bool SetDefaults::incompatibleWithSygus(const Options& opts,
                                         std::ostream& reason) const
 {
   // sygus should not be combined with preprocessing passes that convert the
@@ -1195,7 +1195,7 @@ bool SetDefaults::incompatibleWithSygus(Options& opts,
   return false;
 }
 
-bool SetDefaults::incompatibleWithQuantifiers(Options& opts,
+bool SetDefaults::incompatibleWithQuantifiers(const Options& opts,
                                               std::ostream& reason) const
 {
   if (opts.smt.ackermann)

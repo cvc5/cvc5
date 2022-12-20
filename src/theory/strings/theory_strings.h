@@ -28,11 +28,13 @@
 #include "theory/ext_theory.h"
 #include "theory/strings/array_solver.h"
 #include "theory/strings/base_solver.h"
+#include "theory/strings/code_point_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/eager_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/model_cons_default.h"
 #include "theory/strings/normal_form.h"
 #include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
@@ -196,30 +198,6 @@ class TheoryStrings : public Theory {
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  //-----------------------inference steps
-  /** check register terms pre-normal forms
-   *
-   * This calls registerTerm(n,2) on all non-congruent strings in the
-   * equality engine of this class.
-   */
-  void checkRegisterTermsPreNormalForm();
-  /** check codes
-   *
-   * This inference schema ensures that constraints between str.code terms
-   * are satisfied by models that correspond to extensions of the current
-   * assignment. In particular, this method ensures that str.code can be
-   * given an interpretation that is injective for string arguments with length
-   * one. It may add lemmas of the form:
-   *   str.code(x) == -1 V str.code(x) != str.code(y) V x == y
-   */
-  void checkCodes();
-  /** check register terms for normal forms
-   *
-   * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
-   * (t1, ..., tn) of all string equivalence classes { s1, ..., sm } such that
-   * there does not exist a term of the form str.len(si) in the current context.
-   */
-  void checkRegisterTermsNormalForms();
   /**
    * Turn a sequence constant into a skeleton specifying how to construct
    * its value.
@@ -248,7 +226,7 @@ class TheoryStrings : public Theory {
   Node mkSkeletonFromBase(Node r, size_t currIndex, size_t nextIndex);
   //-----------------------end inference steps
   /** run the given inference step */
-  void runInferStep(InferStep s, int effort);
+  void runInferStep(InferStep s, Theory::Effort e, int effort);
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
   /** print strings equivalence classes for debugging */
@@ -297,6 +275,8 @@ class TheoryStrings : public Theory {
    * involving extended string functions.
    */
   ExtfSolver d_esolver;
+  /** Code point solver */
+  CodePointSolver d_psolver;
   /**
    * The array solver, which implements specialized approaches for
    * seq.nth/seq.update.
@@ -308,6 +288,8 @@ class TheoryStrings : public Theory {
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */
   StringsFmf d_stringsFmf;
+  /** Model constructor (default) */
+  ModelConsDefault d_mcd;
   /** The representation of the strategy */
   Strategy d_strat;
   /**
