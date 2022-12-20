@@ -264,7 +264,7 @@ bool BVSolverBitblast::preNotifyFact(
     d_bbFacts.push_back(fact);
   }
 
-  return false;  // Return false to enable equality engine reasoning in Theory.
+  return !options().bv.bvEqEngine;  // Return false to enable equality engine reasoning in Theory.
 }
 
 TrustNode BVSolverBitblast::explain(TNode n)
