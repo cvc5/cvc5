@@ -2312,7 +2312,8 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       Node conc = NodeManager::currentNM()->mkAnd(cc);
       Assert(d_state.areEqual(niLenTerm, njLenTerm))
           << "Lengths not equal " << niLenTerm << " " << njLenTerm;
-      d_im.sendInference(ant, {}, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
+      d_im.sendInference(
+          ant, {}, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
       return true;
     }
 
