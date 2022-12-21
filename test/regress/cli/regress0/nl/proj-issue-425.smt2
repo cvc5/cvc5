@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --solve-int-as-bv=5524936381719514648
-; EXPECT-ERROR: Error in option parsing
-; ERROR-SCRUBBER: grep -o "Error in option parsing"
+; ERROR-SCRUBBER: sed -e '.*Error in option parsing.*/d'
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXIT: 1
