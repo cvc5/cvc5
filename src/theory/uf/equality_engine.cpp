@@ -76,10 +76,9 @@ void EqualityEngine::init() {
   Trace("equality") << "EqualityEdge::EqualityEngine(): edge_null = " << +null_edge << std::endl;
   Trace("equality") << "EqualityEdge::EqualityEngine(): trigger_null = " << +null_trigger << std::endl;
 
-  // If we are not at level zero when we initialize this equality engine, we
-  // may remove true/false from the equality engine when we pop to level zero,
-  // which leads to issues.
-  Assert(d_context->getLevel() == 0);
+  // Note that we previously checked whether the context level was zero here,
+  // to ensure that true/false could never be removed. However, this assertion
+  // restricts our ability to construct equality engines in nested contexts.
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);

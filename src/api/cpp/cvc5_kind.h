@@ -1940,6 +1940,68 @@ enum Kind : int32_t
    */
   BITVECTOR_TO_NAT,
 
+  /* Finite Fields --------------------------------------------------------- */
+
+  /**
+   * Finite field constant.
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkFiniteFieldElem(const std::string&, const Sort&) const
+   */
+  CONST_FINITE_FIELD,
+  /**
+   * Negation of a finite field element (additive inverse).
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of finite field Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  FINITE_FIELD_NEG,
+  /**
+   * Addition of two or more finite field elements.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of finite field Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  FINITE_FIELD_ADD,
+  /**
+   * Multiplication of two or more finite field elements.
+   *
+   * - Arity: ``n > 1``
+   *
+   *   - ``1..n:`` Terms of finite field Sort (sorts must match)
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - Solver::mkTerm(Kind, const std::vector<Term>&) const
+   *   - Solver::mkTerm(const Op&, const std::vector<Term>&) const
+   *
+   * - Create Op of this kind with:
+   *
+   *   - Solver::mkOp(Kind, const std::vector<uint32_t>&) const
+   */
+  FINITE_FIELD_MULT,
+
   /* FP -------------------------------------------------------------------- */
 
   /**
