@@ -123,7 +123,8 @@ class ExtfSolver : protected EnvObj
    * reduces some of the "easier" extended functions, and effort=2 reduces
    * the rest.
    */
-  void checkExtfReductions(int effort);
+  void checkExtfReductions(Theory::Effort e);
+  void checkExtfReductionsEager();
   /** get preprocess module */
   StringsPreprocess* getPreprocess() { return &d_preproc; }
 
@@ -177,13 +178,17 @@ class ExtfSolver : protected EnvObj
    */
   std::string debugPrintModel();
 
+  /** is reduced? */
+  bool isReduced(const Node& n) const;
+  /** mark reduced */
+  void markReduced(const Node& n);
+
  private:
   /**
    * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
-   * true if a reduction lemma was sent if doSend = true, or would have been
-   * sent if doSend = false.
+   * true if a reduction lemma was sent.
    */
-  bool checkExtfReductionsInternal(int effort, bool doSend);
+  bool checkExtfReductionsInternal(int effort);
   /**
    * Determines if n should be reduced based on the effort level.
    *
