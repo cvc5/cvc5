@@ -404,15 +404,15 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
             if (m1Neg)
             {
               // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
-              //   mark ~str.in.re(x, R2) as reduced
-              d_im.markReduced(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
+              //   mark ~str.in.re(x, R2) as inactive
+              d_im.markInactive(m2Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG);
               remove.insert(m2);
             }
             else
             {
               // str.in.re(x, R1) includes str.in.re(x, R2) --->
-              //   mark str.in.re(x, R1) as reduced
-              d_im.markReduced(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
+              //   mark str.in.re(x, R1) as inactive
+              d_im.markInactive(m1Lit, ExtReducedId::STRINGS_REGEXP_INCLUDE);
               remove.insert(m1);
 
               // We don't need to process m1 anymore
@@ -537,12 +537,12 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
-      d_im.markReduced(m, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
+      d_im.markInactive(m, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
     }
     else if (mresr == m)
     {
       // same as above, opposite direction
-      d_im.markReduced(mi, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
+      d_im.markInactive(mi, ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME);
     }
     else
     {
@@ -557,9 +557,9 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       }
       d_im.sendInference(
           vec_nodes, mres, InferenceId::STRINGS_RE_INTER_INFER, false, true);
-      // both are reduced
-      d_im.markReduced(m, ExtReducedId::STRINGS_REGEXP_INTER);
-      d_im.markReduced(mi, ExtReducedId::STRINGS_REGEXP_INTER);
+      // both are inactive
+      d_im.markInactive(m, ExtReducedId::STRINGS_REGEXP_INTER);
+      d_im.markInactive(mi, ExtReducedId::STRINGS_REGEXP_INTER);
       // do not send more than one lemma for this class
       return true;
     }
