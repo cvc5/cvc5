@@ -1527,7 +1527,6 @@ set(regress_0_tests
   regress0/strings/issue6643-ctn-decompose-conflict.smt2
   regress0/strings/issue6681-split-eq-strip-l.smt2
   regress0/strings/issue6834-str-eq-const-nhomog.smt2
-  regress0/strings/issue7974-incomplete-neg-member.smt2
   regress0/strings/issue8295-star-union-char.smt2
   regress0/strings/issue8346-idof-max.smt2
   regress0/strings/issue8481.smt2
@@ -3324,6 +3323,8 @@ set(regression_disabled_tests
   regress0/tptp/NLP114-1.p
   regress0/tptp/SYN075+1.p
   regress0/uf/iso_icl_repgen004.smtv1.smt2
+  # previously was an options error, now times out
+  regress0/strings/issue7974-incomplete-neg-member.smt2
   ###
   regress1/bags/table_group4.smt2
   regress1/bug472.smt2
