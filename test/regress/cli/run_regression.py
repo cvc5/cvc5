@@ -536,6 +536,7 @@ def run_benchmark(benchmark_info):
     )
 
     # If a scrubber command has been specified then apply it to the output.
+    # Make sure that the scrubber itself did not cause errors
     scrubber_error = ""
     if benchmark_info.scrubber:
         output, scrubber_error, _ = run_process(
@@ -544,7 +545,13 @@ def run_benchmark(benchmark_info):
             benchmark_info.timeout,
             output,
         )
-    assert(len(scrubber_error) == 0)
+    # Make sure that the scrubber itself did not cause errors
+    if len(scrubber_error) != 0:
+        print_error("scrubber command returned an error")
+        print_error("command: " + str(benchmark_info.scrubber))
+        print_error("error: " + str(scrubber_error))
+        return EXIT_FAILURE
+    
     scrubber_error = ""
     if benchmark_info.error_scrubber:
         error, scrubber_error, _ = run_process(
@@ -553,7 +560,12 @@ def run_benchmark(benchmark_info):
             benchmark_info.timeout,
             error,
         )
-    assert(len(scrubber_error) == 0)
+    # Make sure that the scrubber itself did not cause errors
+    if len(scrubber_error) != 0:
+        print_error("scrubber command returned an error")
+        print_error("command:" + str(benchmark_info.error_scrubber))
+        print_error("error:" + str(scrubber_error))
+        return EXIT_FAILURE
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.
