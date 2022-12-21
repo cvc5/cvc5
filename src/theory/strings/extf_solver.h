@@ -184,17 +184,28 @@ class ExtfSolver : protected EnvObj
    */
   std::string debugPrintModel();
 
-  /** is reduced? */
+  /**
+   * Is extended function (or regular expression membership) reduced? Note that
+   * if n has Boolean type, our reductions are dependent upon the polarity of n,
+   * in which case n may be the negation of an extended function. For
+   * example, (not (str.in_re x R)) indicates that we have reduced
+   * (str.in_re x R) based on its negative unfolding.
+   */
   bool isReduced(const Node& n) const;
-  /** mark reduced */
+  /** 
+   * Mark that extended function (or regular expression membership)  n has been
+   * reduced. Like above, n could be a negation of an extended function of
+   * Boolean type.
+   */
   void markReduced(const Node& n);
 
  private:
   /**
    * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
-   * true if a reduction lemma was sent.
+   * true if a reduction lemma was sent if doSend = true, or would have been
+   * sent if doSend = false.
    */
-  bool checkExtfReductionsInternal(int effort);
+  bool checkExtfReductionsInternal(int effort, bool doSend);
   /**
    * Determines if n should be reduced based on the effort level.
    *

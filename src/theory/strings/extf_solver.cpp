@@ -274,17 +274,17 @@ void ExtfSolver::doReduction(Node n, int pol)
 void ExtfSolver::checkExtfReductionsEager()
 {
   // return value is ignored
-  checkExtfReductionsInternal(1);
+  checkExtfReductionsInternal(1, true);
 }
 
 void ExtfSolver::checkExtfReductions(Theory::Effort e)
 {
   int effort = e == Theory::EFFORT_LAST_CALL ? 3 : 2;
   // return value is ignored
-  checkExtfReductionsInternal(effort);
+  checkExtfReductionsInternal(effort, true);
 }
 
-bool ExtfSolver::checkExtfReductionsInternal(int effort)
+bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
 {
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
