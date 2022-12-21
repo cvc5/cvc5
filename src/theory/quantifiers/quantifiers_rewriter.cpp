@@ -34,6 +34,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
+#include "expr/elim_shadow_converter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -75,10 +76,6 @@ struct QRewDtExpandAttributeId
 {
 };
 using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
-struct QElimShadowAttributeId
-{
-};
-using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -563,10 +560,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
       {
         Trace("quantifiers-rewrite-unshadow")
             << "Found shadowed variable " << v << " in " << q << std::endl;
-        BoundVarManager* bvm = nm->getBoundVarManager();
         oldVars.push_back(v);
-        Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, v);
         newVars.push_back(nv);
       }
     }

@@ -1,0 +1,56 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Implementation of annotation elimination node conversion
+ */
+#include "cvc5_private.h"
+
+#ifndef CVC4__PROOF__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+#define CVC4__PROOF__EXPR__ELIM_SHADOW_NODE_CONVERTER_H
+
+#include "expr/node.h"
+#include "expr/node_converter.h"
+
+namespace cvc5::internal {
+
+/**
+ * This converts a node into one that does not involve shadowing with the
+ * given variables. In particular, if the given vars passed to the constructor
+ * are bound in any quantifier in a subterm of the node to convert, they
+ * are replaced by fresh variables.
+ */
+class ElimShadowNodeConverter : public NodeConverter
+{
+ public:
+  ElimShadowNodeConverter(const Node& q);
+  ~ElimShadowNodeConverter() {}
+  /** 
+   * Convert node n as described above during post-order traversal. This
+   * typically should be a subterm of the body of q, assuming that convert
+   * was called on the body of q.
+   */
+  Node postConvert(Node n) override;
+  /** 
+   * Get the bound variable used for eliminating shadowing of variable v
+   * bound by closure n that occurs as a subterm of closure q.
+   */
+  static Node getElimShadowVar(const Node& q, const Node& n, const Node& v);
+private:
+  /** The quantified formula to eliminate shadowing from */
+  Node d_quant;
+  /** The variables */
+  std::vector<Node> d_vars;
+};
+
+}  // namespace cvc5::internal
+
+#endif
