@@ -23,7 +23,7 @@
 
 #include "expr/node.h"
 #include "theory/rewriter.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 
 namespace cvc5::internal {
 namespace theory {

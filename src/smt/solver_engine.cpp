@@ -252,6 +252,7 @@ SolverEngine::~SolverEngine()
     d_interpolSolver.reset(nullptr);
     d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
+    d_smtDriver.reset(nullptr);
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
@@ -1846,8 +1847,6 @@ void SolverEngine::pop()
   Trace("smt") << "SMT pop()" << endl;
   d_ctxManager->userPop();
 
-  // Clear out assertion queues etc., in case anything is still in there
-  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   // clear the learned literals from the preprocessor
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
@@ -1870,10 +1869,7 @@ void SolverEngine::resetAssertions()
 
   Trace("smt") << "SMT resetAssertions()" << endl;
 
-  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   d_ctxManager->notifyResetAssertions();
-  // push the state to maintain global context around everything
-  d_ctxManager->setup(d_smtDriver.get());
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();

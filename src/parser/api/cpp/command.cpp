@@ -171,6 +171,8 @@ void Command::invoke(cvc5::Solver* solver, SymbolManager* sm, std::ostream& out)
   {
     printResult(solver, out);
   }
+  // always flush the output
+  out << std::flush;
 }
 
 std::string Command::toString() const

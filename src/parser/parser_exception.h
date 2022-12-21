@@ -98,6 +98,12 @@ class ParserEndOfFileException : public ParserException
 
 }; /* class ParserEndOfFileException */
 
+class InputStreamException : public internal::Exception
+{
+ public:
+  InputStreamException(const std::string& msg) : Exception(msg){}
+};
+
 }  // namespace parser
 }  // namespace cvc5
 
