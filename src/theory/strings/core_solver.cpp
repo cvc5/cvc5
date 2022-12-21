@@ -2292,7 +2292,6 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
           << "Disequality normalize empty" << std::endl;
       // the antecedant
       std::vector<Node> ant;
-      std::vector<Node> antn;
       // Get the length explanation, where we do not minimize the explanation.
       // Minimizing the explanation here may return a pair of length terms
       // that are not equal in the current context, which can lead to duplicate
@@ -2313,7 +2312,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       Node conc = NodeManager::currentNM()->mkAnd(cc);
       Assert(d_state.areEqual(niLenTerm, njLenTerm))
           << "Lengths not equal " << niLenTerm << " " << njLenTerm;
-      d_im.sendInference(ant, antn, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
+      d_im.sendInference(ant, {}, conc, InferenceId::STRINGS_DEQ_NORM_EMP, isRev, true);
       return true;
     }
 
