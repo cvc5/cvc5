@@ -75,7 +75,7 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   // eliminate shadowing in all children
   std::vector<Node> children;
   children.push_back(q[0]);
-  for (size_t i=1, nchild = q.getNumChildren(); i<nchild; i++)
+  for (size_t i = 1, nchild = q.getNumChildren(); i < nchild; i++)
   {
     children.push_back(esnc.convert(q[i]));
   }

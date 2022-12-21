@@ -1724,7 +1724,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
     for (const Node& v : body[0])
     {
       // check for shadowing
-      if (std::find(newArgs.begin(), newArgs.end(), v)==newArgs.end())
+      if (std::find(newArgs.begin(), newArgs.end(), v) == newArgs.end())
       {
         newArgs.push_back(v);
       }

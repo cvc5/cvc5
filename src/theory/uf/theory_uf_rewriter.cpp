@@ -15,13 +15,13 @@
 
 #include "theory/uf/theory_uf_rewriter.h"
 
+#include "expr/elim_shadow_converter.h"
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
-#include "expr/elim_shadow_converter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -107,7 +107,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   else if (k == kind::LAMBDA)
   {
     Node ret = rewriteLambda(node);
-    if (ret!=node)
+    if (ret != node)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
@@ -217,7 +217,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
       << "...failed to get array representation." << std::endl;
   // eliminate shadowing?
   Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
-  if (retElimShadow!=node)
+  if (retElimShadow != node)
   {
     return retElimShadow;
   }

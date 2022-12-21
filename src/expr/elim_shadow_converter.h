@@ -27,7 +27,7 @@ namespace cvc5::internal {
  * given variables. In particular, if the given vars passed to the constructor
  * are bound in any quantifier in a subterm of the node to convert, they
  * are replaced by fresh variables.
- * 
+ *
  * Shadowed variables may be introduced when e.g. quantified formulas
  * appear on the right hand sides of substitutions in preprocessing. They should
  * be eliminated by the rewriter. This utility is the standard method for
@@ -52,6 +52,7 @@ class ElimShadowNodeConverter : public NodeConverter
 
   /** Eliminate shadowing in the closure q */
   static Node eliminateShadow(const Node& q);
+
  private:
   /** The quantified formula to eliminate shadowing from */
   Node d_quant;
