@@ -58,11 +58,6 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
- * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
- * shadowed variable v, which is quantified by a subformula q' of quantified
- * formula q. Shadowed variables may be introduced when e.g. quantified formulas
- * appear on the right hand sides of substitutions in preprocessing. They are
- * eliminated by the rewriter.
  */
 struct QRewPrenexAttributeId
 {
@@ -1726,10 +1721,15 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
     //combine prenex
     std::vector< Node > newArgs;
     newArgs.insert(newArgs.end(), q[0].begin(), q[0].end());
-    for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-      newArgs.push_back( body[0][i] );
+    for (const Node& v : body[0])
+    {
+      // check for shadowing
+      if (std::find(newArgs.begin(), newArgs.end(), v)==newArgs.end())
+      {
+        newArgs.push_back(v);
+      }
     }
-    return mkForAll( newArgs, body[1], qa );
+    return mkForAll(newArgs, body[1], qa);
   }else if( body.getKind()==AND ){
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
