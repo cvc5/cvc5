@@ -292,6 +292,8 @@ void Smt2State::addCoreSymbols()
   addOperator(NOT, "not");
   addOperator(OR, "or");
   addOperator(XOR, "xor");
+  addClosureKind(FORALL, "forall");
+  addClosureKind(EXISTS, "exists");
 }
 
 void Smt2State::addOperator(Kind kind, const std::string& name)
@@ -306,6 +308,13 @@ void Smt2State::addIndexedOperator(Kind tKind, const std::string& name)
 {
   ParserState::addOperator(tKind);
   d_indexedOpKindMap[name] = tKind;
+}
+
+void Smt2State::addClosureKind(Kind tKind, const std::string& name)
+{
+  // also include it as a normal operator
+  addOperator(tKind, name);
+  d_closureKindMap[name] = tKind;
 }
 
 bool Smt2State::isIndexedOperatorEnabled(const std::string& name) const
@@ -462,6 +471,98 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   return Term();
 }
 
+Term Smt2State::mkIndexedConstant(const std::string& name,
+                                  const std::vector<std::string>& symbols)
+{
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
+    if (name == "char")
+    {
+      if (symbols.size() != 1)
+      {
+        parseError("Unexpected number of indices for char");
+      }
+      if (symbols[0].length() <= 2 || symbols[0].substr(0, 2) != "#x")
+      {
+        parseError(std::string("Unexpected index for char: `") + symbols[0]
+                   + "'");
+      }
+      return mkCharConstant(symbols[0].substr(2));
+    }
+  }
+  else if (d_logic.hasCardinalityConstraints())
+  {
+    if (name == "fmf.card")
+    {
+      if (symbols.size() != 2)
+      {
+        parseError("Unexpected number of indices for fmf.card");
+      }
+      Sort t = getSort(symbols[0]);
+      // convert second symbol back to a numeral
+      uint32_t ubound = stringToUnsigned(symbols[1]);
+      return d_solver->mkCardinalityConstraint(t, ubound);
+    }
+  }
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return Term();
+}
+
+Term Smt2State::mkIndexedOp(const std::string& name,
+                            const std::vector<std::string>& symbols)
+{
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
+  {
+    if (name == "is" || name == "update")
+    {
+      if (symbols.size() != 1)
+      {
+        parseError(std::string("Unexpected number of indices for " + name));
+      }
+      const std::string& cname = symbols[0];
+      // must be declared
+      checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
+      Term f = getExpressionForName(cname);
+      if (f.getKind() == APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
+      {
+        // for nullary constructors, must get the operator
+        f = f[0];
+      }
+      if (name == "is")
+      {
+        if (!f.getSort().isDatatypeConstructor())
+        {
+          parseError("Bad syntax for (_ is X), X must be a constructor.");
+        }
+        // get the datatype that f belongs to
+        Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+        Datatype d = sf.getDatatype();
+        // lookup by name
+        DatatypeConstructor dc = d.getConstructor(f.toString());
+        return dc.getTesterTerm();
+      }
+      else
+      {
+        Assert(name == "update");
+        if (!f.getSort().isDatatypeSelector())
+        {
+          parseError("Bad syntax for (_ update X), X must be a selector.");
+        }
+        std::string sname = f.toString();
+        // get the datatype that f belongs to
+        Sort sf = f.getSort().getDatatypeSelectorDomainSort();
+        Datatype d = sf.getDatatype();
+        // find the selector
+        DatatypeSelector ds = d.getSelector(f.toString());
+        // get the updater term
+        return ds.getUpdaterTerm();
+      }
+    }
+  }
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return Term();
+}
+
 Kind Smt2State::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
@@ -470,6 +571,17 @@ Kind Smt2State::getIndexedOpKind(const std::string& name)
     return (*kIt).second;
   }
   parseError(std::string("Unknown indexed function `") + name + "'");
+  return UNDEFINED_KIND;
+}
+
+Kind Smt2State::getClosureKind(const std::string& name)
+{
+  const auto& kIt = d_closureKindMap.find(name);
+  if (kIt != d_closureKindMap.end())
+  {
+    return (*kIt).second;
+  }
+  parseError(std::string("Unknown closure `") + name + "'");
   return UNDEFINED_KIND;
 }
 
@@ -592,6 +704,8 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
   if (d_logic.isHigherOrder())
   {
     addOperator(HO_APPLY, "@");
+    // lambda is a closure kind
+    addClosureKind(LAMBDA, "lambda");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH))
@@ -704,6 +818,8 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     addIndexedOperator(RELATION_GROUP, "rel.group");
     addIndexedOperator(RELATION_AGGREGATE, "rel.aggr");
     addIndexedOperator(RELATION_PROJECT, "rel.project");
+    // set.comprehension is a closure kind
+    addClosureKind(SET_COMPREHENSION, "set.comprehension");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
@@ -1468,6 +1584,11 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     parseError(ss.str());
   }
   return ret;
+}
+
+bool Smt2State::isClosure(const std::string& name)
+{
+  return d_closureKindMap.find(name) != d_closureKindMap.end();
 }
 
 std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)
