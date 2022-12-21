@@ -1198,6 +1198,7 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
     case CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
     case CHECK_CYCLES: d_csolver.checkCycles(); break;
     case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
+    case CHECK_NORMAL_FORMS_EQ_PROP: d_csolver.checkNormalFormsEqProp(); break;
     case CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
     case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
     case CHECK_CODES: d_psolver.checkCodes(); break;
