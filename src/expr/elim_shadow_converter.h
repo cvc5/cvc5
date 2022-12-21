@@ -33,18 +33,19 @@ class ElimShadowNodeConverter : public NodeConverter
  public:
   ElimShadowNodeConverter(const Node& q);
   ~ElimShadowNodeConverter() {}
-  /** 
+  /**
    * Convert node n as described above during post-order traversal. This
    * typically should be a subterm of the body of q, assuming that convert
    * was called on the body of q.
    */
   Node postConvert(Node n) override;
-  /** 
+  /**
    * Get the bound variable used for eliminating shadowing of variable v
    * bound by closure n that occurs as a subterm of closure q.
    */
   static Node getElimShadowVar(const Node& q, const Node& n, const Node& v);
-private:
+
+ private:
   /** The quantified formula to eliminate shadowing from */
   Node d_quant;
   /** The variables */

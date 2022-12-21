@@ -19,6 +19,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -34,7 +35,6 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "util/rational.h"
-#include "expr/elim_shadow_converter.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;

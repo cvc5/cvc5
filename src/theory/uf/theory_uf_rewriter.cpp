@@ -64,7 +64,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       std::vector<TNode> subs(node.begin(), node.end());
       Node ret = lambda[1].substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
-      
+
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     else if (!canUseAsApplyUfOperator(node.getOperator()))
@@ -98,7 +98,7 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
       TNode arg = node[1];
       TNode var = lambda[0][0];
       new_body = new_body.substitute(var, arg);
-      
+
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }

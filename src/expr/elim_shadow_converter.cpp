@@ -27,8 +27,9 @@ struct QElimShadowAttributeId
 };
 using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
-ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_quant(q){
-  Assert (q.isClosure());
+ElimShadowNodeConverter::ElimShadowNodeConverter(const Node& q) : d_quant(q)
+{
+  Assert(q.isClosure());
   d_vars.insert(d_vars.end(), q[0].begin(), q[0].end());
 }
 
@@ -42,7 +43,7 @@ Node ElimShadowNodeConverter::postConvert(Node n)
   std::vector<Node> newVars;
   for (const Node& v : n[0])
   {
-    if (std::find(d_vars.begin(), d_vars.end(), v)!=d_vars.end())
+    if (std::find(d_vars.begin(), d_vars.end(), v) != d_vars.end())
     {
       Node nv = getElimShadowVar(d_quant, n, v);
       oldVars.push_back(v);
@@ -51,14 +52,17 @@ Node ElimShadowNodeConverter::postConvert(Node n)
   }
   if (!newVars.empty())
   {
-    return n.substitute(oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
+    return n.substitute(
+        oldVars.begin(), oldVars.end(), newVars.begin(), newVars.end());
   }
   return n;
 }
 
-Node ElimShadowNodeConverter::getElimShadowVar(const Node& q, const Node& n, const Node& v)
+Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
+                                               const Node& n,
+                                               const Node& v)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node cacheVal = BoundVarManager::getCacheValue(q, n, v);
   return bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
