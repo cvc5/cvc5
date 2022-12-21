@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-lazy-ll -v
+; COMMAND-LINE: --uf-lazy-ll -q
 ; EXPECT: sat
 (set-logic HO_ALL)
 (declare-sort u 0)
