@@ -129,7 +129,7 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
               << " based on equal lengths disequality." << std::endl;
           // this depends on the current assertions, so this
           // inference is context-dependent
-          d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
+          d_extt.markInactive(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
           return true;
         }
         return true;
@@ -205,7 +205,7 @@ void ExtfSolver::doReduction(Node n, int pol)
           lexp, xneqs, InferenceId::STRINGS_CTN_NEG_EQUAL, false, true);
       // this depends on the current assertions, so this
       // inference is context-dependent
-      d_extt.markReduced(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
+      d_extt.markInactive(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
       return;
     }
   }
@@ -231,7 +231,7 @@ void ExtfSolver::doReduction(Node n, int pol)
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
     // context-dependent because it depends on the polarity of n itself
-    d_extt.markReduced(n, ExtReducedId::STRINGS_POS_CTN, true);
+    d_extt.markInactive(n, ExtReducedId::STRINGS_POS_CTN, true);
   }
   else
   {
@@ -372,7 +372,7 @@ void ExtfSolver::checkExtfEval(int effort)
         // cosntraint is already equal to its expected value below.
         if (effort < 3)
         {
-          d_extt.markReduced(n, ExtReducedId::STRINGS_SR_CONST);
+          d_extt.markInactive(n, ExtReducedId::STRINGS_SR_CONST);
           Trace("strings-extf-debug")
               << "  resolvable by evaluation..." << std::endl;
           std::vector<Node> exps;
@@ -624,7 +624,7 @@ void ExtfSolver::checkExtfInference(Node n,
             else if (d_extt.hasFunctionKind(conc.getKind()))
             {
               // can mark as reduced, since model for n implies model for conc
-              d_extt.markReduced(conc, ExtReducedId::STRINGS_CTN_DECOMPOSE);
+              d_extt.markInactive(conc, ExtReducedId::STRINGS_CTN_DECOMPOSE);
             }
           }
         }
