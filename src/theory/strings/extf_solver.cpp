@@ -81,7 +81,7 @@ ExtfSolver::ExtfSolver(Env& env,
 ExtfSolver::~ExtfSolver() {}
 
 bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
-{
+{  
   Trace("strings-extf-debug") << "shouldDoReduction " << n << ", pol " << pol
                               << ", effort " << effort << std::endl;
   if (!isActiveInModel(n))
@@ -100,47 +100,18 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   }
   Kind k = n.getKind();
   // determine if it is the right effort
-  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
+  if (k == STRING_SUBSTR
+      || (k == STRING_CONTAINS
+          && pol == 1))
   {
     // we reduce these semi-eagerly, at effort 1
-    if (effort != 1)
-    {
-      return false;
-    }
+    return (effort == 1);
   }
   else if (k == STRING_CONTAINS && pol == -1)
   {
     // negative contains reduces at level 2, or 3 if guessing model
     int reffort = options().strings.stringModelBasedReduction ? 3 : 2;
-    if (effort == reffort)
-    {
-      Node x = n[0];
-      Node s = n[1];
-      std::vector<Node> lexp;
-      Node lenx = d_state.getLength(x, lexp);
-      Node lens = d_state.getLength(s, lexp);
-      if (d_state.areEqual(lenx, lens))
-      {
-        // We can reduce negative contains to a disequality when lengths are
-        // equal. In other words, len( x ) = len( s ) implies
-        //   ~contains( x, s ) reduces to x != s.
-        if (d_state.areDisequal(x, s))
-        {
-          Trace("strings-extf-debug")
-              << "  resolve extf : " << n
-              << " based on equal lengths disequality." << std::endl;
-          // this depends on the current assertions, so this
-          // inference is context-dependent
-          d_extt.markInactive(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
-          return true;
-        }
-        return true;
-      }
-    }
-    else
-    {
-      return false;
-    }
+    return (effort == reffort);
   }
   else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
            || k == STRING_TO_CODE || (n.getType().isBoolean() && pol == 0))
@@ -150,30 +121,23 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
     // asserted (pol=0).
     return false;
   }
-  else
+  else if (options().strings.seqArray != options::SeqArrayMode::NONE)
   {
-    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    if (k == SEQ_NTH)
     {
-      if (k == SEQ_NTH)
-      {
-        // don't need to reduce seq.nth when sequence update solver is used
-        return false;
-      }
-      else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
-               && d_termReg.isHandledUpdateOrSubstr(n))
-      {
-        // don't need to reduce certain seq.update
-        // don't need to reduce certain seq.extract with length 1
-        return false;
-      }
+      // don't need to reduce seq.nth when sequence update solver is used
+      return false;
     }
-    if (effort != 2)
+    else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+             && d_termReg.isHandledUpdateOrSubstr(n))
     {
-      // all other operators reduce at level 2
+      // don't need to reduce certain seq.update
+      // don't need to reduce certain seq.extract with length 1
       return false;
     }
   }
-  return true;
+  // all other operators reduce at level 2
+  return (effort == 2);
 }
 
 void ExtfSolver::doReduction(Node n, int pol)
