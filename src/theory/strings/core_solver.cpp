@@ -2692,15 +2692,9 @@ void CoreSolver::checkNormalFormsEq()
   // we've computed the possible inferences above
   if (!d_pinfers.empty())
   {
-    // if we have a candidate model, then we are done.
-    if (d_state.hasCandidateModel())
-    {
-      d_im.markFinished();
-      return;
-    }
     // add one inference from our list of possible inferences
     size_t use_index = choosePossibleInferInfo(d_pinfers);
-    InferInfo& ii = d_pinfers[use_index];
+    InferInfo& ii = d_pinfers[use_index].d_infer;
     // process the state change to this solver
     if (!ii.d_nfPair[0].isNull())
     {
