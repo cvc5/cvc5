@@ -536,20 +536,24 @@ def run_benchmark(benchmark_info):
     )
 
     # If a scrubber command has been specified then apply it to the output.
+    scrubber_error = ""
     if benchmark_info.scrubber:
-        output, _, _ = run_process(
+        output, scrubber_error, _ = run_process(
             benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
+    assert(len(scrubber_error) == 0)
+    scrubber_error = ""
     if benchmark_info.error_scrubber:
-        error, _, _ = run_process(
+        error, scrubber_error, _ = run_process(
             benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,
         )
+    assert(len(scrubber_error) == 0)
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.
