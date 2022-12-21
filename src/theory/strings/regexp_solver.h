@@ -136,11 +136,11 @@ class RegExpSolver : protected EnvObj
    */
   bool shouldUnfold(Theory::Effort e, bool pol) const;
   /**
-   * do unfold
+   * Add the unfolding lemma for asserted regular expression membership
+   * assertion. Return true if a lemma was successfully sent to the inference
+   * manager.
    */
   bool doUnfold(const Node& assertion);
-  /** Get regular expression from */
-  Node getRegularExpressionFrom(const Node& n) const;
   // Constants
   Node d_emptyString;
   Node d_emptyRegexp;
