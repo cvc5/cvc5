@@ -47,6 +47,8 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
+  // check normal forms equalities, propagate only
+  CHECK_NORMAL_FORMS_EQ_PROP,
   // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
   // check normal forms disequalities

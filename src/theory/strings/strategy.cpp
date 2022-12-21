@@ -31,6 +31,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_EXTF_EVAL: out << "check_extf_eval"; break;
     case CHECK_CYCLES: out << "check_cycles"; break;
     case CHECK_FLAT_FORMS: out << "check_flat_forms"; break;
+    case CHECK_NORMAL_FORMS_EQ_PROP: out << "check_normal_forms_eq_prop"; break;
     case CHECK_NORMAL_FORMS_EQ: out << "check_normal_forms_eq"; break;
     case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq"; break;
     case CHECK_CODES: out << "check_codes"; break;
@@ -115,6 +116,7 @@ void Strategy::initializeStrategy()
       addStrategyStep(CHECK_FLAT_FORMS);
     }
     addStrategyStep(CHECK_EXTF_REDUCTION, 1);
+    addStrategyStep(CHECK_NORMAL_FORMS_EQ_PROP);
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
     addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
