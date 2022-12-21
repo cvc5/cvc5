@@ -2654,6 +2654,23 @@ void CoreSolver::checkLengthsEqc() {
   }
 }
 
+void CoreSolver::checkRegisterTermsNormalForms()
+{
+  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
+  for (const Node& eqc : seqc)
+  {
+    NormalForm& nfi = getNormalForm(eqc);
+    // check if there is a length term for this equivalence class
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
+    if (lt.isNull())
+    {
+      Node c = d_termReg.mkNConcat(nfi.d_nf, eqc.getType());
+      d_termReg.registerTerm(c);
+    }
+  }
+}
+
 size_t CoreSolver::choosePossibleInferInfo(const std::vector<CoreInferInfo>& pinfer)
 {
   // now, determine which of the possible inferences we want to add
