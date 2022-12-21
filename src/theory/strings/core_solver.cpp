@@ -524,6 +524,8 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
 
 void CoreSolver::checkNormalFormsEqProp()
 {
+  // Reset the possible inferences and model unsoundness id. These are
+  // set in this method and processed in checkNormalFormsEq.
   d_pinfers.clear();
   d_modelUnsoundId = IncompleteId::NONE;
   // calculate normal forms for each equivalence class, possibly adding
