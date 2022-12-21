@@ -135,7 +135,6 @@ class RegExpSolver : protected EnvObj
   // Constants
   Node d_emptyString;
   Node d_emptyRegexp;
-  Node d_sigmaStar;
   Node d_true;
   Node d_false;
   /** The solver state of the parent of this object */

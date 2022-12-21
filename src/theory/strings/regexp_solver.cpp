@@ -47,10 +47,6 @@ RegExpSolver::RegExpSolver(Env& env,
 {
   d_emptyString = NodeManager::currentNM()->mkConst(cvc5::internal::String(""));
   d_emptyRegexp = NodeManager::currentNM()->mkNode(REGEXP_NONE);
-  d_sigmaStar = NodeManager::currentNM()->mkNode(
-      REGEXP_STAR,
-      NodeManager::currentNM()->mkNode(kind::REGEXP_ALLCHAR,
-                                       std::vector<Node>{}));
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
