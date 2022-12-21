@@ -172,7 +172,7 @@ void RegExpSolver::checkEvaluations()
           if (tmp.getConst<bool>() == polarity)
           {
             // it is satisfied in this SAT context
-            d_im.markInactive(atom, ExtReducedId::UNKNOWN);
+            d_im.markInactive(atom, ExtReducedId::STRINGS_REGEXP_RE_SYM_NF);
             continue;
           }
           else
@@ -633,12 +633,12 @@ bool RegExpSolver::checkPDerivative(Node x,
         std::vector<Node> iexp = nf_exp;
         iexp.insert(iexp.end(), noExplain.begin(), noExplain.end());
         d_im.sendInference(iexp, noExplain, exp, InferenceId::STRINGS_RE_DELTA);
-        d_im.markInactive(atom, ExtReducedId::UNKNOWN);
+        d_im.markInactive(atom, ExtReducedId::STRINGS_REGEXP_PDERIVATIVE);
         return false;
       }
       case 1:
       {
-        d_im.markInactive(atom, ExtReducedId::UNKNOWN);
+        d_im.markInactive(atom, ExtReducedId::STRINGS_REGEXP_PDERIVATIVE);
         break;
       }
       case 2:
@@ -663,7 +663,7 @@ bool RegExpSolver::checkPDerivative(Node x,
   {
     if (deriveRegExp(x, r, atom, nf_exp))
     {
-      d_im.markInactive(atom, ExtReducedId::UNKNOWN);
+      d_im.markInactive(atom, ExtReducedId::STRINGS_REGEXP_PDERIVATIVE);
       return false;
     }
   }
