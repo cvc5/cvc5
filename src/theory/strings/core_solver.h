@@ -553,9 +553,16 @@ class CoreSolver : protected EnvObj
   std::map<Node, std::vector<int> > d_flat_form_index;
   /** Set of equalities for which we have applied extensionality. */
   NodeSet d_extDeq;
-  /** Whether we set model unsound */
+  /**
+   * If not IncompleteId::NONE, this is reason why the normal form computation
+   * was model unsound. We set model incomplete in the lemma phase of
+   * normal form equality computation if necessary.
+   */
   IncompleteId d_modelUnsoundId;
-  /** Possible infers */
+  /**
+   * Possible inferences, computed during the propagation phase of
+   * normal form equality computation, and sent during the lemma phase.
+   */
   std::vector<CoreInferInfo> d_pinfers;
 }; /* class CoreSolver */
 

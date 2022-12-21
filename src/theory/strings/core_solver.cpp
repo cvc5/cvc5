@@ -2704,7 +2704,6 @@ void CoreSolver::checkNormalFormsEq()
     d_im.sendInference(ii, true);
     return;
   }
-  // d_pinfers.clear();
   //  process incompleteness
   if (d_modelUnsoundId != IncompleteId::NONE)
   {
