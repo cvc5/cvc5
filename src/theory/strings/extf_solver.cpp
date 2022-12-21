@@ -81,7 +81,7 @@ ExtfSolver::ExtfSolver(Env& env,
 ExtfSolver::~ExtfSolver() {}
 
 bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
-{  
+{
   Trace("strings-extf-debug") << "shouldDoReduction " << n << ", pol " << pol
                               << ", effort " << effort << std::endl;
   if (!isActiveInModel(n))
@@ -100,9 +100,7 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   }
   Kind k = n.getKind();
   // determine if it is the right effort
-  if (k == STRING_SUBSTR
-      || (k == STRING_CONTAINS
-          && pol == 1))
+  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
   {
     // we reduce these semi-eagerly, at effort 1
     return (effort == 1);
