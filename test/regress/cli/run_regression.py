@@ -95,8 +95,6 @@ class Tester:
             print("  " + "=" * 78)
             exit_code = EXIT_FAILURE
         if benchmark_info.compare_outputs and error != benchmark_info.expected_error:
-            print("panda diff part, error:", error)
-            print("panda diff part, benchmark_info.expected_error:", benchmark_info.expected_error)
             print_error("Unexpected error output difference")
             print("  " + "=" * 78)
             print_diff(error, benchmark_info.expected_error)
@@ -478,10 +476,6 @@ def run_process(args, cwd, timeout, s_input=None):
         # Instead of setting shell=True, we explicitly call bash. Using
         # shell=True seems to produce different exit codes on different
         # platforms under certain circumstances.
-        print("-------------------------------")
-        print("panda run_process cmd:", cmd)
-        print("panda run_process cwd:", cwd)
-        print("panda run_process s_input:", s_input)
         res = subprocess.run(
             ["bash", "-c", cmd],
             cwd=cwd,
@@ -491,10 +485,7 @@ def run_process(args, cwd, timeout, s_input=None):
             stdout=subprocess.PIPE,
         )
         out = res.stdout
-        print("panda run_process out:", out) 
         err = res.stderr
-        print("panda run_process err:", err) 
-        print("-------------------------------")
         exit_status = res.returncode
     except subprocess.TimeoutExpired:
         exit_status = STATUS_TIMEOUT
@@ -543,14 +534,6 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
-    print("****************")
-    print("before scrubber:")
-    print("panda bin_args:", bin_args)
-    print("panda command_line_args:", benchmark_info.command_line_args)
-    print("panda output:", output)
-    print("panda error:", error)
-    print("panda exit_status:", exit_status)
-
 
     # If a scrubber command has been specified then apply it to the output.
     if benchmark_info.scrubber:
@@ -560,13 +543,6 @@ def run_benchmark(benchmark_info):
             benchmark_info.timeout,
             output,
         )
-    print()
-    print("after scrubber:")
-    print("panda bin_args:", bin_args)
-    print("panda command_line_args:", benchmark_info.command_line_args)
-    print("panda output:", output)
-    print("panda error:", error)
-    print("panda exit_status:", exit_status)
     scrubber_error = ""
     if benchmark_info.error_scrubber:
         error, scrubber_error, _ = run_process(
@@ -575,16 +551,7 @@ def run_benchmark(benchmark_info):
             benchmark_info.timeout,
             error,
         )
-    print("panda scrubber_error: ", scrubber_error)
-    print("panda len scrubber_error: ", len(scrubber_error))
     assert(len(scrubber_error) == 0)
-    print()
-    print("after error scrubber:")
-    print("panda bin_args:", bin_args)
-    print("panda command_line_args:", benchmark_info.command_line_args)
-    print("panda output:", output)
-    print("panda error:", error)
-    print("panda exit_status:", exit_status)
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.
