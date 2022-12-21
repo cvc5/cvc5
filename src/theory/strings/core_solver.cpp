@@ -650,16 +650,13 @@ NormalForm& CoreSolver::getNormalForm(Node n)
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
   if (itn == d_normal_form.end())
   {
-    Trace("strings-warn") << "WARNING: returning self normal form for " << n
+    Trace("strings-warn") << "WARNING: returning empty normal form for " << n
                           << std::endl;
     // Shouln't ask for normal forms of strings that weren't computed. This
     // likely means that n is not a representative or not a term in the current
-    // context. We simply return a normal form here with n as a component in
-    // this case.
+    // context. We simply return a default normal form here in this case.
     Assert(false);
-    NormalForm& nf = d_normal_form[n];
-    nf.init(n);
-    return nf;
+    return d_normal_form[n];
   }
   return itn->second;
 }
