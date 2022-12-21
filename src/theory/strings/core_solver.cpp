@@ -534,11 +534,6 @@ void CoreSolver::checkNormalFormsEqProp()
   // map from normal form terms (the concatenation of the terms in the normal
   // form) to the equivalence that had that normal form
   std::map<Node, Node> nf_to_eqc;
-  // A set of possible inferences, in case we failed to compute a normal form
-  // in a call to normalizeEquivalenceClass. This set typically contains
-  // lemmas that require splitting. We delay processing these lemmas until
-  // the invocation of processInferInfo below.
-  std::vector<CoreInferInfo> pinfer;
   for (const Node& eqc : d_strings_eqc)
   {
     Assert(d_pinfers.empty());
