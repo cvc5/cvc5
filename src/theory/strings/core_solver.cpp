@@ -657,11 +657,6 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc,
   }
 }
 
-const std::vector<Node>& CoreSolver::getStringsEqc() const
-{
-  return d_strings_eqc;
-}
-
 NormalForm& CoreSolver::getNormalForm(Node n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);

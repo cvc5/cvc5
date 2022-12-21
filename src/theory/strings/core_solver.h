@@ -215,11 +215,6 @@ class CoreSolver : protected EnvObj
 
   //--------------------------- query functions
   /**
-   * Get the list of string equivalence classes, which respects the
-   * containment ordering as described in checkCycles.
-   */
-  const std::vector<Node>& getStringsEqc() const;
-  /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
    *
