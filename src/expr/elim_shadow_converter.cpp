@@ -68,4 +68,18 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
   return bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
 }
 
+Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
+{
+  Assert(q.isClosure());
+  ElimShadowNodeConverter esnc(q);
+  // eliminate shadowing in all children
+  std::vector<Node> children;
+  children.push_back(q[0]);
+  for (size_t i=1, nchild = q.getNumChildren(); i<nchild; i++)
+  {
+    children.push_back(esnc.convert(q[i]));
+  }
+  return NodeManager::currentNM()->mkNode(q.getKind(), children);
+}
+
 }  // namespace cvc5::internal

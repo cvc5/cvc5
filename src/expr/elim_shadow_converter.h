@@ -45,6 +45,8 @@ class ElimShadowNodeConverter : public NodeConverter
    */
   static Node getElimShadowVar(const Node& q, const Node& n, const Node& v);
 
+  /** Eliminate shadowing in the closure q */
+  static Node eliminateShadow(const Node& q);
  private:
   /** The quantified formula to eliminate shadowing from */
   Node d_quant;

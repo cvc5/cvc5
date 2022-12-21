@@ -21,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
+#include "expr/elim_shadow_converter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -106,7 +107,10 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   else if (k == kind::LAMBDA)
   {
     Node ret = rewriteLambda(node);
-    return RewriteResponse(REWRITE_DONE, ret);
+    if (ret!=node)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
   else if (k == kind::BITVECTOR_TO_NAT)
   {
@@ -209,10 +213,13 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
     return retNode;
   }
-  else
+  Trace("builtin-rewrite-debug")
+      << "...failed to get array representation." << std::endl;
+  // eliminate shadowing?
+  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
+  if (retElimShadow!=node)
   {
-    Trace("builtin-rewrite-debug")
-        << "...failed to get array representation." << std::endl;
+    return retElimShadow;
   }
   return node;
 }
