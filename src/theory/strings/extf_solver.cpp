@@ -90,7 +90,8 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
     Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
     return false;
   }
-  // check with negation
+  // check with negation if requested (only applied to Boolean terms)
+  Assert(n.getType().isBoolean() || pol != -1);
   Node nn = pol == -1 ? n.notNode() : n;
   if (d_reduced.find(nn) != d_reduced.end())
   {
@@ -195,6 +196,7 @@ void ExtfSolver::doReduction(Node n, int pol)
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
     // reduced positively
+    Assert(nn == n);
     d_reduced.insert(nn);
   }
   else
