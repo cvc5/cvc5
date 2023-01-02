@@ -178,8 +178,11 @@ std::string InstStrategyPool::identify() const
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
+  Assert (q.getKind()==FORALL && p.getKind()==INST_POOL);
+  // maybe has tuple semantics?
   if (hasTupleSemantics(q, p))
   {
+    return processTuple(q, p, addedLemmas);
   }
   // otherwise, process standard
   Instantiate* ie = d_qim.getInstantiate();
@@ -214,6 +217,42 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
       Trace("pool-inst") << "Fail with " << terms << std::endl;
       // notify the enumerator of the failure
       enumerator->failureReason(failMask);
+    }
+  }
+  return false;
+}
+
+bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
+{
+  Instantiate* ie = d_qim.getInstantiate();
+  TermPools * tp = d_treg.getTermPools();
+  // get the terms
+  std::vector<Node> terms;
+  tp->getTermsForPool(p[0], terms);
+  // instantiation for each term in pool
+  for (const Node& t : terms)
+  {
+    if (d_qstate.isInConflict())
+    {
+      return true;
+    }
+    std::vector<Node> inst;
+    if (t.getKind()!=APPLY_CONSTRUCTOR)
+    {
+      // symbolic tuple??
+      continue;
+    }
+    inst.insert(inst.end(), t.begin(), t.end());
+    Assert (inst.size()==q[0].getNumChildren());
+    if (ie->addInstantiation(
+            q, inst, InferenceId::QUANTIFIERS_INST_POOL_TUPLE))
+    {
+      Trace("pool-inst") << "Success (tuple) with " << inst << std::endl;
+      addedLemmas++;
+    }
+    else
+    {
+      Trace("pool-inst") << "Fail (tuple) with " << inst << std::endl;
     }
   }
   return false;
