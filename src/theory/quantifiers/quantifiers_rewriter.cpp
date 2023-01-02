@@ -175,12 +175,28 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
-  if( !activeMap.empty() ){
-    //collect variables in inst pattern list only if we cannot eliminate quantifier
+  // collect variables in inst pattern list only if we cannot eliminate 
+  // quantifier, or if we have an add-to-pool annotation
+  bool varComputePatList = !activeMap.empty();
+  for (const Node& ip : ipl)
+  {
+    Kind k = ip.getKind();
+    if (k==INST_ADD_TO_POOL || k==SKOLEM_ADD_TO_POOL)
+    {
+      varComputePatList = true;
+      break;
+    }
+  }
+  if( varComputePatList) 
+  {
     computeArgs( args, activeMap, ipl, visited );
-    for( unsigned i=0; i<args.size(); i++ ){
-      if( activeMap.find( args[i] )!=activeMap.end() ){
-        activeArgs.push_back( args[i] );
+  }
+  if (!activeMap.empty())
+  {
+    for (const Node& a : args)
+    {
+      if( activeMap.find( a )!=activeMap.end() ){
+        activeArgs.push_back( a );
       }
     }
   }
