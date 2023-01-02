@@ -126,7 +126,9 @@ void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
   d_termPools->registerPool(p, initValue);
 }
 
-void TermRegistry::processInstantiation(Node q, const std::vector<Node>& terms, bool success)
+void TermRegistry::processInstantiation(Node q,
+                                        const std::vector<Node>& terms,
+                                        bool success)
 {
   d_termPools->processInstantiation(q, terms, success);
 }

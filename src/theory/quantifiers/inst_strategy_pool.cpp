@@ -178,7 +178,7 @@ std::string InstStrategyPool::identify() const
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
-  Assert (q.getKind()==FORALL && p.getKind()==INST_POOL);
+  Assert(q.getKind() == FORALL && p.getKind() == INST_POOL);
   // maybe has tuple semantics?
   if (hasTupleSemantics(q, p))
   {
@@ -225,7 +225,7 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
 {
   Instantiate* ie = d_qim.getInstantiate();
-  TermPools * tp = d_treg.getTermPools();
+  TermPools* tp = d_treg.getTermPools();
   // get the terms
   std::vector<Node> terms;
   tp->getTermsForPool(p[0], terms);
@@ -237,15 +237,14 @@ bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
       return true;
     }
     std::vector<Node> inst;
-    if (t.getKind()!=APPLY_CONSTRUCTOR)
+    if (t.getKind() != APPLY_CONSTRUCTOR)
     {
       // symbolic tuple??
       continue;
     }
     inst.insert(inst.end(), t.begin(), t.end());
-    Assert (inst.size()==q[0].getNumChildren());
-    if (ie->addInstantiation(
-            q, inst, InferenceId::QUANTIFIERS_INST_POOL_TUPLE))
+    Assert(inst.size() == q[0].getNumChildren());
+    if (ie->addInstantiation(q, inst, InferenceId::QUANTIFIERS_INST_POOL_TUPLE))
     {
       Trace("pool-inst") << "Success (tuple) with " << inst << std::endl;
       addedLemmas++;

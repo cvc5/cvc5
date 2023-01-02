@@ -21,9 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-void TermPoolDomain::initialize() { 
-  d_terms.clear(); 
-}
+void TermPoolDomain::initialize() { d_terms.clear(); }
 
 std::vector<Node>& TermPoolDomain::getTerms() { return d_terms; }
 
@@ -124,9 +122,11 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   terms.insert(terms.end(), dom.d_currTerms.begin(), dom.d_currTerms.end());
 }
 
-void TermPools::processInstantiation(Node q, const std::vector<Node>& terms, bool success)
+void TermPools::processInstantiation(Node q,
+                                     const std::vector<Node>& terms,
+                                     bool success)
 {
-  // success is ignored, meaning that inst-add-to-pool annotates 
+  // success is ignored, meaning that inst-add-to-pool annotates
   processInternal(q, terms, true);
 }
 

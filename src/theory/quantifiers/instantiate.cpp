@@ -106,11 +106,8 @@ bool Instantiate::addInstantiation(Node q,
   return ret;
 }
 
-bool Instantiate::addInstantiationInternal(Node q,
-                                   std::vector<Node>& terms,
-                                   InferenceId id,
-                                   Node pfArg,
-                                   bool doVts)
+bool Instantiate::addInstantiationInternal(
+    Node q, std::vector<Node>& terms, InferenceId id, Node pfArg, bool doVts)
 {
   // For resource-limiting (also does a time check).
   d_qim.safePoint(Resource::QuantifierStep);
