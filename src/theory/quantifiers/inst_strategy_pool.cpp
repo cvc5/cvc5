@@ -65,6 +65,55 @@ void InstStrategyPool::registerQuantifier(Node q)
   }
 }
 
+bool InstStrategyPool::hasStandardSemantics(Node q, Node p)
+{
+  Assert (q.getKind()==FORALL && p.getKind()==INST_POOL);
+  size_t nchild = p.getNumChildren(); 
+  if (nchild!=q[0].getNumChildren())
+  {
+    return false;
+  }
+  for (size_t i=0; i<nchild; i++)
+  {
+    Assert (p[i].getType().isSet());
+    TypeNode tn = p[i].getType().getSetElementType();
+    if (tn!=q[i].getType())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
+{
+  Assert (q.getKind()==FORALL && p.getKind()==INST_POOL);
+  if (p.getNumChildren()!=1)
+  {
+    return false;
+  }
+  Assert (p[0].getType().isSet());
+  TypeNode ptn = p[0].getType().getSetElementType();
+  if (!ptn.isTuple())
+  {
+    return false;
+  }
+  std::vector<TypeNode> targs = ptn.getTupleTypes();
+  size_t nchild = targs.size(); 
+  if (nchild!=q[0].getNumChildren())
+  {
+    return false;
+  }
+  for (size_t i=0; i<nchild; i++)
+  {
+    if (targs[i]!=q[i].getType())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
 {
   if (d_userPools.empty())

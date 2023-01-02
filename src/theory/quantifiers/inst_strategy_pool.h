@@ -60,12 +60,17 @@ class InstStrategyPool : public QuantifiersModule
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Identify. */
   std::string identify() const override;
-
+  /** Has standard product semantics */
+  static bool hasStandardSemantics(Node q, Node p);
+  /** Has tuple semantics */
+  static bool hasTupleSemantics(Node q, Node p);
  private:
   /** Process quantified formula with user pool */
   bool process(Node q, Node p, uint64_t& addedLemmas);
   /** Map from quantified formulas to user pools */
   std::map<Node, std::vector<Node> > d_userPools;
+  /** The subset of pools that have tuple semantics */
+  std::map<Node, std::vector<Node> > d_userPoolsTuple;
 };
 
 }  // namespace quantifiers
