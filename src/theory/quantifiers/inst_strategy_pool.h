@@ -53,6 +53,8 @@ class InstStrategyPool : public QuantifiersModule
   void reset_round(Theory::Effort e) override;
   /** Register quantified formula q */
   void registerQuantifier(Node q) override;
+  /** Check ownership for q */
+  void checkOwnership(Node q) override;
   /** Check.
    * Adds instantiations for all currently asserted
    * quantified formulas via calls to process(...)

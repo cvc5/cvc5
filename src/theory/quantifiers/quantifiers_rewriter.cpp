@@ -175,8 +175,8 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
-  // collect variables in inst pattern list only if we cannot eliminate
-  // quantifier, or if we have an add-to-pool annotation
+  // Collect variables in inst pattern list only if we cannot eliminate
+  // quantifier, or if we have an add-to-pool annotation.
   bool varComputePatList = !activeMap.empty();
   for (const Node& ip : ipl)
   {

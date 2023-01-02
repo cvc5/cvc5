@@ -101,8 +101,11 @@ bool Instantiate::addInstantiation(Node q,
                                    Node pfArg,
                                    bool doVts)
 {
+  // do the instantiation
   bool ret = addInstantiationInternal(q, terms, id, pfArg, doVts);
+  // process the instantiation with callbacks via term registry
   d_treg.processInstantiation(q, terms, ret);
+  // return whether the instantiation was successful
   return ret;
 }
 

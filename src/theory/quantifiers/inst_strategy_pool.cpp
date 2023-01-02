@@ -50,6 +50,10 @@ void InstStrategyPool::reset_round(Theory::Effort e) {}
 
 void InstStrategyPool::registerQuantifier(Node q)
 {
+  if (options().quantifiers.userPoolQuant==options::UserPoolMode::IGNORE)
+  {
+    return;
+  }
   // take into account user pools
   if (q.getNumChildren() == 3)
   {
@@ -60,6 +64,23 @@ void InstStrategyPool::registerQuantifier(Node q)
       if (p.getKind() == INST_POOL)
       {
         d_userPools[q].push_back(p);
+      }
+    }
+  }
+}
+
+void InstStrategyPool::checkOwnership(Node q)
+{
+  if (options().quantifiers.userPoolQuant == options::UserPoolMode::TRUST
+      && q.getNumChildren() == 3)
+  {
+    //if strict pools, take ownership of this quantified formula
+    for (const Node& p : q[2])
+    {
+      if (p.getKind() == INST_POOL)
+      {
+        d_qreg.setOwner(q, this, 1);
+        return;
       }
     }
   }
@@ -143,9 +164,9 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       // no user pools for this
       continue;
     }
-    if (!d_qreg.hasOwnership(q, this) || !fm->isQuantifierActive(q))
+    if (!d_qreg.hasOwnership(q, this))
     {
-      // quantified formula is not owned by this or is inactive
+      // quantified formula is not owned by this
       continue;
     }
     // process with each user pool
