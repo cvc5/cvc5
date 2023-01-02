@@ -50,7 +50,7 @@ void InstStrategyPool::reset_round(Theory::Effort e) {}
 
 void InstStrategyPool::registerQuantifier(Node q)
 {
-  if (options().quantifiers.userPoolQuant==options::UserPoolMode::IGNORE)
+  if (options().quantifiers.userPoolQuant == options::UserPoolMode::IGNORE)
   {
     return;
   }
@@ -74,7 +74,7 @@ void InstStrategyPool::checkOwnership(Node q)
   if (options().quantifiers.userPoolQuant == options::UserPoolMode::TRUST
       && q.getNumChildren() == 3)
   {
-    //if strict pools, take ownership of this quantified formula
+    // if strict pools, take ownership of this quantified formula
     for (const Node& p : q[2])
     {
       if (p.getKind() == INST_POOL)
