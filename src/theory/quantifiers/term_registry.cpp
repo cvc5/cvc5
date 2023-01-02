@@ -121,6 +121,24 @@ Node TermRegistry::getTermForType(TypeNode tn)
   return d_termDb->getOrMakeTypeGroundTerm(tn);
 }
 
+void TermRegistry::getTermsForPool(Node p, std::vector<Node>& terms)
+{
+  if (p.getKind()==kind::SET_UNIVERSE)
+  {
+    // get all ground terms of the given type
+    TypeNode ptn = p.getType().getSetElementType();
+    size_t nterms = d_termDb->getNumTypeGroundTerms(ptn);
+    for (size_t i=0; i<nterms; i++)
+    {
+      terms.push_back(d_termDb->getTypeGroundTerm(ptn, i));
+    }
+  }
+  else
+  {
+    d_termPools->getTermsForPool(p, terms);
+  }
+}
+
 void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
 {
   d_termPools->registerPool(p, initValue);

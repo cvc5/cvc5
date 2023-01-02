@@ -73,6 +73,8 @@ class TermRegistry : protected EnvObj
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
+  /** Get terms for pool p, adds them to the vector terms. */
+  void getTermsForPool(Node p, std::vector<Node>& terms);
   /**
    * Declare pool p with initial value initValue.
    */

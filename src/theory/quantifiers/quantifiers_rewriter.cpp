@@ -1744,15 +1744,7 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
   Node body = q[1];
-  if( body.getKind()==FORALL ){
-    //combine prenex
-    std::vector< Node > newArgs;
-    newArgs.insert(newArgs.end(), q[0].begin(), q[0].end());
-    for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-      newArgs.push_back( body[0][i] );
-    }
-    return mkForAll( newArgs, body[1], qa );
-  }else if( body.getKind()==AND ){
+  if( body.getKind()==AND ){
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
     if (miniscopeConj)
@@ -1962,6 +1954,11 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
+    // do not prenex to pull variables into those with user patterns
+    if (!d_opts.quantifiers.prenexQuantUser && qa.d_hasPattern)
+    {
+      return false;
+    }
     return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
            && d_opts.quantifiers.miniscopeQuant
                   != options::MiniscopeQuantMode::AGG
