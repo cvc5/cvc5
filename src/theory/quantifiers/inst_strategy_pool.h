@@ -69,8 +69,6 @@ class InstStrategyPool : public QuantifiersModule
   bool process(Node q, Node p, uint64_t& addedLemmas);
   /** Map from quantified formulas to user pools */
   std::map<Node, std::vector<Node> > d_userPools;
-  /** The subset of pools that have tuple semantics */
-  std::map<Node, std::vector<Node> > d_userPoolsTuple;
 };
 
 }  // namespace quantifiers
