@@ -40,7 +40,7 @@ class TermPoolDomain
   void initialize();
   /** add node to this pool */
   void add(Node n);
-  /** Get the termrs in this pool */
+  /** Get the terms in this pool */
   std::vector<Node>& getTerms();
   /**
    * The list of terms on this round. This is cleared at the beginning of an
