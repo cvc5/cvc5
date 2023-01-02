@@ -44,7 +44,7 @@ SequencesRewriter::SequencesRewriter(Rewriter* r,
       d_arithEntail(r),
       d_stringsEntail(r, d_arithEntail, *this)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   d_sigmaStar = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_ALLCHAR));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
@@ -1606,7 +1606,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   // the membership rewrites to true.
   std::vector<Node> mchildren;
   utils::getConcat(x, mchildren);
-  Assert (!mchildren.empty());
+  Assert(!mchildren.empty());
   bool hasConstant = false;
   for (Node& m : mchildren)
   {
@@ -1622,7 +1622,8 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   }
   if (hasConstant)
   {
-    Node reForX = mchildren.size()==1 ? mchildren[0] : nm->mkNode(REGEXP_CONCAT, mchildren);
+    Node reForX = mchildren.size() == 1 ? mchildren[0]
+                                        : nm->mkNode(REGEXP_CONCAT, mchildren);
     if (RegExpEntail::regExpIncludes(r, reForX))
     {
       return returnRewrite(node, d_true, Rewrite::RE_IN_INCLUSION);
