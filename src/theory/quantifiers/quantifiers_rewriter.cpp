@@ -1964,6 +1964,10 @@ bool QuantifiersRewriter::doOperation(Node q,
     {
       return false;
     }
+    if (qa.d_hasPool)
+    {
+      return false;
+    }
     return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
            && d_opts.quantifiers.miniscopeQuant
                   != options::MiniscopeQuantMode::AGG
