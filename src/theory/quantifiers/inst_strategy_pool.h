@@ -64,6 +64,7 @@ class InstStrategyPool : public QuantifiersModule
   static bool hasStandardSemantics(Node q, Node p);
   /** Has tuple semantics */
   static bool hasTupleSemantics(Node q, Node p);
+
  private:
   /** Process quantified formula with user pool */
   bool process(Node q, Node p, uint64_t& addedLemmas);

@@ -67,18 +67,18 @@ void InstStrategyPool::registerQuantifier(Node q)
 
 bool InstStrategyPool::hasStandardSemantics(Node q, Node p)
 {
-  Assert (q.getKind()==EXISTS || q.getKind()==FORALL);
-  Assert (p.getKind()==INST_POOL);
-  size_t nchild = p.getNumChildren(); 
-  if (nchild!=q[0].getNumChildren())
+  Assert(q.getKind() == EXISTS || q.getKind() == FORALL);
+  Assert(p.getKind() == INST_POOL);
+  size_t nchild = p.getNumChildren();
+  if (nchild != q[0].getNumChildren())
   {
     return false;
   }
-  for (size_t i=0; i<nchild; i++)
+  for (size_t i = 0; i < nchild; i++)
   {
-    Assert (p[i].getType().isSet());
+    Assert(p[i].getType().isSet());
     TypeNode tn = p[i].getType().getSetElementType();
-    if (tn!=q[0][i].getType())
+    if (tn != q[0][i].getType())
     {
       return false;
     }
@@ -88,27 +88,27 @@ bool InstStrategyPool::hasStandardSemantics(Node q, Node p)
 
 bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
 {
-  Assert (q.getKind()==EXISTS || q.getKind()==FORALL);
-  Assert (p.getKind()==INST_POOL);
-  if (p.getNumChildren()!=1)
+  Assert(q.getKind() == EXISTS || q.getKind() == FORALL);
+  Assert(p.getKind() == INST_POOL);
+  if (p.getNumChildren() != 1)
   {
     return false;
   }
-  Assert (p[0].getType().isSet());
+  Assert(p[0].getType().isSet());
   TypeNode ptn = p[0].getType().getSetElementType();
   if (!ptn.isTuple())
   {
     return false;
   }
   std::vector<TypeNode> targs = ptn.getTupleTypes();
-  size_t nchild = targs.size(); 
-  if (nchild!=q[0].getNumChildren())
+  size_t nchild = targs.size();
+  if (nchild != q[0].getNumChildren())
   {
     return false;
   }
-  for (size_t i=0; i<nchild; i++)
+  for (size_t i = 0; i < nchild; i++)
   {
-    if (targs[i]!=q[0][i].getType())
+    if (targs[i] != q[0][i].getType())
     {
       return false;
     }
@@ -180,7 +180,6 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
   if (hasTupleSemantics(q, p))
   {
-    
   }
   // otherwise, process standard
   Instantiate* ie = d_qim.getInstantiate();
