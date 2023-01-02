@@ -1744,7 +1744,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
   Node body = q[1];
-  if( body.getKind()==AND ){
+  if (body.getKind() == AND)
+  {
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
     if (miniscopeConj)
@@ -1790,13 +1791,17 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       Node retVal = t;
       return retVal;
     }
-  }else if( body.getKind()==OR ){
+  }
+  else if (body.getKind() == OR)
+  {
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
     }
-  }else if( body.getKind()==NOT ){
+  }
+  else if (body.getKind() == NOT)
+  {
     Assert(isLiteral(body[0]));
   }
   //remove variables that don't occur

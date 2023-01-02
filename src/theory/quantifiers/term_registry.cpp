@@ -123,12 +123,12 @@ Node TermRegistry::getTermForType(TypeNode tn)
 
 void TermRegistry::getTermsForPool(Node p, std::vector<Node>& terms)
 {
-  if (p.getKind()==kind::SET_UNIVERSE)
+  if (p.getKind() == kind::SET_UNIVERSE)
   {
     // get all ground terms of the given type
     TypeNode ptn = p.getType().getSetElementType();
     size_t nterms = d_termDb->getNumTypeGroundTerms(ptn);
-    for (size_t i=0; i<nterms; i++)
+    for (size_t i = 0; i < nterms; i++)
     {
       terms.push_back(d_termDb->getTypeGroundTerm(ptn, i));
     }
