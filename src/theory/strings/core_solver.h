@@ -177,7 +177,7 @@ class CoreSolver : protected EnvObj
    * setModelUnsound on the output channel during checkNormalFormsEq below.
    */
   void checkNormalFormsEqProp();
-  /** 
+  /**
    * Sends a lemma computed in the above check, if one exists, and processes
    * model unsoundness if necessary.
    */
