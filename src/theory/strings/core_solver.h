@@ -172,9 +172,15 @@ class CoreSolver : protected EnvObj
    * are assigned for all equivalence classes.
    * In the case of (B), the possible lemmas are buffered in this class, and
    * are sent to the inference manager only when checkNormalFormsEq is called.
+   * In the case of (C), it is possible that model unsoundness was introduced,
+   * for example, by ignoring cyclic word equations. In this case, we
+   * setModelUnsound on the output channel during checkNormalFormsEq below.
    */
   void checkNormalFormsEqProp();
-  /** Sends a lemma computed in the above check, if one exists. */
+  /** 
+   * Sends a lemma computed in the above check, if one exists, and processes
+   * model unsoundness if necessary.
+   */
   void checkNormalFormsEq();
   /** check normal forms disequalities
    *
@@ -295,12 +301,12 @@ class CoreSolver : protected EnvObj
                                      std::vector<Node>& newSkolems);
  private:
   /**
-   * This processes the infer info ii as an inference. In more detail, it calls
-   * the inference manager to process the inference, and updates the set of
-   * normal form pairs. Returns true if the conclusion of ii was not true
-   * after rewriting. If the conclusion is true, this method does nothing.
+   * This returns the index of the inference in pinfer that should be processed
+   * based on our heuristics. In particular, we favor certain identifiers
+   * before others, as well as considering the position in a concatentation
+   * term they reference.
    */
-  size_t choosePossibleInferInfo(const std::vector<CoreInferInfo>& pinfer);
+  size_t pickInferInfo(const std::vector<CoreInferInfo>& pinfer);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */

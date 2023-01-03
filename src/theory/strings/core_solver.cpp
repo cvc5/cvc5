@@ -2641,7 +2641,7 @@ void CoreSolver::checkRegisterTermsNormalForms()
   }
 }
 
-size_t CoreSolver::choosePossibleInferInfo(const std::vector<CoreInferInfo>& pinfer)
+size_t CoreSolver::pickInferInfo(const std::vector<CoreInferInfo>& pinfer)
 {
   // now, determine which of the possible inferences we want to add
   unsigned use_index = 0;
@@ -2675,7 +2675,7 @@ void CoreSolver::checkNormalFormsEq()
   if (!d_pinfers.empty())
   {
     // add one inference from our list of possible inferences
-    size_t use_index = choosePossibleInferInfo(d_pinfers);
+    size_t use_index = pickInferInfo(d_pinfers);
     InferInfo& ii = d_pinfers[use_index].d_infer;
     // process the state change to this solver
     if (!ii.d_nfPair[0].isNull())
