@@ -400,6 +400,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionRecCommand(funcs, formals, funcDefs));
     }
     break;
+    // (define-sort <symbol> (<symbol>*) <sort>)
     case Token::DEFINE_SORT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -600,7 +601,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd = d_state.invConstraint(names);
     }
     break;
-    // (pop <numeral>)
+    // (pop <numeral>?)
     case Token::POP_TOK:
     {
       // optional integer
@@ -616,7 +617,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
-    // (push <numeral>)
+    // (push <numeral>?)
     case Token::PUSH_TOK:
     {
       // optional integer
@@ -703,8 +704,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new SimplifyCommand(t));
     }
     break;
-    // synth-fun and synth-inv
     // (synth-fun <symbol> (<sorted_var>*) <sort> <grammar>?)
+    // (synth-inv <symbol> (<sorted_var>*) <grammar>?)
     case Token::SYNTH_FUN_TOK:
     case Token::SYNTH_INV_TOK:
     {
