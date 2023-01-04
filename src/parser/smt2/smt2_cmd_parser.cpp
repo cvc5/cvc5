@@ -79,7 +79,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new BlockModelCommand(mode));
     }
     break;
-    // (block-model-values (<term>+))
+    // (block-model-values (<term>*))
     case Token::BLOCK_MODEL_VALUES_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -218,7 +218,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     break;
-    // (declare-pool <symbol> <sort> (<term>+))
+    // (declare-pool <symbol> <sort> (<term>∗))
     case Token::DECLARE_POOL:
     {
       d_state.checkThatLogicIsSet();
