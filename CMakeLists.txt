@@ -321,7 +321,11 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
+  find_package(Python 3 REQUIRED)
+else()
+  find_package(PythonInterp 3 REQUIRED)
+endif()
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
