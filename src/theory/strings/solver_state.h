@@ -91,17 +91,28 @@ class SolverState : public TheoryState
    *
    * If possible, this returns an arithmetic term that exists in the current
    * context that is equal to the length of te, or otherwise returns the
-   * length of t. It adds to exp literals that hold in the current context that
+   * length of t. This is typically the length term of the equivalence class
+   * of t.
+   *
+   * It adds to exp literals that hold in the current context that
    * explain why that term is equal to the length of t. For example, if
    * we have assertions:
    *   len( x ) = 5 ^ z = x ^ x = y,
-   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
+   * then getLengthExp( z, exp, y ) returns len( x ) and adds { y = x } to
    * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
    * adds nothing to exp.
+   *
+   * @param t The representative
+   * @param exp The explanation vector to add to
+   * @param te The explain target term
+   * @param minExp Whether we attempt to return the length of te directly
    */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
-  /** shorthand for getLengthExp(t, exp, t) */
-  Node getLength(Node t, std::vector<Node>& exp);
+  Node getLengthExp(Node t,
+                    std::vector<Node>& exp,
+                    Node te,
+                    bool minExp = true);
+  /** shorthand for getLengthExp(t, exp, t, minExp) */
+  Node getLength(Node t, std::vector<Node>& exp, bool minExp = true);
   /** explain non-empty
    *
    * This returns an explanation of why string-like term is non-empty in the
