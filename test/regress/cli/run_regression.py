@@ -566,9 +566,14 @@ def run_benchmark(benchmark_info):
         )
     # Make sure that the scrubber itself did not cause errors
     if len(scrubber_error) != 0:
-        print_error("The error scrubber's error output is not empty")
-        print_error("command:" + str(benchmark_info.error_scrubber))
-        print_error("error:" + str(scrubber_error))
+        print_error("The scrubber's error output not empty")
+        print()
+        print("  Command: {}".format(benchmark_info.err_rscrubber))
+        print()
+        print("  Error output")
+        print("  " + "=" * 78)
+        print(scrubber_error)
+        print("  " + "=" * 78)
         return EXIT_FAILURE
 
     # Popen in Python 3 returns a bytes object instead of a string for
