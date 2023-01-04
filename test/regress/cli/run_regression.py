@@ -536,7 +536,6 @@ def run_benchmark(benchmark_info):
     )
 
     # If a scrubber command has been specified then apply it to the output.
-    # Make sure that the scrubber itself did not cause errors
     scrubber_error = ""
     if benchmark_info.scrubber:
         output, scrubber_error, _ = run_process(
@@ -545,11 +544,16 @@ def run_benchmark(benchmark_info):
             benchmark_info.timeout,
             output,
         )
-    # Make sure that the scrubber itself did not cause errors
+    # Make sure that the scrubber itself did not print anything to its error output
     if len(scrubber_error) != 0:
-        print_error("scrubber command returned an error")
-        print_error("command: " + str(benchmark_info.scrubber))
-        print_error("error: " + str(scrubber_error))
+        print_error("The scrubber's error output not empty")
+        print()
+        print("  Command: {}".format(benchmark_info.scrubber))
+        print()
+        print("  Error output")
+        print("  " + "=" * 78)
+        print(scrubber_error)
+        print("  " + "=" * 78)
         return EXIT_FAILURE
     
     scrubber_error = ""
@@ -562,7 +566,7 @@ def run_benchmark(benchmark_info):
         )
     # Make sure that the scrubber itself did not cause errors
     if len(scrubber_error) != 0:
-        print_error("scrubber command returned an error")
+        print_error("The error scrubber's error output is not empty")
         print_error("command:" + str(benchmark_info.error_scrubber))
         print_error("error:" + str(scrubber_error))
         return EXIT_FAILURE
