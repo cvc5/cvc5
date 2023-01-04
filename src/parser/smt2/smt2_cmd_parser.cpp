@@ -40,6 +40,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
   Token tok = d_lex.nextToken();
   switch (tok)
   {
+    // (assert <term>)
     case Token::ASSERT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -58,6 +59,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // sygus assume/constraint
+    // (assume <term>)
+    // (constraint <term>)
     case Token::ASSUME_TOK:
     case Token::CONSTRAINT_TOK:
     {
@@ -67,6 +70,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new SygusConstraintCommand(t, isAssume));
     }
     break;
+    // (block-model <keyword>)
     case Token::BLOCK_MODEL_TOK:
     {
       std::string key = d_tparser.parseKeyword();
@@ -75,6 +79,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new BlockModelCommand(mode));
     }
     break;
+    // (block-model-values (<term>+))
     case Token::BLOCK_MODEL_VALUES_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -82,6 +87,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new BlockModelValuesCommand(terms));
     }
     break;
+    // (check-sat)
     case Token::CHECK_SAT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -92,6 +98,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new CheckSatCommand());
     }
     break;
+    // (check-sat-assuming)
     case Token::CHECK_SAT_ASSUMING_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -99,12 +106,14 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new CheckSatAssumingCommand(terms));
     }
     break;
+    // (check-synth)
     case Token::CHECK_SYNTH_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new CheckSynthCommand());
     }
     break;
+    // (check-synth-next)
     case Token::CHECK_SYNTH_NEXT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -112,6 +121,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // single datatype
+    // (declare-datatype <symbol> <datatype_dec>)
+    // (declare-codatatype <symbol> <datatype_dec>)
     case Token::DECLARE_CODATATYPE_TOK:
     case Token::DECLARE_DATATYPE_TOK:
     {
@@ -121,6 +132,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
       dnames.push_back(name);
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
+      // parse <datatype_dec>
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
       cmd.reset(new DatatypeDeclarationCommand(
@@ -128,6 +140,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // multiple datatype
+    // (declare-datatypes (<sort_dec>^{n+1}) (<datatype_dec>^{n+1}) )
+    // (declare-codatatypes (<sort_dec>^{n+1}) (<datatype_dec>^{n+1}) )
     case Token::DECLARE_CODATATYPES_TOK:
     case Token::DECLARE_DATATYPES_TOK:
     {
@@ -135,6 +149,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<std::string> dnames;
       std::vector<size_t> arities;
+      // parse (<sort_dec>^{n+1})
       // while the next token is LPAREN, exit if RPAREN
       while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
       {
@@ -149,6 +164,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
         d_lex.parseError("Empty list of datatypes");
       }
       bool isCo = (tok == Token::DECLARE_CODATATYPES_TOK);
+      // parse (<datatype_dec>^{n+1})
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<DatatypeDecl> dts =
           d_tparser.parseDatatypesDef(isCo, dnames, arities);
@@ -157,7 +173,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
           d_state.bindMutualDatatypeTypes(dts, true)));
     }
     break;
-    // declare-fun and declare-const
+    // (declare-fun <symbol> (<sort>∗) <sort>)
+    // (declare-const <symbol> <sort>)
     case Token::DECLARE_CONST_TOK:
     case Token::DECLARE_FUN_TOK:
     {
@@ -191,6 +208,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
+    // (declare-heap (<sort> <sort>))
     case Token::DECLARE_HEAP:
     {
       d_lex.eatToken(Token::LPAREN_TOK);
@@ -200,6 +218,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::RPAREN_TOK);
     }
     break;
+    // (declare-pool <symbol> <sort> (<term>+))
     case Token::DECLARE_POOL:
     {
       d_state.checkThatLogicIsSet();
@@ -212,6 +231,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DeclarePoolCommand(name, pool, t, terms));
     }
     break;
+    // (declare-sort <symbol> <numeral>)
     case Token::DECLARE_SORT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -234,6 +254,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
+    // (declare-var <symbol> <sort>)
     case Token::DECLARE_VAR_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -244,6 +265,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
     break;
+    // (define-const <symbol> <sort> <term>)
     case Token::DEFINE_CONST_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -258,6 +280,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionCommand(name, t, e));
     }
     break;
+    // (define-fun <symbol> (<sorted_var>*) <sort> <term>)
     case Token::DEFINE_FUN_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -303,6 +326,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionCommand(name, terms, t, expr));
     }
     break;
+    // (define-fun-rec <symbol> (<sorted_var>*) <sort> <term>)
     case Token::DEFINE_FUN_REC_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -325,6 +349,9 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineFunctionRecCommand(func, bvs, expr));
     }
     break;
+    // (define-funs-rec (<function_dec>^{n+1}) (<term>^{n+1}))
+    // where
+    // <function_dec> := (<symbol> (<sorted_var>*) <sort>)
     case Token::DEFINE_FUNS_REC_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -333,6 +360,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       std::vector<std::vector<std::pair<std::string, Sort>>> sortedVarNamesList;
       std::vector<std::vector<Term>> flattenVarsList;
       // while the next token is LPAREN, exit if RPAREN
+      // parse <function_dec>^{n+1}
       while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
       {
         std::string fname =
@@ -356,6 +384,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_lex.eatToken(Token::LPAREN_TOK);
       std::vector<Term> funcDefs;
       std::vector<std::vector<Term>> formals;
+      // parse <term>^{n+1}
       for (size_t j = 0, nfuncs = funcs.size(); j < nfuncs; j++)
       {
         std::vector<Term> bvs;
@@ -389,6 +418,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new DefineSortCommand(name, sorts, t));
     }
     break;
+    // (echo <string>)
     case Token::ECHO_TOK:
     {
       // optional string literal
@@ -404,11 +434,13 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
+    // (exit)
     case Token::EXIT_TOK:
     {
       cmd.reset(new QuitCommand());
     }
     break;
+    // (get-abduct <symbol> <term> <grammar>?)
     case Token::GET_ABDUCT_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -420,36 +452,42 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetAbductCommand(name, t, g));
     }
     break;
+    // (get-abduct-next)
     case Token::GET_ABDUCT_NEXT_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetAbductNextCommand);
     }
     break;
+    // (get-assertions)
     case Token::GET_ASSERTIONS_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetAssertionsCommand());
     }
     break;
+    // (get-assignment)
     case Token::GET_ASSIGNMENT_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetAssignmentCommand());
     }
     break;
+    // (get-difficulty)
     case Token::GET_DIFFICULTY_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetDifficultyCommand);
     }
     break;
+    // (get-info <keyword>)
     case Token::GET_INFO_TOK:
     {
       std::string key = d_tparser.parseKeyword();
       cmd.reset(new GetInfoCommand(key));
     }
     break;
+    // (get-interpolant <symbol> <term> <grammar>?)
     case Token::GET_INTERPOL_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -460,12 +498,14 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetInterpolantCommand(name, t, g));
     }
     break;
+    // (get-interpolant-next)
     case Token::GET_INTERPOL_NEXT_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetInterpolantNextCommand);
     }
     break;
+    // (get-learned-literals <keyword>?)
     case Token::GET_LEARNED_LITERALS_TOK:
     {
       // optional keyword
@@ -480,18 +520,21 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetLearnedLiteralsCommand(llt));
     }
     break;
+    // (get-model)
     case Token::GET_MODEL_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetModelCommand());
     }
     break;
+    // (get-option <keyword>)
     case Token::GET_OPTION_TOK:
     {
       std::string key = d_tparser.parseKeyword();
       cmd.reset(new GetOptionCommand(key));
     }
     break;
+    // (get-proof <keyword>?)
     case Token::GET_PROOF_TOK:
     {
       // optional keyword
@@ -507,6 +550,8 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // quantifier elimination commands
+    // (get-qe <term>)
+    // (get-qe-disjunct <term>)
     case Token::GET_QE_TOK:
     case Token::GET_QE_DISJUNCT_TOK:
     {
@@ -516,18 +561,21 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new GetQuantifierEliminationCommand(t, isFull));
     }
     break;
+    // (get-unsat-assumptions)
     case Token::GET_UNSAT_ASSUMPTIONS_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetUnsatAssumptionsCommand);
     }
     break;
+    // (get-unsat-core)
     case Token::GET_UNSAT_CORE_TOK:
     {
       d_state.checkThatLogicIsSet();
       cmd.reset(new GetUnsatCoreCommand);
     }
     break;
+    // (get-value (<term>*))
     case Token::GET_VALUE_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -539,6 +587,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_state.popScope();
     }
     break;
+    // (inv-constraint <symbol> <symbol> <symbol> <symbol>)
     case Token::INV_CONSTRAINT_TOK:
     {
       std::vector<std::string> names;
@@ -551,6 +600,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd = d_state.invConstraint(names);
     }
     break;
+    // (pop <numeral>)
     case Token::POP_TOK:
     {
       // optional integer
@@ -566,6 +616,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
+    // (push <numeral>)
     case Token::PUSH_TOK:
     {
       // optional integer
@@ -581,6 +632,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
+    // (reset)
     case Token::RESET_TOK:
     {
       cmd.reset(new ResetCommand());
@@ -589,11 +641,13 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       d_state.reset();
     }
     break;
+    // (reset-assertions)
     case Token::RESET_ASSERTIONS_TOK:
     {
       cmd.reset(new ResetAssertionsCommand());
     }
     break;
+    // (set-feature <attribute>)
     case Token::SET_FEATURE_TOK:
     {
       std::string key = d_tparser.parseKeyword();
@@ -610,6 +664,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new EmptyCommand());
     }
     break;
+    // (set-info <attribute>)
     case Token::SET_INFO_TOK:
     {
       std::string key = d_tparser.parseKeyword();
@@ -617,12 +672,14 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new SetInfoCommand(key, sexprToString(sexpr)));
     }
     break;
+    // (set-logic <symbol>)
     case Token::SET_LOGIC_TOK:
     {
       std::string name = d_tparser.parseSymbol(CHECK_NONE, SYM_SORT);
       cmd.reset(d_state.setLogic(name));
     }
     break;
+    // (set-option <option>)
     case Token::SET_OPTION_TOK:
     {
       std::string key = d_tparser.parseKeyword();
@@ -638,6 +695,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       }
     }
     break;
+    // (simplify <term>)
     case Token::SIMPLIFY_TOK:
     {
       d_state.checkThatLogicIsSet();
@@ -646,6 +704,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
     }
     break;
     // synth-fun and synth-inv
+    // (synth-fun <symbol> (<sorted_var>*) <sort> <grammar>?)
     case Token::SYNTH_FUN_TOK:
     case Token::SYNTH_INV_TOK:
     {
