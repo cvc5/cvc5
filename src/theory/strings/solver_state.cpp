@@ -76,29 +76,37 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 
 TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
 
-Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
+Node SolverState::getLengthExp(Node t,
+                               std::vector<Node>& exp,
+                               Node te,
+                               bool minExp)
 {
   Assert(areEqual(t, te));
-  Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, t);
-  lt = rewrite(lt);
-  if (hasTerm(lt))
+  // if we are minimizing explanations
+  if (minExp)
   {
-    // use own length if it exists, leads to shorter explanation
-    return lt;
+    Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, te);
+    lt = rewrite(lt);
+    if (hasTerm(lt))
+    {
+      // use own length if it exists, leads to shorter explanation
+      return lt;
+    }
   }
   EqcInfo* ei = getOrMakeEqcInfo(t, false);
   Node lengthTerm = ei ? ei->d_lengthTerm : Node::null();
+  Node ret;
   if (lengthTerm.isNull())
   {
-    // typically shouldnt be necessary
-    lengthTerm = t;
+    // typically shouldn't be necessary
+    lengthTerm = te;
   }
   else
   {
     lengthTerm = lengthTerm[0];
   }
-  Trace("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
-                   << std::endl;
+  Trace("strings") << "SolverState::getLengthTerm " << t << "/" << te << " is "
+                   << lengthTerm << std::endl;
   if (te != lengthTerm)
   {
     exp.push_back(te.eqNode(lengthTerm));
@@ -106,9 +114,9 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
   return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 
-Node SolverState::getLength(Node t, std::vector<Node>& exp)
+Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
 {
-  return getLengthExp(t, exp, t);
+  return getLengthExp(t, exp, t, minExp);
 }
 
 Node SolverState::explainNonEmpty(Node s)
