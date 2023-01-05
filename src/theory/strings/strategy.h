@@ -59,6 +59,8 @@ enum InferStep
   CHECK_LENGTH_EQC,
   // check register terms for normal forms
   CHECK_REGISTER_TERMS_NF,
+  // check for eager extended function reductions
+  CHECK_EXTF_REDUCTION_EAGER,
   // check extended function reductions
   CHECK_EXTF_REDUCTION,
   // check regular expression memberships
