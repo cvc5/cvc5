@@ -65,6 +65,7 @@ runs:
       shell: bash
       run: |
         echo "::group::Install macOS software"
+        echo $(which python3)
         brew update --quiet
         # Temporary workaround for https://github.com/actions/setup-python/issues/577
         rm -f /usr/local/bin/2to3
@@ -85,8 +86,6 @@ runs:
           flex \
           gnu-sed \
           python-tk
-        # Link newest python version to python3
-        brew link --overwrite python
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
