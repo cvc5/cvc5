@@ -77,17 +77,13 @@ runs:
         rm -f /usr/local/bin/pydoc3.11
         rm -f /usr/local/bin/python3.11
         rm -f /usr/local/bin/python3.11-config
-        brew install pyenv
-        pyenv versions
-        python3 --version
         brew install \
           ccache \
           cln \
           gmp \
           pkgconfig \
           flex \
-          gnu-sed \
-          python-tk
+          gnu-sed
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
