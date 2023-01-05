@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -321,11 +321,7 @@ else()
   endif()
 endif()
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
-  find_package(Python 3 REQUIRED)
-else()
-  find_package(PythonInterp 3 REQUIRED)
-endif()
+find_package(Python 3 REQUIRED)
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -498,7 +494,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
+  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION_MAJOR})
   add_subdirectory(src/api/python)
 endif()
 

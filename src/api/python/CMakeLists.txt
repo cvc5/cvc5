@@ -24,7 +24,7 @@ check_python_module("setuptools")
 # They are distributed under <scikit-build directory>/resources/cmake
 execute_process(
   COMMAND
-    ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; \
+    ${Python_EXECUTABLE} -c "from __future__ import print_function; \
       import os; import skbuild; \
       cmake_module_path=os.path.join(os.path.dirname(skbuild.__file__), \
         'resources', 'cmake'); print(cmake_module_path, end='')"
@@ -44,20 +44,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 find_package(PythonExtensions REQUIRED)
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
-   CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
-  # On macOS, find_package(PythonLibs ...) does not find the Python include
-  # directory or library when they were installed via homebrew.
-  # find_package(Python ...) is more robust, but only available on newer
-  # versions of CMake. If we are compiling cvc5 on macOS and we have a newer
-  # version of CMake available, we try to use find_package(Python ...) to find
-  # the paths.
-  find_package(Python COMPONENTS Development)
-  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
-  set(PYTHON_LIBRARY "${Python_LIBRARIES}")
-endif()
-
+find_package(Python COMPONENTS Development)
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
@@ -73,7 +60,7 @@ add_custom_command(
   OUTPUT
     ${GENERATED_KINDS_FILES}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds"
@@ -92,7 +79,7 @@ add_custom_command(
   OUTPUT
     ${GENERATED_TYPES_FILES}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5types"
@@ -113,7 +100,7 @@ add_dependencies(cvc5_python_base cvc5kinds cvc5types)
 
 target_include_directories(cvc5_python_base
   PRIVATE
-  ${PYTHON_INCLUDE_DIRS}
+  ${Python_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/src       # for API headers in src/api/cpp
   ${CMAKE_BINARY_DIR}/src         # for cvc5_export.h
 )
@@ -178,13 +165,13 @@ configure_file(__init__.py.in cvc5/__init__.py)
 # figure out if we're in a virtualenv
 execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
   COMMAND
-  "${PYTHON_EXECUTABLE}"
+  "${Python_EXECUTABLE}"
   -c
   "from __future__ import print_function; import os;
 print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 
 set(INSTALL_CMD
-    "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
+    "${Python_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
 # if we're in a virtualenv, we install it in the virtualenv lib location
 # otherwise install in site-packages
 # option --single-version-externally-managed prevents it from being
