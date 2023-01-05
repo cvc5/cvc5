@@ -90,7 +90,10 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
     Trace("strings-extf-debug") << "...skip due to model active" << std::endl;
     return false;
   }
-  if (d_reduced.find(n)!=d_reduced.end())
+  // check with negation if requested (only applied to Boolean terms)
+  Assert(n.getType().isBoolean() || pol != -1);
+  Node nn = pol == -1 ? n.notNode() : n;
+  if (d_reduced.find(nn) != d_reduced.end())
   {
     // already sent a reduction lemma
     Trace("strings-extf-debug") << "...skip due to reduced" << std::endl;
@@ -101,77 +104,39 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
   {
     // we reduce these semi-eagerly, at effort 1
-    if (effort != 1)
-    {
-      return false;
-    }
+    return (effort == 1);
   }
   else if (k == STRING_CONTAINS && pol == -1)
   {
     // negative contains reduces at level 2, or 3 if guessing model
     int reffort = options().strings.stringModelBasedReduction ? 3 : 2;
-    if (effort == reffort)
-    {
-      Node x = n[0];
-      Node s = n[1];
-      std::vector<Node> lexp;
-      Node lenx = d_state.getLength(x, lexp);
-      Node lens = d_state.getLength(s, lexp);
-      if (d_state.areEqual(lenx, lens))
-      {
-        // We can reduce negative contains to a disequality when lengths are
-        // equal. In other words, len( x ) = len( s ) implies
-        //   ~contains( x, s ) reduces to x != s.
-        if (d_state.areDisequal(x, s))
-        {
-          Trace("strings-extf-debug")
-              << "  resolve extf : " << n
-              << " based on equal lengths disequality." << std::endl;
-          // this depends on the current assertions, so this
-          // inference is context-dependent
-          d_extt.markInactive(n, ExtReducedId::STRINGS_NEG_CTN_DEQ, true);
-          return true;
-        }
-        return true;
-      }
-    }
-    else
-    {
-      return false;
-    }
+    return (effort == reffort);
   }
   else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
-           || k == STRING_TO_CODE || (k == STRING_CONTAINS && pol == 0))
+           || k == STRING_TO_CODE || (n.getType().isBoolean() && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
     // asserted (pol=0).
     return false;
   }
-  else
+  else if (options().strings.seqArray != options::SeqArrayMode::NONE)
   {
-    if (options().strings.seqArray != options::SeqArrayMode::NONE)
+    if (k == SEQ_NTH)
     {
-      if (k == SEQ_NTH)
-      {
-        // don't need to reduce seq.nth when sequence update solver is used
-        return false;
-      }
-      else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
-               && d_termReg.isHandledUpdateOrSubstr(n))
-      {
-        // don't need to reduce certain seq.update
-        // don't need to reduce certain seq.extract with length 1
-        return false;
-      }
+      // don't need to reduce seq.nth when sequence update solver is used
+      return false;
     }
-    if (effort != 2)
+    else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+             && d_termReg.isHandledUpdateOrSubstr(n))
     {
-      // all other operators reduce at level 2
+      // don't need to reduce certain seq.update
+      // don't need to reduce certain seq.extract with length 1
       return false;
     }
   }
-  return true;
+  // all other operators reduce at level 2
+  return (effort == 2);
 }
 
 void ExtfSolver::doReduction(Node n, int pol)
@@ -209,7 +174,7 @@ void ExtfSolver::doReduction(Node n, int pol)
       return;
     }
   }
-  Node c_n = pol == -1 ? n.negate() : n;
+  Node nn = pol == -1 ? n.notNode() : n;
   Trace("strings-process-debug")
       << "Process reduction for " << n << ", pol = " << pol << std::endl;
   if (k == STRING_CONTAINS && pol == 1)
@@ -230,8 +195,9 @@ void ExtfSolver::doReduction(Node n, int pol)
         << std::endl;
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
-    // context-dependent because it depends on the polarity of n itself
-    d_extt.markInactive(n, ExtReducedId::STRINGS_POS_CTN, true);
+    // reduced positively
+    Assert(nn == n);
+    d_reduced.insert(nn);
   }
   else
   {
@@ -255,6 +221,7 @@ void ExtfSolver::doReduction(Node n, int pol)
       Trace("strings-extf-debug")
           << "  resolve extf : " << n << " based on (trivial) reduction."
           << std::endl;
+      d_reduced.insert(nn);
     }
     else
     {
@@ -263,12 +230,25 @@ void ExtfSolver::doReduction(Node n, int pol)
       d_im.sendInference(ii, true);
       Trace("strings-extf-debug")
           << "  resolve extf : " << n << " based on reduction." << std::endl;
+      d_reduced.insert(nn);
     }
-    d_reduced.insert(n);
   }
 }
 
-void ExtfSolver::checkExtfReductions(int effort)
+void ExtfSolver::checkExtfReductionsEager()
+{
+  // return value is ignored
+  checkExtfReductionsInternal(1, true);
+}
+
+void ExtfSolver::checkExtfReductions(Theory::Effort e)
+{
+  int effort = e == Theory::EFFORT_LAST_CALL ? 3 : 2;
+  // return value is ignored
+  checkExtfReductionsInternal(effort, true);
+}
+
+bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
 {
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
@@ -297,13 +277,14 @@ void ExtfSolver::checkExtfReductions(int effort)
     if (shouldDoReduction(effort, n, pol))
     {
       doReduction(n, pol);
-      // we do not mark as reduced, since we may want to evaluate
+      // we do not mark as inactive, since we may want to evaluate
       if (d_im.hasProcessed())
       {
-        return;
+        return true;
       }
     }
   }
+  return false;
 }
 
 void ExtfSolver::checkExtfEval(int effort)
@@ -855,6 +836,13 @@ std::string ExtfSolver::debugPrintModel()
   }
   return ss.str();
 }
+
+bool ExtfSolver::isReduced(const Node& n) const
+{
+  return d_reduced.find(n) != d_reduced.end();
+}
+
+void ExtfSolver::markReduced(const Node& n) { d_reduced.insert(n); }
 
 }  // namespace strings
 }  // namespace theory

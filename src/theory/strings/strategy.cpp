@@ -35,6 +35,7 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
     case CHECK_NORMAL_FORMS_DEQ: out << "check_normal_forms_deq"; break;
     case CHECK_CODES: out << "check_codes"; break;
     case CHECK_LENGTH_EQC: out << "check_length_eqc"; break;
+    case CHECK_EXTF_REDUCTION_EAGER: out << "check_extf_reduction_eager"; break;
     case CHECK_EXTF_REDUCTION: out << "check_extf_reduction"; break;
     case CHECK_MEMBERSHIP: out << "check_membership"; break;
     case CHECK_CARDINALITY: out << "check_cardinality"; break;
@@ -114,7 +115,7 @@ void Strategy::initializeStrategy()
     {
       addStrategyStep(CHECK_FLAT_FORMS);
     }
-    addStrategyStep(CHECK_EXTF_REDUCTION, 1);
+    addStrategyStep(CHECK_EXTF_REDUCTION_EAGER);
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
     addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
@@ -130,7 +131,7 @@ void Strategy::initializeStrategy()
     }
     if (options().strings.stringExp)
     {
-      addStrategyStep(CHECK_EXTF_REDUCTION, 2);
+      addStrategyStep(CHECK_EXTF_REDUCTION);
     }
     addStrategyStep(CHECK_MEMBERSHIP);
     addStrategyStep(CHECK_CARDINALITY);
@@ -141,7 +142,7 @@ void Strategy::initializeStrategy()
       addStrategyStep(CHECK_EXTF_EVAL, 3);
       if (options().strings.stringExp)
       {
-        addStrategyStep(CHECK_EXTF_REDUCTION, 3);
+        addStrategyStep(CHECK_EXTF_REDUCTION);
       }
       addStrategyStep(CHECK_MEMBERSHIP, 3);
       step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
