@@ -77,7 +77,9 @@ runs:
         rm -f /usr/local/bin/pydoc3.11
         rm -f /usr/local/bin/python3.11
         rm -f /usr/local/bin/python3.11-config
-        brew unlink python@3.10
+        brew install pyenv
+        pyenv versions
+        python3 --version
         brew install \
           ccache \
           cln \
