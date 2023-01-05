@@ -85,7 +85,8 @@ runs:
           flex \
           gnu-sed \
           python-tk
-        echo "$(python3 --version)"
+        # Link newest python version to python3
+        brew link --overwrite python
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
