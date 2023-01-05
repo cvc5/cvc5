@@ -321,7 +321,12 @@ else()
   endif()
 endif()
 
-find_package(Python 3 REQUIRED)
+if (BUILD_BINDINGS_PYTHON)
+  find_package(Python 3 COMPONENTS Interpreter Development)
+else()
+  find_package(Python 3 COMPONENTS Interpreter)
+endif()
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
