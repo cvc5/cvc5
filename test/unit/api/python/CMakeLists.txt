@@ -30,6 +30,9 @@ macro(cvc5_add_python_api_unit_test name filename)
 endmacro()
 
 # add specific test files
+if(USE_COCOA)
+  cvc5_add_python_api_unit_test(test_finite_field test_finite_field.py)
+endif()
 cvc5_add_python_api_unit_test(test_solver test_solver.py)
 cvc5_add_python_api_unit_test(test_sort test_sort.py)
 cvc5_add_python_api_unit_test(test_term test_term.py)
