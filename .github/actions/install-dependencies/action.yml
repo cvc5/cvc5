@@ -77,7 +77,7 @@ runs:
         rm -f /usr/local/bin/pydoc3.11
         rm -f /usr/local/bin/python3.11
         rm -f /usr/local/bin/python3.11-config
-        echo $(which python3)
+        brew link --overwrite python
         brew install \
           ccache \
           cln \
