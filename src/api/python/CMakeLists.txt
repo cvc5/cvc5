@@ -44,7 +44,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 find_package(PythonExtensions REQUIRED)
-find_package(Python COMPONENTS Development)
+find_package(Python 3 COMPONENTS Development)
 find_package(Cython 0.29 REQUIRED)
 
 set(CYTHON_FLAGS "-X embedsignature=True")
