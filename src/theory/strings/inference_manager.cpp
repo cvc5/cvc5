@@ -360,6 +360,12 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;
   }
+  // send phase requirements
+  for (const std::pair<const Node, bool>& pp : ii.d_pendingPhase)
+  {
+    Node ppr = rewrite(pp.first);
+    addPendingPhaseRequirement(ppr, pp.second);
+  }
   Trace("strings-assert") << "(assert " << tlem.getNode() << ") ; lemma "
                           << ii.getId() << std::endl;
   Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by "

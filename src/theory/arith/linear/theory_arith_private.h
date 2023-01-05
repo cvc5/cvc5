@@ -480,8 +480,7 @@ private:
   /** Called when n is notified as being a shared term with TheoryArith. */
   void notifySharedTerm(TNode n);
 
-  Node getModelValue(TNode var);
-
+  Node getCandidateModelValue(TNode var);
 
   std::pair<bool, Node> entailmentCheck(TNode lit);
 
