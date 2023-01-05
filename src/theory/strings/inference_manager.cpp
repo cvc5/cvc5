@@ -36,7 +36,7 @@ InferenceManager::InferenceManager(Env& env,
                                    TermRegistry& tr,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics)
-    : InferenceManagerBuffered(env, t, s, "theory::strings::", false),
+    : InferenceManagerBuffered(env, t, s, "theory::strings::"),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
@@ -271,9 +271,9 @@ bool InferenceManager::hasProcessed() const
   return d_state.isInConflict() || hasPending();
 }
 
-void InferenceManager::markReduced(Node n, ExtReducedId id, bool contextDepend)
+void InferenceManager::markInactive(Node n, ExtReducedId id, bool contextDepend)
 {
-  d_extt.markReduced(n, id, contextDepend);
+  d_extt.markInactive(n, id, contextDepend);
 }
 
 void InferenceManager::processConflict(const InferInfo& ii)
