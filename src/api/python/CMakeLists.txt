@@ -43,6 +43,11 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
+# Note: PythonExtensions (scikit-build) still uses the old cmake Python
+# infrastructure. Hence, we have to force the Python version we found via
+# FindPython so that scikit-build uses the same version.
+find_package(PythonInterp ${Python_VERSION} REQUIRED)
+find_package(PythonLibs ${Python_VERSION} REQUIRED)
 find_package(PythonExtensions REQUIRED)
 find_package(Cython 0.29 REQUIRED)
 
