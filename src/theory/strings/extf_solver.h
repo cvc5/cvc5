@@ -193,7 +193,7 @@ class ExtfSolver : protected EnvObj
    */
   bool isReduced(const Node& n) const;
   /**
-   * Mark that extended function (or regular expression membership)  n has been
+   * Mark that extended function (or regular expression membership) n has been
    * reduced. Like above, n could be a negation of an extended function of
    * Boolean type.
    */
