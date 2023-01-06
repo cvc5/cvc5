@@ -52,6 +52,7 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
     case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
+    case IncompleteId::NONE: return "NONE";
     default: return "?IncompleteId?";
   }
 }

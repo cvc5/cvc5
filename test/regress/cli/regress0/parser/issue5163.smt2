@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; SCRUBBER: grep -o "Symbol 'a' not declared as a variable"
 ; EXPECT: Symbol 'a' not declared as a variable
 ; EXIT: 1
