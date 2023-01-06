@@ -286,7 +286,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   // their arguments have string type and do not introduce any shared
   // terms.
   if (n.hasOperator() && ee->isFunctionKind(k)
-      && kindToTheoryId(k) == THEORY_STRINGS && k != STRING_CONCAT)
+      && kindToTheoryId(k) == THEORY_STRINGS && k != STRING_CONCAT && k != STRING_IN_REGEXP)
   {
     d_functionsTerms.push_back(n);
   }
