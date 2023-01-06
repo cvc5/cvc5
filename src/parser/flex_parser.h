@@ -61,7 +61,7 @@ class FlexParser : public ParserStateCallback
    * @param name the name of the stream, for use in error messages
    */
   void setStringInput(const std::string& input, const std::string& name);
-  
+
   /**
    * Parse and return the next command.
    * NOTE: currently memory management of commands is handled internally.

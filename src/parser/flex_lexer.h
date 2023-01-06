@@ -54,7 +54,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
 /**
  * A Flex lexer. This class inherits from yyFlexLexer, which is generated
  * by Flex's C++ code generation.
- * 
+ *
  * Custom lexers (e.g. for smt2) override the yylex method of the base
  * class.
  */
@@ -63,7 +63,7 @@ class Lexer : public yyFlexLexer
  public:
   Lexer();
   virtual ~Lexer() {}
-  /** 
+  /**
    * Initialize the lexer to generate tokens from stream input.
    * @param input The input stream
    * @param inputName The name for debugging
@@ -93,6 +93,7 @@ class Lexer : public yyFlexLexer
   void parseError(const std::string&, bool eofException = false);
   /** Error. Got `t`, expected `info`. */
   void unexpectedTokenError(Token t, const std::string& info);
+
  protected:
   /** Used to initialize d_span. */
   void initSpan();
