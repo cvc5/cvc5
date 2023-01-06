@@ -22,6 +22,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/rational.h"
@@ -141,7 +142,7 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
   }
   else if (tk==STRING_IN_REGEXP)
   {
-    Node len = getFixedLengthForRegexp(t[1]);
+    Node len = RegExpEntail::getFixedLengthForRegexp(t[1]);
     if (!len.isNull())
     {
       lemma = nm->mkNode(IMPLIES, t, nm->mkNode(STRING_LENGTH, t[0]).eqNode(len));
