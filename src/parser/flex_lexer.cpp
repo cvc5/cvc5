@@ -39,28 +39,12 @@ Lexer::Lexer() : yyFlexLexer() {}
 
 void Lexer::warning(const std::string& msg)
 {
-  /*
-  if (d_inputName.length())
-  {
-    std::cerr << "Warning: " << d_inputName << " at " << d_span;
-  }
-  std::cerr << std::endl << msg << std::endl;
-  */
   Warning() << d_inputName << ':' << d_span.d_start.d_line << '.'
             << d_span.d_start.d_column << ": " << msg << std::endl;
 }
 
 void Lexer::parseError(const std::string& msg, bool eofException)
 {
-  /*
-  if (d_inputName.length())
-  {
-    std::cerr << "Error: " << d_inputName << " at " << d_span;
-  }
-  std::cerr << std::endl << msg << std::endl;
-  exit(1);
-  */
-
   if (eofException)
   {
     throw ParserEndOfFileException(
@@ -73,20 +57,20 @@ void Lexer::parseError(const std::string& msg, bool eofException)
   }
 }
 
-void Lexer::init_d_span()
+void Lexer::initSpan()
 {
   d_span.d_start.d_line = 1;
   d_span.d_start.d_column = 1;
   d_span.d_end.d_line = 1;
   d_span.d_end.d_column = 1;
 }
-void Lexer::bump_span()
+void Lexer::bumpSpan()
 {
   d_span.d_start.d_line = d_span.d_end.d_line;
   d_span.d_start.d_column = d_span.d_end.d_column;
 }
-void Lexer::add_columns(uint32_t columns) { d_span.d_end.d_column += columns; }
-void Lexer::add_lines(uint32_t lines)
+void Lexer::addColumns(uint32_t columns) { d_span.d_end.d_column += columns; }
+void Lexer::addLines(uint32_t lines)
 {
   d_span.d_end.d_line += lines;
   d_span.d_end.d_column = 1;
@@ -96,7 +80,7 @@ void Lexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
   yyrestart(input);
-  init_d_span();
+  initSpan();
   d_peeked.clear();
 }
 

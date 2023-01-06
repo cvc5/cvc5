@@ -52,23 +52,32 @@ std::ostream& operator<<(std::ostream& o, const Location& l);
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
 /**
+ * A Flex lexer. This class inherits from yyFlexLexer, which is generated
+ * by Flex's C++ code generation.
+ * 
+ * Custom lexers (e.g. for smt2) override the yylex method of the base
+ * class.
  */
 class Lexer : public yyFlexLexer
 {
  public:
   Lexer();
   virtual ~Lexer() {}
-  /** initialize */
+  /** 
+   * Initialize the lexer to generate tokens from stream input.
+   * @param input The input stream
+   * @param inputName The name for debugging
+   */
   void initialize(std::istream& input, const std::string& inputName);
   /** Advance to the next token (pop from stack) */
   Token nextToken();
-  // Add a token back into the stream (push to stack)
+  /** Add a token back into the stream (push to stack) */
   Token peekToken();
   /** Expect a token `t` as the next one. Error o.w. */
   void eatToken(Token t);
   /**
-   * Expect a token `t` or `f` as the next one, error otherwise. Return true
-   * if `t`.
+   * Expect a token `t` or `f` as the next one, or throw a parse error
+   * otherwise. Return true if `t`.
    */
   bool eatTokenChoice(Token t, Token f);
   /** reinsert token, read back first in, last out */
@@ -84,21 +93,23 @@ class Lexer : public yyFlexLexer
   void parseError(const std::string&, bool eofException = false);
   /** Error. Got `t`, expected `info`. */
   void unexpectedTokenError(Token t, const std::string& info);
-
  protected:
-  // Used to initialize d_span.
-  void init_d_span();
-  // Sets the spans start to its current end.
-  void bump_span();
-  // Add columns or lines to the end location of the span.
-  void add_columns(uint32_t columns);
-  void add_lines(uint32_t lines);
-  // Core functions
-  // Span of last token pulled from underlying lexer (old top of stack)
+  /** Used to initialize d_span. */
+  void initSpan();
+  /** Sets the spans start to its current end. */
+  void bumpSpan();
+  /** Add columns or lines to the end location of the span. */
+  void addColumns(uint32_t columns);
+  void addLines(uint32_t lines);
+  /** Span of last token pulled from underlying lexer (old top of stack) */
   Span d_span;
-  /** Name of current file */
+  /** Name of current input, for debugging */
   std::string d_inputName;
-  /** Peeked */
+  /**
+   * The peeked stack. When we peek at the next token, it is added to this
+   * vector. When we read a token, if this vector is non-empty, we return the
+   * back of it and pop.
+   */
   std::vector<Token> d_peeked;
 };
 

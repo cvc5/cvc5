@@ -1,8 +1,7 @@
-
 %{
 #include "parser/smt2/smt2_lexer.h"
 
-// Alternatively we could lex simple_symbol as:
+// NOTE: alternatively we could lex simple_symbol as:
 //  [a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]+
 // ??
 // Note that `%option full` could make lexing faster but it is incompatible
@@ -15,7 +14,7 @@
 %option yyclass="cvc5::parser::Smt2Lexer"
 
 %{
-#define YY_USER_ACTION add_columns(yyleng);
+#define YY_USER_ACTION addColumns(yyleng);
 %}
 
 nl          [\n]+
@@ -34,7 +33,7 @@ unterminated_quoted_symbol \|[^\|\\]*
 %%
 
 %{
-  bump_span();
+  bumpSpan();
 %}
 
 "assert"   return cvc5::parser::ASSERT_TOK;
@@ -104,16 +103,16 @@ unterminated_quoted_symbol \|[^\|\\]*
 "synth-fun"   return d_sygus ? cvc5::parser::SYNTH_FUN_TOK : cvc5::parser::SYMBOL;
 "synth-inv"   return d_sygus ? cvc5::parser::SYNTH_INV_TOK : cvc5::parser::SYMBOL;
 
-{ws}   bump_span();
-{nl}   add_lines(yyleng); bump_span();
+{ws}   bumpSpan();
+{nl}   addLines(yyleng); bumpSpan();
 {string_literal}    {
                       // increment location for each line
                       for (const char * c=yytext; *c; ++c)
                       {
                         if (*c == '\n')
                         {
-                          add_lines(1);
-                          bump_span();
+                          addLines(1);
+                          bumpSpan();
                         }
                       }
                       return cvc5::parser::STRING_LITERAL;
@@ -131,8 +130,8 @@ unterminated_quoted_symbol \|[^\|\\]*
                   {
                     if (*c == '\n')
                     {
-                      add_lines(1);
-                      bump_span();
+                      addLines(1);
+                      bumpSpan();
                     }
                   }
                   return cvc5::parser::QUOTED_SYMBOL;
@@ -147,8 +146,8 @@ unterminated_quoted_symbol \|[^\|\\]*
           {
             if (c == '\n')
             {
-              add_lines(1);
-              bump_span();
+              addLines(1);
+              bumpSpan();
               break;
             }
           }
