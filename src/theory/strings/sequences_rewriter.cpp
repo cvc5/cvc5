@@ -872,7 +872,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
       // if empty, drop it
       // e.g. this ensures we rewrite (_)* ++ (a)* ---> (_)*
       if (RegExpEntail::isConstRegExp(curr)
-          && RegExpEntail::testConstStringInRegExp(emptyStr, 0, curr))
+          && RegExpEntail::testConstStringInRegExp(emptyStr, curr))
       {
         curr = Node::null();
       }
@@ -895,7 +895,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
           while (!cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
                  && RegExpEntail::testConstStringInRegExp(
-                     emptyStr, 0, cvec.back()))
+                     emptyStr, cvec.back()))
           {
             cvec.pop_back();
           }
