@@ -139,6 +139,14 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
     lemma = t[0].eqNode(nm->mkNode(STRING_CONCAT, sk1, t[1], sk2));
     lemma = nm->mkNode(ITE, t, lemma, t[0].eqNode(t[1]).notNode());
   }
+  else if (tk==STRING_IN_REGEXP)
+  {
+    Node len = getFixedLengthForRegexp(t[1]);
+    if (!len.isNull())
+    {
+      lemma = nm->mkNode(IMPLIES, t, nm->mkNode(STRING_LENGTH, t[0]).eqNode(len));
+    }
+  }
   return lemma;
 }
 
