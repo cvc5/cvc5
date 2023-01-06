@@ -70,6 +70,7 @@ class RegExpSolver : protected EnvObj
  private:
   /** compute asserted memberships */
   void computeAssertedMemberships();
+  /** Compute active extended terms of kind k, grouped by representative. */
   std::map<Node, std::vector<Node>> computeAssertions(Kind k) const;
   /**
    * Check inclusions,

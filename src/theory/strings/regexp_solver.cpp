@@ -55,9 +55,9 @@ std::map<Node, std::vector<Node>> RegExpSolver::computeAssertions(Kind k) const
 {
   std::map<Node, std::vector<Node>> assertions;
   // add the memberships
-  std::vector<Node> mems = d_esolver.getActive(k);
+  std::vector<Node> xts = d_esolver.getActive(k);
   // maps representatives to regular expression memberships in that class
-  for (const Node& n : mems)
+  for (const Node& n : xts)
   {
     Assert(n.getKind() == k);
     Node r = d_state.getRepresentative(n);
