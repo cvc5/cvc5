@@ -24,7 +24,7 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * State when parsing terms
+ * Definition of state identifiers when parsing terms
  *
  * This is required for non-recursive parsing of terms. Note that in SMT-LIB,
  * terms generally are of the form (...anything not involving terms... <term>*)
