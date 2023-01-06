@@ -893,9 +893,9 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
           lastAllStar = true;
           // go back and remove empty ones from back of cvec
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
-          while (!cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
-                 && RegExpEntail::testConstStringInRegExp(
-                     emptyStr, cvec.back()))
+          while (
+              !cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
+              && RegExpEntail::testConstStringInRegExp(emptyStr, cvec.back()))
           {
             cvec.pop_back();
           }

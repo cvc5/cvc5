@@ -396,8 +396,7 @@ bool RegExpEntail::isConstRegExp(TNode t)
   return true;
 }
 
-bool RegExpEntail::testConstStringInRegExp(String& s,
-                                           TNode r)
+bool RegExpEntail::testConstStringInRegExp(String& s, TNode r)
 {
   // if we can evaluate it via NFA construction
   if (RegExpEval::canEvaluate(r))
@@ -407,9 +406,9 @@ bool RegExpEntail::testConstStringInRegExp(String& s,
   return testConstStringInRegExpInternal(s, 0, r);
 }
 
-bool RegExpEntail::testConstStringInRegExpInternal(String& s, 
+bool RegExpEntail::testConstStringInRegExpInternal(String& s,
                                                    unsigned index_start,
-                                           TNode r)
+                                                   TNode r)
 {
   Assert(index_start <= s.size());
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at "

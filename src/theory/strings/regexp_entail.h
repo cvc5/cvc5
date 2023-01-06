@@ -143,7 +143,9 @@ class RegExpEntail
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExpInternal(String& s, unsigned index_start, TNode r);
+  static bool testConstStringInRegExpInternal(String& s,
+                                              unsigned index_start,
+                                              TNode r);
   /** Set bound cache, used for getConstantBoundLengthForRegexp */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
   /**
