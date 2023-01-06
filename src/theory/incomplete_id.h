@@ -82,7 +82,8 @@ enum class IncompleteId
   // the prop layer stopped search
   STOP_SEARCH,
   //------------------- unknown
-  UNKNOWN
+  UNKNOWN,
+  NONE
 };
 
 /**
