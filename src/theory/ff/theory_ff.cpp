@@ -126,7 +126,7 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
       if (termSet.count(entry.first))
       {
         bool okay = m->assertEquality(entry.first, entry.second, true);
-        Assert(okay) << "Our model was rejected";
+        AlwaysAssert(okay) << "Our model was rejected";
       }
     }
   }

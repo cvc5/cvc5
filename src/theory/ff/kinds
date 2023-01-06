@@ -12,7 +12,7 @@ rewriter ::cvc5::internal::theory::ff::TheoryFiniteFieldsRewriter \
     "theory/ff/theory_ff_rewriter.h"
 
 properties parametric
-properties check presolve
+properties check
 
 # Finite Fields
 constant FINITE_FIELD_TYPE \
