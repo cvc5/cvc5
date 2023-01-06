@@ -33,6 +33,9 @@ class SymbolManager;
 class Lexer;
 
 /**
+ * A parser that uses the FlexLexer for lexing. It is used as a callback
+ * for error reporting. Its main methods are those that set up the input,
+ * nextCommand for parsing commands and nextExpression for parsing terms.
  */
 class FlexParser : public ParserStateCallback
 {
@@ -58,6 +61,15 @@ class FlexParser : public ParserStateCallback
    * @param name the name of the stream, for use in error messages
    */
   void setStringInput(const std::string& input, const std::string& name);
+  
+  /**
+   * Parse and return the next command.
+   * NOTE: currently memory management of commands is handled internally.
+   */
+  Command* nextCommand();
+
+  /** Parse and return the next expression. */
+  Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) override;
@@ -72,15 +84,6 @@ class FlexParser : public ParserStateCallback
    * because function and predicate symbols are implicitly declared.
    */
   void preemptCommand(Command* cmd) override;
-
-  /**
-   * Parse and return the next command.
-   * NOTE: currently memory management of commands is handled internally.
-   */
-  Command* nextCommand();
-
-  /** Parse and return the next expression. */
-  Term nextExpression();
 
   /** make flex parser from language string */
   static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
