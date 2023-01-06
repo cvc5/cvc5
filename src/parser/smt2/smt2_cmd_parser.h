@@ -28,6 +28,8 @@ namespace parser {
 class Command;
 
 /**
+ * The smt2 command parser, which parses commands. It reads from the given
+ * lexer, and relies on a term parser for parsing terms in the body of commands.
  */
 class Smt2CmdParser
 {

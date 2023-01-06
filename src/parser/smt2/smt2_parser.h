@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * The flex smt2 parser.
  */
 
 #include "cvc5parser_public.h"
@@ -29,6 +29,9 @@ namespace cvc5 {
 namespace parser {
 
 /**
+ * Flex-based smt2 parser. It maintains a lexer, a state, a term parser and a
+ * command parser. The latter two are used for parsing terms and commands. The
+ * command parser depends on the term parser.
  */
 class Smt2Parser : public FlexParser
 {

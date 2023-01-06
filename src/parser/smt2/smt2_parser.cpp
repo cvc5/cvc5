@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * The flex smt2 parser.
  */
 
 #include "parser/smt2/smt2_parser.h"
@@ -34,8 +34,11 @@ Smt2Parser::Smt2Parser(Solver* solver,
 {
   d_lex = &d_slex;
 }
+
 Command* Smt2Parser::parseNextCommand()
 {
+  // !!! note that the memory management of commands will change after we
+  // remove the ANTLR parser.
   std::unique_ptr<Command> cmd = d_cmdParser.parseNextCommand();
   return cmd.release();
 }

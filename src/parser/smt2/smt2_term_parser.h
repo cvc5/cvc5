@@ -26,6 +26,9 @@ namespace cvc5 {
 namespace parser {
 
 /**
+ * The smt2 term parser, which parses terms, sorts, symbol expressions
+ * and other miscellaneous expressions from the SMT2 language. It reads
+ * from the given lexer.
  */
 class Smt2TermParser
 {
@@ -81,13 +84,18 @@ class Smt2TermParser
   std::string parseStr(bool unescape);
 
  protected:
-  /** Token to unsigned */
+  /** Return the unsigned for the current token string. */
   uint32_t tokenStrToUnsigned();
-  /** Token to string literal */
-  std::string tokenStrToStrLiteral();
-  /** Token to string literal */
+  /**
+   * Return the string content of the current token string when interpreted 
+   * as the given token, e.g. return`abc` for token string `|abc|` where
+   * tok is QUOTED_SYMBOL.
+   */
   std::string tokenStrToSymbol(Token tok);
-  /** unescape string */
+  /**
+   * Unescape string, which updates s based on processing escape sequences
+   * as defined in SMT2.
+   */
   void unescapeString(std::string& s);
   /**
    * Parse constructor definition list, add to declaration type
