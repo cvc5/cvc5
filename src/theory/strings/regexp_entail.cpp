@@ -398,10 +398,17 @@ bool RegExpEntail::isConstRegExp(TNode t)
 
 bool RegExpEntail::testConstStringInRegExp(String& s, TNode r)
 {
-  // if we can evaluate it via NFA construction
-  if (RegExpEval::canEvaluate(r))
+  Kind k = r.getKind();
+  if (k==REGEXP_CONCAT || k==REGEXP_STAR || k==REGEXP_UNION)
   {
-    return RegExpEval::evaluate(s, r);
+    // If we can evaluate it via NFA construction, do so. We only do this
+    // for compound regular expressions (re.++, re.*, re.union) which may
+    // have non-trivial NFA constructions, otherwise the check below will
+    // be simpler.
+    if (RegExpEval::canEvaluate(r))
+    {
+      return RegExpEval::evaluate(s, r);
+    }
   }
   return testConstStringInRegExpInternal(s, 0, r);
 }
@@ -419,7 +426,7 @@ bool RegExpEntail::testConstStringInRegExpInternal(String& s,
   {
     case STRING_TO_REGEXP:
     {
-      cvc5::internal::String s2 = s.substr(index_start, s.size() - index_start);
+      String s2 = s.substr(index_start, s.size() - index_start);
       if (r[0].isConst())
       {
         return (s2 == r[0].getConst<String>());
