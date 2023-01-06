@@ -1121,6 +1121,8 @@ libcvc5_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
   theory/strings/regexp_entail.h
+  theory/strings/regexp_eval.cpp
+  theory/strings/regexp_eval.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp

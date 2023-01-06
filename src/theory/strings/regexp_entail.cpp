@@ -395,8 +395,19 @@ bool RegExpEntail::isConstRegExp(TNode t)
   return true;
 }
 
-bool RegExpEntail::testConstStringInRegExp(cvc5::internal::String& s,
-                                           unsigned index_start,
+bool RegExpEntail::testConstStringInRegExp(String& s,
+                                           TNode r)
+{
+  // if we can evaluate it via NFA construction
+  if (RegExpEval::canEvaluate(r))
+  {
+    return RegExpEval::evaluate(s, r);
+  }
+  return testConstStringInRegExpInternal(s, 0, r);
+}
+
+bool RegExpEntail::testConstStringInRegExpInternal(String& s, 
+                                                   unsigned index_start,
                                            TNode r)
 {
   Assert(index_start <= s.size());
