@@ -68,7 +68,7 @@ class RegExpSolver : protected EnvObj
   void checkMemberships(Theory::Effort e);
 
  private:
-  /** compute asserted memberships */
+  /** compute asserted memberships, store in d_assertedMems */
   void computeAssertedMemberships();
   /** Compute active extended terms of kind k, grouped by representative. */
   std::map<Node, std::vector<Node>> computeAssertions(Kind k) const;
@@ -87,7 +87,6 @@ class RegExpSolver : protected EnvObj
    */
   void checkEvaluations();
   /**
-   *
    * Check unfold, which unfolds regular expression memberships based on the
    * effort level.
    * Assumes d_assertedMems has been computed.
