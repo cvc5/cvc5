@@ -207,10 +207,6 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == STRING_IN_REGEXP)
   {
     d_im->requirePhase(n, true);
-    ee->addTriggerPredicate(n);
-    ee->addTerm(n[0]);
-    ee->addTerm(n[1]);
-    return;
   }
   else if (k == STRING_TO_CODE)
   {
