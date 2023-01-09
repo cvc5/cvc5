@@ -18,14 +18,16 @@
 #ifndef CVC5__PARSER__TOKENS_H
 #define CVC5__PARSER__TOKENS_H
 
-#include <optional>
 #include <sstream>
-#include <stack>
 #include <string>
 
 namespace cvc5 {
 namespace parser {
 
+/**
+ * Definitions of tokens used in Flex parsers. This must be an `int` to match
+ * Flex's auto-generated lexing code.
+ */
 enum Token : int
 {
   EOF_TOK = 0,
@@ -111,6 +113,7 @@ enum Token : int
   NONE
 };
 
+/** Print a token to the stream, for debugging */
 std::ostream& operator<<(std::ostream& o, Token t);
 
 }  // namespace parser
