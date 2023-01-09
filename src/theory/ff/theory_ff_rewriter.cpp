@@ -18,7 +18,7 @@
 #include "expr/algorithm/flatten.h"
 #include "expr/attribute.h"
 #include "expr/node_manager.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -43,17 +43,17 @@ Node mkNary(Kind k, std::vector<Node>&& children)
  *
  *  If there is no constant scalar, returns a 1.
  */
-std::pair<Node, FfVal> parseScalar(TNode t)
+std::pair<Node, FiniteFieldValue> parseScalar(TNode t)
 {
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());
-  FfVal scalar = FfVal::mkOne(field.getFfSize());
+  FiniteFieldValue scalar = FiniteFieldValue::mkOne(field.getFfSize());
   Node node = t;
   if (t.getKind() == Kind::FINITE_FIELD_MULT && t[0].isConst())
   {
     std::vector<Node> restChildren(std::next(t.begin()), t.end());
     node = mkNary(Kind::FINITE_FIELD_MULT, std::move(restChildren));
-    scalar = t[0].getConst<FfVal>();
+    scalar = t[0].getConst<FiniteFieldValue>();
   }
   return {node, scalar};
 }
@@ -63,7 +63,7 @@ Node preRewriteFfNeg(TNode t)
 {
   Assert(t.getKind() == Kind::FINITE_FIELD_NEG);
   NodeManager* const nm = NodeManager::currentNM();
-  const Node negOne = nm->mkConst(FfVal(Integer(-1), t.getType().getFfSize()));
+  const Node negOne = nm->mkConst(FiniteFieldValue(Integer(-1), t.getType().getFfSize()));
   return nm->mkNode(kind::FINITE_FIELD_MULT, negOne, t[0]);
 }
 
@@ -80,10 +80,10 @@ Node postRewriteFfAdd(TNode t)
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());
 
-  FfVal one = FfVal::mkOne(field.getFfSize());
+  FiniteFieldValue one = FiniteFieldValue::mkOne(field.getFfSize());
 
-  FfVal constantTerm = FfVal::mkZero(field.getFfSize());
-  std::map<Node, FfVal> scalarTerms;
+  FiniteFieldValue constantTerm = FiniteFieldValue::mkZero(field.getFfSize());
+  std::map<Node, FiniteFieldValue> scalarTerms;
 
   std::vector<TNode> children;
   expr::algorithm::flatten(t, children);
@@ -92,11 +92,11 @@ Node postRewriteFfAdd(TNode t)
   {
     if (child.isConst())
     {
-      constantTerm = constantTerm + child.getConst<FfVal>();
+      constantTerm = constantTerm + child.getConst<FiniteFieldValue>();
     }
     else
     {
-      std::pair<Node, FfVal> pair = parseScalar(child);
+      std::pair<Node, FiniteFieldValue> pair = parseScalar(child);
       auto entry = scalarTerms.find(pair.first);
       if (entry == scalarTerms.end())
       {
@@ -139,7 +139,7 @@ Node postRewriteFfAdd(TNode t)
   if (summands.size() == 0)
   {
     // again, this is possible through cancellation.
-    return nm->mkConst(FfVal::mkZero(field.getFfSize()));
+    return nm->mkConst(FiniteFieldValue::mkZero(field.getFfSize()));
   }
   return mkNary(Kind::FINITE_FIELD_ADD, std::move(summands));
 }
@@ -157,9 +157,9 @@ Node postRewriteFfMult(TNode t)
   const TypeNode field = t.getType();
   Assert(field.isFiniteField());
 
-  FfVal one = FfVal::mkOne(field.getFfSize());
+  FiniteFieldValue one = FiniteFieldValue::mkOne(field.getFfSize());
 
-  FfVal constantTerm = FfVal::mkOne(field.getFfSize());
+  FiniteFieldValue constantTerm = FiniteFieldValue::mkOne(field.getFfSize());
   std::vector<Node> factors;
 
   std::vector<TNode> children;
@@ -169,7 +169,7 @@ Node postRewriteFfMult(TNode t)
   {
     if (child.isConst())
     {
-      constantTerm = constantTerm * child.getConst<FfVal>();
+      constantTerm = constantTerm * child.getConst<FiniteFieldValue>();
     }
     else
     {
@@ -194,8 +194,8 @@ Node postRewriteFfEq(TNode t)
   Assert(t.getKind() == Kind::EQUAL);
   if (t[0].isConst() && t[1].isConst())
   {
-    FfVal l = t[0].getConst<FfVal>();
-    FfVal r = t[1].getConst<FfVal>();
+    FiniteFieldValue l = t[0].getConst<FiniteFieldValue>();
+    FiniteFieldValue r = t[1].getConst<FiniteFieldValue>();
     return NodeManager::currentNM()->mkConst<bool>(l == r);
   }
   else if (t[0] == t[1])

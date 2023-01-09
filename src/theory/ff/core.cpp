@@ -62,6 +62,11 @@ void IncrementalTracer::setFunctionPointers()
   CoCoA::reductionEndHandler = d_reductionEnd;
 }
 
+void IncrementalTracer::unsetFunctionPointers()
+{
+  CoCoA::handlersEnabled = false;
+}
+
 void IncrementalTracer::addInput(const CoCoA::RingElem& i)
 {
   Trace("ff::core") << "input: " << i << std::endl;
@@ -209,7 +214,19 @@ void IncrementalTracer::reductionEnd(CoCoA::ConstRefRingElem r)
   }
   else
   {
-    Trace("ff::core") << " drop" << std::endl;
+    if (TraceIsOn("ff::core"))
+    {
+      Trace("ff::core") << " drop" << std::endl;
+      if (d_parents.count(rr))
+      {
+        Trace("ff::core") << " parents:";
+        for (const auto& p : d_parents.at(rr))
+        {
+          Trace("ff::core") << ", " << p;
+        }
+        Trace("ff::core") << std::endl;
+      }
+    }
   }
   d_reductionSeq.clear();
 }

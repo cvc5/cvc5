@@ -32,7 +32,7 @@
 #include "expr/type_properties.h"
 #include "theory/builtin/abstract_type.h"
 #include "util/bitvector.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/integer.h"
 #include "util/poly_util.h"
 #include "util/rational.h"

@@ -241,7 +241,7 @@ bool ExtTheory::doInferencesInternal(int effort,
               addedLemma = true;
             }
           }
-          markReduced(n, ExtReducedId::REDUCTION, satDep);
+          markInactive(n, ExtReducedId::REDUCTION, satDep);
         }
       }
     }
@@ -264,7 +264,7 @@ bool ExtTheory::doInferencesInternal(int effort,
           if (d_parent.isExtfReduced(effort, sr, terms[i], exp[i], id))
           {
             processed = true;
-            markReduced(terms[i], id);
+            markInactive(terms[i], id);
             // We have exp[i] => terms[i] = sr, convert this to a clause.
             // This ensures the proof infrastructure can process this as a
             // normal theory lemma.
@@ -431,7 +431,7 @@ void ExtTheory::registerTerm(Node n)
 }
 
 // mark reduced
-void ExtTheory::markReduced(Node n, ExtReducedId rid, bool satDep)
+void ExtTheory::markInactive(Node n, ExtReducedId rid, bool satDep)
 {
   Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);

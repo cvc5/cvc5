@@ -169,6 +169,5 @@ void SmtDriverSingleCall::getNextAssertions(
   d_assertionListIndex = alsize;
 }
 
-
 }  // namespace smt
 }  // namespace cvc5::internal
