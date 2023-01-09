@@ -132,6 +132,10 @@ enum SortKind : int32_t
   DATATYPE_SORT,
   /**
    * A finite field sort, parameterized by a size.
+   *
+   * - Create Sort of this Kind with:
+   *
+   *   - Solver::mkFiniteFieldSort(const std::string&) const
    */
   FINITE_FIELD_SORT,
   /**
