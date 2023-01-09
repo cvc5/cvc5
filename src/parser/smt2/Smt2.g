@@ -240,10 +240,10 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
+        cvc5::Sort type = SOLVER->mkUninterpretedSort(name);
         cmd->reset(new DeclareSortCommand(name, 0, type));
       } else {
-        cvc5::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
+        cvc5::Sort type = SOLVER->mkUninterpretedSortConstructorSort(arity, name);
         cmd->reset(new DeclareSortCommand(name, arity, type));
       }
     }
@@ -262,9 +262,6 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
     }
     sortSymbol[t]
     { PARSER_STATE->popScope();
-      // Do NOT call mkSort, since that creates a new sort!
-      // This name is not its own distinct sort, it's an alias.
-      PARSER_STATE->defineParameterizedType(name, sorts, t);
       cmd->reset(new DefineSortCommand(name, sorts, t));
     }
   | /* function declaration */
@@ -289,8 +286,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
       }
       else
       {
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
+        cvc5::Term func = SOLVER->mkConst(t, name);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -498,7 +494,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
     sortSymbol[t]
     {
       cvc5::Term var = SOLVER->declareSygusVar(name, t);
-      PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
@@ -533,7 +528,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
-      PARSER_STATE->defineVar(name, fun);
       cmd = std::unique_ptr<cvc5::parser::Command>(
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
@@ -761,8 +755,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
         PARSER_STATE->parseError("declare-const is not allowed in sygus "
                                  "version 2.0");
       }
-      cvc5::Term c =
-          PARSER_STATE->bindVar(name, t, true);
+      cvc5::Term c = SOLVER->mkConst(t, name);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -960,7 +953,6 @@ extendedCommand[std::unique_ptr<cvc5::parser::Command>* cmd]
     )* RPAREN_TOK
     { Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       cvc5::Term pool = SOLVER->declarePool(name, t, terms);
-      PARSER_STATE->defineVar(name, pool);
       cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
     }
   | BLOCK_MODEL_TOK KEYWORD { PARSER_STATE->checkThatLogicIsSet(); }

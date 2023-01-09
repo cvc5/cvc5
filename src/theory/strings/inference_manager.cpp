@@ -271,9 +271,9 @@ bool InferenceManager::hasProcessed() const
   return d_state.isInConflict() || hasPending();
 }
 
-void InferenceManager::markReduced(Node n, ExtReducedId id, bool contextDepend)
+void InferenceManager::markInactive(Node n, ExtReducedId id, bool contextDepend)
 {
-  d_extt.markReduced(n, id, contextDepend);
+  d_extt.markInactive(n, id, contextDepend);
 }
 
 void InferenceManager::processConflict(const InferInfo& ii)
@@ -359,6 +359,12 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   if (ii.getId() == InferenceId::STRINGS_REDUCTION)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;
+  }
+  // send phase requirements
+  for (const std::pair<const Node, bool>& pp : ii.d_pendingPhase)
+  {
+    Node ppr = rewrite(pp.first);
+    addPendingPhaseRequirement(ppr, pp.second);
   }
   Trace("strings-assert") << "(assert " << tlem.getNode() << ") ; lemma "
                           << ii.getId() << std::endl;

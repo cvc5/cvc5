@@ -585,6 +585,9 @@ class CVC5_EXPORT ParserState
   /** Are we parsing in strict mode? */
   bool d_strictMode;
 
+  /** Are we in parse-only mode? */
+  bool d_parseOnly;
+
   /** The set of operators available in the current logic. */
   std::set<Kind> d_logicOperators;
 

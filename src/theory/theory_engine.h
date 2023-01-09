@@ -356,7 +356,7 @@ class TheoryEngine : protected EnvObj
    * Returns the value that a theory that owns the type of var currently
    * has (or null if none);
    */
-  Node getModelValue(TNode var);
+  Node getCandidateModelValue(TNode var);
 
   /**
    * Get relevant assertions. This returns a set of assertions that are
