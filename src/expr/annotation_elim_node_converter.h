@@ -14,8 +14,8 @@
  */
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__EXPR__ANNOTATION_ELIM_NODE_CONVERTER_H
-#define CVC4__PROOF__EXPR__ANNOTATION_ELIM_NODE_CONVERTER_H
+#ifndef CVC4__EXPR__ANNOTATION_ELIM_NODE_CONVERTER_H
+#define CVC4__EXPR__ANNOTATION_ELIM_NODE_CONVERTER_H
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
