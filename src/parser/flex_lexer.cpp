@@ -69,7 +69,10 @@ void FlexLexer::bumpSpan()
   d_span.d_start.d_line = d_span.d_end.d_line;
   d_span.d_start.d_column = d_span.d_end.d_column;
 }
-void FlexLexer::addColumns(uint32_t columns) { d_span.d_end.d_column += columns; }
+void FlexLexer::addColumns(uint32_t columns)
+{
+  d_span.d_end.d_column += columns;
+}
 void FlexLexer::addLines(uint32_t lines)
 {
   d_span.d_end.d_line += lines;

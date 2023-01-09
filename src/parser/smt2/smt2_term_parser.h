@@ -87,7 +87,7 @@ class Smt2TermParser
   /** Return the unsigned for the current token string. */
   uint32_t tokenStrToUnsigned();
   /**
-   * Return the string content of the current token string when interpreted 
+   * Return the string content of the current token string when interpreted
    * as the given token, e.g. return`abc` for token string `|abc|` where
    * tok is QUOTED_SYMBOL.
    */
