@@ -268,17 +268,6 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
       throw OptionException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
     }
-    if (opts.smt.BVAndIntegerGranularity > 8)
-    {
-      /**
-       * The granularity sets the size of the ITE in each element
-       * of the sum that is generated for bitwise operators.
-       * The size of the ITE is 2^{2*granularity}.
-       * Since we don't want to introduce ITEs with unbounded size,
-       * we bound the granularity.
-       */
-      throw OptionException("solve-bv-as-int accepts values from 0 to 8.");
-    }
     if (logic.isTheoryEnabled(THEORY_BV))
     {
       logic = logic.getUnlockedCopy();
