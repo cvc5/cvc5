@@ -332,7 +332,8 @@ void InferenceManager::processConflict(const InferInfo& ii)
           // if we minimized the conflict, process it
           if (!mexp.isNull())
           {
-            iim.d_premises.push_back(mexp);
+            // must flatten here
+            utils::flattenOp(AND, mexp, iim.d_premises);
             iim.d_conc = ii.d_conc;
             processConflict(iim);
             return;
