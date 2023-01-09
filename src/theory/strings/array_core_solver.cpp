@@ -268,7 +268,7 @@ void ArrayCoreSolver::check(const std::vector<Node>& nthTerms,
       Node ret = nm->mkNode(SEQ_NTH, s, iRev);
       d_im.sendInference(
           {}, nexp, n.eqNode(ret), InferenceId::STRINGS_ARRAY_NTH_REV);
-      d_extt.markReduced(n, ExtReducedId::STRINGS_NTH_REV);
+      d_extt.markInactive(n, ExtReducedId::STRINGS_NTH_REV);
     }
   }
   checkNth(nthTerms);

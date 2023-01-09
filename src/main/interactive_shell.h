@@ -32,15 +32,16 @@ class InputParser;
 class SymbolManager;
 }  // namespace parser
 
+namespace main {
+class CommandExecutor;
+}
+
 namespace internal {
 
 class InteractiveShell
 {
  public:
-  using CmdSeq = std::vector<std::unique_ptr<cvc5::parser::Command>>;
-
-  InteractiveShell(Solver* solver,
-                   cvc5::parser::SymbolManager* sm,
+  InteractiveShell(main::CommandExecutor* cexec,
                    std::istream& in,
                    std::ostream& out,
                    bool isInteractive = true);
@@ -52,9 +53,10 @@ class InteractiveShell
 
   /**
    * Read a list of commands from the interactive shell. This will read as
-   * many lines as necessary to parse at least one well-formed command.
+   * many lines as necessary to parse at least one well-formed command,
+   * and execute them.
    */
-  std::optional<CmdSeq> readCommand();
+  bool readAndExecCommands();
 
   /**
    * Return the internal parser being used.
@@ -62,7 +64,9 @@ class InteractiveShell
   cvc5::parser::InputParser* getParser() { return d_parser.get(); }
 
  private:
+  main::CommandExecutor* d_cexec;
   Solver* d_solver;
+  cvc5::parser::SymbolManager* d_symman;
   std::istream& d_in;
   std::ostream& d_out;
   std::unique_ptr<cvc5::parser::InputParser> d_parser;
@@ -75,9 +79,9 @@ class InteractiveShell
 
   static const std::string INPUT_FILENAME;
   static const unsigned s_historyLimit = 500;
-  }; /* class InteractiveShell */
+}; /* class InteractiveShell */
 
-  }  // namespace internal
-  }  // namespace cvc5
+}  // namespace internal
+}  // namespace cvc5
 
 #endif /* CVC5__INTERACTIVE_SHELL_H */

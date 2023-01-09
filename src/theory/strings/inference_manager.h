@@ -221,11 +221,11 @@ class InferenceManager : public InferenceManagerBuffered
 
   // ------------------------------------------------- extended theory
   /**
-   * Mark that extended function is reduced. If contextDepend is true,
+   * Mark that extended function is inactive. If contextDepend is true,
    * then this mark is SAT-context dependent, otherwise it is user-context
-   * dependent (see ExtTheory::markReduced).
+   * dependent (see ExtTheory::markInactive).
    */
-  void markReduced(Node n, ExtReducedId id, bool contextDepend = true);
+  void markInactive(Node n, ExtReducedId id, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
   /**

@@ -104,6 +104,14 @@ class InferInfo : public TheoryInference
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_skolems;
+  /**
+   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   */
+  std::map<Node, bool> d_pendingPhase;
+  /**
+   * The normal form pair that is cached as a result of this inference.
+   */
+  Node d_nfPair[2];
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**

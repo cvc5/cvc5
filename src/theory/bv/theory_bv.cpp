@@ -97,8 +97,9 @@ void TheoryBV::finishInit()
   eq::EqualityEngine* ee = getEqualityEngine();
   if (ee)
   {
+    bool eagerEval = options().bv.bvEagerEval;
     // The kinds we are treating as function application in congruence
-    ee->addFunctionKind(kind::BITVECTOR_CONCAT, true);
+    ee->addFunctionKind(kind::BITVECTOR_CONCAT, eagerEval);
     //    ee->addFunctionKind(kind::BITVECTOR_AND);
     //    ee->addFunctionKind(kind::BITVECTOR_OR);
     //    ee->addFunctionKind(kind::BITVECTOR_XOR);
@@ -107,9 +108,9 @@ void TheoryBV::finishInit()
     //    ee->addFunctionKind(kind::BITVECTOR_NOR);
     //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
     //    ee->addFunctionKind(kind::BITVECTOR_COMP);
-    ee->addFunctionKind(kind::BITVECTOR_MULT, true);
-    ee->addFunctionKind(kind::BITVECTOR_ADD, true);
-    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+    ee->addFunctionKind(kind::BITVECTOR_MULT, eagerEval);
+    ee->addFunctionKind(kind::BITVECTOR_ADD, eagerEval);
+    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, eagerEval);
     //    ee->addFunctionKind(kind::BITVECTOR_SUB);
     //    ee->addFunctionKind(kind::BITVECTOR_NEG);
     //    ee->addFunctionKind(kind::BITVECTOR_UDIV);
@@ -128,8 +129,6 @@ void TheoryBV::finishInit()
     //    ee->addFunctionKind(kind::BITVECTOR_SLE);
     //    ee->addFunctionKind(kind::BITVECTOR_SGT);
     //    ee->addFunctionKind(kind::BITVECTOR_SGE);
-    ee->addFunctionKind(kind::BITVECTOR_TO_NAT);
-    ee->addFunctionKind(kind::INT_TO_BITVECTOR);
   }
 }
 
@@ -190,22 +189,13 @@ void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
 Theory::PPAssertStatus TheoryBV::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  TNode in = tin.getNode();
-  Kind k = in.getKind();
+  Kind k = tin.getNode().getKind();
   if (k == kind::EQUAL)
   {
-    // Substitute variables
-    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    auto status = Theory::ppAssert(tin, outSubstitutions);
+    if (status != Theory::PP_ASSERT_STATUS_UNSOLVED)
     {
-      ++d_stats.d_solveSubstitutions;
-      outSubstitutions.addSubstitutionSolved(in[0], in[1], tin);
-      return Theory::PP_ASSERT_STATUS_SOLVED;
-    }
-    if (in[1].isVar() && isLegalElimination(in[1], in[0]))
-    {
-      ++d_stats.d_solveSubstitutions;
-      outSubstitutions.addSubstitutionSolved(in[1], in[0], tin);
-      return Theory::PP_ASSERT_STATUS_SOLVED;
+      return status;
     }
     /**
      * Eliminate extract over bit-vector variables.
@@ -218,7 +208,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
      * x = c::sk2       if h == bw(x)-1, where bw(sk2) = l
      * x = sk1::c::sk2  otherwise, where bw(sk1) = bw(x)-1-h and bw(sk2) = l
      */
-    Node node = rewrite(in);
+    Node node = rewrite(tin.getNode());
     if ((node[0].getKind() == kind::BITVECTOR_EXTRACT && node[1].isConst())
         || (node[1].getKind() == kind::BITVECTOR_EXTRACT
             && node[0].isConst()))
@@ -268,13 +258,6 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
 
 TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
-  // first, see if we need to expand definitions
-  TrustNode texp = d_rewriter.expandDefinition(t);
-  if (!texp.isNull())
-  {
-    return texp;
-  }
-
   Trace("theory-bv-pp-rewrite") << "ppRewrite " << t << "\n";
   Node res = t;
   if (options().bv.bitwiseEq && RewriteRule<BitwiseEq>::applies(t))
