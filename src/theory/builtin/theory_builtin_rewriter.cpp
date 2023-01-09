@@ -23,6 +23,7 @@
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
+#include "expr/elim_shadow_converter.h"
 
 using namespace std;
 

@@ -212,7 +212,7 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
   }
   Trace("builtin-rewrite-debug")
       << "...failed to get array representation." << std::endl;
-  // eliminate shadowing?
+  // eliminate shadowing
   Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
   if (retElimShadow != node)
   {
