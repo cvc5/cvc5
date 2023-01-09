@@ -913,7 +913,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
         Token tok2 = d_lex.nextToken();
         switch (tok2)
         {
-          case SYGUS_CONSTANT_TOK:
+          case Token::SYGUS_CONSTANT_TOK:
           {
             t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
@@ -921,7 +921,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
             parsedGTerm = true;
           }
           break;
-          case SYGUS_VARIABLE_TOK:
+          case Token::SYGUS_VARIABLE_TOK:
           {
             t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
@@ -1055,7 +1055,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
     }
     tok = d_lex.nextToken();
     bool pushedScope = false;
-    if (tok == PAR_TOK)
+    if (tok == Token::PAR_TOK)
     {
       pushedScope = true;
       d_state.pushScope();
@@ -1272,7 +1272,7 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       tok = d_lex.nextToken();
       switch (tok)
       {
-        case INDEX_TOK: op = continueParseIndexedIdentifier(isOperator); break;
+        case Token::INDEX_TOK: op = continueParseIndexedIdentifier(isOperator); break;
         default:
           d_lex.unexpectedTokenError(tok,
                                      "Expected (indexed) identifier while "

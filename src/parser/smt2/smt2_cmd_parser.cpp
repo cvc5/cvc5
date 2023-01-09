@@ -32,7 +32,7 @@ Smt2CmdParser::Smt2CmdParser(Smt2Lexer& lex,
 std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
 {
   // if we are at the end of file, return the null command
-  if (d_lex.eatTokenChoice(Token::EOF_TOK, LPAREN_TOK))
+  if (d_lex.eatTokenChoice(Token::EOF_TOK, Token::LPAREN_TOK))
   {
     return nullptr;
   }
