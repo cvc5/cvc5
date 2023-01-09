@@ -28,6 +28,7 @@
 #include <FlexLexer.h>
 #endif
 
+
 #include <vector>
 
 #include "parser/tokens.h"
@@ -35,20 +36,22 @@
 namespace cvc5 {
 namespace parser {
 
+
+/** A location for tracking parse errors */
 struct Location
 {
   Location() : d_line(1), d_column(1) {}
   uint32_t d_line;
   uint32_t d_column;
 };
+std::ostream& operator<<(std::ostream& o, const Location& l);
 
+/** A span for tracking parse errors */
 struct Span
 {
   Location d_start;
   Location d_end;
 };
-
-std::ostream& operator<<(std::ostream& o, const Location& l);
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
 /**
