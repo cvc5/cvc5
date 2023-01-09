@@ -87,6 +87,7 @@ class FlexLexer
   void parseError(const std::string&, bool eofException = false);
   /** Error. Got `t`, expected `info`. */
   void unexpectedTokenError(Token t, const std::string& info);
+
  protected:
   /** Used to initialize d_span. */
   void initSpan();
