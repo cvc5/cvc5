@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of annotation elimination node conversion
+ * Implementation of shadow elimination node conversion
  */
 #include "cvc5_private.h"
 
