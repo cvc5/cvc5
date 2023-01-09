@@ -19,6 +19,7 @@
 #include "expr/codatatype_bound_variable.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "expr/sygus_datatype.h"
@@ -28,7 +29,6 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "tuple_utils.h"
 #include "util/rational.h"
-#include "expr/elim_shadow_converter.h"
 
 using namespace cvc5::internal;
 using namespace cvc5::internal::kind;
