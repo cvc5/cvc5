@@ -22,6 +22,13 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
+/**
+ * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
+ * shadowed variable v, which is quantified by a subformula q' of quantified
+ * formula q. Shadowed variables may be introduced when e.g. quantified formulas
+ * appear on the right hand sides of substitutions in preprocessing. They are
+ * eliminated by the rewriter.
+ */
 struct QElimShadowAttributeId
 {
 };
