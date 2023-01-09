@@ -35,15 +35,15 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-Lexer::Lexer() : yyFlexLexer() {}
+FlexLexer::FlexLexer() : yyFlexLexer() {}
 
-void Lexer::warning(const std::string& msg)
+void FlexLexer::warning(const std::string& msg)
 {
   Warning() << d_inputName << ':' << d_span.d_start.d_line << '.'
             << d_span.d_start.d_column << ": " << msg << std::endl;
 }
 
-void Lexer::parseError(const std::string& msg, bool eofException)
+void FlexLexer::parseError(const std::string& msg, bool eofException)
 {
   if (eofException)
   {
@@ -57,26 +57,26 @@ void Lexer::parseError(const std::string& msg, bool eofException)
   }
 }
 
-void Lexer::initSpan()
+void FlexLexer::initSpan()
 {
   d_span.d_start.d_line = 1;
   d_span.d_start.d_column = 1;
   d_span.d_end.d_line = 1;
   d_span.d_end.d_column = 1;
 }
-void Lexer::bumpSpan()
+void FlexLexer::bumpSpan()
 {
   d_span.d_start.d_line = d_span.d_end.d_line;
   d_span.d_start.d_column = d_span.d_end.d_column;
 }
-void Lexer::addColumns(uint32_t columns) { d_span.d_end.d_column += columns; }
-void Lexer::addLines(uint32_t lines)
+void FlexLexer::addColumns(uint32_t columns) { d_span.d_end.d_column += columns; }
+void FlexLexer::addLines(uint32_t lines)
 {
   d_span.d_end.d_line += lines;
   d_span.d_end.d_column = 1;
 }
 
-void Lexer::initialize(std::istream& input, const std::string& inputName)
+void FlexLexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
   yyrestart(input);
@@ -84,13 +84,13 @@ void Lexer::initialize(std::istream& input, const std::string& inputName)
   d_peeked.clear();
 }
 
-const char* Lexer::tokenStr()
+const char* FlexLexer::tokenStr()
 {
   Assert(d_peeked.empty());
   return YYText();
 }
 
-Token Lexer::nextToken()
+Token FlexLexer::nextToken()
 {
   if (d_peeked.empty())
   {
@@ -102,7 +102,7 @@ Token Lexer::nextToken()
   return t;
 }
 
-Token Lexer::peekToken()
+Token FlexLexer::peekToken()
 {
   // parse next token
   Token t = Token(yylex());
@@ -112,9 +112,9 @@ Token Lexer::peekToken()
   return t;
 }
 
-void Lexer::reinsertToken(Token t) { d_peeked.push_back(t); }
+void FlexLexer::reinsertToken(Token t) { d_peeked.push_back(t); }
 
-void Lexer::unexpectedTokenError(Token t, const std::string& info)
+void FlexLexer::unexpectedTokenError(Token t, const std::string& info)
 {
   Assert(d_peeked.empty());
   std::ostringstream o{};
@@ -124,7 +124,7 @@ void Lexer::unexpectedTokenError(Token t, const std::string& info)
   parseError(o.str(), t == Token::EOF_TOK);
 }
 
-void Lexer::eatToken(Token t)
+void FlexLexer::eatToken(Token t)
 {
   Token tt = nextToken();
   if (t != tt)
@@ -135,7 +135,7 @@ void Lexer::eatToken(Token t)
   }
 }
 
-bool Lexer::eatTokenChoice(Token t, Token f)
+bool FlexLexer::eatTokenChoice(Token t, Token f)
 {
   Token tt = nextToken();
   if (tt == t)

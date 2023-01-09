@@ -29,7 +29,7 @@ namespace parser {
 
 /**
  */
-class Smt2Lexer : public Lexer
+class Smt2Lexer : public FlexLexer
 {
  public:
   Smt2Lexer(bool isSygus = true, bool isStrict = false);

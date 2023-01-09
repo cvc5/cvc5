@@ -30,7 +30,7 @@ namespace parser {
 
 class Command;
 class SymbolManager;
-class Lexer;
+class FlexLexer;
 
 /**
  * A parser that uses the FlexLexer for lexing. It is used as a callback
@@ -109,7 +109,7 @@ class FlexParser : public ParserStateCallback
   /** Symbol manager */
   SymbolManager* d_sm;
   /** The lexer we are using */
-  Lexer* d_lex;
+  FlexLexer* d_lex;
   /** The flex input */
   std::unique_ptr<FlexInput> d_flexInput;
   /**

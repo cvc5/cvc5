@@ -58,11 +58,11 @@ std::ostream& operator<<(std::ostream& o, const Span& l);
  * Custom lexers (e.g. for smt2) override the yylex method of the base
  * class.
  */
-class Lexer : public yyFlexLexer
+class FlexLexer : public yyFlexLexer
 {
  public:
-  Lexer();
-  virtual ~Lexer() {}
+  FlexLexer();
+  virtual ~FlexLexer() {}
   /**
    * Initialize the lexer to generate tokens from stream input.
    * @param input The input stream
