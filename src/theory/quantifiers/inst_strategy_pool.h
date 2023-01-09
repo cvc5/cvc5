@@ -62,9 +62,16 @@ class InstStrategyPool : public QuantifiersModule
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Identify. */
   std::string identify() const override;
-  /** Has standard product semantics */
-  static bool hasStandardSemantics(Node q, Node p);
-  /** Has tuple semantics */
+  /**
+   * Has standard product semantics. A pool has product semantics for a
+   * quantified formula forall x : S. F if it specifies a list of sets whose
+   * element types are S.
+   */
+  static bool hasProductSemantics(Node q, Node p);
+  /**
+   * Has tuple semantics. A pool has tuple semantics for a quantified formula
+   * forall x : S. F if it specifies a set whose elements are (Tuple S).
+   */
   static bool hasTupleSemantics(Node q, Node p);
 
  private:

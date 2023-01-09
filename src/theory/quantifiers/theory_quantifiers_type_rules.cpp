@@ -55,7 +55,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
         {
           continue;
         }
-        if (!InstStrategyPool::hasStandardSemantics(n, p)
+        if (!InstStrategyPool::hasProductSemantics(n, p)
             && !InstStrategyPool::hasTupleSemantics(n, p))
         {
           throw TypeCheckingExceptionPrivate(

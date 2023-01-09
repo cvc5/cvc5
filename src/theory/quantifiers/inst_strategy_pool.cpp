@@ -86,7 +86,7 @@ void InstStrategyPool::checkOwnership(Node q)
   }
 }
 
-bool InstStrategyPool::hasStandardSemantics(Node q, Node p)
+bool InstStrategyPool::hasProductSemantics(Node q, Node p)
 {
   Assert(q.getKind() == EXISTS || q.getKind() == FORALL);
   Assert(p.getKind() == INST_POOL);
