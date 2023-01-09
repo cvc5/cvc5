@@ -68,12 +68,18 @@ TEST_F(TestApiBlackSort, operators_comparison)
 TEST_F(TestApiBlackSort, getKind)
 {
   Sort b = d_solver.getBooleanSort();
+  ASSERT_EQ(b.getKind(), BOOLEAN_SORT);
   Sort dt_sort = create_datatype_sort();
+  ASSERT_EQ(dt_sort.getKind(), DATATYPE_SORT);
   Sort arr_sort =
       d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
-  ASSERT_EQ(b.getKind(), BOOLEAN_SORT);
-  ASSERT_EQ(dt_sort.getKind(), DATATYPE_SORT);
   ASSERT_EQ(arr_sort.getKind(), ARRAY_SORT);
+  Sort fp_sort = d_solver.mkFloatingPointSort(8, 24);
+  ASSERT_EQ(fp_sort.getKind(), FLOATINGPOINT_SORT);
+  Sort bv_sort = d_solver.mkBitVectorSort(8);
+  ASSERT_EQ(bv_sort.getKind(), BITVECTOR_SORT);
+  Sort abs_sort = d_solver.mkAbstractSort(BITVECTOR_SORT);
+  ASSERT_EQ(bv_sort.getKind(), ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, hasGetSymbol)
