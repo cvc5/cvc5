@@ -79,7 +79,7 @@ TEST_F(TestApiBlackSort, getKind)
   Sort bv_sort = d_solver.mkBitVectorSort(8);
   ASSERT_EQ(bv_sort.getKind(), BITVECTOR_SORT);
   Sort abs_sort = d_solver.mkAbstractSort(BITVECTOR_SORT);
-  ASSERT_EQ(bv_sort.getKind(), ABSTRACT_SORT);
+  ASSERT_EQ(abs_sort.getKind(), ABSTRACT_SORT);
 }
 
 TEST_F(TestApiBlackSort, hasGetSymbol)
