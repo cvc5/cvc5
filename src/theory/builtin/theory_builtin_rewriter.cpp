@@ -120,6 +120,12 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
     // (witness ((x Bool)) (not x)) ---> false
     return NodeManager::currentNM()->mkConst(false);
   }
+  // eliminate shadowing
+  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
+  if (retElimShadow != node)
+  {
+    return retElimShadow;
+  }
   return node;
 }
 
