@@ -18,13 +18,13 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "options/sets_options.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
 #include "theory/sets/set_reduction.h"
 #include "util/rational.h"
-#include "expr/elim_shadow_converter.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::theory::datatypes;
@@ -327,10 +327,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
     break;
   }  // kind::SET_IS_SINGLETON
-  
-  case SET_COMPREHENSION:
-    return postRewriteComprehension(node);
-    break;
+
+  case SET_COMPREHENSION: return postRewriteComprehension(node); break;
 
   case SET_MAP: return postRewriteMap(node);
   case SET_FILTER: return postRewriteFilter(node);
@@ -642,7 +640,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
 RewriteResponse TheorySetsRewriter::postRewriteComprehension(TNode n)
 {
   Node ne = ElimShadowNodeConverter::eliminateShadow(n);
-  if (ne!=n)
+  if (ne != n)
   {
     return RewriteResponse(REWRITE_AGAIN_FULL, ne);
   }
