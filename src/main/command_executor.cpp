@@ -197,12 +197,12 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
     cmd->toStream(solver->getOutput("raw-benchmark"));
   }
 
-  // In parse-only mode, we do not invoke any of the commands except define-fun
-  // commands. We invoke define-fun commands because they add function names
-  // to the symbol table.
+  // In parse-only mode, we do not invoke any of the commands except define-*
+  // declare-*, set-logic, and reset commands. We invoke define-* and declare-*
+  // commands because they add function names to the symbol table.
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
-      && dynamic_cast<DefineFunctionCommand*>(cmd) == nullptr
-      && dynamic_cast<ResetCommand*>(cmd) == nullptr)
+      && dynamic_cast<ResetCommand*>(cmd) == nullptr
+      && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr)
   {
     return true;
   }

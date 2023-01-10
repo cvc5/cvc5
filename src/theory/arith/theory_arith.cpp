@@ -441,14 +441,15 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 
-Node TheoryArith::getModelValue(TNode var) {
+Node TheoryArith::getCandidateModelValue(TNode var)
+{
   var = var.getKind() == kind::TO_REAL ? var[0] : var;
   std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
   if (it != d_arithModelCache.end())
   {
     return it->second;
   }
-  return d_internal->getModelValue( var );
+  return d_internal->getCandidateModelValue(var);
 }
 
 std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)

@@ -42,6 +42,7 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
+#include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/input_parser.h"
@@ -80,13 +81,13 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(Solver* solver,
-                                   SymbolManager* sm,
+InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
                                    std::istream& in,
                                    std::ostream& out,
                                    bool isInteractive)
-    : d_solver(solver),
-      d_symman(sm),
+    : d_cexec(cexec),
+      d_solver(cexec->getSolver()),
+      d_symman(cexec->getSymbolManager()),
       d_in(in),
       d_out(out),
       d_isInteractive(isInteractive),
@@ -95,10 +96,10 @@ InteractiveShell::InteractiveShell(Solver* solver,
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    sm->forceLogic(tmp.getLogicString());
+    d_symman->forceLogic(tmp.getLogicString());
   }
   /* Create parser with bogus input. */
-  d_parser.reset(new cvc5::parser::InputParser(solver, sm, true));
+  d_parser.reset(new cvc5::parser::InputParser(d_solver, d_symman, true));
   // initialize for incremental string input
   d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
                                       INPUT_FILENAME);
@@ -113,7 +114,7 @@ InteractiveShell::InteractiveShell(Solver* solver,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    std::string lang = solver->getOption("input-language");
+    std::string lang = d_solver->getOption("input-language");
     if (lang == "LANG_TPTP")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
@@ -176,7 +177,7 @@ InteractiveShell::~InteractiveShell() {
 #endif /* HAVE_LIBEDITLINE */
 }
 
-std::optional<InteractiveShell::CmdSeq> InteractiveShell::readCommand()
+bool InteractiveShell::readAndExecCommands()
 {
   char* lineBuf = NULL;
   string line = "";
@@ -189,7 +190,7 @@ restart:
     {
       d_out << endl;
     }
-    return {};
+    return false;
   }
 
   /* If something's wrong with the input, there's nothing we can do. */
@@ -264,7 +265,7 @@ restart:
         {
           d_out << endl;
         }
-        return {};
+        return false;
       }
 
       /* Some input left to parse, but nothing left to read.
@@ -334,6 +335,13 @@ restart:
   {
     while ((cmd = d_parser->nextCommand()))
     {
+      // execute the command immediately
+      d_cexec->doCommand(cmd);
+      if (cmd->interrupted())
+      {
+        d_quit = true;
+        return false;
+      }
       cmdSeq.emplace_back(cmd);
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)
       {
@@ -392,7 +400,7 @@ restart:
     if (!d_isInteractive)
     {
       d_quit = true;
-      return {};
+      return false;
     }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
@@ -409,7 +417,7 @@ restart:
     // cmd_seq = new CommandSequence();
   }
 
-  return std::optional<CmdSeq>(std::move(cmdSeq));
+  return true;
 }/* InteractiveShell::readCommand() */
 
 #if HAVE_LIBEDITLINE

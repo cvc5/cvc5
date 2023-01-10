@@ -1553,6 +1553,7 @@ set(regress_0_tests
   regress0/strings/re-include-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
+  regress0/strings/re-mem-include-rewrite.smt2 
   regress0/strings/re-syntax.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -2149,6 +2150,7 @@ set(regress_1_tests
   regress1/nl/exp_monotone.smt2
   regress1/nl/ext-rew-aggr-test.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/iand-big-gran.smt2
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
@@ -2819,6 +2821,7 @@ set(regress_1_tests
   regress1/strings/pattern1.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
+  regress1/strings/prefix-min-conflict.smt2
   regress1/strings/pre_ctn_no_skolem_share.smt2
   regress1/strings/proj254-re-elim-agg.smt2
   regress1/strings/proj-issue281.smt2

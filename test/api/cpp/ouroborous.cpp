@@ -97,6 +97,8 @@ std::string parse(std::string instr,
     // get the declarations
     while (Command* c = parser->nextCommand())
     {
+      // invoke the command, which may bind symbols
+      c->invoke(&solver, &symman);
       delete c;
     }
   assert(parser->done());  // parser should be done
