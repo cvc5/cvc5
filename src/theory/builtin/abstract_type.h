@@ -37,7 +37,7 @@ class AbstractType
 
  private:
   AbstractType();
-  /** a kind */
+  /** The kind of sort that this sort abstracts */
   Kind d_kind;
 }; /* class AbstractType */
 
