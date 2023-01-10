@@ -502,6 +502,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CTN_POS: return "STRINGS_CTN_POS";
     case InferenceId::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "STRINGS_PREFIX_CONFLICT";
+    case InferenceId::STRINGS_PREFIX_CONFLICT_MIN:
+      return "STRINGS_PREFIX_CONFLICT_MIN";
     case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
       return "STRINGS_ARITH_BOUND_CONFLICT";
     case InferenceId::STRINGS_REGISTER_TERM_ATOMIC:
