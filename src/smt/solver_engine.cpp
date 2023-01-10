@@ -959,7 +959,7 @@ Node SolverEngine::simplify(const Node& t)
   tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   // now rewrite
   Node ret = d_env->getRewriter()->rewrite(tt);
-  // make so that the returned formula does not involve arithmetic subtyping
+  // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc;
   ret = senc.convert(ret);
   return ret;
