@@ -831,6 +831,90 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   return ret;
 }
 
+void RegExpSolver::checkEvaluations()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  for (const std::pair<const Node, std::vector<Node>>& mr : d_assertedMems)
+  {
+    Node rep = mr.first;
+    for (const Node& assertion : mr.second)
+    {
+      bool polarity = assertion.getKind() != NOT;
+      Node atom = polarity ? assertion : assertion[0];
+      Trace("strings-regexp")
+          << "We have regular expression assertion : " << assertion
+          << std::endl;
+      Assert(atom == rewrite(atom));
+      Node x = atom[0];
+      Node r = atom[1];
+      Assert(rep == d_state.getRepresentative(x));
+      // The following code takes normal forms into account for the purposes
+      // of simplifying a regular expression membership x in R. For example,
+      // if x = "A" in the current context, then we may be interested in
+      // reasoning about ( x in R ) * { x -> "A" }. Say we update the
+      // membership to nx in R', then:
+      // - nfexp => ( x in R ) <=> nx in R'
+      // - rnfexp => R = R'
+      // We use these explanations below as assumptions on inferences when
+      // appropriate. Notice that for inferring conflicts and tautologies,
+      // we use the normal form of x always. This is because we always want to
+      // discover conflicts/tautologies whenever possible.
+      // For inferences based on regular expression unfolding, we do not use
+      // the normal form of x. The reason is that it is better to unfold
+      // regular expression memberships in a context-indepedent manner,
+      // that is, not taking into account the current normal form of x, since
+      // this ensures these lemmas are still relevant after backtracking.
+      std::vector<Node> nfexp;
+      std::vector<Node> rnfexp;
+      // The normal form of x is stored in nx, while x is left unchanged.
+      Node nx = x;
+      if (!x.isConst())
+      {
+        nx = d_csolver.getNormalString(x, nfexp);
+      }
+      // If r is not a constant regular expression, we update it based on
+      // normal forms, which may concretize its variables.
+      if (!d_regexp_opr.checkConstRegExp(r))
+      {
+        r = getNormalSymRegExp(r, rnfexp);
+        nfexp.insert(nfexp.end(), rnfexp.begin(), rnfexp.end());
+        Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
+                                   << nx << " IN " << r << std::endl;
+
+        // We rewrite the membership nx IN r.
+        Node tmp = rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
+        Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
+        if (tmp.isConst())
+        {
+          if (tmp.getConst<bool>() == polarity)
+          {
+            // it is satisfied in this SAT context
+            d_im.markInactive(atom, ExtReducedId::STRINGS_REGEXP_RE_SYM_NF);
+            continue;
+          }
+          else
+          {
+            // we have a conflict
+            std::vector<Node> iexp = nfexp;
+            std::vector<Node> noExplain;
+            iexp.push_back(assertion);
+            noExplain.push_back(assertion);
+            Node conc = Node::null();
+            d_im.sendInference(
+                iexp, noExplain, conc, InferenceId::STRINGS_RE_NF_CONFLICT);
+            break;
+          }
+        }
+      }
+      if (polarity)
+      {
+        bool addedLemma = false;
+        checkPDerivative(x, r, atom, addedLemma, rnfexp);
+      }
+    }
+  }
+}
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace cvc5::internal
