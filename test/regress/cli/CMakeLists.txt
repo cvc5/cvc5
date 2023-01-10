@@ -2150,6 +2150,7 @@ set(regress_1_tests
   regress1/nl/exp_monotone.smt2
   regress1/nl/ext-rew-aggr-test.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/iand-big-gran.smt2
   regress1/nl/iand-native-2.smt2
   regress1/nl/iand-native-granularities.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
