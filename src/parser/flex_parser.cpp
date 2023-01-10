@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * Base class for Flex parsing.
  */
 
 #include "parser/flex_parser.h"
@@ -19,6 +19,7 @@
 #include "base/output.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_parser.h"
+#include "parser/flex_lexer.h"
 
 namespace cvc5 {
 namespace parser {

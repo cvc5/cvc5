@@ -39,10 +39,10 @@ set(libcvc5parser_src_files
   bounded_token_buffer.h
   bounded_token_factory.cpp
   bounded_token_factory.h
-  flex_lexer.cpp
-  flex_lexer.h
   flex_input.cpp
   flex_input.h
+  flex_lexer.cpp
+  flex_lexer.h
   flex_parser.cpp
   flex_parser.h
   input.cpp

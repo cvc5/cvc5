@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * Base class for Flex parsing.
  */
 
 #include "cvc5parser_public.h"
