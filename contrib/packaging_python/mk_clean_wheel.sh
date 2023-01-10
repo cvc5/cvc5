@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # Top contributors (to current version):
 #   Makai Mann, Alex Ozdemir, Gereon Kremer
