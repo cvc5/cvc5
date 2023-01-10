@@ -89,7 +89,7 @@ class RegExpSolver : protected EnvObj
    * discovered.
    * (2) checkUnfold, which unfolds regular expression memberships as necessary
    */
-  bool checkInclInter(const std::map<Node, std::vector<Node>>& mems);  
+  bool checkInclInter(const std::map<Node, std::vector<Node>>& mems);
   /**
    * Check evaluations, which applies substitutions for normal forms to
    * regular expression memberships and evaluates them, and also calls
