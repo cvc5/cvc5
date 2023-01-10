@@ -1258,8 +1258,8 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
     // handles:
     // - testers and updaters indexed by constructor names
     Kind k = d_state.getIndexedOpKind(name);
-    Assert(k==APPLY_UPDATER || k==APPLY_TESTER);
-    if (symbols.size()!=1)
+    Assert(k == APPLY_UPDATER || k == APPLY_TESTER);
+    if (symbols.size() != 1)
     {
       d_lex.parseError(std::string("Unexpected number of indices for " + name));
     }
@@ -1279,7 +1279,9 @@ ParseOp Smt2TermParser::continueParseQualifiedIdentifier(bool isOperator)
       tok = d_lex.nextToken();
       switch (tok)
       {
-        case Token::INDEX_TOK: op = continueParseIndexedIdentifier(isOperator); break;
+        case Token::INDEX_TOK:
+          op = continueParseIndexedIdentifier(isOperator);
+          break;
         default:
           d_lex.unexpectedTokenError(tok,
                                      "Expected (indexed) identifier while "

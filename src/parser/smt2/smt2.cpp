@@ -158,7 +158,6 @@ void Smt2State::addDatatypesOperators()
     addIndexedOperator(UNDEFINED_KIND, "tuple.select");
     addIndexedOperator(UNDEFINED_KIND, "tuple.update");
   }
-  
 }
 
 void Smt2State::addStringOperators()
@@ -515,10 +514,10 @@ Term Smt2State::mkIndexedOp(Kind k,
                             const std::vector<std::string>& symbols,
                             const std::vector<Term>& args)
 {
-  if (k==APPLY_TESTER || k==APPLY_UPDATER)
+  if (k == APPLY_TESTER || k == APPLY_UPDATER)
   {
-    Assert (symbols.size()==1);
-    Assert (!args.empty());
+    Assert(symbols.size() == 1);
+    Assert(!args.empty());
     const std::string& cname = symbols[0];
     // must be declared
     checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
@@ -528,7 +527,7 @@ Term Smt2State::mkIndexedOp(Kind k,
       // for nullary constructors, must get the operator
       f = f[0];
     }
-    if (k==APPLY_TESTER)
+    if (k == APPLY_TESTER)
     {
       if (!f.getSort().isDatatypeConstructor())
       {
@@ -543,7 +542,7 @@ Term Smt2State::mkIndexedOp(Kind k,
     }
     else
     {
-      Assert(k==APPLY_UPDATER);
+      Assert(k == APPLY_UPDATER);
       if (!f.getSort().isDatatypeSelector())
       {
         parseError("Bad syntax for (_ update X), X must be a selector.");

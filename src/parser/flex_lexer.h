@@ -28,14 +28,12 @@
 #include <FlexLexer.h>
 #endif
 
-
 #include <vector>
 
 #include "parser/tokens.h"
 
 namespace cvc5 {
 namespace parser {
-
 
 /** A location for tracking parse errors */
 struct Location

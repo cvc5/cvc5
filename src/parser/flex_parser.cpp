@@ -17,9 +17,9 @@
 
 #include "base/check.h"
 #include "base/output.h"
+#include "parser/flex_lexer.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_parser.h"
-#include "parser/flex_lexer.h"
 
 namespace cvc5 {
 namespace parser {
