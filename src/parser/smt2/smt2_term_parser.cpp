@@ -1257,7 +1257,14 @@ ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
   {
     // handles:
     // - testers and updaters indexed by constructor names
-    p.d_expr = d_state.mkIndexedOp(name, symbols);
+    Kind k = d_state.getIndexedOpKind(name);
+    Assert(k==APPLY_UPDATER || k==APPLY_TESTER);
+    if (symbols.size()!=1)
+    {
+      d_lex.parseError(std::string("Unexpected number of indices for " + name));
+    }
+    p.d_kind = k;
+    p.d_name = symbols[0];
   }
   return p;
 }

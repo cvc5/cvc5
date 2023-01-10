@@ -123,8 +123,9 @@ class Smt2State : public ParserState
   Term mkIndexedConstant(const std::string& name,
                          const std::vector<std::string>& symbols);
   /** Same as above, for constants indexed by symbols. */
-  Term mkIndexedOp(const std::string& name,
-                   const std::vector<std::string>& symbols);
+  Term mkIndexedOp(Kind k,
+                   const std::vector<std::string>& symbols,
+                            const std::vector<Term>& args);
 
   /**
    * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
