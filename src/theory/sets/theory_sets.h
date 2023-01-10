@@ -71,7 +71,7 @@ class TheorySets : public Theory
                           const std::set<Node>& termSet) override;
   void computeCareGraph() override;
   TrustNode explain(TNode) override;
-  Node getModelValue(TNode) override;
+  Node getCandidateModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
   /**

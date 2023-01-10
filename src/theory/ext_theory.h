@@ -198,7 +198,7 @@ class ExtTheory : protected EnvObj
    * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, ExtReducedId rid, bool satDep = true);
+  void markInactive(Node n, ExtReducedId rid, bool satDep = true);
   /** getSubstitutedTerms
    *
    *  input : effort, terms

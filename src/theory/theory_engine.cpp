@@ -238,8 +238,7 @@ TheoryEngine::TheoryEngine(Env& env)
       d_propagatedLiterals(context()),
       d_propagatedLiteralsIndex(context(), 0),
       d_atomRequests(context()),
-      d_combineTheoriesTime(statisticsRegistry().registerTimer(
-          "TheoryEngine::combineTheoriesTime")),
+      d_stats(statisticsRegistry()),
       d_true(),
       d_false(),
       d_interrupted(false),
@@ -444,25 +443,38 @@ void TheoryEngine::check(Theory::Effort effort) {
       // We are still satisfiable, propagate as much as possible
       propagate(effort);
 
-      // We do combination if all has been processed and we are in fullcheck
-      if (Theory::fullEffort(effort) && logicInfo().isSharingEnabled()
-          && !d_factsAsserted && !needCheck() && !d_inConflict)
+      if (Theory::fullEffort(effort))
       {
-        // Do the combination
-        Trace("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
+        d_stats.d_fullEffortChecks++;
+        // We do combination if all has been processed and we are in fullcheck
+        if (logicInfo().isSharingEnabled() && !d_factsAsserted && !needCheck()
+            && !d_inConflict)
         {
-          TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
-          d_tc->combineTheories();
+          d_stats.d_combineTheoriesCalls++;
+          // Do the combination
+          Trace("theory") << "TheoryEngine::check(" << effort
+                          << "): running combination" << endl;
+          {
+            TimerStat::CodeTimer combineTheoriesTimer(
+                d_stats.d_combineTheoriesTime);
+            d_tc->combineTheories();
+          }
+          if (logicInfo().isQuantified())
+          {
+            d_quantEngine->notifyCombineTheories();
+          }
         }
-        if (logicInfo().isQuantified())
-        {
-          d_quantEngine->notifyCombineTheories();
-        }
+      }
+      else
+      {
+        Assert(effort == Theory::EFFORT_STANDARD);
+        d_stats.d_stdEffortChecks++;
       }
     }
 
     // Must consult quantifiers theory for last call to ensure sat, or otherwise add a lemma
     if( Theory::fullEffort(effort) && ! d_inConflict && ! needCheck() ) {
+      d_stats.d_lcEffortChecks++;
       Trace("theory::assertions-model") << endl;
       if (TraceIsOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
@@ -734,13 +746,21 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
 
-  // This should be implied by the check during ppRewrite, in particular
-  // literal should have been passed to ppRewrite.
-  Assert(isTheoryEnabled(d_env.theoryOf(atom))
-         || d_env.theoryOf(atom) == THEORY_SAT_SOLVER);
+  TheoryId tid = d_env.theoryOf(atom);
+  // Note that ppAssert is called before ppRewrite.
+  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  {
+    stringstream ss;
+    ss << "The logic was specified as " << logicInfo().getLogicString()
+       << ", which doesn't include " << tid
+       << ", but got a theory atom for that theory." << std::endl
+       << "The atom:" << std::endl
+       << atom;
+    throw LogicException(ss.str());
+  }
 
   Theory::PPAssertStatus solveStatus =
-      theoryOf(atom)->ppAssert(tliteral, substitutionOut);
+      d_theoryTable[tid]->ppAssert(tliteral, substitutionOut);
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << ") => " << solveStatus << endl;
   return solveStatus;
 }
@@ -750,7 +770,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
 {
   Assert(lems.empty());
   TheoryId tid = d_env.theoryOf(term);
-  // We check whether the theory is enabled here (instead of during solve),
+  // We check whether the theory is enabled here (instead of only during solve),
   // since there are corner cases where facts may involve terms that belong
   // to other theories, e.g. equalities between variables belong to UF when
   // theoryof-mode is `term`.
@@ -1098,7 +1118,8 @@ theory::IncompleteId TheoryEngine::getRefutationUnsoundId() const
   return d_refutationUnsoundId.get();
 }
 
-Node TheoryEngine::getModelValue(TNode var) {
+Node TheoryEngine::getCandidateModelValue(TNode var)
+{
   if (var.isConst())
   {
     // the model value of a constant must be itself
@@ -1106,7 +1127,7 @@ Node TheoryEngine::getModelValue(TNode var) {
   }
   Assert(d_sharedSolver->isShared(var))
       << "node " << var << " is not shared" << std::endl;
-  return theoryOf(d_env.theoryOf(var.getType()))->getModelValue(var);
+  return theoryOf(d_env.theoryOf(var.getType()))->getCandidateModelValue(var);
 }
 
 std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)

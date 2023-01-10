@@ -47,6 +47,8 @@ void ContextManager::notifyResetAssertions()
   // (see solver execution modes in the SMT-LIB standard)
   Assert(d_userLevels.size() == 0 && userContext()->getLevel() == 1);
   popto(0);
+  // push the state to maintain global context around everything
+  push();
 }
 
 void ContextManager::notifyCheckSat(bool hasAssumptions)
@@ -71,7 +73,7 @@ void ContextManager::notifyCheckSatResult(bool hasAssumptions)
 void ContextManager::setup(SmtDriver* smt)
 {
   d_smt = smt;
-  // push a context
+  // push the state to maintain global context around everything
   push();
 }
 

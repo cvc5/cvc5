@@ -615,69 +615,159 @@ void BaseSolver::checkCardinality()
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
   std::map<TypeNode, std::vector<std::vector<Node> > > cols;
   std::map<TypeNode, std::vector<Node> > lts;
-  d_state.separateByLength(d_stringLikeEqc, cols, lts);
+  d_state.separateByLengthTyped(d_stringLikeEqc, cols, lts);
   for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
   {
     checkCardinalityType(c.first, c.second, lts[c.first]);
   }
 }
 
+BaseSolver::CardinalityResponse BaseSolver::getCardinalityReq(
+    TypeNode tn, size_t& typeCardSize) const
+{
+  if (tn.isString())  // string-only
+  {
+    typeCardSize = d_cardSize;
+    return CardinalityResponse::REQ;
+  }
+  Assert(tn.isSequence());
+  TypeNode etn = tn.getSequenceElementType();
+  if (!d_env.isFiniteType(etn))
+  {
+    // infinite cardinality, we are fine
+    return CardinalityResponse::NO_REQ;
+  }
+  // we check the cardinality class of the type, assuming that FMF is
+  // disabled.
+  if (isCardinalityClassFinite(etn.getCardinalityClass(), false))
+  {
+    Cardinality c = etn.getCardinality();
+    bool smallCardinality = false;
+    if (!c.isLargeFinite())
+    {
+      Integer ci = c.getFiniteCardinality();
+      if (ci.fitsUnsignedInt())
+      {
+        smallCardinality = true;
+        typeCardSize = ci.toUnsignedInt();
+      }
+    }
+    if (!smallCardinality)
+    {
+      // if it is large finite, then there is no way we could have
+      // constructed that many terms in memory, hence there is nothing
+      // to do.
+      return CardinalityResponse::NO_REQ;
+    }
+  }
+  else
+  {
+    Assert(options().quantifiers.finiteModelFind);
+    // we are in a case where the cardinality of the type is infinite
+    // if not FMF, and finite given the Env's option value for FMF. In this
+    // case, FMF must be true, and the cardinality is finite and dynamic
+    // (i.e. it depends on the model's finite interpretation for uninterpreted
+    // sorts). We do not know how to handle this case, we set incomplete.
+    // TODO (cvc4-projects #23): how to handle sequence for finite types?
+    d_im.setModelUnsound(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
+    return CardinalityResponse::UNHANDLED;
+  }
+  return CardinalityResponse::REQ;
+}
+
+bool BaseSolver::isCardinalityOk(size_t typeCardSize,
+                                 Node lr,
+                                 size_t eqcCount,
+                                 size_t& lenNeed) const
+{
+  if (eqcCount <= 1)
+  {
+    return true;
+  }
+  lenNeed = 1;
+  double curr = static_cast<double>(eqcCount);
+  while (curr > typeCardSize)
+  {
+    curr = curr / static_cast<double>(typeCardSize);
+    lenNeed++;
+  }
+  Trace("strings-card")
+      << "Need length " << lenNeed
+      << " for this number of strings (where alphabet size is " << typeCardSize
+      << ")." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  // check if we need to split
+  bool needsSplit = true;
+  if (lr.isConst())
+  {
+    // if constant, compare
+    Node cmp = nm->mkNode(GEQ, lr, nm->mkConstInt(Rational(lenNeed)));
+    cmp = rewrite(cmp);
+    needsSplit = !cmp.getConst<bool>();
+  }
+  else
+  {
+    // find the minimimum constant that we are unknown to be disequal from, or
+    // otherwise stop if we increment such that cardinality does not apply.
+    // We always start with r=1 since by the invariants of our term registry,
+    // a term is either equal to the empty string, or has length >= 1.
+    size_t r = 1;
+    bool success = true;
+    while (r < lenNeed && success)
+    {
+      Node rr = nm->mkConstInt(Rational(r));
+      if (d_state.areDisequal(rr, lr))
+      {
+        r++;
+      }
+      else
+      {
+        success = false;
+      }
+    }
+    if (r > 0)
+    {
+      Trace("strings-card")
+          << "Symbolic length " << lr << " must be at least " << r
+          << " due to constant disequalities." << std::endl;
+    }
+    needsSplit = r < lenNeed;
+  }
+  return !needsSplit;
+}
+bool BaseSolver::isCardinalityOk(size_t typeCardSize,
+                                 Node lr,
+                                 size_t eqcCount) const
+{
+  size_t lenNeed;
+  return isCardinalityOk(typeCardSize, lr, eqcCount, lenNeed);
+}
+
 void BaseSolver::checkCardinalityType(TypeNode tn,
-                                      std::vector<std::vector<Node> >& cols,
+                                      std::vector<std::vector<Node>>& cols,
                                       std::vector<Node>& lts)
 {
   Trace("strings-card") << "Check cardinality (type " << tn << ")..."
                         << std::endl;
+
   NodeManager* nm = NodeManager::currentNM();
-  uint32_t typeCardSize;
-  if (tn.isString())  // string-only
+  size_t typeCardSize;
+  CardinalityResponse cr = getCardinalityReq(tn, typeCardSize);
+  if (cr == CardinalityResponse::NO_REQ)
   {
-    typeCardSize = d_cardSize;
+    // no requirements, return
+    return;
   }
-  else
+  else if (cr == CardinalityResponse::UNHANDLED)
   {
-    Assert(tn.isSequence());
-    TypeNode etn = tn.getSequenceElementType();
-    if (!d_env.isFiniteType(etn))
-    {
-      // infinite cardinality, we are fine
-      return;
-    }
-    // we check the cardinality class of the type, assuming that FMF is
-    // disabled.
-    if (isCardinalityClassFinite(etn.getCardinalityClass(), false))
-    {
-      Cardinality c = etn.getCardinality();
-      bool smallCardinality = false;
-      if (!c.isLargeFinite())
-      {
-        Integer ci = c.getFiniteCardinality();
-        if (ci.fitsUnsignedInt())
-        {
-          smallCardinality = true;
-          typeCardSize = ci.toUnsignedInt();
-        }
-      }
-      if (!smallCardinality)
-      {
-        // if it is large finite, then there is no way we could have
-        // constructed that many terms in memory, hence there is nothing
-        // to do.
-        return;
-      }
-    }
-    else
-    {
-      Assert(options().quantifiers.finiteModelFind);
-      // we are in a case where the cardinality of the type is infinite
-      // if not FMF, and finite given the Env's option value for FMF. In this
-      // case, FMF must be true, and the cardinality is finite and dynamic
-      // (i.e. it depends on the model's finite interpretation for uninterpreted
-      // sorts). We do not know how to handle this case, we set incomplete.
-      // TODO (cvc4-projects #23): how to handle sequence for finite types?
-      d_im.setModelUnsound(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
-      return;
-    }
+    // we are in a case where the cardinality of the type is infinite
+    // if not FMF, and finite given the Env's option value for FMF. In this
+    // case, FMF must be true, and the cardinality is finite and dynamic
+    // (i.e. it depends on the model's finite interpretation for uninterpreted
+    // sorts). We do not know how to handle this case, we set incomplete.
+    // TODO (cvc4-projects #23): how to handle sequence for finite types?
+    d_im.setModelUnsound(IncompleteId::SEQ_FINITE_DYNAMIC_CARDINALITY);
+    return;
   }
   // for each collection
   for (unsigned i = 0, csize = cols.size(); i < csize; ++i)
@@ -685,64 +775,10 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr
                           << " is " << cols[i].size() << std::endl;
-    if (cols[i].size() <= 1)
+    size_t lenNeed;
+    if (isCardinalityOk(typeCardSize, lr, cols[i].size(), lenNeed))
     {
-      // no restriction on sets in the partition of size 1
-      continue;
-    }
-    // size > c^k
-    unsigned card_need = 1;
-    double curr = static_cast<double>(cols[i].size());
-    while (curr > typeCardSize)
-    {
-      curr = curr / static_cast<double>(typeCardSize);
-      card_need++;
-    }
-    Trace("strings-card")
-        << "Need length " << card_need
-        << " for this number of strings (where alphabet size is "
-        << typeCardSize << ") given type " << tn << "." << std::endl;
-    // check if we need to split
-    bool needsSplit = true;
-    if (lr.isConst())
-    {
-      // if constant, compare
-      Node cmp = nm->mkNode(GEQ, lr, nm->mkConstInt(Rational(card_need)));
-      cmp = rewrite(cmp);
-      needsSplit = !cmp.getConst<bool>();
-    }
-    else
-    {
-      // find the minimimum constant that we are unknown to be disequal from, or
-      // otherwise stop if we increment such that cardinality does not apply.
-      // We always start with r=1 since by the invariants of our term registry,
-      // a term is either equal to the empty string, or has length >= 1.
-      unsigned r = 1;
-      bool success = true;
-      while (r < card_need && success)
-      {
-        Node rr = nm->mkConstInt(Rational(r));
-        if (d_state.areDisequal(rr, lr))
-        {
-          r++;
-        }
-        else
-        {
-          success = false;
-        }
-      }
-      if (r > 0)
-      {
-        Trace("strings-card")
-            << "Symbolic length " << lr << " must be at least " << r
-            << " due to constant disequalities." << std::endl;
-      }
-      needsSplit = r < card_need;
-    }
-
-    if (!needsSplit)
-    {
-      // don't need to split
+      // based on cardinality, we are ok
       continue;
     }
     // first, try to split to merge equivalence classes
@@ -764,14 +800,13 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       }
     }
     // otherwise, we need a length constraint
-    uint32_t int_k = static_cast<uint32_t>(card_need);
     EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
     Trace("strings-card") << "Previous cardinality used for " << lr << " is "
                           << ((int)ei->d_cardinalityLemK.get() - 1)
                           << std::endl;
-    if (int_k + 1 > ei->d_cardinalityLemK.get())
+    if (lenNeed + 1 > ei->d_cardinalityLemK.get())
     {
-      Node k_node = nm->mkConstInt(Rational(int_k));
+      Node k_node = nm->mkConstInt(Rational(lenNeed));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
       std::vector<Node> expn;
@@ -790,7 +825,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
       Node cons = nm->mkNode(GEQ, len, k_node);
       cons = rewrite(cons);
-      ei->d_cardinalityLemK.set(int_k + 1);
+      ei->d_cardinalityLemK.set(lenNeed + 1);
       if (!cons.isConst() || !cons.getConst<bool>())
       {
         d_im.sendInference(
