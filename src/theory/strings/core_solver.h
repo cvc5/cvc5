@@ -48,20 +48,12 @@ class CoreInferInfo
   /** The infer info of this class */
   InferInfo d_infer;
   /**
-   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
-   */
-  std::map<Node, bool> d_pendingPhase;
-  /**
    * The index in the normal forms under which this inference is addressing.
    * For example, if the inference is inferring x = y from |x|=|y| and
    *   w ++ x ++ ... = w ++ y ++ ...
    * then d_index is 1, since x and y are at index 1 in these concat terms.
    */
   unsigned d_index;
-  /**
-   * The normal form pair that is cached as a result of this inference.
-   */
-  Node d_nfPair[2];
   /** for debugging
    *
    * The base pair of strings d_i/d_j that led to the inference, and whether
@@ -171,6 +163,23 @@ class CoreSolver : protected EnvObj
    * we have successfully assigned normal forms for all equivalence classes, as
    * stored in d_normal_forms. Otherwise, this method may add a fact, lemma, or
    * conflict based on inferences in the Inference enumeration above.
+   *
+   * This check is stratified into two phases. When checkNormalFormsEqProp
+   * is called, this may:
+   * (A) trigger new facts or conflicts,
+   * (B) compute a set of possible lemmas,
+   * (C) determine that there is nothing to do, in which case normal forms
+   * are assigned for all equivalence classes.
+   * In the case of (B), the possible lemmas are buffered in this class, and
+   * are sent to the inference manager only when checkNormalFormsEq is called.
+   * In the case of (C), it is possible that model unsoundness was introduced,
+   * for example, by ignoring cyclic word equations. In this case, we
+   * setModelUnsound on the output channel during checkNormalFormsEq below.
+   */
+  void checkNormalFormsEqProp();
+  /**
+   * Sends a lemma computed in the above check, if one exists, and processes
+   * model unsoundness if necessary.
    */
   void checkNormalFormsEq();
   /** check normal forms disequalities
@@ -201,6 +210,13 @@ class CoreSolver : protected EnvObj
    * shown to be helpful.
    */
   void checkLengthsEqc();
+  /** check register terms for normal forms
+   *
+   * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
+   * (t1, ..., tn) of all string equivalence classes { s1, ..., sm } such that
+   * there does not exist a term of the form str.len(si) in the current context.
+   */
+  void checkRegisterTermsNormalForms();
   //-----------------------end inference steps
 
   //--------------------------- query functions
@@ -283,15 +299,14 @@ class CoreSolver : protected EnvObj
                                      bool isRev,
                                      SkolemCache* skc,
                                      std::vector<Node>& newSkolems);
-
  private:
   /**
-   * This processes the infer info ii as an inference. In more detail, it calls
-   * the inference manager to process the inference, and updates the set of
-   * normal form pairs. Returns true if the conclusion of ii was not true
-   * after rewriting. If the conclusion is true, this method does nothing.
+   * This returns the index of the inference in pinfer that should be processed
+   * based on our heuristics. In particular, we favor certain identifiers
+   * before others, as well as considering the position in a concatentation
+   * term they reference.
    */
-  bool processInferInfo(CoreInferInfo& ii);
+  size_t pickInferInfo(const std::vector<CoreInferInfo>& pinfer);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */
@@ -321,12 +336,14 @@ class CoreSolver : protected EnvObj
    * of string term n (for more details on normal forms, see normal_form.h
    * or see Liang et al CAV 2014). In particular, this method checks whether the
    * current normal form for each term in this equivalence class is identical.
-   * If it is not, then we add an inference via sendInference and abort the
+   * If it is not, then we add (at least one) inference to pinfer and abort the
    * call.
    *
    * stype is the string-like type of the equivalence class we are processing.
    */
-  void normalizeEquivalenceClass(Node n, TypeNode stype);
+  void normalizeEquivalenceClass(Node n,
+                                 TypeNode stype,
+                                 std::vector<CoreInferInfo>& pinfer);
   /**
    * For each term in the equivalence class of eqc, this adds data regarding its
    * normal form to normal_forms. The map term_to_nf_index maps terms to the
@@ -355,7 +372,8 @@ class CoreSolver : protected EnvObj
    */
   void processNEqc(Node eqc,
                    std::vector<NormalForm>& normal_forms,
-                   TypeNode stype);
+                   TypeNode stype,
+                   std::vector<CoreInferInfo>& pinfer);
   /** process simple normal equality
    *
    * This method is called when two equal terms have normal forms nfi and nfj.
@@ -536,6 +554,17 @@ class CoreSolver : protected EnvObj
   std::map<Node, std::vector<int> > d_flat_form_index;
   /** Set of equalities for which we have applied extensionality. */
   NodeSet d_extDeq;
+  /**
+   * If not IncompleteId::NONE, this is reason why the normal form computation
+   * was model unsound. We set model incomplete in the lemma phase of
+   * normal form equality computation if necessary.
+   */
+  IncompleteId d_modelUnsoundId;
+  /**
+   * Possible inferences, computed during the propagation phase of
+   * normal form equality computation, and sent during the lemma phase.
+   */
+  std::vector<CoreInferInfo> d_pinfers;
 }; /* class CoreSolver */
 
 }  // namespace strings

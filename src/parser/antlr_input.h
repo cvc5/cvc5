@@ -30,6 +30,7 @@
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
 #include "parser/line_buffer.h"
+#include "parser/parser.h"
 #include "parser/parser_exception.h"
 
 namespace cvc5 {
@@ -250,11 +251,7 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
 }
 
 inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
-  unsigned result;
-  std::stringstream ss;
-  ss << tokenText(token);
-  ss >> result;
-  return result;
+  return stringToUnsigned(tokenText(token));
 }
 
 }  // namespace parser

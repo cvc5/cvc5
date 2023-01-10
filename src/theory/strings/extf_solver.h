@@ -119,11 +119,18 @@ class ExtfSolver : protected EnvObj
    * and F is a formula that constrains k based on the definition of f.
    *
    * For more details, this is step 7 from Strategy 1 in Reynolds et al,
-   * CAV 2017. We stratify this in practice, where calling this with effort=1
-   * reduces some of the "easier" extended functions, and effort=2 reduces
-   * the rest.
+   * CAV 2017. We stratify this in practice based on the effort level,
+   * where for instance, we reduce negatively asserted str.contains only
+   * at LAST_CALL effort. For more information see discussion of "model-based
+   * reductions" in Reynolds et al CAV 2022.
    */
-  void checkExtfReductions(int effort);
+  void checkExtfReductions(Theory::Effort e);
+  /**
+   * Check for extended functions that should be applied eagerly. This is
+   * called earlier in the search strategy of strings, in particular before
+   * the core equality reasoning is done.
+   */
+  void checkExtfReductionsEager();
   /** get preprocess module */
   StringsPreprocess* getPreprocess() { return &d_preproc; }
 
@@ -177,7 +184,36 @@ class ExtfSolver : protected EnvObj
    */
   std::string debugPrintModel();
 
+  /**
+   * Is extended function (or regular expression membership) reduced? Note that
+   * if n has Boolean type, our reductions are dependent upon the polarity of n,
+   * in which case n may be the negation of an extended function. For
+   * example, (not (str.in_re x R)) indicates that we have reduced
+   * (str.in_re x R) based on its negative unfolding.
+   */
+  bool isReduced(const Node& n) const;
+  /**
+   * Mark that extended function (or regular expression membership) n has been
+   * reduced. Like above, n could be a negation of an extended function of
+   * Boolean type.
+   */
+  void markReduced(const Node& n);
+
  private:
+  /**
+   * Helper method for checkExtfReductions / maybeHasCandidateModel, returns
+   * true if a reduction lemma was sent if doSend = true, or would have been
+   * sent if doSend = false.
+   */
+  bool checkExtfReductionsInternal(int effort, bool doSend);
+  /**
+   * Determines if n should be reduced based on the effort level.
+   *
+   * @param effort the effort level
+   * @param n the term to reduce
+   * @param pol polarity of n, where 1 true, -1 false, 0 neither
+   */
+  bool shouldDoReduction(int effort, Node n, int pol);
   /** do reduction
    *
    * This is called when an extended function application n is not able to be
@@ -187,8 +223,11 @@ class ExtfSolver : protected EnvObj
    * caches that the reduction lemma was sent, or marks n as reduced in this
    * SAT-context. The argument effort has the same meaning as in
    * checkExtfReductions.
+   *
+   * @param n the term to reduce
+   * @param pol polarity of n, where 1 true, -1 false, 0 neither
    */
-  bool doReduction(int effort, Node n);
+  void doReduction(Node n, int pol);
   /** check extended function inferences
    *
    * This function makes additional inferences for n that do not contribute

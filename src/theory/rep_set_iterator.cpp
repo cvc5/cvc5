@@ -234,6 +234,8 @@ int RepSetIterator::doResetIncrement(int i, bool initial)
     {
       // failed
       d_index.clear();
+      Trace("fmf-incomplete")
+          << "Incomplete because of reset index " << ii << std::endl;
       d_incomplete = true;
       break;
     }

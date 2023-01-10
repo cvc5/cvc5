@@ -40,7 +40,6 @@ const char* toString(ExtReducedId id)
     case ExtReducedId::ARITH_SR_LINEAR: return "ARITH_SR_LINEAR";
     case ExtReducedId::STRINGS_SR_CONST: return "STRINGS_SR_CONST";
     case ExtReducedId::STRINGS_NEG_CTN_DEQ: return "STRINGS_NEG_CTN_DEQ";
-    case ExtReducedId::STRINGS_POS_CTN: return "STRINGS_POS_CTN";
     case ExtReducedId::STRINGS_CTN_DECOMPOSE: return "STRINGS_CTN_DECOMPOSE";
     case ExtReducedId::STRINGS_REGEXP_INTER: return "STRINGS_REGEXP_INTER";
     case ExtReducedId::STRINGS_REGEXP_INTER_SUBSUME:
@@ -48,6 +47,10 @@ const char* toString(ExtReducedId id)
     case ExtReducedId::STRINGS_REGEXP_INCLUDE: return "STRINGS_REGEXP_INCLUDE";
     case ExtReducedId::STRINGS_REGEXP_INCLUDE_NEG:
       return "STRINGS_REGEXP_INCLUDE_NEG";
+    case ExtReducedId::STRINGS_REGEXP_RE_SYM_NF:
+      return "STRINGS_REGEXP_RE_SYM_NF";
+    case ExtReducedId::STRINGS_REGEXP_PDERIVATIVE:
+      return "STRINGS_REGEXP_PDERIVATIVE";
     default: return "?ExtReducedId?";
   }
 }
@@ -241,7 +244,7 @@ bool ExtTheory::doInferencesInternal(int effort,
               addedLemma = true;
             }
           }
-          markReduced(n, ExtReducedId::REDUCTION, satDep);
+          markInactive(n, ExtReducedId::REDUCTION, satDep);
         }
       }
     }
@@ -264,7 +267,7 @@ bool ExtTheory::doInferencesInternal(int effort,
           if (d_parent.isExtfReduced(effort, sr, terms[i], exp[i], id))
           {
             processed = true;
-            markReduced(terms[i], id);
+            markInactive(terms[i], id);
             // We have exp[i] => terms[i] = sr, convert this to a clause.
             // This ensures the proof infrastructure can process this as a
             // normal theory lemma.
@@ -431,7 +434,7 @@ void ExtTheory::registerTerm(Node n)
 }
 
 // mark reduced
-void ExtTheory::markReduced(Node n, ExtReducedId rid, bool satDep)
+void ExtTheory::markInactive(Node n, ExtReducedId rid, bool satDep)
 {
   Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
