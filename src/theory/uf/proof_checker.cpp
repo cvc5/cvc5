@@ -36,6 +36,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::FALSE_ELIM, this);
   pc->registerChecker(PfRule::HO_CONG, this);
   pc->registerChecker(PfRule::HO_APP_ENCODE, this);
+  pc->registerChecker(PfRule::BETA_REDUCE, this);
 }
 
 Node UfProofRuleChecker::checkInternal(PfRule id,
@@ -201,6 +202,29 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
     return args[0].eqNode(ret);
+  }
+  else if (id == PfRule::BETA_REDUCE)
+  {
+    Assert(args.size() >= 2);
+    Node lambda = args[0];
+    if (lambda.getKind() != LAMBDA)
+    {
+      return Node::null();
+    }
+    std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+    std::vector<TNode> subs(args.begin() + 1, args.end());
+    if (vars.size() != subs.size())
+    {
+      return Node::null();
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> appArgs;
+    appArgs.push_back(lambda);
+    appArgs.insert(appArgs.end(), subs.begin(), subs.end());
+    Node app = nm->mkNode(APPLY_UF, appArgs);
+    Node ret = lambda[1].substitute(
+        vars.begin(), vars.end(), subs.begin(), subs.end());
+    return app.eqNode(ret);
   }
   // no rule
   return Node::null();
