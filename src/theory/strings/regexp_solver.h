@@ -90,6 +90,18 @@ class RegExpSolver : protected EnvObj
    * (2) checkUnfold, which unfolds regular expression memberships as necessary
    */
   bool checkInclInter(const std::map<Node, std::vector<Node>>& mems);
+  /**
+   * Check evaluations, which applies substitutions for normal forms to
+   * regular expression memberships and evaluates them, and also calls
+   * other methods (e.g. partial derivative computations) for the purposes
+   * of discovering conflictx.
+   * Assumes d_assertedMems has been computed.
+   */
+  void checkEvaluations();
+  /**
+   * Check unfold, which unfolds regular expression memberships based on the
+   * effort level.
+   */
   void checkUnfold(const std::map<Node, std::vector<Node>>& mems, int effort);
   /**
    * Check memberships in equivalence class for regular expression
