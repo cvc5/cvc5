@@ -77,7 +77,6 @@ class RegExpSolver : protected EnvObj
    * Assumes d_assertedMems has been computed.
    */
   void checkInclusions();
-
   /**
    * Check evaluations, which applies substitutions for normal forms to
    * regular expression memberships and evaluates them, and also calls

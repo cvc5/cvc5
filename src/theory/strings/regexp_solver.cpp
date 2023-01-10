@@ -676,7 +676,6 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   return ret;
 }
 
-
 void RegExpSolver::checkEvaluations()
 {
   NodeManager* nm = NodeManager::currentNM();
