@@ -396,7 +396,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
-    case InferenceId::SETS_RELS_GROUP_NOT_EMPTY: return "SETS_RELS_GROUP_NOT_EMPTY";
+    case InferenceId::SETS_RELS_GROUP_NOT_EMPTY:
+      return "SETS_RELS_GROUP_NOT_EMPTY";
     case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
     case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
     case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";
