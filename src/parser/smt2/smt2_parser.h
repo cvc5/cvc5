@@ -50,8 +50,6 @@ class Smt2Parser : public FlexParser
 
   /** Parse and return the next expression. */
   Term parseNextExpression() override;
-  /** Is sygus? */
-  bool d_isSygus;
   /** The lexer */
   Smt2Lexer d_slex;
   /** The state */

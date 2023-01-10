@@ -26,7 +26,6 @@ Smt2Parser::Smt2Parser(Solver* solver,
                        bool strictMode,
                        bool isSygus)
     : FlexParser(solver, sm),
-      d_isSygus(isSygus),
       d_slex(isSygus, strictMode),
       d_state(this, solver, sm, strictMode, isSygus),
       d_termParser(d_slex, d_state),

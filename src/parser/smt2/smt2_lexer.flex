@@ -180,5 +180,9 @@ Smt2Lexer::Smt2Lexer(bool isSygus, bool isStrict)
 {
 }
 
+bool Smt2Lexer::isSygus() const { return d_sygus; }
+
+bool Smt2Lexer::isStrict() const { return d_strict; }
+  
 }
 }
