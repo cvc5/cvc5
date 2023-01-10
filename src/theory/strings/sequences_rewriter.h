@@ -318,6 +318,10 @@ class SequencesRewriter : public TheoryRewriter
   ArithEntail d_arithEntail;
   /** Instance of the entailment checker for strings. */
   StringsEntail d_stringsEntail;
+  /** Common constants */
+  Node d_sigmaStar;
+  Node d_true;
+  Node d_false;
 }; /* class SequencesRewriter */
 
 }  // namespace strings

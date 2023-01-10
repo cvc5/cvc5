@@ -1118,7 +1118,8 @@ theory::IncompleteId TheoryEngine::getRefutationUnsoundId() const
   return d_refutationUnsoundId.get();
 }
 
-Node TheoryEngine::getModelValue(TNode var) {
+Node TheoryEngine::getCandidateModelValue(TNode var)
+{
   if (var.isConst())
   {
     // the model value of a constant must be itself
@@ -1126,7 +1127,7 @@ Node TheoryEngine::getModelValue(TNode var) {
   }
   Assert(d_sharedSolver->isShared(var))
       << "node " << var << " is not shared" << std::endl;
-  return theoryOf(d_env.theoryOf(var.getType()))->getModelValue(var);
+  return theoryOf(d_env.theoryOf(var.getType()))->getCandidateModelValue(var);
 }
 
 std::unordered_set<TNode> TheoryEngine::getRelevantAssertions(bool& success)

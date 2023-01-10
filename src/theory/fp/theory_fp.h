@@ -73,7 +73,7 @@ class TheoryFp : public Theory
                      bool isInternal) override;
   //--------------------------------- end standard check
 
-  Node getModelValue(TNode var) override;
+  Node getCandidateModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m,
                         const std::set<Node>& relevantTerms) override;
   /**
