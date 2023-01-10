@@ -34,6 +34,7 @@
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_statistics.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_substitutions.h"
 #include "theory/uf/equality_engine.h"
@@ -355,7 +356,7 @@ class TheoryEngine : protected EnvObj
    * Returns the value that a theory that owns the type of var currently
    * has (or null if none);
    */
-  Node getModelValue(TNode var);
+  Node getCandidateModelValue(TNode var);
 
   /**
    * Get relevant assertions. This returns a set of assertions that are
@@ -599,8 +600,8 @@ class TheoryEngine : protected EnvObj
   /** sort inference module */
   std::unique_ptr<theory::SortInference> d_sortInfer;
 
-  /** Time spent in theory combination */
-  TimerStat d_combineTheoriesTime;
+  /** Statistics */
+  theory::TheoryEngineStatistics d_stats;
 
   Node d_true;
   Node d_false;

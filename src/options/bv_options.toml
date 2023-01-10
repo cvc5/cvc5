@@ -122,3 +122,11 @@ name   = "Bitvector Theory"
   type       = "bool"
   default    = "false"
   help       = "enable additional rewrites over zero/sign extend over equalities with constants (useful on BV/2017-Preiner-scholl-smt08)"
+
+[[option]]
+  name       = "bvEagerEval"
+  category   = "regular"
+  long       = "bv-eager-eval"
+  type       = "bool"
+  default    = "false"
+  help       = "perform eager context-dependent evaluation for applications of bv kinds in the equality engine"

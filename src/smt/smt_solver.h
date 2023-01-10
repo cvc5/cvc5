@@ -81,14 +81,6 @@ class SmtSolver : protected EnvObj
    */
   void interrupt();
   /**
-   * Refresh the assertions that have been asserted in as. This moves the set of
-   * assertions that have been buffered into as, preprocesses them, pushes them
-   * into the SMT solver, and clears the buffer. We ensure that assertions
-   * are refreshed eagerly during user pushes to ensure that assertions are
-   * only preprocessed in one context.
-   */
-  void refreshAssertions();
-  /**
    * Get the list of preprocessed assertions. Only valid if
    * trackPreprocessedAssertions is true.
    */
@@ -98,29 +90,15 @@ class SmtSolver : protected EnvObj
    * if trackPreprocessedAssertions is true.
    */
   const std::unordered_map<size_t, Node>& getPreprocessedSkolemMap() const;
-  // --------------------------------------- callbacks from the context manager
+  /** Performs a push on the underlying prop engine. */
+  void pushPropContext();
+  /** Performs a pop on the underlying prop engine. */
+  void popPropContext();
   /**
-   * Notify push pre, which is called just before the user context of the state
-   * pushes. This processes all pending assertions.
+   * Reset the prop engine trail and call the postsolve method of the
+   * underlying TheoryEngine.
    */
-  void notifyPushPre();
-  /**
-   * Notify push post, which is called just after the user context of the state
-   * pushes. This performs a push on the underlying prop engine.
-   */
-  void notifyPushPost();
-  /**
-   * Notify pop pre, which is called just before the user context of the state
-   * pops. This performs a pop on the underlying prop engine.
-   */
-  void notifyPopPre();
-  /**
-   * Notify post solve, which is called once per check-sat query. It is
-   * triggered when the first d_state.doPendingPops() is issued after the
-   * check-sat. This calls the postsolve method of the underlying TheoryEngine.
-   */
-  void notifyPostSolve();
-  // ----------------------------------- end callbacks from the context manager
+  void postsolve();
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
