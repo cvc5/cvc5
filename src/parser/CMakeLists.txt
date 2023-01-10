@@ -168,7 +168,6 @@ endforeach()
 add_library(cvc5parser-objs OBJECT ${libcvc5parser_src_files})
 set_target_properties(cvc5parser-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(cvc5parser-objs PUBLIC -D__BUILDING_CVC5PARSERLIB -Dcvc5_obj_EXPORTS)
-target_include_directories(cvc5parser-objs PRIVATE ${FLEX_INCLUDE_DIRS})
 
 add_library(cvc5parserapi-objs OBJECT ${libcvc5parserapi_src_files})
 set_target_properties(cvc5parserapi-objs PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -177,6 +176,7 @@ target_compile_definitions(cvc5parserapi-objs PUBLIC -D__BUILDING_CVC5LIB -Dcvc5
 add_dependencies(cvc5parser-objs ANTLR3)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
+target_include_directories(cvc5parser-objs PRIVATE ${FLEX_INCLUDE_DIRS})
 
 add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parser-objs>
