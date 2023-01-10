@@ -314,7 +314,9 @@ void SymbolManager::Implementation::resetAssertions()
 SymbolManager::SymbolManager(cvc5::Solver* s)
     : d_solver(s),
       d_implementation(new SymbolManager::Implementation()),
-      d_globalDeclarations(false)
+      d_globalDeclarations(false),
+      d_logicIsForced(false),
+      d_forcedLogic()
 {
 }
 
@@ -330,6 +332,18 @@ bool SymbolManager::bind(const std::string& name,
                          bool doOverload)
 {
   return d_implementation->getSymbolTable().bind(name, obj, doOverload);
+}
+
+void SymbolManager::bindType(const std::string& name, cvc5::Sort t)
+{
+  return d_implementation->getSymbolTable().bindType(name, t);
+}
+
+void SymbolManager::bindType(const std::string& name,
+                             const std::vector<cvc5::Sort>& params,
+                             cvc5::Sort t)
+{
+  return d_implementation->getSymbolTable().bindType(name, params, t);
 }
 
 NamingResult SymbolManager::setExpressionName(cvc5::Term t,
@@ -446,6 +460,19 @@ void SymbolManager::resetAssertions()
   {
     d_implementation->getSymbolTable().resetAssertions();
   }
+}
+
+void SymbolManager::forceLogic(const std::string& logic)
+{
+  Assert(!d_logicIsForced);
+  d_logicIsForced = true;
+  d_forcedLogic = logic;
+}
+bool SymbolManager::isLogicForced() const { return d_logicIsForced; }
+
+const std::string& SymbolManager::getForcedLogic() const
+{
+  return d_forcedLogic;
 }
 
 }  // namespace cvc5::parser

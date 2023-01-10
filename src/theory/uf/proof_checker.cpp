@@ -205,15 +205,16 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::BETA_REDUCE)
   {
-    Assert (args.size()>=2);
+
+    Assert(args.size() >= 2);
     Node lambda = args[0];
-    if (lambda.getKind()!=LAMBDA)
+    if (lambda.getKind() != LAMBDA)
     {
       return Node::null();
     }
     std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-    std::vector<TNode> subs(args.begin()+1, args.end());
-    if (vars.size()!=subs.size())
+    std::vector<TNode> subs(args.begin() + 1, args.end());
+    if (vars.size() != subs.size())
     {
       return Node::null();
     }

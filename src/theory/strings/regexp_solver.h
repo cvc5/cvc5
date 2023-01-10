@@ -68,6 +68,10 @@ class RegExpSolver : protected EnvObj
   void checkMemberships(int effort);
 
  private:
+  /** compute asserted memberships, store in d_assertedMems */
+  void computeAssertedMemberships();
+  /** Compute active extended terms of kind k, grouped by representative. */
+  std::map<Node, std::vector<Node>> computeAssertions(Kind k) const;
   /** check
    *
    * Tells this solver to check whether the regular expressions in mems
@@ -86,6 +90,18 @@ class RegExpSolver : protected EnvObj
    * (2) checkUnfold, which unfolds regular expression memberships as necessary
    */
   bool checkInclInter(const std::map<Node, std::vector<Node>>& mems);
+  /**
+   * Check evaluations, which applies substitutions for normal forms to
+   * regular expression memberships and evaluates them, and also calls
+   * other methods (e.g. partial derivative computations) for the purposes
+   * of discovering conflictx.
+   * Assumes d_assertedMems has been computed.
+   */
+  void checkEvaluations();
+  /**
+   * Check unfold, which unfolds regular expression memberships based on the
+   * effort level.
+   */
   void checkUnfold(const std::map<Node, std::vector<Node>>& mems, int effort);
   /**
    * Check memberships in equivalence class for regular expression
@@ -117,6 +133,17 @@ class RegExpSolver : protected EnvObj
    * contains (xi in Ri) and (xj in Rj) and intersect(xi,xj) is empty.
    */
   bool checkEqcIntersect(const std::vector<Node>& mems);
+  /**
+   * Return true if we should process regular expression unfoldings with
+   * the given polarity at the given effort.
+   */
+  bool shouldUnfold(Theory::Effort e, bool pol) const;
+  /**
+   * Add the unfolding lemma for asserted regular expression membership
+   * assertion. Return true if a lemma was successfully sent to the inference
+   * manager.
+   */
+  bool doUnfold(const Node& assertion);
   // Constants
   Node d_emptyString;
   Node d_emptyRegexp;
@@ -132,8 +159,6 @@ class RegExpSolver : protected EnvObj
   ExtfSolver& d_esolver;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  // check membership constraints
-  Node mkAnd(Node c1, Node c2);
   /**
    * Check partial derivative
    *
@@ -161,6 +186,8 @@ class RegExpSolver : protected EnvObj
   NodeSet d_processed_memberships;
   /** regular expression operation module */
   RegExpOpr d_regexp_opr;
+  /** Asserted memberships, cached during a full effort check */
+  std::map<Node, std::vector<Node>> d_assertedMems;
 }; /* class TheoryStrings */
 
 }  // namespace strings

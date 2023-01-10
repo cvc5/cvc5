@@ -13,8 +13,8 @@
  * The module for processing proof nodes into Alethe proof nodes
  */
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
-#define CVC4__PROOF__ALETHE_PROOF_PROCESSOR_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PROCESSOR_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_PROCESSOR_H
 
 #include "proof/alethe/alethe_node_converter.h"
 #include "proof/alethe/alethe_proof_rule.h"

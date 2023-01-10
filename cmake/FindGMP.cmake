@@ -109,11 +109,11 @@ if(NOT GMP_FOUND_SYSTEM)
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
-    URL https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.bz2
+    URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA1=2dcf34d4a432dbe6cce1475a835d20fe44f75822
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
-        <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
           ${LINK_OPTS}
           --prefix=<INSTALL_DIR>
           --with-pic

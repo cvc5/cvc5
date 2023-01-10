@@ -42,11 +42,10 @@
 #include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
+#include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/input.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
+#include "parser/input_parser.h"
 #include "theory/logic_info.h"
 
 using namespace std;
@@ -82,26 +81,28 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBEDITLINE */
 
-InteractiveShell::InteractiveShell(Solver* solver,
-                                   SymbolManager* sm,
+InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
                                    std::istream& in,
                                    std::ostream& out,
                                    bool isInteractive)
-    : d_solver(solver),
+    : d_cexec(cexec),
+      d_solver(cexec->getSolver()),
+      d_symman(cexec->getSymbolManager()),
       d_in(in),
       d_out(out),
       d_isInteractive(isInteractive),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(solver, sm, true);
-  /* Create parser with bogus input. */
-  d_parser.reset(parserBuilder.build());
   if (d_solver->getOptionInfo("force-logic").setByUser)
   {
     LogicInfo tmp(d_solver->getOption("force-logic"));
-    d_parser->forceLogic(tmp.getLogicString());
+    d_symman->forceLogic(tmp.getLogicString());
   }
-
+  /* Create parser with bogus input. */
+  d_parser.reset(new cvc5::parser::InputParser(d_solver, d_symman, true));
+  // initialize for incremental string input
+  d_parser->setIncrementalStringInput(d_solver->getOption("input-language"),
+                                      INPUT_FILENAME);
 #if HAVE_LIBEDITLINE
   if (&d_in == &std::cin && isatty(fileno(stdin)))
   {
@@ -113,7 +114,7 @@ InteractiveShell::InteractiveShell(Solver* solver,
 #endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
-    std::string lang = solver->getOption("input-language");
+    std::string lang = d_solver->getOption("input-language");
     if (lang == "LANG_TPTP")
     {
       d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_tptp";
@@ -176,11 +177,10 @@ InteractiveShell::~InteractiveShell() {
 #endif /* HAVE_LIBEDITLINE */
 }
 
-std::optional<InteractiveShell::CmdSeq> InteractiveShell::readCommand()
+bool InteractiveShell::readAndExecCommands()
 {
   char* lineBuf = NULL;
   string line = "";
-
 restart:
 
   /* Don't do anything if the input is closed or if we've seen a
@@ -190,7 +190,7 @@ restart:
     {
       d_out << endl;
     }
-    return {};
+    return false;
   }
 
   /* If something's wrong with the input, there's nothing we can do. */
@@ -265,7 +265,7 @@ restart:
         {
           d_out << endl;
         }
-        return {};
+        return false;
       }
 
       /* Some input left to parse, but nothing left to read.
@@ -321,18 +321,27 @@ restart:
     }
   }
 
-  d_parser->setInput(Input::newStringInput(
-      d_solver->getOption("input-language"), input, INPUT_FILENAME));
+  d_parser->appendIncrementalStringInput(input);
 
   /* There may be more than one command in the input. Build up a
      sequence. */
   std::vector<std::unique_ptr<Command>> cmdSeq;
   Command *cmd;
+  // remember the scope level of the symbol manager, in case we hit an end of
+  // line (when catching ParserEndOfFileException).
+  size_t lastScopeLevel = d_symman->scopeLevel();
 
   try
   {
     while ((cmd = d_parser->nextCommand()))
     {
+      // execute the command immediately
+      d_cexec->doCommand(cmd);
+      if (cmd->interrupted())
+      {
+        d_quit = true;
+        return false;
+      }
       cmdSeq.emplace_back(cmd);
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)
       {
@@ -364,10 +373,16 @@ restart:
         }
 #endif /* HAVE_LIBEDITLINE */
       }
+      lastScopeLevel = d_symman->scopeLevel();
     }
   }
   catch (ParserEndOfFileException& pe)
   {
+    // pop back to the scope we were at prior to reading the last command
+    while (d_symman->scopeLevel() > lastScopeLevel)
+    {
+      d_symman->popScope();
+    }
     line += "\n";
     goto restart;
   }
@@ -385,7 +400,7 @@ restart:
     if (!d_isInteractive)
     {
       d_quit = true;
-      return {};
+      return false;
     }
     // We can't really clear out the sequence and abort the current line,
     // because the parse error might be for the second command on the
@@ -402,7 +417,7 @@ restart:
     // cmd_seq = new CommandSequence();
   }
 
-  return std::optional<CmdSeq>(std::move(cmdSeq));
+  return true;
 }/* InteractiveShell::readCommand() */
 
 #if HAVE_LIBEDITLINE

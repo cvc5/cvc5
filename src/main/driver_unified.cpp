@@ -36,8 +36,7 @@
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "parser/api/cpp/command.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
+#include "parser/input_parser.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -168,7 +167,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     solver->setInfo("filename", filenameStr);
 
     // Parse and execute commands until we are done
-    bool status = true;
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
       if (!solver->getOptionInfo("incremental").setByUser)
@@ -182,11 +180,8 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // (via isatty). If we are not interactive, we disable certain output
       // information, e.g. for querying the user.
       bool isInteractive = isatty(fileno(stdin));
-      InteractiveShell shell(pExecutor->getSolver(),
-                             pExecutor->getSymbolManager(),
-                             dopts.in(),
-                             dopts.out(),
-                             isInteractive);
+      InteractiveShell shell(
+          pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
 
       if (isInteractive)
       {
@@ -203,22 +198,12 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
             << Configuration::copyright() << std::endl;
       }
 
-      bool quit = false;
-      while (!quit)
+      while (true)
       {
-        std::optional<InteractiveShell::CmdSeq> cmds = shell.readCommand();
-        if (!cmds)
+        // read and execute all available commands
+        if (!shell.readAndExecCommands())
         {
           break;
-        }
-        for (std::unique_ptr<cvc5::parser::Command>& cmd : *cmds)
-        {
-          status = pExecutor->doCommand(cmd) && status;
-          if (cmd->interrupted())
-          {
-            quit = true;
-            break;
-          }
         }
       }
     }
@@ -235,17 +220,15 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
         solver->setOption("wf-checking", "false");
       }
 
-      ParserBuilder parserBuilder(
-          pExecutor->getSolver(), pExecutor->getSymbolManager(), true);
-      std::unique_ptr<Parser> parser(parserBuilder.build());
+      std::unique_ptr<InputParser> parser(new InputParser(
+              pExecutor->getSolver(), pExecutor->getSymbolManager(), true));
       if( inputFromStdin ) {
-        parser->setInput(Input::newStreamInput(
-            solver->getOption("input-language"), cin, filename));
+        parser->setStreamInput(
+            solver->getOption("input-language"), cin, filename);
       }
       else
       {
-        parser->setInput(
-            Input::newFileInput(solver->getOption("input-language"), filename));
+        parser->setFileInput(solver->getOption("input-language"), filename);
       }
 
       PortfolioDriver driver(parser);
