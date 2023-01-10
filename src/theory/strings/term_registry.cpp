@@ -142,6 +142,8 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
   }
   else if (tk == STRING_IN_REGEXP)
   {
+    // for (str.in_re t R), if R has a fixed length L, then we infer the lemma:
+    // (str.in_re t R) => (= (str.len t) L).
     Node len = RegExpEntail::getFixedLengthForRegexp(t[1]);
     if (!len.isNull())
     {
