@@ -861,6 +861,8 @@ enum class InferenceId
   //-------------------- merge conflicts
   // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // minimized prefix conflict
+  STRINGS_PREFIX_CONFLICT_MIN,
   // arithmetic bound conflict
   STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other

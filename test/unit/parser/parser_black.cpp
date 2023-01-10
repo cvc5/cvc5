@@ -77,6 +77,7 @@ class TestParserBlackParser : public TestInternal
 
   void tryGoodInput(const std::string goodInput)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(
         ParserBuilder(d_solver.get(), d_symman.get(), true)
@@ -88,6 +89,7 @@ class TestParserBlackParser : public TestInternal
     while ((cmd = parser->nextCommand()) != NULL)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
+      cmd->invoke(d_solver.get(), d_symman.get());
       delete cmd;
     }
 
@@ -96,6 +98,7 @@ class TestParserBlackParser : public TestInternal
 
   void tryBadInput(const std::string badInput, bool strictMode = false)
   {
+    d_solver.reset(new cvc5::Solver());
     d_symman.reset(new SymbolManager(d_solver.get()));
     std::unique_ptr<Parser> parser(
         ParserBuilder(d_solver.get(), d_symman.get(), true)
@@ -109,6 +112,7 @@ class TestParserBlackParser : public TestInternal
           while ((cmd = parser->nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
+            cmd->invoke(d_solver.get(), d_symman.get());
             delete cmd;
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
