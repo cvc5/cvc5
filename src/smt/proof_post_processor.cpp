@@ -378,7 +378,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         // unsafe to move the eliminator beyond it. That then becomes the new
         // limit. The literal is such a pivot if it matches a lhs pivot, i.e.,
         // the same as a (pivot, +pol) or the negation of a (pivot, -pol).
-        for (size_t k = 2 * (i + 1) - 1, checkLim = (2 * maxSafeMove) - 1;
+        for (size_t k = 2 * (elim + 1) - 1, checkLim = (2 * maxSafeMove) - 1;
              k < checkLim;
              k = k + 2)
         {
@@ -393,13 +393,13 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       }
       // If there is a single regular literal, all other are either crowiding or
       // conclusion literals.
-      if (regularLits == 1 && maxSafeMove - elim > 1)
-      // if (regularLits == 1)
+      if (regularLits == 1 && maxSafeMove > elim && maxSafeMove - elim > 1)
       {
         Trace("crowding-lits2")
             << "....elim " << elim << " has only crowd/conc lits (of " << i
             << "-th crowding lit). MaxSafeMove: " << maxSafeMove << "\n";
-        crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdAndConcLitsInElim = true;
+        crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdAndConcLitsInElim =
+            true;
         crowdLitsInfo[lastInclusion[i].first].d_maxSafeMovePosition =
             maxSafeMove;
       }
@@ -455,9 +455,9 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     {
       Node crowdingLit = lastInclusion[i].first;
       size_t elim = crowdLitsInfo[crowdingLit].d_eliminator;
-      size_t maxSafeMove =
-          crowdLitsInfo[crowdingLit].d_maxSafeMovePosition;
-      Assert(maxSafeMove >= elim);
+      size_t maxSafeMove = crowdLitsInfo[crowdingLit].d_maxSafeMovePosition;
+      Assert(maxSafeMove >= elim) << i << "-th crowding lit " << crowdingLit
+                                  << " has info " << crowdLitsInfo[crowdingLit];
       if (!crowdLitsInfo[crowdingLit].d_onlyCrowdAndConcLitsInElim
           || maxSafeMove - elim <= 1)
       {
