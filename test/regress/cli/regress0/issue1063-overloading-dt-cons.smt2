@@ -10,5 +10,5 @@
 (assert (= (var_1 1) (as None Enum1)))
 (assert (not ((_ is In_Air) (var_0 0))))
 (declare-fun var_2 () Enum1)
-(assert ((_ is (as None Enum1)) var_2))
+(assert ((_ is None) var_2))
 (check-sat)

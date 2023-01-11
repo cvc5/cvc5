@@ -171,6 +171,8 @@ void Command::invoke(cvc5::Solver* solver, SymbolManager* sm, std::ostream& out)
   {
     printResult(solver, out);
   }
+  // always flush the output
+  out << std::flush;
 }
 
 std::string Command::toString() const
@@ -492,6 +494,7 @@ cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  sm->bind(d_symbol, d_var, true);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -539,6 +542,7 @@ const cvc5::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  sm->bind(d_symbol, d_fun, true);
   sm->addFunctionToSynthesize(d_fun);
   d_commandStatus = CommandSuccess::instance();
 }
@@ -848,6 +852,7 @@ cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 
 void DeclareFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  sm->bind(d_symbol, d_func, true);
   // mark that it will be printed in the model
   sm->addModelDeclarationTerm(d_func);
   d_commandStatus = CommandSuccess::instance();
@@ -888,6 +893,7 @@ const std::vector<cvc5::Term>& DeclarePoolCommand::getInitialValue() const
 
 void DeclarePoolCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  sm->bind(d_symbol, d_func, true);
   // Notice that the pool is already declared by the parser so that it the
   // symbol is bound eagerly. This is analogous to DeclareSygusVarCommand.
   // Hence, we do nothing here.
@@ -979,6 +985,7 @@ size_t DeclareSortCommand::getArity() const { return d_arity; }
 cvc5::Sort DeclareSortCommand::getSort() const { return d_sort; }
 void DeclareSortCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  sm->bindType(d_symbol, std::vector<Sort>(d_arity), d_sort);
   // mark that it will be printed in the model, if it is an uninterpreted
   // sort (arity 0)
   if (d_arity == 0)
@@ -1022,6 +1029,8 @@ const std::vector<cvc5::Sort>& DefineSortCommand::getParameters() const
 cvc5::Sort DefineSortCommand::getSort() const { return d_sort; }
 void DefineSortCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
+  // This name is not its own distinct sort, it's an alias.
+  sm->bindType(d_symbol, d_params, d_sort);
   d_commandStatus = CommandSuccess::instance();
 }
 

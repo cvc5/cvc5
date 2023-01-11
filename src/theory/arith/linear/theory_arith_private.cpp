@@ -923,7 +923,8 @@ void TheoryArithPrivate::notifySharedTerm(TNode n)
   }
 }
 
-Node TheoryArithPrivate::getModelValue(TNode term) {
+Node TheoryArithPrivate::getCandidateModelValue(TNode term)
+{
   try{
     const DeltaRational drv = getDeltaValue(term);
     const Rational& delta = d_partialModel.getDelta();

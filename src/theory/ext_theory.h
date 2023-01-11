@@ -65,8 +65,6 @@ enum class ExtReducedId
   STRINGS_SR_CONST,
   // a negative str.contains was reduced to a disequality
   STRINGS_NEG_CTN_DEQ,
-  // a positive str.contains was reduced to an equality
-  STRINGS_POS_CTN,
   // a str.contains was subsumed by another based on a decomposition
   STRINGS_CTN_DECOMPOSE,
   // reduced via an intersection inference
@@ -77,6 +75,10 @@ enum class ExtReducedId
   STRINGS_REGEXP_INCLUDE,
   // subsumed due to RE inclusion reasoning for negative memberships
   STRINGS_REGEXP_INCLUDE_NEG,
+  // satisfied due to normal form substitution into re memberships
+  STRINGS_REGEXP_RE_SYM_NF,
+  // satisfied due to partial derivative computation
+  STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
 };
@@ -198,7 +200,7 @@ class ExtTheory : protected EnvObj
    * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, ExtReducedId rid, bool satDep = true);
+  void markInactive(Node n, ExtReducedId rid, bool satDep = true);
   /** getSubstitutedTerms
    *
    *  input : effort, terms
