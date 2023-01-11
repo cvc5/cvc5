@@ -1483,40 +1483,17 @@ identifier[cvc5::ParseOp& p]
   // indexed functions
 
   | LPAREN_TOK INDEX_TOK
-    ( TESTER_TOK term[f, f2]
+    ( TESTER_TOK symbol[opName,CHECK_NONE,SYM_VARIABLE]
       {
-        if (f.getKind() == cvc5::APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
-        {
-          // for nullary constructors, must get the operator
-          f = f[0];
-        }
-        if (!f.getSort().isDatatypeConstructor())
-        {
-          PARSER_STATE->parseError(
-              "Bad syntax for (_ is X), X must be a constructor.");
-        }
-        // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
-        cvc5::Datatype d = sf.getDatatype();
-        // lookup by name
-        cvc5::DatatypeConstructor dc = d.getConstructor(f.toString());
-        p.d_expr = dc.getTesterTerm();
+        // operator is resolved after parsing to handle overloading
+        p.d_kind = APPLY_TESTER;
+        p.d_name = opName;
       }
-    | UPDATE_TOK term[f, f2]
+    | UPDATE_TOK symbol[opName,CHECK_NONE,SYM_VARIABLE]
       {
-        if (!f.getSort().isDatatypeSelector())
-        {
-          PARSER_STATE->parseError(
-              "Bad syntax for (_ update X), X must be a selector.");
-        }
-        std::string sname = f.toString();
-        // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getDatatypeSelectorDomainSort();
-        cvc5::Datatype d = sf.getDatatype();
-        // find the selector
-        cvc5::DatatypeSelector ds = d.getSelector(f.toString());
-        // get the updater term
-        p.d_expr = ds.getUpdaterTerm();
+        // operator is resolved after parsing to handle overloading
+        p.d_kind = APPLY_UPDATER;
+        p.d_name = opName;
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {

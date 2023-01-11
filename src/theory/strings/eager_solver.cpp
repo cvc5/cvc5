@@ -219,7 +219,8 @@ bool EagerSolver::addEndpointConst(EqcInfo* e, Node t, Node c, bool isSuf)
   Node conf = e->addEndpointConst(t, c, isSuf);
   if (!conf.isNull())
   {
-    d_state.setPendingMergeConflict(conf, InferenceId::STRINGS_PREFIX_CONFLICT);
+    d_state.setPendingMergeConflict(
+        conf, InferenceId::STRINGS_PREFIX_CONFLICT, isSuf);
     return true;
   }
   return false;

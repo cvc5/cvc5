@@ -97,7 +97,7 @@ class CegSingleInv : protected EnvObj
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   /** preprocess notify conjecture */
-  void ppNotifyConjecture( Node q );
+  void ppNotifyConjecture(Node q);
 
   //---------------------------------representation of the solution
   /**
