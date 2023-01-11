@@ -957,26 +957,24 @@ void Smt2Printer::toStream(std::ostream& out,
     // do not letify the bound variable list
     toStream(out, n[0], toDepth, nullptr);
     out << " ";
+    bool needsPrintAnnot = false;
     std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
-      annot << " ";
       for (const Node& nc : n[2])
       {
         Kind nck = nc.getKind();
         if (nck == kind::INST_PATTERN)
         {
-          out << "(! ";
-          annot << ":pattern ";
+          needsPrintAnnot = true;
+          annot << " :pattern ";
           toStream(annot, nc, toDepth, nullptr);
-          annot << ") ";
         }
         else if (nck == kind::INST_NO_PATTERN)
         {
-          out << "(! ";
-          annot << ":no-pattern ";
+          needsPrintAnnot = true;
+          annot << " :no-pattern ";
           toStream(annot, nc[0], toDepth, nullptr);
-          annot << ") ";
         }
         else if (nck == kind::INST_ATTRIBUTE)
         {
@@ -987,15 +985,14 @@ void Smt2Printer::toStream(std::ostream& out,
           // here only.
           if (nc[0].getKind() == kind::CONST_STRING)
           {
-            out << "(! ";
+            needsPrintAnnot = true;
             // print out as string to avoid quotes
-            annot << ":" << nc[0].getConst<String>().toString();
+            annot << " :" << nc[0].getConst<String>().toString();
             for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
             {
               annot << " ";
               toStream(annot, nc[j], toDepth, nullptr);
             }
-            annot << ") ";
           }
         }
       }
@@ -1003,6 +1000,11 @@ void Smt2Printer::toStream(std::ostream& out,
     // Use a fresh let binder, since using existing let symbols may violate
     // scoping issues for let-bound variables, see explanation in let_binding.h.
     size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
+    if (needsPrintAnnot)
+    {
+      out << "(! ";
+      annot << ")";
+    }
     toStream(out, n[1], toDepth - 1, dag);
     out << annot.str() << ")";
     return;
