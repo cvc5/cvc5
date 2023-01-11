@@ -105,13 +105,13 @@ class SynthConjecture : protected EnvObj
   bool isGround() const { return d_innerVars.empty(); }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
-  /** preregister conjecture
+  /** preprocess notify conjecture
    * This is used as a heuristic for solution reconstruction, so that we
    * remember expressions in the conjecture before preprocessing, since they
    * may be helpful during solution reconstruction (Figure 5 of Reynolds et al
    * CAV 2015)
    */
-  void preregisterConjecture(Node q);
+  void ppNotifyConjecture(Node q);
   /** assign conjecture q to this class */
   void assign(Node q);
   /** has a conjecture been assigned to this class */
