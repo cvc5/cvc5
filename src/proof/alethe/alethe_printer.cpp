@@ -97,10 +97,13 @@ void AletheProofPrinter::print(std::ostream& out,
 
     std::vector<Node> letList;
     d_lbind.letify(letList);
-    for (TNode n : letList)
+    if (TraceIsOn("alethe-printer"))
     {
-      Trace("alethe-printer")
-          << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+      for (TNode n : letList)
+      {
+        Trace("alethe-printer")
+            << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+      }
     }
   }
 
