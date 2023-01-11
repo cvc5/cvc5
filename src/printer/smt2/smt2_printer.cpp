@@ -631,15 +631,44 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "))";
       return;
     case kind::MATCH_BIND_CASE:
-      // ignore the binder
-      toStream(out, n[1], toDepth, lbind);
-      out << " ";
-      toStream(out, n[2], toDepth, lbind);
-      out << ")";
-      return;
     case kind::MATCH_CASE:
-      // do nothing
-      break;
+    {
+      // ignore the binder for MATCH_BIND_CASE
+      size_t patIndex = (k == kind::MATCH_BIND_CASE ? 1 : 0);
+      // The pattern should be printed as a pattern (symbol applied to symbols),
+      // not as a term. In particular, this means we should not print any
+      // type ascriptions (if any).
+      if (n[patIndex].getKind() == kind::APPLY_CONSTRUCTOR)
+      {
+        if (n[patIndex].getNumChildren() > 0)
+        {
+          out << "(";
+        }
+        Node op = n[patIndex].getOperator();
+        const DType& dt = DType::datatypeOf(op);
+        size_t index = DType::indexOf(op);
+        out << dt[index].getConstructor();
+        for (const Node& nc : n[patIndex])
+        {
+          out << " ";
+          toStream(out, nc, toDepth, lbind);
+        }
+        if (n[patIndex].getNumChildren() > 0)
+        {
+          out << ")";
+        }
+      }
+      else
+      {
+        // otherwise, a variable, just print
+        Assert(n[patIndex].isVar());
+        toStream(out, n[patIndex], toDepth, lbind);
+      }
+      out << " ";
+      toStream(out, n[patIndex + 1], toDepth, lbind);
+      out << ")";
+    }
+      return;
 
     // arith theory
     case kind::IAND:
