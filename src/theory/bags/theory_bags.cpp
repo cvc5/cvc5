@@ -461,7 +461,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
 TrustNode TheoryBags::explain(TNode node) { return d_im.explainLit(node); }
 
-Node TheoryBags::getModelValue(TNode node) { return Node::null(); }
+Node TheoryBags::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {

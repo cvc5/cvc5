@@ -112,6 +112,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     pletMap.erase(p);
     printProofInternal(&lpcp, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
+    Node resType = p->getResult();
+    lbind.process(d_tproc.convert(resType));
   }
   // Print the body of the outermost scope
   printProofInternal(&lpcp, pnBody, emptyLetBind, pletMap, passumeMap);
@@ -282,16 +284,21 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
       std::stringstream resType;
       printInternal(resType, d_tproc.convert(res), lbind);
       out << "(check (: (holds " << resType.str() << ")" << std::endl;
-      itp = pletMap.find(p);
-      Assert(itp != pletMap.end());
-      size_t pid = itp->second;
       // print the letified proof
-      pletMap.erase(p);
-      printProofInternal(&lout, p, lbind, pletMap, passumeMap);
-      pletMap[p] = pid;
-      out << "))" << std::endl;
-      if (!isFinal)
+      if (isFinal)
       {
+        printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+        out << "))" << std::endl;
+      }
+      else
+      {
+        itp = pletMap.find(p);
+        Assert(itp != pletMap.end());
+        size_t pid = itp->second;
+        pletMap.erase(p);
+        printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+        pletMap[p] = pid;
+        out << "))" << std::endl;
         out << "(declare ";
         LfscPrintChannelOut::printId(out, pid, d_pletPrefix);
         out << " (holds " << resType.str() << "))" << std::endl;
