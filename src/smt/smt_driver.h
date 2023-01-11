@@ -44,7 +44,7 @@ class SmtDriver : protected EnvObj
 {
  public:
   SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx);
-
+  virtual ~SmtDriver(){}
   /**
    * Check satisfiability. This invokes the algorithm given by this driver
    * for checking satisfiability.
@@ -88,6 +88,11 @@ class SmtDriver : protected EnvObj
   // ----------------------------------- end callbacks from the context manager
  protected:
   /**
+   * Get the next assertions, store in ap. Refreshes the SMT solver's
+   * assertions and calls the driver-specific getNextAssertions method.
+   */
+  void getNextAssertionsInternal(preprocessing::AssertionPipeline& ap);
+  /**
    * Check satisfiability next, return the result.
    *
    * If the result is unknown with UnknownExplanation REQUIRES_CHECK_AGAIN,
@@ -97,16 +102,15 @@ class SmtDriver : protected EnvObj
    * Otherwise, the returned result is the final one returned by the
    * checkSatisfiability method above.
    */
-  virtual Result checkSatNext() = 0;
+  virtual Result checkSatNext(preprocessing::AssertionPipeline& ap) = 0;
   /**
-   * Get the next assertions. This is called immediately after checkSatNext
-   * where checkAgain has been set to true. This populates assertions with
+   * Get the next assertions. This is called:
+   * (1) immediately before calls to checkSatNext, where we populate ap with
    * those that will be checked on the next call to checkSatNext.
-   *
-   * Note that `as` is always the assertions of the underlying solver d_smt
-   * currently.
+   * (2) in calls to refreshAssertions, where we populate ap with all
+   * assertions that require being pushed to the SAT solver.
    */
-  virtual void getNextAssertions(Assertions& as) = 0;
+  virtual void getNextAssertions(preprocessing::AssertionPipeline& ap) = 0;
   /** The underlying SMT solver */
   SmtSolver& d_smt;
   /**
@@ -114,6 +118,8 @@ class SmtDriver : protected EnvObj
    * if the checkSatNext method ever sets checkAgain to true.
    */
   ContextManager* d_ctx;
+  /** assertions pipeline */
+  preprocessing::AssertionPipeline d_ap;
 };
 
 /**
@@ -126,12 +132,19 @@ class SmtDriverSingleCall : public SmtDriver
 {
  public:
   SmtDriverSingleCall(Env& env, SmtSolver& smt);
+  virtual ~SmtDriverSingleCall(){}
 
  protected:
   /** Check sat next, takes result of underlying SMT solver only */
-  Result checkSatNext() override;
-  /** Never called */
-  void getNextAssertions(Assertions& as) override;
+  Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
+  /** Gets all the assertions we have yet to process */
+  void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
+  /**
+   * The first index in the assertion list of the underlying SMT solver that we
+   * have not processed yet. The call to getNextAssertions gets all assertions
+   * starting from this index onward.
+   */
+  context::CDO<size_t> d_assertionListIndex;
 };
 
 }  // namespace smt

@@ -116,7 +116,7 @@ class TheoryArith : public Theory {
 
   void notifySharedTerm(TNode n) override;
 
-  Node getModelValue(TNode var) override;
+  Node getCandidateModelValue(TNode var) override;
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 

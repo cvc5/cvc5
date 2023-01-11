@@ -19,7 +19,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "parser/api/cpp/command.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"
 #include "smt/solver_engine.h"
 

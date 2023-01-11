@@ -167,5 +167,30 @@ TEST_F(TestBlackOptions, set)
   }
 }
 
+TEST_F(TestBlackOptions, getOptionInfoBenchmark)
+{
+  auto names = options::getNames();
+  std::unordered_set<std::string> ignore = {
+    "output",
+    "quiet",
+    "rweight",
+    "trace",
+    "verbose",
+  };
+  auto end = std::remove_if(names.begin(), names.end(), [&](const auto& i){
+      return ignore.count(i);
+  });
+  names.erase(end, names.end());
+  size_t ct = 0;
+  for (size_t i = 0; i < 1000; ++i)
+  {
+    for (const auto& name : names)
+    {
+      ct += d_solver.getOption(name).size();
+    }
+  }
+  std::cout << ct << std::endl;
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

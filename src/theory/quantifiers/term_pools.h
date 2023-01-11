@@ -40,13 +40,17 @@ class TermPoolDomain
   void initialize();
   /** add node to this pool */
   void add(Node n);
-  /** The list in this pool */
-  std::vector<Node> d_terms;
+  /** Get the terms in this pool */
+  std::vector<Node>& getTerms();
   /**
    * The list of terms on this round. This is cleared at the beginning of an
    * instantiation round. The members are unique modulo equality.
    */
   std::vector<Node> d_currTerms;
+
+ private:
+  /** The list in this pool */
+  std::vector<Node> d_terms;
 };
 
 /**
@@ -88,7 +92,9 @@ class TermPools : public QuantifiersUtil
    * q with terms. This adds terms to pools based on INST_ADD_TO_POOL
    * annotations.
    */
-  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processInstantiation(Node q,
+                            const std::vector<Node>& terms,
+                            bool success);
   /** Same as above, for SKOLEM_ADD_TO_POOL. */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
  private:

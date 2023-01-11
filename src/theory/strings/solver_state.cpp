@@ -16,6 +16,7 @@
 #include "theory/strings/solver_state.h"
 
 #include "theory/rewriter.h"
+#include "theory/strings/model_cons.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
@@ -32,7 +33,8 @@ SolverState::SolverState(Env& env, Valuation& v)
     : TheoryState(env, v),
       d_eeDisequalities(env.getContext()),
       d_pendingConflictSet(env.getContext(), false),
-      d_pendingConflict(InferenceId::UNKNOWN)
+      d_pendingConflict(InferenceId::UNKNOWN),
+      d_modelCons(nullptr)
 {
   d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -74,29 +76,37 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 
 TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
 
-Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
+Node SolverState::getLengthExp(Node t,
+                               std::vector<Node>& exp,
+                               Node te,
+                               bool minExp)
 {
   Assert(areEqual(t, te));
-  Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, t);
-  lt = rewrite(lt);
-  if (hasTerm(lt))
+  // if we are minimizing explanations
+  if (minExp)
   {
-    // use own length if it exists, leads to shorter explanation
-    return lt;
+    Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, te);
+    lt = rewrite(lt);
+    if (hasTerm(lt))
+    {
+      // use own length if it exists, leads to shorter explanation
+      return lt;
+    }
   }
   EqcInfo* ei = getOrMakeEqcInfo(t, false);
   Node lengthTerm = ei ? ei->d_lengthTerm : Node::null();
+  Node ret;
   if (lengthTerm.isNull())
   {
-    // typically shouldnt be necessary
-    lengthTerm = t;
+    // typically shouldn't be necessary
+    lengthTerm = te;
   }
   else
   {
     lengthTerm = lengthTerm[0];
   }
-  Trace("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
-                   << std::endl;
+  Trace("strings") << "SolverState::getLengthTerm " << t << "/" << te << " is "
+                   << lengthTerm << std::endl;
   if (te != lengthTerm)
   {
     exp.push_back(te.eqNode(lengthTerm));
@@ -104,9 +114,9 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
   return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 
-Node SolverState::getLength(Node t, std::vector<Node>& exp)
+Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
 {
-  return getLengthExp(t, exp, t);
+  return getLengthExp(t, exp, t, minExp);
 }
 
 Node SolverState::explainNonEmpty(Node s)
@@ -140,7 +150,7 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   return false;
 }
 
-void SolverState::setPendingMergeConflict(Node conf, InferenceId id)
+void SolverState::setPendingMergeConflict(Node conf, InferenceId id, bool rev)
 {
   if (d_pendingConflictSet.get())
   {
@@ -148,6 +158,9 @@ void SolverState::setPendingMergeConflict(Node conf, InferenceId id)
     return;
   }
   InferInfo iiPrefixConf(id);
+  // remember whether this was a prefix/suffix, which is used when looking
+  // if the explanation can be minimized
+  iiPrefixConf.d_idRev = rev;
   iiPrefixConf.d_conc = d_false;
   utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);
@@ -180,16 +193,33 @@ std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
   return d_valuation.entailmentCheck(mode, lit);
 }
 
-void SolverState::separateByLength(
+void SolverState::separateByLengthTyped(
     const std::vector<Node>& n,
     std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
     std::map<TypeNode, std::vector<Node>>& lts)
 {
+  // group terms by types
+  std::map<TypeNode, std::vector<Node>> tvecs;
+  for (const Node& eqc : n)
+  {
+    tvecs[eqc.getType()].push_back(eqc);
+  }
+  // separate for each type
+  for (const std::pair<const TypeNode, std::vector<Node>>& v : tvecs)
+  {
+    separateByLength(v.second, cols[v.first], lts[v.first]);
+  }
+}
+
+void SolverState::separateByLength(const std::vector<Node>& n,
+                                   std::vector<std::vector<Node>>& cols,
+                                   std::vector<Node>& lts)
+{
   unsigned leqc_counter = 0;
   // map (length, type) to an equivalence class identifier
-  std::map<std::pair<Node, TypeNode>, unsigned> eqc_to_leqc;
+  std::map<Node, unsigned> eqc_to_leqc;
   // backwards map
-  std::map<unsigned, std::pair<Node, TypeNode>> leqc_to_eqc;
+  std::map<unsigned, Node> leqc_to_eqc;
   // Collection of eqc for each identifier. Notice that some identifiers may
   // not have an associated length in the mappings above, if the length of
   // an equivalence class is unknown.
@@ -197,20 +227,18 @@ void SolverState::separateByLength(
   for (const Node& eqc : n)
   {
     Assert(d_ee->getRepresentative(eqc) == eqc);
-    TypeNode tnEqc = eqc.getType();
     EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (!lt.isNull())
     {
       Node r = d_ee->getRepresentative(lt);
-      std::pair<Node, TypeNode> lkey(r, tnEqc);
-      if (eqc_to_leqc.find(lkey) == eqc_to_leqc.end())
+      if (eqc_to_leqc.find(r) == eqc_to_leqc.end())
       {
-        eqc_to_leqc[lkey] = leqc_counter;
-        leqc_to_eqc[leqc_counter] = lkey;
+        eqc_to_leqc[r] = leqc_counter;
+        leqc_to_eqc[leqc_counter] = r;
         leqc_counter++;
       }
-      eqc_to_strings[eqc_to_leqc[lkey]].push_back(eqc);
+      eqc_to_strings[eqc_to_leqc[r]].push_back(eqc);
     }
     else
     {
@@ -221,12 +249,14 @@ void SolverState::separateByLength(
   for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
   {
     Assert(!p.second.empty());
-    // get the type of the collection
-    TypeNode stn = p.second[0].getType();
-    cols[stn].emplace_back(p.second.begin(), p.second.end());
-    lts[stn].push_back(leqc_to_eqc[p.first].first);
+    cols.emplace_back(p.second.begin(), p.second.end());
+    lts.push_back(leqc_to_eqc[p.first]);
   }
 }
+
+void SolverState::setModelConstructor(ModelCons* mc) { d_modelCons = mc; }
+
+ModelCons* SolverState::getModelConstructor() { return d_modelCons; }
 
 }  // namespace strings
 }  // namespace theory
