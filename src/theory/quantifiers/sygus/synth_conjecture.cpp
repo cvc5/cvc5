@@ -635,9 +635,9 @@ bool SynthConjecture::processCounterexample(const std::vector<Node>& skModel)
   return addedLemma;
 }
 
-void SynthConjecture::preregisterConjecture(Node q)
+void SynthConjecture::ppNotifyConjecture(Node q)
 {
-  d_ceg_si->preregisterConjecture(q);
+  d_ceg_si->ppNotifyConjecture(q);
 }
 
 bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
