@@ -495,7 +495,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   return sol;
 }
 
-void CegSingleInv::preregisterConjecture(Node q) { d_orig_conjecture = q; }
+void CegSingleInv::ppNotifyConjecture(Node q) { d_orig_conjecture = q; }
 
 bool CegSingleInv::solveTrivial(Node q)
 {

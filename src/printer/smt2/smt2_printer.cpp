@@ -631,15 +631,44 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "))";
       return;
     case kind::MATCH_BIND_CASE:
-      // ignore the binder
-      toStream(out, n[1], toDepth, lbind);
-      out << " ";
-      toStream(out, n[2], toDepth, lbind);
-      out << ")";
-      return;
     case kind::MATCH_CASE:
-      // do nothing
-      break;
+    {
+      // ignore the binder for MATCH_BIND_CASE
+      size_t patIndex = (k == kind::MATCH_BIND_CASE ? 1 : 0);
+      // The pattern should be printed as a pattern (symbol applied to symbols),
+      // not as a term. In particular, this means we should not print any
+      // type ascriptions (if any).
+      if (n[patIndex].getKind() == kind::APPLY_CONSTRUCTOR)
+      {
+        if (n[patIndex].getNumChildren() > 0)
+        {
+          out << "(";
+        }
+        Node op = n[patIndex].getOperator();
+        const DType& dt = DType::datatypeOf(op);
+        size_t index = DType::indexOf(op);
+        out << dt[index].getConstructor();
+        for (const Node& nc : n[patIndex])
+        {
+          out << " ";
+          toStream(out, nc, toDepth, lbind);
+        }
+        if (n[patIndex].getNumChildren() > 0)
+        {
+          out << ")";
+        }
+      }
+      else
+      {
+        // otherwise, a variable, just print
+        Assert(n[patIndex].isVar());
+        toStream(out, n[patIndex], toDepth, lbind);
+      }
+      out << " ";
+      toStream(out, n[patIndex + 1], toDepth, lbind);
+      out << ")";
+    }
+      return;
 
     // arith theory
     case kind::IAND:
@@ -957,26 +986,24 @@ void Smt2Printer::toStream(std::ostream& out,
     // do not letify the bound variable list
     toStream(out, n[0], toDepth, nullptr);
     out << " ";
+    bool needsPrintAnnot = false;
     std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
-      annot << " ";
       for (const Node& nc : n[2])
       {
         Kind nck = nc.getKind();
         if (nck == kind::INST_PATTERN)
         {
-          out << "(! ";
-          annot << ":pattern ";
+          needsPrintAnnot = true;
+          annot << " :pattern ";
           toStream(annot, nc, toDepth, nullptr);
-          annot << ") ";
         }
         else if (nck == kind::INST_NO_PATTERN)
         {
-          out << "(! ";
-          annot << ":no-pattern ";
+          needsPrintAnnot = true;
+          annot << " :no-pattern ";
           toStream(annot, nc[0], toDepth, nullptr);
-          annot << ") ";
         }
         else if (nck == kind::INST_ATTRIBUTE)
         {
@@ -987,15 +1014,14 @@ void Smt2Printer::toStream(std::ostream& out,
           // here only.
           if (nc[0].getKind() == kind::CONST_STRING)
           {
-            out << "(! ";
+            needsPrintAnnot = true;
             // print out as string to avoid quotes
-            annot << ":" << nc[0].getConst<String>().toString();
+            annot << " :" << nc[0].getConst<String>().toString();
             for (size_t j = 1, nchild = nc.getNumChildren(); j < nchild; j++)
             {
               annot << " ";
               toStream(annot, nc[j], toDepth, nullptr);
             }
-            annot << ") ";
           }
         }
       }
@@ -1003,6 +1029,11 @@ void Smt2Printer::toStream(std::ostream& out,
     // Use a fresh let binder, since using existing let symbols may violate
     // scoping issues for let-bound variables, see explanation in let_binding.h.
     size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
+    if (needsPrintAnnot)
+    {
+      out << "(! ";
+      annot << ")";
+    }
     toStream(out, n[1], toDepth - 1, dag);
     out << annot.str() << ")";
     return;

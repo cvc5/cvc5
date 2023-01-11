@@ -6,12 +6,12 @@
 (declare-fun P (Int) Bool)
 
 (assert (not (=
-(forall ((x Int)) (! (!
+(forall ((x Int)) (! 
   (P x)
-  :skolem-add-to-pool ((- x 100) L)) :pool (L) )) 
-(forall ((x Int)) (! (!
+  :skolem-add-to-pool ((- x 100) L) :pool (L) ))
+(forall ((x Int)) (!
   (P (+ x 100))
-  :skolem-add-to-pool ((+ x 100) L)) :pool (L) ) 
+  :skolem-add-to-pool ((+ x 100) L) :pool (L) )
 ))))
 
 (check-sat)

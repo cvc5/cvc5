@@ -139,9 +139,11 @@ void Smt2State::addDatatypesOperators()
   ParserState::addOperator(APPLY_TESTER);
   ParserState::addOperator(APPLY_SELECTOR);
 
+  addIndexedOperator(APPLY_TESTER, "is");
   if (!strictModeEnabled())
   {
     ParserState::addOperator(APPLY_UPDATER);
+    addIndexedOperator(APPLY_UPDATER, "update");
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(TUPLE_PROJECT, "tuple.project");
@@ -508,58 +510,56 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   return Term();
 }
 
-Term Smt2State::mkIndexedOp(const std::string& name,
-                            const std::vector<std::string>& symbols)
+Term Smt2State::mkIndexedOp(Kind k,
+                            const std::vector<std::string>& symbols,
+                            const std::vector<Term>& args)
 {
-  if (d_logic.isTheoryEnabled(internal::theory::THEORY_DATATYPES))
+  if (k == APPLY_TESTER || k == APPLY_UPDATER)
   {
-    if (name == "is" || name == "update")
+    Assert(symbols.size() == 1);
+    Assert(!args.empty());
+    const std::string& cname = symbols[0];
+    // must be declared
+    checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
+    Term f = getExpressionForNameAndType(cname, args[0].getSort());
+    if (f.getKind() == APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
     {
-      if (symbols.size() != 1)
+      // for nullary constructors, must get the operator
+      f = f[0];
+    }
+    if (k == APPLY_TESTER)
+    {
+      if (!f.getSort().isDatatypeConstructor())
       {
-        parseError(std::string("Unexpected number of indices for " + name));
+        parseError("Bad syntax for (_ is X), X must be a constructor.");
       }
-      const std::string& cname = symbols[0];
-      // must be declared
-      checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
-      Term f = getExpressionForName(cname);
-      if (f.getKind() == APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
+      // get the datatype that f belongs to
+      Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+      Datatype d = sf.getDatatype();
+      // lookup by name
+      DatatypeConstructor dc = d.getConstructor(f.toString());
+      return dc.getTesterTerm();
+    }
+    else
+    {
+      Assert(k == APPLY_UPDATER);
+      if (!f.getSort().isDatatypeSelector())
       {
-        // for nullary constructors, must get the operator
-        f = f[0];
+        parseError("Bad syntax for (_ update X), X must be a selector.");
       }
-      if (name == "is")
-      {
-        if (!f.getSort().isDatatypeConstructor())
-        {
-          parseError("Bad syntax for (_ is X), X must be a constructor.");
-        }
-        // get the datatype that f belongs to
-        Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
-        Datatype d = sf.getDatatype();
-        // lookup by name
-        DatatypeConstructor dc = d.getConstructor(f.toString());
-        return dc.getTesterTerm();
-      }
-      else
-      {
-        Assert(name == "update");
-        if (!f.getSort().isDatatypeSelector())
-        {
-          parseError("Bad syntax for (_ update X), X must be a selector.");
-        }
-        std::string sname = f.toString();
-        // get the datatype that f belongs to
-        Sort sf = f.getSort().getDatatypeSelectorDomainSort();
-        Datatype d = sf.getDatatype();
-        // find the selector
-        DatatypeSelector ds = d.getSelector(f.toString());
-        // get the updater term
-        return ds.getUpdaterTerm();
-      }
+      std::string sname = f.toString();
+      // get the datatype that f belongs to
+      Sort sf = f.getSort().getDatatypeSelectorDomainSort();
+      Datatype d = sf.getDatatype();
+      // find the selector
+      DatatypeSelector ds = d.getSelector(f.toString());
+      // get the updater term
+      return ds.getUpdaterTerm();
     }
   }
-  parseError(std::string("Unknown indexed literal `") + name + "'");
+  std::stringstream ss;
+  ss << "Unknown indexed op kind " << k;
+  parseError(ss.str());
   return Term();
 }
 
@@ -1324,6 +1324,12 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     Term ret = d_solver->mkConstArray(p.d_type, constVal);
     Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
+  }
+  else if (p.d_kind == APPLY_TESTER || p.d_kind == APPLY_UPDATER)
+  {
+    Term iop = mkIndexedOp(p.d_kind, {p.d_name}, args);
+    kind = p.d_kind;
+    args.insert(args.begin(), iop);
   }
   else if (p.d_kind != NULL_TERM)
   {

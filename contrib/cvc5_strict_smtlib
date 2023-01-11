@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cvc5="${CVC5_HOME}/cvc5"
 

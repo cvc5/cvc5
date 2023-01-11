@@ -221,11 +221,11 @@ class InferenceManager : public InferenceManagerBuffered
 
   // ------------------------------------------------- extended theory
   /**
-   * Mark that extended function is reduced. If contextDepend is true,
+   * Mark that extended function is inactive. If contextDepend is true,
    * then this mark is SAT-context dependent, otherwise it is user-context
-   * dependent (see ExtTheory::markReduced).
+   * dependent (see ExtTheory::markInactive).
    */
-  void markReduced(Node n, ExtReducedId id, bool contextDepend = true);
+  void markInactive(Node n, ExtReducedId id, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
   /**
@@ -240,6 +240,28 @@ class InferenceManager : public InferenceManagerBuffered
   void processFact(InferInfo& ii, ProofGenerator*& pg);
   /** Called when ii is ready to be processed as a lemma */
   TrustNode processLemma(InferInfo& ii, LemmaProperty& p);
+  /**
+   * min prefix explain
+   *
+   * @param x A string term
+   * @param prefix The prefix (suffix).
+   * @param assumptions The set of assumptions we are minimizing
+   * @param emap The explanation map for assumptions (getExplanationMap).
+   * @param isSuf Whether prefix denotes a suffix
+   * @return A subset of assumptions that imply x does not have the given
+   * prefix.
+   */
+  Node mkPrefixExplainMin(Node x,
+                          Node prefix,
+                          const std::vector<TNode>& assumptions,
+                          const std::map<TNode, TNode>& emap,
+                          bool isSuf = false);
+  /**
+   * Returns a mapping from terms to equalities, where t -> E if E is an
+   * equality of the form (= t *) or (= * t) from assumptions.
+   */
+  static std::map<TNode, TNode> getExplanationMap(
+      const std::vector<TNode>& assumptions);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
