@@ -371,6 +371,20 @@ void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
     d_ipc->notifyFact(ii);
     pg = d_ipc.get();
   }
+  // ensure facts are for rewritten terms
+  if (Configuration::isAssertionBuild())
+  {
+    Node atom = ii.d_conc.getKind()==NOT ? ii.d_conc[0] : ii.d_conc;
+    if (atom.getKind()==EQUAL)
+    {
+      Assert(rewrite(atom[0])==atom[0]);
+      Assert(rewrite(atom[1])==atom[1]);
+    }
+    else
+    {
+      Assert(rewrite(atom)==atom);
+    }
+  }
 }
 
 TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
