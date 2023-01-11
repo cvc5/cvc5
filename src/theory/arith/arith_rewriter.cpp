@@ -243,7 +243,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
                       ? zero
                       : (otherSum.size() == 1 ? otherSum[0]
                                               : nm->mkNode(ADD, otherSum));
-      Node o = nm->mkNode(NEG, osum);
+      Node o = bv2natPol ? nm->mkNode(NEG, osum) : osum;
       Node ub = nm->mkNode(GEQ, o, w);
       Node lb = nm->mkNode(LT, o, zero);
       Node iToBvop = nm->mkConst(IntToBitVector(bvsize));
