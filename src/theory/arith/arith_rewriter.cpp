@@ -191,8 +191,11 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   if (kind != Kind::EQUAL)
   {
     bool convertible = true;
+    // the (single) bv2nat term in the sum
     Node bv2natTerm;
+    // whether the bv2nat term is positive in the sum
     bool bv2natPol = false;
+    // the remaining sum (constant)
     std::vector<Node> otherSum;
     Trace("ajr-temp") << "Rewriting " << atom << std::endl;
     NodeManager* nm = NodeManager::currentNM();
