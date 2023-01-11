@@ -366,7 +366,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case SignExtendUltConst: out << "SignExtendUltConst"; return out;
   case ZeroExtendUltConst: out << "ZeroExtendUltConst"; return out;
   case UltPullConversion: out << "UltPullConversion"; return out;
-    
+
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
