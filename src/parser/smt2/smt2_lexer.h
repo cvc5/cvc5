@@ -40,11 +40,6 @@ class Smt2Lexer : public FlexLexer
   }
   virtual ~Smt2Lexer() {}
 
-  /** Are we parsing sygus? */
-  bool isSygus() const;
-  /** Are we in strict mode? */
-  bool isStrict() const;
-
  private:
   /** Are we lexing sygus? */
   bool d_sygus;
