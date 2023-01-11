@@ -22,6 +22,7 @@
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
+#include "theory/arith/arith_utilities.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -1971,14 +1972,45 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
 /**
  */
 template <>
-inline bool RewriteRule<UltPullConversion>::applies(TNode node) {
+inline bool RewriteRule<UltPullConversion>::applies(TNode node) 
+{
+  if (node.getKind() == kind::BITVECTOR_ULT)
+  {
+    for (const Node& nc : node)
+    {
+      Kind nck = nc.getKind();
+      if (nck!=kind::INT_TO_BITVECTOR && nck != kind::CONST_BITVECTOR)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
   return false;
 }
 
 template <>
-inline Node RewriteRule<UltPullConversion>::apply(TNode node) {
-
-  return node;
+inline Node RewriteRule<UltPullConversion>::apply(TNode node) 
+{
+  Assert (node.getKind()==kind::BITVECTOR_ULT);
+  NodeManager *nm = NodeManager::currentNM();
+  std::vector<Node> children;
+  for (const Node& nc : node)
+  {
+    Kind nck = nc.getKind();
+    if (nck==kind::INT_TO_BITVECTOR)
+    {
+      size_t bvSize = nc.getOperator().getConst<IntToBitVector>();
+      Node w = nm->mkConstInt(Rational(Integer(2).pow(bvSize)));
+      children.push_back(nm->mkNode(kind::INTS_MODULUS, nc[0], w));
+    }
+    else
+    {
+      Assert (nck==kind::CONST_BITVECTOR);
+      children.push_back(nm->mkNode(kind::BITVECTOR_TO_NAT, nc));
+    }
+  }
+  return nm->mkNode(kind::LT, children);
 }
 
 /* -------------------------------------------------------------------------- */

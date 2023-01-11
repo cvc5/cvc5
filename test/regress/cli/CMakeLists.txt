@@ -308,6 +308,7 @@ set(regress_0_tests
   regress0/bv/bvproof3.smt2
   regress0/bv/bvsimple.cvc.smt2
   regress0/bv/bvsmod.smt2
+  regress0/bv/bvule-elim-conv.smt2
   regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smtv1.smt2
   regress0/bv/core/a78test0002.smtv1.smt2
   regress0/bv/core/a95test0002.smtv1.smt2
