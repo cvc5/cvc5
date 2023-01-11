@@ -188,6 +188,56 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   rewriter::addToSum(sum, left, negate);
   rewriter::addToSum(sum, right, !negate);
 
+  if (kind != Kind::EQUAL)
+  {
+    bool convertible = true;
+    Node bv2natTerm;
+    std::vector<Node> otherSum;
+    Trace("ajr-temp") << "Rewriting " << atom << std::endl;
+    NodeManager * nm = NodeManager::currentNM();
+    for (std::pair<const Node, RealAlgebraicNumber>& m : sum)
+    {
+      Trace("ajr-temp") << "Check " << m.first << " " << m.second << std::endl;
+      Kind mk = m.first.getKind();
+      if (mk==BITVECTOR_TO_NAT)
+      {
+        if (bv2natTerm.isNull())
+        {
+          bv2natTerm = m.first;
+        }
+        else
+        {
+          convertible = false;
+          break;
+        }
+      }
+      else if (mk==CONST_INTEGER && m.second.isRational())
+      {
+        otherSum.push_back(nm->mkConstInt(m.second.toRational()));
+      }
+      else
+      {
+        convertible = false;
+        break;
+      }
+    }
+    if (convertible && !bv2natTerm.isNull())
+    {
+      Node zero = nm->mkConstInt(Rational(0));
+      Kind bvKind = (kind==GT ? BITVECTOR_UGT : BITVECTOR_UGE);
+      Node bvt = bv2natTerm[0];
+      size_t bvsize = bvt.getType().getBitVectorSize();
+      Node w = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
+      Node osum = otherSum.empty() ? zero : ( otherSum.size()==1 ? otherSum[0] : nm->mkNode(ADD, otherSum));
+      Node o = nm->mkNode(NEG, osum);
+      Node ub = nm->mkNode(GEQ, o, w);
+      Node lb = nm->mkNode(LEQ, o, zero);
+      Node iToBvop = nm->mkConst(IntToBitVector(bvsize));
+      Node ret = nm->mkNode(ITE, ub, nm->mkConst(false), nm->mkNode(ITE, lb, nm->mkConst(true), nm->mkNode(bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
+  }
+  
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
