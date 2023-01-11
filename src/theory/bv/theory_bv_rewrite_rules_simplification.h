@@ -1968,6 +1968,21 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ */
+template <>
+inline bool RewriteRule<UltPullConversion>::applies(TNode node) {
+  return false;
+}
+
+template <>
+inline Node RewriteRule<UltPullConversion>::apply(TNode node) {
+
+  return node;
+}
+
+/* -------------------------------------------------------------------------- */
+
 template<> inline
 bool RewriteRule<MultSlice>::applies(TNode node) {
   if (node.getKind() != kind::BITVECTOR_MULT || node.getNumChildren() != 2) {
