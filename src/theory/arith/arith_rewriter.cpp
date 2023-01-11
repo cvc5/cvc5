@@ -194,12 +194,12 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     Node bv2natTerm;
     std::vector<Node> otherSum;
     Trace("ajr-temp") << "Rewriting " << atom << std::endl;
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     for (std::pair<const Node, RealAlgebraicNumber>& m : sum)
     {
       Trace("ajr-temp") << "Check " << m.first << " " << m.second << std::endl;
       Kind mk = m.first.getKind();
-      if (mk==BITVECTOR_TO_NAT)
+      if (mk == BITVECTOR_TO_NAT)
       {
         if (bv2natTerm.isNull())
         {
@@ -211,7 +211,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
           break;
         }
       }
-      else if (mk==CONST_INTEGER && m.second.isRational())
+      else if (mk == CONST_INTEGER && m.second.isRational())
       {
         otherSum.push_back(nm->mkConstInt(m.second.toRational()));
       }
@@ -224,20 +224,32 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     if (convertible && !bv2natTerm.isNull())
     {
       Node zero = nm->mkConstInt(Rational(0));
-      Kind bvKind = (kind==GT ? BITVECTOR_UGT : BITVECTOR_UGE);
+      Kind bvKind = (kind == GT ? BITVECTOR_UGT : BITVECTOR_UGE);
       Node bvt = bv2natTerm[0];
       size_t bvsize = bvt.getType().getBitVectorSize();
       Node w = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
-      Node osum = otherSum.empty() ? zero : ( otherSum.size()==1 ? otherSum[0] : nm->mkNode(ADD, otherSum));
+      Node osum = otherSum.empty()
+                      ? zero
+                      : (otherSum.size() == 1 ? otherSum[0]
+                                              : nm->mkNode(ADD, otherSum));
       Node o = nm->mkNode(NEG, osum);
       Node ub = nm->mkNode(GEQ, o, w);
       Node lb = nm->mkNode(LEQ, o, zero);
       Node iToBvop = nm->mkConst(IntToBitVector(bvsize));
-      Node ret = nm->mkNode(ITE, ub, nm->mkConst(false), nm->mkNode(ITE, lb, nm->mkConst(true), nm->mkNode(bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
+      Node ret = nm->mkNode(
+          ITE,
+          ub,
+          nm->mkConst(false),
+          nm->mkNode(
+              ITE,
+              lb,
+              nm->mkConst(true),
+              nm->mkNode(
+                  bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  
+
   // Now we have (sum <kind> 0)
   if (rewriter::isIntegral(sum))
   {
