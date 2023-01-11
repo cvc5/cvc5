@@ -65,7 +65,7 @@ runs:
       shell: bash
       run: |
         echo "::group::Install macOS software"
-        brew link --overwrite python@3.10
+        brew unlink python@3.10 && brew link --overwrite python@3.11
         brew update --quiet
         brew install \
           ccache \
