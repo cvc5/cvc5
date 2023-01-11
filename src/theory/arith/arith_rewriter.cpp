@@ -204,6 +204,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
         if (bv2natTerm.isNull())
         {
           bv2natTerm = m.first;
+          continue;
         }
         else
         {
@@ -213,13 +214,15 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
       }
       else if (mk == CONST_INTEGER && m.second.isRational())
       {
-        otherSum.push_back(nm->mkConstInt(m.second.toRational()));
+        const Rational& r = m.second.toRational();
+        if (r.isIntegral())
+        {
+          otherSum.push_back(nm->mkConstInt(r));
+          continue;
+        }
       }
-      else
-      {
-        convertible = false;
-        break;
-      }
+      convertible = false;
+      break;
     }
     if (convertible && !bv2natTerm.isNull())
     {
