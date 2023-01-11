@@ -377,10 +377,8 @@ void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
     Node atom = ii.d_conc.getKind()==NOT ? ii.d_conc[0] : ii.d_conc;
     if (atom.getKind()==EQUAL)
     {
-      for (const Node& n : atom)
-      {
-        Assert(rewrite(n)==n);
-      }
+      Assert(rewrite(atom[0])==atom[0]);
+      Assert(rewrite(atom[1])==atom[1]);
     }
     else
     {
