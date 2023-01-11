@@ -192,33 +192,41 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   {
     bool convertible = true;
     Node bv2natTerm;
+    bool bv2natPol = false;
     std::vector<Node> otherSum;
     Trace("ajr-temp") << "Rewriting " << atom << std::endl;
     NodeManager* nm = NodeManager::currentNM();
     for (std::pair<const Node, RealAlgebraicNumber>& m : sum)
     {
       Trace("ajr-temp") << "Check " << m.first << " " << m.second << std::endl;
-      Kind mk = m.first.getKind();
-      if (mk == BITVECTOR_TO_NAT)
-      {
-        if (bv2natTerm.isNull())
-        {
-          bv2natTerm = m.first;
-          continue;
-        }
-        else
-        {
-          convertible = false;
-          break;
-        }
-      }
-      else if (mk == CONST_INTEGER && m.second.isRational())
+      if (m.second.isRational())
       {
         const Rational& r = m.second.toRational();
-        if (r.isIntegral())
+        Kind mk = m.first.getKind();
+        if (mk == BITVECTOR_TO_NAT)
         {
-          otherSum.push_back(nm->mkConstInt(r));
-          continue;
+          if (bv2natTerm.isNull())
+          {
+            if (r.abs().isOne())
+            {
+              bv2natPol = (r.sgn()==1);
+              bv2natTerm = m.first;
+              continue;
+            }
+          }
+          else
+          {
+            convertible = false;
+            break;
+          }
+        }
+        else if (mk == CONST_INTEGER && m.second.isRational())
+        {
+          if (r.isIntegral())
+          {
+            otherSum.push_back(nm->mkConstInt(r));
+            continue;
+          }
         }
       }
       convertible = false;
@@ -227,7 +235,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     if (convertible && !bv2natTerm.isNull())
     {
       Node zero = nm->mkConstInt(Rational(0));
-      Kind bvKind = (kind == GT ? BITVECTOR_UGT : BITVECTOR_UGE);
+      Kind bvKind = (kind == GT ? (bv2natPol ? BITVECTOR_UGT : BITVECTOR_ULT) : (bv2natPol ? BITVECTOR_UGE : BITVECTOR_ULE));
       Node bvt = bv2natTerm[0];
       size_t bvsize = bvt.getType().getBitVectorSize();
       Node w = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
@@ -237,18 +245,19 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
                                               : nm->mkNode(ADD, otherSum));
       Node o = nm->mkNode(NEG, osum);
       Node ub = nm->mkNode(GEQ, o, w);
-      Node lb = nm->mkNode(LEQ, o, zero);
+      Node lb = nm->mkNode(LT, o, zero);
       Node iToBvop = nm->mkConst(IntToBitVector(bvsize));
       Node ret = nm->mkNode(
           ITE,
           ub,
-          nm->mkConst(false),
+          nm->mkConst(!bv2natPol),
           nm->mkNode(
               ITE,
               lb,
-              nm->mkConst(true),
+              nm->mkConst(bv2natPol),
               nm->mkNode(
                   bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
+      Trace("ajr-temp") << "Rewrite " << atom << " to " << ret << std::endl;
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
