@@ -54,7 +54,7 @@ struct CrowdingLitInfo
   size_t d_lastInclusion;
   /* Index of last premise to eliminate this crowding literal */
   size_t d_eliminator;
-  /* Whether there are only crowding and conclusion literals in the eliminator. */
+  /* Whether there are only crowding/conclusion literals in the eliminator. */
   bool d_onlyCrowdAndConcLitsInElim;
   /* Maximum position to which the eliminator premise can be moved without
    * changing the behavior of the resolution chain. Note this only applies when
@@ -64,9 +64,16 @@ struct CrowdingLitInfo
 
 std::ostream& operator<<(std::ostream& out, CrowdingLitInfo info)
 {
-  out << "{" << info.d_lastInclusion << ", " << info.d_eliminator << ", "
-      << (info.d_onlyCrowdAndConcLitsInElim ? "true" : "false") << ", "
-      << info.d_maxSafeMovePosition << "}";
+  out << "{" << info.d_lastInclusion << ", " << info.d_eliminator << ", ";
+  if (info.d_onlyCrowdAndConcLitsInElim)
+  {
+    out << "true, " << info.d_maxSafeMovePosition;
+  }
+  else
+  {
+    out << "false";
+  }
+  out << "}";
   return out;
 }
 
@@ -229,7 +236,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     }
     Node crowdLit = clauseLits[i];
     crowding.insert(crowdLit);
-    Trace("crowding-lits2") << "crowding lit " << crowdLit << "\n";
+    Trace("crowding-lits3") << "crowding lit " << crowdLit << "\n";
     // found crowding lit, now get its last inclusion position, which is the
     // position of the last resolution link that introduces the crowding
     // literal. Note that this position has to be *before* the last link, as a
@@ -262,7 +269,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     CrowdingLitInfo info;
     info.d_lastInclusion = j - 1;
 
-    Trace("crowding-lits2") << "last inc " << j - 1 << "\n";
+    Trace("crowding-lits3") << "last inc " << j - 1 << "\n";
     // get elimination position, starting from the following link as the last
     // inclusion one. The result is the last (in the chain, but first from
     // this point on) resolution link that eliminates the crowding literal. A
@@ -272,7 +279,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     {
       bool posFirst = args[(2 * j) - 1] == trueNode;
       Node pivot = args[(2 * j)];
-      Trace("crowding-lits2")
+      Trace("crowding-lits3")
           << "\tcheck w/ args " << posFirst << " / " << pivot << "\n";
       // To eliminate the crowding literal (crowdLit), the clause must contain
       // it with opposite polarity. There are three successful cases,
@@ -289,14 +296,14 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           || (crowdLit.notNode() == pivot && !posFirst)
           || (pivot.notNode() == crowdLit && !posFirst))
       {
-        Trace("crowding-lits2") << "\t\tfound it!\n";
+        Trace("crowding-lits3") << "\t\tfound it!\n";
         eliminators.push_back(j);
         break;
       }
     }
     info.d_eliminator = eliminators.back();
     crowdLitsInfo[crowdLit] = info;
-    Trace("crowding-lits2") << "last inc " << info.d_lastInclusion << ", elim "
+    Trace("crowding-lits3") << "last inc " << info.d_lastInclusion << ", elim "
                             << info.d_eliminator << "\n";
     AlwaysAssert(j < childrenSize);
   }
@@ -327,7 +334,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     {
       Node crowdingLit = lastInclusion[i].first;
       size_t elim = crowdLitsInfo[crowdingLit].d_eliminator;
-      // Since this primise is an eliminator, if it's an OR it can only be a singleton if the crowding literal is its negation.
+      // Since this primise is an eliminator, if it's an OR it can only be a
+      // singleton if the crowding literal is its negation.
       size_t maxSafeMove = childrenSize,
              numLits = (children[elim].getKind() != kind::OR
                         || (crowdingLit.getKind() == kind::NOT
@@ -339,7 +347,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       {
         Trace("crowding-lits2") << "....elim " << elim << " is unit (of " << i
                                 << "-th crowding lit)\n";
-        crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdAndConcLitsInElim = true;
+        crowdLitsInfo[lastInclusion[i].first].d_onlyCrowdAndConcLitsInElim =
+            true;
         crowdLitsInfo[lastInclusion[i].first].d_maxSafeMovePosition =
             maxSafeMove;
         continue;
@@ -489,7 +498,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           p.second.d_eliminator = maxSafeMove - 1;
           continue;
         }
-        // can update lastInclusion, eliminator and maxSafeMoveOfCrowdingInElim
+        // can update lastInclusion, eliminator and maxSafeMovePosition
         if (p.second.d_lastInclusion >= elim + 1
             && p.second.d_lastInclusion < maxSafeMove)
         {
@@ -553,10 +562,10 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           << "\n";
       if (crowdLitsInfo[crowdingLit].d_onlyCrowdAndConcLitsInElim)
       {
-        Trace("smt-proof-pp-debug2") << "\t\t- onlyCrowdingInElim; maxSafeMove: "
-                                     << crowdLitsInfo[lastInclusion[i].first]
-                                            .d_maxSafeMovePosition
-                                     << "\n";
+        Trace("smt-proof-pp-debug2")
+            << "\t\t- onlyCrowdingInElim; maxSafeMove: "
+            << crowdLitsInfo[lastInclusion[i].first].d_maxSafeMovePosition
+            << "\n";
       }
     }
   }
