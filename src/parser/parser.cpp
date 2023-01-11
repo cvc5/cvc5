@@ -45,7 +45,8 @@ ParserState::ParserState(ParserStateCallback* psc,
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_checksEnabled(true),
-      d_strictMode(strictMode)
+      d_strictMode(strictMode),
+      d_parseOnly(d_solver->getOptionInfo("parse-only").boolValue())
 {
 }
 
@@ -660,6 +661,12 @@ void ParserState::pushScope(bool isUserContext)
 void ParserState::pushGetValueScope()
 {
   pushScope();
+  // We cannot ask for the model domain elements if we are in parse-only mode.
+  // Hence, we do nothing here.
+  if (d_parseOnly)
+  {
+    return;
+  }
   // we must bind all relevant uninterpreted constants, which coincide with
   // the set of uninterpreted constants that are printed in the definition
   // of a model.

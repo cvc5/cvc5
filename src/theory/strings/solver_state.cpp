@@ -150,7 +150,7 @@ bool SolverState::isEqualEmptyWord(Node s, Node& emps)
   return false;
 }
 
-void SolverState::setPendingMergeConflict(Node conf, InferenceId id)
+void SolverState::setPendingMergeConflict(Node conf, InferenceId id, bool rev)
 {
   if (d_pendingConflictSet.get())
   {
@@ -158,6 +158,9 @@ void SolverState::setPendingMergeConflict(Node conf, InferenceId id)
     return;
   }
   InferInfo iiPrefixConf(id);
+  // remember whether this was a prefix/suffix, which is used when looking
+  // if the explanation can be minimized
+  iiPrefixConf.d_idRev = rev;
   iiPrefixConf.d_conc = d_false;
   utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);

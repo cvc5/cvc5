@@ -240,10 +240,10 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
+        cvc5::Sort type = SOLVER->mkUninterpretedSort(name);
         cmd->reset(new DeclareSortCommand(name, 0, type));
       } else {
-        cvc5::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
+        cvc5::Sort type = SOLVER->mkUninterpretedSortConstructorSort(arity, name);
         cmd->reset(new DeclareSortCommand(name, arity, type));
       }
     }
@@ -262,9 +262,6 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
     }
     sortSymbol[t]
     { PARSER_STATE->popScope();
-      // Do NOT call mkSort, since that creates a new sort!
-      // This name is not its own distinct sort, it's an alias.
-      PARSER_STATE->defineParameterizedType(name, sorts, t);
       cmd->reset(new DefineSortCommand(name, sorts, t));
     }
   | /* function declaration */
@@ -289,8 +286,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
       }
       else
       {
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
+        cvc5::Term func = SOLVER->mkConst(t, name);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -498,7 +494,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
     sortSymbol[t]
     {
       cvc5::Term var = SOLVER->declareSygusVar(name, t);
-      PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
@@ -533,7 +528,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
-      PARSER_STATE->defineVar(name, fun);
       cmd = std::unique_ptr<cvc5::parser::Command>(
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
@@ -761,8 +755,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
         PARSER_STATE->parseError("declare-const is not allowed in sygus "
                                  "version 2.0");
       }
-      cvc5::Term c =
-          PARSER_STATE->bindVar(name, t, true);
+      cvc5::Term c = SOLVER->mkConst(t, name);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -960,7 +953,6 @@ extendedCommand[std::unique_ptr<cvc5::parser::Command>* cmd]
     )* RPAREN_TOK
     { Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       cvc5::Term pool = SOLVER->declarePool(name, t, terms);
-      PARSER_STATE->defineVar(name, pool);
       cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
     }
   | BLOCK_MODEL_TOK KEYWORD { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1491,40 +1483,17 @@ identifier[cvc5::ParseOp& p]
   // indexed functions
 
   | LPAREN_TOK INDEX_TOK
-    ( TESTER_TOK term[f, f2]
+    ( TESTER_TOK symbol[opName,CHECK_NONE,SYM_VARIABLE]
       {
-        if (f.getKind() == cvc5::APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
-        {
-          // for nullary constructors, must get the operator
-          f = f[0];
-        }
-        if (!f.getSort().isDatatypeConstructor())
-        {
-          PARSER_STATE->parseError(
-              "Bad syntax for (_ is X), X must be a constructor.");
-        }
-        // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
-        cvc5::Datatype d = sf.getDatatype();
-        // lookup by name
-        cvc5::DatatypeConstructor dc = d.getConstructor(f.toString());
-        p.d_expr = dc.getTesterTerm();
+        // operator is resolved after parsing to handle overloading
+        p.d_kind = APPLY_TESTER;
+        p.d_name = opName;
       }
-    | UPDATE_TOK term[f, f2]
+    | UPDATE_TOK symbol[opName,CHECK_NONE,SYM_VARIABLE]
       {
-        if (!f.getSort().isDatatypeSelector())
-        {
-          PARSER_STATE->parseError(
-              "Bad syntax for (_ update X), X must be a selector.");
-        }
-        std::string sname = f.toString();
-        // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getDatatypeSelectorDomainSort();
-        cvc5::Datatype d = sf.getDatatype();
-        // find the selector
-        cvc5::DatatypeSelector ds = d.getSelector(f.toString());
-        // get the updater term
-        p.d_expr = ds.getUpdaterTerm();
+        // operator is resolved after parsing to handle overloading
+        p.d_kind = APPLY_UPDATER;
+        p.d_name = opName;
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
