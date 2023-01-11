@@ -34,13 +34,17 @@ namespace parser {
 class Smt2Lexer : public FlexLexer
 {
  public:
-  Smt2Lexer(bool isSygus = true, bool isStrict = false) : FlexLexer(), d_sygus(isSygus), d_strict(isStrict){}
+  Smt2Lexer(bool isSygus = true, bool isStrict = false)
+      : FlexLexer(), d_sygus(isSygus), d_strict(isStrict)
+  {
+  }
   virtual ~Smt2Lexer() {}
 
   /** Are we parsing sygus? */
   bool isSygus() const;
   /** Are we in strict mode? */
   bool isStrict() const;
+
  private:
   /** Are we lexing sygus? */
   bool d_sygus;
