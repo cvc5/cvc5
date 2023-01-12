@@ -106,15 +106,14 @@ RewriteResponse TheoryBVRewriter::RewriteSltBv(TNode node, bool prerewrite){
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool prerewrite){
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalUle>,
-      RewriteRule<UleMax>,
-      RewriteRule<ZeroUle>,
-      RewriteRule<IneqElimConversion>,
-      RewriteRule<UleZero>,
-      RewriteRule<UleSelf>,
-      RewriteRule<UleEliminate>
-      >::apply(node);
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalUle>,
+                            RewriteRule<UleMax>,
+                            RewriteRule<ZeroUle>,
+                            RewriteRule<IneqElimConversion>,
+                            RewriteRule<UleZero>,
+                            RewriteRule<UleSelf>,
+                            RewriteRule<UleEliminate>>::apply(node);
   return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN,
                          resultNode);
 }

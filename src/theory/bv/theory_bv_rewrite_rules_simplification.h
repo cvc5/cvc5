@@ -1975,7 +1975,8 @@ template <>
 inline bool RewriteRule<IneqElimConversion>::applies(TNode node)
 {
   Kind k = node.getKind();
-  if (k == kind::BITVECTOR_ULT || k == kind::BITVECTOR_ULE || k == kind::BITVECTOR_UGT || k == kind::BITVECTOR_UGE)
+  if (k == kind::BITVECTOR_ULT || k == kind::BITVECTOR_ULE
+      || k == kind::BITVECTOR_UGT || k == kind::BITVECTOR_UGE)
   {
     for (const Node& nc : node)
     {
@@ -2014,14 +2015,15 @@ inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
   // Note that (bv2nat N) is subsequently rewritten to the appropriate integer
   // constant.
   Kind arithKind;
-  switch(node.getKind())
+  switch (node.getKind())
   {
     case kind::BITVECTOR_ULT: arithKind = kind::LT; break;
     case kind::BITVECTOR_ULE: arithKind = kind::LEQ; break;
     case kind::BITVECTOR_UGT: arithKind = kind::GT; break;
     case kind::BITVECTOR_UGE: arithKind = kind::GEQ; break;
-    default: Unhandled() << "Unknown kind for IneqElimConversion " << node;
-    break;
+    default:
+      Unhandled() << "Unknown kind for IneqElimConversion " << node;
+      break;
   }
   return nm->mkNode(arithKind, children);
 }
