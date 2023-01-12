@@ -13,13 +13,36 @@
 # The build system configuration.
 ##
 
+# set(EXAMPLES_API_PYTHON
+#   bags
+#   bitvectors_and_arrays
+#   bitvectors
+#   combination
+#   datatypes
+#   exceptions
+#   extract
+#   floating_point
+#   helloworld
+#   id
+#   linear_arith
+#   quickstart
+#   relations
+#   sequences
+#   sets
+#   strings
+#   sygus-fun
+#   sygus-grammar
+#   sygus-inv
+#   transcendentals
+# )
+
+
 set(EXAMPLES_API_PYTHON
   bags
   bitvectors_and_arrays
   bitvectors
   combination
   datatypes
-  exceptions
   extract
   floating_point
   helloworld
