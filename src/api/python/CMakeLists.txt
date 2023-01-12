@@ -43,7 +43,7 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
-find_package(PythonExtensions REQUIRED)
+# find_package(PythonExtensions REQUIRED)
 
 
 set(PYTHON_INCLUDE_DIRS "${Python3_INCLUDE_DIRS}")
