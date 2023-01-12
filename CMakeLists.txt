@@ -321,7 +321,7 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+find_package(PythonInterp 3.10 REQUIRED)
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
