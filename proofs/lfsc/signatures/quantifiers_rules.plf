@@ -18,8 +18,8 @@
 (declare instantiate (! body term
                      (! v mpz
                      (! u sort
-                     (! s term
                      (! bodyi term
+                     (! s term
                      (! p (holds (forall v u body))
                      (! r (^ (sc_substitute body v s) bodyi)
                        (holds bodyi)))))))))
@@ -47,3 +47,21 @@
 
 (declare skolem_intro (! t term
                         (holds (= (skolem t) t))))
+
+; Beta-reduce t
+(function sc_beta_reduce ((t term)) term
+  (match t
+    ((apply t1 t2) 
+      (match t1
+        ((apply t11 t12) 
+          (match t11
+            ((f_lambda v s) (sc_beta_reduce (sc_substitute t12 v t2)))
+            (default t)))
+        (default t)))
+    (default t)
+  ))
+
+(declare beta_reduce (! s term
+                     (! t term
+                     (! r (^ (sc_beta_reduce t) s)
+                       (holds (= t s))))))
