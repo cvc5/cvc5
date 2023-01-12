@@ -22,7 +22,7 @@ if (USE_EDITLINE)
 
   # Check for pexpect -- zero return code is success
   execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import pexpect"
+    COMMAND ${Python3_EXECUTABLE} -c "import pexpect"
     RESULT_VARIABLE PEXPECT_RC
     ERROR_QUIET
   )
@@ -34,7 +34,7 @@ if (USE_EDITLINE)
     add_test(
       NAME interactive_shell
       COMMAND
-      "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/interactive_shell.py"
+      "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/binary/interactive_shell.py"
       WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     )
     set_tests_properties(interactive_shell PROPERTIES LABELS "binary")
