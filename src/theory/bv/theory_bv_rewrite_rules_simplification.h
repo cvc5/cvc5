@@ -1972,9 +1972,10 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
 /**
  */
 template <>
-inline bool RewriteRule<UltPullConversion>::applies(TNode node)
+inline bool RewriteRule<IneqElimConversion>::applies(TNode node)
 {
-  if (node.getKind() == kind::BITVECTOR_ULT)
+  Kind k = node.getKind();
+  if (k == kind::BITVECTOR_ULT || k == kind::BITVECTOR_ULE || k == kind::BITVECTOR_UGT || k == kind::BITVECTOR_UGE)
   {
     for (const Node& nc : node)
     {
@@ -1990,9 +1991,8 @@ inline bool RewriteRule<UltPullConversion>::applies(TNode node)
 }
 
 template <>
-inline Node RewriteRule<UltPullConversion>::apply(TNode node)
+inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
 {
-  Assert(node.getKind() == kind::BITVECTOR_ULT);
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   for (const Node& nc : node)
@@ -2013,7 +2013,17 @@ inline Node RewriteRule<UltPullConversion>::apply(TNode node)
   // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).
   // Note that (bv2nat N) is subsequently rewritten to the appropriate integer
   // constant.
-  return nm->mkNode(kind::LT, children);
+  Kind arithKind;
+  switch(node.getKind())
+  {
+    case kind::BITVECTOR_ULT: arithKind = kind::LT; break;
+    case kind::BITVECTOR_ULE: arithKind = kind::LEQ; break;
+    case kind::BITVECTOR_UGT: arithKind = kind::GT; break;
+    case kind::BITVECTOR_UGE: arithKind = kind::GEQ; break;
+    default: Unhandled() << "Unknown kind for IneqElimConversion " << node;
+    break;
+  }
+  return nm->mkNode(arithKind, children);
 }
 
 /* -------------------------------------------------------------------------- */

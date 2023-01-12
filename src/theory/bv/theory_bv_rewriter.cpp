@@ -65,7 +65,7 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
                             RewriteRule<UltZero>,  // a < 0 rewrites to false,
                             RewriteRule<SignExtendUltConst>,
                             RewriteRule<ZeroExtendUltConst>,
-                            RewriteRule<UltPullConversion>>::apply(node);
+                            RewriteRule<IneqElimConversion>>::apply(node);
 
   return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN_FULL,
                          resultNode);
@@ -110,6 +110,7 @@ RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool prerewrite){
     < RewriteRule<EvalUle>,
       RewriteRule<UleMax>,
       RewriteRule<ZeroUle>,
+      RewriteRule<IneqElimConversion>,
       RewriteRule<UleZero>,
       RewriteRule<UleSelf>,
       RewriteRule<UleEliminate>
