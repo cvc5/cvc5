@@ -197,11 +197,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     bool bv2natPol = false;
     // the remaining sum (constant)
     std::vector<Node> otherSum;
-    Trace("ajr-temp") << "Rewriting " << atom << std::endl;
     NodeManager* nm = NodeManager::currentNM();
     for (std::pair<const Node, RealAlgebraicNumber>& m : sum)
     {
-      Trace("ajr-temp") << "Check " << m.first << " " << m.second << std::endl;
       if (m.second.isRational())
       {
         const Rational& r = m.second.toRational();
@@ -260,8 +258,13 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
               nm->mkConst(bv2natPol),
               nm->mkNode(
                   bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
-      Trace("ajr-temp") << "Rewrite " << atom << " to " << ret << std::endl;
-      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+      // E.g. (<= (bv2nat x) N) --> 
+      //      (ite (> N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
+      // or   (<= N (bv2nat x)) --> 
+      //      (ite (> N 2^w) false (ite (< N 0) true (bvuge x ((_ int2bv w) N))
+      // where N is a constant. Note that ((_ int2bv w) N) will subsequently
+      // be rewritten to the appropriate bitvector constant.
+      return returnRewrite(atom, ret, Rewrite::INEQ_BV_TO_NAT_ELIM);
     }
   }
 

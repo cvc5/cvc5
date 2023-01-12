@@ -2010,6 +2010,9 @@ inline Node RewriteRule<UltPullConversion>::apply(TNode node)
       children.push_back(nm->mkNode(kind::BITVECTOR_TO_NAT, nc));
     }
   }
+  // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).
+  // Note that (bv2nat N) is subsequently rewritten to the appropriate integer
+  // constant.
   return nm->mkNode(kind::LT, children);
 }
 
