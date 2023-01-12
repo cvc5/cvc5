@@ -210,7 +210,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
           {
             if (r.abs().isOne())
             {
-              bv2natPol = (r.sgn()==1);
+              bv2natPol = (r.sgn() == 1);
               bv2natTerm = m.first;
               continue;
             }
@@ -236,7 +236,8 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     if (convertible && !bv2natTerm.isNull())
     {
       Node zero = nm->mkConstInt(Rational(0));
-      Kind bvKind = (kind == GT ? (bv2natPol ? BITVECTOR_UGT : BITVECTOR_ULT) : (bv2natPol ? BITVECTOR_UGE : BITVECTOR_ULE));
+      Kind bvKind = (kind == GT ? (bv2natPol ? BITVECTOR_UGT : BITVECTOR_ULT)
+                                : (bv2natPol ? BITVECTOR_UGE : BITVECTOR_ULE));
       Node bvt = bv2natTerm[0];
       size_t bvsize = bvt.getType().getBitVectorSize();
       Node w = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
@@ -258,9 +259,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
               nm->mkConst(bv2natPol),
               nm->mkNode(
                   bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
-      // E.g. (<= (bv2nat x) N) --> 
+      // E.g. (<= (bv2nat x) N) -->
       //      (ite (> N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
-      // or   (<= N (bv2nat x)) --> 
+      // or   (<= N (bv2nat x)) -->
       //      (ite (> N 2^w) false (ite (< N 0) true (bvuge x ((_ int2bv w) N))
       // where N is a constant. Note that ((_ int2bv w) N) will subsequently
       // be rewritten to the appropriate bitvector constant.
