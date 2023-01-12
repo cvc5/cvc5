@@ -206,6 +206,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
         Kind mk = m.first.getKind();
         if (mk == BITVECTOR_TO_NAT)
         {
+          // We currently only eliminate sums involving exactly one
+          // (bv2nat x) monomial whose coefficient is +- 1, although more
+          // cases could be handled here.
           if (bv2natTerm.isNull())
           {
             if (r.abs().isOne())
@@ -229,6 +232,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
             continue;
           }
         }
+        // if a non-constant, non-bv2nat term is in the sum, we fail
       }
       convertible = false;
       break;
