@@ -59,7 +59,7 @@ set(EXAMPLES_API_PYTHON
   transcendentals
 )
 
-find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)
+find_package(Python3 ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED COMPONENTS Interpreter)
 
 # Find Python bindings in the corresponding python-*/site-packages directory.
 # Lookup Python module directory and store path in PYTHON_MODULE_PATH.
