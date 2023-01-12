@@ -260,9 +260,9 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
               nm->mkNode(
                   bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
       // E.g. (<= (bv2nat x) N) -->
-      //      (ite (> N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
+      //      (ite (>= N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
       // or   (<= N (bv2nat x)) -->
-      //      (ite (> N 2^w) false (ite (< N 0) true (bvuge x ((_ int2bv w) N))
+      //      (ite (>= N 2^w) false (ite (< N 0) true (bvuge x ((_ int2bv w) N))
       // where N is a constant. Note that ((_ int2bv w) N) will subsequently
       // be rewritten to the appropriate bitvector constant.
       return returnRewrite(atom, ret, Rewrite::INEQ_BV_TO_NAT_ELIM);
