@@ -36,12 +36,23 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
-  /** Parse symbol */
+  /** 
+   * Parse symbol, which returns the string of the parsed symbol if the next
+   * token is a valid smt2 symbol.
+   * 
+   * @param check Specifies whether to check if the symbol is already declared
+   * or not declared,
+   * @param type The type of symbol we are expecting (variable or sort).
+   */
   std::string parseSymbol(DeclarationCheck check = CHECK_NONE,
-                          SymbolType type = SYM_SORT);
-  /** Parse parentheses-enclosed sorted variable list */
+                          SymbolType type = SYM_VARIABLE);
+  /** 
+   * Parse parentheses-enclosed symbol list.
+   * Expects to parse '(<symbol>*)', where '<symbol>' is parsed by the above
+   * method.
+   */
   std::vector<std::string> parseSymbolList(DeclarationCheck check = CHECK_NONE,
-                                           SymbolType type = SYM_SORT);
+                                           SymbolType type = SYM_VARIABLE);
   /**
    * Parses ':X', returns 'X'
    */
