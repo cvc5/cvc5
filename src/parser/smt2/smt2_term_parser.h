@@ -53,13 +53,6 @@ class Smt2TermParser
    */
   std::vector<std::string> parseNumeralList();
   /**
-   * Parse datatype def, not parentheses enclosed
-   */
-  std::vector<DatatypeDecl> parseDatatypesDef(
-      bool isCo,
-      const std::vector<std::string>& dnames,
-      const std::vector<size_t>& arities);
-  /**
    * Matches a string, and (optionally) strips off the quotes/unescapes the
    * string when `unescape` is set to true.
    */
