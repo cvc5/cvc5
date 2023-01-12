@@ -28,6 +28,8 @@ namespace cvc5 {
 namespace parser {
 
 /**
+ * The Flex generated lexer for SMT2, which contains the Flex auto-generated
+ * implementation of yylex().
  */
 class Smt2Lexer : public FlexLexer
 {
