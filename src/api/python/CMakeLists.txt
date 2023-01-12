@@ -53,7 +53,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
   # versions of CMake. If we are compiling cvc5 on macOS and we have a newer
   # version of CMake available, we try to use find_package(Python ...) to find
   # the paths.
-  find_package(Python 3.10 COMPONENTS Development)
+  find_package(Python 3.10 EXACT COMPONENTS Development)
   set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
   set(PYTHON_LIBRARY "${Python_LIBRARIES}")
 endif()
