@@ -396,6 +396,12 @@ bool LfscProofPostprocessCallback::update(Node res,
       addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
+    case PfRule::INSTANTIATE:
+    case PfRule::BETA_REDUCE:
+    {
+      
+    }
+      break;
     default: return false; break;
   }
   AlwaysAssert(cdp->getProofFor(res)->getRule() != PfRule::ASSUME);
