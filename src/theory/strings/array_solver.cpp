@@ -392,6 +392,9 @@ void ArraySolver::checkTerm(Node t, bool checkInv)
     {
       eq = t.eqNode(finalc);
     }
+    // Must rewrite the equality to ensure terms are in rewritten form. This
+    // is important since this inference may be processed as a fact.
+    eq = rewrite(eq);
     iid = checkInv ? InferenceId::STRINGS_ARRAY_UPDATE_CONCAT_INVERSE
                    : InferenceId::STRINGS_ARRAY_UPDATE_CONCAT;
   }
