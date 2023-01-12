@@ -854,9 +854,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::INSTANTIATE:
           pf << h << h << h << h << as[2] << cs[0];
           break;
-        case LfscRule::BETA_REDUCE:
-          pf << h << as[2];
-          break;
+        case LfscRule::BETA_REDUCE: pf << h << as[2]; break;
         default: return false; break;
       }
     }
