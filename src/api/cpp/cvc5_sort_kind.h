@@ -212,7 +212,7 @@ enum SortKind : int32_t
    */
   STRING_SORT,
   /**
-   * A tuple sort, whose argument sorts denote the sorts of the subfields
+   * A tuple sort, whose argument sorts denote the sorts of the direct children
    * of the tuple.
    *
    * - Create Sort of this Kind with:

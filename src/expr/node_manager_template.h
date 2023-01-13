@@ -461,7 +461,7 @@ class NodeManager
    * @return True if `k` is an abstractable sort kind, i.e., a valid argument to
    * `mkAbstractType`.
    */
-  static bool canAbstractSortKind(Kind k);
+  static bool isSortKindAbstractable(Kind k);
 
   /** Make the abstract type with the given kind */
   TypeNode mkAbstractType(Kind k);

@@ -269,7 +269,8 @@ TEST_F(TestApiBlackSort, isSequence)
 TEST_F(TestApiBlackSort, isAbstract)
 {
   ASSERT_TRUE(d_solver.mkAbstractSort(BITVECTOR_SORT).isAbstract());
-  // ?Array is syntax sugar for (Array ? ?)
+  // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+  // is an Array sort, not an abstract sort.
   ASSERT_FALSE(d_solver.mkAbstractSort(ARRAY_SORT).isAbstract());
   ASSERT_TRUE(d_solver.mkAbstractSort(ABSTRACT_SORT).isAbstract());
   ASSERT_NO_THROW(Sort().isAbstract());
@@ -522,7 +523,9 @@ TEST_F(TestApiBlackSort, getAbstractKind)
 {
   ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractKind(),
             BITVECTOR_SORT);
-  // ?Array is syntax sugar for (Array ? ?)
+  // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+  // is an Array sort, not an abstract sort and its abstract kind cannot be
+  // extracted.
   ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(),
                CVC5ApiException);
   ASSERT_EQ(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(),

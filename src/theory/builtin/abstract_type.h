@@ -23,6 +23,8 @@
 namespace cvc5::internal {
 
 /**
+ * The payload for abstract types, which carries a kind specifying the kind
+ * of type this abstract type abstracts.
  */
 class AbstractType
 {
@@ -30,7 +32,7 @@ class AbstractType
   AbstractType(Kind k);
   AbstractType(const AbstractType& op);
 
-  /** return the kind of the current object */
+  /** Return the kind of sort that this abstract type abstracts */
   Kind getKind() const;
 
   bool operator==(const AbstractType& op) const;
