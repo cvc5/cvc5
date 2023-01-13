@@ -22,6 +22,28 @@ index 4c4d51e..efe50f7 100644
  
  typedef std::list<GPoly> GPolyList;
  
+diff --git a/src/AlgebraicCore/PolyRing-content.C b/src/AlgebraicCore/PolyRing-content.C
+index c5d0a0a..36d6d2b 100644
+--- a/src/AlgebraicCore/PolyRing-content.C
++++ b/src/AlgebraicCore/PolyRing-content.C
+@@ -33,6 +33,7 @@
+ #include "CoCoA/convert.H"
+ #include "CoCoA/error.H"
+ #include "CoCoA/utils.H"  // for len
++#include "CoCoA/TmpGPoly.H"
+ 
+ 
+ #include <vector>
+@@ -128,7 +129,9 @@ namespace CoCoA
+   {
+     const PolyRing Rx = owner(f);
+     RingElem ans(Rx);
++    if (handlersEnabled) reductionStartHandler(f);
+     Rx->myMonic(raw(ans), raw(f));
++    if (handlersEnabled) reductionEndHandler(ans);
+     return ans;
+   }
+ 
 diff --git a/src/AlgebraicCore/SparsePolyOps-reduce.C b/src/AlgebraicCore/SparsePolyOps-reduce.C
 index b5b8b43..11687f0 100644
 --- a/src/AlgebraicCore/SparsePolyOps-reduce.C

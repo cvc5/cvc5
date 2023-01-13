@@ -48,7 +48,7 @@ execute_process(COMMAND
                 OUTPUT_VARIABLE PYTHON_MODULE_PATH
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-foreach(example ${EXAMPLES_API_PYTHON})
+function(create_python_example example)
   set(example_test example/api/python/${example})
   add_test(
     NAME ${example_test}
@@ -58,4 +58,12 @@ foreach(example ${EXAMPLES_API_PYTHON})
   set_tests_properties(${example_test} PROPERTIES
     LABELS "example"
     ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
+endfunction()
+
+foreach(example ${EXAMPLES_API_PYTHON})
+  create_python_example(${example})
 endforeach()
+
+if(USE_COCOA)
+  create_python_example("finite_field")
+endif()

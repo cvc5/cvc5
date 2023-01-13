@@ -79,7 +79,7 @@ class TheoryBags : public Theory
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
   TrustNode explain(TNode) override;
-  Node getModelValue(TNode) override;
+  Node getCandidateModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
   void preRegisterTerm(TNode n) override;
   void presolve() override;

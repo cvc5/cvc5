@@ -172,7 +172,13 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
+  //-------------------- ff inference
   // ---------------------------------- end arith theory
+
+  // ---------------------------------- finite field theory
+  // a catch-all, for now
+  FF_LEMMA,
+  // ---------------------------------- end finite field theory
 
   // ---------------------------------- arrays theory
   ARRAYS_EXT,
@@ -855,6 +861,8 @@ enum class InferenceId
   //-------------------- merge conflicts
   // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // minimized prefix conflict
+  STRINGS_PREFIX_CONFLICT_MIN,
   // arithmetic bound conflict
   STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other

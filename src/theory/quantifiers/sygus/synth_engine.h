@@ -69,7 +69,7 @@ class SynthEngine : public QuantifiersModule
    * SynthConjecture::getSynthSolutions.
    */
   bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-  /** preregister assertion (before rewrite)
+  /** preprocess notify assertion (before rewrite)
    *
    * The purpose of this method is to inform the solution reconstruction
    * techniques within the single invocation module that n is an original
@@ -77,7 +77,7 @@ class SynthEngine : public QuantifiersModule
    * to help when trying to reconstruct a solution that fits a given input
    * syntax.
    */
-  void preregisterAssertion(Node n);
+  void ppNotifyAssertion(Node n);
 
  private:
   /** the conjecture formula(s) we are waiting to assign */
