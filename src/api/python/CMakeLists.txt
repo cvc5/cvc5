@@ -55,7 +55,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
   # the paths.
 
   # As a temporary workaround, we do not support python 3.11 due to the problem described above.
-  # Once this issue (https://github.com/actions/setup-python/issues/577) is solved, we will be able to add support to version 3.11.
+  # Once this issue (https://github.com/actions/setup-python/issues/577) is
+  # solved, we will be able to add support to version 3.11.
   find_package(Python 3.6...<3.11 COMPONENTS Development)
   set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
   set(PYTHON_LIBRARY "${Python_LIBRARIES}")
