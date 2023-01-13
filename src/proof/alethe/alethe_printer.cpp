@@ -19,7 +19,7 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "options/expr_options.h"
+#include "options/printer_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5::internal {
@@ -37,18 +37,18 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                         const std::vector<Node>& fa,
                                         bool& continueUpdate)
 {
-  // We do this here so we do not go into update, as we are never updating the
-  // proof node, not even do we pass a node manager to the proof node updater.
   const std::vector<Node>& args = pn->getArguments();
-  // Letification done on the converted terms and potentially on arguments
+  // Letification done on the converted terms (thus from the converted
+  // conclusion) and potentially on arguments, which means to ignore the first
+  // two arguments (which are the Alethe rule and the original conclusion).
   AlwaysAssert(args.size() > 2)
       << "res: " << pn->getResult() << "\nid: " << getAletheRule(args[0]);
   for (size_t i = 2, size = args.size(); i < size; ++i)
   {
     Trace("alethe-printer") << "Process " << args[i] << "\n";
     // We do not go *below* cl, since the clause itself cannot be shared (goes
-    // against the Alethe specification)
-    // TODO strengthen this to guarantee this var is indeed the "cl" one
+    // against the Alethe specification). We assume that s-expressions with a
+    // bound variable as first argument are all of the form (cl ...).
     if (args[i].getKind() == kind::SEXPR
         && args[i][0].getKind() == kind::BOUND_VARIABLE)
     {
@@ -61,16 +61,6 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     d_lbind.process(args[i]);
   }
 
-  return false;
-}
-
-bool LetUpdaterPfCallback::update(Node res,
-                                  PfRule id,
-                                  const std::vector<Node>& children,
-                                  const std::vector<Node>& args,
-                                  CDProof* cdp,
-                                  bool& continueUpdate)
-{
   return false;
 }
 
@@ -107,10 +97,13 @@ void AletheProofPrinter::print(std::ostream& out,
 
     std::vector<Node> letList;
     d_lbind.letify(letList);
-    for (TNode n : letList)
+    if (TraceIsOn("alethe-printer"))
     {
-      Trace("alethe-printer")
-          << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+      for (TNode n : letList)
+      {
+        Trace("alethe-printer")
+            << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+      }
     }
   }
 

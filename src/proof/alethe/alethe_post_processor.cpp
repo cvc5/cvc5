@@ -334,9 +334,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                                vp5,
                                vp5,
                                {vp4, vp3},
-                               d_resPivots
-                                   ? std::vector<Node>{andNode, d_true}
-                                   : std::vector<Node>(),
+                               d_resPivots ? std::vector<Node>{andNode, d_true}
+                                           : std::vector<Node>(),
                                *cdp);
 
       Node vp6 = nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0].notNode());
@@ -344,14 +343,14 @@ bool AletheProofPostprocessCallback::update(Node res,
           addAletheStep(AletheRule::IMPLIES_NEG2, vp6, vp6, {}, {}, *cdp);
 
       Node vp7 = nm->mkNode(kind::SEXPR, d_cl, vp8[1], vp8[1]);
-      success &= addAletheStep(AletheRule::RESOLUTION,
-                               vp7,
-                               vp7,
-                               {vp5, vp6},
-                               d_resPivots
-                                   ? std::vector<Node>{children[0], d_true}
-                                   : std::vector<Node>(),
-                               *cdp);
+      success &=
+          addAletheStep(AletheRule::RESOLUTION,
+                        vp7,
+                        vp7,
+                        {vp5, vp6},
+                        d_resPivots ? std::vector<Node>{children[0], d_true}
+                                    : std::vector<Node>(),
+                        *cdp);
 
       if (children[0] != d_false)
       {
@@ -379,9 +378,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                                  res,
                                  nm->mkNode(kind::SEXPR, d_cl, res),
                                  {vp8, vp10},
-                                 d_resPivots
-                                     ? std::vector<Node>{vp8[1], d_true}
-                                     : std::vector<Node>(),
+                                 d_resPivots ? std::vector<Node>{vp8[1], d_true}
+                                             : std::vector<Node>(),
                                  *cdp);
       }
 
@@ -707,17 +705,17 @@ bool AletheProofPostprocessCallback::update(Node res,
 
       success &= addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
 
-      return success &= addAletheStep(AletheRule::RESOLUTION,
-                                      res,
-                                      nm->mkNode(kind::SEXPR, d_cl, res),
-                                      {vp1, children[1], child1},
-                                      d_resPivots
-                                          ? std::vector<Node>{children[1],
-                                                              d_false,
-                                                              children[0],
-                                                              d_false}
-                                          : std::vector<Node>(),
-                                      *cdp);
+      return success &=
+             addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           {vp1, children[1], child1},
+                           d_resPivots ? std::vector<Node>{children[1],
+                                                           d_false,
+                                                           children[0],
+                                                           d_false}
+                                       : std::vector<Node>(),
+                           *cdp);
     }
     // ======== Modus ponens
     // See proof_rule.h for documentation on the MODUS_PONENS rule. This comment
@@ -784,9 +782,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl),
                            children,
-                           d_resPivots
-                               ? std::vector<Node>{children[0], d_true}
-                               : std::vector<Node>(),
+                           d_resPivots ? std::vector<Node>{children[0], d_true}
+                                       : std::vector<Node>(),
                            *cdp);
     }
     // ======== And elimination
@@ -1280,9 +1277,8 @@ bool AletheProofPostprocessCallback::update(Node res,
                  vp4,
                  vp4,
                  {vp2, vp3},
-                 d_resPivots
-                     ? std::vector<Node>{children[0].notNode(), d_true}
-                     : std::vector<Node>(),
+                 d_resPivots ? std::vector<Node>{children[0].notNode(), d_true}
+                             : std::vector<Node>(),
                  *cdp)
              && addAletheStep(AletheRule::RESOLUTION,
                               res,
@@ -2001,21 +1997,20 @@ bool AletheProofPostprocessCallback::updatePost(
   switch (rule)
   {
     // In the case of a resolution rule the rule might originally have been a
-    // cvc5 RESOLUTION or CHAIN_RESOLUTION rule. In these cases it is possible
+    // cvc5 RESOLUTION or CHAIN_RESOLUTION rule, it is possible
     // that one of the children was printed as (cl (or F1 ... Fn)) but used as
-    // (cl F1 ... Fn). However, since the information about the pivot of the
-    // resolution step the child is used in is provided it is always possible
-    // to figure out if an additional OR step is necessary.
+    // (cl F1 ... Fn). However, from the pivot of the
+    // resolution step for the child we can determine an additional OR step is
+    // necessary to convert (cl (or ...)) to (cl ...).
     case AletheRule::RESOLUTION_OR:
     {
+      Assert(!d_resPivots || args.size() > 3);
+      // if we do not have pivots, we can't compute easily, so we do not update
       if (args.size() < 4)
       {
         return false;
       }
-      std::vector<Node> new_children = children;
-      std::vector<Node> new_args =
-          d_resPivots ? args
-                      : std::vector<Node>(args.begin(), args.begin() + 3);
+      std::vector<Node> newChildren = children;
       bool hasUpdated = false;
 
       // If we are printing the pivots, the order of polarity/pivot is reversed.
@@ -2067,7 +2062,7 @@ bool AletheProofPostprocessCallback::updatePost(
                         {children[0]},
                         {},
                         *cdp);
-          new_children[0] = newConclusion;
+          newChildren[0] = newConclusion;
           Trace("alethe-proof")
               << "Added OR step in finalizer " << childConclusion << " / "
               << newConclusion << std::endl;
@@ -2133,7 +2128,7 @@ bool AletheProofPostprocessCallback::updatePost(
                           {children[i]},
                           {},
                           *cdp);
-            new_children[i] = conclusion;
+            newChildren[i] = conclusion;
             Trace("alethe-proof")
                 << "Added OR step in finalizer " << childConclusion << " / "
                 << conclusion << std::endl;
@@ -2144,8 +2139,8 @@ bool AletheProofPostprocessCallback::updatePost(
       {
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
-            << new_children << " / " << args << std::endl;
-        cdp->addStep(res, PfRule::ALETHE_RULE, new_children, new_args);
+            << newChildren << " / " << args << std::endl;
+        cdp->addStep(res, PfRule::ALETHE_RULE, newChildren, args);
         return true;
       }
       Trace("alethe-proof") << "... no update\n";
@@ -2174,7 +2169,7 @@ bool AletheProofPostprocessCallback::updatePost(
     // * the corresponding proof node is (or a a b)
     // ** the corresponding proof node is (or a b)
     //
-    // The process is anagolous for REORDERING.
+    // The process is analogous for REORDERING.
     case AletheRule::REORDERING:
     case AletheRule::CONTRACTION:
     {
@@ -2214,7 +2209,6 @@ bool AletheProofPostprocessCallback::updatePost(
     }
     default:
     {
-      // Unreachable();
       Trace("alethe-proof") << "... no update\n";
       return false;
     }
