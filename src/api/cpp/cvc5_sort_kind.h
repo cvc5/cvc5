@@ -23,7 +23,7 @@
 namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
-/* SortKind                                                                       */
+/* SortKind */
 /* -------------------------------------------------------------------------- */
 
 // clang-format off
@@ -265,6 +265,6 @@ struct CVC5_EXPORT hash<cvc5::SortKind>
   size_t operator()(cvc5::SortKind k) const;
 };
 
-}
+}  // namespace std
 
 #endif

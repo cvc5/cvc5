@@ -950,8 +950,8 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSequenceElementSort(
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getAbstractedKind(JNIEnv* env,
-                                                                jobject,
-                                                                jlong pointer)
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);

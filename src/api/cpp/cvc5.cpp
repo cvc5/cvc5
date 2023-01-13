@@ -433,7 +433,8 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
   }
 
 /* Mapping from external (API) kind to internal kind. */
-const static std::unordered_map<SortKind, std::pair<internal::Kind, std::string>>
+const static std::unordered_map<SortKind,
+                                std::pair<internal::Kind, std::string>>
     s_sort_kinds{
         SORT_KIND_ENUM(INTERNAL_SORT_KIND, internal::Kind::UNDEFINED_KIND),
         SORT_KIND_ENUM(UNDEFINED_SORT_KIND, internal::Kind::UNDEFINED_KIND),
@@ -461,8 +462,8 @@ const static std::unordered_map<SortKind, std::pair<internal::Kind, std::string>
         SORT_KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
         SORT_KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
         SORT_KIND_ENUM(LAST_SORT_KIND, internal::Kind::LAST_KIND),
-};
-        
+    };
+
 /* Mapping from internal kind to external (API) kind. */
 const static std::unordered_map<internal::Kind,
                                 Kind,
@@ -798,24 +799,23 @@ const static std::unordered_map<internal::Kind,
     };
 
 /* Mapping from internal kind to external (API) sort kind. */
-const static std::unordered_map<internal::Kind,
-                                SortKind,
-                                internal::kind::KindHashFunction>
-    s_sort_kinds_internal{
-        {internal::Kind::UNDEFINED_KIND, UNDEFINED_SORT_KIND},
-        {internal::Kind::NULL_EXPR, NULL_SORT},
-        {internal::Kind::ABSTRACT_TYPE, ABSTRACT_SORT},
-        {internal::Kind::ARRAY_TYPE, ARRAY_SORT},
-        {internal::Kind::BAG_TYPE, BAG_SORT},
-        {internal::Kind::BITVECTOR_TYPE, BITVECTOR_SORT},
-        {internal::Kind::DATATYPE_TYPE, DATATYPE_SORT},
-        {internal::Kind::FINITE_FIELD_TYPE, FINITE_FIELD_SORT},
-        {internal::Kind::FLOATINGPOINT_TYPE, FLOATINGPOINT_SORT},
-        {internal::Kind::FUNCTION_TYPE, FUNCTION_SORT},
-        {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
-        {internal::Kind::SET_TYPE, SET_SORT},
-        {internal::Kind::TUPLE_TYPE, TUPLE_SORT},
-    };
+const static std::
+    unordered_map<internal::Kind, SortKind, internal::kind::KindHashFunction>
+        s_sort_kinds_internal{
+            {internal::Kind::UNDEFINED_KIND, UNDEFINED_SORT_KIND},
+            {internal::Kind::NULL_EXPR, NULL_SORT},
+            {internal::Kind::ABSTRACT_TYPE, ABSTRACT_SORT},
+            {internal::Kind::ARRAY_TYPE, ARRAY_SORT},
+            {internal::Kind::BAG_TYPE, BAG_SORT},
+            {internal::Kind::BITVECTOR_TYPE, BITVECTOR_SORT},
+            {internal::Kind::DATATYPE_TYPE, DATATYPE_SORT},
+            {internal::Kind::FINITE_FIELD_TYPE, FINITE_FIELD_SORT},
+            {internal::Kind::FLOATINGPOINT_TYPE, FLOATINGPOINT_SORT},
+            {internal::Kind::FUNCTION_TYPE, FUNCTION_SORT},
+            {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
+            {internal::Kind::SET_TYPE, SET_SORT},
+            {internal::Kind::TUPLE_TYPE, TUPLE_SORT},
+        };
 
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind> s_indexed_kinds(

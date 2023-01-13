@@ -359,7 +359,7 @@ public class Solver implements IPointer
    *
    * @api.note Providing a kind {@code k} that has no indices and a fixed arity
    * of argument sorts will return the sort of {@link SortKind} k whose arguments
-   * are the unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will 
+   * are the unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will
    * return the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract
    * kind is {@link SortKind#ABSTRACT_SORT}.
    *
