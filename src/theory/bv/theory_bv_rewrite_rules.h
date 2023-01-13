@@ -166,6 +166,7 @@ enum RewriteRuleId
   UgtUrem,
 
   UltOne,
+  UltOnes,
   SltZero,
   ZeroUlt,
   MergeSignExtend,
@@ -357,6 +358,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NegAdd: out << "NegAdd"; return out;
   case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
+  case UltOnes: out << "UltOnes"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
   case MergeSignExtend : out << "MergeSignExtend"; return out;
@@ -614,6 +616,7 @@ struct AllRewriteRules {
   RewriteRule<SremEliminate> rule144;
   RewriteRule<SmodEliminate> rule145;
   RewriteRule<UgtUrem> rule146;
+  RewriteRule<UltOnes> rule147;
 };
 
 template<> inline

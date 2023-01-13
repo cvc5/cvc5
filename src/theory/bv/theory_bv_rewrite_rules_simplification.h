@@ -1000,31 +1000,43 @@ inline Node RewriteRule<ZeroUlt>::apply(TNode node)
 /**
  * UltZero
  *
- * a < 0 ==> false
+ * match:  (bvult (_ bv0 N) a)
+ * result: (distinct (_ bv0 N) a)
+ *
+ * match:  (bvult a (_ bv0 N))
+ * result: false
  */
 
 template<> inline
 bool RewriteRule<UltZero>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_ULT &&
-          node[1] == utils::mkZero(utils::getSize(node[0])));
+  return (node.getKind() == kind::BITVECTOR_ULT
+          && (utils::isZero(node[0]) || utils::isZero(node[1])));
 }
 
 template<> inline
 Node RewriteRule<UltZero>::apply(TNode node) {
   Trace("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
-  return utils::mkFalse(); 
+  if (utils::isZero(node[1]))
+  {
+    return utils::mkFalse();
+  }
+  return NodeManager::currentNM()->mkNode(
+      kind::DISTINCT, utils::mkZero(utils::getSize(node[0])), node[1]);
 }
 
 
 /* -------------------------------------------------------------------------- */
 
 /**
- * 
+ * UltOne
+ *
+ * match:  (bvult a (_ bv1 N))
+ * result: (= a (_ bv0 N))
  */
-template<> inline
-bool RewriteRule<UltOne>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_ULT &&
-          node[1] == utils::mkOne(utils::getSize(node[0])));
+template <>
+inline bool RewriteRule<UltOne>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_ULT && utils::isOne(node[1]));
 }
 
 template <>
@@ -1033,6 +1045,36 @@ inline Node RewriteRule<UltOne>::apply(TNode node)
   Trace("bv-rewrite") << "RewriteRule<UltOne>(" << node << ")" << std::endl;
   return NodeManager::currentNM()->mkNode(
       kind::EQUAL, node[0], utils::mkZero(utils::getSize(node[0])));
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * UltOnes
+ *
+ * match:  (bvult (not (_ bv0 N)) a)
+ * result: false
+ *
+ * match:  (bvult a (not (_ bv0 N)))
+ * result: (distinct a (not (_ bv0 N)))
+ */
+template <>
+inline bool RewriteRule<UltOnes>::applies(TNode node)
+{
+  return node.getKind() == kind::BITVECTOR_ULT
+         && (utils::isOnes(node[0]) || utils::isOnes(node[1]));
+}
+
+template <>
+inline Node RewriteRule<UltOnes>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<UltOnes>(" << node << ")" << std::endl;
+  if (utils::isOnes(node[1]))
+  {
+    return NodeManager::currentNM()->mkNode(
+        kind::DISTINCT, node[0], utils::mkOnes(utils::getSize(node[1])));
+  }
+  return NodeManager::currentNM()->mkConst(false);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1049,7 +1091,7 @@ bool RewriteRule<SltZero>::applies(TNode node) {
 template <>
 inline Node RewriteRule<SltZero>::apply(TNode node)
 {
-  Trace("bv-rewrite") << "RewriteRule<UltZero>(" << node << ")" << std::endl;
+  Trace("bv-rewrite") << "RewriteRule<SltZero>(" << node << ")" << std::endl;
   unsigned size = utils::getSize(node[0]);
   Node most_significant_bit = utils::mkExtract(node[0], size - 1, size - 1);
   return NodeManager::currentNM()->mkNode(
