@@ -49,6 +49,14 @@
                         (holds (= (skolem t) t))))
 
 ; Beta-reduce t
+; We expect t to be of the form
+;   (apply (lambda v1 s1
+;     (apply (lambda v2 s2
+;     ...
+;     t2))
+;   t1))
+; This does beta-reduction recursively while the current term is an application
+; of a lambda.
 (function sc_beta_reduce ((t term)) term
   (match t
     ((apply t1 t2) 
