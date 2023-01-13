@@ -1912,13 +1912,13 @@ Sort Sort::getSequenceElementSort() const
 
 /* Abstract sort ------------------------------------------------------- */
 
-SortKind Sort::getAbstractKind() const
+SortKind Sort::getAbstractedKind() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   CVC5_API_CHECK(isAbstract()) << "Not an abstract sort.";
   //////// all checks before this line
-  return intToExtSortKind(d_type->getAbstractKind());
+  return intToExtSortKind(d_type->getAbstractedKind());
   ////////
   CVC5_API_TRY_CATCH_END;
 }

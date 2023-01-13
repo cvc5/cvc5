@@ -519,16 +519,16 @@ TEST_F(TestApiBlackSort, getSequenceElementSort)
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSort, getAbstractKind)
+TEST_F(TestApiBlackSort, getAbstractedKind)
 {
-  ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractKind(),
+  ASSERT_EQ(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractedKind(),
             BITVECTOR_SORT);
   // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
   // is an Array sort, not an abstract sort and its abstract kind cannot be
   // extracted.
-  ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractKind(),
+  ASSERT_THROW(d_solver.mkAbstractSort(ARRAY_SORT).getAbstractedKind(),
                CVC5ApiException);
-  ASSERT_EQ(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractKind(),
+  ASSERT_EQ(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractedKind(),
             ABSTRACT_SORT);
 }
 

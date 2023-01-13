@@ -508,7 +508,7 @@ class CVC5_EXPORT TypeNode
   TypeNode getSequenceElementType() const;
 
   /** Get the abstract kind (for abstract types) */
-  Kind getAbstractKind() const;
+  Kind getAbstractedKind() const;
 
   /**
    * Is this a function type?  Function-like things (e.g. datatype

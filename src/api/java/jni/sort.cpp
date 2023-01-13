@@ -946,16 +946,16 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getSequenceElementSort(
 
 /*
  * Class:     io_github_cvc5_Sort
- * Method:    getAbstractKind
+ * Method:    getAbstractedKind
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getAbstractKind(JNIEnv* env,
+JNIEXPORT jint JNICALL Java_io_github_cvc5_Sort_getAbstractedKind(JNIEnv* env,
                                                                 jobject,
                                                                 jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Sort* current = reinterpret_cast<Sort*>(pointer);
-  return static_cast<jint>(current->getAbstractKind());
+  return static_cast<jint>(current->getAbstractedKind());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

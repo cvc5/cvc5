@@ -808,7 +808,7 @@ class CVC5_EXPORT Sort
    *
    * @warning This method is experimental and may change in future versions.
    */
-  SortKind getAbstractKind() const;
+  SortKind getAbstractedKind() const;
 
   /* Uninterpreted sort constructor sort --------------------------------- */
 

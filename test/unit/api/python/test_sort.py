@@ -473,10 +473,10 @@ def test_get_sequence_element_sort(solver):
 
 
 def test_get_abstract_kind(solver):
-    assert solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractKind() == SortKind.BITVECTOR_SORT
+    assert solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind() == SortKind.BITVECTOR_SORT
     with pytest.raises(RuntimeError):
-        solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractKind()
-    assert solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractKind() == SortKind.ABSTRACT_SORT
+        solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind()
+    assert solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind() == SortKind.ABSTRACT_SORT
 
 
 def test_get_uninterpreted_sort_name(solver):

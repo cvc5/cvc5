@@ -3473,7 +3473,7 @@ cdef class Sort:
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
-    def getAbstractKind(self):
+    def getAbstractedKind(self):
         """
             :return: The sort kind of an abstract sort, which denotes the kind
             of sorts that this abstract sort denotes.
@@ -3481,7 +3481,7 @@ cdef class Sort:
             .. warning:: This method is experimental and may change in future
                          versions.
         """
-        return SortKind(<int> self.csort.getAbstractKind())
+        return SortKind(<int> self.csort.getAbstractedKind())
 
     def getUninterpretedSortConstructorArity(self):
         """

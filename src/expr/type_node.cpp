@@ -563,7 +563,7 @@ bool TypeNode::isSygusDatatype() const
 
 bool TypeNode::isAbstract() const { return getKind() == kind::ABSTRACT_TYPE; }
 
-Kind TypeNode::getAbstractKind() const
+Kind TypeNode::getAbstractedKind() const
 {
   Assert(isAbstract());
   const AbstractType& ak = getConst<AbstractType>();
