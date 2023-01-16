@@ -1777,10 +1777,11 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
     children[0] = newChild;
   }
 
-  // Sanitize original assumptions
+  // Sanitize original assumptions and create a placeholder proof step to hold
+  // them.
   Assert(id == PfRule::SCOPE);
   std::vector<Node> sanitizedArgs{
-      res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
+      nm->mkConstInt(static_cast<uint32_t>(AletheRule::UNDEFINED)), res, res};
   for (const Node& arg : args)
   {
     sanitizedArgs.push_back(d_anc.convert(arg, false));
