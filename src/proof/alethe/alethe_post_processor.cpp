@@ -1180,7 +1180,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // comment uses variable names as introduced there.
     //
     // Either a positive existential or a negative forall is skolemized. First
-    // thing is to build the Alethe skolemization step which introduces a valid
+    // step is to build the Alethe skolemization step which introduces a valid
     // equality:
     //
     //                      ---------------- REFL
