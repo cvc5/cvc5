@@ -1743,54 +1743,49 @@ bool AletheProofPostprocessCallback::updatePost(
 //
 // *  the corresponding proof node is ((false))
 // ** the corresponding proof node is (false)
-bool AletheProofPostprocessCallback::finalStep(
-    Node res,
-    PfRule id,
-    std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof* cdp)
+//
+// This method also handles the case where the internal proof is "empty", i.e.,
+// it consists only of "false" as an assumption.
+bool AletheProofPostprocessCallback::finalStep(Node res,
+                                               PfRule id,
+                                               std::vector<Node>& children,
+                                               const std::vector<Node>& args,
+                                               CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
-  // convert inner proof, i.e., children[0], if its conclusion is (cl false)
+  // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
+  // if it's a false assumption
   if (childPf->getRule() == PfRule::ALETHE_RULE
-      && childPf->getArguments()[2].getNumChildren() == 2
-      && childPf->getArguments()[2][1] == d_false)
+      && ((childPf->getArguments()[2].getNumChildren() == 2
+           && childPf->getArguments()[2][1] == d_false)
+          || childPf->getArguments()[2] == d_false))
   {
-    Node childConclusion = childPf->getArguments()[2];
-    Node notFalse = d_false.notNode(); // (not false)
+    Node notFalse =
+        nm->mkNode(kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
     Node newChild = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
 
-    addAletheStep(AletheRule::FALSE,
-                             notFalse,
-                             nm->mkNode(kind::SEXPR, d_cl, notFalse),
-                             {},
-                             {},
-                             *cdp);
-    addAletheStep(AletheRule::RESOLUTION,
-                  newChild,
-                  newChild,
-                  {children[0], notFalse},
-                  d_resPivots
-                      ? std::vector<Node>{d_false, d_true}
-                      : std::vector<Node>(),
-                  *cdp);
+    addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
+    addAletheStep(
+        AletheRule::RESOLUTION,
+        newChild,
+        newChild,
+        {children[0], notFalse},
+        d_resPivots ? std::vector<Node>{d_false, d_true} : std::vector<Node>(),
+        *cdp);
     children[0] = newChild;
   }
 
-  // remove attribute for outermost scope
-  if (id != PfRule::ALETHE_RULE)
+  // Sanitize original assumptions
+  Assert(id == PfRule::SCOPE);
+  std::vector<Node> sanitizedArgs{
+      res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
+  for (const Node& arg : args)
   {
-    std::vector<Node> sanitized_args{
-        res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
-    for (const Node& arg : args)
-    {
-      sanitized_args.push_back(d_anc.convert(arg, false));
-    }
-    return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitized_args);
+    sanitizedArgs.push_back(d_anc.convert(arg, false));
   }
-  return cdp->addStep(res, id, children, args);
+  return cdp->addStep(res, id, children, sanitizedArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
