@@ -1214,7 +1214,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // The case for negative forall is analagous except the rules are
     // ANCHOR_SKO_FORALL and the one concluding the desired equivalence is
-    // followed by a congruence step to wrap a the equality terms under a
+    // followed by a congruence step to wrap the equality terms under a
     // negation, i.e., (not ...).
     case PfRule::SKOLEMIZE:
     {
