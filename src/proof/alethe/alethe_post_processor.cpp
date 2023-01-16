@@ -1785,7 +1785,7 @@ bool AletheProofPostprocessCallback::finalStep(Node res,
   {
     sanitizedArgs.push_back(d_anc.convert(arg, false));
   }
-  return cdp->addStep(res, id, children, sanitizedArgs);
+  return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitizedArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(
