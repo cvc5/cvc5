@@ -222,6 +222,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * premises, and could thus be replaced by a RESOLUTION step, but since we
    * general there can be more than two premises we always use CHAIN_RES.
    *
+   * Note that children and args are copied since that if the option
+   * optResReconSize is on we will (potentially) generate steps changing the
+   * order of their elements.
+   *
    * @param clauseLits literals in the conclusion of a CHAIN_RESOLUTION step
    * with children and args[1:]
    * @param clauseLits literals in the conclusion of a MACRO_RESOLUTION step
@@ -234,8 +238,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    */
   Node eliminateCrowdingLits(const std::vector<Node>& clauseLits,
                              const std::vector<Node>& targetClauseLits,
-                             const std::vector<Node>& children,
-                             const std::vector<Node>& args,
+                             std::vector<Node> children,
+                             std::vector<Node> args,
                              CDProof* cdp);
 };
 

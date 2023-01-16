@@ -101,6 +101,14 @@ name   = "Proof"
   help       = "add optional annotations to proofs, which enables statistics for inference ids for lemmas and conflicts appearing in final proof"
 
 [[option]]
+  name       = "optResReconSize"
+  category   = "regular"
+  long       = "opt-res-reconstruction-size"
+  type       = "bool"
+  default    = "true"
+  help       = "Optimize resolution reconstruction to reduce proof size"
+
+[[option]]
   name       = "proofPruneInput"
   category   = "expert"
   long       = "proof-prune-input"
