@@ -205,7 +205,6 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::BETA_REDUCE)
   {
-
     Assert(args.size() >= 2);
     Node lambda = args[0];
     if (lambda.getKind() != LAMBDA)
