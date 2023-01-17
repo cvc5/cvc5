@@ -17,6 +17,7 @@ package tests;
 
 import static io.github.cvc5.Kind.*;
 import static io.github.cvc5.RoundingMode.*;
+import static io.github.cvc5.SortKind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
@@ -337,6 +338,16 @@ class SolverTest
         () -> d_solver.mkSequenceSort(d_solver.mkSequenceSort(d_solver.getIntegerSort())));
     Solver slv = new Solver();
     assertDoesNotThrow(() -> slv.mkSequenceSort(d_solver.getIntegerSort()));
+  }
+
+  @Test
+  void mkAbstractSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(ARRAY_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(BITVECTOR_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(TUPLE_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(SET_SORT));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractSort(BOOLEAN_SORT));
   }
 
   @Test
