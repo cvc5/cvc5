@@ -36,17 +36,25 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
-  /** Parses a term */
+  /** Parses an SMT-LIB term <term> */
   Term parseTerm();
-  /** Parses parentheses-enclosed term list */
+  /** Parses parentheses-enclosed term list (<term>*) */
   std::vector<Term> parseTermList();
-  /** Parses a symbolic expr */
+  /**
+   * Parses an SMT-LIB symbolic expr. A symbolic expression has the syntax:
+   * <sexpr> := (<sexpr>*) | <symbol> | <spec_constant>
+   * The returned term has AST that consists of applications of SEXPR (for the
+   * first case of the BNF) and constant strings (for the latter two cases).
+   */
   Term parseSymbolicExpr();
-  /** Parse a sort */
+  /** Parse an SMT-LIB sort <sort> */
   Sort parseSort();
-  /** Parses parentheses-enclosed sort list */
+  /** Parses parentheses-enclosed sort list (<sort>)*) */
   std::vector<Sort> parseSortList();
-  /** Parse parentheses-enclosed sorted variable list */
+  /**
+   * Parse parentheses-enclosed sorted variable list of the form:
+   * ((<symbol> <sort>)*)
+   */
   std::vector<std::pair<std::string, Sort>> parseSortedVarList();
   /**
    * Parse symbol, which returns the string of the parsed symbol if the next
