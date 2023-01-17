@@ -30,7 +30,8 @@ runs:
           flex \
           libfl-dev \
           flexc++ \
-          texinfo
+          texinfo \
+          makeinfo
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
