@@ -856,7 +856,7 @@ std::string Smt2TermParser::parseKeyword()
   d_lex.eatToken(Token::KEYWORD);
   std::string s = d_lex.tokenStr();
   // strip off the initial colon
-  return s.substr(1);
+  return s.erase(0, 1);
 }
 
 Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
@@ -998,7 +998,8 @@ std::string Smt2TermParser::tokenStrToSymbol(Token tok)
     case Token::QUOTED_SYMBOL:
       id = d_lex.tokenStr();
       // strip off the quotes
-      id = id.substr(1, id.size() - 2);
+      id = id.erase(0, 1);
+      id = id.erase(id.size() - 1, 1);
       break;
     case Token::UNTERMINATED_QUOTED_SYMBOL:
       d_lex.parseError("Expected SMT-LIBv2 symbol", true);
@@ -1157,7 +1158,8 @@ std::string Smt2TermParser::parseStr(bool unescape)
 void Smt2TermParser::unescapeString(std::string& s)
 {
   // strip off the quotes
-  s = s.substr(1, s.size() - 2);
+  s = s.erase(0, 1);
+  s = s.erase(s.size() - 1, 1);
   for (size_t i = 0, ssize = s.size(); i < ssize; i++)
   {
     if ((unsigned)s[i] > 127 && !isprint(s[i]))
