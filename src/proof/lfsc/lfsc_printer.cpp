@@ -1170,7 +1170,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       std::stringstream scName;
       scName << "dsl.sc." << scCount << "." << id;
       // generate the side condition
-      oscs << "(program " << scName.str() << " " << argList.str() << " term"
+      oscs << "(function " << scName.str() << " " << argList.str() << " term"
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
@@ -1193,7 +1193,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       LfscListScNodeConverter llsnc(d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
-      printInternal(oscs, tsc);
+      print(oscs, tsc);
       oscs << ")" << std::endl;
       termCount++;
       // introduce a term computed by side condition
