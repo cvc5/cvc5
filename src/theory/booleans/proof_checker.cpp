@@ -266,30 +266,13 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       //   - remove lhsElim from lhsClause
       //   - remove rhsElim from rhsClause and add the lits to lhsClause
       auto itlhs = std::find(lhsClause.begin(), lhsClause.end(), lhsElim);
-      // AlwaysAssert(itlhs != lhsClause.end());
-      if (itlhs != lhsClause.end())
-      {
-        lhsClause.erase(itlhs);
-      }
-      else
-      {
-        Trace("crowding-lits") << "chain_res_checker: no pivots on lhs child "
-                               << childIndex - 1 << "\n";
-      }
+      AlwaysAssert(itlhs != lhsClause.end());
+      lhsClause.erase(itlhs);
       Trace("bool-pfcheck") << "\t.. after lhsClause: " << lhsClause << "\n";
       auto itrhs = std::find(rhsClause.begin(), rhsClause.end(), rhsElim);
-      // AlwaysAssert(itrhs != rhsClause.end());
-      if (itrhs != rhsClause.end())
-      {
-        lhsClause.insert(lhsClause.end(), rhsClause.begin(), itrhs);
-        lhsClause.insert(lhsClause.end(), itrhs + 1, rhsClause.end());
-      }
-      else
-      {
-        lhsClause.insert(lhsClause.end(), rhsClause.begin(), rhsClause.end());
-        Trace("crowding-lits") << "chain_res_checker: no pivots on rhs child "
-                               << childIndex << "\n";
-      }
+      AlwaysAssert(itrhs != rhsClause.end());
+      lhsClause.insert(lhsClause.end(), rhsClause.begin(), itrhs);
+      lhsClause.insert(lhsClause.end(), itrhs + 1, rhsClause.end());
       Trace("bool-pfcheck") << "\t.. after rhsClause: " << lhsClause << "\n";
       rhsClause.clear();
     }
