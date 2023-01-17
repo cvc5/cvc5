@@ -393,7 +393,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         {
           bool posPivot = args[k] == trueNode;
           if ((children[elim][j] == args[k + 1] && posPivot)
-              || (children[elim][j].notNode() == args[k + 1] && !posPivot))
+              || (children[elim][j] == args[k + 1].notNode() && !posPivot))
           {
             maxSafeMove = (k + 1) / 2;
             break;
