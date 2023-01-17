@@ -25,28 +25,26 @@ namespace rewriter {
 
 class RewriteDb;
 
+/**
+ * Identifiers for DSL proof rules
+ */
 enum class DslPfRule : uint32_t
 {
   FAIL = 0,
   REFL,
   EVAL,
-  // the following rules can be generated temporarily during reconstruction
-  TRANS,
-  CONG,
-  CONG_EVAL,
-  TRUE_ELIM,
-  TRUE_INTRO,
-  ARITH_POLY_NORM,
   // Generated rule ids
   // clang-format off
   ${rule_ids}$
   // clang-format on
 };
 
+/**
+ * The body of this method is auto-generated. This populates the provided
+ * rewrite rule database with rules based on the compilation of the DSL
+ * rewrite rule files.
+ */
 void addRules(RewriteDb& db);
-
-/** Is internal rule? */
-bool isInternalDslPfRule(DslPfRule drule);
 
 /**
  * Converts a DSL proof rule to a string.

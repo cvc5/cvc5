@@ -31,7 +31,8 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * A database of conditional rewrite rules.
+ * A database of conditional rewrite rules. The rules of this class are
+ * automatically populated based on the compilation of the rewrite rule files.
  */
 class RewriteDb
 {
@@ -42,7 +43,16 @@ class RewriteDb
    */
   RewriteDb();
   ~RewriteDb() {}
-  /** Add rule, return its identifier */
+  /** Add rule id to this database
+   *
+   * @param id The identifier of the rule
+   * @param fvs The free variables of the rule
+   * @param a The left hand side of the rule
+   * @param b The right hand side of the rule
+   * @param cond The condition, or null if this is not a conditional rule
+   * @param context The term context, if one exists
+   * @param isFlatForm Whether the rule is in flat form
+   */
   void addRule(DslPfRule id,
                const std::vector<Node> fvs,
                Node a,
