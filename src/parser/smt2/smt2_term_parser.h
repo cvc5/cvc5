@@ -90,7 +90,12 @@ class Smt2TermParser
    */
   std::vector<std::string> parseNumeralList();
   /**
-   * Parse datatype def, not parentheses enclosed
+   * Parse datatype def '<datatype_dec>', not parentheses enclosed. The syntax
+   * for datatype declarations is:
+   *
+   * datatype_dec :=
+   *   (<constructor_dec>+) | (par (<symbol>+) (<constructor_dec>+))
+   * constructor_dec := (<symbol> (<symbol> <sort>)∗)
    */
   std::vector<DatatypeDecl> parseDatatypesDef(
       bool isCo,
@@ -117,7 +122,8 @@ class Smt2TermParser
    */
   void unescapeString(std::string& s);
   /**
-   * Parse constructor definition list, add to declaration type
+   * Parse constructor definition list, add to declaration type. The expected
+   * syntax is '(<constructor_dec>+)'.
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
   /**
