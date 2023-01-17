@@ -149,21 +149,17 @@ void Smt2TermParser::unescapeString(std::string& s)
           "as escape sequences");
     }
   }
-  char* p_orig = strdup(s.c_str());
-  char *p = p_orig, *q = p_orig;
-  while (*q != '\0')
+  size_t i=0;
+  while (i<s.size())
   {
-    if (*q == '"')
+    if (s[i]=='"')
     {
-      // Handle SMT-LIB >=2.5 standard escape '""'.
-      ++q;
-      Assert(*q == '"');
+      // "" becomes "
+      Assert (i+1<s.size() && s[i+1]=='"');
+      s.erase(i,1);
     }
-    *p++ = *q++;
+    i++;
   }
-  *p = '\0';
-  s = p_orig;
-  free(p_orig);
 }
 
 }  // namespace parser
