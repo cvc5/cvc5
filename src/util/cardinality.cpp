@@ -165,7 +165,7 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
         // don't bother, it's too large anyways
         d_card = s_largeFiniteCard;
       } else {
-        d_card = (d_card - 1).pow(c.d_card.getUnsignedLong() - 1) + 1;
+        d_card = (d_card - 1).pow(c.d_card.getUnsignedInt() - 1) + 1;
       }
     } catch (IllegalArgumentException&) {
       d_card = s_largeFiniteCard;
