@@ -118,6 +118,10 @@ if(HAVE_CXX_FLAGWerror)
 endif()
 set_source_files_properties(
   ${gen_src_files} PROPERTIES COMPILE_FLAGS "${GEN_SRC_FLAGS}")
+if(WIN32)
+  set_source_files_properties(
+    ${CMAKE_CURRENT_BINARY_DIR}/FlexLexer.h PROPERTIES COMPILE_FLAGS "${GEN_SRC_FLAGS}")
+endif()
 # Add generated source files to the parser source files
 list(APPEND libcvc5parser_src_files ${gen_src_files})
 
