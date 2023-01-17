@@ -37,14 +37,14 @@ jobs:
             python-bindings: true
             binary-name: cvc5-macOS-arm64
 
-          #- name: win64:production
-          #  os: ubuntu-latest
-          #  config: production --auto-download --win64
-          #  cache-key: productionwin64
-          #  strip-bin: x86_64-w64-mingw32-strip
-          #  windows-build: true
-          #  binary-name: cvc5-Win64.exe
-          #  binary-ext: .exe
+          - name: win64:production
+            os: ubuntu-latest
+            config: production --auto-download --win64
+            cache-key: productionwin64
+            strip-bin: x86_64-w64-mingw32-strip
+            windows-build: true
+            binary-name: cvc5-Win64.exe
+            binary-ext: .exe
 
           - name: ubuntu:production-clang
             os: ubuntu-18.04
