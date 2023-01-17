@@ -36,7 +36,6 @@ void RewriteDb::addRule(DslPfRule id,
                         Node context,
                         bool isFlatForm)
 {
-  // TODO
 }
 
 
