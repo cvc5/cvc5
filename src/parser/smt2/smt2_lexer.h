@@ -43,7 +43,6 @@ class Smt2Lexer : public FlexLexer
   bool isSygus() const;
   /** Are we in strict mode? */
   bool isStrict() const;
-
  private:
   /** Are we lexing sygus? */
   bool d_sygus;
