@@ -31,9 +31,6 @@ runs:
           libfl-dev \
           flexc++ \
           texinfo
-        # nocheckin
-        sudo mv /usr/bin/makeinfo /usr/bin/makeinfo.bak
-        sudo ln -s /opt/local/bin/makeinfo /usr/bin/makeinfo
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
@@ -118,6 +115,7 @@ runs:
       shell: bash
       run: |
         echo "::group::Install software for Python packaging"
+        sudo apt-get install -y texinfo
         python3 -m pip install -q --upgrade pip
         python3 -m pip install --user twine
         python3 -m pip install --user -U urllib3 requests
