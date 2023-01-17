@@ -480,8 +480,7 @@ private:
   /** Called when n is notified as being a shared term with TheoryArith. */
   void notifySharedTerm(TNode n);
 
-  Node getModelValue(TNode var);
-
+  Node getCandidateModelValue(TNode var);
 
   std::pair<bool, Node> entailmentCheck(TNode lit);
 
@@ -501,7 +500,7 @@ private:
    * any non-linear terms that were unhandled. Note that this class is not
    * responsible for handling non-linear arithmetic. If the owner of this
    * class does not handle non-linear arithmetic in another way, then
-   * setIncomplete should be called on the output channel of TheoryArith.
+   * setModelUnsound should be called on the output channel of TheoryArith.
    */
   bool foundNonlinear() const;
 

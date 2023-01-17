@@ -18,6 +18,7 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
@@ -80,7 +81,6 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-
   d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
 }
 
@@ -153,26 +153,17 @@ Result SmtSolver::checkSatInternal()
   return result;
 }
 
-void SmtSolver::processAssertions()
-{
-  // preprocess
-  preprocess();
-  // assert to internal
-  assertToInternal();
-}
-
-void SmtSolver::preprocess()
+void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_env.getResourceManager()->spendResource(Resource::PreprocessStep);
 
   // process the assertions with the preprocessor
-  d_pp.process(d_asserts);
+  d_pp.process(ap);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
@@ -214,17 +205,14 @@ void SmtSolver::preprocess()
   }
 }
 
-void SmtSolver::assertToInternal()
+void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
 {
   // get the assertions
-  preprocessing::AssertionPipeline& ap = d_asserts.getAssertionPipeline();
   const std::vector<Node>& assertions = ap.ref();
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
   d_propEngine->assertInputFormulas(assertions, ism);
-  // clear the current assertions
-  d_asserts.clearCurrent();
 }
 
 const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const
@@ -258,28 +246,21 @@ Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 Assertions& SmtSolver::getAssertions() { return d_asserts; }
 
-void SmtSolver::notifyPushPre()
-{
-  // must preprocess the assertions and push them to the SAT solver, to make
-  // the state accurate prior to pushing
-  processAssertions();
-}
-
-void SmtSolver::notifyPushPost()
+void SmtSolver::pushPropContext()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
   Assert(d_propEngine != nullptr);
   d_propEngine->push();
 }
 
-void SmtSolver::notifyPopPre()
+void SmtSolver::popPropContext()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats.d_pushPopTime);
   Assert(d_propEngine != nullptr);
   d_propEngine->pop();
 }
 
-void SmtSolver::notifyPostSolve()
+void SmtSolver::postsolve()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();

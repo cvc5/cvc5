@@ -9,6 +9,21 @@ This file contains a summary of important user-visible changes.
   * `BITVECTOR_SADDO` signed addition overflow detection
   * `BITVECTOR_UMULO` unsigned multiplication overflow detection
   * `BITVECTOR_SMULO` signed multiplication overflow detection
+  * `BITVECTOR_USUBO` unsigned subtraction overflow detection
+  * `BITVECTOR_SSUBO` signed subtraction overflow detection
+  * `BITVECTOR_SDIVO` signed division overflow detection
+- Support for Web Assembly compilation using Emscripten.
+- Support for the theory of (prime-order) finite fields:
+  * Sorts are created with
+    * C++: `Solver::makeFiniteFieldSort`
+    * SMT-LIB: `(_ FiniteField P)` for prime order `P`
+  * Constants are created with
+    * C++: `Solver::makeFiniteFieldElem`
+    * SMT-LIB: `(as ffN F)` for integer `N` and field sort `F`
+  * The operators are multiplication, addition and negation
+    * C++: kinds `FF_MUL`, `FF_ADD`, and `FF_NEG`
+    * SMT-LIB: operators `ff.mul`, `ff.add`, and `ff.neg`
+  * The only predicate is equality
 
 **Changes**
 

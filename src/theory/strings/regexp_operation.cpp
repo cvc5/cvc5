@@ -1579,14 +1579,7 @@ std::string RegExpOpr::mkString( Node r ) {
 
 bool RegExpOpr::regExpIncludes(Node r1, Node r2)
 {
-  const auto& it = d_inclusionCache.find(std::make_pair(r1, r2));
-  if (it != d_inclusionCache.end())
-  {
-    return (*it).second;
-  }
-  bool result = RegExpEntail::regExpIncludes(r1, r2);
-  d_inclusionCache[std::make_pair(r1, r2)] = result;
-  return result;
+  return RegExpEntail::regExpIncludes(r1, r2, d_inclusionCache);
 }
 
 }  // namespace strings

@@ -30,8 +30,9 @@
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "expr/type_properties.h"
+#include "theory/builtin/abstract_type.h"
 #include "util/bitvector.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/integer.h"
 #include "util/poly_util.h"
 #include "util/rational.h"
@@ -565,6 +566,50 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
+bool NodeManager::isSortKindAbstractable(Kind k)
+{
+  return k == kind::ABSTRACT_TYPE || k == kind::ARRAY_TYPE
+         || k == kind::BAG_TYPE || k == kind::BITVECTOR_TYPE
+         || k == kind::TUPLE_TYPE || k == kind::FINITE_FIELD_TYPE
+         || k == kind::FLOATINGPOINT_TYPE || k == kind::FUNCTION_TYPE
+         || k == kind::SEQUENCE_TYPE || k == kind::SET_TYPE;
+}
+
+TypeNode NodeManager::mkAbstractType(Kind k)
+{
+  if (!isSortKindAbstractable(k))
+  {
+    std::stringstream ss;
+    ss << "Cannot construct abstract type for kind " << k;
+    throw Exception(ss.str());
+  }
+  if (k == kind::ARRAY_TYPE)
+  {
+    // ?Array -> (Array ? ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkArrayType(a, a);
+  }
+  if (k == kind::SET_TYPE)
+  {
+    // ?Set -> (Set ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkSetType(a);
+  }
+  if (k == kind::BAG_TYPE)
+  {
+    // ?Bag -> (Bag ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkBagType(a);
+  }
+  if (k == kind::SEQUENCE_TYPE)
+  {
+    // ?Seq -> (Seq ?)
+    TypeNode a = mkAbstractType(kind::ABSTRACT_TYPE);
+    return mkSequenceType(a);
+  }
+  return mkTypeConst<AbstractType>(AbstractType(k));
+}
+
 TypeNode NodeManager::mkDatatypeType(DType& datatype)
 {
   // Not worth a special implementation; this doesn't need to be fast
@@ -665,7 +710,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypesInternal(
   std::vector<TypeNode> replacements;  // to hold our final, resolved types
   for (const TypeNode& ut : unresolvedTypes)
   {
-    std::string name = ut.getAttribute(expr::VarNameAttr());
+    std::string name = ut.getName();
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
     if (resolver == nameResolutions.end())

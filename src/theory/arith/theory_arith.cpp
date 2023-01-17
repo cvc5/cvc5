@@ -28,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "util/cocoa_globals.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -52,6 +53,10 @@ TheoryArith::TheoryArith(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(d_opElim),
       d_arithModelCacheSet(false)
 {
+#ifdef CVC5_USE_COCOA
+  // must be initialized before using CoCoA.
+  initCocoaGlobalManager();
+#endif /* CVC5_USE_COCOA */
   // currently a cyclic dependency to TheoryArithPrivate
   d_astate.setParent(d_internal);
   // indicate we are using the theory state object and inference manager
@@ -258,7 +263,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_im.setIncomplete(IncompleteId::ARITH_NL_DISABLED);
+      d_im.setModelUnsound(IncompleteId::ARITH_NL_DISABLED);
     }
     // If we won't be doing a last call effort check (which implies that
     // models will be computed), we must sanity check the integer model
@@ -436,14 +441,15 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 
-Node TheoryArith::getModelValue(TNode var) {
+Node TheoryArith::getCandidateModelValue(TNode var)
+{
   var = var.getKind() == kind::TO_REAL ? var[0] : var;
   std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
   if (it != d_arithModelCache.end())
   {
     return it->second;
   }
-  return d_internal->getModelValue( var );
+  return d_internal->getCandidateModelValue(var);
 }
 
 std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)

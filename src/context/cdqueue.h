@@ -85,19 +85,19 @@ protected:
 public:
 
   /** Creates a new CDQueue associated with the current context. */
-  CDQueue(Context* context,
-          bool callDestructor = true,
-          const CleanUp& cleanup = CleanUp(),
-          const Allocator& alloc = Allocator())
-    : ParentType(context, callDestructor, cleanup, alloc),
-      d_iter(0),
-      d_lastsave(0)
-  {}
+ CDQueue(Context* context,
+         bool callCleanup = true,
+         const CleanUp& cleanup = CleanUp(),
+         const Allocator& alloc = Allocator())
+     : ParentType(context, callCleanup, cleanup), d_iter(0), d_lastsave(0)
+ {
+ }
 
-  /** Returns true if the queue is empty in the current context. */
-  bool empty() const{
-    Assert(d_iter <= ParentType::d_size);
-    return d_iter == ParentType::d_size;
+ /** Returns true if the queue is empty in the current context. */
+ bool empty() const
+ {
+   Assert(d_iter <= ParentType::d_size);
+   return d_iter == ParentType::d_size;
   }
 
   /** Returns the number of elements that have not been dequeued in the context. */

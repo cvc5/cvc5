@@ -66,12 +66,10 @@ TEST_F(TestApiBlackSynthResult, isUnknown)
   Term boolTerm = d_solver.mkFalse();
   d_solver.addSygusConstraint(boolTerm);
   cvc5::SynthResult res = d_solver.checkSynth();
-  // currently isUnknown, could also return hasNoSolution when support for
-  // infeasibility of sygus conjectures is added.
   ASSERT_FALSE(res.isNull());
   ASSERT_FALSE(res.hasSolution());
-  ASSERT_FALSE(res.hasNoSolution());
-  ASSERT_TRUE(res.isUnknown());
+  ASSERT_TRUE(res.hasNoSolution());
+  ASSERT_FALSE(res.isUnknown());
 }
 
 }  // namespace test

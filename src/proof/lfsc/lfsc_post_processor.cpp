@@ -326,28 +326,14 @@ bool LfscProofPostprocessCallback::update(Node res,
       {
         // non n-ary kinds do not have null terminators
         Assert(nullTerm.isNull());
-        Node curL = op;
-        Node curR = op;
-        Node currEq = opEq;
-        for (size_t i = 0; i < nchildren; i++)
-        {
-          // CONG rules for each child
-          Node nextEq;
-          if (i + 1 == nchildren)
-          {
-            // if we are at the end, we prove the final equality
-            nextEq = res;
-          }
-          else
-          {
-            curL = nm->mkNode(HO_APPLY, curL, children[i][0]);
-            curR = nm->mkNode(HO_APPLY, curR, children[i][1]);
-            nextEq = curL.eqNode(curR);
-          }
-          addLfscRule(cdp, nextEq, {currEq, children[i]}, LfscRule::CONG, {});
-          currEq = nextEq;
-        }
+        updateCong(res, children, cdp, op);
       }
+    }
+    break;
+    case PfRule::HO_CONG:
+    {
+      // converted to chain of CONG, with no base operator
+      updateCong(res, children, cdp, Node::null());
     }
     break;
     case PfRule::AND_INTRO:
@@ -410,10 +396,90 @@ bool LfscProofPostprocessCallback::update(Node res,
       addLfscRule(cdp, falsen, children, LfscRule::CONCAT_CONFLICT_DEQ, args);
     }
     break;
+    case PfRule::INSTANTIATE:
+    {
+      Node q = children[0];
+      Assert(q.getKind() == FORALL);
+      std::vector<Node> terms;
+      std::vector<Node> qvars(q[0].begin(), q[0].end());
+      Node conc = q;
+      for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+      {
+        Assert(conc.getKind() == FORALL);
+        Node prevConc = conc;
+        if (i + 1 == nvars)
+        {
+          conc = res;
+        }
+        else
+        {
+          Assert(i + 1 < qvars.size());
+          std::vector<Node> qvarsNew(qvars.begin() + i + 1, qvars.end());
+          Assert(!qvarsNew.empty());
+          std::vector<Node> qchildren;
+          TNode v = qvars[i];
+          TNode subs = args[i];
+          qchildren.push_back(nm->mkNode(BOUND_VAR_LIST, qvarsNew));
+          qchildren.push_back(conc[1].substitute(v, subs));
+          conc = nm->mkNode(FORALL, qchildren);
+        }
+        addLfscRule(cdp, conc, {prevConc}, LfscRule::INSTANTIATE, {args[i]});
+      }
+    }
+    break;
+    case PfRule::BETA_REDUCE:
+    {
+      // get the term to beta-reduce
+      Node termToReduce = nm->mkNode(APPLY_UF, args);
+      addLfscRule(cdp, res, {}, LfscRule::BETA_REDUCE, {termToReduce});
+    }
+    break;
     default: return false; break;
   }
   AlwaysAssert(cdp->getProofFor(res)->getRule() != PfRule::ASSUME);
   return true;
+}
+
+void LfscProofPostprocessCallback::updateCong(Node res,
+                                              const std::vector<Node>& children,
+                                              CDProof* cdp,
+                                              Node startOp)
+{
+  Node currEq;
+  size_t i = 0;
+  size_t nchildren = children.size();
+  if (!startOp.isNull())
+  {
+    // start with reflexive equality on operator
+    currEq = startOp.eqNode(startOp);
+  }
+  else
+  {
+    // first child specifies (higher-order) operator equality
+    currEq = children[0];
+    i++;
+  }
+  Node curL = currEq[0];
+  Node curR = currEq[1];
+  NodeManager* nm = NodeManager::currentNM();
+  for (; i < nchildren; i++)
+  {
+    // CONG rules for each child
+    Node nextEq;
+    if (i + 1 == nchildren)
+    {
+      // if we are at the end, we prove the final equality
+      nextEq = res;
+    }
+    else
+    {
+      curL = nm->mkNode(HO_APPLY, curL, children[i][0]);
+      curR = nm->mkNode(HO_APPLY, curR, children[i][1]);
+      nextEq = curL.eqNode(curR);
+    }
+    addLfscRule(cdp, nextEq, {currEq, children[i]}, LfscRule::CONG, {});
+    currEq = nextEq;
+  }
 }
 
 void LfscProofPostprocessCallback::addLfscRule(

@@ -368,6 +368,18 @@ enum class PfRule : uint32_t
   TRUST_REWRITE,
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Trusted rules -- Non-supported flattening rewrite **
+   *
+   * .. math::
+   *   \inferrule{- \mid F}{F}
+   *
+   * where :math:`F` is an equality `t = t'` where both `t` and `t'` are
+   * applications of associative operators but the rewriter does not support
+   * flattening them to the same normal form. \endverbatim
+   */
+  TRUST_FLATTENING_REWRITE,
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Non-replayable substitution**
    *
    * .. math::
@@ -1128,6 +1140,20 @@ enum class PfRule : uint32_t
    * \endverbatim
    */
   HO_CONG,
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Equality -- Beta reduction**
+   *
+   * .. math::
+   *
+   *   \inferrule{\mid \lambda x_1\dots x_n.\> t, t_1,\dots,t_n}
+   *   {((\lambda x_1\dots x_n.\> t) t_1 \ldots t_n)=t\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}}
+   *
+   * The right hand side of the equality in the conclusion is computed using
+   * standard substitution (Node::substitute).
+   * \endverbatim
+   */
+  BETA_REDUCE,
 
   /**
    * \verbatim embed:rst:leading-asterisk

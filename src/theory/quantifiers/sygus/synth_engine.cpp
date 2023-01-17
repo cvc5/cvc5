@@ -243,14 +243,14 @@ bool SynthEngine::getSynthSolutions(
   return ret;
 }
 
-void SynthEngine::preregisterAssertion(Node n)
+void SynthEngine::ppNotifyAssertion(Node n)
 {
   // check if it sygus conjecture
   if (QuantAttributes::checkSygusConjecture(n))
   {
     // this is a sygus conjecture
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-    d_conj->preregisterConjecture(n);
+    d_conj->ppNotifyConjecture(n);
   }
 }
 

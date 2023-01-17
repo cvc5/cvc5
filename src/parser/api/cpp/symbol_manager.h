@@ -83,6 +83,33 @@ class CVC5_EXPORT SymbolManager
    */
   bool bind(const std::string& name, cvc5::Term obj, bool doOverload = false);
 
+  /**
+   * Bind a type to a name in the current scope.  If <code>name</code>
+   * is already bound to a type in the current level, then the binding
+   * is replaced. If <code>name</code> is bound in a previous level,
+   * then the binding is "covered" by this one until the current scope
+   * is popped.
+   *
+   * @param name an identifier
+   * @param t the type to bind to <code>name</code>
+   */
+  void bindType(const std::string& name, cvc5::Sort t);
+
+  /**
+   * Bind a type to a name in the current scope.  If <code>name</code>
+   * is already bound to a type or type constructor in the current
+   * level, then the binding is replaced. If <code>name</code> is
+   * bound in a previous level, then the binding is "covered" by this
+   * one until the current scope is popped.
+   *
+   * @param name an identifier
+   * @param params the parameters to the type
+   * @param t the type to bind to <code>name</code>
+   */
+  void bindType(const std::string& name,
+                const std::vector<cvc5::Sort>& params,
+                cvc5::Sort t);
+
   //---------------------------- named expressions
   /** Set name of term t to name
    *
@@ -201,6 +228,16 @@ class CVC5_EXPORT SymbolManager
   /** Get the name of the last abduct or interpolant to synthesize */
   const std::string& getLastSynthName() const;
 
+  /**
+   * Force the logic to the given string. Note that this information is
+   * context-independent.
+   */
+  void forceLogic(const std::string& logic);
+  /** Have we called the above method? */
+  bool isLogicForced() const;
+  /** Get the last string in an above call, valid if logic is forced */
+  const std::string& getForcedLogic() const;
+
  private:
   /** The API Solver object. */
   cvc5::Solver* d_solver;
@@ -212,6 +249,10 @@ class CVC5_EXPORT SymbolManager
    * SMT-LIB option :global-declarations. By default, its value is false.
    */
   bool d_globalDeclarations;
+  /** Whether the logic has been forced with --force-logic. */
+  bool d_logicIsForced;
+  /** The logic, if d_logicIsForced == true. */
+  std::string d_forcedLogic;
 };
 
 }  // namespace parser

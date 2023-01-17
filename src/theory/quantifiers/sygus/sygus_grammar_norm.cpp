@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "expr/dtype_cons.h"
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
@@ -80,9 +79,7 @@ SygusGrammarNorm::SygusGrammarNorm(Env& env, TermDbSygus* tds)
 }
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
-    : d_tn(src_tn),
-      d_unres_tn(unres_tn),
-      d_sdt(unres_tn.getAttribute(expr::VarNameAttr()))
+    : d_tn(src_tn), d_unres_tn(unres_tn), d_sdt(unres_tn.getName())
 {
 }
 

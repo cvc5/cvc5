@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
+#include "api/cpp/cvc5_sort_kind.h"
 #include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
@@ -418,6 +419,13 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
+   * @return The kind of the sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  SortKind getKind() const;
+
+  /**
    * Does this sort have a symbol, that is, a name?
    *
    * For example, uninterpreted sorts and uninterpreted sort constructors have
@@ -560,6 +568,12 @@ class CVC5_EXPORT Sort
   bool isArray() const;
 
   /**
+   * Determine if this is a finite field sort.
+   * @return True if the sort is a finite field sort.
+   */
+  bool isFiniteField() const;
+
+  /**
    * Determine if this is a Set sort.
    * @return True if the sort is a Set sort.
    */
@@ -576,6 +590,14 @@ class CVC5_EXPORT Sort
    * @return True if the sort is a Sequence sort.
    */
   bool isSequence() const;
+
+  /**
+   * Determine if this is an abstract sort.
+   * @return True if the sort is a abstract sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  bool isAbstract() const;
 
   /**
    * Determine if this is an uninterpreted sort.
@@ -778,6 +800,15 @@ class CVC5_EXPORT Sort
    */
   Sort getSequenceElementSort() const;
 
+  /* Abstract sort ------------------------------------------------------- */
+  /**
+   * @return The sort kind of an abstract sort, which denotes the kind of
+   * sorts that this abstract sort denotes.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  SortKind getAbstractedKind() const;
+
   /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
@@ -791,6 +822,13 @@ class CVC5_EXPORT Sort
    * @return The bit-width of the bit-vector sort.
    */
   uint32_t getBitVectorSize() const;
+
+  /* Finite field sort --------------------------------------------------- */
+
+  /**
+   * @return The size of the finite field sort.
+   */
+  std::string getFiniteFieldSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
@@ -824,6 +862,8 @@ class CVC5_EXPORT Sort
    * @return The element sorts of a tuple sort.
    */
   std::vector<Sort> getTupleSorts() const;
+
+  /* --------------------------------------------------------------------- */
 
  private:
   /** @return The internal wrapped TypeNode of this sort. */
@@ -1530,6 +1570,22 @@ class CVC5_EXPORT Term
    * @return The string representation of a bit-vector value.
    */
   std::string getBitVectorValue(uint32_t base = 2) const;
+
+  /**
+   * @return True if the term is a finite field value.
+   */
+  bool isFiniteFieldValue() const;
+  /**
+   * Get the string representation of a finite field value (base 10).
+   *
+   * @note Asserts isFiniteFieldValue().
+   *
+   * @note Uses the integer representative of smallest absolute value.
+   *
+   * @return The string representation of the integer representation of this
+   * finite field value.
+   */
+  std::string getFiniteFieldValue() const;
 
   /**
    * @return True if the term is an abstract value.
@@ -3302,6 +3358,13 @@ class CVC5_EXPORT Solver
   Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 
   /**
+   * Create a finite-field sort.
+   * @param size the modulus of the field. Must be prime.
+   * @return The finite-field sort.
+   */
+  Sort mkFiniteFieldSort(const std::string& size) const;
+
+  /**
    * Create a datatype sort.
    * @param dtypedecl The datatype declaration from which the sort is created.
    * @return The datatype sort.
@@ -3379,6 +3442,31 @@ class CVC5_EXPORT Solver
    * @return The sequence sort.
    */
   Sort mkSequenceSort(const Sort& elemSort) const;
+
+  /**
+   * Create an abstract sort. An abstract sort represents a sort for a given
+   * kind whose parameters and arguments are unspecified.
+   *
+   * The kind `k` must be the kind of a sort that can be abstracted, i.e., a
+   * sort that has indices or argument sorts. For example, #ARRAY_SORT and
+   * #BITVECTOR_SORT can be passed as the kind `k` to this method, while
+   * INTEGER_SORT and STRING_SORT cannot.
+   *
+   * @note Providing the kind #ABSTRACT_SORT as an argument to this method
+   * returns the (fully) unspecified sort, denoted `?`.
+   *
+   * @note Providing a kind `k` that has no indices and a fixed arity
+   * of argument sorts will return the sort of kind `k` whose arguments are the
+   * unspecified sort. For example, `mkAbstractSort(ARRAY_SORT)` will return
+   * the sort `(ARRAY_SORT ? ?)` instead of the abstract sort whose abstract
+   * kind is #ARRAY_SORT.
+   *
+   * @param k The kind of the abstract sort
+   * @return The abstract sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Sort mkAbstractSort(SortKind k) const;
 
   /**
    * Create an uninterpreted sort.
@@ -3673,6 +3761,18 @@ class CVC5_EXPORT Solver
    * @return The bit-vector constant.
    */
   Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
+
+  /**
+   * Create a finite field constant in a given field from a given string
+   *
+   * @param value The string representation of the constant.
+   * @param sort The field sort
+   *
+   * If size is the field size, the constant needs not be in the range [0,size).
+   * If it is outside this range, it will be reduced modulo size before being
+   * constructed.
+   */
+  Term mkFiniteFieldElem(const std::string& value, const Sort& sort) const;
 
   /**
    * Create a constant array with the provided constant value stored at every

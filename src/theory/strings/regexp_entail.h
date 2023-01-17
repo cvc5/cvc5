@@ -105,9 +105,7 @@ class RegExpEntail
    * Does the substring of s starting at index_start occur in constant regular
    * expression r?
    */
-  static bool testConstStringInRegExp(cvc5::internal::String& s,
-                                      unsigned index_start,
-                                      TNode r);
+  static bool testConstStringInRegExp(String& s, unsigned index_start, TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
   static bool hasEpsilonNode(TNode node);
   /** get length for regular expression
@@ -136,8 +134,11 @@ class RegExpEntail
    *           in rewritten form)
    * @return True if the inclusion can be shown, false otherwise
    */
+  static bool regExpIncludes(Node r1,
+                             Node r2,
+                             std::map<std::pair<Node, Node>, bool>& cache);
+  /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
-
  private:
   /** Set bound cache, used for getConstantBoundLengthForRegexp */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);

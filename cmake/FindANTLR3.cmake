@@ -127,7 +127,7 @@ if(NOT ANTLR3_FOUND_SYSTEM)
           <INSTALL_DIR>/share/config.sub
           <SOURCE_DIR>/config.sub
         CONFIGURE_COMMAND
-          <SOURCE_DIR>/configure
+          ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
             ${compilers}
             --with-pic
             --disable-antlrdebug

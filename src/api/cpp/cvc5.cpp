@@ -53,7 +53,6 @@
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/type_node.h"
 #include "options/base_options.h"
@@ -74,6 +73,7 @@
 #include "theory/theory_model.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
+#include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/random.h"
@@ -213,6 +213,9 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(BITVECTOR_SADDO, internal::Kind::BITVECTOR_SADDO),
         KIND_ENUM(BITVECTOR_UMULO, internal::Kind::BITVECTOR_UMULO),
         KIND_ENUM(BITVECTOR_SMULO, internal::Kind::BITVECTOR_SMULO),
+        KIND_ENUM(BITVECTOR_USUBO, internal::Kind::BITVECTOR_USUBO),
+        KIND_ENUM(BITVECTOR_SSUBO, internal::Kind::BITVECTOR_SSUBO),
+        KIND_ENUM(BITVECTOR_SDIVO, internal::Kind::BITVECTOR_SDIVO),
         KIND_ENUM(BITVECTOR_ITE, internal::Kind::BITVECTOR_ITE),
         KIND_ENUM(BITVECTOR_REDOR, internal::Kind::BITVECTOR_REDOR),
         KIND_ENUM(BITVECTOR_REDAND, internal::Kind::BITVECTOR_REDAND),
@@ -225,6 +228,11 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
                   internal::Kind::BITVECTOR_ROTATE_RIGHT),
         KIND_ENUM(INT_TO_BITVECTOR, internal::Kind::INT_TO_BITVECTOR),
         KIND_ENUM(BITVECTOR_TO_NAT, internal::Kind::BITVECTOR_TO_NAT),
+        /* Finite Fields --------------------------------------------------- */
+        KIND_ENUM(CONST_FINITE_FIELD, internal::Kind::CONST_FINITE_FIELD),
+        KIND_ENUM(FINITE_FIELD_MULT, internal::Kind::FINITE_FIELD_MULT),
+        KIND_ENUM(FINITE_FIELD_ADD, internal::Kind::FINITE_FIELD_ADD),
+        KIND_ENUM(FINITE_FIELD_NEG, internal::Kind::FINITE_FIELD_NEG),
         /* FP --------------------------------------------------------------- */
         KIND_ENUM(CONST_FLOATINGPOINT, internal::Kind::CONST_FLOATINGPOINT),
         KIND_ENUM(CONST_ROUNDINGMODE, internal::Kind::CONST_ROUNDINGMODE),
@@ -415,6 +423,47 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(LAST_KIND, internal::Kind::LAST_KIND),
     };
 
+/* -------------------------------------------------------------------------- */
+/* SortKind                                                                   */
+/* -------------------------------------------------------------------------- */
+
+#define SORT_KIND_ENUM(external_name, internal_name)             \
+  {                                                              \
+    external_name, std::make_pair(internal_name, #external_name) \
+  }
+
+/* Mapping from external (API) kind to internal kind. */
+const static std::unordered_map<SortKind,
+                                std::pair<internal::Kind, std::string>>
+    s_sort_kinds{
+        SORT_KIND_ENUM(INTERNAL_SORT_KIND, internal::Kind::UNDEFINED_KIND),
+        SORT_KIND_ENUM(UNDEFINED_SORT_KIND, internal::Kind::UNDEFINED_KIND),
+        SORT_KIND_ENUM(NULL_SORT, internal::Kind::NULL_EXPR),
+        /* Sorts ------------------------------------------------------------ */
+        // Note that many entries in this map (e.g. for type constants) are
+        // given only for completeness and are not used since we don't
+        // construct sorts based on SortKind.
+        SORT_KIND_ENUM(ABSTRACT_SORT, internal::Kind::ABSTRACT_TYPE),
+        SORT_KIND_ENUM(ARRAY_SORT, internal::Kind::ARRAY_TYPE),
+        SORT_KIND_ENUM(BAG_SORT, internal::Kind::BAG_TYPE),
+        SORT_KIND_ENUM(BITVECTOR_SORT, internal::Kind::BITVECTOR_TYPE),
+        SORT_KIND_ENUM(BOOLEAN_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(DATATYPE_SORT, internal::Kind::DATATYPE_TYPE),
+        SORT_KIND_ENUM(FINITE_FIELD_SORT, internal::Kind::FINITE_FIELD_TYPE),
+        SORT_KIND_ENUM(FLOATINGPOINT_SORT, internal::Kind::FLOATINGPOINT_TYPE),
+        SORT_KIND_ENUM(FUNCTION_SORT, internal::Kind::FUNCTION_TYPE),
+        SORT_KIND_ENUM(INTEGER_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(REAL_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(REGLAN_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(ROUNDINGMODE_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(SEQUENCE_SORT, internal::Kind::SEQUENCE_TYPE),
+        SORT_KIND_ENUM(SET_SORT, internal::Kind::SET_TYPE),
+        SORT_KIND_ENUM(STRING_SORT, internal::Kind::TYPE_CONSTANT),
+        SORT_KIND_ENUM(TUPLE_SORT, internal::Kind::TUPLE_TYPE),
+        SORT_KIND_ENUM(UNINTERPRETED_SORT, internal::Kind::SORT_TYPE),
+        SORT_KIND_ENUM(LAST_SORT_KIND, internal::Kind::LAST_KIND),
+    };
+
 /* Mapping from internal kind to external (API) kind. */
 const static std::unordered_map<internal::Kind,
                                 Kind,
@@ -522,6 +571,9 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::BITVECTOR_SADDO, BITVECTOR_SADDO},
         {internal::Kind::BITVECTOR_UMULO, BITVECTOR_UMULO},
         {internal::Kind::BITVECTOR_SMULO, BITVECTOR_SMULO},
+        {internal::Kind::BITVECTOR_USUBO, BITVECTOR_USUBO},
+        {internal::Kind::BITVECTOR_SSUBO, BITVECTOR_SSUBO},
+        {internal::Kind::BITVECTOR_SDIVO, BITVECTOR_SDIVO},
         {internal::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
         {internal::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
         {internal::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
@@ -540,6 +592,11 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR},
         {internal::Kind::INT_TO_BITVECTOR, INT_TO_BITVECTOR},
         {internal::Kind::BITVECTOR_TO_NAT, BITVECTOR_TO_NAT},
+        /* Finite Fields --------------------------------------------------- */
+        {internal::Kind::CONST_FINITE_FIELD, CONST_FINITE_FIELD},
+        {internal::Kind::FINITE_FIELD_MULT, FINITE_FIELD_MULT},
+        {internal::Kind::FINITE_FIELD_ADD, FINITE_FIELD_ADD},
+        {internal::Kind::FINITE_FIELD_NEG, FINITE_FIELD_NEG},
         /* FP -------------------------------------------------------------- */
         {internal::Kind::CONST_FLOATINGPOINT, CONST_FLOATINGPOINT},
         {internal::Kind::CONST_ROUNDINGMODE, CONST_ROUNDINGMODE},
@@ -741,6 +798,25 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::LAST_KIND, LAST_KIND},
     };
 
+/* Mapping from internal kind to external (API) sort kind. */
+const static std::
+    unordered_map<internal::Kind, SortKind, internal::kind::KindHashFunction>
+        s_sort_kinds_internal{
+            {internal::Kind::UNDEFINED_KIND, UNDEFINED_SORT_KIND},
+            {internal::Kind::NULL_EXPR, NULL_SORT},
+            {internal::Kind::ABSTRACT_TYPE, ABSTRACT_SORT},
+            {internal::Kind::ARRAY_TYPE, ARRAY_SORT},
+            {internal::Kind::BAG_TYPE, BAG_SORT},
+            {internal::Kind::BITVECTOR_TYPE, BITVECTOR_SORT},
+            {internal::Kind::DATATYPE_TYPE, DATATYPE_SORT},
+            {internal::Kind::FINITE_FIELD_TYPE, FINITE_FIELD_SORT},
+            {internal::Kind::FLOATINGPOINT_TYPE, FLOATINGPOINT_SORT},
+            {internal::Kind::FUNCTION_TYPE, FUNCTION_SORT},
+            {internal::Kind::SEQUENCE_TYPE, SEQUENCE_SORT},
+            {internal::Kind::SET_TYPE, SET_SORT},
+            {internal::Kind::TUPLE_TYPE, TUPLE_SORT},
+        };
+
 /* Set of kinds for indexed operators */
 const static std::unordered_set<Kind> s_indexed_kinds(
     {DIVISIBLE,
@@ -934,6 +1010,17 @@ cvc5::Kind intToExtKind(internal::Kind k)
   }
   return it->second;
 }
+/** Convert a internal::Kind (internal) to a cvc5::Kind (external).
+ */
+SortKind intToExtSortKind(internal::Kind k)
+{
+  auto it = s_sort_kinds_internal.find(k);
+  if (it == s_sort_kinds_internal.end())
+  {
+    return INTERNAL_SORT_KIND;
+  }
+  return it->second;
+}
 
 /** Convert a cvc5::Kind (external) to a internal::Kind (internal).
  */
@@ -941,6 +1028,18 @@ internal::Kind extToIntKind(cvc5::Kind k)
 {
   auto it = s_kinds.find(k);
   if (it == s_kinds.end())
+  {
+    return internal::Kind::UNDEFINED_KIND;
+  }
+  return it->second.first;
+}
+
+/** Convert a cvc5::SortKind (external) to a internal::Kind (internal).
+ */
+internal::Kind extToIntSortKind(SortKind k)
+{
+  auto it = s_sort_kinds.find(k);
+  if (it == s_sort_kinds.end())
   {
     return internal::Kind::UNDEFINED_KIND;
   }
@@ -1023,6 +1122,21 @@ std::string kindToString(Kind k)
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
   return out << kindToString(k);
+}
+
+std::string sortKindToString(SortKind k)
+{
+  auto it = s_sort_kinds.find(k);
+  if (it == s_sort_kinds.end())
+  {
+    return "UNDEFINED_SORT_KIND";
+  }
+  return it->second.second;
+}
+
+std::ostream& operator<<(std::ostream& out, SortKind k)
+{
+  return out << sortKindToString(k);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1211,12 +1325,39 @@ bool Sort::operator>=(const Sort& s) const
   CVC5_API_TRY_CATCH_END;
 }
 
+SortKind Sort::getKind() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  internal::Kind tk = d_type->getKind();
+  // Base types are type constants, which have to be special cased to return
+  // the appropriate kind.
+  if (tk == internal::kind::TYPE_CONSTANT)
+  {
+    switch (d_type->getConst<internal::TypeConstant>())
+    {
+      case internal::BOOLEAN_TYPE: return BOOLEAN_SORT; break;
+      case internal::REAL_TYPE: return REAL_SORT; break;
+      case internal::INTEGER_TYPE: return INTEGER_SORT; break;
+      case internal::STRING_TYPE: return STRING_SORT; break;
+      case internal::REGEXP_TYPE: return REGLAN_SORT; break;
+      case internal::ROUNDINGMODE_TYPE: return ROUNDINGMODE_SORT; break;
+      default: return INTERNAL_SORT_KIND; break;
+    }
+  }
+  // otherwise we rely on the mapping
+  return intToExtSortKind(tk);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::hasSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_type->hasAttribute(internal::expr::VarNameAttr());
+  return d_type->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1225,11 +1366,11 @@ std::string Sort::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_type->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_type->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the sort to have a symbol.";
   //////// all checks before this line
-  return d_type->getAttribute(internal::expr::VarNameAttr());
+  return d_type->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1406,6 +1547,15 @@ bool Sort::isArray() const
   CVC5_API_TRY_CATCH_END;
 }
 
+bool Sort::isFiniteField() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFiniteField();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 bool Sort::isSet() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -1429,6 +1579,15 @@ bool Sort::isSequence() const
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isSequence();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Sort::isAbstract() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isAbstract();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1751,6 +1910,19 @@ Sort Sort::getSequenceElementSort() const
   CVC5_API_TRY_CATCH_END;
 }
 
+/* Abstract sort ------------------------------------------------------- */
+
+SortKind Sort::getAbstractedKind() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isAbstract()) << "Not an abstract sort.";
+  //////// all checks before this line
+  return intToExtSortKind(d_type->getAbstractedKind());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 /* Sort constructor sort ----------------------------------------------- */
 
 size_t Sort::getUninterpretedSortConstructorArity() const
@@ -1774,6 +1946,19 @@ uint32_t Sort::getBitVectorSize() const
   CVC5_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
   //////// all checks before this line
   return d_type->getBitVectorSize();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+/* Finite field sort --------------------------------------------------- */
+
+std::string Sort::getFiniteFieldSize() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_CHECK(isFiniteField()) << "Not a finite field sort.";
+  //////// all checks before this line
+  return d_type->getFfSize().toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -1838,6 +2023,8 @@ std::vector<Sort> Sort::getTupleSorts() const
   ////////
   CVC5_API_TRY_CATCH_END;
 }
+
+/* --------------------------------------------------------------------- */
 
 /* --------------------------------------------------------------------- */
 
@@ -2456,7 +2643,7 @@ bool Term::hasSymbol() const
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
-  return d_node->hasAttribute(internal::expr::VarNameAttr());
+  return d_node->hasName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -2465,11 +2652,11 @@ std::string Term::getSymbol() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_CHECK(d_node->hasAttribute(internal::expr::VarNameAttr()))
+  CVC5_API_CHECK(d_node->hasName())
       << "Invalid call to '" << __PRETTY_FUNCTION__
       << "', expected the term to have a symbol.";
   //////// all checks before this line
-  return d_node->getAttribute(internal::expr::VarNameAttr());
+  return d_node->getName();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -3063,6 +3250,28 @@ std::string Term::getBitVectorValue(std::uint32_t base) const
       << "Term to be a bit-vector value when calling getBitVectorValue()";
   //////// all checks before this line
   return d_node->getConst<internal::BitVector>().toString(base);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::isFiniteFieldValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::CONST_FINITE_FIELD;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+std::string Term::getFiniteFieldValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::CONST_FINITE_FIELD, *d_node)
+      << "Term to be a finite field value when calling getFiniteFieldValue()";
+  //////// all checks before this line
+  return d_node->getConst<internal::FiniteFieldValue>().toSignedInteger().toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5460,6 +5669,17 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
   CVC5_API_TRY_CATCH_END;
 }
 
+Sort Solver::mkFiniteFieldSort(const std::string& modulus) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  internal::Integer m(modulus, 10);
+  CVC5_API_ARG_CHECK_EXPECTED(m.isProbablePrime(), modulus) << "modulus is prime";
+  return Sort(d_nm, d_nm->mkFiniteFieldType(m));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5594,6 +5814,16 @@ Sort Solver::mkSequenceSort(const Sort& elemSort) const
   CVC5_API_SOLVER_CHECK_SORT(elemSort);
   //////// all checks before this line
   return Sort(d_nm, d_nm->mkSequenceType(*elemSort.d_type));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Sort Solver::mkAbstractSort(SortKind k) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  internal::Kind ik = extToIntSortKind(k);
+  return Sort(d_nm, d_nm->mkAbstractType(ik));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -5890,6 +6120,20 @@ Term Solver::mkBitVector(uint32_t size,
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkBVFromStrHelper(size, s, base);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Solver::mkFiniteFieldElem(const std::string& value, const Sort& sort) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isFiniteField(), sort)
+      << "a finite field sort";
+  //////// all checks before this line
+  internal::Integer v(value, 10);
+  internal::FiniteFieldValue f(v, sort.d_type->getFfSize());
+
+  return mkValHelper<internal::FiniteFieldValue>(d_nm, f);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -7746,6 +7990,11 @@ std::string Solver::getVersion() const
 namespace std {
 
 size_t hash<cvc5::Kind>::operator()(cvc5::Kind k) const
+{
+  return static_cast<size_t>(k);
+}
+
+size_t hash<cvc5::SortKind>::operator()(cvc5::SortKind k) const
 {
   return static_cast<size_t>(k);
 }

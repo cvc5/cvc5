@@ -457,6 +457,15 @@ class NodeManager
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
 
+  /**
+   * @return True if `k` is an abstractable sort kind, i.e., a valid argument to
+   * `mkAbstractType`.
+   */
+  static bool isSortKindAbstractable(Kind k);
+
+  /** Make the abstract type with the given kind */
+  TypeNode mkAbstractType(Kind k);
+
   /** Make a type representing the given datatype. */
   TypeNode mkDatatypeType(DType& datatype);
 
@@ -937,9 +946,10 @@ class NodeManager
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
-   * mkVar("a", type) again, you have two variables.  The NodeManager
-   * version of this is private to avoid internal uses of mkVar() from
-   * within cvc5.  Such uses should employ SkolemManager::mkSkolem() instead.
+   * mkVar("a", type) again, you have two variables.  This method is private to
+   * avoid internal uses of mkVar() from within cvc5. Instead, the SkolemManager
+   * submodule is the interface for constructing internal variables
+   * (see expr/skolem_manager.h).
    */
   Node mkVar(const std::string& name, const TypeNode& type);
 

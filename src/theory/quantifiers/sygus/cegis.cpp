@@ -81,13 +81,14 @@ bool Cegis::processInitialize(Node conj,
                               const std::vector<Node>& candidates)
 {
   Trace("cegis") << "Initialize cegis..." << std::endl;
-  unsigned csize = candidates.size();
+  size_t csize = candidates.size();
   // The role of enumerators is to be either the single solution or part of
   // a solution involving multiple enumerators.
   EnumeratorRole erole =
       csize == 1 ? ROLE_ENUM_SINGLE_SOLUTION : ROLE_ENUM_MULTI_SOLUTION;
   // initialize an enumerator for each candidate
-  for (unsigned i = 0; i < csize; i++)
+  std::vector<Node> activeGuards;
+  for (size_t i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
     // We use symbolic constants if we are doing repair constants or if the
@@ -107,7 +108,26 @@ bool Cegis::processInitialize(Node conj,
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
+    Node e = candidates[i];
+    d_tds->registerEnumerator(e, e, d_parent, erole);
+    Node g = d_tds->getActiveGuardForEnumerator(e);
+    if (!g.isNull())
+    {
+      activeGuards.push_back(g);
+    }
+  }
+  if (!activeGuards.empty())
+  {
+    // This lemma has the semantics "if the conjecture holds, then there must
+    // be another value to enumerate for each function to synthesize". Note
+    // that active guards are only assigned for "actively generated"
+    // enumerators, e.g. when using sygus-enum=fast. Thus, this lemma is
+    // typically only added for single function conjectures.
+    // This lemma allows us to answer infeasible when we run out of values (for
+    // finite grammars).
+    NodeManager* nm = NodeManager::currentNM();
+    Node enumLem = nm->mkNode(IMPLIES, conj, nm->mkAnd(activeGuards));
+    d_qim.lemma(enumLem, InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM);
   }
   return true;
 }
@@ -297,7 +317,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       NodeManager* nm = NodeManager::currentNM();
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       // must guard it
-      expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
+      expn = nm->mkNode(OR, d_parent->getConjecture().negate(), expn.negate());
       d_qim.addPendingLemma(
           expn, InferenceId::QUANTIFIERS_SYGUS_REPAIR_CONST_EXCLUDE);
       return ret;
@@ -483,12 +503,12 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
              != options::SygusEvalUnfoldMode::NONE)
   {
     // Make the refinement lemma and add it to lems.
-    // This lemma is guarded by the parent's guard, which has the semantics
+    // This lemma is guarded by the parent's conjecture, which has the semantics
     // "this conjecture has a solution", hence this lemma states:
     // if the parent conjecture has a solution, it satisfies the specification
     // for the given concrete point.
     Node rlem = NodeManager::currentNM()->mkNode(
-        OR, d_parent->getGuard().negate(), lem);
+        OR, d_parent->getConjecture().negate(), lem);
     d_qim.addPendingLemma(rlem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE);
   }
 }
@@ -508,7 +528,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   NodeManager* nm = NodeManager::currentNM();
 
   Node nfalse = nm->mkConst(false);
-  Node neg_guard = d_parent->getGuard().negate();
+  Node neg_guard = d_parent->getConjecture().negate();
   bool ret = false;
 
   for (unsigned r = 0; r < 2; r++)
@@ -694,7 +714,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           if (options().quantifiers.cegisSample
               != options::CegisSampleMode::TRUST)
           {
-            Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
+            Node lem = nm->mkNode(OR, d_parent->getConjecture().negate(), rlem);
             d_qim.addPendingLemma(
                 lem, InferenceId::QUANTIFIERS_SYGUS_CEGIS_REFINE_SAMPLE);
           }

@@ -36,9 +36,15 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo(Env& env, QuantConflictFind* p, Node q)
+QuantInfo::QuantInfo(Env& env,
+                     QuantifiersState& qs,
+                     TermRegistry& tr,
+                     QuantConflictFind* p,
+                     Node q)
     : EnvObj(env),
+      d_qs(qs),
       d_parent(p),
+      d_instMatch(env, qs, tr, q),
       d_mg(nullptr),
       d_q(q),
       d_unassigned_nvar(0),
@@ -282,6 +288,11 @@ bool QuantInfo::reset_round()
     d_match[i] = TNode::null();
     d_match_term[i] = TNode::null();
   }
+  d_instMatch.resetAll();
+  ieval::TermEvaluatorMode tev = d_parent->atConflictEffort()
+                                     ? ieval::TermEvaluatorMode::CONFLICT
+                                     : ieval::TermEvaluatorMode::PROP;
+  d_instMatch.setEvaluatorMode(tev);
   d_vars_set.clear();
   d_curr_var_deq.clear();
   d_tconstraints.clear();
@@ -368,7 +379,7 @@ bool QuantInfo::getCurrentCanBeEqual(size_t v, TNode n, bool chDiseq)
     else if (chDiseq && !isVar(n) && !isVar(cv))
     {
       // they must actually be disequal if we are looking for conflicts
-      if (!d_parent->areDisequal(n, cv))
+      if (!d_qs.areDisequal(n, cv))
       {
         // TODO : check for entailed disequal
         return false;
@@ -610,16 +621,33 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
   Trace("qcf-match-debug") << "-- bind : " << v << " -> " << n << ", checked "
                            << d_curr_var_deq[v].size() << " disequalities"
                            << std::endl;
-  if (isGround)
+  if (isGround && d_vars[v].getKind() == BOUND_VARIABLE)
   {
-    if (d_vars[v].getKind() == BOUND_VARIABLE)
+    // Set the inst match object if this corresponds to an original variable
+    if (v < d_q[0].getNumChildren())
     {
-      d_vars_set.insert(v);
-      Trace("qcf-match-debug")
-          << "---- now bound " << d_vars_set.size() << " / "
-          << d_q[0].getNumChildren() << " base variables." << std::endl;
+      // we overwrite, so we must reset/set here
+      if (!d_instMatch.get(v).isNull())
+      {
+        d_instMatch.reset(v);
+      }
+      if (!d_instMatch.set(v, n))
+      {
+        return false;
+      }
     }
+    d_vars_set.insert(v);
+    Trace("qcf-match-debug")
+        << "---- now bound " << d_vars_set.size() << " / "
+        << d_q[0].getNumChildren() << " base variables." << std::endl;
   }
+  // Note that assigning to a variable that an original variable is equal to
+  // should trigger the match object. For example, if we have auxiliary
+  // variable k and original variable x where x <-> k currently, and we set
+  // k -> t, then we should notify the match object that x -> t. However,
+  // this is not done, as it would require more complex bookkeeping. Overall,
+  // this means that we may fail in some rare cases to eagerly recognize when a
+  // substitution is entailed.
   d_match[v] = n;
   return true;
 }
@@ -627,10 +655,20 @@ bool QuantInfo::setMatch(size_t v, TNode n, bool isGroundRep, bool isGround)
 void QuantInfo::unsetMatch(size_t v)
 {
   Trace("qcf-match-debug") << "-- unbind : " << v << std::endl;
-  if( d_vars[v].getKind()==BOUND_VARIABLE && d_vars_set.find( v )!=d_vars_set.end() ){
+  if (d_vars[v].getKind() == BOUND_VARIABLE
+      && d_vars_set.find(v) != d_vars_set.end())
+  {
     d_vars_set.erase( v );
+    // Reset the inst match object if this corresponds to an original variable
+    if (v < d_q[0].getNumChildren())
+    {
+      if (!d_instMatch.get(v).isNull())
+      {
+        d_instMatch.reset(v);
+      }
+    }
   }
-  d_match[ v ] = TNode::null();
+  d_match[v] = TNode::null();
 }
 
 bool QuantInfo::isMatchSpurious()
@@ -649,6 +687,15 @@ bool QuantInfo::isMatchSpurious()
 
 bool QuantInfo::isTConstraintSpurious(const std::vector<Node>& terms)
 {
+  if (options().quantifiers.ievalMode != options::IevalMode::OFF)
+  {
+    // We rely on the instantiation evaluator. When the instantiation evaluator
+    // is enabled, this method (almost) always returns false. The code may
+    // return true based on minor differences in the entailment tests, which
+    // would allow us in very rare cases to recognize when an instantiation
+    // is spurious.
+    return false;
+  }
   if (options().quantifiers.cbqiEagerTest)
   {
     EntailmentCheck* echeck = d_parent->getTermRegistry().getEntailmentCheck();
@@ -2149,7 +2196,7 @@ void QuantConflictFind::registerQuantifier( Node q ) {
   Trace("qcf-qregister")
       << "- Get relevant equality/disequality pairs, calculate flattening..."
       << std::endl;
-  d_qinfo[q].reset(new QuantInfo(d_env, this, q));
+  d_qinfo[q].reset(new QuantInfo(d_env, d_qstate, d_treg, this, q));
 
   // debug print
   if (TraceIsOn("qcf-qregister"))
@@ -2276,7 +2323,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   }
   bool isConflict = false;
   FirstOrderModel* fm = d_treg.getModel();
-  unsigned nquant = fm->getNumAssertedQuantifiers();
+  size_t nquant = fm->getNumAssertedQuantifiers();
   // for each effort level (find conflict, find propagating)
   unsigned end = QcfEffortEnd(options().quantifiers.cbqiMode);
   for (unsigned e = QcfEffortStart(); e <= end; ++e)
@@ -2286,7 +2333,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     Trace("qcf-check") << "Checking quantified formulas at effort " << e
                        << "..." << std::endl;
     // for each quantified formula
-    for (unsigned i = 0; i < nquant; i++)
+    for (size_t i = 0; i < nquant; i++)
     {
       Node q = fm->getAssertedQuantifier(i, true);
       if (d_qreg.hasOwnership(q, this)

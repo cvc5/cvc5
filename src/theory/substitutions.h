@@ -106,7 +106,7 @@ class SubstitutionMap
   SubstitutionMap(context::Context* context = nullptr, Rewriter* r = nullptr);
 
   /** Get substitutions in this object as a raw map */
-  std::unordered_map<Node, Node> getSubstitutions();
+  std::unordered_map<Node, Node> getSubstitutions() const;
   /**
    * Adds a substitution from x to t.
    */

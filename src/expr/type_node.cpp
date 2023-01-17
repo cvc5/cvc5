@@ -22,11 +22,12 @@
 #include "expr/type_properties.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/builtin/abstract_type.h"
 #include "theory/fp/theory_fp_utils.h"
 #include "theory/type_enumerator.h"
 #include "util/bitvector.h"
 #include "util/cardinality.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 #include "util/integer.h"
 
 using namespace std;
@@ -291,9 +292,11 @@ bool TypeNode::isClosedEnumerable()
 
 bool TypeNode::isFirstClass() const
 {
-  return getKind() != kind::CONSTRUCTOR_TYPE && getKind() != kind::SELECTOR_TYPE
-         && getKind() != kind::TESTER_TYPE && getKind() != kind::UPDATER_TYPE
-         && (getKind() != kind::TYPE_CONSTANT
+  Kind k = getKind();
+  return k != kind::CONSTRUCTOR_TYPE && k != kind::SELECTOR_TYPE
+         && k != kind::TESTER_TYPE && k != kind::UPDATER_TYPE
+         && k != kind::ABSTRACT_TYPE
+         && (k != kind::TYPE_CONSTANT
              || (getConst<TypeConstant>() != REGEXP_TYPE
                  && getConst<TypeConstant>() != SEXPR_TYPE));
 }
@@ -456,9 +459,13 @@ bool TypeNode::isUnresolvedDatatype() const
   return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
+bool TypeNode::hasName() const
+{
+  return hasAttribute(expr::VarNameAttr());
+}
+
 std::string TypeNode::getName() const
 {
-  Assert(isUninterpretedSort() || isUninterpretedSortConstructor());
   return getAttribute(expr::VarNameAttr());
 }
 
@@ -552,6 +559,15 @@ bool TypeNode::isSygusDatatype() const
     return getDType().isSygus();
   }
   return false;
+}
+
+bool TypeNode::isAbstract() const { return getKind() == kind::ABSTRACT_TYPE; }
+
+Kind TypeNode::getAbstractedKind() const
+{
+  Assert(isAbstract());
+  const AbstractType& ak = getConst<AbstractType>();
+  return ak.getKind();
 }
 
 std::string TypeNode::toString() const {

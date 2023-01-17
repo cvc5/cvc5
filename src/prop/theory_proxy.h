@@ -22,6 +22,7 @@
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
+#include "decision/decision_engine.h"
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
@@ -60,13 +61,12 @@ class TheoryProxy : protected EnvObj, public Registrar
   TheoryProxy(Env& env,
               PropEngine* propEngine,
               TheoryEngine* theoryEngine,
-              decision::DecisionEngine* decisionEngine,
               SkolemDefManager* skdm);
 
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CnfStream* cnfStream);
+  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
@@ -131,11 +131,14 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   bool theoryNeedCheck() const;
 
-  /** Is incomplete */
-  bool isIncomplete() const;
-
-  /** Get incomplete id, valid immediately after an `unknown` response. */
-  theory::IncompleteId getIncompleteId() const;
+  /** Is model unsound */
+  bool isModelUnsound() const;
+  /** Is refutation unsound */
+  bool isRefutationUnsound() const;
+  /** Get model unsound id, valid when isModelUnsound is true. */
+  theory::IncompleteId getModelUnsoundId() const;
+  /** Get unsound id, valid when isRefutationUnsound is true. */
+  theory::IncompleteId getRefutationUnsoundId() const;
 
   /**
    * Notifies of a new variable at a decision level.
@@ -200,26 +203,20 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The CNF engine we are using. */
   CnfStream* d_cnfStream;
 
-  /** The decision engine we are using. */
-  decision::DecisionEngine* d_decisionEngine;
+  /** The decision engine we will be using */
+  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
    * Whether the decision engine needs notification of active skolem
    * definitions, see DecisionEngine::needsActiveSkolemDefs.
    */
-  bool d_dmNeedsActiveDefs;
+  bool d_trackActiveSkDefs;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
   /** Queue of asserted facts */
   context::CDQueue<TNode> d_queue;
-
-  /**
-   * Set of all lemmas that have been "shared" in the portfolio---i.e.,
-   * all imported and exported lemmas.
-   */
-  std::unordered_set<Node> d_shared;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;

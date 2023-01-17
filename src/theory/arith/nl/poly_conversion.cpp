@@ -18,7 +18,6 @@
 #ifdef CVC5_POLY_IMP
 
 #include "expr/node.h"
-#include "expr/node_manager_attributes.h"
 #include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
 
@@ -37,12 +36,16 @@ poly::Variable VariableMapper::operator()(const cvc5::internal::Node& n)
     std::string name;
     if (n.isVar())
     {
-      if (!n.getAttribute(expr::VarNameAttr(), name))
+      if (!n.hasName())
       {
         Trace("poly::conversion")
             << "Variable " << n << " has no name, using ID instead."
             << std::endl;
         name = "v_" + std::to_string(n.getId());
+      }
+      else
+      {
+        name = n.getName();
       }
     }
     else

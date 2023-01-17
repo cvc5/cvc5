@@ -31,6 +31,12 @@ ${options_includes}$
 #include <iostream>
 #include <limits>
 
+namespace {
+  // clang-format off
+  ${option_enum_and_table}$
+  // clang-format on
+}
+
 namespace cvc5::internal::options
 {
   // Contains the default option handlers (i.e. parsers)
@@ -196,7 +202,7 @@ namespace cvc5::internal::options
   {
     Trace("options") << "Options::getOption(" << name << ")" << std::endl;
     // clang-format off
-  ${get_impl}$
+    ${get_impl}$
     // clang-format on
     throw OptionException("Unrecognized option key or setting: " + name);
   }
@@ -210,11 +216,6 @@ namespace cvc5::internal::options
     ${set_impl}$
     // clang-format on
   }
-  else
-  {
-    throw OptionException("Unrecognized option key or setting: " + name);
-  }
-}
 
 #if defined(CVC5_MUZZLED) || defined(CVC5_COMPETITION_MODE)
 #define DO_SEMANTIC_CHECKS_BY_DEFAULT false

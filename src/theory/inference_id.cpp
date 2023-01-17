@@ -109,6 +109,7 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";
+    case InferenceId::FF_LEMMA: return "FF_LEMMA";
 
     case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
     case InferenceId::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
@@ -269,6 +270,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
     case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
       return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
+    case InferenceId::QUANTIFIERS_SYGUS_SI_INFEASIBLE:
+      return "QUANTIFIERS_SYGUS_SI_INFEASIBLE";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB:
       return "QUANTIFIERS_SYGUS_UNIF_PI_INTER_ENUM_SB";
     case InferenceId::QUANTIFIERS_SYGUS_UNIF_PI_SEPARATION:
@@ -303,6 +306,8 @@ const char* toString(InferenceId i)
       return "QUANTIFIERS_SYGUS_PBE_EXCLUDE";
     case InferenceId::QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL:
       return "QUANTIFIERS_SYGUS_PBE_CONSTRUCT_SOL";
+    case InferenceId::QUANTIFIERS_SYGUS_COMPLETE_ENUM:
+      return "QUANTIFIERS_SYGUS_COMPLETE_ENUM";
     case InferenceId::QUANTIFIERS_DSPLIT: return "QUANTIFIERS_DSPLIT";
     case InferenceId::QUANTIFIERS_CONJ_GEN_SPLIT:
       return "QUANTIFIERS_CONJ_GEN_SPLIT";
@@ -391,6 +396,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
+    case InferenceId::SETS_RELS_GROUP_NOT_EMPTY:
+      return "SETS_RELS_GROUP_NOT_EMPTY";
     case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
     case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
     case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";
@@ -497,6 +504,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CTN_POS: return "STRINGS_CTN_POS";
     case InferenceId::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "STRINGS_PREFIX_CONFLICT";
+    case InferenceId::STRINGS_PREFIX_CONFLICT_MIN:
+      return "STRINGS_PREFIX_CONFLICT_MIN";
     case InferenceId::STRINGS_ARITH_BOUND_CONFLICT:
       return "STRINGS_ARITH_BOUND_CONFLICT";
     case InferenceId::STRINGS_REGISTER_TERM_ATOMIC:

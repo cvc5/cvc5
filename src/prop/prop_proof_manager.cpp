@@ -29,6 +29,7 @@ PropPfManager::PropPfManager(Env& env,
                              CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
     : EnvObj(env),
+      d_propProofs(userContext),
       d_pfpp(new ProofPostprocess(env, cnfProof)),
       d_satSolver(satSolver),
       d_assertions(userContext),
@@ -98,6 +99,11 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
 
 std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
 {
+  auto it = d_propProofs.find(connectCnf);
+  if (it != d_propProofs.end())
+  {
+    return it->second;
+  }
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
@@ -120,6 +126,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   }
   if (!connectCnf)
   {
+    d_propProofs[connectCnf] = conflictProof;
     return conflictProof;
   }
   // connect it with CNF proof
@@ -142,6 +149,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
     Trace("sat-proof-debug")
         << "PropPfManager::getProof: proof is " << *conflictProof.get() << "\n";
   }
+  d_propProofs[connectCnf] = conflictProof;
   return conflictProof;
 }
 

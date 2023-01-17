@@ -186,6 +186,12 @@ TEST_F(TestApiBlackSolver, mkBitVectorSort)
   ASSERT_THROW(d_solver.mkBitVectorSort(0), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, mkFiniteFieldSort)
+{
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("31"));
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("6"), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkFloatingPointSort)
 {
   ASSERT_NO_THROW(d_solver.mkFloatingPointSort(4, 8));
@@ -385,6 +391,15 @@ TEST_F(TestApiBlackSolver, mkSequenceSort)
   ASSERT_NO_THROW(slv.mkSequenceSort(d_solver.getIntegerSort()));
 }
 
+TEST_F(TestApiBlackSolver, mkAbstractSort)
+{
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(ARRAY_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(BITVECTOR_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(TUPLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SET_SORT));
+  ASSERT_THROW(d_solver.mkAbstractSort(BOOLEAN_SORT), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkUninterpretedSort)
 {
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort("u"));
@@ -464,6 +479,25 @@ TEST_F(TestApiBlackSolver, mkBitVector)
   ASSERT_EQ(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
   ASSERT_EQ(d_solver.mkBitVector(8, "-1", 10),
             d_solver.mkBitVector(8, "FF", 16));
+}
+
+TEST_F(TestApiBlackSolver, mkFiniteFieldElem)
+{
+  Sort f = d_solver.mkFiniteFieldSort("7");
+  Sort bv = d_solver.mkBitVectorSort(4);
+
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("0", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("1", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("6", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("8", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-1", f));
+
+  ASSERT_THROW(d_solver.mkFiniteFieldElem("-1", bv), CVC5ApiException);
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("-1", f),
+            d_solver.mkFiniteFieldElem("6", f));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("1", f),
+            d_solver.mkFiniteFieldElem("8", f));
 }
 
 TEST_F(TestApiBlackSolver, mkVar)
@@ -3346,6 +3380,8 @@ TEST_F(TestApiBlackSolver, proj_issue422)
 {
   Solver slv;
   slv.setOption("sygus-rr-synth-input", "true");
+  slv.setOption("strings-exp", "true");
+  slv.setOption("sygus-abort-size", "1");
   Sort s1 = slv.mkBitVectorSort(36);
   Sort s2 = slv.getStringSort();
   Term t1 = slv.mkConst(s2, "_x0");
@@ -3376,7 +3412,9 @@ TEST_F(TestApiBlackSolver, proj_issue422)
   Term t300 = slv.mkTerm(Kind::BITVECTOR_SLT, {t276, t276});
   Term t301 = slv.mkTerm(Kind::EQUAL, {t288, t300});
   slv.assertFormula({t301});
-  slv.push(4);
+  // should terminate with an exception indicating we are done enumerating
+  // rewrite rules.
+  ASSERT_THROW(slv.push(4), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackSolver, proj_issue423)

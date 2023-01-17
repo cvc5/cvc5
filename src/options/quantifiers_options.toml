@@ -779,6 +779,24 @@ name   = "Quantifiers"
   default    = "true"
   help       = "do not consider instances of quantified formulas that are currently entailed"
 
+[[option]]
+  name       = "ievalMode"
+  category   = "regular"
+  long       = "ieval=MODE"
+  type       = "IevalMode"
+  default    = "OFF"
+  help       = "mode for using instantiation evaluation"
+  help_mode  = "Mode for using instantiation evaluation."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not use instantiation evaluation."
+[[option.mode.USE]]
+  name = "use"
+  help = "Use instantiation evaluation."
+[[option.mode.USE_LEARN]]
+  name = "use-learn"
+  help = "Use instantiation evaluation, and generalize learning."
+
 ### Induction options
 
 [[option]]

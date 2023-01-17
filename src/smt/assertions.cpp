@@ -39,8 +39,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_absValues(absv),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
-      d_globalDefineFunLemmasIndex(userContext(), 0),
-      d_assertions(env)
+      d_globalDefineFunLemmasIndex(userContext(), 0)
 {
 }
 
@@ -56,15 +55,9 @@ void Assertions::refresh()
   size_t numGlobalDefs = d_globalDefineFunLemmas.size();
   for (size_t i = d_globalDefineFunLemmasIndex.get(); i < numGlobalDefs; i++)
   {
-    addFormula(d_globalDefineFunLemmas[i], false, true, false);
+    addFormula(d_globalDefineFunLemmas[i], true, false);
   }
   d_globalDefineFunLemmasIndex = numGlobalDefs;
-}
-
-void Assertions::clearCurrent()
-{
-  d_assertions.clear();
-  d_assertions.getIteSkolemMap().clear();
 }
 
 void Assertions::setAssumptions(const std::vector<Node>& assumptions)
@@ -72,14 +65,13 @@ void Assertions::setAssumptions(const std::vector<Node>& assumptions)
   d_assumptions.clear();
   d_assumptions = assumptions;
 
-  Result r(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
     Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
-    addFormula(n, true, false, false);
+    addFormula(n, false, false);
   }
 }
 
@@ -87,15 +79,10 @@ void Assertions::assertFormula(const Node& n)
 {
   ensureBoolean(n);
   bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
-  addFormula(n, false, false, maybeHasFv);
+  addFormula(n, false, maybeHasFv);
 }
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
-
-preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
-{
-  return d_assertions;
-}
 
 const context::CDList<Node>& Assertions::getAssertionList() const
 {
@@ -107,8 +94,17 @@ const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
   return d_assertionListDefs;
 }
 
+std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
+{
+  std::unordered_set<Node> defSet;
+  for (const Node& a : d_assertionListDefs)
+  {
+    defSet.insert(a);
+  }
+  return defSet;
+}
+
 void Assertions::addFormula(TNode n,
-                            bool isAssumption,
                             bool isFunDef,
                             bool maybeHasFv)
 {
@@ -124,7 +120,6 @@ void Assertions::addFormula(TNode n,
     return;
   }
   Trace("smt") << "Assertions::addFormula(" << n
-               << ", isAssumption = " << isAssumption
                << ", isFunDef = " << isFunDef << std::endl;
   if (isFunDef)
   {
@@ -165,9 +160,6 @@ void Assertions::addFormula(TNode n,
       throw ModalException(se.str().c_str());
     }
   }
-
-  // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption, true);
 }
 
 void Assertions::addDefineFunDefinition(Node n, bool global)
@@ -186,7 +178,7 @@ void Assertions::addDefineFunDefinition(Node n, bool global)
     // definitions currently. Thus, we should check for free variables if the
     // input language is SyGuS.
     bool maybeHasFv = language::isLangSygus(options().base.inputLanguage);
-    addFormula(n, false, true, maybeHasFv);
+    addFormula(n, true, maybeHasFv);
   }
 }
 
@@ -201,16 +193,6 @@ void Assertions::ensureBoolean(const Node& n)
        << "Its type      : " << type;
     throw TypeCheckingExceptionPrivate(n, ss.str());
   }
-}
-
-void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
-{
-  d_assertions.enableProofs(pppg);
-}
-
-bool Assertions::isProofEnabled() const
-{
-  return d_assertions.isProofEnabled();
 }
 
 }  // namespace smt

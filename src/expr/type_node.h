@@ -477,6 +477,9 @@ class CVC5_EXPORT TypeNode
   /** Is this a Sequence type? */
   bool isSequence() const;
 
+  /** Is this an abstract type? */
+  bool isAbstract() const;
+
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
 
@@ -503,6 +506,10 @@ class CVC5_EXPORT TypeNode
 
   /** Get the element type (for sequence types) */
   TypeNode getSequenceElementType() const;
+
+  /** Get the abstract kind (for abstract types) */
+  Kind getAbstractedKind() const;
+
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -678,9 +685,16 @@ class CVC5_EXPORT TypeNode
 
   /** Is this an unresolved datatype? */
   bool isUnresolvedDatatype() const;
-
   /**
-   * Get name, for uninterpreted sorts and uninterpreted sort constructors.
+   * Has name? Return true if this node has an associated variable
+   * name (via the attribute expr::VarNameAttr). This is true for
+   * uninterpreted sorts and uninterpreted sort constructors.
+   */
+  bool hasName() const;
+  /**
+   * Get the name. Should only be called on nodes such that
+   * hasName() returns true. Returns the string value of the
+   * expr::VarNameAttr attribute for this node.
    */
   std::string getName() const;
 

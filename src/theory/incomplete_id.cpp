@@ -29,6 +29,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::QUANTIFIERS: return "QUANTIFIERS";
     case IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY:
       return "QUANTIFIERS_SYGUS_NO_VERIFY";
+    case IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT:
+      return "QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT";
     case IncompleteId::QUANTIFIERS_CEGQI: return "QUANTIFIERS_CEGQI";
     case IncompleteId::QUANTIFIERS_FMF: return "QUANTIFIERS_FMF";
     case IncompleteId::QUANTIFIERS_RECORDED_INST:
@@ -50,6 +52,7 @@ const char* toString(IncompleteId i)
     case IncompleteId::UF_CARD_MODE: return "UF_CARD_MODE";
     case IncompleteId::STOP_SEARCH: return "STOP_SEARCH";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
+    case IncompleteId::NONE: return "NONE";
     default: return "?IncompleteId?";
   }
 }

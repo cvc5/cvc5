@@ -23,13 +23,13 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 class AbstractValues;
+class PreprocessProofGenerator;
 
 /**
  * Contains all information pertaining to the assertions of an SMT engine.
@@ -46,12 +46,6 @@ class Assertions : protected EnvObj
  public:
   Assertions(Env& env, AbstractValues& absv);
   ~Assertions();
-  /**
-   * Clears out the non-context-dependent data in this class.  Necessary to
-   * clear out our assertion vectors in case someone does a push-assert-pop
-   * without a check-sat.
-   */
-  void clearCurrent();
   /** refresh
    *
    * Ensures that all global declarations have been processed in the current
@@ -89,11 +83,6 @@ class Assertions : protected EnvObj
    */
   void addDefineFunDefinition(Node n, bool global);
   /**
-   * Get the assertions pipeline, which contains the set of assertions we are
-   * currently processing.
-   */
-  preprocessing::AssertionPipeline& getAssertionPipeline();
-  /**
    * Get assertions list corresponding to the original list of assertions,
    * before preprocessing. This includes assertions corresponding to define-fun
    * and define-fun-rec.
@@ -104,24 +93,13 @@ class Assertions : protected EnvObj
    * that correspond to definitions (define-fun or define-fun-rec).
    */
   const context::CDList<Node>& getAssertionListDefinitions() const;
+  /** Get the set corresponding to the above */
+  std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
    */
   std::vector<Node>& getAssumptions();
-
-  //------------------------------------ for proofs
-  /**
-   * Enable proofs for this assertions class. This must be called
-   * explicitly since we construct the assertions before we know
-   * whether proofs are enabled.
-   *
-   * @param pppg The preprocess proof generator of the proof manager.
-   */
-  void enableProofs(smt::PreprocessProofGenerator* pppg);
-  /** Is proof enabled? */
-  bool isProofEnabled() const;
-  //------------------------------------ end for proofs
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -142,12 +120,8 @@ class Assertions : protected EnvObj
    * guaranteed not to have free variables. However, other cases such as
    * assertions from the SyGuS parser may have free variables (say if the
    * input contains an assert or define-fun-rec command).
-   *
-   * @param isAssumption If true, the formula is considered to be an assumption
-   * (this is used to distinguish assertions and assumptions)
    */
   void addFormula(TNode n,
-                  bool isAssumption,
                   bool isFunDef,
                   bool maybeHasFv);
   /** Reference to the abstract values utility */
@@ -169,8 +143,6 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
-  /** Assertions in the preprocessing pipeline */
-  preprocessing::AssertionPipeline d_assertions;
 };
 
 }  // namespace smt

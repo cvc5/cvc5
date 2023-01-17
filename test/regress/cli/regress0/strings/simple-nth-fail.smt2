@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-strings-code-elim
+; COMMAND-LINE: --strings-code-elim
 (set-logic QF_SLIA)
 (set-info :status sat)
 (declare-const i Int)

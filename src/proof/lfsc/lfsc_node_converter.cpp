@@ -24,7 +24,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/nary_term_util.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
@@ -641,9 +640,7 @@ TypeNode LfscNodeConverter::postConvertType(TypeNode tn)
       targs.erase(targs.begin(), targs.begin() + 1);
       types.erase(types.begin(), types.begin() + 1);
       TypeNode ftype = nm->mkFunctionType(types, d_sortType);
-      std::string name;
-      tn.getUninterpretedSortConstructor().getAttribute(expr::VarNameAttr(),
-                                                        name);
+      std::string name = tn.getUninterpretedSortConstructor().getName();
       op = getSymbolInternal(k, ftype, name, false);
     }
     else
@@ -719,8 +716,7 @@ std::string LfscNodeConverter::getNameForUserName(const std::string& name,
 
 std::string LfscNodeConverter::getNameForUserNameOf(Node v)
 {
-  std::string name;
-  v.getAttribute(expr::VarNameAttr(), name);
+  std::string name = v.getName();
   return getNameForUserNameOfInternal(v.getId(), name);
 }
 

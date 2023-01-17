@@ -20,7 +20,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/io_utils.h"
 #include "options/language.h"  // for LANG_AST
@@ -62,10 +61,12 @@ void AstPrinter::toStream(std::ostream& out,
 
   // variable
   if(n.getMetaKind() == kind::metakind::VARIABLE) {
-    string s;
-    if(n.getAttribute(expr::VarNameAttr(), s)) {
-      out << s;
-    } else {
+    if (n.hasName())
+    {
+      out << n.getName();
+    }
+    else
+    {
       out << "var_" << n.getId();
     }
     return;

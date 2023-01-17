@@ -73,14 +73,28 @@ class TermRegistry : protected EnvObj
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
+  /** Get terms for pool p, adds them to the vector terms. */
+  void getTermsForPool(Node p, std::vector<Node>& terms);
   /**
    * Declare pool p with initial value initValue.
    */
   void declarePool(Node p, const std::vector<Node>& initValue);
   /**
-   * Process instantiation
+   * Process instantiation, called when q is instantiated.
+   *
+   * @param q The quantified formula
+   * @param terms The terms it was instantiated with
+   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processInstantiation(Node q,
+                            const std::vector<Node>& terms,
+                            bool success);
+  /**
+   * Process skolemization, called when q is skolemized.
+   *
+   * @param q The quantified formula
+   * @param skolems The skolem variables used for skolemizing q
+   */
   void processSkolemization(Node q, const std::vector<Node>& skolems);
 
   /** get term database */

@@ -18,6 +18,7 @@
 #include "base/configuration.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
 
 namespace cvc5::internal {
@@ -1454,12 +1455,50 @@ Node EqProof::addToProof(CDProof* p,
   // rewriting
   if (!CDProof::isSame(conclusion, d_node))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: add "
+    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a"
                           << PfRule::MACRO_SR_PRED_TRANSFORM
-                          << " step to flatten rebuilt conclusion "
-                          << conclusion << "into " << d_node << "\n";
-    p->addStep(
-        d_node, PfRule::MACRO_SR_PRED_TRANSFORM, {conclusion}, {d_node}, true);
+                          << " step the rebuilt conclusion "
+                          << conclusion << " into " << d_node << "\n";
+    Node res = p->getManager()->getChecker()->checkDebug(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {conclusion},
+        {d_node},
+        Node::null(),
+        "eqproof-conv");
+    // If rewriting was not able to flatten the rebuilt conclusion into the
+    // original one, we give up and use a TRUST_FLATTENING_REWRITE step,
+    // generating a proof for the original conclusion d_node such as
+    //
+    //     Converted EqProof
+    //  ----------------------      ------------------- TRUST_FLATTENING_REWRITE
+    //     conclusion               conclusion = d_node
+    // ------------------------------------------------------- EQ_RESOLVE
+    //                       d_node
+    //
+    //
+    //  If rewriting was able to do it, however, we just add the macro step.
+    if (res.isNull())
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: adding a trust flattening rewrite step\n";
+      Node bridgeEq = conclusion.eqNode(d_node);
+      p->addStep(bridgeEq,
+                 PfRule::TRUST_FLATTENING_REWRITE,
+                 {},
+                 {bridgeEq});
+      p->addStep(d_node,
+                 PfRule::EQ_RESOLVE,
+                 {conclusion, bridgeEq},
+                 {});
+    }
+    else
+    {
+      p->addStep(d_node,
+                 PfRule::MACRO_SR_PRED_TRANSFORM,
+                 {conclusion},
+                 {d_node},
+                 true);
+    }
   }
   visited[d_node] = d_node;
   return d_node;
