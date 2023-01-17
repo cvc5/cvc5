@@ -417,7 +417,7 @@ bool LfscProofPostprocessCallback::update(Node res,
           std::vector<Node> qvarsNew(qvars.begin() + i + 1, qvars.end());
           Assert(!qvarsNew.empty());
           std::vector<Node> qchildren;
-          TNode v = q[0][i];
+          TNode v = qvars[i];
           TNode subs = args[i];
           qchildren.push_back(nm->mkNode(BOUND_VAR_LIST, qvarsNew));
           qchildren.push_back(conc[1].substitute(v, subs));
