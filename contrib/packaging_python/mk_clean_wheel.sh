@@ -54,7 +54,8 @@ python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 
 # nocheckin
 echo "NOCHECKIN"
-cat /home/pycvc5/build_wheel/deps/src/GMP-EP-stamp/GMP-EP-build.log
+ls deps/src/GMP-EP-stamp
+cat deps/src/GMP-EP-stamp/GMP-EP-build.log
 
 cd dist
 
