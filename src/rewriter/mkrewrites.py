@@ -3,7 +3,6 @@ import logging
 import os
 import sys
 from collections import defaultdict
-from node import *
 from util import *
 
 def gen_rewrite_db(args):
