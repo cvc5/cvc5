@@ -101,7 +101,8 @@ set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp PROP
 # cross-compilation environment. As a workaround we'll copy the header to the
 # current build directory and set the FLEX_INCLUDE_DIRS variable accordingly.
 if(WIN32)
-  file(COPY /usr/include/FlexLexer.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/flex)
+  file(COPY /usr/include/FlexLexer.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/flex)
   set(FLEX_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
@@ -118,10 +119,6 @@ if(HAVE_CXX_FLAGWerror)
 endif()
 set_source_files_properties(
   ${gen_src_files} PROPERTIES COMPILE_FLAGS "${GEN_SRC_FLAGS}")
-if(WIN32)
-  set_source_files_properties(
-    ${CMAKE_CURRENT_BINARY_DIR}/FlexLexer.h PROPERTIES COMPILE_FLAGS "${GEN_SRC_FLAGS}")
-endif()
 # Add generated source files to the parser source files
 list(APPEND libcvc5parser_src_files ${gen_src_files})
 
@@ -189,6 +186,7 @@ add_dependencies(cvc5parser-objs ANTLR3)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs)
 target_include_directories(cvc5parser-objs PRIVATE ${ANTLR3_INCLUDE_DIR})
 target_include_directories(cvc5parser-objs PRIVATE ${FLEX_INCLUDE_DIRS})
+target_include_directories(cvc5parser-objs PRIVATE SYSTEM)
 
 add_library(cvc5parser
   $<TARGET_OBJECTS:cvc5parser-objs>
