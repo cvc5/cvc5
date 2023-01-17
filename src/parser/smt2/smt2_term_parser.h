@@ -37,6 +37,13 @@ class Smt2TermParser
   virtual ~Smt2TermParser() {}
 
   /**
+   * Parses an SMT-LIB symbolic expr. A symbolic expression has the syntax:
+   * <sexpr> := (<sexpr>*) | <symbol> | <spec_constant>
+   * The returned term has AST that consists of applications of SEXPR (for the
+   * first case of the BNF) and constant strings (for the latter two cases).
+   */
+  Term parseSymbolicExpr();
+  /**
    * Parse symbol, which returns the string of the parsed symbol if the next
    * token is a valid smt2 symbol.
    *
