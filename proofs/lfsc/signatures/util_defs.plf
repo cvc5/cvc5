@@ -26,12 +26,12 @@
 (declare bvc (! b bit (! v bitvec bitvec)))
 
 ; Returns term t if v1 = v2, and term s otherwise.
-(program mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term
+(function mpz_ifequal ((v1 mpz) (v2 mpz) (t term) (s term)) term
   (mp_ifzero (mp_add (mp_neg v1) v2) t s)
 )
 
 ; Returns true if 0 <= c <= 1
-(program mpq_between_zero_one ((c mpq)) Ok
+(function mpq_between_zero_one ((c mpq)) Ok
   (mp_ifneg c
     (fail Ok)
     (let c2 (mp_add c (mp_neg 1/1))
@@ -40,11 +40,11 @@
 ;; ---- Side conditions
 
 ; Get the argument from an f-application t, fail if t is not an f-application.
-(program getarg ((f term) (t term)) term
+(function getarg ((f term) (t term)) term
   (match t ((apply t1 t2) (ifequal t1 f t2 (fail term)))))
 
 ; Get the argument from an f-application t, return the term t itself if it is not an f-application.
-(program try_getarg ((f term) (t term)) term
+(function try_getarg ((f term) (t term)) term
   (match t ((apply t1 t2) (ifequal t1 f t2 t)) (default t)))
 
 ; Convert to original form.
@@ -55,7 +55,7 @@
 ; method is commonly used to recovert the "unpurified" version of a term, so
 ; that certain reasoning steps e.g. witness sharing (see Reynolds et al
 ; FMCAD 2020) can be justified.
-(program sc_to_original ((t term)) term
+(function sc_to_original ((t term)) term
   (match t
     ((apply t1 t2) (apply (sc_to_original t1) (sc_to_original t2)))
     ((skolem w)
