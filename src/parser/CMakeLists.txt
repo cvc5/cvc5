@@ -17,6 +17,10 @@ find_package(ANTLR3 3.4 REQUIRED)
 
 # Java runtime is required for ANTLR
 find_package(Java COMPONENTS Runtime REQUIRED)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex")
+endif()
 find_package(FLEX REQUIRED)
 
 #-----------------------------------------------------------------------------#
