@@ -143,7 +143,7 @@ bool isSingletonClause(TNode res,
                        const std::vector<Node>& children,
                        const std::vector<Node>& args);
 
-}  // namespace expr
+}  // namespace proof
 }  // namespace cvc5::internal
 
 #endif

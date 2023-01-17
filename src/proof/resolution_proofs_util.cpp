@@ -16,8 +16,8 @@
 #include "proof/resolution_proofs_util.h"
 
 #include "proof/proof.h"
-#include "proof/proof_node_manager.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node_manager.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -658,5 +658,5 @@ bool isSingletonClause(TNode res,
   return i == children.size();
 }
 
-}  // namespace expr
+}  // namespace proof
 }  // namespace cvc5::internal
