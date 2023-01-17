@@ -38,7 +38,7 @@ class Smt2TermParser
 
   /** Parse an SMT-LIB sort <sort> */
   Sort parseSort();
-  /** Parses parentheses-enclosed sort list (<sort>)*) */
+  /** Parses parentheses-enclosed sort list (<sort>*) */
   std::vector<Sort> parseSortList();
   /**
    * Parse parentheses-enclosed sorted variable list of the form:
