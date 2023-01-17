@@ -31,7 +31,9 @@ runs:
           libfl-dev \
           flexc++ \
           texinfo
-        makeinfo -h
+        # nocheckin
+        sudo mv /usr/bin/makeinfo /usr/bin/makeinfo.bak
+        sudo ln -s /opt/local/bin/makeinfo /usr/bin/makeinfo
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
