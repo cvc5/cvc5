@@ -52,6 +52,10 @@ echo "Building pycvc5 wheel"
 pushd build_wheel
 python ../contrib/packaging_python/mk_wheel.py bdist_wheel -d dist
 
+# nocheckin
+echo "NOCHECKIN"
+cat /home/pycvc5/build_wheel/deps/src/GMP-EP-stamp/GMP-EP-build.log
+
 cd dist
 
 # resolve the links and bundle the library with auditwheel
