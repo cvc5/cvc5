@@ -239,7 +239,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         // visit the relevant child
         size_t rcindex;
         SatValue rcval;
-        if (nk==ITE)
+        if (nk == ITE)
         {
           // take the relevant branch, whose relevance is equal to this
           rcindex = cval == SAT_VALUE_TRUE ? 2 : 3;
@@ -250,7 +250,8 @@ prop::SatValue PropFinder::updateRelevantInternal2(
           // take the right hand side, whose relevance may be inverted based on
           // the value of the left hand side.
           rcindex = 2;
-          bool invertChild = (cval==(nk==EQUAL ? SAT_VALUE_FALSE : SAT_VALUE_TRUE));
+          bool invertChild =
+              (cval == (nk == EQUAL ? SAT_VALUE_FALSE : SAT_VALUE_TRUE));
           rcval = invertChild ? invertValue(rval) : rval;
         }
         TNode nextChild = n[rcindex - 1];
