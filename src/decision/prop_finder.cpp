@@ -57,7 +57,8 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
 {
   for (TNode d : defs)
   {
-    Trace("prop-finder") << "PropFinder: add skolem definition " << d << std::endl;
+    Trace("prop-finder") << "PropFinder: add skolem definition " << d
+                         << std::endl;
     updateRelevant(d, toPreregister);
   }
 }
@@ -264,7 +265,8 @@ prop::SatValue PropFinder::updateRelevantInternal2(
   }
   else
   {
-    Trace("prop-finder-debug") << "...preregister theory literal " << n << std::endl;
+    Trace("prop-finder-debug")
+        << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
     currInfo->d_rvalProcessed = true;
@@ -291,9 +293,10 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
   }
   PropFindInfo* currInfo = getInfo(n);
   // if we haven't allocated yet, set the relevance value directly
-  if (currInfo==nullptr)
+  if (currInfo == nullptr)
   {
-    Trace("prop-finder-debug") << "Mark " << n << " as relevant with polarity " << val << std::endl;
+    Trace("prop-finder-debug")
+        << "Mark " << n << " as relevant with polarity " << val << std::endl;
     currInfo = mkInfo(n);
     currInfo->d_rval = val;
     return;
@@ -304,7 +307,9 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
   prop::SatValue newVal = relevantUnion(val, prevVal);
   if (newVal != prevVal)
   {
-    Trace("prop-finder-debug") << "Mark (update) " << n << " as relevant with polarity " << newVal << std::endl;
+    Trace("prop-finder-debug")
+        << "Mark (update) " << n << " as relevant with polarity " << newVal
+        << std::endl;
     // update relevance value and reset counters
     currInfo->d_rval = newVal;
     currInfo->d_childIndex = 0;
@@ -314,7 +319,8 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
 
 void PropFinder::markWatchedParent(TNode child, TNode parent)
 {
-  Trace("prop-finder-debug") << "Mark watched " << child << " with parent " << parent << std::endl;
+  Trace("prop-finder-debug")
+      << "Mark watched " << child << " with parent " << parent << std::endl;
   TNode childAtom = child.getKind() == NOT ? child[0] : child;
   Assert(childAtom.getKind() != NOT);
   Assert(parent.getKind() != NOT);
