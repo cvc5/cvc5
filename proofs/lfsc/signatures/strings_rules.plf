@@ -7,7 +7,7 @@
                                     (holds (not (= (str.len s) (int 0)))))))))
 
 ; Computes the conclusion of the PfRule::CONCAT_EQ rule
-(program sc_concat_eq ((s term) (t term) (rev flag) (u sort)) term
+(function sc_concat_eq ((s term) (t term) (rev flag) (u sort)) term
   (match (sc_strip_prefix
            (sc_string_to_flat_form s rev u) 
            (sc_string_to_flat_form t rev u) u)
@@ -28,7 +28,7 @@
 ; Helper method for PfRule::CONCAT_UNIFY. Returns ok if s or a prefix of its
 ; head is equal to s1, where the (suffix of the) head of the reverse of s is
 ; checked if rev is tt. Fails otherwise.
-(program sc_concat_head_or_self ((s term) (s1 term) (rev flag) (u sort)) Ok
+(function sc_concat_head_or_self ((s term) (s1 term) (rev flag) (u sort)) Ok
   (ifequal s s1
     ok
     (let ss (sc_string_rev s rev u)
@@ -50,7 +50,7 @@
 
 ; Computes whether the heads of the premise (= s t) match s1 and t1 for the
 ; PfRule::CONCAT_UNIFY rule
-(program sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag) (u sort)) Ok
+(function sc_concat_unify ((s term) (t term) (s1 term) (t1 term) (rev flag) (u sort)) Ok
   (ifequal (sc_concat_head_or_self s s1 rev u) ok
     (ifequal (sc_concat_head_or_self t t1 rev u) ok
       ok
@@ -69,7 +69,7 @@
                           (holds (= s1 t1))))))))))))
 
 ; Computes the conclusion of the PfRule::CONCAT_CSPLIT rule
-(program sc_concat_csplit ((thead term) (t term) (s term) (rev flag) (u sort)) term
+(function sc_concat_csplit ((thead term) (t term) (s term) (rev flag) (u sort)) term
   (match (sc_string_to_flat_form t rev u)
     ((apply t1 t2)
       (ifequal (getarg f_str.++ t1) thead
@@ -99,7 +99,7 @@
 
 ; Checks whether the conditions on the premise (= s t) is satisfied for the
 ; PfRule::CONCAT_CONFLICT rule
-(program sc_concat_conflict ((s term) (t term) (rev flag) (u sort)) Ok
+(function sc_concat_conflict ((s term) (t term) (rev flag) (u sort)) Ok
   (match (sc_strip_prefix
            (sc_string_to_flat_form s rev u)
            (sc_string_to_flat_form t rev u) u)
@@ -122,7 +122,7 @@
 ; justification for the clashing characters is given in the form of a
 ; disequality. This is due to the fact that check whether a term is value is
 ; not a simple syntactic check for some types.
-(program sc_concat_conflict_deq ((s term) (t term) (sc term) (tc term) (rev flag) (u sort)) Ok
+(function sc_concat_conflict_deq ((s term) (t term) (sc term) (tc term) (rev flag) (u sort)) Ok
   (match (sc_strip_prefix
            (sc_string_to_flat_form s rev u)
            (sc_string_to_flat_form t rev u) u)
@@ -144,7 +144,7 @@
                              (! r (^ (sc_concat_conflict_deq s t sc tc rev u) ok)
                                 (holds false)))))))))))
 
-(program sc_string_length_pos ((t term) (u sort)) term
+(function sc_string_length_pos ((t term) (u sort)) term
   (or (and (= (str.len t) (int 0)) (and (= t (sc_mk_emptystr u)) true)) (or (a.> (str.len t) (int 0)) false))
 )
 
@@ -164,7 +164,7 @@
   (holds r))))))
 
 ; Computes the conclusion of PfRule::RE_UNFOLD_POS
-(program sc_re_unfold_pos ((t term) (r term)) term
+(function sc_re_unfold_pos ((t term) (r term)) term
   (match r
     ((apply r1 r2)
       (match r1

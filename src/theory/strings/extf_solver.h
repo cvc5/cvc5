@@ -119,11 +119,18 @@ class ExtfSolver : protected EnvObj
    * and F is a formula that constrains k based on the definition of f.
    *
    * For more details, this is step 7 from Strategy 1 in Reynolds et al,
-   * CAV 2017. We stratify this in practice, where calling this with effort=1
-   * reduces some of the "easier" extended functions, and effort=2 reduces
-   * the rest.
+   * CAV 2017. We stratify this in practice based on the effort level,
+   * where for instance, we reduce negatively asserted str.contains only
+   * at LAST_CALL effort. For more information see discussion of "model-based
+   * reductions" in Reynolds et al CAV 2022.
    */
-  void checkExtfReductions(int effort);
+  void checkExtfReductions(Theory::Effort e);
+  /**
+   * Check for extended functions that should be applied eagerly. This is
+   * called earlier in the search strategy of strings, in particular before
+   * the core equality reasoning is done.
+   */
+  void checkExtfReductionsEager();
   /** get preprocess module */
   StringsPreprocess* getPreprocess() { return &d_preproc; }
 
@@ -176,6 +183,21 @@ class ExtfSolver : protected EnvObj
    * string.
    */
   std::string debugPrintModel();
+
+  /**
+   * Is extended function (or regular expression membership) reduced? Note that
+   * if n has Boolean type, our reductions are dependent upon the polarity of n,
+   * in which case n may be the negation of an extended function. For
+   * example, (not (str.in_re x R)) indicates that we have reduced
+   * (str.in_re x R) based on its negative unfolding.
+   */
+  bool isReduced(const Node& n) const;
+  /**
+   * Mark that extended function (or regular expression membership) n has been
+   * reduced. Like above, n could be a negation of an extended function of
+   * Boolean type.
+   */
+  void markReduced(const Node& n);
 
  private:
   /**

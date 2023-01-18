@@ -28,7 +28,7 @@ jobs:
             binary-name: cvc5-macOS
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
+          
           - name: macos:production-arm64
             os: macos-12
             config: production --auto-download --python-bindings --editline --arm64

@@ -509,7 +509,6 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
                           const TermTupleEnumeratorEnv* env,
                           Node pool)
       : TermTupleEnumeratorBase(quantifier, env),
-        d_tp(env->d_tr->getTermPools()),
         d_pool(pool)
   {
     Assert(d_pool.getKind() == kind::INST_POOL);
@@ -518,8 +517,6 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   virtual ~TermTupleEnumeratorPool() = default;
 
  protected:
-  /** Pointer to the term pool utility */
-  TermPools* d_tp;
   /** The pool annotation */
   Node d_pool;
   /**  a list of terms for each id */
@@ -530,7 +527,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
     Assert(d_pool.getNumChildren() > variableIx);
     // prepare terms from pool
     d_poolList[variableIx].clear();
-    d_tp->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
+    d_env->d_tr->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
     Trace("pool-inst") << "Instantiation Terms for child " << variableIx << ": "
                        << d_poolList[variableIx] << std::endl;
     return d_poolList[variableIx].size();

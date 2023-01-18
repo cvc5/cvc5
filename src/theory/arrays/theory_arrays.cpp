@@ -980,7 +980,7 @@ void TheoryArrays::computeCareGraph()
       // Also, insert this read in the list at the proper index
 
       if (!x_shared.isConst()) {
-        x_shared = d_valuation.getModelValue(x_shared);
+        x_shared = d_valuation.getCandidateModelValue(x_shared);
       }
       if (!x_shared.isNull()) {
         CTNodeList* temp;

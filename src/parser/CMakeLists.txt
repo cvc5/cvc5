@@ -40,6 +40,10 @@ set(libcvc5parser_src_files
   bounded_token_factory.h
   flex_input.cpp
   flex_input.h
+  flex_lexer.cpp
+  flex_lexer.h
+  flex_parser.cpp
+  flex_parser.h
   input.cpp
   input.h
   input_parser.cpp
@@ -63,10 +67,15 @@ set(libcvc5parser_src_files
   smt2/smt2_antlr.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_lexer.h
+  smt2/smt2_term_parser.cpp
+  smt2/smt2_term_parser.h
   smt2/sygus_input.cpp
   smt2/sygus_input.h
   symbol_table.cpp
   symbol_table.h
+  tokens.cpp
+  tokens.h
   tptp/tptp.cpp
   tptp/tptp.h
   tptp/tptp_antlr.cpp
