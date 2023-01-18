@@ -34,8 +34,6 @@ class PropFindInfo
 {
  public:
   PropFindInfo(context::Context* c);
-  /** Whether we have processed relevance */
-  context::CDO<bool> d_rvalProcessed;
   /** The iteration */
   context::CDO<size_t> d_iter;
   /** The relevant value */
@@ -60,6 +58,8 @@ class PropFinder : protected EnvObj
  public:
   PropFinder(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
   ~PropFinder();
+  /** theory check */
+  void check(std::vector<TNode>& toPreregister);
   /** Notify assertion */
   void addAssertion(TNode n,
                     TNode skolem,
@@ -91,6 +91,7 @@ class PropFinder : protected EnvObj
   PropFindInfo* getOrMkInfo(TNode n);
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo>> d_pstate;
+  /** The assertions list */
   /** Null node */
   TNode d_null;
   /** A justification cache */

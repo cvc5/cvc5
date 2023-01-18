@@ -163,6 +163,8 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+  // check with the preregistrar
+  d_prr->check();
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();

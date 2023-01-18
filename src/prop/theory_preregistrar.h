@@ -44,6 +44,8 @@ class TheoryPreregistrar : protected EnvObj
   ~TheoryPreregistrar();
   /** Do we need to be informed of activated skolem definitions? */
   bool needsActiveSkolemDefs() const;
+  /** theory check */
+  void check();
   /** Notify assertion */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify that skolem definitions have become active */

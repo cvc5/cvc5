@@ -22,21 +22,11 @@ namespace cvc5::internal {
 namespace decision {
 
 PropFindInfo::PropFindInfo(context::Context* c)
-    : d_rvalProcessed(c, false),
-      d_iter(c, 0),
+    : d_iter(c, 0),
       d_rval(c, SAT_VALUE_UNKNOWN),
       d_childIndex(c, 0),
       d_parentList(c)
 {
-}
-
-void PropFindInfo::setInactive()
-{
-  d_rvalProcessed = true;
-}
-bool PropFindInfo::isActive() const
-{
-  return !d_rvalProcessed.get();
 }
 
 PropFinder::PropFinder(Env& env,
@@ -48,6 +38,11 @@ PropFinder::PropFinder(Env& env,
 
 PropFinder::~PropFinder() {}
 
+void PropFinder::check(std::vector<TNode>& toPreregister)
+{
+  
+}
+  
 void PropFinder::addAssertion(TNode n,
                               TNode skolem,
                               bool isLemma,
@@ -192,7 +187,6 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         {
           // mark watch from prevChild to this
           markWatchedParent(prevChild, n);
-          //currInfo->setInactive();
           toVisit.pop_back();
           return SAT_VALUE_UNKNOWN;
         }
@@ -263,7 +257,6 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         // value is unknown, we are done for now
         // mark watch from n[cindex-1] to this
         markWatchedParent(n[cindex - 1], n);
-        //currInfo->setInactive();
         toVisit.pop_back();
         return SAT_VALUE_UNKNOWN;
       }
@@ -318,7 +311,6 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
-    //currInfo->setInactive();
     toPreregister.push_back(n);
     // don't need to bother setting justified as the value of theory atoms is
     // handled in justify cache.

@@ -40,6 +40,16 @@ bool TheoryPreregistrar::needsActiveSkolemDefs() const
   return options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT;
 }
 
+void TheoryPreregistrar::check()
+{
+  if (d_propFinder != nullptr)
+  {
+    std::vector<TNode> toPreregister;
+    d_propFinder->check(toPreregister);
+    preRegisterToTheory(toPreregister);
+  }
+}
+
 void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
   if (d_propFinder != nullptr)
