@@ -862,7 +862,7 @@ std::string Smt2TermParser::parseKeyword()
 Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
                                       const std::string& fun)
 {
-  // We read a sorted variable list.
+  // We read a sorted variable list ((<symbol> <sort>)^n+1)
   std::vector<std::pair<std::string, Sort>> sortedVarNames =
       parseSortedVarList();
   // non-terminal symbols in the pre-declaration are locally scoped
@@ -877,6 +877,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
     ntSyms.push_back(nts);
   }
   Grammar* ret = d_state.mkGrammar(sygusVars, ntSyms);
+  // Parse (<GroupedRuleList>^n+1)
   d_lex.eatToken(Token::LPAREN_TOK);
   for (size_t i = 0, nnts = ntSyms.size(); i < nnts; i++)
   {
@@ -901,7 +902,7 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
           << sortedVarNames[i].second << ")." << std::endl;
       d_lex.parseError(sse.str().c_str());
     }
-    // read the grouped rule listing
+    // read the grouped rule listing (<GTerm>+)
     d_lex.eatToken(Token::LPAREN_TOK);
     Token tok = d_lex.nextToken();
     while (tok != Token::RPAREN_TOK)

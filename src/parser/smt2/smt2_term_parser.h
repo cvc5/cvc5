@@ -77,10 +77,20 @@ class Smt2TermParser
    * Parses ':X', returns 'X'
    */
   std::string parseKeyword();
-  /** Parse grammar */
+  /**
+   * Parse grammar, SyGuS 2.1 <GrammarDef>, which has syntax:
+   * 
+   * <GrammarDef> := ((<symbol> <sort>)^n+1) (<GroupedRuleList>^n+1)
+   * <GroupedRuleList> := (<symbol> <Sort> (<GTerm>+))
+   * where <GTerm> is a term that additionally allows the SyGuS-specific
+   * grammar rules for Constant and Variable.
+   */
   Grammar* parseGrammar(const std::vector<Term>& sygusVars,
                         const std::string& fun);
-  /** Parse grammar, allow null */
+  /** 
+   * Parse optional grammar <GrammarDef>?, return null if a grammar was not
+   * parsed. 
+   */
   Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars,
                               const std::string& fun);
   /** Parse integer numeral */
