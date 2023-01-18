@@ -46,6 +46,10 @@ class TheoryEngineModule : protected EnvObj
    */
   TheoryEngineModule(Env& env, TheoryEngine* engine, const std::string& name);
   virtual ~TheoryEngineModule() {}
+  /** 
+   * presolve, called at the beginning of each check-sat.
+   */
+  virtual void presolve();
   /**
    * check, called at the beginning of a check in TheoryEngine.
    */

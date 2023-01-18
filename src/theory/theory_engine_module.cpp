@@ -25,6 +25,8 @@ TheoryEngineModule::TheoryEngineModule(Env& env,
 {
 }
 
+void TheoryEngineModule::presolve(){}
+
 void TheoryEngineModule::check(Theory::Effort effort) {}
 
 void TheoryEngineModule::postCheck(Theory::Effort effort) {}
