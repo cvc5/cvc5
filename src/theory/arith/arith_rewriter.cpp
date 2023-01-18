@@ -192,7 +192,7 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   {
     // see if we should convert the inequality to a bitvector inequality
     RewriteResponse rineqBv = rewriteIneqToBv(kind, sum, atom);
-    if (rineqBv.d_node!=atom)
+    if (rineqBv.d_node != atom)
     {
       return rineqBv;
     }
@@ -1133,7 +1133,9 @@ RewriteResponse ArithRewriter::returnRewrite(TNode t, Node ret, Rewrite r)
   return RewriteResponse(REWRITE_AGAIN_FULL, ret);
 }
 
-RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind, const rewriter::Sum& sum, const Node& ineq)
+RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind,
+                                               const rewriter::Sum& sum,
+                                               const Node& ineq)
 {
   bool convertible = true;
   // the (single) bv2nat term in the sum
@@ -1190,10 +1192,10 @@ RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind, const rewriter::Sum& s
     Node bvt = bv2natTerm[0];
     size_t bvsize = bvt.getType().getBitVectorSize();
     Node w = nm->mkConstInt(Rational(Integer(2).pow(bvsize)));
-    Node osum = otherSum.empty()
-                    ? zero
-                    : (otherSum.size() == 1 ? otherSum[0]
-                                            : nm->mkNode(ADD, otherSum));
+    Node osum =
+        otherSum.empty()
+            ? zero
+            : (otherSum.size() == 1 ? otherSum[0] : nm->mkNode(ADD, otherSum));
     Node o = bv2natPol ? nm->mkNode(NEG, osum) : osum;
     Node ub = nm->mkNode(GEQ, o, w);
     Node lb = nm->mkNode(LT, o, zero);
@@ -1206,8 +1208,7 @@ RewriteResponse ArithRewriter::rewriteIneqToBv(Kind kind, const rewriter::Sum& s
             ITE,
             lb,
             nm->mkConst(bv2natPol),
-            nm->mkNode(
-                bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
+            nm->mkNode(bvKind, bvt, nm->mkNode(INT_TO_BITVECTOR, iToBvop, o))));
     // E.g. (<= (bv2nat x) N) -->
     //      (ite (>= N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
     // or   (<= N (bv2nat x)) -->
