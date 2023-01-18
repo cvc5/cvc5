@@ -71,7 +71,6 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   updateRelevantInternal(toVisit, toPreregister);
 }
 
-
 void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
@@ -88,7 +87,6 @@ void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
   updateRelevantInternal(toVisit, toPreregister);
 }
 
-
 void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
                                         std::vector<TNode>& toPreregister)
 {
@@ -98,7 +96,7 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
   do
   {
     t = toVisit.back();
-    Assert (t.getKind()!=NOT);
+    Assert(t.getKind() != NOT);
     // update relevant
     prop::SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
     // if we found it was justified
@@ -299,8 +297,8 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
 
 void PropFinder::markWatchedParent(TNode child, TNode parent)
 {
-  TNode childAtom = child.getKind()==NOT ? child[0] : child;
-  Assert (childAtom.getKind()!=NOT);
+  TNode childAtom = child.getKind() == NOT ? child[0] : child;
+  Assert(childAtom.getKind() != NOT);
   Assert(parent.getKind() != NOT);
   PropFindInfo* currInfo = getOrMkInfo(childAtom);
   // add to parent list
@@ -311,7 +309,7 @@ void PropFinder::getWatchParents(TNode n, std::vector<TNode>& toVisit)
 {
   Assert(n.getKind() != NOT);
   PropFindInfo* currInfo = getInfo(n);
-  if (currInfo!=nullptr)
+  if (currInfo != nullptr)
   {
     for (const Node& p : currInfo->d_parentList)
     {
