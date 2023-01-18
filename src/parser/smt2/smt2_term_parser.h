@@ -36,8 +36,10 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
-  /** Parse an SMT-LIB term <term> */
+  /** Parses an SMT-LIB term <term> */
   Term parseTerm();
+  /** Parses parentheses-enclosed term list (<term>*) */
+  std::vector<Term> parseTermList();
   /** Parse an SMT-LIB sort <sort> */
   Sort parseSort();
   /** Parses parentheses-enclosed sort list (<sort>*) */

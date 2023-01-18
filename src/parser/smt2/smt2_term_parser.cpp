@@ -34,6 +34,21 @@ Term Smt2TermParser::parseTerm()
   return ret;
 }
 
+std::vector<Term> Smt2TermParser::parseTermList()
+{
+  d_lex.eatToken(Token::LPAREN_TOK);
+  std::vector<Term> terms;
+  Token tok = d_lex.nextToken();
+  while (tok != Token::RPAREN_TOK)
+  {
+    d_lex.reinsertToken(tok);
+    Term t = parseTerm();
+    terms.push_back(t);
+    tok = d_lex.nextToken();
+  }
+  return terms;
+}
+
 Term Smt2TermParser::parseSymbolicExpr()
 {
   Term ret;
