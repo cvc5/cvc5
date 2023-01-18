@@ -237,9 +237,24 @@ prop::SatValue PropFinder::updateRelevantInternal2(
       {
         // set the child index to the index of relevant child + 1
         // visit the relevant child
-        size_t rcindex = (nk != ITE || cval == SAT_VALUE_TRUE) ? 2 : 3;
+        size_t rcindex;
+        SatValue rcval;
+        if (nk==ITE)
+        {
+          // take the relevant branch, whose relevance is equal to this
+          rcindex = cval == SAT_VALUE_TRUE ? 2 : 3;
+          rcval = rval;
+        }
+        else
+        {
+          // take the right hand side, whose relevance may be inverted based on
+          // the value of the left hand side.
+          rcindex = 2;
+          bool invertChild = (cval==(nk==EQUAL ? SAT_VALUE_FALSE : SAT_VALUE_TRUE));
+          rcval = invertChild ? invertValue(rval) : rval;
+        }
         TNode nextChild = n[rcindex - 1];
-        markRelevant(nextChild, rval);
+        markRelevant(nextChild, rcval);
         toVisit.emplace_back(nextChild);
         currInfo->d_childIndex = rcindex;
       }
@@ -253,7 +268,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         }
         else
         {
-          // recompute the first child and compute the result
+          // look up the value of the first child and compute the result
           prop::SatValue cval0 = d_jcache.lookupValue(n[0]);
           Assert(cval0 != SAT_VALUE_UNKNOWN);
           newJval = (nk == XOR ? cval != cval0 : cval == cval0)
