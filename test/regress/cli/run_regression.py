@@ -564,7 +564,7 @@ def run_benchmark(benchmark_info):
             benchmark_info.timeout,
             error,
         )
-    # Make sure that the scrubber itself did not cause errors
+    # Make sure that the scrubber itself did not print anything to its error output
     if len(scrubber_error) != 0:
         print_error("The scrubber's error output not empty")
         print()
