@@ -62,6 +62,7 @@ enum class LfscRule : uint32_t
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,
   SKOLEMIZE,
+  BETA_REDUCE,
 
   // a lambda with argument
   LAMBDA,
