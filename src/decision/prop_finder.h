@@ -70,12 +70,11 @@ class PropFinder : protected EnvObj
  private:
   /** Set relevant */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
-  void updateRelevantInternal(TNode n,
-                              std::vector<TNode>& toPreregister);
+  void updateRelevantInternal(TNode n, std::vector<TNode>& toPreregister);
   prop::SatValue updateRelevantInternal2(TNode n,
-                                        std::vector<TNode>& toPreregister,
-                                                   std::vector<TNode>& toVisit);
-  
+                                         std::vector<TNode>& toPreregister,
+                                         std::vector<TNode>& toVisit);
+
   void markRelevant(TNode n, prop::SatValue val);
   void notifyWatchParents(TNode n);
   /** mk or get PropFindInfo */
