@@ -960,6 +960,8 @@ Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
                                             const std::string& fun)
 {
   Token t = d_lex.peekToken();
+  // note that we assume that the grammar is not present if the input continues
+  // with anything other than left parenthesis.
   if (t != Token::LPAREN_TOK)
   {
     return nullptr;
