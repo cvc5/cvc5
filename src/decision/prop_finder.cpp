@@ -48,6 +48,7 @@ void PropFinder::addAssertion(TNode n,
     // skolem definitions handled dynamically
     return;
   }
+  Trace("prop-finder") << "PropFinder: add assertion " << n << std::endl;
   updateRelevant(n, toPreregister);
 }
 
@@ -56,12 +57,14 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
 {
   for (TNode d : defs)
   {
+    Trace("prop-finder") << "PropFinder: add skolem definition " << d << std::endl;
     updateRelevant(d, toPreregister);
   }
 }
 
 void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
+  Trace("prop-finder") << "PropFinder: notify asserted " << n << std::endl;
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
   d_jcache.setValue(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
@@ -260,10 +263,13 @@ prop::SatValue PropFinder::updateRelevantInternal2(
   }
   else
   {
+    Trace("prop-finder-debug") << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
     currInfo->d_rvalProcessed = true;
     toPreregister.push_back(n);
+    // don't need to bother setting justified as the value of theory atoms is
+    // handled in justify cache.
   }
   return newJval;
 }
@@ -281,13 +287,22 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
   {
     return;
   }
+  PropFindInfo* currInfo = getInfo(n);
+  // if we haven't allocated yet, set the relevance value directly
+  if (currInfo==nullptr)
+  {
+    Trace("prop-finder-debug") << "Mark " << n << " as relevant with polarity " << val << std::endl;
+    currInfo = mkInfo(n);
+    currInfo->d_rval = val;
+    return;
+  }
   // Otherwise, take the union of relevant values. If we update our relevant
   // values, then we require processing relevance again.
-  PropFindInfo* currInfo = getOrMkInfo(n);
   prop::SatValue prevVal = currInfo->d_rval;
   prop::SatValue newVal = relevantUnion(val, prevVal);
   if (newVal != prevVal)
   {
+    Trace("prop-finder-debug") << "Mark (update) " << n << " as relevant with polarity " << newVal << std::endl;
     // update relevance value and reset counters
     currInfo->d_rval = newVal;
     currInfo->d_childIndex = 0;
@@ -297,6 +312,7 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
 
 void PropFinder::markWatchedParent(TNode child, TNode parent)
 {
+  Trace("prop-finder-debug") << "Mark watched " << child << " with parent " << parent << std::endl;
   TNode childAtom = child.getKind() == NOT ? child[0] : child;
   Assert(childAtom.getKind() != NOT);
   Assert(parent.getKind() != NOT);
