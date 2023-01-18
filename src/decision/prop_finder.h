@@ -63,8 +63,7 @@ class PropFinder : protected EnvObj
   /** Notify assertion */
   void addAssertion(TNode n,
                     TNode skolem,
-                    bool isLemma,
-                    std::vector<TNode>& toPreregister);
+                    bool isLemma);
   /** Notify active skolem definitions */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs,
                               std::vector<TNode>& toPreregister);
@@ -91,7 +90,10 @@ class PropFinder : protected EnvObj
   PropFindInfo* getOrMkInfo(TNode n);
   /** The state */
   context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo>> d_pstate;
-  /** The assertions list */
+  /** The list of assertions */
+  context::CDList<Node> d_assertions;
+  /** The index of the next assertion to satify */
+  context::CDO<size_t> d_assertionIndex;
   /** Null node */
   TNode d_null;
   /** A justification cache */

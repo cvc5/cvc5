@@ -54,9 +54,9 @@ void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
   if (d_propFinder != nullptr)
   {
-    std::vector<TNode> toPreregister;
-    d_propFinder->addAssertion(n, skolem, isLemma, toPreregister);
-    preRegisterToTheory(toPreregister);
+    // notice this does not trigger preregistration, instead the assertions
+    // are buffered
+    d_propFinder->addAssertion(n, skolem, isLemma);
   }
 }
 

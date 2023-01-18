@@ -167,12 +167,12 @@ void PropEngine::assertInputFormulas(
     std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
+  d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
   for (const Node& node : assertions)
   {
     Trace("prop") << "assertFormula(" << node << ")" << std::endl;
     assertInternal(node, false, false, true);
   }
-  d_theoryProxy->notifyInputFormulas(assertions, skolemMap);
 }
 
 void PropEngine::assertLemma(TrustNode tlemma, theory::LemmaProperty p)

@@ -32,7 +32,7 @@ PropFindInfo::PropFindInfo(context::Context* c)
 PropFinder::PropFinder(Env& env,
                        prop::CDCLTSatSolverInterface* ss,
                        prop::CnfStream* cs)
-    : EnvObj(env), d_pstate(context()), d_jcache(context(), ss, cs)
+    : EnvObj(env), d_pstate(context()), d_assertions(userContext()), d_assertionIndex(context(),0), d_jcache(context(), ss, cs)
 {
 }
 
@@ -40,13 +40,19 @@ PropFinder::~PropFinder() {}
 
 void PropFinder::check(std::vector<TNode>& toPreregister)
 {
-  
+  // ensure that all assertions have been marked
+  size_t asize = d_assertions.size();
+  while (d_assertionIndex.get()<asize)
+  {
+    TNode n = d_assertions[d_assertionIndex];
+    updateRelevant(n, toPreregister);
+    d_assertionIndex = d_assertionIndex+1;
+  }
 }
   
 void PropFinder::addAssertion(TNode n,
                               TNode skolem,
-                              bool isLemma,
-                              std::vector<TNode>& toPreregister)
+                              bool isLemma)
 {
   if (!skolem.isNull())
   {
@@ -54,7 +60,7 @@ void PropFinder::addAssertion(TNode n,
     return;
   }
   Trace("prop-finder") << "PropFinder: add assertion " << n << std::endl;
-  updateRelevant(n, toPreregister);
+  d_assertions.push_back(n);
 }
 
 void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
