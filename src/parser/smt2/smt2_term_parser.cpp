@@ -82,6 +82,125 @@ Term Smt2TermParser::parseSymbolicExpr()
   return ret;
 }
 
+Sort Smt2TermParser::parseSort()
+{
+  Sort ret;
+  Token tok;
+  std::vector<std::pair<std::string, std::vector<Sort>>> sstack;
+  do
+  {
+    tok = d_lex.nextToken();
+    switch (tok)
+    {
+      // ------------------- open paren
+      case Token::LPAREN_TOK:
+      {
+        tok = d_lex.nextToken();
+        switch (tok)
+        {
+          case Token::INDEX_TOK:
+          {
+            // a standalone indexed symbol
+            std::string name = parseSymbol(CHECK_NONE, SYM_SORT);
+            std::vector<std::string> numerals = parseNumeralList();
+            d_lex.eatToken(Token::RPAREN_TOK);
+            ret = d_state.getIndexedSort(name, numerals);
+          }
+          break;
+          case Token::SYMBOL:
+          case Token::QUOTED_SYMBOL:
+          {
+            // sort constructor identifier
+            std::string name = tokenStrToSymbol(tok);
+            // open a new stack frame
+            std::vector<Sort> emptyArgs;
+            sstack.emplace_back(name, emptyArgs);
+          }
+          break;
+          default:
+            // NOTE: it is possible to have sorts e.g.
+            // ((_ FixedSizeList 4) Real) where tok would be LPAREN_TOK here.
+            // However, we have no such examples in cvc5 currently.
+            d_lex.unexpectedTokenError(tok,
+                                       "Expected SMT-LIBv2 sort constructor");
+            break;
+        }
+      }
+      break;
+      // ------------------- close paren
+      case Token::RPAREN_TOK:
+      {
+        if (sstack.empty())
+        {
+          d_lex.unexpectedTokenError(
+              tok, "Mismatched parentheses in SMT-LIBv2 sort");
+        }
+        // Construct the (parametric) sort specified by sstack.back()
+        ret = d_state.getParametricSort(sstack.back().first,
+                                        sstack.back().second);
+        // pop the stack
+        sstack.pop_back();
+      }
+      break;
+      // ------------------- a simple (defined or builtin) sort
+      case Token::SYMBOL:
+      case Token::QUOTED_SYMBOL:
+      {
+        std::string name = tokenStrToSymbol(tok);
+        ret = d_state.getSort(name);
+      }
+      break;
+      default:
+        d_lex.unexpectedTokenError(tok, "Expected SMT-LIBv2 sort");
+        break;
+    }
+    if (!ret.isNull())
+    {
+      // add it to the list and reset ret
+      if (!sstack.empty())
+      {
+        sstack.back().second.push_back(ret);
+        ret = Sort();
+      }
+      // otherwise it will be returned
+    }
+  } while (!sstack.empty());
+  Assert(!ret.isNull());
+  return ret;
+}
+
+std::vector<Sort> Smt2TermParser::parseSortList()
+{
+  d_lex.eatToken(Token::LPAREN_TOK);
+  std::vector<Sort> sorts;
+  Token tok = d_lex.nextToken();
+  while (tok != Token::RPAREN_TOK)
+  {
+    d_lex.reinsertToken(tok);
+    Sort s = parseSort();
+    sorts.push_back(s);
+    tok = d_lex.nextToken();
+  }
+  return sorts;
+}
+
+std::vector<std::pair<std::string, Sort>> Smt2TermParser::parseSortedVarList()
+{
+  std::vector<std::pair<std::string, Sort>> varList;
+  d_lex.eatToken(Token::LPAREN_TOK);
+  std::string name;
+  Sort t;
+  // while the next token is LPAREN, exit if RPAREN
+  while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+  {
+    name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+    t = parseSort();
+    varList.emplace_back(name, t);
+    d_lex.eatToken(Token::RPAREN_TOK);
+  }
+  return varList;
+}
+
 std::string Smt2TermParser::parseSymbol(DeclarationCheck check, SymbolType type)
 {
   Token tok = d_lex.nextToken();
@@ -203,17 +322,16 @@ void Smt2TermParser::unescapeString(std::string& s)
           "as escape sequences");
     }
   }
-  size_t i=0;
-  while (i<s.size())
+  size_t dst = 0;
+  for (size_t src = 0; src<s.size(); ++src, ++dst)
   {
-    if (s[i]=='"')
+    s[dst] = s[src];
+    if (s[src]=='"')
     {
-      // "" becomes "
-      Assert (i+1<s.size() && s[i+1]=='"');
-      s.erase(i,1);
+      ++src;
     }
-    i++;
   }
+  s.erase(dst);
 }
 
 }  // namespace parser

@@ -36,6 +36,15 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
+  /** Parse an SMT-LIB sort <sort> */
+  Sort parseSort();
+  /** Parses parentheses-enclosed sort list (<sort>*) */
+  std::vector<Sort> parseSortList();
+  /**
+   * Parse parentheses-enclosed sorted variable list of the form:
+   * ((<symbol> <sort>)*)
+   */
+  std::vector<std::pair<std::string, Sort>> parseSortedVarList();
   /**
    * Parses an SMT-LIB symbolic expr. A symbolic expression has the syntax:
    * <sexpr> := (<sexpr>*) | <symbol> | <spec_constant>
