@@ -40,7 +40,7 @@ PropFinder::~PropFinder() {}
 
 void PropFinder::check(std::vector<TNode>& toPreregister)
 {
-  // ensure that all assertions have been marked
+  // ensure that all assertions have been marked as relevant
   size_t asize = d_assertions.size();
   while (d_assertionIndex.get()<asize)
   {
@@ -59,6 +59,7 @@ void PropFinder::addAssertion(TNode n,
     // skolem definitions handled dynamically
     return;
   }
+  // buffer it into the list of assertions
   Trace("prop-finder") << "PropFinder: add assertion " << n << std::endl;
   d_assertions.push_back(n);
 }
@@ -79,6 +80,9 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   Trace("prop-finder") << "PropFinder: notify asserted " << n << std::endl;
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
+  // update relevant, which will ensure that natom is preregistered if not
+  // already done so
+  updateRelevant(natom, toPreregister);
   // we don't set justified explicity here, instead the parent(s) will query the
   // value of n
   std::vector<TNode> toVisit;
@@ -311,13 +315,16 @@ prop::SatValue PropFinder::updateRelevantInternal2(
       }
     }
   }
-  else
+  else if (cindex==0)
   {
     Trace("prop-finder-debug")
         << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
     toPreregister.push_back(n);
+    // this ensures we don't preregister the same literal twice
+    currInfo->d_childIndex = 1;
+    currInfo->d_rval = SAT_VALUE_UNKNOWN;
     // don't need to bother setting justified as the value of theory atoms is
     // handled in justify cache.
   }
