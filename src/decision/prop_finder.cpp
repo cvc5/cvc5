@@ -22,13 +22,16 @@ namespace cvc5::internal {
 namespace decision {
 
 PropFindInfo::PropFindInfo(context::Context* c)
-    : d_rval(c, SAT_VALUE_UNKNOWN), d_jval(c, SAT_VALUE_UNKNOWN), d_childIndex(c, 0), d_parentList(c)
+    : d_rval(c, SAT_VALUE_UNKNOWN),
+      d_jval(c, SAT_VALUE_UNKNOWN),
+      d_childIndex(c, 0),
+      d_parentList(c)
 {
 }
 
 bool PropFindInfo::hasJustified() const
 {
-  return d_jval.get()!=SAT_VALUE_UNKNOWN;
+  return d_jval.get() != SAT_VALUE_UNKNOWN;
 }
 
 PropFinder::PropFinder(Env& env,
@@ -258,7 +261,6 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 #endif
 }
 
-
 // TODO: queue is argument?
 void PropFinder::notifyParentInternal(TNode n, bool childVal)
 {
@@ -327,7 +329,8 @@ void PropFinder::notifyParentInternal(TNode n, bool childVal)
 
 PropFindInfo* PropFinder::getInfo(TNode n)
 {
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator it = d_pstate.find(n);
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
+      it = d_pstate.find(n);
   if (it != d_pstate.end())
   {
     return it->second.get();
@@ -337,16 +340,16 @@ PropFindInfo* PropFinder::getInfo(TNode n)
 
 PropFindInfo* PropFinder::mkInfo(TNode n)
 {
-  Assert (d_pstate.find(n)==d_pstate.end());
+  Assert(d_pstate.find(n) == d_pstate.end());
   std::shared_ptr<PropFindInfo> pi = std::make_shared<PropFindInfo>(context());
   d_pstate.insert(n, pi);
   return pi.get();
 }
 
 PropFindInfo* PropFinder::getOrMkInfo(TNode n)
-{ 
+{
   PropFindInfo* pi = getInfo(n);
-  if (pi!=nullptr)
+  if (pi != nullptr)
   {
     return pi;
   }
@@ -355,7 +358,7 @@ PropFindInfo* PropFinder::getOrMkInfo(TNode n)
 
 prop::SatValue PropFinder::relevantUnion(prop::SatValue r1, prop::SatValue r2)
 {
-  return r1==r2 ? r1 : SAT_VALUE_UNKNOWN;
+  return r1 == r2 ? r1 : SAT_VALUE_UNKNOWN;
 }
 
 }  // namespace decision

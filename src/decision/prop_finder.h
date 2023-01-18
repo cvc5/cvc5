@@ -40,7 +40,7 @@ class PropFindInfo
   context::CDO<prop::SatValue> d_jval;
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
-  /** 
+  /**
    * Parent list, the node we are a child of, the second in pair is our
    * polarity, e.g. false means we are a negated child.
    */
@@ -81,7 +81,7 @@ class PropFinder : protected EnvObj
   /** mk or get PropFindInfo */
   PropFindInfo* getOrMkInfo(TNode n);
   /** The state */
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> > d_pstate;
+  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo>> d_pstate;
   /** Null node */
   TNode d_null;
   /** A justification cache */
