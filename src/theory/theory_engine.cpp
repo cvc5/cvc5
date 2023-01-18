@@ -673,12 +673,12 @@ bool TheoryEngine::presolve() {
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::presolve() => interrupted" << endl;
   }
-  //presolve with the theory engine modules as well
+  // presolve with the theory engine modules as well
   for (TheoryEngineModule* tem : d_modules)
   {
     tem->presolve();
   }
-  
+
   // return whether we have a conflict
   return false;
 }/* TheoryEngine::presolve() */
