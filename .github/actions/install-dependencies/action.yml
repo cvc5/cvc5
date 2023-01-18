@@ -30,7 +30,8 @@ runs:
           flex \
           libfl-dev \
           flexc++ \
-          texinfo
+          texinfo \
+          apt-file
         echo "nocheckin just installed texinfo"
         echo "apt-file"
         apt-file search makeinfo
