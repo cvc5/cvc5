@@ -65,6 +65,7 @@ void TheoryPreregistrar::notifyPreRegister(TNode n)
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
+    Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
   }
 }
@@ -87,6 +88,7 @@ void TheoryPreregistrar::notifyAsserted(TNode n)
   // otherwise, we always ensure it is preregistered now, which does nothing
   // if it is already preregistered
   TNode natom = n.getKind() == kind::NOT ? n[0] : n;
+  Trace("prereg") << "preregister (lazy): " << natom << std::endl;
   d_theoryEngine->preRegister(natom);
 }
 
@@ -95,6 +97,7 @@ void TheoryPreregistrar::preRegisterToTheory(
 {
   for (TNode n : toPreregister)
   {
+    Trace("prereg") << "preregister: " << n << std::endl;
     d_theoryEngine->preRegister(n);
   }
 }

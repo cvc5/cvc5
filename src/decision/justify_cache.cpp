@@ -65,9 +65,9 @@ prop::SatValue JustifyCache::lookupValue(TNode n)
   return SAT_VALUE_UNKNOWN;
 }
 
-bool JustifyCache::hasValue(TNode n)
+bool JustifyCache::hasValue(TNode n) const
 {
-  return lookupValue(n) != SAT_VALUE_UNKNOWN;
+  return d_justified.find(n)!=d_justified.end();
 }
 
 void JustifyCache::setValue(const Node& n, prop::SatValue value)

@@ -75,7 +75,7 @@ class PropFinder : protected EnvObj
   prop::SatValue updateRelevantInternal2(TNode n,
                                          std::vector<TNode>& toPreregister,
                                          std::vector<TNode>& toVisit);
-  void markRelevant(TNode n, prop::SatValue val);
+  bool markRelevant(TNode n, prop::SatValue val);
   void markWatchedParent(TNode child, TNode parent);
   void getWatchParents(TNode n, std::vector<TNode>& toVisit);
   /** mk or get PropFindInfo */

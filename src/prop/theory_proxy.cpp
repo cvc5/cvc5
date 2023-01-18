@@ -182,13 +182,11 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     // notify the preregister utility
     d_prr->notifyAsserted(assertion);
     // now, assert to theory engine
-    Trace("ajr-temp") << "assert: " << assertion << std::endl;
+    Trace("prereg") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
     if (d_trackActiveSkDefs)
     {
       Assert(d_skdm != nullptr);
-      Trace("sat-rlv-assert")
-          << "Assert to theory engine: " << assertion << std::endl;
       // Assertion makes all skolems in assertion active,
       // which triggers their definitions to becoming active.
       std::vector<TNode> activeSkolemDefs;
