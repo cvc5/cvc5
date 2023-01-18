@@ -28,6 +28,12 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 {
 }
 
+Term Smt2TermParser::parseTerm()
+{
+  Term ret;
+  return ret;
+}
+
 Term Smt2TermParser::parseSymbolicExpr()
 {
   Term ret;
