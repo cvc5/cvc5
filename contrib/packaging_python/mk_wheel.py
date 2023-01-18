@@ -72,6 +72,8 @@ class CMakeExtension(Extension):
 
 class CMakeBuild(build_ext):
     def run(self):
+        print("nocheckin os.environ = ")
+        print(os.environ)
         try:
             out = subprocess.check_output(['cmake', '--version'])
         except OSError:
