@@ -60,32 +60,67 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
   }
 }
 
-void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
+void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
-  if (d_jcache.hasValue(natom))
+  d_jcache.setValue(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
+  // set justified
+  std::vector<TNode> toVisit;
+  getWatchParents(natom, toVisit);
+  updateRelevantInternal(toVisit, toPreregister);
+}
+
+
+void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
+{
+  bool pol = n.getKind() != kind::NOT;
+  TNode nn = pol ? n : n[0];
+  if (d_jcache.hasValue(nn))
   {
     // already justified, we are done
     return;
   }
-  // set relevant
-  markRelevant(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
-  // update the relevance
-  std::vector<std::pair<TNode, bool>> justifyQueue;
-  updateRelevantInternal(natom, toPreregister);
+  // mark that the formula is relevant with its asserted polarity
+  markRelevant(nn, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
+  // process its relevance
+  std::vector<TNode> toVisit{nn};
+  updateRelevantInternal(toVisit, toPreregister);
 }
 
-/*
 
-- Is it worthwhile to cache index?
-
-- Invariants:
-  - If become justified, then we have called updateRelevantInternal on entire
-parent list.
-  - for 0...d_childIndex-1, all child of AND/OR are justified with non-forcing
-value
-*/
+void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
+                                        std::vector<TNode>& toPreregister)
+{
+  // (child, desired polarity), parent. We forbid NOT for child and parent.
+  std::vector<TNode> justifyQueue;
+  TNode t;
+  do
+  {
+    t = toVisit.back();
+    Assert (t.getKind()!=NOT);
+    // update relevant
+    prop::SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
+    // if we found it was justified
+    if (jval != SAT_VALUE_UNKNOWN)
+    {
+      // set its value in the justification cache
+      d_jcache.setValue(t, jval);
+      // add it to the queue for notifications
+      justifyQueue.emplace_back(t);
+    }
+    // If we are done visiting, process the justify queue, which will
+    // add parents to visit
+    if (toVisit.empty())
+    {
+      for (TNode jn : justifyQueue)
+      {
+        getWatchParents(jn, toVisit);
+      }
+      justifyQueue.clear();
+    }
+  } while (!toVisit.empty());
+}
 
 // NOTE: responsible for popping self from toVisit!!!!
 prop::SatValue PropFinder::updateRelevantInternal2(
@@ -128,7 +163,8 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         // done for now
         if (!watchAll)
         {
-          // TODO: mark watch from prevChild to this
+          // mark watch from prevChild to this
+          markWatchedParent(prevChild, n);
           currInfo->d_rvalProcessed = true;
           toVisit.pop_back();
           return SAT_VALUE_UNKNOWN;
@@ -188,7 +224,8 @@ prop::SatValue PropFinder::updateRelevantInternal2(
       if (cval == SAT_VALUE_UNKNOWN)
       {
         // value is unknown, we are done for now
-        // TODO: mark watch from n[cindex-1] to this
+        // mark watch from n[cindex-1] to this
+        markWatchedParent(n[cindex - 1], n);
         currInfo->d_rvalProcessed = true;
         toVisit.pop_back();
         return SAT_VALUE_UNKNOWN;
@@ -260,48 +297,28 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val)
   }
 }
 
-void PropFinder::updateRelevantInternal(TNode n,
-                                        std::vector<TNode>& toPreregister)
+void PropFinder::markWatchedParent(TNode child, TNode parent)
+{
+  TNode childAtom = child.getKind()==NOT ? child[0] : child;
+  Assert (childAtom.getKind()!=NOT);
+  Assert(parent.getKind() != NOT);
+  PropFindInfo* currInfo = getOrMkInfo(childAtom);
+  // add to parent list
+  currInfo->d_parentList.push_back(parent);
+}
+
+void PropFinder::getWatchParents(TNode n, std::vector<TNode>& toVisit)
 {
   Assert(n.getKind() != NOT);
-  // The nodes we discovered the justification for during this call.
-  std::vector<TNode> justified;
-  // (child, desired polarity), parent. We forbid NOT for child and parent.
-  std::vector<TNode> toVisit;
-  toVisit.emplace_back(n);
-  TNode t;
-  do
+  PropFindInfo* currInfo = getInfo(n);
+  if (currInfo!=nullptr)
   {
-    t = toVisit.back();
-    // update relevant
-    prop::SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
-    // if we found it was justified
-    if (jval != SAT_VALUE_UNKNOWN)
+    for (const Node& p : currInfo->d_parentList)
     {
-      // set its value in the justification cache
-      d_jcache.setValue(t, jval);
-      // add it to the queue for notifications
-      justified.emplace_back(t);
+      toVisit.emplace_back(p);
     }
-  } while (!toVisit.empty());
-
-  // process justification / parent notifies
-  for (TNode jn : justified)
-  {
-    notifyWatchParents(jn);
   }
 }
-
-void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
-{
-  bool pol = n.getKind() != kind::NOT;
-  TNode natom = pol ? n : n[0];
-  d_jcache.setValue(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
-  // set justified
-  notifyWatchParents(natom);
-}
-
-void PropFinder::notifyWatchParents(TNode n) {}
 
 PropFindInfo* PropFinder::getInfo(TNode n)
 {

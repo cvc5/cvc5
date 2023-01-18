@@ -41,10 +41,10 @@ class PropFindInfo
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /**
-   * Parent list, the node we are a child of, the second in pair is our
-   * polarity, e.g. false means we are a negated child.
+   * Parent list, a list of nodes that is waiting for the value of this node to
+   * be assigned.
    */
-  context::CDList<std::pair<Node, bool>> d_parentList;
+  context::CDList<Node> d_parentList;
   /** Has justified */
   bool isProcessed() const;
 };
@@ -70,13 +70,13 @@ class PropFinder : protected EnvObj
  private:
   /** Set relevant */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
-  void updateRelevantInternal(TNode n, std::vector<TNode>& toPreregister);
+  void updateRelevantInternal(std::vector<TNode>& toVisit, std::vector<TNode>& toPreregister);
   prop::SatValue updateRelevantInternal2(TNode n,
                                          std::vector<TNode>& toPreregister,
                                          std::vector<TNode>& toVisit);
-
   void markRelevant(TNode n, prop::SatValue val);
-  void notifyWatchParents(TNode n);
+  void markWatchedParent(TNode child, TNode parent);
+  void getWatchParents(TNode n, std::vector<TNode>& toVisit);
   /** mk or get PropFindInfo */
   PropFindInfo* getInfo(TNode n);
   /** mk or get PropFindInfo */
