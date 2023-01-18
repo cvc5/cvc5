@@ -1170,17 +1170,16 @@ void Smt2TermParser::unescapeString(std::string& s)
           "as escape sequences");
     }
   }
-  size_t i=0;
-  while (i<s.size())
+  size_t dst = 0;
+  for (size_t src = 0; src<s.size(); ++src, ++dst)
   {
-    if (s[i]=='"')
+    s[dst] = s[src];
+    if (s[src]=='"')
     {
-      // "" becomes "
-      Assert (i+1<s.size() && s[i+1]=='"');
-      s.erase(i,1);
+      ++src;
     }
-    i++;
   }
+  s.erase(dst);
 }
 
 ParseOp Smt2TermParser::continueParseIndexedIdentifier(bool isOperator)
