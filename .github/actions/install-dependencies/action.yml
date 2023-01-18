@@ -34,7 +34,8 @@ runs:
           apt-file
         echo "nocheckin just installed texinfo"
         echo "apt-file"
-        apt-file search makeinfo
+        sudo apt-file update
+        sudo apt-file search makeinfo
         echo "path"
         echo $PATH
         echo "nocheckin finished"
