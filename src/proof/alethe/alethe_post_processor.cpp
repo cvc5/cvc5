@@ -21,6 +21,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "proof/resolution_proofs_util.h"
 #include "smt/env.h"
 #include "theory/builtin/proof_checker.h"
 #include "util/rational.h"
@@ -443,7 +444,7 @@ bool AletheProofPostprocessCallback::update(Node res,
           newArgs.push_back(args[i]);
         }
       }
-      if (!expr::isSingletonClause(res, children, args))
+      if (!isSingletonClause(res, children, args))
       {
         return addAletheStepFromOr(
             AletheRule::RESOLUTION_OR, res, children, newArgs, *cdp);
