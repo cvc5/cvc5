@@ -36,17 +36,21 @@ class PropFindInfo
   PropFindInfo(context::Context* c);
   /** Whether we have processed relevance */
   context::CDO<bool> d_rvalProcessed;
+  /** The iteration */
+  context::CDO<size_t> d_iter;
   /** The relevant value */
   context::CDO<prop::SatValue> d_rval;
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /**
    * Parent list, a list of nodes that is waiting for the value of this node to
-   * be assigned.
+   * be assigned for the purposes of updating relevance.
    */
   context::CDList<Node> d_parentList;
-  /** Has justified */
-  bool isProcessed() const;
+  /** set finished */
+  void setInactive();
+  /** is finished */
+  bool isActive() const;
 };
 
 /**
@@ -75,7 +79,8 @@ class PropFinder : protected EnvObj
   prop::SatValue updateRelevantInternal2(TNode n,
                                          std::vector<TNode>& toPreregister,
                                          std::vector<TNode>& toVisit);
-  bool markRelevant(TNode n, prop::SatValue val);
+  void markRelevant(TNode n, prop::SatValue val,
+                                         std::vector<TNode>& toVisit);
   void markWatchedParent(TNode child, TNode parent);
   void getWatchParents(TNode n, std::vector<TNode>& toVisit);
   /** mk or get PropFindInfo */
