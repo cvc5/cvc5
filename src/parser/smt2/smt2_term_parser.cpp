@@ -28,6 +28,59 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 {
 }
 
+Term Smt2TermParser::parseSymbolicExpr()
+{
+  Term ret;
+  Token tok;
+  std::vector<std::vector<Term>> sstack;
+  Solver* slv = d_state.getSolver();
+  do
+  {
+    tok = d_lex.nextToken();
+    switch (tok)
+    {
+      // ------------------- open paren
+      case Token::LPAREN_TOK:
+      {
+        sstack.emplace_back(std::vector<Term>());
+      }
+      break;
+      // ------------------- close paren
+      case Token::RPAREN_TOK:
+      {
+        if (sstack.empty())
+        {
+          d_lex.unexpectedTokenError(
+              tok, "Mismatched parentheses in SMT-LIBv2 s-expression");
+        }
+        ret = slv->mkTerm(SEXPR, sstack.back());
+        // pop the stack
+        sstack.pop_back();
+      }
+      break;
+      // ------------------- base case
+      default:
+      {
+        // note that there are no tokens that are forbidden here
+        std::string str = d_lex.tokenStr();
+        ret = slv->mkString(d_state.processAdHocStringEsc(str));
+      }
+      break;
+    }
+    if (!ret.isNull())
+    {
+      // add it to the list and reset ret
+      if (!sstack.empty())
+      {
+        sstack.back().push_back(ret);
+        ret = Term();
+      }
+      // otherwise it will be returned
+    }
+  } while (!sstack.empty());
+  Assert(!ret.isNull());
+  return ret;
+}
 
 Sort Smt2TermParser::parseSort()
 {
