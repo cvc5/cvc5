@@ -129,6 +129,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
 {
   Assert(n.getKind() != NOT);
   PropFindInfo* currInfo = getInfo(n);
+  // we should have already been marked relevant
   Assert(currInfo != nullptr);
   // if we've processed relevance, we are done
   if (currInfo->d_rvalProcessed.get())
@@ -276,6 +277,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
 
 void PropFinder::markRelevant(TNode n, prop::SatValue val)
 {
+  // TODO: short cut if n is a theory literal, don't allocate cinfo
   if (n.getKind() == NOT)
   {
     n = n[0];
