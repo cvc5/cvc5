@@ -32,7 +32,11 @@ PropFindInfo::PropFindInfo(context::Context* c)
 PropFinder::PropFinder(Env& env,
                        prop::CDCLTSatSolverInterface* ss,
                        prop::CnfStream* cs)
-    : EnvObj(env), d_pstate(context()), d_assertions(userContext()), d_assertionIndex(context(),0), d_jcache(context(), ss, cs)
+    : EnvObj(env),
+      d_pstate(context()),
+      d_assertions(userContext()),
+      d_assertionIndex(context(), 0),
+      d_jcache(context(), ss, cs)
 {
 }
 
@@ -42,17 +46,15 @@ void PropFinder::check(std::vector<TNode>& toPreregister)
 {
   // ensure that all assertions have been marked as relevant
   size_t asize = d_assertions.size();
-  while (d_assertionIndex.get()<asize)
+  while (d_assertionIndex.get() < asize)
   {
     TNode n = d_assertions[d_assertionIndex];
     updateRelevant(n, toPreregister);
-    d_assertionIndex = d_assertionIndex+1;
+    d_assertionIndex = d_assertionIndex + 1;
   }
 }
-  
-void PropFinder::addAssertion(TNode n,
-                              TNode skolem,
-                              bool isLemma)
+
+void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
   if (!skolem.isNull())
   {
@@ -87,7 +89,8 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // value of n
   std::vector<TNode> toVisit;
   getWatchParents(natom, toVisit);
-  Trace("prop-finder-debug2") << "...will visit " << toVisit.size() << " parents" << std::endl;
+  Trace("prop-finder-debug2")
+      << "...will visit " << toVisit.size() << " parents" << std::endl;
   updateRelevantInternal(toVisit, toPreregister);
 }
 
@@ -122,7 +125,8 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
     // if we found it was justified
     if (jval != SAT_VALUE_UNKNOWN)
     {
-      Trace("prop-finder-debug") << "Mark " << t << " as justified " << jval << std::endl;
+      Trace("prop-finder-debug")
+          << "Mark " << t << " as justified " << jval << std::endl;
       // set its value in the justification cache
       d_jcache.setValue(t, jval);
       // add it to the queue for notifications
@@ -143,8 +147,7 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
 
 bool shouldWatchAll(Kind nk, prop::SatValue rval)
 {
-  return rval != SAT_VALUE_UNKNOWN
-                        && ((nk == AND) == (rval == SAT_VALUE_TRUE));
+  return rval != SAT_VALUE_UNKNOWN && ((nk == AND) == (rval == SAT_VALUE_TRUE));
 }
 
 // NOTE: responsible for popping self from toVisit!!!!
@@ -173,7 +176,9 @@ prop::SatValue PropFinder::updateRelevantInternal2(
   // if the justified value of n is found in this call, this is set to its value
   prop::SatValue newJval = SAT_VALUE_UNKNOWN;
   size_t cindex = currInfo->d_childIndex;
-  Trace("prop-finder-debug2") << "...relevance " << rval << ", childIndex " << cindex << ", iteration " << currInfo->d_iter << std::endl;
+  Trace("prop-finder-debug2")
+      << "...relevance " << rval << ", childIndex " << cindex << ", iteration "
+      << currInfo->d_iter << std::endl;
   Assert(cindex <= n.getNumChildren());
   if (nk == AND || nk == OR || nk == IMPLIES)
   {
@@ -193,7 +198,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         // value, or if we are in iter=1.
         // If we found an unknown child and aren't watching all children, we are
         // done for now.
-        if (iter==1 || !shouldWatchAll(nk, rval))
+        if (iter == 1 || !shouldWatchAll(nk, rval))
         {
           // mark watch from prevChild to this
           markWatchedParent(prevChild, n);
@@ -214,7 +219,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
     {
       if (cindex == n.getNumChildren())
       {
-        if (iter==1 || !shouldWatchAll(nk, rval))
+        if (iter == 1 || !shouldWatchAll(nk, rval))
         {
           // We didn't find a child to watch, this means we are in the exhausted
           // case. We set our value to the inverted forced value.
@@ -229,7 +234,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
       }
       else
       {
-        if (iter==0)
+        if (iter == 0)
         {
           // Otherwise, set the next child to relevant and add toVisit. We
           // will visit the current term again when we are finished.
@@ -249,7 +254,8 @@ prop::SatValue PropFinder::updateRelevantInternal2(
       }
     }
   }
-  else if (nk == ITE || (nk == EQUAL && n[0].getType().isBoolean()) || nk == XOR)
+  else if (nk == ITE || (nk == EQUAL && n[0].getType().isBoolean())
+           || nk == XOR)
   {
     Assert(cindex <= n.getNumChildren());
     if (cindex == 0)
@@ -315,7 +321,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
       }
     }
   }
-  else if (cindex==0)
+  else if (cindex == 0)
   {
     Trace("prop-finder-debug")
         << "...preregister theory literal " << n << std::endl;
@@ -331,7 +337,9 @@ prop::SatValue PropFinder::updateRelevantInternal2(
   return newJval;
 }
 
-void PropFinder::markRelevant(TNode n, prop::SatValue val, std::vector<TNode>& toVisit)
+void PropFinder::markRelevant(TNode n,
+                              prop::SatValue val,
+                              std::vector<TNode>& toVisit)
 {
   // TODO: short cut if n is a theory literal, don't allocate cinfo?
   // problem is that adding to preregister has to be handled somewhere
@@ -372,7 +380,7 @@ void PropFinder::markRelevant(TNode n, prop::SatValue val, std::vector<TNode>& t
     currInfo->d_iter = 0;
     toVisit.emplace_back(n);
   }
-  // otherwise did not update, don't add to stack. 
+  // otherwise did not update, don't add to stack.
 }
 
 void PropFinder::markWatchedParent(TNode child, TNode parent)

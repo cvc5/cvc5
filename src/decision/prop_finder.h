@@ -61,9 +61,7 @@ class PropFinder : protected EnvObj
   /** theory check */
   void check(std::vector<TNode>& toPreregister);
   /** Notify assertion */
-  void addAssertion(TNode n,
-                    TNode skolem,
-                    bool isLemma);
+  void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify active skolem definitions */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs,
                               std::vector<TNode>& toPreregister);
@@ -78,8 +76,7 @@ class PropFinder : protected EnvObj
   prop::SatValue updateRelevantInternal2(TNode n,
                                          std::vector<TNode>& toPreregister,
                                          std::vector<TNode>& toVisit);
-  void markRelevant(TNode n, prop::SatValue val,
-                                         std::vector<TNode>& toVisit);
+  void markRelevant(TNode n, prop::SatValue val, std::vector<TNode>& toVisit);
   void markWatchedParent(TNode child, TNode parent);
   void getWatchParents(TNode n, std::vector<TNode>& toVisit);
   /** mk or get PropFindInfo */
