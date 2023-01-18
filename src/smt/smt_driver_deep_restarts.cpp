@@ -108,6 +108,10 @@ void SmtDriverDeepRestarts::getNextAssertions(
     }
   }
   Trace("deep-restart") << "Finished compute deep restart" << std::endl;
+  // Note that the environment may contain top-level substitutions derived
+  // on the previous check-sat. Since the context does not change, these
+  // are preserved for the next check-sat, which ensures models involving
+  // variables appearing in top-level substitutions are correct.
 }
 
 }  // namespace smt

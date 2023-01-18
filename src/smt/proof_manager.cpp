@@ -240,7 +240,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp;
+    proof::AletheProofPrinter vpp(d_env);
     vpp.print(out, fp);
   }
   else if (mode == options::ProofFormatMode::LFSC)

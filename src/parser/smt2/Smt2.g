@@ -62,14 +62,16 @@ options {
 }/* @lexer::includes */
 
 @lexer::postinclude {
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_antlr.h"
 #include "parser/antlr_input.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;
 
+#undef PARSER_BASE
+#define PARSER_BASE ((Smt2*)LEXER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Smt2*)LEXER->super)
+#define PARSER_STATE PARSER_BASE->getSmt2State()
 }/* @lexer::postinclude */
 
 @parser::includes {
@@ -78,7 +80,7 @@ using namespace cvc5::parser;
 
 #include "base/check.h"
 #include "parser/parse_op.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/api/cpp/command.h"
 
 namespace cvc5 {
@@ -101,8 +103,8 @@ class Sort;
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "parser/antlr_input.h"
-#include "parser/parser.h"
-#include "parser/smt2/smt2.h"
+#include "parser/parser_antlr.h"
+#include "parser/smt2/smt2_antlr.h"
 #include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
@@ -112,8 +114,10 @@ using namespace cvc5::parser;
 /* These need to be macros so they can refer to the PARSER macro, which
  * will be defined by ANTLR *after* this section. (If they were functions,
  * PARSER would be undefined.) */
+#undef PARSER_BASE
+#define PARSER_BASE ((Smt2*)PARSER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Smt2*)PARSER->super)
+#define PARSER_STATE PARSER_BASE->getSmt2State()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef SYM_MAN
@@ -155,7 +159,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
      * the RPAREN_TOK is properly eaten and we are in a good state to read
      * the included file's tokens. */
   | LPAREN_TOK INCLUDE_TOK str[name, true] RPAREN_TOK
-    { if(!PARSER_STATE->canIncludeFile()) {
+    { if(!PARSER_BASE->canIncludeFile()) {
         PARSER_STATE->parseError("include-file feature was disabled for this "
                                  "run.");
       }
@@ -163,7 +167,7 @@ parseCommand returns [cvc5::parser::Command* cmd_return = NULL]
         PARSER_STATE->parseError("Extended commands are not permitted while "
                                  "operating in strict compliance mode.");
       }
-      PARSER_STATE->includeSmt2File(name);
+      PARSER_BASE->includeSmt2File(name);
       // The command of the included file will be produced at the next
       // parseCommand() call
       cmd.reset(new EmptyCommand("include::" + name));
@@ -236,10 +240,10 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
-        cvc5::Sort type = PARSER_STATE->mkSort(name);
+        cvc5::Sort type = SOLVER->mkUninterpretedSort(name);
         cmd->reset(new DeclareSortCommand(name, 0, type));
       } else {
-        cvc5::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
+        cvc5::Sort type = SOLVER->mkUninterpretedSortConstructorSort(arity, name);
         cmd->reset(new DeclareSortCommand(name, arity, type));
       }
     }
@@ -258,9 +262,6 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
     }
     sortSymbol[t]
     { PARSER_STATE->popScope();
-      // Do NOT call mkSort, since that creates a new sort!
-      // This name is not its own distinct sort, it's an alias.
-      PARSER_STATE->defineParameterizedType(name, sorts, t);
       cmd->reset(new DefineSortCommand(name, sorts, t));
     }
   | /* function declaration */
@@ -285,8 +286,7 @@ command [std::unique_ptr<cvc5::parser::Command>* cmd]
       }
       else
       {
-        cvc5::Term func =
-            PARSER_STATE->bindVar(name, t, true);
+        cvc5::Term func = SOLVER->mkConst(t, name);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -494,7 +494,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
     sortSymbol[t]
     {
       cvc5::Term var = SOLVER->declareSygusVar(name, t);
-      PARSER_STATE->defineVar(name, var);
       cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* synth-fun */
@@ -529,7 +528,6 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       Trace("parser-sygus") << "...read synth fun " << name << std::endl;
       PARSER_STATE->popScope();
       // we do not allow overloading for synth fun
-      PARSER_STATE->defineVar(name, fun);
       cmd = std::unique_ptr<cvc5::parser::Command>(
           new SynthFunCommand(name, fun, sygusVars, range, isInv, grammar));
     }
@@ -569,7 +567,7 @@ sygusCommand returns [std::unique_ptr<cvc5::parser::Command> cmd]
       if (name != ":grammars")
       {
         std::stringstream ss;
-        ss << "SyGuS feature " << name << " not currently supported";
+        ss << "SyGuS feature " << name.substr(1) << " not currently supported";
         PARSER_STATE->warning(ss.str());
       }
       cmd.reset(new EmptyCommand());
@@ -757,8 +755,7 @@ smt25Command[std::unique_ptr<cvc5::parser::Command>* cmd]
         PARSER_STATE->parseError("declare-const is not allowed in sygus "
                                  "version 2.0");
       }
-      cvc5::Term c =
-          PARSER_STATE->bindVar(name, t, true);
+      cvc5::Term c = SOLVER->mkConst(t, name);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -956,7 +953,6 @@ extendedCommand[std::unique_ptr<cvc5::parser::Command>* cmd]
     )* RPAREN_TOK
     { Trace("parser") << "declare pool: '" << name << "'" << std::endl;
       cvc5::Term pool = SOLVER->declarePool(name, t, terms);
-      PARSER_STATE->defineVar(name, pool);
       cmd->reset(new DeclarePoolCommand(name, pool, t, terms));
     }
   | BLOCK_MODEL_TOK KEYWORD { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1118,6 +1114,8 @@ simpleSymbolicExprNoKeyword[std::string& s]
     { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
     { s = AntlrInput::tokenText($BINARY_LITERAL); }
+  | FIELD_LITERAL
+    { s = AntlrInput::tokenText($FIELD_LITERAL); }
   | symbol[s, CHECK_NONE, SYM_VERBATIM]
   | str[s, false]
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
@@ -1204,10 +1202,6 @@ termNonVariable[cvc5::Term& expr, cvc5::Term& expr2]
 }
   : LPAREN_TOK quantOp[kind]
     {
-      if (!PARSER_STATE->isTheoryEnabled(internal::theory::THEORY_QUANTIFIERS))
-      {
-        PARSER_STATE->parseError("Quantifier used in non-quantified logic.");
-      }
       PARSER_STATE->pushScope();
     }
     boundVarList[bvl]
@@ -1489,40 +1483,17 @@ identifier[cvc5::ParseOp& p]
   // indexed functions
 
   | LPAREN_TOK INDEX_TOK
-    ( TESTER_TOK term[f, f2]
+    ( TESTER_TOK symbol[opName,CHECK_NONE,SYM_VARIABLE]
       {
-        if (f.getKind() == cvc5::APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
-        {
-          // for nullary constructors, must get the operator
-          f = f[0];
-        }
-        if (!f.getSort().isDatatypeConstructor())
-        {
-          PARSER_STATE->parseError(
-              "Bad syntax for (_ is X), X must be a constructor.");
-        }
-        // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
-        cvc5::Datatype d = sf.getDatatype();
-        // lookup by name
-        cvc5::DatatypeConstructor dc = d.getConstructor(f.toString());
-        p.d_expr = dc.getTesterTerm();
+        // operator is resolved after parsing to handle overloading
+        p.d_kind = APPLY_TESTER;
+        p.d_name = opName;
       }
-    | UPDATE_TOK term[f, f2]
+    | UPDATE_TOK symbol[opName,CHECK_NONE,SYM_VARIABLE]
       {
-        if (!f.getSort().isDatatypeSelector())
-        {
-          PARSER_STATE->parseError(
-              "Bad syntax for (_ update X), X must be a selector.");
-        }
-        std::string sname = f.toString();
-        // get the datatype that f belongs to
-        cvc5::Sort sf = f.getSort().getDatatypeSelectorDomainSort();
-        cvc5::Datatype d = sf.getDatatype();
-        // find the selector
-        cvc5::DatatypeSelector ds = d.getSelector(f.toString());
-        // get the updater term
-        p.d_expr = ds.getUpdaterTerm();
+        // operator is resolved after parsing to handle overloading
+        p.d_kind = APPLY_UPDATER;
+        p.d_name = opName;
       }
     | functionName[opName, CHECK_NONE] nonemptyNumeralList[numerals]
       {
@@ -1601,6 +1572,16 @@ termAtomic[cvc5::Term& atomTerm]
       std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       atomTerm = SOLVER->mkBitVector(binStr.size(), binStr, 2);
     }
+  | FIELD_LITERAL
+    {
+      Assert(AntlrInput::tokenText($FIELD_LITERAL).find("#f") == 0);
+      size_t mPos = AntlrInput::tokenText($FIELD_LITERAL).find("m");
+      Assert(mPos > 2);
+      std::string ffValStr = AntlrInput::tokenTextSubstr($FIELD_LITERAL, 2, mPos - 2);
+      std::string ffModStr = AntlrInput::tokenTextSubstr($FIELD_LITERAL, mPos + 1);
+      Sort ffSort = SOLVER->mkFiniteFieldSort(ffModStr);
+      atomTerm = SOLVER->mkFiniteFieldElem(ffValStr, ffSort);
+    }
 
   // String constant
   | str[s, true] { atomTerm = SOLVER->mkString(s, true); }
@@ -1616,10 +1597,9 @@ attribute[cvc5::Term& expr, cvc5::Term& retExpr]
   cvc5::Term patexpr;
   std::vector<cvc5::Term> patexprs;
   cvc5::Term e2;
-  bool hasValue = false;
   cvc5::Kind k;
 }
-  : KEYWORD ( simpleSymbolicExprNoKeyword[s] { hasValue = true; } )?
+  : KEYWORD ( simpleSymbolicExprNoKeyword[s] )?
   {
     PARSER_STATE->attributeNotSupported(AntlrInput::tokenText($KEYWORD));
   }
@@ -1797,7 +1777,7 @@ sortSymbol[cvc5::Sort& t]
 @declarations {
   std::string name;
   std::vector<cvc5::Sort> args;
-  std::vector<uint32_t> numerals;
+  std::vector<std::string> numerals;
   bool indexed = false;
 }
   : sortName[name,CHECK_NONE]
@@ -1806,7 +1786,7 @@ sortSymbol[cvc5::Sort& t]
     }
   | LPAREN_TOK (INDEX_TOK {indexed = true;} | {indexed = false;})
     symbol[name,CHECK_NONE,SYM_SORT]
-    ( nonemptyNumeralList[numerals]
+    ( nonemptyNumeralStringList[numerals]
       {
         if (!indexed)
         {
@@ -1880,12 +1860,23 @@ symbol[std::string& id,
   ;
 
 /**
- * Matches a nonempty list of numerals.
+ * Matches a nonempty list of unsigned numerals and returns their unsigned
+ * values, capped at 2^32-1.
  * @param numerals the (empty) vector to house the numerals.
  */
 nonemptyNumeralList[std::vector<uint32_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
+    )+
+  ;
+
+/**
+ * Matches a nonempty list of numerals.
+ * @param numerals the (empty) vector to house the numerals.
+ */
+nonemptyNumeralStringList[std::vector<std::string>& numeralStrings]
+  : ( INTEGER_LITERAL
+      { numeralStrings.push_back(AntlrInput::tokenText($INTEGER_LITERAL)); }
     )+
   ;
 
@@ -1960,7 +1951,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 GET_DIFFICULTY_TOK : 'get-difficulty';
-GET_LEARNED_LITERALS_TOK : { !PARSER_STATE->strictModeEnabled() }? 'get-learned-literals';
+GET_LEARNED_LITERALS_TOK : 'get-learned-literals';
 EXIT_TOK : 'exit';
 RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
@@ -2125,6 +2116,13 @@ HEX_LITERAL
  */
 BINARY_LITERAL
   : '#b' ('0' | '1')+
+  ;
+
+/**
+ * Matches a finite field constant.
+ */
+FIELD_LITERAL
+  : '#f' INTEGER_LITERAL 'm' INTEGER_LITERAL
   ;
 
 /**

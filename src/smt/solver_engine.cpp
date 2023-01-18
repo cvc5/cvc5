@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -957,7 +958,11 @@ Node SolverEngine::simplify(const Node& t)
   // apply substitutions
   tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   // now rewrite
-  return d_env->getRewriter()->rewrite(tt);
+  Node ret = d_env->getRewriter()->rewrite(tt);
+  // make so that the returned term does not involve arithmetic subtyping
+  SubtypeElimNodeConverter senc;
+  ret = senc.convert(ret);
+  return ret;
 }
 
 Node SolverEngine::getValue(const Node& t) const
@@ -1870,8 +1875,6 @@ void SolverEngine::resetAssertions()
   Trace("smt") << "SMT resetAssertions()" << endl;
 
   d_ctxManager->notifyResetAssertions();
-  // push the state to maintain global context around everything
-  d_ctxManager->setup(d_smtDriver.get());
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();

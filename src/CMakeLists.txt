@@ -19,6 +19,7 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  api/cpp/cvc5_sort_kind.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_types.h
   decision/assertion_list.cpp
@@ -210,6 +211,8 @@ libcvc5_add_sources(
   proof/proof_set.h
   proof/proof_step_buffer.cpp
   proof/proof_step_buffer.h
+  proof/resolution_proofs_util.cpp
+  proof/resolution_proofs_util.h
   proof/trust_node.cpp
   proof/trust_node.h
   proof/theory_proof_step_buffer.cpp
@@ -590,6 +593,8 @@ libcvc5_add_sources(
   theory/booleans/theory_bool_type_rules.cpp
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
+  theory/builtin/abstract_type.cpp
+  theory/builtin/abstract_type.h
   theory/builtin/proof_checker.cpp
   theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp
@@ -1092,6 +1097,8 @@ libcvc5_add_sources(
   theory/strings/arith_entail.h
   theory/strings/base_solver.cpp
   theory/strings/base_solver.h
+  theory/strings/code_point_solver.cpp
+  theory/strings/code_point_solver.h
   theory/strings/core_solver.cpp
   theory/strings/core_solver.h
   theory/strings/eager_solver.cpp
@@ -1106,6 +1113,9 @@ libcvc5_add_sources(
   theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
+  theory/strings/model_cons.h
+  theory/strings/model_cons_default.cpp
+  theory/strings/model_cons_default.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp
@@ -1168,6 +1178,8 @@ libcvc5_add_sources(
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
+  theory/theory_engine_statistics.cpp
+  theory/theory_engine_statistics.h
   theory/theory_eq_notify.h
   theory/theory_inference.cpp
   theory/theory_inference.h
@@ -1458,6 +1470,7 @@ add_subdirectory(main)
 install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
+          api/cpp/cvc5_sort_kind.h
           api/cpp/cvc5_types.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
