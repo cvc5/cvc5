@@ -19,6 +19,7 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  api/cpp/cvc5_sort_kind.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_types.h
   decision/assertion_list.cpp
@@ -592,6 +593,8 @@ libcvc5_add_sources(
   theory/booleans/theory_bool_type_rules.cpp
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
+  theory/builtin/abstract_type.cpp
+  theory/builtin/abstract_type.h
   theory/builtin/proof_checker.cpp
   theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp
@@ -1465,6 +1468,7 @@ add_subdirectory(main)
 install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
+          api/cpp/cvc5_sort_kind.h
           api/cpp/cvc5_types.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)
