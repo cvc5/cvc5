@@ -34,10 +34,10 @@ class PropFindInfo
 {
  public:
   PropFindInfo(context::Context* c);
+  /** Whether we have processed relevance */
+  context::CDO<bool> d_rvalProcessed;
   /** The relevant value */
   context::CDO<prop::SatValue> d_rval;
-  /** The justified value */
-  context::CDO<prop::SatValue> d_jval;
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /**
@@ -46,7 +46,7 @@ class PropFindInfo
    */
   context::CDList<std::pair<Node, bool>> d_parentList;
   /** Has justified */
-  bool hasJustified() const;
+  bool isProcessed() const;
 };
 
 /**
@@ -71,9 +71,13 @@ class PropFinder : protected EnvObj
   /** Set relevant */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
   void updateRelevantInternal(TNode n,
-                              prop::SatValue val,
                               std::vector<TNode>& toPreregister);
-  void notifyParentInternal(TNode n, bool childVal);
+  prop::SatValue updateRelevantInternal2(TNode n,
+                                        std::vector<TNode>& toPreregister,
+                                                   std::vector<TNode>& toVisit);
+  
+  void markRelevant(TNode n, prop::SatValue val);
+  void notifyWatchParents(TNode n);
   /** mk or get PropFindInfo */
   PropFindInfo* getInfo(TNode n);
   /** mk or get PropFindInfo */

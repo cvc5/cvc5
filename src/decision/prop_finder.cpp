@@ -22,17 +22,13 @@ namespace cvc5::internal {
 namespace decision {
 
 PropFindInfo::PropFindInfo(context::Context* c)
-    : d_rval(c, SAT_VALUE_UNKNOWN),
-      d_jval(c, SAT_VALUE_UNKNOWN),
+    : d_rvalProcessed(c, false),
+      d_rval(c, SAT_VALUE_UNKNOWN),
       d_childIndex(c, 0),
       d_parentList(c)
 {
 }
 
-bool PropFindInfo::hasJustified() const
-{
-  return d_jval.get() != SAT_VALUE_UNKNOWN;
-}
 
 PropFinder::PropFinder(Env& env,
                        prop::CDCLTSatSolverInterface* ss,
@@ -74,257 +70,237 @@ void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
     // already justified, we are done
     return;
   }
-  updateRelevantInternal(
-      natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE, toPreregister);
+  // set relevant
+  markRelevant(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
+  // update the relevance
+  std::vector<std::pair<TNode, bool>> justifyQueue;
+  updateRelevantInternal(natom, toPreregister);
 }
+
 /*
 
 - Is it worthwhile to cache index?
 
-
-- Invariant:
-If become justified, then we have called updateRelevantInternal
-on entire parent list.
-
-for 0...d_childIndex-1, all child of AND/OR are justified with non-forcing value
+- Invariants:
+  - If become justified, then we have called updateRelevantInternal on entire parent list.
+  - for 0...d_childIndex-1, all child of AND/OR are justified with non-forcing value
 */
 
+
+
+// NOTE: responsible for popping self from toVisit!!!!
+prop::SatValue PropFinder::updateRelevantInternal2(TNode n,
+                                                   std::vector<TNode>& toPreregister,
+                                                   std::vector<TNode>& toVisit)
+{
+  Assert (n.getKind()!=NOT);
+  PropFindInfo* currInfo = getInfo(n);
+  Assert (currInfo!=nullptr);
+  // if we've processed relevance, we are done
+  if (currInfo->d_rvalProcessed.get())
+  {
+    toVisit.pop_back();
+    return SAT_VALUE_UNKNOWN;
+  }
+  // if we've justified, we should have marked that we are done
+  Assert (!d_jcache.hasValue(n));
+  Kind nk = n.getKind();
+  // the current relevance value we are processing
+  prop::SatValue rval = currInfo->d_rval;
+  // if the justified value of n is found in this call, this is set to its value
+  prop::SatValue newJval = SAT_VALUE_UNKNOWN;
+  size_t cindex = currInfo->d_childIndex;
+  Assert (cindex<=n.getNumChildren());
+  if (nk == AND || nk == OR || nk == IMPLIES)
+  {
+    prop::SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+    bool invertChild = (nk == IMPLIES && cindex==0);
+    // check the status of the last child we looked at, if it exists
+    if (cindex>0)
+    {
+      TNode prevChild = n[cindex-1];
+      prop::SatValue cval = d_jcache.lookupValue(prevChild);
+      cval = invertChild ? invertValue(cval) : cval;
+      // if it did not have a value
+      if (cval == SAT_VALUE_UNKNOWN)
+      {
+        bool watchAll = rval==SAT_VALUE_UNKNOWN || ((nk == AND) == (rval == SAT_VALUE_FALSE));
+        // if we found an unknown child and aren't watching all children, we are done for now
+        if (!watchAll)
+        {
+          // TODO: mark watch from prevChild to this
+          currInfo->d_rvalProcessed = true;
+          toVisit.pop_back();
+          return SAT_VALUE_UNKNOWN;
+        }
+      }
+      else if (cval==forceVal)
+      {
+        // if the child's value forces this, we are done
+        toVisit.pop_back();
+        newJval = forceVal;
+      }
+    }
+    // if we didn't justify above, then look at the next child
+    if (newJval==SAT_VALUE_UNKNOWN)
+    {
+      if (cindex==n.getNumChildren())
+      {
+        // We didn't find a child to watch, this means we are in the exhausted
+        // case. We set our value to the inverted forced value.
+        toVisit.pop_back();
+        newJval = invertValue(forceVal);
+      }
+      else
+      {
+        // Otherwise, set the next child to relevant and add toVisit. We
+        // will visit the current term again when we are finished.
+        TNode nextChild = n[cindex];
+        if (nextChild.getKind()==NOT)
+        {
+          nextChild =  nextChild[0];
+          invertChild = !invertChild;
+        }
+        // the relevance value of the child is based on the relevance value of
+        // this, possibly inverted in nextChild was negated or is the first
+        // child of IMPLIES.
+        prop::SatValue crval = invertChild ? invertValue(rval) : rval;
+        markRelevant(nextChild, crval);
+        toVisit.emplace_back(nextChild);
+        currInfo->d_childIndex = cindex + 1;
+      }
+    }
+  }
+  else if (nk == ITE || nk == EQUAL || nk == XOR)
+  {
+    Assert (cindex<=n.getNumChildren());
+    if (cindex==0)
+    {
+      // watch the first child with unknown polarity
+      markRelevant(n[0], SAT_VALUE_UNKNOWN);
+      toVisit.emplace_back(n[0]);
+      currInfo->d_childIndex = cindex + 1;
+    }
+    else
+    {
+      // check the value of last child
+      prop::SatValue cval = d_jcache.lookupValue(n[cindex-1]);
+      if (cval==SAT_VALUE_UNKNOWN)
+      {
+        // value is unknown, we are done for now
+        // TODO: mark watch from n[cindex-1] to this
+        currInfo->d_rvalProcessed = true;
+        toVisit.pop_back();
+        return SAT_VALUE_UNKNOWN;
+      }
+      else if (cindex==1)
+      {
+        // set the child index to the index of relevant child + 1
+        // visit the relevant child
+        size_t rcindex = (nk!=ITE || cval==SAT_VALUE_TRUE) ? 2 : 3;
+        TNode nextChild = n[rcindex-1];
+        markRelevant(nextChild, rval);
+        toVisit.emplace_back(nextChild);
+        currInfo->d_childIndex = rcindex;
+      }
+      else
+      {
+        toVisit.pop_back();
+        if (nk==ITE)
+        {
+          // the value of this is the value of the branch
+          newJval = cval;
+        }
+        else
+        {
+          // recompute the first child and compute the result
+          prop::SatValue cval0 = d_jcache.lookupValue(n[0]);
+          Assert (cval0!=SAT_VALUE_UNKNOWN);
+          newJval = (nk==XOR ? cval!=cval0 : cval==cval0) ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
+        }
+      }
+    }
+  }
+  else
+  {
+    // theory literals are added to the preregister queue
+    toVisit.pop_back();
+    currInfo->d_rvalProcessed = true;
+    toPreregister.push_back(n);
+  }
+  return newJval;
+}
+
+void PropFinder::markRelevant(TNode n, prop::SatValue val)
+{
+  if (n.getKind()==NOT)
+  {
+    n = n[0];
+    val = invertValue(val);
+  }
+  Assert (n.getKind()!=NOT);
+  // if we already have a value, don't bother
+  if (d_jcache.hasValue(n))
+  {
+    return;
+  }
+  // Otherwise, take the union of relevant values. If we update our relevant
+  // values, then we require processing relevance again.
+  PropFindInfo* currInfo = getOrMkInfo(n);
+  prop::SatValue prevVal = currInfo->d_rval;
+  prop::SatValue newVal = relevantUnion(val, prevVal);
+  if (newVal!=prevVal)
+  {
+    // update relevance value and reset counters
+    currInfo->d_rval = newVal;
+    currInfo->d_childIndex = 0;
+    currInfo->d_rvalProcessed = false;
+  }
+}
+
 void PropFinder::updateRelevantInternal(TNode n,
-                                        prop::SatValue val,
                                         std::vector<TNode>& toPreregister)
 {
-#if 0
-  std::vector<std::pair<TNode, bool>> queueNotifyParent;
-  // (child, desired polarity), parent
-  // NOTE: we only push downwards in this method
-  std::vector<std::pair<JustifyNode, TNode> > toVisit;
-  toVisit.emplace_back(JustifyNode(n, val), d_null);
-  std::pair<JustifyNode, TNode> t;
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
-      it;
-  TNode curr;
-  bool currPol;
-  prop::SatValue currRVal;
-  TNode parent;
-  Kind ck;
-  PropFindInfo* currInfo = nullptr;
+  Assert (n.getKind()!=NOT);
+  // The nodes we discovered the justification for during this call.
+  std::vector<TNode> justified;
+  // (child, desired polarity), parent. We forbid NOT for child and parent.
+  std::vector<TNode> toVisit;
+  toVisit.emplace_back(n);
+  TNode t;
   do
   {
     t = toVisit.back();
-    toVisit.pop_back();
-    curr = t.first.first;
-    currPol = curr.getKind()!=NOT;
-    curr = currPol ? curr : curr[0];
-    currRVal = t.first.second;
-    parent = t.second;
-    ck = curr.getKind();
-    // get the info for curr, if it exists
-    currInfo = getInfo(curr);
-    if (currInfo!=nullptr)
+    // update relevant
+    prop::SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
+    // if we found it was justified
+    if (jval!=SAT_VALUE_UNKNOWN)
     {
-      if (currInfo->hasJustified())
-      {
-        // the value of this node has already been justified
-        continue;
-      }
-      prevRVal = currInfo->d_rval.get();
-      currRVal = relevantUnion(currRVal, prevRVal);
-      if (currRVal==prevRVal)
-      {
-        // we've already marked this node with the given relevance
-        continue;
-      }
-    }
-    Assert(ck != kind::NOT);
-    Assert(curr.getType().isBoolean());
-    // impact of looking at current node: the value we computed, and which
-    // children we should watch.
-    prop::SatValue jval = SAT_VALUE_UNKNOWN;
-    std::vector<std::pair<JustifyNode, TNode>> watchChildren;
-    if (ck == AND || ck == OR || ck == IMPLIES)
-    {
-      // get the index of children we should start looking at
-      size_t startIndex = currInfo==nullptr ? 0 : currInfo->d_childIndex.get();
-      size_t endIndex = curr.getNumChildren();
-      // if we haven't already watched all children
-      if (startIndex<endIndex)
-      {
-        bool watchAll = currRVal==SAT_VALUE_UNKNOWN || ((ck == AND) == (currRVal == SAT_VALUE_FALSE));
-        prop::SatValue forceVal = (ck == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
-        // see if already justified?
-        size_t nextIndex = startIndex;
-        for (size_t i=startIndex; i<endIndex; i++)
-        {
-          bool cpol = curr[i].getKind() != AND;
-          TNode catom = cpol ? curr[i] : curr[i][0];
-          prop::SatValue cval = d_jcache.lookupValue(catom);
-          cval = cpol ? cval : invertValue(cval);
-          // for each child that doesn't have a justified value
-          if (cval == SAT_VALUE_UNKNOWN)
-          {
-            // watch all children if we are watching all, or watch one otherwise
-            if (watchAll || watchChildren.empty())
-            {
-              prop::SatValue childRVal = (ck==IMPLIES && 
-              watchChildren.emplace_back(JustifyNode(curr[i], childRVal), curr);
-              nextIndex = i;
-            }
-          }
-          else if (cval == forceVal)
-          {
-            // value is forced
-            jval = cval;
-            break;
-          }
-        }
-        if (jval==SAT_VALUE_UNKNOWN)
-        {
-          if (watchChildren.empty())
-          {
-            // we didn't find a child to watch, this means we are in the exhausted case
-            jval = invertValue(forceVal);
-          }
-          else
-          {
-            // otherwise, update the next index
-            currInfo->d_childIndex = nextIndex;
-          }
-        }
-      }
-    }
-    else if (ck == ITE)
-    {
-      // watch condition, unless it has a value?
-    }
-    else if (ck == EQUAL || ck == XOR)
-    {
-      // if first time seeing this, watch both children?
-    }
-    else
-    {
-      // its a theory atom, preregister it
-      toPreregister.push_back(curr);
-      continue;
-    }
-    if (currInfo==nullptr)
-    {
-      currInfo = mkInfo(curr);
-    }
-    currInfo->d_rval = currRVal;
-    // process the parent
-    if (!parent.isNull())
-    {
-      
-    }
-    // if the value was determined on this call
-    if (jval != SAT_VALUE_UNKNOWN)
-    {
-      // value is forced
-      d_jcache.setValue(curr, jval);
-      currInfo->d_jval = jval;
-      // notify parents
-      bool pol = (jval==SAT_VALUE_TRUE);
-      for (const std::pair<Node, bool>& p : currInfo->d_parentList)
-      {
-        queueNotifyParent.emplace_back(p.first, p.second ? pol : !pol);
-      }
-    }
-    else
-    {
-      // visit the watched children
-      toVisit.insert(toVisit.end(), watchChildren.begin(), watchChildren.end());
+      // set its value in the justification cache
+      d_jcache.setValue(t, jval);
+      // add it to the queue for notifications
+      justified.emplace_back(t);
     }
   } while (!toVisit.empty());
-  // TODO: process parent notifies
-#endif
+  
+  // process justification / parent notifies
+  for (TNode jn : justified)
+  {
+    notifyWatchParents(jn);
+  }
 }
 
 void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
-#if 0
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
-  // set justified
   d_jcache.setValue(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
-  // update relevance on parents, if any
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo> >::const_iterator
-      it;
-  // notify the parents
-  it = d_pstate.find(natom);
-  if (it != d_pstate.end())
-  {
-    for (const std::pair<Node, bool>& p : it->second->d_parentList)
-    {
-      notifyParentInternal(p.first, p.second ? pol : !pol);
-    }
-  }
-#endif
+  // set justified
+  notifyWatchParents(natom);
 }
 
-// TODO: queue is argument?
-void PropFinder::notifyParentInternal(TNode n, bool childVal)
+void PropFinder::notifyWatchParents(TNode n)
 {
-#if 0
-  std::vector<std::pair<TNode, prop::SatValue>> queueUpdateRelevant;
-  // notify values: node to notify, child's value
-  // this method only pushes upwards to parents
-  std::vector<std::pair<TNode, bool>> toNotify;
-  toNotify.emplace_back(n, childVal);
-  std::pair<TNode, bool> t;
-  TNode curr;
-  bool currChildVal;
-  PropFindInfo* currInfo = nullptr;
-  while (!toNotify.empty())
-  {
-    t = toNotify.back();
-    toNotify.pop_back();
-    curr = t.first;
-    currInfo = getInfo(curr);
-    // all parents have allocated infos
-    Assert (currInfo!=nullptr);
-    if (currInfo->hasJustified())
-    {
-      continue;
-    }
-    currChildVal = t.second;
-    // see if we justify now
-    prop::SatValue jval = SAT_VALUE_UNKNOWN;
-    if (ck == AND || ck == OR)
-    {
-      // TODO: watch and then evaluate? or go to next child
-      bool forceVal = (ck == AND) ? false : true;
-      if (currChildVal==forceVal)
-      {
-        // value is forced
-        jval = forceVal ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
-      }
-      else
-      {
-        // update relevant
-      }
-    }
-    else if (ck == IMPLIES)
-    {
-    }
-    else if (ck == ITE)
-    {
-    }
-    else if (ck == EQUAL || ck == XOR)
-    {
-      // TODO: watch and then evaluate?
-    }
-    else
-    {
-      Assert(false);
-    }
-    // TODO: justify is now set
-    if (jval != SAT_VALUE_UNKNOWN)
-    {
-      d_jcache.setValue(curr, jval);
-      // notify parents
-    }
-  }
-#endif
 }
 
 PropFindInfo* PropFinder::getInfo(TNode n)
