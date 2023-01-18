@@ -749,7 +749,6 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
   }
   d_lex.eatToken(Token::RPAREN_TOK);
   return cmd;
-  ;
 }
 
 }  // namespace parser
