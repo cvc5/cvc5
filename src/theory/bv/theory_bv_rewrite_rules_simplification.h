@@ -19,6 +19,7 @@
 #define CVC5__THEORY__BV__THEORY_BV_REWRITE_RULES_SIMPLIFICATION_H
 
 #include "options/bv_options.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
@@ -1964,6 +1965,67 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
   // c[n-1:0] < x
   Assert(bv_c < bv_msb_x || bv_c >= ~bv_msb_x);
   return nm->mkNode(kind::BITVECTOR_ULT, c_lo, x);
+}
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ */
+template <>
+inline bool RewriteRule<IneqElimConversion>::applies(TNode node)
+{
+  Kind k = node.getKind();
+  if (k == kind::BITVECTOR_ULT || k == kind::BITVECTOR_ULE
+      || k == kind::BITVECTOR_UGT || k == kind::BITVECTOR_UGE)
+  {
+    for (const Node& nc : node)
+    {
+      Kind nck = nc.getKind();
+      if (nck != kind::INT_TO_BITVECTOR && nck != kind::CONST_BITVECTOR)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+template <>
+inline Node RewriteRule<IneqElimConversion>::apply(TNode node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> children;
+  for (const Node& nc : node)
+  {
+    Kind nck = nc.getKind();
+    if (nck == kind::INT_TO_BITVECTOR)
+    {
+      size_t bvSize = nc.getOperator().getConst<IntToBitVector>();
+      Node w = nm->mkConstInt(Rational(Integer(2).pow(bvSize)));
+      children.push_back(nm->mkNode(kind::INTS_MODULUS, nc[0], w));
+    }
+    else
+    {
+      Assert(nck == kind::CONST_BITVECTOR);
+      children.push_back(nm->mkNode(kind::BITVECTOR_TO_NAT, nc));
+    }
+  }
+  // E.g. (bvuge ((_ int2bv w) x) N) ---> (>= (mod x 2^w) (bv2nat N)).
+  // Note that (bv2nat N) is subsequently rewritten to the appropriate integer
+  // constant.
+  Kind arithKind;
+  switch (node.getKind())
+  {
+    case kind::BITVECTOR_ULT: arithKind = kind::LT; break;
+    case kind::BITVECTOR_ULE: arithKind = kind::LEQ; break;
+    case kind::BITVECTOR_UGT: arithKind = kind::GT; break;
+    case kind::BITVECTOR_UGE: arithKind = kind::GEQ; break;
+    default:
+      Unhandled() << "Unknown kind for IneqElimConversion " << node;
+      break;
+  }
+  return nm->mkNode(arithKind, children);
 }
 
 /* -------------------------------------------------------------------------- */
