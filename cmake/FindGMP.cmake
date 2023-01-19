@@ -86,7 +86,7 @@ if(NOT GMP_FOUND_SYSTEM)
   endif()
 
   set(CONFIGURE_OPTS "")
-  set(CONFIGURE_ENV "")
+  set(CONFIGURE_ENV "MAKEINFO=/usr/bin/makeinfo")
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
@@ -115,7 +115,6 @@ if(NOT GMP_FOUND_SYSTEM)
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} <SOURCE_DIR>/configure
           ${LINK_OPTS}
-          --bindir=/usr/bin
           --prefix=<INSTALL_DIR>
           --with-pic
           --enable-cxx
