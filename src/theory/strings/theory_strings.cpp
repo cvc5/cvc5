@@ -1179,6 +1179,19 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       atomRet = ret.getNode();
     }
   }
+  if (options().strings.stringFMF)
+  {
+    // Our decision strategy will minimize the length of this term if it is a
+    // variable but not an internally generated Skolem, or a term that does
+    // not belong to this theory.
+    if (atom.isVar() ? !d_termReg.getSkolemCache()->isSkolem(atom)
+                  : kindToTheoryId(ak) != THEORY_STRINGS
+        && atom.getType().isStringLike())
+    {
+      d_termReg.preRegisterInputVar(atom);
+      Trace("strings-preregister") << "input variable: " << atom << std::endl;
+    }
+  }
   return ret;
 }
 
