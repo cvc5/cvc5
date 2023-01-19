@@ -208,7 +208,6 @@ void InstEvaluator::learnFailure()
   std::vector<Node> cterms = getCurrentTerms();
   for (const Node& v : d_varList)
   {
-    AlwaysAssert (processed.find(v) != processed.end());
     mask.push_back(processed.find(v) != processed.end());
   }
   Assert(d_itrie != nullptr);
