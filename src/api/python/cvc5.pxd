@@ -9,6 +9,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind
+from cvc5sortkinds cimport SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, RoundingMode, UnknownExplanation
 
 
@@ -224,6 +225,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort mkSetSort(Sort elemSort) except +
         Sort mkBagSort(Sort elemSort) except +
         Sort mkSequenceSort(Sort elemSort) except +
+        Sort mkAbstractSort(SortKind kind) except +
         Sort mkUninterpretedSort() except +
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
@@ -372,6 +374,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint operator>(const Sort&) except +
         bint operator<=(const Sort&) except +
         bint operator>=(const Sort&) except +
+        SortKind getKind() except +
         bint hasSymbol() except +
         string getSymbol() except +
         bint isNull() except +
@@ -397,6 +400,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         bint isSet() except +
         bint isBag() except +
         bint isSequence() except +
+        bint isAbstract() except +
         bint isUninterpretedSort() except +
         bint isUninterpretedSortConstructor() except +
         bint isInstantiated() except +
@@ -420,6 +424,7 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Sort getArrayElementSort() except +
         Sort getSetElementSort() except +
         Sort getBagElementSort() except +
+        SortKind getAbstractedKind() except +
         Sort getSequenceElementSort() except +
         size_t getUninterpretedSortConstructorArity() except +
         uint32_t getBitVectorSize() except +
