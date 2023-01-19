@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find --ieval=use-learn
 ; EXPECT: sat
 ; Preamble  --------------
 (set-logic AUFDTLIA)
