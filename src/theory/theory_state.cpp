@@ -138,8 +138,8 @@ void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const
 
 void TheoryState::addEqualityEngineTriggerPredicate(TNode pred)
 {
-  Assert (d_ee!=nullptr);
-  Assert (pred.getType().isBoolean());
+  Assert(d_ee != nullptr);
+  Assert(pred.getType().isBoolean());
   // if we don't already have a sat value
   if (!options().theory.preregCheckSatAssert || !d_valuation.hasSatValue(pred))
   {

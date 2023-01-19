@@ -16,8 +16,8 @@
 
 #include "theory/shared_terms_database.h"
 
-#include "theory/theory_engine.h"
 #include "options/theory_options.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace cvc5::internal::theory;
