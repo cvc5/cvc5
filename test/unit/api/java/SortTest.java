@@ -278,6 +278,17 @@ class SortTest
   }
 
   @Test
+  void isAbstract()
+  {
+    assertTrue(d_solver.mkAbstractSort(Kind.BITVECTOR_SORT).isAbstract());
+    // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+    // is an Array sort, not an abstract sort.
+    assertFalse(d_solver.mkAbstractSort(Kind.ARRAY_SORT).isAbstract());
+    assertTrue(d_solver.mkAbstractSort(Kind.ABSTRACT_SORT).isAbstract());
+    assertDoesNotThrow(() -> new Sort().isAbstract());
+  }
+
+  @Test
   void isUninterpreted()
   {
     Sort un_sort = d_solver.mkUninterpretedSort("asdf");
@@ -527,6 +538,19 @@ class SortTest
     Sort bvSort = d_solver.mkBitVectorSort(32);
     assertFalse(bvSort.isSequence());
     assertThrows(CVC5ApiException.class, () -> bvSort.getSequenceElementSort());
+  }
+
+  @Test
+  void getAbstractedKind() throws CVC5ApiException
+  {
+    assertEquals(d_solver.mkAbstractSort(BITVECTOR_SORT).getAbstractedKind(),
+              BITVECTOR_SORT);
+    // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+    // is an Array sort, not an abstract sort and its abstract kind cannot be
+    // extracted.
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractSort(ARRAY_SORT).getAbstractedKind());
+    assertEquals(d_solver.mkAbstractSort(ABSTRACT_SORT).getAbstractedKind(),
+              ABSTRACT_SORT);
   }
 
   @Test
