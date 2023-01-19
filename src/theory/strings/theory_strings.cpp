@@ -22,6 +22,7 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/decision_manager.h"
 #include "theory/ext_theory.h"
@@ -31,7 +32,6 @@
 #include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -1211,7 +1211,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
       {
         std::stringstream ss;
         ss << "Characters in string \"" << atom
-            << "\" are outside of the given alphabet.";
+           << "\" are outside of the given alphabet.";
         throw LogicException(ss.str());
       }
     }
@@ -1221,9 +1221,9 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     if (ak == STRING_INDEXOF || ak == STRING_INDEXOF_RE || ak == STRING_ITOS
         || ak == STRING_STOI || ak == STRING_REPLACE || ak == STRING_SUBSTR
         || ak == STRING_REPLACE_ALL || ak == SEQ_NTH || ak == STRING_REPLACE_RE
-        || ak == STRING_REPLACE_RE_ALL || ak == STRING_CONTAINS || ak == STRING_LEQ
-        || ak == STRING_TO_LOWER || ak == STRING_TO_UPPER || ak == STRING_REV
-        || ak == STRING_UPDATE)
+        || ak == STRING_REPLACE_RE_ALL || ak == STRING_CONTAINS
+        || ak == STRING_LEQ || ak == STRING_TO_LOWER || ak == STRING_TO_UPPER
+        || ak == STRING_REV || ak == STRING_UPDATE)
     {
       std::stringstream ss;
       ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(atom)
