@@ -203,7 +203,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       ss << "Equality between regular expressions is not supported";
       throw LogicException(ss.str());
     }
-    ee->addTriggerPredicate(n);
+    d_state.addEqualityEngineTriggerPredicate(n);
     return;
   }
   else if (k == STRING_IN_REGEXP)
@@ -271,7 +271,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH)
     {
       // Get triggered for both equal and dis-equal
-      ee->addTriggerPredicate(n);
+      d_state.addEqualityEngineTriggerPredicate(n);
     }
   }
   else
