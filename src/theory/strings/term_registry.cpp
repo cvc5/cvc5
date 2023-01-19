@@ -225,16 +225,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     // All kinds that we do congruence over that may return a Boolean go here
     if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH || k == EQUAL)
     {
-      // if we don't already have a sat value
-      if (!d_state.getValuation().hasSatValue(n))
-      {
-        // Get triggered for both equal and dis-equal
-        ee->addTriggerPredicate(n);
-      }
-      else
-      {
-        ee->addTerm(n);
-      }
+      d_state.addEqualityEngineTriggerPredicate(n);
     }
   }
   else

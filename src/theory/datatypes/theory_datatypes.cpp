@@ -327,7 +327,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
   case kind::APPLY_TESTER:
     // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
-    d_equalityEngine->addTriggerPredicate(n);
+    d_state.addEqualityEngineTriggerPredicate(n);
     break;
   default:
     // do initial lemmas (e.g. for dt.size)

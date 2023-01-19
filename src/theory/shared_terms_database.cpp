@@ -16,8 +16,8 @@
 
 #include "theory/shared_terms_database.h"
 
-#include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
+#include "options/theory_options.h"
 
 using namespace std;
 using namespace cvc5::internal::theory;
@@ -70,12 +70,13 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   Assert(d_equalityEngine != nullptr);
   d_registeredEqualities.insert(equality);
-  prop::PropEngine* pe = d_theoryEngine->getPropEngine();
-  bool value;
-  if (pe->isSatLiteral(equality) && pe->hasValue(equality, value))
+  if (options().theory.preregCheckSatAssert)
   {
-    // don't need to propagate what is already asserted
-    return;
+    if (d_theoryEngine->hasSatValue(equality))
+    {
+      // don't need to propagate what is already asserted
+      return;
+    }
   }
   d_equalityEngine->addTriggerPredicate(equality);
   checkForConflict();
