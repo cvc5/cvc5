@@ -17,6 +17,7 @@
 #include "theory/shared_terms_database.h"
 
 #include "theory/theory_engine.h"
+#include "prop/prop_engine.h"
 
 using namespace std;
 using namespace cvc5::internal::theory;
@@ -37,7 +38,8 @@ SharedTermsDatabase::SharedTermsDatabase(Env& env, TheoryEngine* theoryEngine)
       d_inConflict(env.getContext(), false),
       d_conflictPolarity(),
       d_equalityEngine(nullptr),
-      d_pfee(nullptr)
+      d_pfee(nullptr),
+      d_out(theoryEngine->theoryOf(THEORY_BUILTIN)->getOutputChannel())
 {
 }
 
@@ -68,6 +70,13 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   Assert(d_equalityEngine != nullptr);
   d_registeredEqualities.insert(equality);
+  prop::PropEngine * pe = d_theoryEngine->getPropEngine();
+  bool value;
+  if (pe->isSatLiteral(equality) && pe->hasValue(equality, value))
+  {
+    // don't need to propagate what is already asserted
+    return;
+  }
   d_equalityEngine->addTriggerPredicate(equality);
   checkForConflict();
 }
@@ -263,11 +272,9 @@ void SharedTermsDatabase::assertShared(TNode n, bool polarity, TNode reason)
 
 bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   if (polarity) {
-    d_theoryEngine->propagate(equality, THEORY_BUILTIN);
-  } else {
-    d_theoryEngine->propagate(equality.notNode(), THEORY_BUILTIN);
+    return d_out.propagate(equality);
   }
-  return true;
+  return d_out.propagate(equality.notNode());
 }
 
 void SharedTermsDatabase::checkForConflict()

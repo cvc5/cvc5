@@ -106,6 +106,12 @@ bool Valuation::hasSatValue(TNode n, bool& value) const {
   }
 }
 
+bool Valuation::hasSatValue(TNode n) const
+{
+  bool value;
+  return hasSatValue(n, value);
+}
+
 EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
   Assert(d_engine != nullptr);
   return d_engine->getEqualityStatus(a, b);

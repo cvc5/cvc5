@@ -30,6 +30,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_stats.h"
+#include "theory/output_channel.h"
 
 namespace cvc5::internal {
 
@@ -273,6 +274,8 @@ class SharedTermsDatabase : protected EnvObj, public context::ContextNotifyObj
   theory::eq::ProofEqEngine* d_pfee;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The output channel for propagations */
+  theory::OutputChannel& d_out;
 };
 
 }  // namespace cvc5::internal

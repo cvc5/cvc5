@@ -31,6 +31,7 @@
 #include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -1113,6 +1114,12 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
   Kind ak = atom.getKind();
   if (ak == EQUAL)
   {
+    if (atom[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
     if (ret != atom)
@@ -1190,6 +1197,38 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     {
       d_termReg.preRegisterInputVar(atom);
       Trace("strings-preregister") << "input variable: " << atom << std::endl;
+    }
+  }
+
+  // all characters of constants should fall in the alphabet
+  if (atom.isConst() && atom.getType().isString())
+  {
+    uint32_t alphaCard = d_termReg.getAlphabetCardinality();
+    std::vector<unsigned> vec = atom.getConst<String>().getVec();
+    for (unsigned u : vec)
+    {
+      if (u >= alphaCard)
+      {
+        std::stringstream ss;
+        ss << "Characters in string \"" << atom
+            << "\" are outside of the given alphabet.";
+        throw LogicException(ss.str());
+      }
+    }
+  }
+  if (!options().strings.stringExp)
+  {
+    if (ak == STRING_INDEXOF || ak == STRING_INDEXOF_RE || ak == STRING_ITOS
+        || ak == STRING_STOI || ak == STRING_REPLACE || ak == STRING_SUBSTR
+        || ak == STRING_REPLACE_ALL || ak == SEQ_NTH || ak == STRING_REPLACE_RE
+        || ak == STRING_REPLACE_RE_ALL || ak == STRING_CONTAINS || ak == STRING_LEQ
+        || ak == STRING_TO_LOWER || ak == STRING_TO_UPPER || ak == STRING_REV
+        || ak == STRING_UPDATE)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(atom)
+         << " not supported in default mode, try --strings-exp";
+      throw LogicException(ss.str());
     }
   }
   return ret;
