@@ -36,7 +36,10 @@ PropFinder::PropFinder(Env& env,
       d_pstate(context()),
       d_assertions(userContext()),
       d_assertionIndex(context(), 0),
-      d_jcache(context(), ss, cs)
+      d_jcache(context(), ss, cs),
+      d_statSatPrereg(context(), 0),
+      d_statPrereg(context(), 0)
+      
 {
 }
 
@@ -64,6 +67,11 @@ void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma)
   // buffer it into the list of assertions
   Trace("prop-finder") << "PropFinder: add assertion " << n << std::endl;
   d_assertions.push_back(n);
+}
+
+void PropFinder::notifyPreRegister(TNode n)
+{
+  d_statSatPrereg = d_statSatPrereg + 1;
 }
 
 void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
@@ -333,6 +341,8 @@ prop::SatValue PropFinder::updateRelevantInternal2(
     // theory literals are added to the preregister queue
     toVisit.pop_back();
     toPreregister.push_back(n);
+    d_statPrereg = d_statPrereg + 1;
+    Trace("prop-finder-status") << "Preregistered "<< d_statPrereg << " / " << d_statSatPrereg << " literals" << std::endl;
     // this ensures we don't preregister the same literal twice
     currInfo->d_childIndex = 1;
     currInfo->d_rval = SAT_VALUE_UNKNOWN;

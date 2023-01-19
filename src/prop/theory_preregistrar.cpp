@@ -78,6 +78,10 @@ void TheoryPreregistrar::notifyPreRegister(TNode n)
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
   }
+  else if (d_propFinder != nullptr)
+  {
+    d_propFinder->notifyPreRegister(n);
+  }
 }
 
 void TheoryPreregistrar::notifyAsserted(TNode n)

@@ -62,6 +62,7 @@ class PropFinder : protected EnvObj
   void check(std::vector<TNode>& toPreregister);
   /** Notify assertion */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
+  void notifyPreRegister(TNode n);
   /** Notify active skolem definitions */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs,
                               std::vector<TNode>& toPreregister);
@@ -97,6 +98,9 @@ class PropFinder : protected EnvObj
   JustifyCache d_jcache;
   /** */
   static prop::SatValue relevantUnion(prop::SatValue r1, prop::SatValue r2);
+  /** stats */
+  context::CDO<size_t> d_statSatPrereg;
+  context::CDO<size_t> d_statPrereg;
 };
 
 }  // namespace decision
