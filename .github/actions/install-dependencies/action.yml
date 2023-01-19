@@ -29,16 +29,7 @@ runs:
           libtinfo-dev \
           flex \
           libfl-dev \
-          flexc++ \
-          texinfo \
-          apt-file
-        echo "nocheckin just installed texinfo"
-        echo "apt-file"
-        sudo apt-file update
-        sudo apt-file search makeinfo
-        echo "path"
-        echo $PATH
-        echo "nocheckin finished"
+          flexc++
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
