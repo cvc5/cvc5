@@ -1185,8 +1185,8 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     // variable but not an internally generated Skolem, or a term that does
     // not belong to this theory.
     if (atom.isVar() ? !d_termReg.getSkolemCache()->isSkolem(atom)
-                  : kindToTheoryId(ak) != THEORY_STRINGS
-        && atom.getType().isStringLike())
+                     : kindToTheoryId(ak) != THEORY_STRINGS
+                           && atom.getType().isStringLike())
     {
       d_termReg.preRegisterInputVar(atom);
       Trace("strings-preregister") << "input variable: " << atom << std::endl;

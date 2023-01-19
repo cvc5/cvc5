@@ -295,10 +295,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
 }
 
-void TermRegistry::preRegisterInputVar(TNode n)
-{
-  d_inputVars.insert(n);
-}
+void TermRegistry::preRegisterInputVar(TNode n) { d_inputVars.insert(n); }
 
 void TermRegistry::registerSubterms(Node n)
 {

@@ -15,8 +15,8 @@
 
 #include "theory/strings/strings_fmf.h"
 
-#include "util/rational.h"
 #include "theory/trust_substitutions.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -45,7 +45,7 @@ void StringsFmf::presolve()
   {
     Node var = *itr;
     // ensure we haven't solved for it?
-    if (var==tls.apply(var))
+    if (var == tls.apply(var))
     {
       inputVars.push_back(var);
     }
