@@ -50,24 +50,20 @@
 
 ; Beta-reduce t
 ; We expect t to be of the form
-;   (apply (lambda v1 s1
-;     (apply (lambda v2 s2
-;     ...)
-;     t2))
-;   t1)
-; This does beta-reduction recursively while the current term is an application
-; of a lambda.
+;   (apply ... (apply
+;     (apply (lambda v1 s1) ... (apply (lambda vn sn) b))
+;     t1) ... tn)
 (function sc_beta_reduce ((t term)) term
   (match t
     ((apply t1 t2) 
       (match t1
         ((apply t11 t12) 
           (match t11
-            ((f_lambda v s) (sc_beta_reduce (sc_substitute t12 v t2)))
-            (default t)))
-        (default t)))
-    (default t)
-  ))
+            ; if application of a lambda, apply substitution and return
+            ((f_lambda v s) (sc_substitute t12 v t2))
+            ; otherwise, recursively compute the beta-reduction and recompute
+            (default (sc_beta_reduce (apply (sc_beta_reduce t1) t2)))))
+  ))))
 
 (declare beta_reduce (! s term
                      (! t term
