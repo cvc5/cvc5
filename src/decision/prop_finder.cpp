@@ -168,8 +168,13 @@ prop::SatValue PropFinder::updateRelevantInternal2(
     return SAT_VALUE_UNKNOWN;
   }
   */
-  // if we've justified, we should have marked that we are done
-  Assert(!d_jcache.hasValue(n));
+  // if we've justified already
+  if (d_jcache.hasValue(n))
+  {
+    Trace("prop-finder-debug2") << "...already justified" << std::endl;
+    toVisit.pop_back();
+    return SAT_VALUE_UNKNOWN;
+  }
   Kind nk = n.getKind();
   // the current relevance value we are processing
   prop::SatValue rval = currInfo->d_rval;

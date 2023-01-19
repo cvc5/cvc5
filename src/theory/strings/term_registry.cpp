@@ -293,21 +293,11 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_functionsTerms.push_back(n);
   }
-  if (options().strings.stringFMF)
-  {
-    if (tn.isStringLike())
-    {
-      // Our decision strategy will minimize the length of this term if it is a
-      // variable but not an internally generated Skolem, or a term that does
-      // not belong to this theory.
-      if (n.isVar() ? !d_skCache.isSkolem(n)
-                    : kindToTheoryId(k) != THEORY_STRINGS)
-      {
-        d_inputVars.insert(n);
-        Trace("strings-preregister") << "input variable: " << n << std::endl;
-      }
-    }
-  }
+}
+
+void TermRegistry::preRegisterInputVar(TNode n)
+{
+  d_inputVars.insert(n);
 }
 
 void TermRegistry::registerSubterms(Node n)
