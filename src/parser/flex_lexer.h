@@ -22,7 +22,6 @@
 #include <iosfwd>
 #include <string>
 
-// Super hack
 // https://stackoverflow.com/a/40665154/4917890
 #if !defined(yyFlexLexerOnce)
 #include <FlexLexer.h>
