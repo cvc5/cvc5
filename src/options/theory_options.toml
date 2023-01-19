@@ -66,3 +66,11 @@ name   = "Theory Layer"
 [[option.mode.CARE_GRAPH]]
   name = "care-graph"
   help = "Use care graphs for theory combination."
+
+[[option]]
+  name       = "preregCheckSatAssert"
+  category   = "expert"
+  long       = "prereg-check-sat-assert"
+  type       = "bool"
+  default    = "true"
+  help       = "check whether predicates are already asserted when considering whether to add triggers to equality engine"
