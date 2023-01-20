@@ -1229,7 +1229,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
     printInternal(odecl, t);
     odecl << ")";
   }
-  odecl << rparen.str() << std::endl;
+  odecl << rparen.str() << ")" << std::endl;
   // print the side conditions
   out << oscs.str();
   // print the rule declaration
