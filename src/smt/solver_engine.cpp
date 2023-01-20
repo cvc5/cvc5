@@ -1191,7 +1191,8 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
       std::unordered_set<internal::Node> fvs;
       expr::getFreeVariables(n, fvs);
       std::stringstream se;
-      se << "Cannot process term " << n << " with free variables: " << fvs
+      se << "Cannot process term " << n << " with "
+         << (wasShadow ? "shadowed" : "free") << " variables: " << fvs
          << std::endl;
       throw ModalException(se.str().c_str());
     }
