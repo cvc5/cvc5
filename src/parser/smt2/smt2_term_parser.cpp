@@ -28,6 +28,12 @@ Smt2TermParser::Smt2TermParser(Smt2Lexer& lex, Smt2State& state)
 {
 }
 
+Term Smt2TermParser::parseTerm()
+{
+  Term ret;
+  return ret;
+}
+
 Term Smt2TermParser::parseSymbolicExpr()
 {
   Term ret;
@@ -236,6 +242,116 @@ std::string Smt2TermParser::parseKeyword()
   std::string s = d_lex.tokenStr();
   // strip off the initial colon
   return s.erase(0, 1);
+}
+
+Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars,
+                                      const std::string& fun)
+{
+  // We read a sorted variable list ((<symbol> <sort>)^n+1)
+  std::vector<std::pair<std::string, Sort>> sortedVarNames =
+      parseSortedVarList();
+  // non-terminal symbols in the pre-declaration are locally scoped
+  d_state.pushScope();
+  std::vector<Term> ntSyms;
+  for (std::pair<std::string, Sort>& i : sortedVarNames)
+  {
+    d_state.checkDeclaration(i.first, CHECK_UNDECLARED, SYM_SORT);
+    // make the non-terminal symbol, which will be parsed as an ordinary
+    // free variable.
+    Term nts = d_state.bindBoundVar(i.first, i.second);
+    ntSyms.push_back(nts);
+  }
+  Grammar* ret = d_state.mkGrammar(sygusVars, ntSyms);
+  // Parse (<GroupedRuleList>^n+1)
+  d_lex.eatToken(Token::LPAREN_TOK);
+  for (size_t i = 0, nnts = ntSyms.size(); i < nnts; i++)
+  {
+    // start the non-terminal definition
+    d_lex.eatToken(Token::LPAREN_TOK);
+    std::string name = parseSymbol(CHECK_DECLARED, SYM_VARIABLE);
+    Sort t = parseSort();
+    // check that it matches sortedVarNames
+    if (sortedVarNames[i].first != name)
+    {
+      std::stringstream sse;
+      sse << "Grouped rule listing " << name
+          << " does not match the name (in order) from the predeclaration ("
+          << sortedVarNames[i].first << ")." << std::endl;
+      d_lex.parseError(sse.str().c_str());
+    }
+    if (sortedVarNames[i].second != t)
+    {
+      std::stringstream sse;
+      sse << "Type for grouped rule listing " << name
+          << " does not match the type (in order) from the predeclaration ("
+          << sortedVarNames[i].second << ")." << std::endl;
+      d_lex.parseError(sse.str().c_str());
+    }
+    // read the grouped rule listing (<GTerm>+)
+    d_lex.eatToken(Token::LPAREN_TOK);
+    Token tok = d_lex.nextToken();
+    while (tok != Token::RPAREN_TOK)
+    {
+      // Lookahead for Constant/Variable.
+      bool parsedGTerm = false;
+      if (tok == Token::LPAREN_TOK)
+      {
+        Token tok2 = d_lex.nextToken();
+        switch (tok2)
+        {
+          case Token::SYGUS_CONSTANT_TOK:
+          {
+            t = parseSort();
+            ret->addAnyConstant(ntSyms[i]);
+            d_lex.eatToken(Token::RPAREN_TOK);
+            parsedGTerm = true;
+          }
+          break;
+          case Token::SYGUS_VARIABLE_TOK:
+          {
+            t = parseSort();
+            ret->addAnyVariable(ntSyms[i]);
+            d_lex.eatToken(Token::RPAREN_TOK);
+            parsedGTerm = true;
+          }
+          break;
+          default:
+            // Did not process tok2.
+            d_lex.reinsertToken(tok2);
+            break;
+        }
+      }
+      if (!parsedGTerm)
+      {
+        // We did not process tok. Note that Lex::d_peeked may contain
+        // {tok2, LPAREN_TOK} or {tok}.
+        d_lex.reinsertToken(tok);
+        // parse ordinary term
+        Term e = parseTerm();
+        ret->addRule(ntSyms[i], e);
+      }
+      tok = d_lex.nextToken();
+    }
+    // finish the non-terminal
+    d_lex.eatToken(Token::RPAREN_TOK);
+  }
+  d_lex.eatToken(Token::RPAREN_TOK);
+  // pop scope from the pre-declaration
+  d_state.popScope();
+  return ret;
+}
+
+Grammar* Smt2TermParser::parseGrammarOrNull(const std::vector<Term>& sygusVars,
+                                            const std::string& fun)
+{
+  Token t = d_lex.peekToken();
+  // note that we assume that the grammar is not present if the input continues
+  // with anything other than left parenthesis.
+  if (t != Token::LPAREN_TOK)
+  {
+    return nullptr;
+  }
+  return parseGrammar(sygusVars, fun);
 }
 
 uint32_t Smt2TermParser::parseIntegerNumeral()
