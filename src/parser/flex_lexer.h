@@ -21,6 +21,12 @@
 #include <fstream>
 #include <iosfwd>
 #include <string>
+
+// https://stackoverflow.com/a/40665154/4917890
+#if !defined(yyFlexLexerOnce)
+#include <FlexLexer.h>
+#endif
+
 #include <vector>
 
 #include "parser/tokens.h"
@@ -46,13 +52,13 @@ struct Span
 std::ostream& operator<<(std::ostream& o, const Span& l);
 
 /**
- * A Flex lexer. This class will inherit from yyFlexLexer, which is generated
+ * A Flex lexer. This class inherits from yyFlexLexer, which is generated
  * by Flex's C++ code generation.
  *
  * Custom lexers (e.g. for smt2) override the yylex method of the base
  * class.
  */
-class FlexLexer
+class FlexLexer : public yyFlexLexer
 {
  public:
   FlexLexer();
