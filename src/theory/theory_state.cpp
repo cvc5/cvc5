@@ -148,6 +148,7 @@ void TheoryState::addEqualityEngineTriggerPredicate(TNode pred)
   }
   else
   {
+    Trace("ajr-temp") << "No trigger predicate since already asserted " << pred << std::endl;
     // otherwise we just add the term
     d_ee->addTerm(pred);
   }

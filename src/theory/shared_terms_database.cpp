@@ -75,6 +75,7 @@ void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
     if (d_theoryEngine->hasSatValue(equality))
     {
       // don't need to propagate what is already asserted
+      Trace("ajr-temp") << "No trigger shared predicate since already asserted " << equality << std::endl;
       return;
     }
   }

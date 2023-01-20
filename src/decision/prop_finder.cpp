@@ -71,6 +71,7 @@ void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma)
 
 void PropFinder::notifyPreRegister(TNode n)
 {
+  Trace("prop-finder") << "PropFinder: notify preregister " << n << std::endl;
   d_statSatPrereg = d_statSatPrereg + 1;
 }
 
