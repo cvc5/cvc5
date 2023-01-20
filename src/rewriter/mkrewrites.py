@@ -1,3 +1,18 @@
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The DSL rewrite rule compiler
+##
+
 import argparse
 import logging
 import os
@@ -215,7 +230,7 @@ def preprocess_rule(rule, decls):
                 new_args.append(result[child])
 
             result[curr] = App(curr.op, new_args)
-            continue 
+            continue
 
         if isinstance(curr, Placeholder):
             result[curr] = bvar

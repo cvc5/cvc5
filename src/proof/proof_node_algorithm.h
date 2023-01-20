@@ -91,34 +91,6 @@ bool containsSubproof(ProofNode* pn,
                       ProofNode* pnc,
                       std::unordered_set<const ProofNode*>& visited);
 
-/** Whether the result of a resolution corresponds to a singleton clause
- *
- * Viewing a node as a clause (i.e., as a list of literals), whether a node of
- * the form (or t1 ... tn) corresponds to the clause [t1, ..., tn]) or to the
- * clause [(or t1 ... tn)] can be ambiguous in different settings.
- *
- * This method determines whether a node `res`, corresponding to the result of a
- * resolution inference with premises `children` and arguments `args` (see
- * proof_rule.h for more details on the inference), is a singleton clause (i.e.,
- * a clause with a single literal).
- *
- * It does so relying on the fact that `res` is only a singleton if it occurs as
- * a child in one of the premises and is not eliminated afterwards. So we search
- * for `res` as a subterm of some child, which would mark its last insertion
- * into the resolution result. If `res` does not occur as the pivot to be
- * eliminated in a subsequent premise, then, and only then, it is a singleton
- * clause.
- *
- * @param res the result of a resolution inference
- * @param children the premises for the resolution inference
- * @param args the arguments, i.e., the pivots and their polarities, for the
- * resolution inference
- * @return whether `res` is a singleton clause
- */
-bool isSingletonClause(TNode res,
-                       const std::vector<Node>& children,
-                       const std::vector<Node>& args);
-
 }  // namespace expr
 }  // namespace cvc5::internal
 

@@ -40,6 +40,7 @@ ${defns}$
 ${rules}$
   // clang-format on
 }
+
 bool isInternalDslPfRule(DslPfRule drule)
 {
   return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
@@ -48,6 +49,7 @@ bool isInternalDslPfRule(DslPfRule drule)
          || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO
          || drule == DslPfRule::ARITH_POLY_NORM;
 }
+
 const char* toString(DslPfRule drule)
 {
   switch (drule)

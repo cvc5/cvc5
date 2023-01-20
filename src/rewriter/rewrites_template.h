@@ -25,6 +25,9 @@ namespace rewriter {
 
 class RewriteDb;
 
+/**
+ * Identifiers for DSL proof rules
+ */
 enum class DslPfRule : uint32_t
 {
   FAIL = 0,
@@ -43,10 +46,15 @@ enum class DslPfRule : uint32_t
   // clang-format on
 };
 
-void addRules(RewriteDb& db);
-
 /** Is internal rule? */
 bool isInternalDslPfRule(DslPfRule drule);
+
+/**
+ * The body of this method is auto-generated. This populates the provided
+ * rewrite rule database with rules based on the compilation of the DSL
+ * rewrite rule files.
+ */
+void addRules(RewriteDb& db);
 
 /**
  * Converts a DSL proof rule to a string.

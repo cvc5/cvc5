@@ -1,3 +1,18 @@
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Utility methods for the DSL rewrite rule compiler
+##
+
 import os
 import shutil
 import sys
@@ -21,8 +36,6 @@ def format_cpp(s):
     out = p.communicate(input=s.encode())[0]
     return out.decode()
 
-
-# TODO: refactor common code
 def die(msg):
     sys.exit('[error] {}'.format(msg))
 
