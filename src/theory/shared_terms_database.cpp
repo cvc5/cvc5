@@ -70,7 +70,7 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   Assert(d_equalityEngine != nullptr);
   d_registeredEqualities.insert(equality);
-  if (options().theory.preregCheckSatAssert)
+  if (options().theory.preregCheckAssert)
   {
     if (d_theoryEngine->hasSatValue(equality))
     {
