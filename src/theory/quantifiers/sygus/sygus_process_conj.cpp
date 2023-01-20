@@ -19,10 +19,10 @@
 #include <stack>
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 
 using namespace cvc5::internal::kind;
 using namespace std;
@@ -536,7 +536,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
-  
+
   if (options().quantifiers.sygusArgRelevant)
   {
     // initialize the information about each function to synthesize
