@@ -60,8 +60,11 @@ RewriteResponse TheoryBVRewriter::RewriteBitOf(TNode node, bool prerewrite)
 RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
   // reduce common subexpressions on both sides
   Node resultNode =
-      LinearRewriteStrategy<RewriteRule<EvalUlt>,
-                            RewriteRule<UltZero>,
+      LinearRewriteStrategy<RewriteRule<EvalUlt>,  // if both arguments are
+                                                   // constants evaluates
+                            RewriteRule<UltOne>,
+                            RewriteRule<UltOnes>,
+                            RewriteRule<UltZero>,  // a < 0 rewrites to false,
                             RewriteRule<SignExtendUltConst>,
                             RewriteRule<ZeroExtendUltConst>,
                             RewriteRule<IneqElimConversion>>::apply(node);

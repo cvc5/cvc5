@@ -28,6 +28,8 @@ namespace cvc5::internal {
 namespace decision {
 
 /**
+ * A mapping storing the justification values of nodes which uses the SAT solver
+ * and CNF stream to lookup the value of literals.
  */
 class JustifyCache
 {
@@ -46,11 +48,17 @@ class JustifyCache
    * in the SAT solver if it is not already cached.
    */
   prop::SatValue lookupValue(TNode n);
-  bool hasValue(TNode n) const;
   /**
-   * Set justified
+   * Set that n is justified with the given value. This should be set when:
+   * - n is a theory literal assigned to the given value,
+   * - n evaluates to value based on the justification values of its children.
+   * The value of n should not be set more than once.
    */
   void setValue(const Node& n, prop::SatValue value);
+  /**
+   * Does n already have a justification value stored in this class?
+   */
+  bool hasValue(TNode n) const;
 
  private:
   /** Mapping from non-negated nodes to their SAT value */
