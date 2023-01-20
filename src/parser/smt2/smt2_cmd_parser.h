@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * The smt2 command parser.
  */
 
 #include "cvc5parser_public.h"
