@@ -24,6 +24,7 @@
 
 #include <numeric>
 
+#include "context/cdhashset.h"
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
 #include "smt/env_obj.h"
@@ -39,6 +40,7 @@ SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
       context::ContextNotifyObj(context()),
       d_facts(context()),
       d_leaves(userContext()),
+      d_leafSet(userContext()),
       d_stats(stats),
       d_baseRing(CoCoA::NewZZmod(CoCoA::BigIntFromString(modulus.toString()))),
       d_modulus(modulus)
@@ -54,7 +56,11 @@ void SubTheory::preRegisterTerm(TNode n)
   {
     clearPolyRing();
     Trace("ff::register") << "FF variable: " << n << std::endl;
-    d_leaves.push_back(n);
+    if (!d_leafSet.contains(n))
+    {
+      d_leaves.push_back(n);
+      d_leafSet.insert(n);
+    }
   }
 }
 

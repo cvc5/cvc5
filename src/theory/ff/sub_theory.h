@@ -28,8 +28,9 @@
 #include <unordered_set>
 #include <vector>
 
-#include "context/cdlist_forward.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
+#include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/ff_options.h"
@@ -199,9 +200,14 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   std::unordered_map<Node, Node> d_model{};
 
   /**
-   * Theory leaves
+   * Theory leaves (to preserve order)
    */
   context::CDList<Node> d_leaves;
+
+  /**
+   * Theory leaves (to avoid duplication)
+   */
+  context::CDHashSet<Node, std::hash<Node>> d_leafSet;
 
   /**
    * Map from CoCoA Indeterminate symbol indexes to leaves
