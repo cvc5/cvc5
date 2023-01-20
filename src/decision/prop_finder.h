@@ -45,6 +45,8 @@ class PropFindInfo
    * be assigned for the purposes of updating relevance.
    */
   context::CDList<Node> d_parentList;
+  /** Parent list polarity */
+  std::map<Node, bool> d_parentListPol;
   /** set finished */
   void setInactive();
   /** is finished */
@@ -78,6 +80,9 @@ class PropFinder : protected EnvObj
                                          std::vector<TNode>& toPreregister,
                                          std::vector<TNode>& toVisit);
   void markRelevant(TNode n, prop::SatValue val, std::vector<TNode>& toVisit);
+  /**
+   * NOTE: child should be a direct child of parent, with its negation.
+   */
   void markWatchedParent(TNode child, TNode parent);
   void getWatchParents(TNode n, std::vector<TNode>& toVisit);
   /** mk or get PropFindInfo */

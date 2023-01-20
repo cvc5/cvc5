@@ -141,7 +141,7 @@ void TheoryState::addEqualityEngineTriggerPredicate(TNode pred)
   Assert(d_ee != nullptr);
   Assert(pred.getType().isBoolean());
   // if we don't already have a sat value
-  if (!options().theory.preregCheckSatAssert || !d_valuation.hasSatValue(pred))
+  if (!options().theory.preregCheckAssert || !d_valuation.hasSatValue(pred))
   {
     // Get triggered for both equal and dis-equal
     d_ee->addTriggerPredicate(pred);

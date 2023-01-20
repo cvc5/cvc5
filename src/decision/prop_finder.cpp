@@ -93,7 +93,7 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // update relevant, which will ensure that natom is preregistered if not
   // already done so
   updateRelevant(natom, toPreregister);
-  // we don't set justified explicity here, instead the parent(s) will query the
+  // we don't set justified explicitly here, instead the parent(s) will query the
   // value of n
   std::vector<TNode> toVisit;
   getWatchParents(natom, toVisit);
@@ -122,7 +122,7 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
                                         std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent. We forbid NOT for child and parent.
-  std::vector<TNode> justifyQueue;
+  std::vector<std::pair<TNode, prop::SatValue>> justifyQueue;
   TNode t;
   while (!toVisit.empty())
   {
@@ -138,15 +138,15 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
       // set its value in the justification cache
       d_jcache.setValue(t, jval);
       // add it to the queue for notifications
-      justifyQueue.emplace_back(t);
+      justifyQueue.emplace_back(t, jval);
     }
     // If we are done visiting, process the justify queue, which will
     // add parents to visit
     if (toVisit.empty())
     {
-      for (TNode jn : justifyQueue)
+      for (std::pair<TNode, prop::SatValue>& jn : justifyQueue)
       {
-        getWatchParents(jn, toVisit);
+        getWatchParents(jn.first, toVisit);
       }
       justifyQueue.clear();
     }
@@ -403,12 +403,14 @@ void PropFinder::markWatchedParent(TNode child, TNode parent)
 {
   Trace("prop-finder-debug")
       << "Mark watched " << child << " with parent " << parent << std::endl;
-  TNode childAtom = child.getKind() == NOT ? child[0] : child;
+  bool ppol = (child.getKind() != NOT);
+  TNode childAtom = ppol ? child : child[0];
   Assert(childAtom.getKind() != NOT);
   Assert(parent.getKind() != NOT);
   PropFindInfo* currInfo = getOrMkInfo(childAtom);
   // add to parent list
   currInfo->d_parentList.push_back(parent);
+  currInfo->d_parentListPol[parent] = ppol;
 }
 
 void PropFinder::getWatchParents(TNode n, std::vector<TNode>& toVisit)
