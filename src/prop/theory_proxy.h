@@ -28,6 +28,7 @@
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "prop/theory_preregistrar.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
@@ -226,6 +227,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+
+  /** Preregister policy */
+  std::unique_ptr<TheoryPreregistrar> d_prr;
 
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
