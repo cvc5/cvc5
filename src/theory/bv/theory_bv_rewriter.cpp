@@ -66,7 +66,8 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite) {
                             RewriteRule<UltOnes>,
                             RewriteRule<UltZero>,  // a < 0 rewrites to false,
                             RewriteRule<SignExtendUltConst>,
-                            RewriteRule<ZeroExtendUltConst>>::apply(node);
+                            RewriteRule<ZeroExtendUltConst>,
+                            RewriteRule<IneqElimConversion>>::apply(node);
 
   return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN_FULL,
                          resultNode);
@@ -107,14 +108,14 @@ RewriteResponse TheoryBVRewriter::RewriteSltBv(TNode node, bool prerewrite){
 }
 
 RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool prerewrite){
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule<EvalUle>,
-      RewriteRule<UleMax>,
-      RewriteRule<ZeroUle>,
-      RewriteRule<UleZero>,
-      RewriteRule<UleSelf>,
-      RewriteRule<UleEliminate>
-      >::apply(node);
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalUle>,
+                            RewriteRule<UleMax>,
+                            RewriteRule<ZeroUle>,
+                            RewriteRule<IneqElimConversion>,
+                            RewriteRule<UleZero>,
+                            RewriteRule<UleSelf>,
+                            RewriteRule<UleEliminate>>::apply(node);
   return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN,
                          resultNode);
 }

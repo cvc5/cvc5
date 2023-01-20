@@ -174,6 +174,7 @@ enum RewriteRuleId
   ZeroExtendEqConst,
   SignExtendUltConst,
   ZeroExtendUltConst,
+  IneqElimConversion,
 
   /// normalization rules
   ExtractBitwise,
@@ -366,7 +367,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
   case SignExtendUltConst: out << "SignExtendUltConst"; return out;
   case ZeroExtendUltConst: out << "ZeroExtendUltConst"; return out;
-    
+  case IneqElimConversion: out << "IneqElimConversion"; return out;
+
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
