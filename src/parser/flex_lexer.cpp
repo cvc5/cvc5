@@ -26,11 +26,6 @@
 namespace cvc5 {
 namespace parser {
 
-// !!!!! temporary, will be replaced by Flex auto-generated code
-Token yylex() { return Token::NONE; }
-void yyrestart(std::istream& input) {}
-const char* YYText() { return nullptr; }
-
 std::ostream& operator<<(std::ostream& o, const Location& l)
 {
   return o << l.d_line << ":" << l.d_column;
@@ -40,7 +35,7 @@ std::ostream& operator<<(std::ostream& o, const Span& l)
   return o << l.d_start << "-" << l.d_end;
 }
 
-FlexLexer::FlexLexer() {}
+FlexLexer::FlexLexer() : yyFlexLexer() {}
 
 void FlexLexer::warning(const std::string& msg)
 {
@@ -87,7 +82,8 @@ void FlexLexer::addLines(uint32_t lines)
 void FlexLexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
-  yyrestart(input);
+  // use the std::istream* version which is supported in earlier Flex versions
+  yyrestart(&input);
   initSpan();
   d_peeked.clear();
 }
