@@ -543,13 +543,15 @@ class SortTest
   @Test
   void getAbstractedKind() throws CVC5ApiException
   {
-    assertEquals(d_solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind(), SortKind.BITVECTOR_SORT);
+    assertEquals(d_solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind(),
+        SortKind.BITVECTOR_SORT);
     // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
     // is an Array sort, not an abstract sort and its abstract kind cannot be
     // extracted.
-    assertThrows(
-        CVC5ApiException.class, () -> d_solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind());
-    assertEquals(d_solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind(), SortKind.ABSTRACT_SORT);
+    assertThrows(CVC5ApiException.class,
+        () -> d_solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind());
+    assertEquals(d_solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind(),
+        SortKind.ABSTRACT_SORT);
   }
 
   @Test
