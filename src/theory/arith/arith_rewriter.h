@@ -20,6 +20,7 @@
 #ifndef CVC5__THEORY__ARITH__ARITH_REWRITER_H
 #define CVC5__THEORY__ARITH__ARITH_REWRITER_H
 
+#include "theory/arith/rewriter/addition.h"
 #include "theory/arith/rewrites.h"
 #include "theory/theory_rewriter.h"
 
@@ -94,6 +95,15 @@ class ArithRewriter : public TheoryRewriter
 
   /** return rewrite */
   static RewriteResponse returnRewrite(TNode t, Node ret, Rewrite r);
+
+  /**
+   * Rewrite inequality to bv. If applicable, return the rewrite response for
+   * the bitvector inequality that is the rewritten form of the arithmetic
+   * inequality ineq that is equivalent to (<k> sum 0).
+   */
+  static RewriteResponse rewriteIneqToBv(Kind k,
+                                         const rewriter::Sum& sum,
+                                         const Node& ineq);
   /** The operator elimination utility */
   OperatorElim& d_opElim;
 }; /* class ArithRewriter */

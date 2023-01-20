@@ -1,0 +1,16 @@
+(set-logic ALL)
+(set-info :status unsat)
+(declare-fun x () (_ BitVec 32))
+(declare-fun y () Int)
+
+(assert (or
+(< (bv2nat x) 0)
+(<= (bv2nat x) (- 1))
+(>= (bv2nat x) 4294967296)
+(> (bv2nat x) 4294967295)
+(and (not (= (mod y 4294967296) 4294967295)) (bvuge ((_ int2bv 32) y) #xFFFFFFFF))
+(bvult ((_ int2bv 32) y) #x00000000)
+(bvugt ((_ int2bv 32) y) #xFFFFFFFF)
+(and (not (= (mod y 4294967296) 0)) (bvule ((_ int2bv 32) y) #x00000000))
+))
+(check-sat)
