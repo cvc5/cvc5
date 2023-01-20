@@ -13,13 +13,15 @@
 # The build system configuration.
 ##
 
+find_package(Python3 3.6...<3.11 COMPONENTS Interpreter Development)
+
 # Add Python bindings API tests.
 macro(cvc5_add_python_api_test name filename)
 # We create test target 'api/python/myapitest' and run it with
 # 'ctest -R "api/python/myapitest"'.
   set(test_name api/python/${name})
   add_test (NAME ${test_name}
-    COMMAND ${PYTHON_EXECUTABLE}
+    COMMAND ${Python_EXECUTABLE}
             ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
     # directory for importing the python bindings
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
