@@ -5530,9 +5530,8 @@ void Solver::ensureWellFormedTerm(const Term& t) const
       std::unordered_set<internal::Node> fvs;
       internal::expr::getFreeVariables(*t.d_node, fvs);
       std::stringstream se;
-      se << "Cannot process term " << *t.d_node << " with "
-         << (wasShadow ? " shadowed " : " free ") << " variables: " << fvs
-         << std::endl;
+      se << "Cannot process term " << *t.d_node
+         << " with free variables: " << fvs << std::endl;
       throw CVC5ApiException(se.str().c_str());
     }
   }
