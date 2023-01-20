@@ -385,9 +385,6 @@ enum class InferenceId
   // evaluation unfolding for syntax-guided instantiation
   QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
-  // preprocessing a sygus conjecture based on quantifier elimination, of the
-  // form Q <=> Q_preprocessed
-  QUANTIFIERS_SYGUS_QE_PREPROC,
   // G or ~G where G is the active guard for a sygus enumerator
   QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
   // manual exclusion of a current solution

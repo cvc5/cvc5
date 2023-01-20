@@ -22,6 +22,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 
 using namespace cvc5::internal::kind;
 using namespace std;
@@ -516,6 +517,17 @@ SynthConjectureProcess::SynthConjectureProcess(Env& env) : EnvObj(env) {}
 SynthConjectureProcess::~SynthConjectureProcess() {}
 Node SynthConjectureProcess::preSimplify(Node q)
 {
+  // apply quantifier elimination if applicable, which eliminates variables
+  // from q for the purposes of coercing q to be single invocation.
+  if (options().quantifiers.sygusQePreproc)
+  {
+    SygusQePreproc sqp(d_env);
+    Node qq = sqp.preprocess(q);
+    if (!qq.isNull())
+    {
+      q = qq;
+    }
+  }
   Trace("sygus-process") << "Pre-simplify conjecture : " << q << std::endl;
   return q;
 }
@@ -524,7 +536,7 @@ Node SynthConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
   Assert(q.getKind() == FORALL);
-
+  
   if (options().quantifiers.sygusArgRelevant)
   {
     // initialize the information about each function to synthesize
