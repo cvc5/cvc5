@@ -1053,11 +1053,11 @@ inline Node RewriteRule<UltOne>::apply(TNode node)
 /**
  * UltOnes
  *
- * match:  (bvult (not (_ bv0 N)) a)
+ * match:  (bvult (bvnot (_ bv0 N)) a)
  * result: false
  *
- * match:  (bvult a (not (_ bv0 N)))
- * result: (distinct a (not (_ bv0 N)))
+ * match:  (bvult a (bvnot (_ bv0 N)))
+ * result: (distinct a (bvnot (_ bv0 N)))
  */
 template <>
 inline bool RewriteRule<UltOnes>::applies(TNode node)
