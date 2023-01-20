@@ -55,7 +55,7 @@ class JustifyCache
    * The value of n should not be set more than once.
    */
   void setValue(const Node& n, prop::SatValue value);
-  /** 
+  /**
    * Does n already have a justification value stored in this class?
    */
   bool hasValue(TNode n) const;
