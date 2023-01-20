@@ -634,6 +634,7 @@ Term Smt2TermParser::parseTerm()
   } while (!tstack.empty());
   return ret;
 }
+
 std::vector<Term> Smt2TermParser::parseTermList()
 {
   d_lex.eatToken(Token::LPAREN_TOK);
