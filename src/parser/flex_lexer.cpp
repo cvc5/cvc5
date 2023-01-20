@@ -82,7 +82,7 @@ void FlexLexer::addLines(uint32_t lines)
 void FlexLexer::initialize(std::istream& input, const std::string& inputName)
 {
   d_inputName = inputName;
-  yyrestart(input);
+  yyrestart(&input);
   initSpan();
   d_peeked.clear();
 }
