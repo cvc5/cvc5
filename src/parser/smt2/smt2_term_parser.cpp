@@ -296,6 +296,126 @@ std::vector<std::string> Smt2TermParser::parseNumeralList()
   return numerals;
 }
 
+std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
+    bool isCo,
+    const std::vector<std::string>& dnames,
+    const std::vector<size_t>& arities)
+{
+  Assert(dnames.size() == arities.size()
+         || (dnames.size() == 1 && arities.empty()));
+  std::vector<DatatypeDecl> dts;
+  d_state.pushScope();
+  // Declare the datatypes that are currently being defined as unresolved
+  // types. If we do not know the arity of the datatype yet, we wait to
+  // define it until parsing the preamble of its body, which may optionally
+  // involve `par`. This is limited to the case of single datatypes defined
+  // via declare-datatype, and hence no datatype body is parsed without
+  // having all types declared. This ensures we can parse datatypes with
+  // nested recursion, e.g. datatypes D having a subfield type
+  // (Array Int D).
+  for (unsigned i = 0, dsize = dnames.size(); i < dsize; i++)
+  {
+    if (i >= arities.size())
+    {
+      // do not know the arity yet
+      continue;
+    }
+    d_state.mkUnresolvedType(dnames[i], arities[i]);
+  }
+  // while we get another datatype declaration, or close the list
+  Token tok = d_lex.nextToken();
+  while (tok == Token::LPAREN_TOK)
+  {
+    std::vector<Sort> params;
+    size_t i = dts.size();
+    Trace("parser-dt") << "Processing datatype #" << i << std::endl;
+    if (i >= dnames.size())
+    {
+      d_lex.parseError("Too many datatypes defined in this block.");
+    }
+    tok = d_lex.nextToken();
+    bool pushedScope = false;
+    if (tok == Token::PAR_TOK)
+    {
+      pushedScope = true;
+      d_state.pushScope();
+      std::vector<std::string> symList =
+          parseSymbolList(CHECK_UNDECLARED, SYM_SORT);
+      if (symList.empty())
+      {
+        d_lex.parseError("Expected non-empty parameter list");
+      }
+      for (const std::string& sym : symList)
+      {
+        params.push_back(d_state.mkSort(sym));
+      }
+      Trace("parser-dt") << params.size() << " parameters for " << dnames[i]
+                         << std::endl;
+      dts.push_back(
+          d_state.getSolver()->mkDatatypeDecl(dnames[i], params, isCo));
+    }
+    else
+    {
+      d_lex.reinsertToken(tok);
+      // we will parse the parentheses-enclosed construct list below
+      d_lex.reinsertToken(Token::LPAREN_TOK);
+      dts.push_back(
+          d_state.getSolver()->mkDatatypeDecl(dnames[i], params, isCo));
+    }
+    if (i >= arities.size())
+    {
+      // if the arity is not yet fixed, declare it as an unresolved type
+      d_state.mkUnresolvedType(dnames[i], params.size());
+    }
+    else if (arities[i] >= 0 && params.size() != arities[i])
+    {
+      // if the arity was fixed by prelude and is not equal to the number of
+      // parameters
+      d_lex.parseError("Wrong number of parameters for datatype.");
+    }
+    // read constructor definition list, populate into the current datatype
+    parseConstructorDefinitionList(dts.back());
+    if (pushedScope)
+    {
+      d_lex.eatToken(Token::RPAREN_TOK);
+      d_state.popScope();
+    }
+    tok = d_lex.nextToken();
+  }
+  d_lex.reinsertToken(tok);
+  if (dts.size() != dnames.size())
+  {
+    d_lex.parseError("Wrong number of datatypes provided.");
+  }
+  d_state.popScope();
+  return dts;
+}
+
+void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
+{
+  d_lex.eatToken(Token::LPAREN_TOK);
+  // parse another constructor or close the list
+  while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+  {
+    std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+    DatatypeConstructorDecl ctor(
+        d_state.getSolver()->mkDatatypeConstructorDecl(name));
+    // parse another selector or close the current constructor
+    while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
+    {
+      std::string id = parseSymbol(CHECK_NONE, SYM_SORT);
+      Sort t = parseSort();
+      ctor.addSelector(id, t);
+      Trace("parser-idt") << "selector: " << id << " of type " << t
+                          << std::endl;
+      d_lex.eatToken(Token::RPAREN_TOK);
+    }
+    // make the constructor
+    type.addConstructor(ctor);
+    Trace("parser-idt") << "constructor: " << name << std::endl;
+  }
+}
+
 std::string Smt2TermParser::parseStr(bool unescape)
 {
   d_lex.eatToken(Token::STRING_LITERAL);
