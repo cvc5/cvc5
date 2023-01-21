@@ -28,7 +28,6 @@
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
-#include "prop/theory_preregistrar.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
