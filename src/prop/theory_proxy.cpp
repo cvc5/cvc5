@@ -53,7 +53,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_stopSearch(false, userContext())
+      d_stopSearch(false, userContext()),
+      d_activatedSkDefs(false)
 {
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
@@ -312,8 +313,12 @@ bool TheoryProxy::theoryNeedCheck() const {
   }
   else if (d_activatedSkDefs)
   {
+    // a new skolem definition become active on the last call to theoryCheck,
+    // return true
     return true;
   }
+  // otherwise ask the theory engine, which will return true if its output
+  // channel was used.
   bool needCheck = d_theoryEngine->needCheck();
   Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck
                         << std::endl;
