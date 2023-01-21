@@ -1539,12 +1539,14 @@ lbool Solver::search(int nof_conflicts)
   TheoryCheckType check_type = CHECK_WITH_THEORY;
   for (;;)
   {
+    Trace("ajr-temp") << "S: Propagate " << check_type << std::endl;
     // Propagate and call the theory solvers
     CRef confl = propagate(check_type);
     Assert(lemmas.size() == 0);
 
     if (confl != CRef_Undef)
     {
+      Trace("ajr-temp") << "S: Conflict" << std::endl;
       conflicts++;
       conflictC++;
 
@@ -1632,6 +1634,7 @@ lbool Solver::search(int nof_conflicts)
         // on assumptions, and the decision engine indicates it is done.
         bool decisionEngineDone = (decisionLevel() >= assumptions.size())
                                   && d_proxy->isDecisionEngineDone();
+        Trace("ajr-temp") << "S: Decision engine done is " << decisionEngineDone << std::endl;
         // Unless a lemma has added more stuff to the queues
         if (!decisionEngineDone
             && (!order_heap.empty() || qhead < trail.size()))
@@ -1641,12 +1644,14 @@ lbool Solver::search(int nof_conflicts)
         }
         else if (recheck)
         {
+          Trace("ajr-temp") << "S: Recheck" << std::endl;
           // There some additional stuff added, so we go for another
           // full-check
           continue;
         }
         else
         {
+          Trace("ajr-temp") << "S: SAT" << std::endl;
           // Yes, we're truly satisfiable
           return l_True;
         }

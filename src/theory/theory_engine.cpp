@@ -237,6 +237,7 @@ TheoryEngine::TheoryEngine(Env& env)
       d_propagationMapTimestamp(context(), 0),
       d_propagatedLiterals(context()),
       d_propagatedLiteralsIndex(context(), 0),
+      d_outputChannelUsed(false),
       d_atomRequests(context()),
       d_stats(statisticsRegistry()),
       d_true(),
@@ -387,7 +388,6 @@ void TheoryEngine::check(Theory::Effort effort) {
 
     // Mark the output channel unused (if this is FULL_EFFORT, and nothing
     // is done by the theories, no additional check will be needed)
-    d_outputChannelUsed = false;
 
     // Mark the lemmas flag (no lemmas added)
     d_lemmasAdded = false;
@@ -531,6 +531,7 @@ void TheoryEngine::check(Theory::Effort effort) {
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::check() => interrupted" << endl;
   }
+  d_outputChannelUsed = false;
 }
 
 void TheoryEngine::propagate(Theory::Effort effort)
@@ -1028,6 +1029,7 @@ void TheoryEngine::assertFact(TNode literal)
   if (d_inConflict) {
     return;
   }
+  d_outputChannelUsed = true;
 
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;
