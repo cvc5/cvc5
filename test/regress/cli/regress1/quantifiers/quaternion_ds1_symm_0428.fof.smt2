@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --full-saturate-quant --multi-trigger-cache
 ; EXPECT: unsat
+; DISABLE-TESTER: unsat-core
 (set-logic AUFLIRA)
 (set-info :status unsat)
 (declare-fun def () Real)

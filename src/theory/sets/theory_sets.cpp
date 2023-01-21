@@ -147,6 +147,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
       throw LogicException(ss.str());
     }
   }
+  /*
   if (n.getKind() == SET_MINUS && n[1].getKind() == SET_MINUS
       && n[1][0] == n[0])
   {
@@ -160,6 +161,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node intersection = nm->mkNode(SET_INTER, n[0], n[1][1]);
     return TrustNode::mkTrustRewrite(n, intersection, nullptr);
   }
+  */
   if (nk == SET_COMPREHENSION)
   {
     // set comprehension is an implicit quantifier, require it in the logic

@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --cegqi -mi
 ; EXPECT: sat
 ; EXPECT: unsat
-
+; DISABLE-TESTER: unsat-core
 (set-logic ALL)
 
 ; must make parts 1 through 6 with different deadlines

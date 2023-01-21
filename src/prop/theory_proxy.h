@@ -233,6 +233,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
+  
+  /** */
+  bool d_activatedSkDefs;
 }; /* class TheoryProxy */
 
 }  // namespace prop

@@ -164,6 +164,7 @@ void TheoryProxy::variableNotify(SatVariable var) {
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
+  d_activatedSkDefs = false;
   // check with the preregistrar
   d_prr->check();
   while (!d_queue.empty()) {
@@ -205,8 +206,10 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // assignment is not complete.
         if (effort==theory::Theory::EFFORT_FULL)
         {
+          Trace("theory-proxy") << "...change check to STANDARD!" << std::endl;
           effort = theory::Theory::EFFORT_STANDARD;
         }
+        d_activatedSkDefs = true;
       }
     }
   }
@@ -315,6 +318,10 @@ bool TheoryProxy::theoryNeedCheck() const {
   if (d_stopSearch.get())
   {
     return false;
+  }
+  else if (d_activatedSkDefs)
+  {
+    return true;
   }
   bool needCheck = d_theoryEngine->needCheck();
   Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck << std::endl;
