@@ -181,7 +181,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
-    // notify the preregister utility
+    // notify the preregister utility, which may trigger new preregistrations
     d_prr->notifyAsserted(assertion);
     // now, assert to theory engine
     Trace("prereg") << "assert: " << assertion << std::endl;
@@ -387,7 +387,11 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::notifySatLiteral(Node n) { d_prr->notifySatLiteral(n); }
+void TheoryProxy::notifySatLiteral(Node n) 
+{
+    // notify the preregister utility, which may trigger new preregistrations
+  d_prr->notifySatLiteral(n); 
+}
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const
