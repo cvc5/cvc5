@@ -163,6 +163,7 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+  Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
   // check with the preregistrar
   d_prr->check();
   while (!d_queue.empty()) {
@@ -285,19 +286,20 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
+  Trace("theory-proxy") << "TheoryProxy: getNextDecisionEngineRequest" << std::endl;
   if (d_stopSearch.get())
   {
-    Trace("decision") << "...stopped search, finish" << std::endl;
+    Trace("theory-proxy") << "...stopped search, finish" << std::endl;
     stopSearch = true;
     return undefSatLiteral;
   }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
-    Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
+    Trace("theory-proxy") << "  ***  Decision Engine stopped search *** " << std::endl;
   }
   else
   {
-    Trace("decision") << "...returned next decision" << std::endl;
+    Trace("theory-proxy") << "...returned next decision" << std::endl;
   }
   return ret;
 }
@@ -307,7 +309,9 @@ bool TheoryProxy::theoryNeedCheck() const {
   {
     return false;
   }
-  return d_theoryEngine->needCheck();
+  bool needCheck = d_theoryEngine->needCheck();
+  Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck << std::endl;
+  return needCheck;
 }
 
 bool TheoryProxy::isModelUnsound() const
