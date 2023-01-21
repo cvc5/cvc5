@@ -31,22 +31,13 @@ TheoryPreregistrar::TheoryPreregistrar(Env& env,
 
 TheoryPreregistrar::~TheoryPreregistrar() {}
 
-bool TheoryPreregistrar::needsActiveSkolemDefs() const
-{
-  return false;
-}
+bool TheoryPreregistrar::needsActiveSkolemDefs() const { return false; }
 
-void TheoryPreregistrar::check()
-{
-}
+void TheoryPreregistrar::check() {}
 
-void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
-{
-}
+void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
-void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
-{
-}
+void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
 
 void TheoryPreregistrar::notifySatLiteral(TNode n)
 {

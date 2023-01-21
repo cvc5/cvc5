@@ -387,10 +387,10 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::notifySatLiteral(Node n) 
+void TheoryProxy::notifySatLiteral(Node n)
 {
-    // notify the preregister utility, which may trigger new preregistrations
-  d_prr->notifySatLiteral(n); 
+  // notify the preregister utility, which may trigger new preregistrations
+  d_prr->notifySatLiteral(n);
 }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(

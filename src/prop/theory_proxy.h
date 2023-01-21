@@ -186,7 +186,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   void getSkolems(TNode node,
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
-  /** 
+  /**
    * Called when a SAT literal for atom n has been allocated in the SAT solver.
    */
   void notifySatLiteral(Node n) override;
