@@ -1,3 +1,5 @@
+; COMMAND-LINE: --ieval=use-learn
+; EXPECT: unsat
 (set-logic AUFLIA)
 (set-info :source | 
   Simplify front end test suite.

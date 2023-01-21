@@ -192,22 +192,6 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_hasSeqUpdate = true;
   }
-  else if (k == REGEXP_RANGE)
-  {
-    for (const Node& nc : n)
-    {
-      if (!nc.isConst())
-      {
-        throw LogicException(
-            "expecting a constant string term in regexp range");
-      }
-      if (nc.getConst<String>().size() != 1)
-      {
-        throw LogicException(
-            "expecting a single constant string term in regexp range");
-      }
-    }
-  }
   if (options().strings.stringEagerReg)
   {
     registerTerm(n);
