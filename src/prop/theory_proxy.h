@@ -230,8 +230,8 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
-  
-  /** 
+
+  /**
    * Whether we activated new skolem definitions on the last call to
    * theoryCheck. If this is true, then theoryNeedCheck must return true,
    * since there are new formulas to satisfy. Note that skolem definitions

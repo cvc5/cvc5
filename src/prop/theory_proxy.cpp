@@ -193,7 +193,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // if we are doing a FULL effort check (propagating with no remaining
         // decisions) and a new skolem definition becomes active, then the SAT
         // assignment is not complete.
-        if (effort==theory::Theory::EFFORT_FULL)
+        if (effort == theory::Theory::EFFORT_FULL)
         {
           Trace("theory-proxy") << "...change check to STANDARD!" << std::endl;
           effort = theory::Theory::EFFORT_STANDARD;
@@ -285,7 +285,8 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
-  Trace("theory-proxy") << "TheoryProxy: getNextDecisionEngineRequest" << std::endl;
+  Trace("theory-proxy") << "TheoryProxy: getNextDecisionEngineRequest"
+                        << std::endl;
   if (d_stopSearch.get())
   {
     Trace("theory-proxy") << "...stopped search, finish" << std::endl;
@@ -294,7 +295,8 @@ SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
-    Trace("theory-proxy") << "  ***  Decision Engine stopped search *** " << std::endl;
+    Trace("theory-proxy") << "  ***  Decision Engine stopped search *** "
+                          << std::endl;
   }
   else
   {
@@ -313,7 +315,8 @@ bool TheoryProxy::theoryNeedCheck() const {
     return true;
   }
   bool needCheck = d_theoryEngine->needCheck();
-  Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck << std::endl;
+  Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck
+                        << std::endl;
   return needCheck;
 }
 
