@@ -146,7 +146,11 @@ void CnfStream::ensureLiteral(TNode n)
   }
 }
 
-SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool notifyTheory, bool canEliminate) {
+SatLiteral CnfStream::newLiteral(TNode node,
+                                 bool isTheoryAtom,
+                                 bool notifyTheory,
+                                 bool canEliminate)
+{
   Trace("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom
                << ")\n"
                << push;
@@ -173,7 +177,8 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool notifyTheor
       }
     } else {
       Trace("cnf") << d_name << "::newLiteral: new var\n";
-      lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, notifyTheory, canEliminate));
+      lit = SatLiteral(
+          d_satSolver->newVar(isTheoryAtom, notifyTheory, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);

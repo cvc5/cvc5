@@ -54,7 +54,7 @@ class TheoryPreregistrar : protected EnvObj
    * Notify that a SAT literal for atom n has been assigned in the SAT solver.
    */
   void notifySatLiteral(TNode n);
-  /** 
+  /**
    * Notify that n is asserted from SAT solver.
    */
   void notifyAsserted(TNode n);

@@ -95,8 +95,8 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // update relevant, which will ensure that natom is preregistered if not
   // already done so
   updateRelevant(natom, toPreregister);
-  // we don't set justified explicitly here, instead the parent(s) will query the
-  // value of n
+  // we don't set justified explicitly here, instead the parent(s) will query
+  // the value of n
   std::vector<TNode> toVisit;
   getWatchParents(natom, toVisit);
   Trace("prop-finder-debug2")

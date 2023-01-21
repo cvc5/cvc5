@@ -285,8 +285,10 @@ class CnfStream : protected EnvObj
    * variable.
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(TNode node, bool isTheoryAtom = false,
-                        bool notifyTheory = false, bool canEliminate = true);
+  SatLiteral newLiteral(TNode node,
+                        bool isTheoryAtom = false,
+                        bool notifyTheory = false,
+                        bool canEliminate = true);
 
   /**
    * Constructs a new literal for an atom and returns it.  Calls
