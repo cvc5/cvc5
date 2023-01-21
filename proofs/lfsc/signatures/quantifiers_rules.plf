@@ -5,7 +5,7 @@
 ; of the caller to ensure that all occurrences of (bvar v u) in t are such that
 ; u is the sort of s. Otherwise, this will return a term that is not well
 ; sorted.
-(program sc_substitute ((t term) (v mpz) (s term)) term
+(function sc_substitute ((t term) (v mpz) (s term)) term
   (match t
     ((bvar v1 u1) (mpz_ifequal v v1 s t))
     ((apply t1 t2) (apply (sc_substitute t1 v s) (sc_substitute t2 v s)))
@@ -18,8 +18,8 @@
 (declare instantiate (! body term
                      (! v mpz
                      (! u sort
-                     (! s term
                      (! bodyi term
+                     (! s term
                      (! p (holds (forall v u body))
                      (! r (^ (sc_substitute body v s) bodyi)
                        (holds bodyi)))))))))
@@ -47,3 +47,25 @@
 
 (declare skolem_intro (! t term
                         (holds (= (skolem t) t))))
+
+; Beta-reduce t
+; We expect t to be of the form
+;   (apply ... (apply
+;     (apply (f_lambda v1 s1) ... (apply (f_lambda vn sn) b) ...)
+;     t1) ... tn)
+(function sc_beta_reduce ((t term)) term
+  (match t
+    ((apply t1 t2) 
+      (match t1
+        ((apply t11 t12) 
+          (match t11
+            ; if application of a lambda, apply substitution and return
+            ((f_lambda v s) (sc_substitute t12 v t2))
+            ; otherwise, recursively compute the beta-reduction and recompute
+            (default (sc_beta_reduce (apply (sc_beta_reduce t1) t2)))))
+  ))))
+
+(declare beta_reduce (! s term
+                     (! t term
+                     (! r (^ (sc_beta_reduce t) s)
+                       (holds (= t s))))))

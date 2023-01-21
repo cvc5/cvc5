@@ -209,6 +209,10 @@ enum class AletheRule : uint32_t
   // This rule is equivalent to the th_resolution rule but is emitted by the SAT
   // solver.
   RESOLUTION,
+  // ======== resolution from CHAIN_RESOLUTION or RESOLUTIONS
+  // Same as resolution but premises might have been printed as (cl (or F1 ...
+  // Fn)) instead of (cl F1 ... Fn)
+  RESOLUTION_OR,
   // ======== refl
   // G > i. (= F1 F2)
   REFL,

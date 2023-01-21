@@ -301,6 +301,12 @@ class Instantiate : public QuantifiersUtil
   static Node ensureType(Node n, TypeNode tn);
 
  private:
+  /** Add instantiation internal */
+  bool addInstantiationInternal(Node q,
+                                std::vector<Node>& terms,
+                                InferenceId id,
+                                Node pfArg = Node::null(),
+                                bool doVts = false);
   /** record instantiation, return true if it was not a duplicate */
   bool recordInstantiationInternal(Node q, const std::vector<Node>& terms);
   /** Get or make the instantiation list for quantified formula q */

@@ -205,7 +205,7 @@ class CVC5_EXPORT Integer
   bool isNegativeOne() const;
 
   /** Raise this Integer to the power 'exp'. */
-  Integer pow(unsigned long int exp) const;
+  Integer pow(uint32_t exp) const;
 
   /** Return the greatest common divisor of this integer with another. */
   Integer gcd(const Integer& y) const;

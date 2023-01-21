@@ -146,7 +146,7 @@ void Strategy::initializeStrategy()
       {
         addStrategyStep(CHECK_EXTF_REDUCTION);
       }
-      addStrategyStep(CHECK_MEMBERSHIP, 3);
+      addStrategyStep(CHECK_MEMBERSHIP);
       step_end[Theory::EFFORT_LAST_CALL] = d_infer_steps.size() - 1;
     }
     // set the beginning/ending ranges

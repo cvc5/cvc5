@@ -260,8 +260,6 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_SYQI_CEX: return "QUANTIFIERS_SYQI_CEX";
     case InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD:
       return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
-    case InferenceId::QUANTIFIERS_SYGUS_QE_PREPROC:
-      return "QUANTIFIERS_SYGUS_QE_PREPROC";
     case InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT:
       return "QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT";
     case InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT:
@@ -396,6 +394,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
+    case InferenceId::SETS_RELS_GROUP_NOT_EMPTY:
+      return "SETS_RELS_GROUP_NOT_EMPTY";
     case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
     case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
     case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";

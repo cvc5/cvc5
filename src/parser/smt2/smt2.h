@@ -122,9 +122,15 @@ class Smt2State : public ParserState
   /** Same as above, for constants indexed by symbols. */
   Term mkIndexedConstant(const std::string& name,
                          const std::vector<std::string>& symbols);
-  /** Same as above, for constants indexed by symbols. */
-  Term mkIndexedOp(const std::string& name,
-                   const std::vector<std::string>& symbols);
+  /**
+   * Make the operator for kind k that is indexed by the given symbols.
+   * The arguments are passed for the purposes of resolving overloading.
+   * For example, this method is used to construct the proper tester. This
+   * requires knowing the type of the (first) argument in args.
+   */
+  Term mkIndexedOp(Kind k,
+                   const std::vector<std::string>& symbols,
+                   const std::vector<Term>& args);
 
   /**
    * Creates an indexed operator kind, e.g. BITVECTOR_EXTRACT for "extract".
