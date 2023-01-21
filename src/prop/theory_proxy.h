@@ -186,8 +186,10 @@ class TheoryProxy : protected EnvObj, public Registrar
   void getSkolems(TNode node,
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
-  /** Preregister term */
-  void preRegister(Node n) override;
+  /** 
+   * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   */
+  void notifySatLiteral(Node n) override;
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
