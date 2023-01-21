@@ -50,9 +50,13 @@ class TheoryPreregistrar : protected EnvObj
   void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify that skolem definitions have become active */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs);
-  /** Notify that n is preregistered by SAT solver */
-  void notifyPreRegister(TNode n);
-  /** Notify that n is asserted from SAT solver */
+  /**
+   * Notify that a SAT literal for atom n has been assigned in the SAT solver.
+   */
+  void notifySatLiteral(TNode n);
+  /** 
+   * Notify that n is asserted from SAT solver.
+   */
   void notifyAsserted(TNode n);
 
  private:

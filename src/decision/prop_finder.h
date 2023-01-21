@@ -64,7 +64,7 @@ class PropFinder : protected EnvObj
   void check(std::vector<TNode>& toPreregister);
   /** Notify assertion */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
-  void notifyPreRegister(TNode n);
+  void notifySatLiteral(TNode n);
   /** Notify active skolem definitions */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs,
                               std::vector<TNode>& toPreregister);

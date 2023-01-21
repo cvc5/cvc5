@@ -159,7 +159,7 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {
-  preRegister(getNode(SatLiteral(var)));
+  notifySatLiteral(getNode(SatLiteral(var)));
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
@@ -410,7 +410,7 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::preRegister(Node n) { d_prr->notifyPreRegister(n); }
+void TheoryProxy::notifySatLiteral(Node n) { d_prr->notifySatLiteral(n); }
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const

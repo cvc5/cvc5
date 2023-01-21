@@ -187,7 +187,7 @@ class TheoryProxy : protected EnvObj, public Registrar
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
   /** Preregister term */
-  void preRegister(Node n) override;
+  void notifySatLiteral(Node n) override;
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(

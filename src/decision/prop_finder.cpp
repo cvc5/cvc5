@@ -69,9 +69,10 @@ void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma)
   d_assertions.push_back(n);
 }
 
-void PropFinder::notifyPreRegister(TNode n)
+void PropFinder::notifySatLiteral(TNode n)
 {
-  Trace("prop-finder") << "PropFinder: notify preregister " << n << std::endl;
+  Trace("prop-finder") << "PropFinder: notify SAT literal " << n << std::endl;
+  // do nothing, only for stats
   d_statSatPrereg = d_statSatPrereg + 1;
 }
 

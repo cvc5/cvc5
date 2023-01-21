@@ -70,7 +70,7 @@ void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
   }
 }
 
-void TheoryPreregistrar::notifyPreRegister(TNode n)
+void TheoryPreregistrar::notifySatLiteral(TNode n)
 {
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
@@ -80,7 +80,7 @@ void TheoryPreregistrar::notifyPreRegister(TNode n)
   }
   else if (d_propFinder != nullptr)
   {
-    d_propFinder->notifyPreRegister(n);
+    d_propFinder->notifySatLiteral(n);
   }
 }
 
