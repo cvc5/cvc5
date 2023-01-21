@@ -1235,11 +1235,7 @@ CRef Solver::propagate(TheoryCheckType type)
         // If no conflict, do the theory check
         if (confl == CRef_Undef && type != CHECK_WITHOUT_THEORY) {
             // Do the theory check
-            if (type == CHECK_FINAL_FAKE) {
-              theoryCheck(cvc5::internal::theory::Theory::EFFORT_FULL);
-            } else {
-              theoryCheck(cvc5::internal::theory::Theory::EFFORT_STANDARD);
-            }
+            theoryCheck(cvc5::internal::theory::Theory::EFFORT_STANDARD);
             // Pick up the theory propagated literals
             propagateTheory();
             // If there are lemmas (or conflicts) update them
@@ -1654,10 +1650,6 @@ lbool Solver::search(int nof_conflicts)
           // Yes, we're truly satisfiable
           return l_True;
         }
-      }
-      else if (check_type == CHECK_FINAL_FAKE)
-      {
-        check_type = CHECK_WITH_THEORY;
       }
 
       if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
