@@ -200,6 +200,13 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // active due to the assertion.
         d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
         d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
+        // if we are doing a FULL effort check (propagating with no remaining
+        // decisions) and a new skolem definition becomes active, then the SAT
+        // assignment is not complete.
+        if (effort==theory::Theory::EFFORT_FULL)
+        {
+          effort = theory::Theory::EFFORT_STANDARD;
+        }
       }
     }
   }
