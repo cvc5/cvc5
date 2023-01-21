@@ -252,14 +252,11 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     }
     Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
                                  << std::endl;
-    switch(tid)
+    switch (tid)
     {
-      case THEORY_STRINGS:
-      new_ret = extendedRewriteStrings(ret); break;
-      case THEORY_SETS:
-        new_ret = extendedRewriteSets(ret); break;
-      default:
-        break;
+      case THEORY_STRINGS: new_ret = extendedRewriteStrings(ret); break;
+      case THEORY_SETS: new_ret = extendedRewriteSets(ret); break;
+      default: break;
     }
   }
   //----------------------end theory-specific post-rewriting
@@ -1747,12 +1744,11 @@ Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
   if (node.getKind() == SET_MINUS && node[1].getKind() == SET_MINUS
       && node[1][0] == node[0])
   {
-    // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the cardinality
-    // graph. In particular, if we internally inspect
-    // (setminus A (setminus A B)), for instance if we are splitting the Venn
-    // regions of A and (setminus A B), then we should not transform this
-    // to an intersection term.
-    // (setminus A (setminus A B)) = (intersection A B)
+    // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the
+    // cardinality graph. In particular, if we internally inspect (setminus A
+    // (setminus A B)), for instance if we are splitting the Venn regions of A
+    // and (setminus A B), then we should not transform this to an intersection
+    // term. (setminus A (setminus A B)) = (intersection A B)
     NodeManager* nm = NodeManager::currentNM();
     Node ret = nm->mkNode(SET_INTER, node[0], node[1][1]);
     debugExtendedRewrite(node, ret, "SET_MINUS_MINUS");
