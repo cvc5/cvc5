@@ -136,7 +136,9 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
 
 bool BVSolverBitblast::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return options().bv.bvEqEngine;
+  // we always need the equality engine if sharing is enabled for processing
+  // equality engine and shared terms
+  return logicInfo().isSharingEnabled() || options().bv.bvEqEngine;
 }
 
 void BVSolverBitblast::postCheck(Theory::Effort level)
@@ -266,7 +268,7 @@ bool BVSolverBitblast::preNotifyFact(
   
   // Return false to enable equality engine reasoning in Theory, which is
   // available if we are using the equality engine.
-  return !options().bv.bvEqEngine;
+  return !logicInfo().isSharingEnabled() && !options().bv.bvEqEngine;
 }
 
 TrustNode BVSolverBitblast::explain(TNode n)
