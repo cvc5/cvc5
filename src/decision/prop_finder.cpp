@@ -29,9 +29,7 @@ PropFindInfo::PropFindInfo(context::Context* c)
 {
 }
 
-PropFinder::PropFinder(Env& env,
-                       CDCLTSatSolverInterface* ss,
-                       CnfStream* cs)
+PropFinder::PropFinder(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs)
     : EnvObj(env),
       d_pstate(context()),
       d_assertions(userContext()),
@@ -160,8 +158,9 @@ bool shouldWatchAll(Kind nk, SatValue rval)
 }
 
 // NOTE: responsible for popping self from toVisit!!!!
-SatValue PropFinder::updateRelevantInternal2(
-    TNode n, std::vector<TNode>& toPreregister, std::vector<TNode>& toVisit)
+SatValue PropFinder::updateRelevantInternal2(TNode n,
+                                             std::vector<TNode>& toPreregister,
+                                             std::vector<TNode>& toVisit)
 {
   Trace("prop-finder-debug2") << "Update relevance on " << n << std::endl;
   Assert(n.getKind() != NOT);
@@ -215,7 +214,8 @@ SatValue PropFinder::updateRelevantInternal2(
         if (iter == 1 || !shouldWatchAll(nk, rval))
         {
           // mark watch from prevChild to this
-          markWatchedParent(prevChild, n, invertChild ? SAT_VALUE_FALSE : SAT_VALUE_TRUE);
+          markWatchedParent(
+              prevChild, n, invertChild ? SAT_VALUE_FALSE : SAT_VALUE_TRUE);
           toVisit.pop_back();
           return SAT_VALUE_UNKNOWN;
         }
@@ -400,7 +400,9 @@ void PropFinder::markRelevant(TNode n,
   // otherwise did not update, don't add to stack.
 }
 
-void PropFinder::markWatchedParent(TNode child, TNode parent, SatValue implJustify)
+void PropFinder::markWatchedParent(TNode child,
+                                   TNode parent,
+                                   SatValue implJustify)
 {
   Trace("prop-finder-debug")
       << "Mark watched " << child << " with parent " << parent << std::endl;
@@ -412,19 +414,22 @@ void PropFinder::markWatchedParent(TNode child, TNode parent, SatValue implJusti
   // add to parent list
   currInfo->d_parentList.push_back(parent);
   // if we imply the justification of the parent (perhaps with a negation)
-  if (implJustify!=SAT_VALUE_UNKNOWN)
+  if (implJustify != SAT_VALUE_UNKNOWN)
   {
-    currInfo->d_parentListPol[parent] = implJustify==SAT_VALUE_FALSE ? !ppol : ppol;
+    currInfo->d_parentListPol[parent] =
+        implJustify == SAT_VALUE_FALSE ? !ppol : ppol;
   }
 }
 
-void PropFinder::updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue, std::vector<TNode>& toVisit)
+void PropFinder::updateJustify(
+    std::vector<std::pair<TNode, SatValue>>& justifyQueue,
+    std::vector<TNode>& toVisit)
 {
   size_t i = 0;
   std::pair<TNode, SatValue> curr;
   TNode n;
   SatValue val;
-  while (i<justifyQueue.size())
+  while (i < justifyQueue.size())
   {
     curr = justifyQueue[i];
     n = curr.first;
@@ -439,19 +444,23 @@ void PropFinder::updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQ
       for (const Node& p : currInfo->d_parentList)
       {
         itj = pl.find(p);
-        if (itj!=pl.end())
+        if (itj != pl.end())
         {
           Kind pk = p.getKind();
-          Assert (pk==AND || pk==OR || pk==IMPLIES);
+          Assert(pk == AND || pk == OR || pk == IMPLIES);
           // propagate justification upwards
-          bool childVal = (val == (itj->second ? SAT_VALUE_TRUE : SAT_VALUE_FALSE));
+          bool childVal =
+              (val == (itj->second ? SAT_VALUE_TRUE : SAT_VALUE_FALSE));
           // does it force the value?
-          if ((pk==AND)!=childVal)
+          if ((pk == AND) != childVal)
           {
             if (!d_jcache.hasValue(p))
             {
-              prop::SatValue newPJval =  childVal ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
-              Trace("prop-finder-debug") << "Due to setting " << n << " to " << val << ", parent " << p << " now has value " << newPJval << std::endl;
+              prop::SatValue newPJval =
+                  childVal ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
+              Trace("prop-finder-debug")
+                  << "Due to setting " << n << " to " << val << ", parent " << p
+                  << " now has value " << newPJval << std::endl;
               d_jcache.setValue(p, newPJval);
               justifyQueue.emplace_back(p, newPJval);
             }
