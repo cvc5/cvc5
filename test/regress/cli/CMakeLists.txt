@@ -2021,6 +2021,7 @@ set(regress_1_tests
   regress1/datatypes/proj-issue433-tester-merge-pf.smt2
   regress1/datatypes/tuple_projection.smt2
   regress1/decision/bug374a.smtv1.smt2
+  regress1/decision/dd.issue6483-prereg-rlv.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/issue5454-2.smt2
   regress1/decision/issue5454-3.smt2
