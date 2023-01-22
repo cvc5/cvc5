@@ -45,7 +45,9 @@ class PropFindInfo
    * be assigned for the purposes of updating relevance.
    */
   context::CDList<Node> d_parentList;
-  /** Parent list polarity */
+  /**
+   * Parent list polarity, only for parents who are IMPLIES, OR, AND.
+   */
   std::map<Node, bool> d_parentListPol;
   /** set finished */
   void setInactive();
@@ -82,9 +84,17 @@ class PropFinder : protected EnvObj
   void markRelevant(TNode n, prop::SatValue val, std::vector<TNode>& toVisit);
   /**
    * NOTE: child should be a direct child of parent, with its negation.
+   * 
+   * @param implJustify if not unknown, this is the polarity of child in parent
+   * that would imply the value of the parent
+   * 
    */
-  void markWatchedParent(TNode child, TNode parent);
-  void getWatchParents(TNode n, std::vector<TNode>& toVisit);
+  void markWatchedParent(TNode child, TNode parent, prop::SatValue implJustify = prop::SAT_VALUE_UNKNOWN);
+  /**
+   * Process the justification for all terms in justifyQueue, add all terms
+   * that need to update their relevance to toVisit.
+   */
+  void updateJustify(std::vector<std::pair<TNode, prop::SatValue>>& justifyQueue, std::vector<TNode>& toVisit);
   /** mk or get PropFindInfo */
   PropFindInfo* getInfo(TNode n);
   /** mk or get PropFindInfo */

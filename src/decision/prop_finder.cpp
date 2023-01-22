@@ -30,8 +30,8 @@ PropFindInfo::PropFindInfo(context::Context* c)
 }
 
 PropFinder::PropFinder(Env& env,
-                       prop::CDCLTSatSolverInterface* ss,
-                       prop::CnfStream* cs)
+                       CDCLTSatSolverInterface* ss,
+                       CnfStream* cs)
     : EnvObj(env),
       d_pstate(context()),
       d_assertions(userContext()),
@@ -97,8 +97,10 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   updateRelevant(natom, toPreregister);
   // we don't set justified explicitly here, instead the parent(s) will query
   // the value of n
+  std::vector<std::pair<TNode, SatValue>> justifyQueue;
+  justifyQueue.emplace_back(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
   std::vector<TNode> toVisit;
-  getWatchParents(natom, toVisit);
+  updateJustify(justifyQueue, toVisit);
   Trace("prop-finder-debug2")
       << "...will visit " << toVisit.size() << " parents" << std::endl;
   updateRelevantInternal(toVisit, toPreregister);
@@ -124,14 +126,14 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
                                         std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent. We forbid NOT for child and parent.
-  std::vector<std::pair<TNode, prop::SatValue>> justifyQueue;
+  std::vector<std::pair<TNode, SatValue>> justifyQueue;
   TNode t;
   while (!toVisit.empty())
   {
     t = toVisit.back();
     Assert(t.getKind() != NOT);
     // update relevant
-    prop::SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
+    SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
     // if we found it was justified
     if (jval != SAT_VALUE_UNKNOWN)
     {
@@ -146,22 +148,19 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
     // add parents to visit
     if (toVisit.empty())
     {
-      for (std::pair<TNode, prop::SatValue>& jn : justifyQueue)
-      {
-        getWatchParents(jn.first, toVisit);
-      }
+      updateJustify(justifyQueue, toVisit);
       justifyQueue.clear();
     }
   }
 }
 
-bool shouldWatchAll(Kind nk, prop::SatValue rval)
+bool shouldWatchAll(Kind nk, SatValue rval)
 {
   return rval != SAT_VALUE_UNKNOWN && ((nk == AND) == (rval == SAT_VALUE_TRUE));
 }
 
 // NOTE: responsible for popping self from toVisit!!!!
-prop::SatValue PropFinder::updateRelevantInternal2(
+SatValue PropFinder::updateRelevantInternal2(
     TNode n, std::vector<TNode>& toPreregister, std::vector<TNode>& toVisit)
 {
   Trace("prop-finder-debug2") << "Update relevance on " << n << std::endl;
@@ -187,9 +186,9 @@ prop::SatValue PropFinder::updateRelevantInternal2(
   }
   Kind nk = n.getKind();
   // the current relevance value we are processing
-  prop::SatValue rval = currInfo->d_rval;
+  SatValue rval = currInfo->d_rval;
   // if the justified value of n is found in this call, this is set to its value
-  prop::SatValue newJval = SAT_VALUE_UNKNOWN;
+  SatValue newJval = SAT_VALUE_UNKNOWN;
   size_t cindex = currInfo->d_childIndex;
   Trace("prop-finder-debug2")
       << "...relevance " << rval << ", childIndex " << cindex << ", iteration "
@@ -197,14 +196,14 @@ prop::SatValue PropFinder::updateRelevantInternal2(
   Assert(cindex <= n.getNumChildren());
   if (nk == AND || nk == OR || nk == IMPLIES)
   {
-    prop::SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+    SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
     bool invertChild = (nk == IMPLIES && cindex == 0);
     size_t iter = currInfo->d_iter;
     // check the status of the last child we looked at, if it exists
     if (cindex > 0)
     {
       TNode prevChild = n[cindex - 1];
-      prop::SatValue cval = d_jcache.lookupValue(prevChild);
+      SatValue cval = d_jcache.lookupValue(prevChild);
       cval = invertChild ? invertValue(cval) : cval;
       // if it did not have a value
       if (cval == SAT_VALUE_UNKNOWN)
@@ -216,7 +215,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         if (iter == 1 || !shouldWatchAll(nk, rval))
         {
           // mark watch from prevChild to this
-          markWatchedParent(prevChild, n);
+          markWatchedParent(prevChild, n, invertChild ? SAT_VALUE_FALSE : SAT_VALUE_TRUE);
           toVisit.pop_back();
           return SAT_VALUE_UNKNOWN;
         }
@@ -262,7 +261,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
           // the relevance value of the child is based on the relevance value of
           // this, possibly inverted in nextChild was negated or is the first
           // child of IMPLIES.
-          prop::SatValue crval = invertChild ? invertValue(rval) : rval;
+          SatValue crval = invertChild ? invertValue(rval) : rval;
           markRelevant(nextChild, crval, toVisit);
         }
         currInfo->d_childIndex = cindex + 1;
@@ -282,7 +281,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
     else
     {
       // check the value of last child
-      prop::SatValue cval = d_jcache.lookupValue(n[cindex - 1]);
+      SatValue cval = d_jcache.lookupValue(n[cindex - 1]);
       if (cval == SAT_VALUE_UNKNOWN)
       {
         // value is unknown, we are done for now
@@ -327,7 +326,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
         else
         {
           // look up the value of the first child and compute the result
-          prop::SatValue cval0 = d_jcache.lookupValue(n[0]);
+          SatValue cval0 = d_jcache.lookupValue(n[0]);
           Assert(cval0 != SAT_VALUE_UNKNOWN);
           newJval = (nk == XOR ? cval != cval0 : cval == cval0)
                         ? SAT_VALUE_TRUE
@@ -356,7 +355,7 @@ prop::SatValue PropFinder::updateRelevantInternal2(
 }
 
 void PropFinder::markRelevant(TNode n,
-                              prop::SatValue val,
+                              SatValue val,
                               std::vector<TNode>& toVisit)
 {
   // TODO: short cut if n is a theory literal, don't allocate cinfo?
@@ -385,8 +384,8 @@ void PropFinder::markRelevant(TNode n,
   }
   // Otherwise, take the union of relevant values. If we update our relevant
   // values, then we require processing relevance again.
-  prop::SatValue prevVal = currInfo->d_rval;
-  prop::SatValue newVal = relevantUnion(val, prevVal);
+  SatValue prevVal = currInfo->d_rval;
+  SatValue newVal = relevantUnion(val, prevVal);
   if (newVal != prevVal)
   {
     Trace("prop-finder-debug")
@@ -401,7 +400,7 @@ void PropFinder::markRelevant(TNode n,
   // otherwise did not update, don't add to stack.
 }
 
-void PropFinder::markWatchedParent(TNode child, TNode parent)
+void PropFinder::markWatchedParent(TNode child, TNode parent, SatValue implJustify)
 {
   Trace("prop-finder-debug")
       << "Mark watched " << child << " with parent " << parent << std::endl;
@@ -412,18 +411,56 @@ void PropFinder::markWatchedParent(TNode child, TNode parent)
   PropFindInfo* currInfo = getOrMkInfo(childAtom);
   // add to parent list
   currInfo->d_parentList.push_back(parent);
-  currInfo->d_parentListPol[parent] = ppol;
+  // if we imply the justification of the parent (perhaps with a negation)
+  if (implJustify!=SAT_VALUE_UNKNOWN)
+  {
+    currInfo->d_parentListPol[parent] = implJustify==SAT_VALUE_FALSE ? !ppol : ppol;
+  }
 }
 
-void PropFinder::getWatchParents(TNode n, std::vector<TNode>& toVisit)
+void PropFinder::updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue, std::vector<TNode>& toVisit)
 {
-  Assert(n.getKind() != NOT);
-  PropFindInfo* currInfo = getInfo(n);
-  if (currInfo != nullptr)
+  size_t i = 0;
+  std::pair<TNode, SatValue> curr;
+  TNode n;
+  SatValue val;
+  while (i<justifyQueue.size())
   {
-    for (const Node& p : currInfo->d_parentList)
+    curr = justifyQueue[i];
+    n = curr.first;
+    val = curr.second;
+    i++;
+    Assert(n.getKind() != NOT);
+    PropFindInfo* currInfo = getInfo(n);
+    if (currInfo != nullptr)
     {
-      toVisit.emplace_back(p);
+      std::map<Node, bool>::iterator itj;
+      std::map<Node, bool>& pl = currInfo->d_parentListPol;
+      for (const Node& p : currInfo->d_parentList)
+      {
+        itj = pl.find(p);
+        if (itj!=pl.end())
+        {
+          Kind pk = p.getKind();
+          Assert (pk==AND || pk==OR || pk==IMPLIES);
+          // propagate justification upwards
+          bool childVal = (val == (itj->second ? SAT_VALUE_TRUE : SAT_VALUE_FALSE));
+          // does it force the value?
+          if ((pk==AND)!=childVal)
+          {
+            if (!d_jcache.hasValue(p))
+            {
+              prop::SatValue newPJval =  childVal ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
+              Trace("prop-finder-debug") << "Due to setting " << n << " to " << val << ", parent " << p << " now has value " << newPJval << std::endl;
+              d_jcache.setValue(p, newPJval);
+              justifyQueue.emplace_back(p, newPJval);
+            }
+            continue;
+          }
+        }
+        // otherwise, must update relvance on the parent
+        toVisit.emplace_back(p);
+      }
     }
   }
 }
@@ -457,7 +494,7 @@ PropFindInfo* PropFinder::getOrMkInfo(TNode n)
   return mkInfo(n);
 }
 
-prop::SatValue PropFinder::relevantUnion(prop::SatValue r1, prop::SatValue r2)
+SatValue PropFinder::relevantUnion(SatValue r1, SatValue r2)
 {
   return r1 == r2 ? r1 : SAT_VALUE_UNKNOWN;
 }
