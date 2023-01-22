@@ -626,6 +626,7 @@ set(regress_0_tests
   regress0/decision/bitvec5.smtv1.smt2
   regress0/decision/bug347.smtv1.smt2
   regress0/decision/bug374b.smt2
+  regress0/decision/dd.bv2nat-types.smt2
   regress0/decision/error122.delta01.smtv1.smt2
   regress0/decision/error122.smtv1.smt2
   regress0/decision/error20.delta01.smtv1.smt2

@@ -99,12 +99,9 @@ void CombinationEngine::resetModel() { d_mmanager->resetModel(); }
 
 void CombinationEngine::postProcessModel(bool incomplete)
 {
-  Trace("ajr-temp") << "Notify model" << std::endl;
   d_eemanager->notifyModel(incomplete);
-  Trace("ajr-temp") << "Post proc model" << std::endl;
   // postprocess with the model
   d_mmanager->postProcessModel(incomplete);
-  Trace("ajr-temp") << "Finish model" << std::endl;
 }
 
 theory::TheoryModel* CombinationEngine::getModel()
