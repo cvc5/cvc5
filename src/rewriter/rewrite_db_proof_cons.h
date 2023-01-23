@@ -20,8 +20,16 @@
 
 #include <map>
 
+#include "expr/match_trie.h"
+#include "expr/node.h"
+#include "proof/proof.h"
+#include "proof/method_id.h"
+#include "proof/proof_generator.h"
 #include "rewriter/rewrite_db.h"
+#include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
+#include "theory/evaluator.h"
+#include "util/statistics_stats.h"
 
 namespace cvc5::internal {
 namespace rewriter {

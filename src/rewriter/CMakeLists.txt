@@ -23,6 +23,8 @@ libcvc5_add_sources(GENERATED
 libcvc5_add_sources(
   rewrite_db.cpp
   rewrite_db.h
+  rewrite_db_proof_cons.cpp
+  rewrite_db_proof_cons.h
 )
 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
