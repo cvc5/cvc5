@@ -1,0 +1,55 @@
+/******************************************************************************
+ * Top contributors (to current version):
+ *   Andrew Reynolds
+ *
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Rewrite database proof reconstructor
+ */
+
+#include "cvc5_private.h"
+
+#ifndef CVC5__THEORY__REWRITE_DB_PROOF_CONS__H
+#define CVC5__THEORY__REWRITE_DB_PROOF_CONS__H
+
+#include <map>
+
+#include "rewriter/rewrite_db.h"
+#include "smt/env_obj.h"
+
+namespace cvc5::internal {
+namespace rewriter {
+
+/**
+ * This class is used to reconstruct proofs of theory rewrites.
+ */
+class RewriteDbProofCons : protected EnvObj
+{
+ public:
+  RewriteDbProofCons(Env& env, RewriteDb* db);
+  /**
+   * Prove (= a b) with recursion limit recLimit. If cdp is provided, we add
+   * a proof for this fact on it.
+   */
+  bool prove(CDProof* cdp,
+             Node a,
+             Node b,
+             theory::TheoryId tid,
+             MethodId mid,
+             uint32_t recLimit);
+
+ private:
+  /** Pointer to rewrite database */
+  RewriteDb* d_db;
+};
+
+}  // namespace rewriter
+}  // namespace cvc5::internal
+
+#endif /* CVC5__THEORY__REWRITE_DB_PROOF_CONS__H */
