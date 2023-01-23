@@ -89,7 +89,7 @@ runs:
         brew install pyenv
         pyenv install 3.10
         pyenv versions
-        pyenv local 3.10
+        pyenv global 3.10
         PATH="~/.pyenv/shims:${PATH}"
 
         python3 -m pip install --user pexpect setuptools toml
