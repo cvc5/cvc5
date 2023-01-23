@@ -198,7 +198,7 @@ Term Smt2TermParser::parseTerm()
             std::vector<Term> args;
             if (d_state.isClosure(op.d_name))
             {
-              // if it is a closure, immediate read the bound variable list
+              // if it is a closure, immediately read the bound variable list
               d_state.pushScope();
               std::vector<std::pair<std::string, Sort>> sortedVarNames =
                   parseSortedVarList();
