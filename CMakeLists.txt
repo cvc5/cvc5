@@ -322,6 +322,10 @@ else()
 endif()
 
 find_package(Python 3.6...<3.11 COMPONENTS Interpreter REQUIRED)
+# Cmake package PythonExtensions is not compatible with FindPython.
+# We define PYTHON_EXECUTABLE here to be backward compatible.
+set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
