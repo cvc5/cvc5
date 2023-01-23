@@ -85,9 +85,8 @@ runs:
           flex \
           gnu-sed
 
-        brew uninstall python3
-        brew install python3@3.10
-        brew link python@3.10
+        brew unlink python@3.11
+        brew link --force python@3.10
 
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
