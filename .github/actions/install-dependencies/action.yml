@@ -86,12 +86,8 @@ runs:
           gnu-sed
 
         # Install python 3.10.
-        brew install pyenv
-        pyenv install 3.10
-        pyenv versions
-        pyenv global 3.10
-        PATH="~/.pyenv/shims:${PATH}"
-
+        brew install python@3.10
+        
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
