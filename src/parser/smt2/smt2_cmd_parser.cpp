@@ -98,7 +98,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new CheckSatCommand());
     }
     break;
-    // (check-sat-assuming)
+    // (check-sat-assuming (<term>*))
     case Token::CHECK_SAT_ASSUMING_TOK:
     {
       d_state.checkThatLogicIsSet();
