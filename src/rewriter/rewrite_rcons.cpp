@@ -24,9 +24,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-TheoryRewriteRCons::TheoryRewriteRCons(Env& env) : EnvObj(env) {}
+BasicRewriteRCons::BasicRewriteRCons(Env& env) : EnvObj(env) {}
 
-bool TheoryRewriteRCons::prove(
+bool BasicRewriteRCons::prove(
     CDProof* cdp, Node a, Node b, theory::TheoryId tid, MethodId mid)
 {
   Node eq = a.eqNode(b);
@@ -62,7 +62,7 @@ bool TheoryRewriteRCons::prove(
   return false;
 }
 
-bool TheoryRewriteRCons::tryRule(CDProof* cdp,
+bool BasicRewriteRCons::tryRule(CDProof* cdp,
                                  Node eq,
                                  PfRule r,
                                  const std::vector<Node>& args)

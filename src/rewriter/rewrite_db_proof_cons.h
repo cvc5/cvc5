@@ -36,6 +36,9 @@
 namespace cvc5::internal {
 namespace rewriter {
 
+/**
+ * This class is used to reconstruct proofs of theory rewrites.
+ */
 class RewriteDbProofCons : protected EnvObj
 {
  public:
@@ -132,7 +135,7 @@ class RewriteDbProofCons : protected EnvObj
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /** Basic utility */
-  TheoryRewriteRCons d_trrc;
+  BasicRewriteRCons d_trrc;
   /** Node converter utility */
   RewriteDbNodeConverter d_rdnc;
   /** Pointer to rewrite database */
