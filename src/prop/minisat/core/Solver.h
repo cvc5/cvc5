@@ -474,8 +474,7 @@ protected:
       CHECK_WITHOUT_THEORY,
       // Check and perform theory reasoning
       CHECK_WITH_THEORY,
-      // The SAT abstraction of the problem is satisfiable, perform a full
-      // theory check
+      // The SAT abstraction of the problem is satisfiable, perform a full theory check
       CHECK_FINAL
     };
 
