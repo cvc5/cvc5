@@ -321,7 +321,7 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+find_package(Python 3.6...<3.11 COMPONENTS Interpreter REQUIRED)
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -494,7 +494,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
+  set(BUILD_BINDINGS_PYTHON_VERSION 3.6...<3.11)
   add_subdirectory(src/api/python)
 endif()
 
