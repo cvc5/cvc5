@@ -29,7 +29,9 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * The definition of a (conditional) rewrite rule.
+ * The definition of a (conditional) rewrite rule. An instance of this
+ * class is generated for each DSL rule provided in the rewrite files. The
+ * interface of this class is used by the proof reconstruction algorithm.
  */
 class RewriteProofRule
 {
