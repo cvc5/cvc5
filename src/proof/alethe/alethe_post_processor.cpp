@@ -38,7 +38,6 @@ namespace proof {
 
 std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
   {kind::BITVECTOR_ULT, AletheRule::BV_BITBLAST_STEP_BVULT},
-  {kind::VARIABLE, AletheRule::BV_BITBLAST_STEP_VAR},
   {kind::BITVECTOR_AND, AletheRule::BV_BITBLAST_STEP_BVAND},
   {kind::BITVECTOR_OR, AletheRule::BV_BITBLAST_STEP_BVOR},
   {kind::BITVECTOR_XOR, AletheRule::BV_BITBLAST_STEP_BVXOR},
@@ -1484,12 +1483,14 @@ bool AletheProofPostprocessCallback::update(Node res,
     //  (cl (= t bitblast(t)))
     case PfRule::BV_BITBLAST_STEP:
     {
-      Assert(s_bvKindToAletheRule.find(res[0].getKind())
-             != s_bvKindToAletheRule.end())
-          << "Bit-blasted kind not supported in Alethe post-processing.";
-      return addAletheStep(s_bvKindToAletheRule.at(res[0].getKind()),
+      // if the term being bitblasted is a variable or a nonbv term, then this
+      // is a "bitblast var" step
+      auto it = s_bvKindToAletheRule.find(res[0].getKind());
+      return addAletheStep(it == s_bvKindToAletheRule.end()
+                               ? AletheRule::BV_BITBLAST_STEP_VAR
+                               : it->second,
                            res,
-                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           nm->mkNode(kind::SEXPR, d_cl, d_anc.convert(res)),
                            children,
                            {},
                            *cdp);
