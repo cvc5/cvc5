@@ -51,7 +51,7 @@ class TheoryPreregistrar : protected EnvObj
   /** Notify that skolem definitions have become active */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /**
-   * Notify that a SAT literal for atom n has been assigned in the SAT solver.
+   * Notify that a SAT literal for atom n has been allocated in the SAT solver.
    */
   void notifySatLiteral(TNode n);
   /**

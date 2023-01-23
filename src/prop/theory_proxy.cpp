@@ -54,7 +54,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr),
       d_prr(nullptr),
-      d_stopSearch(false, userContext())
+      d_stopSearch(false, userContext()),
+      d_activatedSkDefs(false)
 {
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
@@ -184,7 +185,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
-    // notify the preregister utility
+    // notify the preregister utility, which may trigger new preregistrations
     d_prr->notifyAsserted(assertion);
     // now, assert to theory engine
     Trace("prereg") << "assert: " << assertion << std::endl;
@@ -324,8 +325,12 @@ bool TheoryProxy::theoryNeedCheck() const {
   }
   else if (d_activatedSkDefs)
   {
+    // a new skolem definition become active on the last call to theoryCheck,
+    // return true
     return true;
   }
+  // otherwise ask the theory engine, which will return true if its output
+  // channel was used.
   bool needCheck = d_theoryEngine->needCheck();
   Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck
                         << std::endl;
@@ -414,7 +419,11 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::notifySatLiteral(Node n) { d_prr->notifySatLiteral(n); }
+void TheoryProxy::notifySatLiteral(Node n)
+{
+  // notify the preregister utility, which may trigger new preregistrations
+  d_prr->notifySatLiteral(n);
+}
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const

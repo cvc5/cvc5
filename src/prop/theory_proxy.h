@@ -186,7 +186,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   void getSkolems(TNode node,
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
-  /** Preregister term */
+  /**
+   * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   */
   void notifySatLiteral(Node n) override;
 
   /** Get the zero-level assertions */
@@ -234,7 +236,12 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
 
-  /** */
+  /**
+   * Whether we activated new skolem definitions on the last call to
+   * theoryCheck. If this is true, then theoryNeedCheck must return true,
+   * since there are new formulas to satisfy. Note that skolem definitions
+   * are dynamically activated only when decision=justification.
+   */
   bool d_activatedSkDefs;
 }; /* class TheoryProxy */
 
