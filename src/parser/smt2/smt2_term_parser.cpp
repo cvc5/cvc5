@@ -366,11 +366,9 @@ Term Smt2TermParser::parseTerm()
             Assert(!letBinders.empty());
             const std::vector<std::pair<std::string, Term>>& bs =
                 letBinders.back();
-            std::unordered_set<std::string> names;
             for (const std::pair<std::string, Term>& b : bs)
             {
               d_state.defineVar(b.first, b.second);
-              names.insert(b.first);
             }
             // done with the binders
             letBinders.pop_back();
