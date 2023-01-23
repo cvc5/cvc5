@@ -27,6 +27,7 @@ namespace rewriter {
 
 void addRules(RewriteDb& db)
 {
+  NodeManager* nm = NodeManager::currentNM();
 
   // Variables
   // clang-format off
