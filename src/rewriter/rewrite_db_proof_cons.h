@@ -25,6 +25,7 @@
 #include "proof/proof.h"
 #include "proof/method_id.h"
 #include "proof/proof_generator.h"
+#include "rewriter/basic_rewrite_rcons.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
@@ -53,6 +54,8 @@ class RewriteDbProofCons : protected EnvObj
              uint32_t recLimit);
 
  private:
+  /** Basic utility */
+  BasicRewriteRCons d_trrc;
   /** Pointer to rewrite database */
   RewriteDb* d_db;
 };

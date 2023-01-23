@@ -21,6 +21,8 @@ libcvc5_add_sources(GENERATED
   rewrites.h
 )
 libcvc5_add_sources(
+  basic_rewrite_rcons.cpp
+  basic_rewrite_rcons.h
   rewrite_db.cpp
   rewrite_db.h
   rewrite_db_proof_cons.cpp

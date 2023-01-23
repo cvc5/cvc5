@@ -15,7 +15,6 @@
 
 #include "rewriter/rewrite_db_proof_cons.h"
 
-
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
@@ -23,6 +22,7 @@ namespace rewriter {
 
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
+      d_trrc(env),
       d_db(db)
 {
 }
@@ -34,6 +34,15 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                MethodId mid,
                                uint32_t recLimit)
 {
+  Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
+               << std::endl;
+  Trace("rpc-debug") << "- prove basic" << std::endl;
+  // first, try with the basic utility
+  if (d_trrc.prove(cdp, a, b, tid, mid))
+  {
+    Trace("rpc") << "...success (basic)" << std::endl;
+    return true;
+  }
   return false;
 }
 
