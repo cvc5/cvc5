@@ -225,9 +225,7 @@ TNode TermEvaluatorEntailed::evaluate(const State& s,
       Trace("ieval-state-debug") << "...unknown equal" << std::endl;
       // otherwise we don't evaluate. This is different from marking
       // it as "none", since we want to propagate equalities between
-      // known terms. Notice that Booleans require being assigned to
-      // constants, so this only applies to non-Boolean equalities.
-      Assert(!n[0].getType().isBoolean());
+      // known terms.
       return s.getSome();
     }
   }

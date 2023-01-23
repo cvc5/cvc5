@@ -1,3 +1,19 @@
+
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Data structure for DSL rules
+##
+
 class Rule:
     def __init__(self, name, bvars, cond, lhs, rhs, is_fixed_point, rhs_context):
         self.name = name
@@ -9,6 +25,11 @@ class Rule:
         self.rhs_context = rhs_context
 
     def get_enum(self):
+        """
+            Get the rule name and convert it to be a member of an enumeration of the DSL rules.
+
+            :return: The name of the rule converted to an Enum member
+        """
         return self.name.replace('-', '_').upper()
 
     def __repr__(self):
