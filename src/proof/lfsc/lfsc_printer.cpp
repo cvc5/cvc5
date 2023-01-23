@@ -1226,7 +1226,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
     }
     odecl << " (holds ";
     Node t = d_tproc.convert(sterm);
-    printInternal(odecl, t);
+    print(odecl, t);
     odecl << ")";
   }
   odecl << rparen.str() << ")" << std::endl;
