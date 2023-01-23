@@ -85,14 +85,9 @@ runs:
           flex \
           gnu-sed
 
-        echo "nocheckin python3 --version"
-        python3 --version
-
-        brew install python@3.10
+        brew uninstall python3
+        brew install python3@3.10
         brew link python@3.10
-
-        echo "nocheckin python3 --version"
-        python3 --version
 
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
