@@ -67,12 +67,9 @@ runs:
         echo "::group::Install macOS software"
         brew update --quiet
 
-        brew unlink python@3.11
-        brew link --force python@3.10
-        echo "ls -l /usr/local/bin/python*"
-        ls -l /usr/local/bin/python*
-        echo "python --version"
-        python --version
+        # Hardcode python version to be 3.10 on macOS.
+        brew install python@3.10
+        ln -s -f /usr/local/bin/python3.10 /usr/local/bin/python3
 
         # Temporary workaround for https://github.com/actions/setup-python/issues/577
         # rm -f /usr/local/bin/2to3
