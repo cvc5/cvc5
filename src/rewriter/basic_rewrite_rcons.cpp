@@ -14,7 +14,7 @@
  * THEORY_REWRITE steps.
  */
 
-#include "rewriter/rewrite_rcons.h"
+#include "rewriter/basic_rewrite_rcons.h"
 
 #include "proof/proof_checker.h"
 #include "smt/env.h"

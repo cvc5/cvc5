@@ -26,7 +26,7 @@
 #include "proof/proof_generator.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
-#include "rewriter/rewrite_rcons.h"
+#include "rewriter/basic_rewrite_rcons.h"
 #include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
 #include "theory/evaluator.h"
