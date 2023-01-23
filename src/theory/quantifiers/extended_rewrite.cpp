@@ -1745,10 +1745,10 @@ Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
       && node[1][0] == node[0])
   {
     // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the
-    // cardinality graph. In particular, if we internally inspect (setminus A
+    // cardinality graph. In particular, if we internally inspect (set.minus A
     // (setminus A B)), for instance if we are splitting the Venn regions of A
-    // and (setminus A B), then we should not transform this to an intersection
-    // term. (setminus A (setminus A B)) = (intersection A B)
+    // and (set.minus A B), then we should not transform this to an intersection
+    // term. (set.minus A (set.minus A B)) = (set.inter A B)
     NodeManager* nm = NodeManager::currentNM();
     Node ret = nm->mkNode(SET_INTER, node[0], node[1][1]);
     debugExtendedRewrite(node, ret, "SET_MINUS_MINUS");
