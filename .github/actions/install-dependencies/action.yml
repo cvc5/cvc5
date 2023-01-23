@@ -87,7 +87,10 @@ runs:
 
         # Install python 3.10.
         brew install python@3.10
-        
+        sudo mkdir -p /usr/local/Frameworks
+        sudo chown -R $(whoami) /usr/local/*
+        brew link python3
+
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
