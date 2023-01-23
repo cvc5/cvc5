@@ -54,7 +54,8 @@ TheoryProxy::TheoryProxy(Env& env,
       d_skdm(skdm),
       d_zll(nullptr),
       d_prr(nullptr),
-      d_stopSearch(false, userContext())
+      d_stopSearch(false, userContext()),
+      d_activatedSkDefs(false)
 {
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
@@ -163,6 +164,8 @@ void TheoryProxy::variableNotify(SatVariable var) {
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+  Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
+  d_activatedSkDefs = false;
   // check with the preregistrar
   d_prr->check();
   while (!d_queue.empty()) {
@@ -199,6 +202,15 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // active due to the assertion.
         d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
         d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
+        // if we are doing a FULL effort check (propagating with no remaining
+        // decisions) and a new skolem definition becomes active, then the SAT
+        // assignment is not complete.
+        if (effort == theory::Theory::EFFORT_FULL)
+        {
+          Trace("theory-proxy") << "...change check to STANDARD!" << std::endl;
+          effort = theory::Theory::EFFORT_STANDARD;
+        }
+        d_activatedSkDefs = true;
       }
     }
   }
@@ -285,14 +297,22 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
+  Trace("theory-proxy") << "TheoryProxy: getNextDecisionEngineRequest"
+                        << std::endl;
   if (d_stopSearch.get())
   {
+    Trace("theory-proxy") << "...stopped search, finish" << std::endl;
     stopSearch = true;
     return undefSatLiteral;
   }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
-    Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
+    Trace("theory-proxy") << "  ***  Decision Engine stopped search *** "
+                          << std::endl;
+  }
+  else
+  {
+    Trace("theory-proxy") << "...returned next decision" << std::endl;
   }
   return ret;
 }
@@ -302,7 +322,18 @@ bool TheoryProxy::theoryNeedCheck() const {
   {
     return false;
   }
-  return d_theoryEngine->needCheck();
+  else if (d_activatedSkDefs)
+  {
+    // a new skolem definition become active on the last call to theoryCheck,
+    // return true
+    return true;
+  }
+  // otherwise ask the theory engine, which will return true if its output
+  // channel was used.
+  bool needCheck = d_theoryEngine->needCheck();
+  Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck
+                        << std::endl;
+  return needCheck;
 }
 
 bool TheoryProxy::isModelUnsound() const
