@@ -69,9 +69,10 @@ runs:
 
         brew unlink python@3.11
         brew link --force python@3.10
-        echo "where python3"
-        where python3
-        python3 --version
+        echo "ls -l /usr/local/bin/python*"
+        ls -l /usr/local/bin/python*
+        echo "python --version"
+        python --version
 
         # Temporary workaround for https://github.com/actions/setup-python/issues/577
         # rm -f /usr/local/bin/2to3
