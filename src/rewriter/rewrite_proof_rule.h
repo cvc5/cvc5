@@ -91,7 +91,7 @@ class RewriteProofRule
   void getMatches(Node h, expr::NotifyMatch* ntm) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
-  /** Get conclusion of the rule for ss */
+  /** Get conclusion of the rule for the substituted terms ss */
   Node getConclusionFor(const std::vector<Node>& ss) const;
 
   /**
@@ -100,7 +100,11 @@ class RewriteProofRule
    */
   bool isExplicitVar(Node v) const;
   /**
-   * Get list context
+   * Get list context. This returns the parent kind of the list variable v.
+   * For example, for
+   *   (define-rule bool-or-true ((xs Bool :list) (ys Bool :list))
+   *      (or xs true ys) true)
+   * The variable xs has list context `OR`.
    */
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
