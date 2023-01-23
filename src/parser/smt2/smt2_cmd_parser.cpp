@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Definitions of SMT2 tokens.
+ * The smt2 command parser.
  */
 
 #include "parser/smt2/smt2_cmd_parser.h"
@@ -98,7 +98,7 @@ std::unique_ptr<Command> Smt2CmdParser::parseNextCommand()
       cmd.reset(new CheckSatCommand());
     }
     break;
-    // (check-sat-assuming)
+    // (check-sat-assuming (<term>*))
     case Token::CHECK_SAT_ASSUMING_TOK:
     {
       d_state.checkThatLogicIsSet();
