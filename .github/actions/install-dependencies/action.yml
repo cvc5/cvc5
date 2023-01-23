@@ -87,6 +87,7 @@ runs:
 
         brew unlink python@3.11
         brew link --force python@3.10
+        /usr/local/Frameworks/Python.framework/Versions/3.10/bin/python3.10 -m pip install toml pexpect setuptools 
 
         python3 -m pip install --user pexpect setuptools toml
         # Make ImageVersion accessible as env.image_version. Environment
