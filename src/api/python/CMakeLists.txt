@@ -43,7 +43,8 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
-find_package(PythonExtensions REQUIRED)
+# nocheckin
+# find_package(PythonExtensions REQUIRED)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   # As a temporary workaround, we do not support python 3.11 due to the problem described above.
