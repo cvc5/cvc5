@@ -46,9 +46,10 @@ list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 find_package(PythonExtensions REQUIRED)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  # As a temporary workaround, we do not support python 3.11 due to the problem described above.
-  # Once this issue (https://github.com/actions/setup-python/issues/577) is
-  # solved, we will be able to add support to version 3.11.
+  # Python 3.11 is not supported because of this issue in Github's CI automation system:
+  #    https://github.com/actions/setup-python/issues/577
+  # It is possible to work around this issue by hardcoding 
+  # the greatest supported python version:
   find_package(Python 3.6...<3.11 COMPONENTS Development)
   set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
   set(PYTHON_LIBRARY "${Python_LIBRARIES}")
