@@ -13,8 +13,6 @@
 # The build system configuration.
 ##
 
-find_package(Python3 3.6...<3.11 COMPONENTS Interpreter Development)
-
 # Add Python bindings API tests.
 macro(cvc5_add_python_api_test name filename)
 # We create test target 'api/python/myapitest' and run it with
