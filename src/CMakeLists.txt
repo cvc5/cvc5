@@ -28,6 +28,8 @@ libcvc5_add_sources(
   decision/decision_engine.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
+  decision/justify_cache.cpp
+  decision/justify_cache.h
   decision/justify_info.cpp
   decision/justify_info.h
   decision/justify_stack.cpp
@@ -1352,12 +1354,18 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
+
+set(REWRITES_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites)
+
+#-----------------------------------------------------------------------------#
 # Add subdirectories
 
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(parser)
+add_subdirectory(rewriter)
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -1374,7 +1382,7 @@ set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-rewrites gen-tags gen-theory)
 
 add_library(cvc5 $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
 
