@@ -577,9 +577,12 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && logic.isTheoryEnabled(THEORY_UF) && logic.isTheoryEnabled(THEORY_BV);
 
     bool withCare = qf_aufbv;
-    Trace("smt") << "setting ite simplify with care to " << withCare
-                 << std::endl;
-    opts.writeSmt().simplifyWithCareEnabled = withCare;
+    if (opts.writeSmt().simplifyWithCareEnabled!=withCare)
+    {
+      notifyModifyOption(
+          "simplifyWithCareEnabled", withCare ? "true" : "false", "logic");
+      opts.writeSmt().simplifyWithCareEnabled = withCare;
+    }
   }
   // Turn off array eager index splitting for QF_AUFLIA
   if (!opts.arrays.arraysEagerIndexSplittingWasSetByUser)
@@ -588,8 +591,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && logic.isTheoryEnabled(THEORY_UF)
         && logic.isTheoryEnabled(THEORY_ARITH))
     {
-      Trace("smt") << "setting array eager index splitting to false"
-                   << std::endl;
+      notifyModifyOption(
+          "arraysEagerIndexSplitting", "false", "logic");
       opts.writeArrays().arraysEagerIndexSplitting = false;
     }
   }
@@ -601,15 +604,22 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !safeUnsatCores(opts);
-    Trace("smt") << "setting repeat simplification to " << repeatSimp
-                 << std::endl;
-    opts.writeSmt().repeatSimp = repeatSimp;
+    if (opts.smt.repeatSimp!=repeatSimp)
+    {
+      notifyModifyOption(
+          "repeatSimp", repeatSimp ? "true" : "false", "logic");
+      opts.writeSmt().repeatSimp = repeatSimp;
+    }
   }
 
   /* Disable bit-level propagation by default for the BITBLAST solver. */
   if (opts.bv.bvSolver == options::BVSolver::BITBLAST)
   {
-    opts.writeBv().bitvectorPropagate = false;
+    if (!opts.bv.bitvectorPropagate)
+    {
+      notifyModifyOption("bitvectorPropagate", "false", "bitblast solver");
+      opts.writeBv().bitvectorPropagate = false;
+    }
   }
 
   if (opts.bv.boolToBitvector == options::BoolToBVMode::ALL
@@ -620,8 +630,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
-    verbose(1) << "SolverEngine: turning off bool-to-bv for non-bv logic: "
-               << logic.getLogicString() << std::endl;
+    notifyModifyOption(
+          "boolToBitvector", "off", "non-BV logic");
     opts.writeBv().boolToBitvector = options::BoolToBVMode::OFF;
   }
 
