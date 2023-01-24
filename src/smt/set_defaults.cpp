@@ -1788,9 +1788,8 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
       Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
     }
   }
-  Trace("smt") << "setting decision mode to " << decMode
-               << std::endl;
-  if (opts.base.verbosity>=1)
+  Trace("smt") << "setting decision mode to " << decMode << std::endl;
+  if (opts.base.verbosity >= 1)
   {
     std::stringstream sopt;
     sopt << decMode;
