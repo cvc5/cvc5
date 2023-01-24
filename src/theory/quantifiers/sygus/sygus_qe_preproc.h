@@ -42,7 +42,7 @@ class SygusQePreproc : protected EnvObj
   SygusQePreproc(Env& env);
   ~SygusQePreproc() {}
   /**
-   * Preprocess. Returns a lemma of the form q = nq where nq is obtained
+   * Preprocess. Returns a quantified formula nq where nq is obtained
    * by the quantifier elimination technique outlined above.
    */
   Node preprocess(Node q);
