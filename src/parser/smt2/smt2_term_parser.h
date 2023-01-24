@@ -38,6 +38,8 @@ class Smt2TermParser
 
   /** Parses an SMT-LIB term <term> */
   Term parseTerm();
+  /** Parses parentheses-enclosed term list (<term>*) */
+  std::vector<Term> parseTermList();
   /** Parse an SMT-LIB sort <sort> */
   Sort parseSort();
   /** Parses parentheses-enclosed sort list (<sort>*) */
