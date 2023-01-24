@@ -66,7 +66,11 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // implied options
   if (opts.smt.debugCheckModels)
   {
-    opts.writeSmt().checkModels = true;
+    if (!opts.writeSmt().checkModels)
+    {
+      notifyModifyOption("checkModels", "true", "debugCheckModels");
+      opts.writeSmt().checkModels = true;
+    }
   }
   if (opts.smt.checkModels || opts.driver.dumpModels)
   {
@@ -138,6 +142,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (opts.smt.proofMode != options::ProofMode::OFF)
     {
+      notifyModifyOption("produceProofs", "true", "proof mode");
       // if (expert) user set proof mode to something other than off, enable
       // proofs
       opts.writeSmt().produceProofs = true;
@@ -145,6 +150,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if proofs weren't enabled by user, and we are producing difficulty
     if (opts.smt.produceDifficulty)
     {
+      notifyModifyOption("produceProofs", "true", "produce difficulty");
       opts.writeSmt().produceProofs = true;
       // ensure at least preprocessing proofs are enabled
       if (opts.smt.proofMode == options::ProofMode::OFF)
@@ -155,6 +161,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // if proofs weren't enabled by user, and we are producing unsat cores
     if (opts.smt.produceUnsatCores)
     {
+      notifyModifyOption("produceProofs", "true", "unsat cores");
       opts.writeSmt().produceProofs = true;
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
       {
@@ -216,7 +223,11 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
                    && logic.areIntegersUsed()))
            && !opts.base.incrementalSolving)
   {
-    opts.writeQuantifiers().sygusInst = true;
+    if (!opts.quantifiers.sygusInst)
+    {
+      notifyModifyOption("sygusInst", "true", "logic");
+      opts.writeQuantifiers().sygusInst = true;
+    }
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER)
@@ -239,7 +250,11 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     else if (!opts.base.incrementalSolving)
     {
       // if not incremental, we rely on ackermann to eliminate other theories.
-      opts.writeSmt().ackermann = true;
+      if (!opts.smt.ackermann)
+      {
+        notifyModifyOption("ackermann", "true", "bit-blast eager");
+        opts.writeSmt().ackermann = true;
+      }
     }
     else if (logic.isQuantified() || !logic.isPure(THEORY_BV))
     {
@@ -311,8 +326,8 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (logic.isTheoryEnabled(THEORY_STRINGS)
       && !options().strings.stringExpWasSetByUser)
   {
+    notifyModifyOption("stringExp", "true", "strings in logic");
     opts.writeStrings().stringExp = true;
-    Trace("smt") << "Turning stringExp on since strings are enabled\n";
   }
   // If strings-exp is enabled, we require quantifiers. We also enable them
   // if we are using eager string preprocessing or aggressive regular expression
