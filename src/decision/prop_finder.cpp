@@ -165,7 +165,7 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
 
 bool shouldWatchAll(Kind nk, SatValue rval)
 {
-  return rval != SAT_VALUE_UNKNOWN && ((nk == AND) == (rval == SAT_VALUE_TRUE));
+  return rval == SAT_VALUE_UNKNOWN || ((nk == AND) == (rval == SAT_VALUE_TRUE));
 }
 
 // NOTE: responsible for popping self from toVisit!!!!
