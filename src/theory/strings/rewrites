@@ -36,7 +36,7 @@
   (str.len t))
 
 (define-cond-rule str-len-substr-in-range ((s String) (n Int) (m Int))
-  (and (>= n 0) (>= (str.len s) (+ n m)))
+  (and (>= n 0) (>= m 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
   m)
 
