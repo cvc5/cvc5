@@ -1759,20 +1759,26 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
                     ? true
                     : false);
 
-  opts.writeDecision().decisionMode = decMode;
   if (stoponly)
   {
     if (opts.decision.decisionMode == options::DecisionMode::JUSTIFICATION)
     {
-      opts.writeDecision().decisionMode = options::DecisionMode::STOPONLY;
+      decMode = options::DecisionMode::STOPONLY;
     }
     else
     {
       Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
     }
   }
-  Trace("smt") << "setting decision mode to " << opts.decision.decisionMode
+  Trace("smt") << "setting decision mode to " << decMode
                << std::endl;
+  if (opts.base.verbosity>=1)
+  {
+    std::stringstream sopt;
+    sopt << decMode;
+    notifyModifyOption("decision", sopt.str(), "logic");
+  }
+  opts.writeDecision().decisionMode = decMode;
 }
 
 void SetDefaults::notifyModifyOption(const std::string& x,
