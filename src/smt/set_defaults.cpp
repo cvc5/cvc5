@@ -639,7 +639,8 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
     if (opts.arith.arithRewriteEq != arithRewriteEq)
     {
-      notifyModifyOption("arithRewriteEq", arithRewriteEq ? true : false, "logic");
+      notifyModifyOption(
+          "arithRewriteEq", arithRewriteEq ? true : false, "logic");
       opts.writeArith().arithRewriteEq = arithRewriteEq;
     }
   }
@@ -1392,8 +1393,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     }
   }
 
-  if (opts.quantifiers.fmfBoundLazyWasSetByUser
-       && opts.quantifiers.fmfBoundLazy && !opts.quantifiers.fmfBound)
+  if (opts.quantifiers.fmfBoundLazyWasSetByUser && opts.quantifiers.fmfBoundLazy
+      && !opts.quantifiers.fmfBound)
   {
     notifyModifyOption("fmfBound", "true", "fmf-bound-lazy");
     opts.writeQuantifiers().fmfBound = true;
