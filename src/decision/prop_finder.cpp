@@ -96,17 +96,20 @@ bool PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // update relevant, which will ensure that natom is preregistered if not
   // already done so
   updateRelevant(natom, toPreregister);
-  // we don't set justified explicitly here, instead the parent(s) will query
-  // the value of n
-  std::vector<std::pair<TNode, SatValue>> justifyQueue;
   prop::SatValue jval = pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
-  d_jcache.setValue(natom, jval);
+  // if we haven't already set the value, set it now
+  if (!d_jcache.hasValue(natom))
+  {
+    d_jcache.setValue(natom, jval);
+  }
+  std::vector<std::pair<TNode, SatValue>> justifyQueue;
   justifyQueue.emplace_back(natom, jval);
   std::vector<TNode> toVisit;
   updateJustify(justifyQueue, toVisit);
   Trace("prop-finder-debug2")
       << "...will visit " << toVisit.size() << " parents" << std::endl;
   updateRelevantInternal(toVisit, toPreregister);
+
   // we are notified about Boolean variables, but these should not be asserted
   // to the theory engine unless their kind is BOOLEAN_TERM_VARIABLE.
   return !natom.isVar() || natom.getKind()==BOOLEAN_TERM_VARIABLE;
