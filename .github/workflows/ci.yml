@@ -45,7 +45,7 @@ jobs:
             windows-build: true
             binary-name: cvc5-Win64.exe
             binary-ext: .exe
-          
+
           - name: ubuntu:production-clang
             os: ubuntu-18.04
             env: CC=clang CXX=clang++
@@ -54,7 +54,7 @@ jobs:
             check-examples: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-          
+
           - name: ubuntu:production-dbg
             os: ubuntu-18.04
             config: production --auto-download --assertions --tracing --unit-testing --all-bindings --editline --cocoa
