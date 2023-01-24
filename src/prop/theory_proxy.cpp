@@ -53,7 +53,9 @@ TheoryProxy::TheoryProxy(Env& env,
       d_tpp(env, *theoryEngine),
       d_skdm(skdm),
       d_zll(nullptr),
-      d_stopSearch(false, userContext())
+      d_prr(nullptr),
+      d_stopSearch(false, userContext()),
+      d_activatedSkDefs(false)
 {
   bool trackZeroLevel =
       options().smt.deepRestartMode != options::DeepRestartMode::NONE
@@ -84,6 +86,8 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
   {
     d_decisionEngine.reset(new decision::DecisionEngineEmpty(d_env));
   }
+  // make the theory preregistrar
+  d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
   d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs();
   d_cnfStream = cs;
@@ -151,13 +155,19 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
   // notify the decision engine
   d_decisionEngine->addAssertion(a, skolem, isLemma);
+  // notify the preregistrar
+  d_prr->addAssertion(a, skolem, isLemma);
 }
 
 void TheoryProxy::variableNotify(SatVariable var) {
-  preRegister(getNode(SatLiteral(var)));
+  notifySatLiteral(getNode(SatLiteral(var)));
 }
 
 void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+  Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
+  d_activatedSkDefs = false;
+  // check with the preregistrar
+  d_prr->check();
   while (!d_queue.empty()) {
     TNode assertion = d_queue.front();
     d_queue.pop();
@@ -174,13 +184,14 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         break;
       }
     }
+    // notify the preregister utility, which may trigger new preregistrations
+    d_prr->notifyAsserted(assertion);
     // now, assert to theory engine
+    Trace("prereg") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);
     if (d_trackActiveSkDefs)
     {
       Assert(d_skdm != nullptr);
-      Trace("sat-rlv-assert")
-          << "Assert to theory engine: " << assertion << std::endl;
       // Assertion makes all skolems in assertion active,
       // which triggers their definitions to becoming active.
       std::vector<TNode> activeSkolemDefs;
@@ -190,6 +201,16 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
         // notify the decision engine of the skolem definitions that have become
         // active due to the assertion.
         d_decisionEngine->notifyActiveSkolemDefs(activeSkolemDefs);
+        d_prr->notifyActiveSkolemDefs(activeSkolemDefs);
+        // if we are doing a FULL effort check (propagating with no remaining
+        // decisions) and a new skolem definition becomes active, then the SAT
+        // assignment is not complete.
+        if (effort == theory::Theory::EFFORT_FULL)
+        {
+          Trace("theory-proxy") << "...change check to STANDARD!" << std::endl;
+          effort = theory::Theory::EFFORT_STANDARD;
+        }
+        d_activatedSkDefs = true;
       }
     }
   }
@@ -276,14 +297,22 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
   Assert(d_decisionEngine != NULL);
   Assert(stopSearch != true);
+  Trace("theory-proxy") << "TheoryProxy: getNextDecisionEngineRequest"
+                        << std::endl;
   if (d_stopSearch.get())
   {
+    Trace("theory-proxy") << "...stopped search, finish" << std::endl;
     stopSearch = true;
     return undefSatLiteral;
   }
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
-    Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
+    Trace("theory-proxy") << "  ***  Decision Engine stopped search *** "
+                          << std::endl;
+  }
+  else
+  {
+    Trace("theory-proxy") << "...returned next decision" << std::endl;
   }
   return ret;
 }
@@ -293,7 +322,18 @@ bool TheoryProxy::theoryNeedCheck() const {
   {
     return false;
   }
-  return d_theoryEngine->needCheck();
+  else if (d_activatedSkDefs)
+  {
+    // a new skolem definition become active on the last call to theoryCheck,
+    // return true
+    return true;
+  }
+  // otherwise ask the theory engine, which will return true if its output
+  // channel was used.
+  bool needCheck = d_theoryEngine->needCheck();
+  Trace("theory-proxy") << "TheoryProxy: theoryNeedCheck returns " << needCheck
+                        << std::endl;
+  return needCheck;
 }
 
 bool TheoryProxy::isModelUnsound() const
@@ -378,7 +418,11 @@ void TheoryProxy::getSkolems(TNode node,
   }
 }
 
-void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
+void TheoryProxy::notifySatLiteral(Node n)
+{
+  // notify the preregister utility, which may trigger new preregistrations
+  d_prr->notifySatLiteral(n);
+}
 
 std::vector<Node> TheoryProxy::getLearnedZeroLevelLiterals(
     modes::LearnedLitType ltype) const
