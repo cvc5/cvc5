@@ -613,7 +613,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   /* Disable bit-level propagation by default for the BITBLAST solver. */
   if (opts.bv.bvSolver == options::BVSolver::BITBLAST)
   {
-    if (!opts.bv.bitvectorPropagate)
+    if (opts.bv.bitvectorPropagate)
     {
       notifyModifyOption("bitvectorPropagate", "false", "bitblast solver");
       opts.writeBv().bitvectorPropagate = false;
@@ -637,9 +637,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     bool arithRewriteEq =
         logic.isPure(THEORY_ARITH) && logic.isLinear() && !logic.isQuantified();
-    Trace("smt") << "setting arith rewrite equalities " << arithRewriteEq
-                 << std::endl;
-    opts.writeArith().arithRewriteEq = arithRewriteEq;
+    if (opts.arith.arithRewriteEq != arithRewriteEq)
+    {
+      notifyModifyOption("arithRewriteEq", arithRewriteEq ? true : false, "logic");
+      opts.writeArith().arithRewriteEq = arithRewriteEq;
+    }
   }
   if (!opts.arith.arithHeuristicPivotsWasSetByUser)
   {
@@ -1391,11 +1393,10 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   }
 
   if (opts.quantifiers.fmfBoundLazyWasSetByUser
-       && opts.quantifiers.fmfBoundLazy)
+       && opts.quantifiers.fmfBoundLazy && !opts.quantifiers.fmfBound)
   {
+    notifyModifyOption("fmfBound", "true", "fmf-bound-lazy");
     opts.writeQuantifiers().fmfBound = true;
-    Trace("smt")
-        << "turning on fmf-bound, for fmf-bound-int or fmf-bound-lazy\n";
   }
   // now have determined whether fmfBound is on/off
   // apply fmfBound options
@@ -1805,7 +1806,6 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
       Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
     }
   }
-  Trace("smt") << "setting decision mode to " << decMode << std::endl;
   if (opts.base.verbosity >= 1)
   {
     std::stringstream sopt;
