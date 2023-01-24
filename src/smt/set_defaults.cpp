@@ -577,7 +577,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && logic.isTheoryEnabled(THEORY_UF) && logic.isTheoryEnabled(THEORY_BV);
 
     bool withCare = qf_aufbv;
-    if (opts.writeSmt().simplifyWithCareEnabled!=withCare)
+    if (opts.writeSmt().simplifyWithCareEnabled != withCare)
     {
       notifyModifyOption(
           "simplifyWithCareEnabled", withCare ? "true" : "false", "logic");
@@ -591,8 +591,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && logic.isTheoryEnabled(THEORY_UF)
         && logic.isTheoryEnabled(THEORY_ARITH))
     {
-      notifyModifyOption(
-          "arraysEagerIndexSplitting", "false", "logic");
+      notifyModifyOption("arraysEagerIndexSplitting", "false", "logic");
       opts.writeArrays().arraysEagerIndexSplitting = false;
     }
   }
@@ -604,10 +603,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !safeUnsatCores(opts);
-    if (opts.smt.repeatSimp!=repeatSimp)
+    if (opts.smt.repeatSimp != repeatSimp)
     {
-      notifyModifyOption(
-          "repeatSimp", repeatSimp ? "true" : "false", "logic");
+      notifyModifyOption("repeatSimp", repeatSimp ? "true" : "false", "logic");
       opts.writeSmt().repeatSimp = repeatSimp;
     }
   }
@@ -630,8 +628,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       throw OptionException(
           "bool-to-bv=all not supported for non-bitvector logics.");
     }
-    notifyModifyOption(
-          "boolToBitvector", "off", "non-BV logic");
+    notifyModifyOption("boolToBitvector", "off", "non-BV logic");
     opts.writeBv().boolToBitvector = options::BoolToBVMode::OFF;
   }
 
