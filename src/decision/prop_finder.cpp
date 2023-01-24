@@ -344,7 +344,10 @@ SatValue PropFinder::updateRelevantInternal2(TNode n,
         << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
-    toPreregister.push_back(n);
+    if (!n.isVar() || nk==BOOLEAN_TERM_VARIABLE)
+    {
+      toPreregister.push_back(n);
+    }
     d_statPrereg = d_statPrereg + 1;
     Trace("prop-finder-status") << "Preregistered " << d_statPrereg << " / "
                                 << d_statSatPrereg << " literals" << std::endl;
