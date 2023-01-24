@@ -463,23 +463,31 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
-      notifyModifyOption("unconstrainedSimp", uncSimp ? "true" : "false", "");
-      opts.writeSmt().unconstrainedSimp = uncSimp;
+      if (opts.smt.unconstrainedSimp!=uncSimp)
+      {
+        notifyModifyOption("unconstrainedSimp", uncSimp ? "true" : "false", "");
+        opts.writeSmt().unconstrainedSimp = uncSimp;
+      }
     }
 
     // by default, nonclausal simplification is off for QF_SAT
     if (!opts.smt.simplificationModeWasSetByUser)
     {
       bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
-      Trace("smt") << "setting simplification mode to <"
-                   << logic.getLogicString() << "> " << (!qf_sat) << std::endl;
-      // simplification=none works better for SMT LIB benchmarks with
-      // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
-      // quantifiers ? options::SimplificationMode::NONE :
-      // options::SimplificationMode::BATCH);
-      opts.writeSmt().simplificationMode =
+      options::SimplificationMode sm = 
           qf_sat ? options::SimplificationMode::NONE
                  : options::SimplificationMode::BATCH;
+      if (opts.smt.simplificationMode!=sm)
+      {
+        std::stringstream sms;
+        sms << sm;
+        notifyModifyOption("unconstrainedSimp", sms.str(), "logic");
+        // simplification=none works better for SMT LIB benchmarks with
+        // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
+        // quantifiers ? options::SimplificationMode::NONE :
+        // options::SimplificationMode::BATCH);
+        opts.writeSmt().simplificationMode = sm;
+      }
     }
   }
 
@@ -490,12 +498,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       if (opts.bv.boolToBitvectorWasSetByUser)
       {
         throw OptionException(
-            "bool-to-bv != off not supported with CBQI BV for quantified "
+            "bool-to-bv != off not supported with CEGQI BV for quantified "
             "logics");
       }
-      verbose(1)
-          << "SolverEngine: turning off bool-to-bitvector to support CBQI BV"
-          << std::endl;
+      notifyModifyOption("boolToBitvector", "off", "CEGQI BV");
       opts.writeBv().boolToBitvector = options::BoolToBVMode::OFF;
     }
   }
@@ -504,7 +510,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (!opts.smt.produceModels
       && (opts.smt.produceAssignments || usesSygus(opts)))
   {
-    verbose(1) << "SolverEngine: turning on produce-models" << std::endl;
+    notifyModifyOption("produceModels", "true", "");
     opts.writeSmt().produceModels = true;
   }
 
@@ -516,6 +522,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (!opts.smt.earlyIteRemovalWasSetByUser)
     {
+      notifyModifyOption("earlyIteRemoval", "true", "doITESimp");
       opts.writeSmt().earlyIteRemoval = true;
     }
   }
@@ -530,7 +537,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && !(logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
              && !logic.isQuantified()))
     {
-      Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
+      notifyModifyOption("theoryOfMode", "THEORY_OF_TERM_BASED", "logic");
       opts.writeTheory().theoryOfMode =
           options::TheoryOfMode::THEORY_OF_TERM_BASED;
     }
@@ -542,9 +549,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !opts.base.incrementalSolving
                        && !safeUnsatCores(opts);
-    Trace("smt") << "setting uf symmetry breaker to " << qf_uf_noinc
-                 << std::endl;
-    opts.writeUf().ufSymmetryBreaker = qf_uf_noinc;
+    if (opts.uf.ufSymmetryBreaker!=qf_uf_noinc)
+    {
+      notifyModifyOption("ufSymmetryBreaker", qf_uf_noinc ? "true" : "false", "");
+      opts.writeUf().ufSymmetryBreaker = qf_uf_noinc;
+    }
   }
 
   // If in arrays, set the UF handler to arrays
