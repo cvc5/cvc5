@@ -345,7 +345,7 @@ SatValue PropFinder::updateRelevantInternal2(TNode n,
   }
   else if (cindex == 0)
   {
-    Trace("prop-finder-debug")
+    Trace("prop-finder")
         << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
