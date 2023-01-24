@@ -186,7 +186,14 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       }
     }
     // notify the preregister utility, which may trigger new preregistrations
-    d_prr->notifyAsserted(assertion);
+    if (!d_prr->notifyAsserted(assertion))
+    {
+      // the preregistrar determined we should not assert this assertion, which
+      // can be the case for Boolean variables that we are notified about for
+      // the purposes of updating justification when using preregistration
+      // mode relevant.
+      continue;
+    }
     // now, assert to theory engine
     Trace("prereg") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);

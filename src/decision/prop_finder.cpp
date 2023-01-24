@@ -85,7 +85,7 @@ void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
   }
 }
 
-void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
+bool PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
   Trace("prop-finder") << "PropFinder: notify asserted " << n << std::endl;
   bool pol = n.getKind() != kind::NOT;
@@ -102,6 +102,9 @@ void PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   Trace("prop-finder-debug2")
       << "...will visit " << toVisit.size() << " parents" << std::endl;
   updateRelevantInternal(toVisit, toPreregister);
+  // we are notified about Boolean variables, but these should not be asserted
+  // to the theory engine unless their kind is BOOLEAN_TERM_VARIABLE.
+  return !natom.isVar() || natom.getKind()==BOOLEAN_TERM_VARIABLE;
 }
 
 void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)

@@ -55,9 +55,10 @@ class TheoryPreregistrar : protected EnvObj
    */
   void notifySatLiteral(TNode n);
   /**
-   * Notify that n is asserted from SAT solver.
+   * Notify that n is asserted from SAT solver, return true if we should
+   * assert n to the theory engine.
    */
-  void notifyAsserted(TNode n);
+  bool notifyAsserted(TNode n);
 
  private:
   /** pre-register to theory */

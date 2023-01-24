@@ -66,12 +66,16 @@ class PropFinder : protected EnvObj
   void check(std::vector<TNode>& toPreregister);
   /** Notify assertion */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
+  /** Notify that n is a literal allocated by the SAT solver */
   void notifySatLiteral(TNode n);
   /** Notify active skolem definitions */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs,
                               std::vector<TNode>& toPreregister);
-  /** Notify that n is asserted from SAT solver */
-  void notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
+  /**
+   * Notify that n is asserted from SAT solver, return true if we should
+   * assert n to the theory engine.
+   */
+  bool notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 
  private:
   /** Set relevant */

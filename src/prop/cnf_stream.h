@@ -50,6 +50,8 @@ enum class FormulaLitPolicy : uint32_t
 {
   // literals for formulas are notified
   TRACK_AND_NOTIFY,
+  // literals for Boolean variables are notified
+  TRACK_AND_NOTIFY_VAR,
   // literals for formulas are added to node map
   TRACK,
   // literals for formulas are kept internal (default)

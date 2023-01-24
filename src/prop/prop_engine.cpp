@@ -27,6 +27,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/proof_options.h"
+#include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "prop/cnf_stream.h"
@@ -88,11 +89,17 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
   // CNF stream and theory proxy required pointers to each other, make the
   // theory proxy first
   d_theoryProxy = new TheoryProxy(d_env, this, d_theoryEngine, d_skdm.get());
+  FormulaLitPolicy flp = FormulaLitPolicy::TRACK;
+  if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
+  {
+    // must be notified about Boolean variables
+    flp = FormulaLitPolicy::TRACK_AND_NOTIFY_VAR;
+  }
   d_cnfStream = new CnfStream(env,
                               d_satSolver,
                               d_theoryProxy,
                               userContext,
-                              FormulaLitPolicy::TRACK,
+                              flp,
                               "prop");
 
   // connect theory proxy
