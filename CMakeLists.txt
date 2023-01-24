@@ -13,7 +13,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -321,7 +321,15 @@ else()
   endif()
 endif()
 
-find_package(PythonInterp 3 REQUIRED)
+find_package(Python 3.6...<3.11 COMPONENTS Interpreter REQUIRED)
+
+# 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
+#     https://github.com/scikit-build/scikit-build/issues/506
+# We define the following symbols below to be backward compatible.
+set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+set(PYTHON_INCLUDE_DIR "${Python_INCLUDE_DIR}")
+set(PYTHON_LIBRARY "${Python_LIBRARY}")
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)
@@ -494,7 +502,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
+  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION})
   add_subdirectory(src/api/python)
 endif()
 

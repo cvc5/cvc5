@@ -51,7 +51,7 @@ file(GLOB_RECURSE source_files
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
-  COMMAND ${PYTHON_EXECUTABLE} ${collect_tags_script} ${CMAKE_CURRENT_BINARY_DIR}/ ${PROJECT_SOURCE_DIR}/src
+  COMMAND ${Python_EXECUTABLE} ${collect_tags_script} ${CMAKE_CURRENT_BINARY_DIR}/ ${PROJECT_SOURCE_DIR}/src
   DEPENDS ${collect_tags_script} ${source_files}
 )
 
