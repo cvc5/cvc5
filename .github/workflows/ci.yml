@@ -62,7 +62,7 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
             python-bindings: true
-          
+
           - name: ubuntu:production-dbg-clang
             os: ubuntu-latest
             env: CC=clang CXX=clang++
