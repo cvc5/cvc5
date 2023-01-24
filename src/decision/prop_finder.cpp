@@ -15,6 +15,8 @@
 
 #include "decision/prop_finder.h"
 
+#include "options/prop_options.h"
+
 using namespace cvc5::internal::kind;
 using namespace cvc5::internal::prop;
 
@@ -33,6 +35,7 @@ PropFinder::PropFinder(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs)
     : EnvObj(env),
       d_pstate(context()),
       d_assertions(userContext()),
+      d_preregistered(context()),
       d_assertionIndex(context(), 0),
       d_jcache(context(), ss, cs),
       d_statSatPrereg(context(), 0),
@@ -96,7 +99,9 @@ bool PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   // we don't set justified explicitly here, instead the parent(s) will query
   // the value of n
   std::vector<std::pair<TNode, SatValue>> justifyQueue;
-  justifyQueue.emplace_back(natom, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE);
+  prop::SatValue jval = pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
+  d_jcache.setValue(natom, jval);
+  justifyQueue.emplace_back(natom, jval);
   std::vector<TNode> toVisit;
   updateJustify(justifyQueue, toVisit);
   Trace("prop-finder-debug2")
@@ -347,6 +352,11 @@ SatValue PropFinder::updateRelevantInternal2(TNode n,
     if (!n.isVar() || nk==BOOLEAN_TERM_VARIABLE)
     {
       toPreregister.push_back(n);
+    
+      if (options().prop.preregDebug)
+      {
+        d_preregistered.insert(n);
+      }
     }
     d_statPrereg = d_statPrereg + 1;
     Trace("prop-finder-status") << "Preregistered " << d_statPrereg << " / "
@@ -512,6 +522,115 @@ PropFindInfo* PropFinder::getOrMkInfo(TNode n)
 SatValue PropFinder::relevantUnion(SatValue r1, SatValue r2)
 {
   return r1 == r2 ? r1 : SAT_VALUE_UNKNOWN;
+}
+
+void PropFinder::debugCheckAssertion(const Node& a )
+{
+  if (d_jcache.hasValue(a))
+  {
+    return;
+  }
+  std::stringstream ss;
+  std::vector<std::pair<TNode, SatValue>> toVisit;
+  toVisit.emplace_back(a, SAT_VALUE_TRUE);
+  do
+  {
+    TNode t = toVisit.back().first;
+    prop::SatValue val = toVisit.back().second;
+    toVisit.pop_back();
+    if (t.getKind()==NOT)
+    {
+      t = t[0];
+      val = invertValue(val);
+    }
+    Assert (d_jcache.hasValue(a));
+    Kind nk = t.getKind();
+    if (nk == AND || nk == OR || nk == IMPLIES)
+    {
+      SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+      bool watchAll = shouldWatchAll(nk, val);
+      bool watchChildren = true;
+      for (size_t i=0, nchild = t.getNumChildren(); i<nchild; i++)
+      {
+        bool tcpol = t[i].getKind()!=NOT;
+        TNode tc = tcpol ? t[i] : t[i][0];
+        bool hadValue = d_jcache.hasValue(tc);
+        bool invertChild = (i==0 && nk==IMPLIES);
+        prop::SatValue cval = d_jcache.lookupValue(tc);
+        if (cval==SAT_VALUE_UNKNOWN)
+        {
+          if (watchChildren)
+          {
+            toVisit.emplace_back(t[i], invertChild ? invertValue(val) : val);
+          }
+          if (!watchAll)
+          {
+            // only watch one child
+            watchChildren = false;
+          }
+        }
+        else
+        {
+          cval = tcpol ? cval : invertValue(cval);
+          AlwaysAssert(!hadValue) << "Missed store in justify cache " << t[i] << " in " << t;
+          if (invertChild)
+          {
+            cval = invertValue(cval);
+          }
+          AlwaysAssert (cval!=forceVal) << "Missing justification";
+        }
+      }
+    }
+    else if (nk == ITE || (nk == EQUAL && t[0].getType().isBoolean())
+            || nk == XOR)
+    {
+      bool hadValue = d_jcache.hasValue(t[0]);
+      prop::SatValue cval = d_jcache.lookupValue(t[0]);
+      if (cval==SAT_VALUE_UNKNOWN)
+      {
+        toVisit.emplace_back(t[0], SAT_VALUE_UNKNOWN);
+      }
+      else
+      {
+        AlwaysAssert(!hadValue) << "Missed store in justify cache " << t;
+        size_t rcindex;
+        SatValue rcval;
+        if (nk == ITE)
+        {
+          // take the relevant branch, whose relevance is equal to this
+          rcindex = cval == SAT_VALUE_TRUE ? 2 : 3;
+          rcval = val;
+        }
+        else
+        {
+          // take the right hand side, whose relevance may be inverted based on
+          // the value of the left hand side.
+          rcindex = 2;
+          bool invertChild =
+              (cval == (nk == EQUAL ? SAT_VALUE_FALSE : SAT_VALUE_TRUE));
+          rcval = invertChild ? invertValue(val) : val;
+        }
+        toVisit.emplace_back(t[rcindex], rcval);
+      }
+    }
+    else
+    {
+      // should be preregistered
+      AlwaysAssert(d_preregistered.find(t)!=d_preregistered.end()) << "Expected to preregister " << t << " in " << a;
+    }
+  }
+  while (!toVisit.empty());
+}
+
+void PropFinder::debugCheck()
+{
+  if (options().prop.preregDebug)
+  {
+    for (size_t i=0; i<d_assertionIndex.get(); i++)
+    {
+      debugCheckAssertion(d_assertions[i]);
+    }
+  }
 }
 
 }  // namespace decision

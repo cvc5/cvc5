@@ -107,6 +107,14 @@ bool TheoryPreregistrar::notifyAsserted(TNode n)
   return true;
 }
 
+void TheoryPreregistrar::debugCheck()
+{
+  if (d_propFinder != nullptr)
+  {
+    d_propFinder->debugCheck();
+  }
+}
+
 void TheoryPreregistrar::preRegisterToTheory(
     const std::vector<TNode>& toPreregister)
 {

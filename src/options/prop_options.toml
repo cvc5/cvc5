@@ -98,3 +98,11 @@ name   = "SAT Layer"
 [[option.mode.RELEVANT]]
   name = "rlv"
   help = "Preregister literals when they become relevant."
+
+[[option]]
+  name       = "preregDebug"
+  category   = "expert"
+  long       = "preregister-debug"
+  type       = "bool"
+  default    = "false"
+  help       = "debug check preregister"

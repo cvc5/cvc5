@@ -60,6 +60,8 @@ class TheoryPreregistrar : protected EnvObj
    */
   bool notifyAsserted(TNode n);
 
+  
+  void debugCheck();
  private:
   /** pre-register to theory */
   void preRegisterToTheory(const std::vector<TNode>& toPreregister);

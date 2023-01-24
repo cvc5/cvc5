@@ -154,6 +154,11 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
+  // ignore constants
+  if (a.isConst())
+  {
+    return;
+  }
   // notify the decision engine
   d_decisionEngine->addAssertion(a, skolem, isLemma);
   // notify the preregistrar
@@ -222,6 +227,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       }
     }
   }
+  d_prr->debugCheck();
   if (!d_stopSearch.get())
   {
     d_theoryEngine->check(effort);
