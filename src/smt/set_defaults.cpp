@@ -806,8 +806,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         ss << "Cannot use " << sOptNoModel << " with model generation.";
         throw OptionException(ss.str());
       }
-      verbose(1) << "SolverEngine: turning off produce-models to support "
-                 << sOptNoModel << std::endl;
+      notifyModifyOption("produceModels", "false", sOptNoModel);
       opts.writeSmt().produceModels = false;
     }
     if (opts.smt.produceAssignments)
@@ -819,8 +818,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
            << " with model generation (produce-assignments).";
         throw OptionException(ss.str());
       }
-      verbose(1) << "SolverEngine: turning off produce-assignments to support "
-                 << sOptNoModel << std::endl;
+      notifyModifyOption("produceAssignments", "false", sOptNoModel);
       opts.writeSmt().produceAssignments = false;
     }
     if (opts.smt.checkModels)
@@ -832,8 +830,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
            << " with model generation (check-models).";
         throw OptionException(ss.str());
       }
-      verbose(1) << "SolverEngine: turning off check-models to support "
-                 << sOptNoModel << std::endl;
+      notifyModifyOption("checkModels", "false", sOptNoModel);
       opts.writeSmt().checkModels = false;
     }
   }
@@ -983,9 +980,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
   // options that are automatically set to support proofs
   if (opts.bv.bvAssertInput)
   {
-    verbose(1)
-        << "Disabling bv-assert-input since it is incompatible with proofs."
-        << std::endl;
+    notifyModifyOption("bvAssertInput", "false", "proofs");
     opts.writeBv().bvAssertInput = false;
   }
   // If proofs are required and the user did not specify a specific BV solver,
@@ -994,15 +989,12 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
       && opts.bv.bvSolver != options::BVSolver::BITBLAST_INTERNAL
       && !opts.bv.bvSolverWasSetByUser)
   {
-    verbose(1) << "Forcing internal bit-vector solver due to proof production."
-               << std::endl;
+    notifyModifyOption("bvSolver", "BITBLAST_INTERNAL", "proofs");
     opts.writeBv().bvSolver = options::BVSolver::BITBLAST_INTERNAL;
   }
   if (opts.arith.nlCovVarElim && !opts.arith.nlCovVarElimWasSetByUser)
   {
-    verbose(1)
-        << "Disabling nl-cov-var-elim since it is incompatible with proofs."
-        << std::endl;
+    notifyModifyOption("nl-cov-var-elim", "false", "proofs");
     opts.writeArith().nlCovVarElim = false;
   }
   if (opts.smt.deepRestartMode != options::DeepRestartMode::NONE)
@@ -1140,9 +1132,7 @@ bool SetDefaults::incompatibleWithUnsatCores(Options& opts,
       reason << "deep restarts";
       return true;
     }
-    verbose(1) << "SolverEngine: turning off deep restart to support unsat "
-                  "cores"
-               << std::endl;
+    notifyModifyOption("deepRestartMode", "NONE", "unsat cores");
     opts.writeSmt().deepRestartMode = options::DeepRestartMode::NONE;
   }
   if (opts.smt.learnedRewrite)
@@ -1356,13 +1346,16 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
 {
   if (opts.quantifiers.fullSaturateQuant)
   {
-    Trace("smt") << "enabling enum-inst for full-saturate-quant" << std::endl;
-    opts.writeQuantifiers().enumInst = true;
+    if (!opts.quantifiers.enumInst)
+    {
+      notifyModifyOption("enumInst", "true", "full-saturate-quant");
+      opts.writeQuantifiers().enumInst = true;
+    }
   }
   if (opts.arrays.arraysExp)
   {
     // Allows to answer sat more often by default.
-    if (!opts.quantifiers.fmfBoundWasSetByUser)
+    if (!opts.quantifiers.fmfBoundWasSetByUser && !opts.quantifiers.fmfBound)
     {
       notifyModifyOption("fmfBound", "true", "arrays-exp");
       opts.writeQuantifiers().fmfBound = true;
@@ -1371,17 +1364,24 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (logic.hasCardinalityConstraints())
   {
     // must have finite model finding on
-    opts.writeQuantifiers().finiteModelFind = true;
+    if (!opts.quantifiers.finiteModelFind)
+    {
+      notifyModifyOption("finiteModelFind", "true", "logic with cardinality constraints");
+      opts.writeQuantifiers().finiteModelFind = true;
+    }
   }
   if (opts.quantifiers.instMaxLevel != -1)
   {
-    notifyModifyOption("cegqi", "false", "instMaxLevel");
-    opts.writeQuantifiers().cegqi = false;
+    if (opts.quantifiers.cegqi)
+    {
+      notifyModifyOption("cegqi", "false", "instMaxLevel");
+      opts.writeQuantifiers().cegqi = false;
+    }
   }
   if (opts.quantifiers.mbqi)
   {
     // MBQI is an alternative to CEGQI/SyQI
-    if (!opts.quantifiers.cegqiWasSetByUser)
+    if (!opts.quantifiers.cegqiWasSetByUser && opts.quantifiers.cegqi)
     {
       notifyModifyOption("cegqi", "false", "mbqi");
       opts.writeQuantifiers().cegqi = false;
