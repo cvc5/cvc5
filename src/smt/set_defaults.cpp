@@ -326,7 +326,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (logic.isTheoryEnabled(THEORY_STRINGS)
       && !options().strings.stringExpWasSetByUser)
   {
-    notifyModifyOption("stringExp", "true", "strings in logic");
+    notifyModifyOption("stringExp", "true", "logic including strings");
     opts.writeStrings().stringExp = true;
   }
   // If strings-exp is enabled, we require quantifiers. We also enable them
@@ -414,7 +414,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
      * Therefore, we enable bv-to-bool, which runs before
      * the translation to integers.
      */
-    opts.writeBv().bitvectorToBool = true;
+    if (!opts.writeBv().bitvectorToBool)
+    {
+      notifyModifyOption("bitvectorToBool", "true", "solve-bv-as-int");
+      opts.writeBv().bitvectorToBool = true;
+    }
   }
 
   // Disable options incompatible with incremental solving, or output an error
@@ -459,8 +463,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
-      Trace("smt") << "setting unconstrained simplification to " << uncSimp
-                   << std::endl;
+      notifyModifyOption("unconstrainedSimp", uncSimp ? "true" : "false", "");
       opts.writeSmt().unconstrainedSimp = uncSimp;
     }
 
