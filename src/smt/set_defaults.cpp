@@ -463,7 +463,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
                      && logic.isTheoryEnabled(THEORY_ARRAYS)
                      && logic.isTheoryEnabled(THEORY_BV)
                      && !logic.isTheoryEnabled(THEORY_ARITH);
-      if (opts.smt.unconstrainedSimp!=uncSimp)
+      if (opts.smt.unconstrainedSimp != uncSimp)
       {
         notifyModifyOption("unconstrainedSimp", uncSimp ? "true" : "false", "");
         opts.writeSmt().unconstrainedSimp = uncSimp;
@@ -474,17 +474,17 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (!opts.smt.simplificationModeWasSetByUser)
     {
       bool qf_sat = logic.isPure(THEORY_BOOL) && !logic.isQuantified();
-      options::SimplificationMode sm = 
-          qf_sat ? options::SimplificationMode::NONE
-                 : options::SimplificationMode::BATCH;
-      if (opts.smt.simplificationMode!=sm)
+      options::SimplificationMode sm = qf_sat
+                                           ? options::SimplificationMode::NONE
+                                           : options::SimplificationMode::BATCH;
+      if (opts.smt.simplificationMode != sm)
       {
         std::stringstream sms;
         sms << sm;
         notifyModifyOption("unconstrainedSimp", sms.str(), "logic");
         // simplification=none works better for SMT LIB benchmarks with
-        // quantifiers, not others opts.set(options::simplificationMode, qf_sat ||
-        // quantifiers ? options::SimplificationMode::NONE :
+        // quantifiers, not others opts.set(options::simplificationMode, qf_sat
+        // || quantifiers ? options::SimplificationMode::NONE :
         // options::SimplificationMode::BATCH);
         opts.writeSmt().simplificationMode = sm;
       }
@@ -549,9 +549,10 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     bool qf_uf_noinc = logic.isPure(THEORY_UF) && !logic.isQuantified()
                        && !opts.base.incrementalSolving
                        && !safeUnsatCores(opts);
-    if (opts.uf.ufSymmetryBreaker!=qf_uf_noinc)
+    if (opts.uf.ufSymmetryBreaker != qf_uf_noinc)
     {
-      notifyModifyOption("ufSymmetryBreaker", qf_uf_noinc ? "true" : "false", "");
+      notifyModifyOption(
+          "ufSymmetryBreaker", qf_uf_noinc ? "true" : "false", "");
       opts.writeUf().ufSymmetryBreaker = qf_uf_noinc;
     }
   }
