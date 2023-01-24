@@ -21,39 +21,61 @@
 namespace cvc5::internal {
 namespace proof {
 
-Node AletheNodeConverter::preConvert(Node n)
-{
-  Kind k = n.getKind();
-  if (k == kind::SKOLEM || k == kind::BOOLEAN_TERM_VARIABLE)
-  {
-    Trace("alethe-conv") << "AletheNodeConverter: [PRE] handling skolem " << n
-                         << "\n";
-    Node wi = SkolemManager::getWitnessForm(n);
-    // true skolem with witness form, just convert that
-    if (!wi.isNull())
-    {
-      Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
-                           << " has witness form " << wi << "\n";
-      return wi;
-    }
-    // purification skolem, so we simply retrieve its original form and convert
-    // that
-    Node oi = SkolemManager::getOriginalForm(n);
-    AlwaysAssert(!oi.isNull());
-    Trace("alethe-conv")
-        << "AletheNodeConverter: ..pre-convert to original form " << oi << "\n";
-    return oi;
-  }
-  return n;
-}
-
 Node AletheNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  AlwaysAssert(k != kind::SKOLEM && k != kind::BOOLEAN_TERM_VARIABLE);
   switch (k)
   {
+    case kind::SKOLEM:
+    case kind::BOOLEAN_TERM_VARIABLE:
+    {
+      Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
+                           << "\n";
+      Node wi = SkolemManager::getOriginalForm(n);
+      Trace("alethe-conv") << "AletheNodeConverter: ..original: " << wi << "\n";
+      if (wi == n)
+      {
+        // if it is not a purification skolem, maybe it has a witness skolem
+        wi = SkolemManager::getWitnessForm(n);
+      }
+      // skolem with witness form, just convert that
+      if (!wi.isNull() && wi != n)
+      {
+        Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
+                             << " has witness form " << wi << "\n";
+        return convert(wi);
+      }
+      // either random skolem or one with a predefined function. In the former
+      // we break, in latter we recover the semantics via the witness form
+      // correspoding to the function
+      SkolemManager* sm = nm->getSkolemManager();
+      SkolemFunId sfi = SkolemFunId::NONE;
+      Node cacheVal;
+      if (!sm->isSkolemFunction(n, sfi, cacheVal) || sfi == SkolemFunId::NONE)
+      {
+        Unreachable() << "Fresh Skolem not allowed\n";
+      }
+      Trace("alethe-conv") << "AletheNodeConverter: ..skolem is fun " << sfi
+                           << ", with cache " << cacheVal << "\n";
+      if (sfi != SkolemFunId::ARRAY_DEQ_DIFF)
+      {
+        Unreachable() << "Unsupported Skolem fun " << sfi << "\n";
+      }
+      // create the witness term (witness ((x T)) ())
+
+      Node v = nm->mkBoundVar(n.getType());
+      // the cache for this skolem must be an sexpr with the two arrays
+      Node def =
+          nm->mkNode(kind::IMPLIES,
+                     cacheVal[0].eqNode(cacheVal[1]).notNode(),
+                     nm->mkNode(kind::SELECT, cacheVal[0], v)
+                         .eqNode(nm->mkNode(kind::SELECT, cacheVal[1], v))
+                         .notNode());
+      wi = nm->mkNode(kind::WITNESS, nm->mkNode(kind::BOUND_VAR_LIST, v), def);
+      Trace("alethe-conv") << "Built " << wi << "\n";
+      return convert(wi);
+    }
     case kind::FORALL:
     {
       // remove patterns, if any
