@@ -640,7 +640,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     if (opts.arith.arithRewriteEq != arithRewriteEq)
     {
       notifyModifyOption(
-          "arithRewriteEq", arithRewriteEq ? true : false, "logic");
+          "arithRewriteEq", arithRewriteEq ? "true" : "false", "logic");
       opts.writeArith().arithRewriteEq = arithRewriteEq;
     }
   }
@@ -1407,11 +1407,13 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
         || (opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE
             && opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::FMC))
     {
+      notifyModifyOption("fmfMbqiMode", "none", "fmf-bound");
       // if bounded integers are set, use no MBQI by default
       opts.writeQuantifiers().fmfMbqiMode = options::FmfMbqiMode::NONE;
     }
     if (!opts.quantifiers.prenexQuantUserWasSetByUser)
     {
+      notifyModifyOption("prenexQuant", "none", "fmf-bound");
       opts.writeQuantifiers().prenexQuant = options::PrenexQuantMode::NONE;
     }
   }
@@ -1421,6 +1423,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // cannot be used
     if (opts.quantifiers.fmfMbqiMode != options::FmfMbqiMode::NONE)
     {
+      notifyModifyOption("fmfMbqiMode", "none", "higher-order logic");
       opts.writeQuantifiers().fmfMbqiMode = options::FmfMbqiMode::NONE;
     }
     if (!opts.quantifiers.hoElimStoreAxWasSetByUser)
@@ -1432,6 +1435,7 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // operations.
     if (opts.quantifiers.macrosQuant)
     {
+      notifyModifyOption("macrosQuant", "false", "higher-order logic");
       opts.writeQuantifiers().macrosQuant = false;
     }
   }
