@@ -1366,7 +1366,8 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
     // must have finite model finding on
     if (!opts.quantifiers.finiteModelFind)
     {
-      notifyModifyOption("finiteModelFind", "true", "logic with cardinality constraints");
+      notifyModifyOption(
+          "finiteModelFind", "true", "logic with cardinality constraints");
       opts.writeQuantifiers().finiteModelFind = true;
     }
   }
