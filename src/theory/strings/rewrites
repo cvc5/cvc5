@@ -22,8 +22,9 @@
   (= y (str.++ x2 x1 x)))
 
 (define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
-(define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
+(define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= 0 m) (str.substr x n m) "")
 (define-cond-rule substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
+(define-cond-rule substr-empty-start-neg ((x String) (n Int) (m Int)) (< n 0) (str.substr x n m) "")
 (define-cond-rule substr-eq-empty ((s String) (n Int) (m Int))
   (and (= n 0) (> m n))
   (= (str.substr s n m) "")
