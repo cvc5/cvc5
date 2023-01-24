@@ -97,7 +97,9 @@ set(libcvc5parser_src_files
 # Generate parsers for all supported languages
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/smt2)
-flex_target(Lexer smt2/smt2_lexer.flex ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
+flex_target(Lexer
+            ${CMAKE_CURRENT_SOURCE_DIR}/smt2/smt2_lexer.flex
+            ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp PROPERTIES GENERATED TRUE)
 
 # The FlexLexer.h header is installed to /usr/include/, but is not found by the
