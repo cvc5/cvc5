@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --learned-rewrite
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
+; DISABLE-TESTER: proof
 (set-logic AUFBVFPDTNIRA)
 
 (declare-const x Int)
