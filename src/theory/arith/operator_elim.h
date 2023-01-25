@@ -126,8 +126,8 @@ class OperatorElim : public EagerProofGenerator
   /** Get the factors of n */
   static Node getFactors(const Node& n, std::vector<Node>& factors);
   /**
-   * Do simple factoring of (num/den), if applicable, update. Can assume that
-   * den is non-zero.
+   * Do simple factoring of (num/den), if applicable, update them to num'/den'
+   * such that num/den = num'/den' when den != 0.
    */
   static void simpleNonzeroFactoring(Node& num, Node& den);
   /**
