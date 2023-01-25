@@ -1710,7 +1710,8 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
       if (opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::ON)
       {
         notifyModifyOption("preSkolemQuant", "ON", "sygus inference");
-        opts.writeQuantifiers().preSkolemQuant = options::PreSkolemQuantMode::ON;
+        opts.writeQuantifiers().preSkolemQuant =
+            options::PreSkolemQuantMode::ON;
       }
     }
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
@@ -1806,7 +1807,8 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     }
   }
   // do not miniscope
-  if (!opts.quantifiers.miniscopeQuantWasSetByUser && opts.quantifiers.miniscopeQuant != options::MiniscopeQuantMode::OFF)
+  if (!opts.quantifiers.miniscopeQuantWasSetByUser
+      && opts.quantifiers.miniscopeQuant != options::MiniscopeQuantMode::OFF)
   {
     notifyModifyOption("miniscopeQuant", "OFF", "sygus");
     opts.writeQuantifiers().miniscopeQuant = options::MiniscopeQuantMode::OFF;
