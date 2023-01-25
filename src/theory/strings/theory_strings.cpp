@@ -1281,6 +1281,7 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
       d_esolver.checkExtfReductionsEager();
       break;
     case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(e); break;
+    case CHECK_MEMBERSHIP_EAGER: d_rsolver.checkMembershipsEager(); break;
     case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;

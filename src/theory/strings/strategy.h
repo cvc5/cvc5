@@ -63,6 +63,8 @@ enum InferStep
   CHECK_EXTF_REDUCTION_EAGER,
   // check extended function reductions
   CHECK_EXTF_REDUCTION,
+  // check regular expression memberships eagerly (prior to CAV 14 procedure)
+  CHECK_MEMBERSHIP_EAGER,
   // check regular expression memberships
   CHECK_MEMBERSHIP,
   // check cardinality
