@@ -573,8 +573,8 @@ void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
     }
     newChildren.push_back(mkProduct(mfactorsFinal));
   }
-  Assert(newChildren.size() > 1);
-  num = nm->mkNode(ADD, newChildren);
+  Assert (!newChildren.empty());
+  num = newChildren.size()==1 ? newChildren[0] : nm->mkNode(ADD, newChildren);
   std::vector<Node> nfactorsFinal;
   std::set_difference(nfactors.begin(),
                       nfactors.end(),
