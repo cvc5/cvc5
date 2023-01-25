@@ -17,6 +17,7 @@
 
 #include "base/check.h"
 #include "theory/arith/rewriter/ordering.h"
+#include "theory/arith/arith_msum.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -110,6 +111,111 @@ Node ensureReal(TNode t)
     return NodeManager::currentNM()->mkNode(kind::TO_REAL, t);
   }
   return t;
+}
+
+
+Node getFactors(const Node& n, std::vector<Node>& factors)
+{
+  Kind nk = n.getKind();
+  if (nk == kind::NONLINEAR_MULT)
+  {
+    factors.insert(factors.end(), n.begin(), n.end());
+    std::sort(factors.begin(), factors.end());
+  }
+  else if (nk == kind::MULT)
+  {
+    Assert(n[0].isConst());
+    factors.push_back(n[1]);
+    return n[0];
+  }
+  else
+  {
+    factors.push_back(n);
+  }
+  return Node::null();
+}
+
+bool simpleNonzeroFactoring(Node& num, Node& den)
+{
+  Assert(!den.isConst());
+  if (den.getKind() == kind::ADD)
+  {
+    return false;
+  }
+  Trace("simple-factor") << "Simple factor " << num << " / " << den
+                         << std::endl;
+  std::vector<Node> nfactors;
+  Node cden = getFactors(den, nfactors);
+  std::map<Node, Node> msum;
+  if (!ArithMSum::getMonomialSum(num, msum))
+  {
+    Trace("simple-factor") << "...failed to get sum" << std::endl;
+    return false;
+  }
+  Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
+                         << std::endl;
+  // compute what factors are not divisible
+  std::vector<Node> factors = nfactors;
+  for (const std::pair<const Node, Node>& m : msum)
+  {
+    Trace("simple-factor") << "Factor " << m.first << " -> " << m.second
+                           << std::endl;
+    if (m.first.isNull())
+    {
+      Trace("simple-factor") << "...constant, no factoring" << std::endl;
+      return false;
+    }
+    std::vector<Node> mfactors;
+    getFactors(m.first, mfactors);
+    Trace("simple-factor") << "  Monomial factors are: " << mfactors
+                           << std::endl;
+    std::vector<Node> newFactors;
+    std::set_intersection(factors.begin(),
+                          factors.end(),
+                          mfactors.begin(),
+                          mfactors.end(),
+                          std::back_inserter(newFactors));
+    Trace("simple-factor") << "  Factors now: " << newFactors << std::endl;
+    if (newFactors.empty())
+    {
+      Trace("simple-factor") << "...new factors empty" << std::endl;
+      return false;
+    }
+    factors = newFactors;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> newChildren;
+  for (const std::pair<const Node, Node>& m : msum)
+  {
+    std::vector<Node> mfactors;
+    getFactors(m.first, mfactors);
+    std::vector<Node> mfactorsFinal;
+    std::set_difference(mfactors.begin(),
+                        mfactors.end(),
+                        factors.begin(),
+                        factors.end(),
+                        std::back_inserter(mfactorsFinal));
+    if (!m.second.isNull())
+    {
+      mfactorsFinal.push_back(m.second);
+    }
+    newChildren.push_back(mkNonlinearMult(mfactorsFinal));
+  }
+  Assert (!newChildren.empty());
+  num = newChildren.size()==1 ? newChildren[0] : nm->mkNode(kind::ADD, newChildren);
+  std::vector<Node> nfactorsFinal;
+  std::set_difference(nfactors.begin(),
+                      nfactors.end(),
+                      factors.begin(),
+                      factors.end(),
+                      std::back_inserter(nfactorsFinal));
+  if (!cden.isNull())
+  {
+    nfactorsFinal.push_back(cden);
+  }
+  den = mkNonlinearMult(nfactorsFinal);
+  Trace("simple-factor") << "...return " << num << " / " << den << std::endl;
+  return true;
 }
 
 }  // namespace rewriter

@@ -23,7 +23,6 @@
 #include "proof/conv_proof_generator.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
-#include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -166,9 +165,6 @@ Node OperatorElim::eliminateOperators(Node node,
       else
       {
         checkNonLinearLogic(node);
-        Node fnum = num;
-        Node fden = den;
-        simpleNonzeroFactoring(fnum, fden);
         lem = nm->mkNode(
             AND,
             nm->mkNode(
@@ -176,32 +172,29 @@ Node OperatorElim::eliminateOperators(Node node,
                 nm->mkNode(GT, den, nm->mkConstInt(Rational(0))),
                 nm->mkNode(
                     AND,
-                    nm->mkNode(LEQ, nm->mkNode(MULT, fden, v), fnum),
+                    leqNum,
                     nm->mkNode(
                         LT,
-                        fnum,
+                        num,
                         nm->mkNode(
                             MULT,
-                            fden,
+                            den,
                             nm->mkNode(ADD, v, nm->mkConstInt(Rational(1))))))),
             nm->mkNode(
                 IMPLIES,
                 nm->mkNode(LT, den, nm->mkConstInt(Rational(0))),
                 nm->mkNode(
                     AND,
-                    nm->mkNode(LEQ, nm->mkNode(MULT, fden, v), fnum),
+                    leqNum,
                     nm->mkNode(
                         LT,
-                        fnum,
+                        num,
                         nm->mkNode(
                             MULT,
-                            fden,
+                            den,
                             nm->mkNode(
                                 ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
-      Trace("ajr-temp") << "Lem for " << pterm << " is " << lem << std::endl;
-      Trace("ajr-temp") << "RLem for " << pterm << " is " << rewrite(lem)
-                        << std::endl;
       // add the skolem lemma to lems
       lems.push_back(mkSkolemLemma(lem, v));
       if (k == INTS_MODULUS_TOTAL)
@@ -218,6 +211,7 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       Node num = rewrite(node[0]);
       Node den = rewrite(node[1]);
       if (den.isConst())
@@ -227,7 +221,6 @@ Node OperatorElim::eliminateOperators(Node node,
         // int, which impacts certain issues with subtyping.
         return node;
       }
-      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
       Node v = sm->mkPurifySkolem(
@@ -295,6 +288,7 @@ Node OperatorElim::eliminateOperators(Node node,
 
     case ABS:
     {
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       return nm->mkNode(
           ITE,
           nm->mkNode(LT,
@@ -317,6 +311,7 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       checkNonLinearLogic(node);
       // eliminate inverse functions here
       Node var = sm->mkPurifySkolem(
@@ -482,117 +477,6 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
     tlem = TrustNode::mkTrustLemma(lem, nullptr);
   }
   return SkolemLemma(tlem, k);
-}
-
-Node OperatorElim::getFactors(const Node& n, std::vector<Node>& factors)
-{
-  Kind nk = n.getKind();
-  if (nk == NONLINEAR_MULT)
-  {
-    factors.insert(factors.end(), n.begin(), n.end());
-    std::sort(factors.begin(), factors.end());
-  }
-  else if (nk == MULT)
-  {
-    Assert(n[0].isConst());
-    factors.push_back(n[1]);
-    return n[0];
-  }
-  else
-  {
-    factors.push_back(n);
-  }
-  return Node::null();
-}
-
-Node mkProduct(const std::vector<Node>& children)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  return children.empty() ? nm->mkConstInt(Rational(1))
-                          : (children.size() == 1 ? children[0]
-                                                  : nm->mkNode(MULT, children));
-}
-
-void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
-{
-  Assert(!den.isConst());
-  if (den.getKind() == ADD)
-  {
-    return;
-  }
-  Trace("simple-factor") << "Simple factor " << num << " / " << den
-                         << std::endl;
-  std::vector<Node> nfactors;
-  Node cden = getFactors(den, nfactors);
-  std::map<Node, Node> msum;
-  if (!ArithMSum::getMonomialSum(num, msum))
-  {
-    Trace("simple-factor") << "...failed to get sum" << std::endl;
-    return;
-  }
-  Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
-                         << std::endl;
-  // compute what factors are not divisible
-  std::vector<Node> factors = nfactors;
-  for (const std::pair<const Node, Node>& m : msum)
-  {
-    Trace("simple-factor") << "Factor " << m.first << " -> " << m.second
-                           << std::endl;
-    if (m.first.isNull())
-    {
-      Trace("simple-factor") << "...constant, no factoring" << std::endl;
-      return;
-    }
-    std::vector<Node> mfactors;
-    getFactors(m.first, mfactors);
-    Trace("simple-factor") << "  Monomial factors are: " << mfactors
-                           << std::endl;
-    std::vector<Node> newFactors;
-    std::set_intersection(factors.begin(),
-                          factors.end(),
-                          mfactors.begin(),
-                          mfactors.end(),
-                          std::back_inserter(newFactors));
-    Trace("simple-factor") << "  Factors now: " << newFactors << std::endl;
-    if (newFactors.empty())
-    {
-      Trace("simple-factor") << "...new factors empty" << std::endl;
-      return;
-    }
-    factors = newFactors;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> newChildren;
-  for (const std::pair<const Node, Node>& m : msum)
-  {
-    std::vector<Node> mfactors;
-    getFactors(m.first, mfactors);
-    std::vector<Node> mfactorsFinal;
-    std::set_difference(mfactors.begin(),
-                        mfactors.end(),
-                        factors.begin(),
-                        factors.end(),
-                        std::back_inserter(mfactorsFinal));
-    if (!m.second.isNull())
-    {
-      mfactorsFinal.push_back(m.second);
-    }
-    newChildren.push_back(mkProduct(mfactorsFinal));
-  }
-  Assert (!newChildren.empty());
-  num = newChildren.size()==1 ? newChildren[0] : nm->mkNode(ADD, newChildren);
-  std::vector<Node> nfactorsFinal;
-  std::set_difference(nfactors.begin(),
-                      nfactors.end(),
-                      factors.begin(),
-                      factors.end(),
-                      std::back_inserter(nfactorsFinal));
-  if (!cden.isNull())
-  {
-    nfactorsFinal.push_back(cden);
-  }
-  den = mkProduct(nfactorsFinal);
-  Trace("simple-factor") << "...return " << num << " / " << den << std::endl;
 }
 
 }  // namespace arith

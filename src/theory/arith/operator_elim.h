@@ -123,13 +123,6 @@ class OperatorElim : public EagerProofGenerator
    * the Skolem constant for the identifier asi.
    */
   Node getArithSkolemApp(Node n, SkolemFunId asi);
-  /** Get the factors of n */
-  static Node getFactors(const Node& n, std::vector<Node>& factors);
-  /**
-   * Do simple factoring of (num/den), if applicable, update them to num'/den'
-   * such that num/den = num'/den' when den != 0.
-   */
-  static void simpleNonzeroFactoring(Node& num, Node& den);
   /**
    * Called when a non-linear term n is given to this class. Throw an exception
    * if the logic is linear.

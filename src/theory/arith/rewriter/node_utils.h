@@ -156,6 +156,18 @@ Node maybeEnsureReal(TypeNode tn, TNode t);
 /** Same as above, without a check for the type of tn. */
 Node ensureReal(TNode t);
 
+/** 
+ * Get the factors of n, return the constant coefficient of n.
+ */
+Node getFactors(const Node& n, std::vector<Node>& factors);
+
+/**
+  * Do simple factoring of (num/den), if applicable, update them to num'/den'
+  * such that num/den = num'/den' when den != 0. Return true if num/den are
+  * updated.
+  */
+bool simpleNonzeroFactoring(Node& num, Node& den);
+  
 }  // namespace rewriter
 }  // namespace arith
 }  // namespace theory
