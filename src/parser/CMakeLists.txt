@@ -75,8 +75,12 @@ set(libcvc5parser_src_files
   smt2/smt2_cmd_parser.h
   smt2/smt2_lexer.cpp
   smt2/smt2_lexer.h
+  smt2/smt2_cmd_parser.cpp
+  smt2/smt2_cmd_parser.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_parser.cpp
+  smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
   smt2/sygus_input.cpp
