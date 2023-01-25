@@ -22,6 +22,9 @@ namespace theory {
 namespace quantifiers {
 
 void TermPoolDomain::initialize() { d_terms.clear(); }
+
+std::vector<Node>& TermPoolDomain::getTerms() { return d_terms; }
+
 void TermPoolDomain::add(Node n)
 {
   if (std::find(d_terms.begin(), d_terms.end(), n) == d_terms.end())
@@ -94,7 +97,8 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   // for now, we assume p is a variable
   Assert(p.isVar());
   TermPoolDomain& dom = d_pools[p];
-  if (dom.d_terms.empty())
+  std::vector<Node>& dterms = dom.getTerms();
+  if (dterms.empty())
   {
     return;
   }
@@ -103,7 +107,7 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   {
     std::unordered_set<Node> reps;
     // eliminate modulo equality
-    for (const Node& t : dom.d_terms)
+    for (const Node& t : dterms)
     {
       Node r = d_qs.getRepresentative(t);
       const auto i = reps.insert(r);
@@ -118,8 +122,11 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   terms.insert(terms.end(), dom.d_currTerms.begin(), dom.d_currTerms.end());
 }
 
-void TermPools::processInstantiation(Node q, const std::vector<Node>& terms)
+void TermPools::processInstantiation(Node q,
+                                     const std::vector<Node>& terms,
+                                     bool success)
 {
+  // success is ignored, meaning that inst-add-to-pool annotates
   processInternal(q, terms, true);
 }
 
@@ -154,7 +161,7 @@ void TermPools::processInternal(Node q,
                         << (isInst ? "instantiation" : "skolemization")
                         << ", add " << st << " to pool " << c[1] << std::endl;
     TermPoolDomain& dom = d_pools[c[1]];
-    dom.d_terms.push_back(st);
+    dom.add(st);
   }
 }
 

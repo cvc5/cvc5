@@ -24,7 +24,7 @@ LFSC_DIR="$BASE_DIR/lfsc-checker"
 mkdir -p $LFSC_DIR
 
 # download and unpack LFSC
-version="679f4de66da319a7c36b572cb8b0bcc606b695f8"
+version="9aab068dec2c5a9f5f2bf465590005c638078e95"
 download "https://github.com/cvc5/LFSC/archive/$version.tar.gz" $BASE_DIR/tmp/lfsc.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/lfsc.tgz -C $LFSC_DIR
 
@@ -46,7 +46,7 @@ cp -r $SIG_DIR $BASE_DIR/share/lfsc
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen_and_check.sh
 cat << EOF > $BASE_DIR/bin/cvc5-lfsc-check.sh
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "=== Generate proof: \$@"
 $BASE_DIR/bin/cvc5-proof.sh \$@ > proof.plf
@@ -58,7 +58,7 @@ chmod +x $BASE_DIR/bin/cvc5-lfsc-check.sh
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/cvc4_gen.sh
 cat << EOF > $BASE_DIR/bin/cvc5-proof.sh
-#!/bin/bash
+#!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat")
 \$@ --dump-proofs --proof-format=lfsc | tail -n +2
@@ -67,7 +67,7 @@ chmod +x $BASE_DIR/bin/cvc5-proof.sh
 
 # based on https://github.com/CVC4/signatures/blob/master/lfsc/new/scripts/lfsc_check.sh
 cat << EOF > $BASE_DIR/bin/lfsc-check.sh
-#!/bin/bash
+#!/usr/bin/env bash
 
 cat \$@ | grep WARNING
 CHECK=\$(cat \$@ | grep check)

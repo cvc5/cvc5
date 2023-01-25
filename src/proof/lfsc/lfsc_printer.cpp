@@ -851,6 +851,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
              << d_tproc.convertType(children[0]->getResult()[0].getType())
              << cs[0] << cs[1];
           break;
+        case LfscRule::INSTANTIATE:
+          pf << h << h << h << h << as[2] << cs[0];
+          break;
+        case LfscRule::BETA_REDUCE: pf << h << as[2]; break;
         default: return false; break;
       }
     }

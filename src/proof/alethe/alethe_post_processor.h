@@ -54,7 +54,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
               bool& continueUpdate) override;
   /** Should proof pn be updated at post-visit?
    *
-   * Only if its top-level Alethe proof rule is RESOLUTION, REORDERING, or
+   * Only if its top-level Alethe proof rule is RESOLUTION_OR, REORDERING, or
    * CONTRACTION.
    */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
@@ -84,7 +84,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
    */
   bool finalStep(Node res,
                  PfRule id,
-                 const std::vector<Node>& children,
+                 std::vector<Node>& children,
                  const std::vector<Node>& args,
                  CDProof* cdp);
 
@@ -138,6 +138,10 @@ class AletheProofPostprocessCallback : protected EnvObj,
                            const std::vector<Node>& children,
                            const std::vector<Node>& args,
                            CDProof& cdp);
+
+  /** Nodes corresponding to the Boolean values. */
+  Node d_true;
+  Node d_false;
 };
 
 /**

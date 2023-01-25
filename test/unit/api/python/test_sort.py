@@ -17,7 +17,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Sort
+from cvc5 import Kind, SortKind, Sort
 
 
 @pytest.fixture
@@ -62,6 +62,14 @@ def test_operators_comparison(solver):
     solver.getIntegerSort() <= Sort(solver)
     solver.getIntegerSort() > Sort(solver)
     solver.getIntegerSort() >= Sort(solver)
+
+def test_get_kind(solver):
+    b = solver.getBooleanSort()
+    dt_sort = create_datatype_sort(solver)
+    arr_sort = solver.mkArraySort(solver.getRealSort(), solver.getIntegerSort())
+    assert b.getKind() == SortKind.BOOLEAN_SORT
+    assert dt_sort.getKind()== SortKind.DATATYPE_SORT
+    assert arr_sort.getKind()== SortKind.ARRAY_SORT
 
 def test_has_get_symbol(solver):
     n = Sort(solver)
@@ -217,6 +225,13 @@ def test_is_sequence(solver):
     seq_sort = solver.mkSequenceSort(solver.getRealSort())
     assert seq_sort.isSequence()
     Sort(solver).isSequence()
+
+
+def test_is_abstract(solver):
+  assert solver.mkAbstractSort(SortKind.BITVECTOR_SORT).isAbstract()
+  assert not solver.mkAbstractSort(SortKind.ARRAY_SORT).isAbstract()
+  assert solver.mkAbstractSort(SortKind.ABSTRACT_SORT).isAbstract()
+  Sort(solver).isAbstract()
 
 
 def test_is_uninterpreted(solver):
@@ -455,6 +470,13 @@ def test_get_sequence_element_sort(solver):
     assert not bvSort.isSequence()
     with pytest.raises(RuntimeError):
         bvSort.getSequenceElementSort()
+
+
+def test_get_abstract_kind(solver):
+    assert solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind() == SortKind.BITVECTOR_SORT
+    with pytest.raises(RuntimeError):
+        solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind()
+    assert solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind() == SortKind.ABSTRACT_SORT
 
 
 def test_get_uninterpreted_sort_name(solver):
