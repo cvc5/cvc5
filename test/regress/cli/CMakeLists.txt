@@ -3486,7 +3486,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
-    ${PYTHON_EXECUTABLE}
+    ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
@@ -3495,22 +3495,10 @@ macro(cvc5_add_regression_test level file)
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
-
-  # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
-  # https://cmake.org/cmake/help/latest/release/3.9.html#other-changes
-  # This means that for newer versions, we can use the SKIP_RETURN_CODE to mark
-  # skipped tests as such.
-  if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
-    set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
-  endif()
+  set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
 endmacro()
 
-if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
-  # For CMake 3.9.0 and newer, we want the regression script to return 77 for
-  # skipped tests, such that we can mark them as skipped. See the
-  # `cvc5_add_regression_test` macro for more details.
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
-endif()
+set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
 
 foreach(file ${regress_0_tests})
   cvc5_add_regression_test(0 ${file})
