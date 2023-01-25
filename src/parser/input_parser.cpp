@@ -19,11 +19,13 @@
 #include "parser/api/cpp/command.h"
 #include "parser/input.h"
 #include "parser/parser_builder.h"
+#include "theory/logic_info.h"
 
 namespace cvc5 {
 namespace parser {
 
 InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
+    : d_solver(solver), d_sm(sm), d_useOptions(useOptions)
 {
   // Allocate an ANTLR parser
   ParserBuilder parserBuilder(solver, sm, useOptions);
@@ -59,13 +61,19 @@ void InputParser::setStreamInput(const std::string& lang,
   d_state->setInput(Input::newStreamInput(lang, input, name));
 }
 
-void InputParser::setStringInput(const std::string& lang,
-                                 const std::string& input,
-                                 const std::string& name)
+void InputParser::setIncrementalStringInput(const std::string& lang,
+                                            const std::string& name)
 {
-  Trace("parser") << "setStringInput(" << lang << ", ..., " << name << ")"
-                  << std::endl;
-  d_state->setInput(Input::newStringInput(lang, input, name));
+  Trace("parser") << "setIncrementalStringInput(" << lang << ", ..., " << name
+                  << ")" << std::endl;
+  d_istringLang = lang;
+  d_istringName = name;
+  // if ANTLR, parser is already initialized
+}
+void InputParser::appendIncrementalStringInput(const std::string& input)
+{
+  Trace("parser") << "appendIncrementalStringInput(...)" << std::endl;
+  d_state->setInput(Input::newStringInput(d_istringLang, input, d_istringName));
 }
 
 }  // namespace parser

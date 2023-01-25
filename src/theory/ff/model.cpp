@@ -259,14 +259,14 @@ std::vector<CoCoA::RingElem> commonRoot(const CoCoA::ideal& initialIdeal)
       branchers.push_back(brancher(ideal));
       Trace("ff::model::branch")
           << "brancher: " << branchers.back()->name() << std::endl;
-  if (TraceIsOn("ff::model::branch"))
-  {
-    Trace("ff::model::branch") << "ideal polys: " << std::endl;
-    for (const auto& p : CoCoA::gens(ideal))
-    {
-      Trace("ff::model::branch") << " * " << p << std::endl;
-    }
-  }
+      if (TraceIsOn("ff::model::branch"))
+      {
+        Trace("ff::model::branch") << "ideal polys: " << std::endl;
+        for (const auto& p : CoCoA::gens(ideal))
+        {
+          Trace("ff::model::branch") << " * " << p << std::endl;
+        }
+      }
     }
     // Otherwise, this ideal should have a brancher; get the next branch
     else

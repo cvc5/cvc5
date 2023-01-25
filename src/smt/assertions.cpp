@@ -39,8 +39,7 @@ Assertions::Assertions(Env& env, AbstractValues& absv)
       d_absValues(absv),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
-      d_globalDefineFunLemmasIndex(userContext(), 0),
-      d_assertions(env)
+      d_globalDefineFunLemmasIndex(userContext(), 0)
 {
 }
 
@@ -85,11 +84,6 @@ void Assertions::assertFormula(const Node& n)
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
 
-preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
-{
-  return d_assertions;
-}
-
 const context::CDList<Node>& Assertions::getAssertionList() const
 {
   return d_assertionList;
@@ -98,6 +92,16 @@ const context::CDList<Node>& Assertions::getAssertionList() const
 const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 {
   return d_assertionListDefs;
+}
+
+std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
+{
+  std::unordered_set<Node> defSet;
+  for (const Node& a : d_assertionListDefs)
+  {
+    defSet.insert(a);
+  }
+  return defSet;
 }
 
 void Assertions::addFormula(TNode n,
@@ -156,9 +160,6 @@ void Assertions::addFormula(TNode n,
       throw ModalException(se.str().c_str());
     }
   }
-
-  // Add the normalized formula to the queue
-  d_assertions.push_back(n, true);
 }
 
 void Assertions::addDefineFunDefinition(Node n, bool global)
@@ -192,11 +193,6 @@ void Assertions::ensureBoolean(const Node& n)
        << "Its type      : " << type;
     throw TypeCheckingExceptionPrivate(n, ss.str());
   }
-}
-
-void Assertions::enableProofs(smt::PreprocessProofGenerator* pppg)
-{
-  d_assertions.enableProofs(pppg);
 }
 
 }  // namespace smt

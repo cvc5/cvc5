@@ -54,7 +54,7 @@ class AletheProofPostprocessCallback : protected EnvObj,
               bool& continueUpdate) override;
   /** Should proof pn be updated at post-visit?
    *
-   * Only if its top-level Alethe proof rule is RESOLUTION, REORDERING, or
+   * Only if its top-level Alethe proof rule is RESOLUTION_OR, REORDERING, or
    * CONTRACTION.
    */
   bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,

@@ -126,9 +126,7 @@ TrustNode TheorySets::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, exp, nullptr);
 }
 
-Node TheorySets::getModelValue(TNode node) {
-  return Node::null();
-}
+Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheorySets::preRegisterTerm(TNode node)
 {
@@ -148,19 +146,6 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
             "--sets-ext.";
       throw LogicException(ss.str());
     }
-  }
-  if (n.getKind() == SET_MINUS && n[1].getKind() == SET_MINUS
-      && n[1][0] == n[0])
-  {
-    // Note this cannot be a rewrite rule, since it impacts the cardinality
-    // graph. In particular, if we internally inspect
-    // (setminus A (setminus A B)), for instance if we are splitting the Venn
-    // regions of A and (setminus A B), then we should not transform this
-    // to an intersection term.
-    // (setminus A (setminus A B)) = (intersection A B)
-    NodeManager* nm = NodeManager::currentNM();
-    Node intersection = nm->mkNode(SET_INTER, n[0], n[1][1]);
-    return TrustNode::mkTrustRewrite(n, intersection, nullptr);
   }
   if (nk == SET_COMPREHENSION)
   {

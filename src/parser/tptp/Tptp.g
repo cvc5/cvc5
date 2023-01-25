@@ -62,7 +62,7 @@ options {
 
 @lexer::postinclude {
 
-#include "parser/tptp/tptp.h"
+#include "parser/tptp/tptp_antlr.h"
 #include "parser/antlr_input.h"
 
 using namespace cvc5;
@@ -70,8 +70,10 @@ using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
+#undef PARSER_BASE
+#define PARSER_BASE ((Tptp*)LEXER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Tptp*)LEXER->super)
+#define PARSER_STATE PARSER_BASE->getTptpState()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
@@ -86,8 +88,8 @@ using namespace cvc5::parser;
 
 #include "parser/api/cpp/command.h"
 #include "parser/parse_op.h"
-#include "parser/parser.h"
-#include "parser/tptp/tptp.h"
+#include "parser/parser_antlr.h"
+#include "parser/tptp/tptp_antlr.h"
 
 }/* @parser::includes */
 
@@ -100,16 +102,18 @@ using namespace cvc5::parser;
 #include "api/cpp/cvc5.h"
 #include "base/output.h"
 #include "parser/antlr_input.h"
-#include "parser/parser.h"
-#include "parser/tptp/tptp.h"
+#include "parser/parser_antlr.h"
+#include "parser/tptp/tptp_antlr.h"
 
 using namespace cvc5;
 using namespace cvc5::parser;
 
 /* These need to be macros so they can refer to the PARSER macro, which will be defined
  * by ANTLR *after* this section. (If they were functions, PARSER would be undefined.) */
+#undef PARSER_BASE
+#define PARSER_BASE ((Tptp*)PARSER->super)
 #undef PARSER_STATE
-#define PARSER_STATE ((Tptp*)PARSER->super)
+#define PARSER_STATE PARSER_BASE->getTptpState()
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef SYM_MAN
@@ -137,7 +141,7 @@ parseExpr returns [cvc5::parser::tptp::myExpr expr]
 parseCommand returns [cvc5::parser::Command* cmd = NULL]
 @declarations {
   cvc5::Term expr;
-  Tptp::FormulaRole fr;
+  TptpState::FormulaRole fr;
   std::string name, inclSymbol;
   ParseOp p;
 }
@@ -232,7 +236,8 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
         inclArgs.erase(it);
       }
       */
-      PARSER_STATE->includeFile(name /* , inclArgs */ );
+      const std::string& tptpDir = PARSER_STATE->getTptpDir();
+      PARSER_BASE->includeTptpFile(name, tptpDir);
       // The command of the included file will be produced at the next parseCommand() call
       cmd = new EmptyCommand("include::" + name);
     }
@@ -245,7 +250,7 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
         PARSER_STATE->preemptCommand(new AssertCommand(aexpr));
       }
 
-      std::string filename = PARSER_STATE->getInput()->getInputStreamName();
+      std::string filename = PARSER_BASE->getInput()->getInputStreamName();
       size_t i = filename.find_last_of('/');
       if(i != std::string::npos) {
         filename = filename.substr(i + 1);
@@ -265,24 +270,24 @@ parseCommand returns [cvc5::parser::Command* cmd = NULL]
   ;
 
 /* Parse a formula Role */
-formulaRole[cvc5::parser::Tptp::FormulaRole& role]
+formulaRole[cvc5::parser::TptpState::FormulaRole& role]
   : LOWER_WORD
     {
       std::string r = AntlrInput::tokenText($LOWER_WORD);
-      if      (r == "axiom")              role = Tptp::FR_AXIOM;
-      else if (r == "hypothesis")         role = Tptp::FR_HYPOTHESIS;
-      else if (r == "definition")         role = Tptp::FR_DEFINITION;
-      else if (r == "assumption")         role = Tptp::FR_ASSUMPTION;
-      else if (r == "lemma")              role = Tptp::FR_LEMMA;
-      else if (r == "theorem")            role = Tptp::FR_THEOREM;
-      else if (r == "negated_conjecture") role = Tptp::FR_NEGATED_CONJECTURE;
-      else if (r == "conjecture")         role = Tptp::FR_CONJECTURE;
-      else if (r == "unknown")            role = Tptp::FR_UNKNOWN;
-      else if (r == "plain")              role = Tptp::FR_PLAIN;
-      else if (r == "fi_domain")          role = Tptp::FR_FI_DOMAIN;
-      else if (r == "fi_functor")         role = Tptp::FR_FI_FUNCTORS;
-      else if (r == "fi_predicate")       role = Tptp::FR_FI_PREDICATES;
-      else if (r == "type")               role = Tptp::FR_TYPE;
+      if      (r == "axiom")              role = TptpState::FR_AXIOM;
+      else if (r == "hypothesis")         role = TptpState::FR_HYPOTHESIS;
+      else if (r == "definition")         role = TptpState::FR_DEFINITION;
+      else if (r == "assumption")         role = TptpState::FR_ASSUMPTION;
+      else if (r == "lemma")              role = TptpState::FR_LEMMA;
+      else if (r == "theorem")            role = TptpState::FR_THEOREM;
+      else if (r == "negated_conjecture") role = TptpState::FR_NEGATED_CONJECTURE;
+      else if (r == "conjecture")         role = TptpState::FR_CONJECTURE;
+      else if (r == "unknown")            role = TptpState::FR_UNKNOWN;
+      else if (r == "plain")              role = TptpState::FR_PLAIN;
+      else if (r == "fi_domain")          role = TptpState::FR_FI_DOMAIN;
+      else if (r == "fi_functor")         role = TptpState::FR_FI_FUNCTORS;
+      else if (r == "fi_predicate")       role = TptpState::FR_FI_PREDICATES;
+      else if (r == "type")               role = TptpState::FR_TYPE;
       else PARSER_STATE->parseError("Invalid formula role: " + r);
     }
   ;
@@ -581,6 +586,10 @@ definedFun[cvc5::ParseOp& p]
   | '$quotient'
     {
       p.d_kind = cvc5::DIVISION;
+    }
+  | '$ite'
+    {
+      p.d_kind = cvc5::ITE;
     }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }

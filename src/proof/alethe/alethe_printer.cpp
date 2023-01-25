@@ -19,30 +19,107 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "options/expr_options.h"
+#include "options/printer_options.h"
 #include "proof/alethe/alethe_proof_rule.h"
 
 namespace cvc5::internal {
 
 namespace proof {
 
-AletheProofPrinter::AletheProofPrinter() {}
+LetUpdaterPfCallback::LetUpdaterPfCallback(AletheLetBinding& lbind)
+    : d_lbind(lbind)
+{
+}
+
+LetUpdaterPfCallback::~LetUpdaterPfCallback() {}
+
+bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                        const std::vector<Node>& fa,
+                                        bool& continueUpdate)
+{
+  const std::vector<Node>& args = pn->getArguments();
+  // Letification done on the converted terms (thus from the converted
+  // conclusion) and potentially on arguments, which means to ignore the first
+  // two arguments (which are the Alethe rule and the original conclusion).
+  AlwaysAssert(args.size() > 2)
+      << "res: " << pn->getResult() << "\nid: " << getAletheRule(args[0]);
+  for (size_t i = 2, size = args.size(); i < size; ++i)
+  {
+    Trace("alethe-printer") << "Process " << args[i] << "\n";
+    // We do not go *below* cl, since the clause itself cannot be shared (goes
+    // against the Alethe specification). We assume that s-expressions with a
+    // bound variable as first argument are all of the form (cl ...).
+    if (args[i].getKind() == kind::SEXPR
+        && args[i][0].getKind() == kind::BOUND_VARIABLE)
+    {
+      for (const auto& arg : args[i])
+      {
+        d_lbind.process(arg);
+      }
+      continue;
+    }
+    d_lbind.process(args[i]);
+  }
+
+  return false;
+}
+
+AletheProofPrinter::AletheProofPrinter(Env& env)
+    : EnvObj(env),
+      d_lbind(options().printer.dagThresh ? options().printer.dagThresh + 1
+                                          : 0),
+      d_cb(new LetUpdaterPfCallback(d_lbind))
+{
+}
+
+void AletheProofPrinter::printTerm(std::ostream& out, TNode n)
+{
+  out << d_lbind.convert(n, "@p_");
+}
 
 void AletheProofPrinter::print(std::ostream& out,
                                std::shared_ptr<ProofNode> pfn)
 {
   Trace("alethe-printer") << "- Print proof in Alethe format. " << std::endl;
+  std::shared_ptr<ProofNode> innerPf = pfn->getChildren()[0];
+  AlwaysAssert(innerPf);
+
+  if (options().printer.dagThresh)
+  {
+    // Traverse the proof node to letify the (converted) conclusions of proof
+    // steps. Note that we traverse the original proof node because assumptions
+    // may apper just in them (if they are not used in the rest of the proof).
+    // If that's the case then repeated terms *only* in assumptions would not be
+    // letified otherwise.
+    ProofNodeUpdater updater(d_env, *(d_cb.get()), false, false);
+    Trace("alethe-printer") << "- letify.\n";
+    updater.process(pfn);
+
+    std::vector<Node> letList;
+    d_lbind.letify(letList);
+    if (TraceIsOn("alethe-printer"))
+    {
+      for (TNode n : letList)
+      {
+        Trace("alethe-printer")
+            << "Term " << n << " has id " << d_lbind.getId(n) << "\n";
+      }
+    }
+  }
+
+  Trace("alethe-printer") << "- Print assumptions.\n";
   std::unordered_map<Node, std::string> assumptions;
   const std::vector<Node>& args = pfn->getArguments();
   // Special handling for the first scope
   // Print assumptions and add them to the list but do not print anchor.
   for (size_t i = 3, size = args.size(); i < size; i++)
   {
-    Trace("alethe-printer") << "... print assumption " << args[i] << std::endl;
-    out << "(assume a" << i - 3 << " " << args[i] << ")\n";
+    // assumptions are always being declared
+    out << "(assume a" << i - 3 << " ";
+    printTerm(out, args[i]);
+    out << ")\n";
     assumptions[args[i]] = "a" + std::to_string(i - 3);
   }
-
   // Then, print the rest of the proof node
   uint32_t start_t = 1;
   std::unordered_map<std::shared_ptr<ProofNode>, std::string> steps = {};
@@ -127,6 +204,8 @@ std::string AletheProofPrinter::printInternal(
 
     // If the subproof is a bind the arguments need to be printed as
     // assignments, i.e. args=[(= v0 v1)] is printed as (:= (v0 Int) v1).
+    //
+    // Note that since these are variables there is no need to letify.
     if (arule == AletheRule::ANCHOR_BIND)
     {
       out << " :args (";
@@ -151,7 +230,9 @@ std::string AletheProofPrinter::printInternal(
             current_prefix + "a" + std::to_string(i - 3);
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
-        out << "(assume " << assumption_name << " " << args[i] << ")\n";
+        out << "(assume " << assumption_name << " ";
+        printTerm(out, args[i]);
+        out << ")\n";
         assumptions[args[i]] = assumption_name;
         current_assumptions.push_back(assumption_name);
       }
@@ -175,7 +256,9 @@ std::string AletheProofPrinter::printInternal(
                             << " " << arule << " / " << args << std::endl;
 
     current_prefix.pop_back();
-    out << "(step " << current_prefix << " " << args[2] << " :rule " << arule;
+    out << "(step " << current_prefix << " ";
+    printTerm(out, args[2]);
+    out << " :rule " << arule;
 
     // Reset steps array to the steps before the subproof since steps inside the
     // subproof cannot be accessed anymore
@@ -220,7 +303,9 @@ std::string AletheProofPrinter::printInternal(
                           << " " << current_t << std::endl;
   current_step_id++;
 
-  out << "(step " << current_t << " " << args[2] << " :rule " << arule;
+  out << "(step " << current_t << " ";
+  printTerm(out, args[2]);
+  out << " :rule " << arule;
   if (args.size() > 3)
   {
     out << " :args (";
@@ -228,11 +313,13 @@ std::string AletheProofPrinter::printInternal(
     {
       if (arule == AletheRule::FORALL_INST)
       {
-        out << "(:= " << args[i][0] << " " << args[i][1] << ")";
+        out << "(:= " << args[i][0] << " ";
+        printTerm(out, args[i][1]);
+        out << ")";
       }
       else
       {
-        out << args[i];
+        printTerm(out, args[i]);
       }
       if (i != args.size() - 1)
       {
