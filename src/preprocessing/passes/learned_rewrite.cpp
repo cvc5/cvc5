@@ -172,7 +172,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
 
 Node LearnedRewrite::rewriteLearnedRec(Node n,
                                        arith::BoundInference& binfer,
-                         const std::vector<Node>& learnedLits,
+                                       const std::vector<Node>& learnedLits,
                                        std::unordered_set<Node>& lems,
                                        std::unordered_map<TNode, Node>& visited)
 {
@@ -234,7 +234,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
 
 Node LearnedRewrite::rewriteLearned(Node n,
                                     arith::BoundInference& binfer,
-                         const std::vector<Node>& learnedLits,
+                                    const std::vector<Node>& learnedLits,
                                     std::unordered_set<Node>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -270,9 +270,11 @@ Node LearnedRewrite::rewriteLearned(Node n,
       else
       {
         // maybe the disequality is in the learned literal set?
-        Node deq = nm->mkNode(EQUAL, den, nm->mkConstInt(Rational(0))).notNode();
+        Node deq =
+            nm->mkNode(EQUAL, den, nm->mkConstInt(Rational(0))).notNode();
         deq = rewrite(deq);
-        if (std::find(learnedLits.begin(), learnedLits.end(), deq)!=learnedLits.end())
+        if (std::find(learnedLits.begin(), learnedLits.end(), deq)
+            != learnedLits.end())
         {
           isNonZeroDen = true;
         }
