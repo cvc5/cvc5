@@ -44,6 +44,15 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+set(PYTHON_INCLUDE_DIR "${Python_INCLUDE_DIR}")
+set(PYTHON_LIBRARY "${Python_LIBRARY}")
+set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
+
 find_package(PythonExtensions REQUIRED)
 
 find_package(Cython 0.29 REQUIRED)
