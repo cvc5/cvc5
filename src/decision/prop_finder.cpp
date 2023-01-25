@@ -165,6 +165,7 @@ void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
 
 bool shouldWatchAll(Kind nk, SatValue rval)
 {
+  // NOTE: this could be changed to return false when rval == SAT_VALUE_UNKNOWN.
   return rval == SAT_VALUE_UNKNOWN || ((nk == AND) == (rval == SAT_VALUE_TRUE));
 }
 
@@ -178,16 +179,7 @@ SatValue PropFinder::updateRelevantInternal2(TNode n,
   PropFindInfo* currInfo = getInfo(n);
   // we should have already been marked relevant
   Assert(currInfo != nullptr);
-  // if we've processed relevance, we are done
-  /*
-  if (!currInfo->isActive())
-  {
-    Trace("prop-finder-debug2") << "...already processed" << std::endl;
-    toVisit.pop_back();
-    return SAT_VALUE_UNKNOWN;
-  }
-  */
-  // if we've justified already
+  // if we've justified already, we are done
   if (d_jcache.hasValue(n))
   {
     Trace("prop-finder-debug2") << "...already justified" << std::endl;
