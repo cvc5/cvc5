@@ -327,12 +327,10 @@ else()
   find_package(Python 3.6...<3.11 COMPONENTS Interpreter REQUIRED)
 endif()
 
-# 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
-#     https://github.com/scikit-build/scikit-build/issues/506
-# We define the following symbols below to be backward compatible.
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
 set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
-set(PYTHON_INCLUDE_DIR "${Python_INCLUDE_DIR}")
-set(PYTHON_LIBRARY "${Python_LIBRARY}")
 set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
 set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
 
