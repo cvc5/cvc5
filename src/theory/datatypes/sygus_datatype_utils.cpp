@@ -127,7 +127,7 @@ Node mkSygusTerm(const DType& dt,
   if (!isExternal)
   {
     // Get the normalized version of the sygus operator. We do this by
-    // expanding definitions, rewriting it, and eliminating partial operators.
+    // expanding definitions.
     if (!op.isConst())
     {
       // Get the expanded definition form, if it has been marked. This ensures
