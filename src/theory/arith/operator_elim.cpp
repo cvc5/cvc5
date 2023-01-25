@@ -163,6 +163,9 @@ Node OperatorElim::eliminateOperators(Node node,
       else
       {
         checkNonLinearLogic(node);
+        Node fnum = num;
+        Node fden = den;
+        simpleNonzeroFactoring(fnum, fden);
         lem = nm->mkNode(
             AND,
             nm->mkNode(
@@ -193,6 +196,8 @@ Node OperatorElim::eliminateOperators(Node node,
                             nm->mkNode(
                                 ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
+      Trace("ajr-temp") << "Lem for " << pterm << " is " << lem << std::endl;
+      Trace("ajr-temp") << "RLem for " << pterm << " is " << rewrite(lem) << std::endl;
       // add the skolem lemma to lems
       lems.push_back(mkSkolemLemma(lem, v));
       if (k == INTS_MODULUS_TOTAL)
@@ -469,6 +474,23 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
     tlem = TrustNode::mkTrustLemma(lem, nullptr);
   }
   return SkolemLemma(tlem, k);
+}
+
+void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
+{
+  if (den.getKind()==ADD)
+  {
+    return;
+  }
+  std::vector<Node> factors;
+  if (den.getKind()==NONLINEAR_MULT)
+  {
+    factors.insert(factors.end(), den.begin(), den.end());
+  }
+  else
+  {
+    factors.push_back(den);
+  }
 }
 
 }  // namespace arith

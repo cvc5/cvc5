@@ -123,7 +123,11 @@ class OperatorElim : public EagerProofGenerator
    * the Skolem constant for the identifier asi.
    */
   Node getArithSkolemApp(Node n, SkolemFunId asi);
-
+  /**
+   * Do simple factoring of (num/den), if applicable, update. Can assume that
+   * den is non-zero.
+   */
+  static void simpleNonzeroFactoring(Node& num, Node& den);
   /**
    * Called when a non-linear term n is given to this class. Throw an exception
    * if the logic is linear.
