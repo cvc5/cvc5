@@ -896,13 +896,16 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
+      notifyModifyOption("nlCov", "true", "QF_UFNRA");
       opts.writeArith().nlCov = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
+        notifyModifyOption("nlExt", "LIGHT", "QF_UFNRA");
         opts.writeArith().nlExt = options::NlExtMode::LIGHT;
       }
       if (!opts.arith.nlRlvModeWasSetByUser)
       {
+        notifyModifyOption("nlRlvMode", "INTERLEAVE", "QF_UFNRA");
         opts.writeArith().nlRlvMode = options::NlRlvMode::INTERLEAVE;
       }
     }
@@ -913,9 +916,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (!opts.arith.nlCov && !opts.arith.nlCovWasSetByUser)
     {
+      notifyModifyOption("nlCov", "true", "logic with reals");
       opts.writeArith().nlCov = true;
       if (!opts.arith.nlExtWasSetByUser)
       {
+        notifyModifyOption("nlExt", "LIGHT", "logic with reals");
         opts.writeArith().nlExt = options::NlExtMode::LIGHT;
       }
     }
@@ -930,9 +935,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
     else
     {
-      verbose(1) << "Cannot use --nl-cov without configuring with --poly."
-                 << std::endl;
+      notifyModifyOption("nlCov", "false", "no support for libpoly");
       opts.writeArith().nlCov = false;
+      notifyModifyOption("nlExt", "FULL", "no support for libpoly");
       opts.writeArith().nlExt = options::NlExtMode::FULL;
     }
   }
@@ -941,6 +946,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
       if (!opts.arith.nlExtWasSetByUser)
       {
+        notifyModifyOption("nlExt", "FULL", "logic with transcendentals");
         opts.writeArith().nlExt = options::NlExtMode::FULL;
       }
   }
