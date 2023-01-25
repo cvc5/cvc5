@@ -1684,18 +1684,21 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   // must use Ferrante/Rackoff for real arithmetic
   if (!opts.quantifiers.cegqiMidpointWasSetByUser)
   {
+    notifyModifyOption("cegqiMidpoint", "true", "sygus");
     opts.writeQuantifiers().cegqiMidpoint = true;
   }
   // must disable cegqi-bv since it may introduce witness terms, which
   // cannot appear in synthesis solutions
   if (!opts.quantifiers.cegqiBvWasSetByUser)
   {
+    notifyModifyOption("cegqiBv", "false", "sygus");
     opts.writeQuantifiers().cegqiBv = false;
   }
   if (opts.quantifiers.sygusRepairConst)
   {
     if (!opts.quantifiers.cegqiWasSetByUser)
     {
+      notifyModifyOption("cegqi", "true", "sygus repair const");
       opts.writeQuantifiers().cegqi = true;
     }
   }
@@ -1704,11 +1707,19 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // optimization: apply preskolemization, makes it succeed more often
     if (!opts.quantifiers.preSkolemQuantWasSetByUser)
     {
-      opts.writeQuantifiers().preSkolemQuant = options::PreSkolemQuantMode::ON;
+      if (opts.quantifiers.preSkolemQuant != options::PreSkolemQuantMode::ON)
+      {
+        notifyModifyOption("preSkolemQuant", "ON", "sygus inference");
+        opts.writeQuantifiers().preSkolemQuant = options::PreSkolemQuantMode::ON;
+      }
     }
     if (!opts.quantifiers.preSkolemQuantNestedWasSetByUser)
     {
-      opts.writeQuantifiers().preSkolemQuantNested = true;
+      if (!opts.quantifiers.preSkolemQuantNested)
+      {
+        notifyModifyOption("preSkolemQuantNested", "true", "sygus inference");
+        opts.writeQuantifiers().preSkolemQuantNested = true;
+      }
     }
   }
   // counterexample-guided instantiation for sygus
@@ -1719,15 +1730,18 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   }
   if (!opts.quantifiers.conflictBasedInstWasSetByUser)
   {
+    notifyModifyOption("conflictBasedInst", "false", "sygus");
     opts.writeQuantifiers().conflictBasedInst = false;
   }
   if (!opts.quantifiers.instNoEntailWasSetByUser)
   {
+    notifyModifyOption("instNoEntail", "false", "sygus");
     opts.writeQuantifiers().instNoEntail = false;
   }
   if (!opts.quantifiers.cegqiFullEffortWasSetByUser)
   {
     // should use full effort cbqi for single invocation and repair const
+    notifyModifyOption("cegqiFullEffort", "true", "sygus");
     opts.writeQuantifiers().cegqiFullEffort = true;
   }
   // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
@@ -1741,6 +1755,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
     // if doing abduction, we should filter strong solutions
     if (!opts.quantifiers.sygusFilterSolModeWasSetByUser)
     {
+      notifyModifyOption("sygusFilterSolMode", "STRONG", "produce abducts");
       opts.writeQuantifiers().sygusFilterSolMode =
           options::SygusFilterSolMode::STRONG;
     }
@@ -1751,6 +1766,7 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   if (opts.quantifiers.sygusRewSynth || opts.quantifiers.sygusRewVerify
       || opts.quantifiers.sygusQueryGen != options::SygusQueryGenMode::NONE)
   {
+    notifyModifyOption("sygusStream", "true", "sygus expression mining");
     // rewrite rule synthesis implies that sygus stream must be true
     opts.writeQuantifiers().sygusStream = true;
   }
@@ -1765,31 +1781,40 @@ void SetDefaults::setDefaultsSygus(Options& opts) const
   {
     if (!opts.quantifiers.sygusUnifPbeWasSetByUser)
     {
+      notifyModifyOption("sygusUnifPbe", "false", "basic sygus");
       opts.writeQuantifiers().sygusUnifPbe = false;
     }
     if (opts.quantifiers.sygusUnifPiWasSetByUser)
     {
-      opts.writeQuantifiers().sygusUnifPi = options::SygusUnifPiMode::NONE;
+      if (opts.writeQuantifiers().sygusUnifPi != options::SygusUnifPiMode::NONE)
+      {
+        notifyModifyOption("sygusUnifPi", "NONE", "basic sygus");
+        opts.writeQuantifiers().sygusUnifPi = options::SygusUnifPiMode::NONE;
+      }
     }
     if (!opts.quantifiers.sygusInvTemplModeWasSetByUser)
     {
+      notifyModifyOption("sygusInvTemplMode", "NONE", "basic sygus");
       opts.writeQuantifiers().sygusInvTemplMode =
           options::SygusInvTemplMode::NONE;
     }
     if (!opts.quantifiers.cegqiSingleInvModeWasSetByUser)
     {
+      notifyModifyOption("cegqiSingleInvMode", "NONE", "basic sygus");
       opts.writeQuantifiers().cegqiSingleInvMode =
           options::CegqiSingleInvMode::NONE;
     }
   }
   // do not miniscope
-  if (!opts.quantifiers.miniscopeQuantWasSetByUser)
+  if (!opts.quantifiers.miniscopeQuantWasSetByUser && opts.quantifiers.miniscopeQuant != options::MiniscopeQuantMode::OFF)
   {
+    notifyModifyOption("miniscopeQuant", "OFF", "sygus");
     opts.writeQuantifiers().miniscopeQuant = options::MiniscopeQuantMode::OFF;
   }
   // do not do macros
-  if (!opts.quantifiers.macrosQuantWasSetByUser)
+  if (!opts.quantifiers.macrosQuantWasSetByUser && opts.quantifiers.macrosQuant)
   {
+    notifyModifyOption("macrosQuant", "false", "sygus");
     opts.writeQuantifiers().macrosQuant = false;
   }
 }
