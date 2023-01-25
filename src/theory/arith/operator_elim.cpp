@@ -90,6 +90,7 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       // node[0] - 1 < toIntSkolem <= node[0]
       // -1 < toIntSkolem - node[0] <= 0
       // 0 <= node[0] - toIntSkolem < 1
@@ -117,6 +118,7 @@ Node OperatorElim::eliminateOperators(Node node,
         // not eliminating total operators
         return node;
       }
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       Node den = rewrite(node[1]);
       Node num = rewrite(node[0]);
       Node rw = nm->mkNode(k, num, den);
@@ -225,6 +227,7 @@ Node OperatorElim::eliminateOperators(Node node,
         // int, which impacts certain issues with subtyping.
         return node;
       }
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       checkNonLinearLogic(node);
       Node rw = nm->mkNode(k, num, den);
       Node v = sm->mkPurifySkolem(
@@ -238,6 +241,7 @@ Node OperatorElim::eliminateOperators(Node node,
     }
     case DIVISION:
     {
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       Node num = rewrite(node[0]);
       Node den = rewrite(node[1]);
       Node ret = nm->mkNode(DIVISION_TOTAL, num, den);
@@ -254,6 +258,7 @@ Node OperatorElim::eliminateOperators(Node node,
 
     case INTS_DIVISION:
     {
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       // partial function: integer div
       Node num = rewrite(node[0]);
       Node den = rewrite(node[1]);
@@ -272,6 +277,7 @@ Node OperatorElim::eliminateOperators(Node node,
 
     case INTS_MODULUS:
     {
+      Trace("op-elim") << "OperatorElim: eliminate " << node << std::endl;
       // partial function: mod
       Node num = rewrite(node[0]);
       Node den = rewrite(node[1]);
