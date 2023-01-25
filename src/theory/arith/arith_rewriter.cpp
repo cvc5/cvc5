@@ -686,7 +686,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     // (div x 0) ---> 0 or (mod x 0) ---> 0
     return returnRewrite(t, nm->mkConstInt(0), Rewrite::DIV_MOD_BY_ZERO);
   }
-  else if (n==d)
+  else if (n == d)
   {
     Node ret = nm->mkConstInt(k == kind::INTS_MODULUS_TOTAL ? 1 : 0);
     return returnRewrite(t, ret, Rewrite::DIV_MOD_EQ);
@@ -784,8 +784,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     Node ret = nm->mkNode(k, n, d);
     return returnRewrite(t, ret, Rewrite::DIV_FACTOR);
   }
-  
-  
+
   return RewriteResponse(REWRITE_DONE, t);
 }
 

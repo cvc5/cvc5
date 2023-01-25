@@ -16,8 +16,8 @@
 #include "theory/arith/rewriter/node_utils.h"
 
 #include "base/check.h"
-#include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/rewriter/ordering.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -113,7 +113,6 @@ Node ensureReal(TNode t)
   return t;
 }
 
-
 Node getFactors(const Node& n, std::vector<Node>& factors)
 {
   Kind nk = n.getKind();
@@ -201,8 +200,9 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
     }
     newChildren.push_back(mkNonlinearMult(mfactorsFinal));
   }
-  Assert (!newChildren.empty());
-  num = newChildren.size()==1 ? newChildren[0] : nm->mkNode(kind::ADD, newChildren);
+  Assert(!newChildren.empty());
+  num = newChildren.size() == 1 ? newChildren[0]
+                                : nm->mkNode(kind::ADD, newChildren);
   std::vector<Node> nfactorsFinal;
   std::set_difference(nfactors.begin(),
                       nfactors.end(),
