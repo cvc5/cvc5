@@ -103,15 +103,15 @@ void SetDefaults::setDefaultsPre(Options& opts)
   {
     if (!opts.writeSmt().produceUnsatCores)
     {
-      notifyModifyOption("produceUnsatCores", "true", "option requiring unsat cores");
+      notifyModifyOption(
+          "produceUnsatCores", "true", "option requiring unsat cores");
       opts.writeSmt().produceUnsatCores = true;
     }
   }
   if (opts.smt.produceUnsatCores
       && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
-    notifyModifyOption(
-          "unsatCoresMode", "assumptions", "enabling unsat cores");
+    notifyModifyOption("unsatCoresMode", "assumptions", "enabling unsat cores");
     opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
   if (opts.proof.checkProofSteps)
@@ -142,7 +142,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
   // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    if (opts.smt.proofMode!=options::ProofMode::FULL)
+    if (opts.smt.proofMode != options::ProofMode::FULL)
     {
       notifyModifyOption("proofMode", "FULL", "enabling proofs");
       // if the user requested proofs, proof mode is full
@@ -683,7 +683,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         heuristicPivots = 0;
       }
     }
-    if (opts.arith.arithHeuristicPivots!=heuristicPivots)
+    if (opts.arith.arithHeuristicPivots != heuristicPivots)
     {
       std::stringstream ss;
       ss << heuristicPivots;
@@ -728,14 +728,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (!opts.arith.nlExtTangentPlanesInterleaveWasSetByUser)
     {
-      notifyModifyOption("nlExtTangentPlanesInterleave", "true", "pure integer logic");
+      notifyModifyOption(
+          "nlExtTangentPlanesInterleave", "true", "pure integer logic");
       opts.writeArith().nlExtTangentPlanesInterleave = true;
     }
   }
   if (!opts.arith.nlRlvAssertBoundsWasSetByUser)
   {
     bool val = !logic.isQuantified();
-    if (opts.arith.nlRlvAssertBounds!=val)
+    if (opts.arith.nlRlvAssertBounds != val)
     {
       notifyModifyOption("nlRlvAssertBounds", val ? "true" : "false", "logic");
       // use bound inference to determine when bounds are irrelevant only when
@@ -773,11 +774,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // shared selectors are generally not good to combine with standard
   // quantifier techniques e.g. E-matching
-  if (!opts.datatypes.dtSharedSelectorsWasSetByUser && opts.datatypes.dtSharedSelectors)
+  if (!opts.datatypes.dtSharedSelectorsWasSetByUser
+      && opts.datatypes.dtSharedSelectors)
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
-      notifyModifyOption("dtSharedSelectors", "false", "quantified logic without SyGuS");
+      notifyModifyOption(
+          "dtSharedSelectors", "false", "quantified logic without SyGuS");
       opts.writeDatatypes().dtSharedSelectors = false;
     }
   }
@@ -827,7 +830,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   if (opts.strings.stringFMF && !opts.strings.stringProcessLoopModeWasSetByUser)
   {
-    if (opts.strings.stringProcessLoopMode!=options::ProcessLoopMode::SIMPLE)
+    if (opts.strings.stringProcessLoopMode != options::ProcessLoopMode::SIMPLE)
     {
       notifyModifyOption("stringProcessLoopMode", "SIMPLE", "strings-fmf");
       opts.writeStrings().stringProcessLoopMode =
