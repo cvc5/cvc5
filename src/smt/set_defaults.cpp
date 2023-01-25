@@ -1854,13 +1854,13 @@ void SetDefaults::setDefaultDecisionMode(const LogicInfo& logic,
 
   if (stoponly)
   {
-    if (opts.decision.decisionMode == options::DecisionMode::JUSTIFICATION)
+    if (decMode == options::DecisionMode::JUSTIFICATION)
     {
       decMode = options::DecisionMode::STOPONLY;
     }
     else
     {
-      Assert(opts.decision.decisionMode == options::DecisionMode::INTERNAL);
+      Assert(decMode == options::DecisionMode::INTERNAL);
     }
   }
   if (opts.base.verbosity >= 1)
