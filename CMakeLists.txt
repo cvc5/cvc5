@@ -325,8 +325,14 @@ if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
   find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
 else()
   find_package(Python 3.6...<3.11 COMPONENTS Interpreter REQUIRED)
-  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION})
 endif()
+
+# 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
+#     https://github.com/scikit-build/scikit-build/issues/506
+# We define the following symbols below to be backward compatible.
+set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+set(PYTHON_INCLUDE_DIR "${Python_INCLUDE_DIR}")
+set(PYTHON_LIBRARY "${Python_LIBRARY}")
 
 find_package(GMP 6.1 REQUIRED)
 
@@ -500,6 +506,7 @@ if(BUILD_BINDINGS_PYTHON AND NOT BUILD_SHARED_LIBS)
   set(BUILD_BINDINGS_PYTHON OFF)
 endif()
 if(BUILD_BINDINGS_PYTHON)
+  set(BUILD_BINDINGS_PYTHON_VERSION ${Python_VERSION})
   add_subdirectory(src/api/python)
 endif()
 

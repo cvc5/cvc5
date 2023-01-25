@@ -44,15 +44,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
 find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
-
-# 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
-#     https://github.com/scikit-build/scikit-build/issues/506
-# We define the following symbols below to be backward compatible.
-set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
-set(PYTHON_INCLUDE_DIR "${Python_INCLUDE_DIR}")
-set(PYTHON_LIBRARY "${Python_LIBRARY}")
 find_package(PythonExtensions REQUIRED)
-
 
 find_package(Cython 0.29 REQUIRED)
 
