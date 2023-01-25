@@ -15,6 +15,7 @@
 
 package tests;
 import static io.github.cvc5.Kind.*;
+import static io.github.cvc5.SortKind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
@@ -73,6 +74,17 @@ class SortTest
     assertDoesNotThrow(() -> d_solver.getIntegerSort() == new Sort());
     assertDoesNotThrow(() -> d_solver.getIntegerSort() != new Sort());
     assertDoesNotThrow(() -> d_solver.getIntegerSort().compareTo(new Sort()));
+  }
+
+  @Test
+  void getKind() throws CVC5ApiException
+  {
+    Sort b = d_solver.getBooleanSort();
+    Sort dt_sort = create_datatype_sort();
+    Sort arr_sort = d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
+    assertEquals(b.getKind(), BOOLEAN_SORT);
+    assertEquals(dt_sort.getKind(), DATATYPE_SORT);
+    assertEquals(arr_sort.getKind(), ARRAY_SORT);
   }
 
   @Test
@@ -263,6 +275,17 @@ class SortTest
     Sort seq_sort = d_solver.mkSequenceSort(d_solver.getRealSort());
     assertTrue(seq_sort.isSequence());
     assertDoesNotThrow(() -> new Sort().isSequence());
+  }
+
+  @Test
+  void isAbstract()
+  {
+    assertTrue(d_solver.mkAbstractSort(SortKind.BITVECTOR_SORT).isAbstract());
+    // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+    // is an Array sort, not an abstract sort.
+    assertFalse(d_solver.mkAbstractSort(SortKind.ARRAY_SORT).isAbstract());
+    assertTrue(d_solver.mkAbstractSort(SortKind.ABSTRACT_SORT).isAbstract());
+    assertDoesNotThrow(() -> new Sort().isAbstract());
   }
 
   @Test
@@ -515,6 +538,20 @@ class SortTest
     Sort bvSort = d_solver.mkBitVectorSort(32);
     assertFalse(bvSort.isSequence());
     assertThrows(CVC5ApiException.class, () -> bvSort.getSequenceElementSort());
+  }
+
+  @Test
+  void getAbstractedKind() throws CVC5ApiException
+  {
+    assertEquals(d_solver.mkAbstractSort(SortKind.BITVECTOR_SORT).getAbstractedKind(),
+        SortKind.BITVECTOR_SORT);
+    // ?Array is syntax sugar for (Array ? ?), thus the constructed sort
+    // is an Array sort, not an abstract sort and its abstract kind cannot be
+    // extracted.
+    assertThrows(CVC5ApiException.class,
+        () -> d_solver.mkAbstractSort(SortKind.ARRAY_SORT).getAbstractedKind());
+    assertEquals(d_solver.mkAbstractSort(SortKind.ABSTRACT_SORT).getAbstractedKind(),
+        SortKind.ABSTRACT_SORT);
   }
 
   @Test

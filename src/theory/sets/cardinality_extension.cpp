@@ -1048,7 +1048,7 @@ void CardinalityExtension::mkModelValueElementsFor(
     if (it != d_eqc_to_card_term.end())
     {
       // slack elements from cardinality value
-      Node v = val.getModelValue(it->second);
+      Node v = val.getCandidateModelValue(it->second);
       Trace("sets-model") << "Cardinality of " << eqc << " is " << v
                           << std::endl;
       if (v.getConst<Rational>() > UINT32_MAX)

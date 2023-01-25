@@ -62,7 +62,6 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
 TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
-      d_notification(*this),
       d_registeredTerms(userContext()),
       d_wordBlaster(new FpWordBlaster(userContext())),
       d_expansionRequested(false),
@@ -70,6 +69,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(userContext()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::fp::", true),
+      d_notify(d_im),
       d_wbFactsCache(userContext()),
       d_true(NodeManager::currentNM()->mkConst(true))
 {
@@ -84,7 +84,7 @@ ProofRuleChecker* TheoryFp::getProofChecker() { return nullptr; }
 
 bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 {
-  esi.d_notify = &d_notification;
+  esi.d_notify = &d_notify;
   esi.d_name = "theory::fp::ee";
   return true;
 }
@@ -157,16 +157,6 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
            && k != kind::FLOATINGPOINT_TO_UBV && k != kind::FLOATINGPOINT_TO_SBV
            && k != kind::FLOATINGPOINT_TO_REAL)
         << "Expected floating-point kind " << k << " to be removed";
-  }
-
-  Node res = node;
-
-
-  if (res != node)
-  {
-    Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
-                          << " rewritten to " << res << std::endl;
-    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
 
   return TrustNode::null();
@@ -414,7 +404,7 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
 
   size_t newSize = d_wordBlaster->d_additionalAssertions.size();
 
-  if (wordBlasted != node)
+  if (TraceIsOn("fp-wordBlastTerm") && wordBlasted != node)
   {
     Trace("fp-wordBlastTerm")
         << "TheoryFp::wordBlastTerm(): before " << node << std::endl;
@@ -443,7 +433,8 @@ void TheoryFp::wordBlastAndEquateTerm(TNode node)
   }
 
   // Equate the floating-point atom and the wordBlasted one.
-  // Also adds the bit-vectors to the bit-vector solver.
+  // Adds the bit-vectors to the bit-vector solver via sending the equality
+  // as lemma to the inference manager.
   if (node.getType().isBoolean())
   {
     if (wordBlasted != node)
@@ -626,8 +617,8 @@ void TheoryFp::preRegisterTerm(TNode node)
     TypeNode tn = node.getType();
     if (tn.isFloatingPoint())
     {
-      unsigned exp_sz = tn.getFloatingPointExponentSize();
-      unsigned sig_sz = tn.getFloatingPointSignificandSize();
+      uint32_t exp_sz = tn.getFloatingPointExponentSize();
+      uint32_t sig_sz = tn.getFloatingPointSignificandSize();
       if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
       {
         std::stringstream ss;
@@ -650,10 +641,11 @@ void TheoryFp::preRegisterTerm(TNode node)
 void TheoryFp::handleLemma(Node node, InferenceId id)
 {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-  if (rewrite(node) != d_true)
+  Node lemma = rewrite(node);
+  if (lemma != d_true)
   {
     /* We only send non-trivial lemmas. */
-    d_im.lemma(node, id);
+    d_im.lemma(lemma, id);
   }
 }
 
@@ -772,7 +764,8 @@ TrustNode TheoryFp::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
-Node TheoryFp::getModelValue(TNode var) {
+Node TheoryFp::getCandidateModelValue(TNode var)
+{
   return d_wordBlaster->getValue(d_valuation, var);
 }
 
@@ -795,44 +788,16 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
           << "TheoryFp::collectModelInfo(): relevantTerms " << *i << std::endl;
     }
   }
-
-  std::unordered_set<TNode> visited;
-  std::vector<TNode> working;
-  std::set<TNode> relevantVariables;
-  for (const Node& n : relevantTerms)
+  for (const Node& node : relevantTerms)
   {
-    working.emplace_back(n);
-  }
-
-  while (!working.empty()) {
-    TNode current = working.back();
-    working.pop_back();
-
-    if (visited.find(current) != visited.end() || current.isClosure())
+    TypeNode t = node.getType();
+    if ((!t.isRoundingMode() && !t.isFloatingPoint()) || !this->isLeaf(node))
     {
-      // Ignore things that have already been explored and closures. For
-      // variables in closures (e.g., set comprehension), we rely on the
-      // reduction of the closures to handle the body.
       continue;
     }
 
-    visited.insert(current);
-
-    TypeNode t = current.getType();
-
-    if ((t.isRoundingMode() || t.isFloatingPoint()) && this->isLeaf(current))
-    {
-      relevantVariables.insert(current);
-    }
-
-    working.insert(working.end(), current.begin(), current.end());
-  }
-
-  for (const TNode& node : relevantVariables)
-  {
     Trace("fp-collectModelInfo")
-        << "TheoryFp::collectModelInfo(): relevantVariable " << node
-        << std::endl;
+        << "TheoryFp::collectModelInfo(): " << node << std::endl;
 
     Node wordBlasted = d_wordBlaster->getValue(d_valuation, node);
     // We only assign the value if the FpWordBlaster actually has one, that is,
@@ -885,35 +850,6 @@ bool TheoryFp::collectModelValues(TheoryModel* m,
   }
 
   return true;
-}
-
-bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
-                                                     bool value) {
-  Trace("fp-eq")
-      << "TheoryFp::eqNotifyTriggerPredicate(): call back as predicate "
-      << predicate << " is " << value << std::endl;
-
-  if (value) {
-    return d_theorySolver.propagateLit(predicate);
-  }
-  return d_theorySolver.propagateLit(predicate.notNode());
-}
-
-bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
-                                                        TNode t2, bool value) {
-  Trace("fp-eq") << "TheoryFp::eqNotifyTriggerTermEquality(): call back as "
-                 << t1 << (value ? " = " : " != ") << t2 << std::endl;
-
-  if (value) {
-    return d_theorySolver.propagateLit(t1.eqNode(t2));
-  }
-  return d_theorySolver.propagateLit(t1.eqNode(t2).notNode());
-}
-
-void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
-  Trace("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
-                 << " = " << t2 << std::endl;
-  d_theorySolver.conflictEqConstantMerge(t1, t2);
 }
 
 }  // namespace fp

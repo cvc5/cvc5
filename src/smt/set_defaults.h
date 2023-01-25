@@ -117,13 +117,14 @@ class SetDefaults : protected EnvObj
    * modify the options to ensure that we are compatible with sygus.
    * The output stream reason is similar to above.
    */
-  bool incompatibleWithSygus(Options& opts, std::ostream& reason) const;
+  bool incompatibleWithSygus(const Options& opts, std::ostream& reason) const;
   /**
    * Check if incompatible with quantified formulas. Notice this method may
    * modify the options to ensure that we are compatible with quantified logics.
    * The output stream reason is similar to above.
    */
-  bool incompatibleWithQuantifiers(Options& opts, std::ostream& reason) const;
+  bool incompatibleWithQuantifiers(const Options& opts,
+                                   std::ostream& reason) const;
   /**
    * Check if incompatible with separation logic. Notice this method may
    * modify the options to ensure that we are compatible with separation logic.

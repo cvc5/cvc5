@@ -237,12 +237,12 @@ class ExtendedRewriter
   //--------------------------------------end generic utilities
 
   //--------------------------------------theory-specific top-level calls
-  /** extended rewrite strings
-   *
-   * If this method returns a non-null node ret', then ret is equivalent to
+  /**
+   * If these methods return a non-null node ret', then ret is equivalent to
    * ret'.
    */
-  Node extendedRewriteStrings(Node ret) const;
+  Node extendedRewriteStrings(const Node& ret) const;
+  Node extendedRewriteSets(const Node& ret) const;
   //--------------------------------------end theory-specific top-level calls
 
   /**

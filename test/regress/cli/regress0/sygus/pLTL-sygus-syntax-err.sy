@@ -1,11 +1,8 @@
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
-; EXPECT-ERROR: (error "Parse Error: pLTL-sygus-syntax-err.sy:79.19: number of arguments does not match the constructor type
-; EXPECT-ERROR:
-; EXPECT-ERROR: (Op2 <O2> <F>)
-; EXPECT-ERROR: ^
-; EXPECT-ERROR: ")
+; ERROR-SCRUBBER: grep -o "number of arguments does not match the constructor type"
+; EXPECT-ERROR: number of arguments does not match the constructor type
 ; EXIT: 1
 (set-logic HO_ALL)
 (set-option :lang sygus2)

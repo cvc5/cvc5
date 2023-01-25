@@ -96,8 +96,8 @@ class CegSingleInv : protected EnvObj
                            bool rconsSygus = true);
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
-  /** preregister conjecture */
-  void preregisterConjecture( Node q );
+  /** preprocess notify conjecture */
+  void ppNotifyConjecture(Node q);
 
   //---------------------------------representation of the solution
   /**

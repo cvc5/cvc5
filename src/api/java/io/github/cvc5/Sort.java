@@ -84,6 +84,19 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   private native int compareTo(long pointer1, long pointer2);
 
   /**
+   * @return The kind of this sort.
+   * @api.note This method is experimental and may change in future versions.
+   * @throws CVC5ApiException
+   */
+  public SortKind getKind() throws CVC5ApiException
+  {
+    int value = getKind(pointer);
+    return SortKind.fromInt(value);
+  }
+
+  private native int getKind(long pointer);
+
+  /**
    * @return True if the sort has a symbol.
    */
   public boolean hasSymbol()
@@ -191,6 +204,17 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isBitVector(long pointer);
+
+  /**
+   * Determine if this is a finite field sort (SMT-LIB: {@code (_ FiniteField i)}).
+   * @return True if this sort is a finite field sort.
+   */
+  public boolean isFiniteField()
+  {
+    return isFiniteField(pointer);
+  }
+
+  private native boolean isFiniteField(long pointer);
 
   /**
    * Determine if this is a floatingpoint sort
@@ -351,6 +375,19 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native boolean isSequence(long pointer);
+
+  /**
+   * Determine if this is an abstract sort.
+   * @return True if the sort is a abstract sort.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public boolean isAbstract()
+  {
+    return isAbstract(pointer);
+  }
+
+  private native boolean isAbstract(long pointer);
 
   /**
    * Determine if this is an uninterpreted sort.
@@ -686,6 +723,23 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
 
   private native long getSequenceElementSort(long pointer);
 
+  /* Abstract sort ------------------------------------------------------- */
+
+  /**
+   * @return The sort kind of an abstract sort, which denotes the kind of
+   * sorts that this abstract sort denotes.
+   * @throws CVC5ApiException
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public SortKind getAbstractedKind() throws CVC5ApiException
+  {
+    int value = getAbstractedKind(pointer);
+    return SortKind.fromInt(value);
+  }
+
+  private native int getAbstractedKind(long pointer);
+
   /* Sort constructor sort ----------------------------------------------- */
 
   /**
@@ -709,6 +763,18 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   }
 
   private native int getBitVectorSize(long pointer);
+
+  /* Finite field sort --------------------------------------------------- */
+
+  /**
+   * @return The bit-width of the bit-vector sort.
+   */
+  public String getFiniteFieldSize()
+  {
+    return getFiniteFieldSize(pointer);
+  }
+
+  private native String getFiniteFieldSize(long pointer);
 
   /* Floating-point sort ------------------------------------------------- */
 
