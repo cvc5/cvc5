@@ -23,10 +23,10 @@
 #include "proof/conv_proof_generator.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "theory/arith/arith_msum.h"
 
 using namespace cvc5::internal::kind;
 
@@ -198,7 +198,8 @@ Node OperatorElim::eliminateOperators(Node node,
                                 ADD, v, nm->mkConstInt(Rational(-1))))))));
       }
       Trace("ajr-temp") << "Lem for " << pterm << " is " << lem << std::endl;
-      Trace("ajr-temp") << "RLem for " << pterm << " is " << rewrite(lem) << std::endl;
+      Trace("ajr-temp") << "RLem for " << pterm << " is " << rewrite(lem)
+                        << std::endl;
       // add the skolem lemma to lems
       lems.push_back(mkSkolemLemma(lem, v));
       if (k == INTS_MODULUS_TOTAL)
@@ -477,18 +478,17 @@ SkolemLemma OperatorElim::mkSkolemLemma(Node lem, Node k)
   return SkolemLemma(tlem, k);
 }
 
-
 Node OperatorElim::getFactors(const Node& n, std::vector<Node>& factors)
 {
   Kind nk = n.getKind();
-  if (nk==NONLINEAR_MULT)
+  if (nk == NONLINEAR_MULT)
   {
     factors.insert(factors.end(), n.begin(), n.end());
     std::sort(factors.begin(), factors.end());
   }
-  else if (nk==MULT)
+  else if (nk == MULT)
   {
-    Assert (n[0].isConst());
+    Assert(n[0].isConst());
     factors.push_back(n[1]);
     return n[0];
   }
@@ -501,18 +501,21 @@ Node OperatorElim::getFactors(const Node& n, std::vector<Node>& factors)
 
 Node mkProduct(const std::vector<Node>& children)
 {
-  NodeManager * nm=  NodeManager::currentNM();
-  return children.empty() ? nm->mkConstInt(Rational(1)) : (children.size()==1 ? children[0] : nm->mkNode(MULT, children));
+  NodeManager* nm = NodeManager::currentNM();
+  return children.empty() ? nm->mkConstInt(Rational(1))
+                          : (children.size() == 1 ? children[0]
+                                                  : nm->mkNode(MULT, children));
 }
 
 void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
 {
-  Assert (!den.isConst());
-  if (den.getKind()==ADD)
+  Assert(!den.isConst());
+  if (den.getKind() == ADD)
   {
     return;
   }
-  Trace("simple-factor") << "Simple factor " << num << " / " << den << std::endl;
+  Trace("simple-factor") << "Simple factor " << num << " / " << den
+                         << std::endl;
   std::vector<Node> nfactors;
   Node cden = getFactors(den, nfactors);
   std::map<Node, Node> msum;
@@ -521,12 +524,14 @@ void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
     Trace("simple-factor") << "...failed to get sum" << std::endl;
     return;
   }
-  Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors << std::endl;
+  Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
+                         << std::endl;
   // compute what factors are not divisible
   std::vector<Node> factors = nfactors;
   for (const std::pair<const Node, Node>& m : msum)
   {
-    Trace("simple-factor") << "Factor " << m.first << " -> " << m.second << std::endl;
+    Trace("simple-factor") << "Factor " << m.first << " -> " << m.second
+                           << std::endl;
     if (m.first.isNull())
     {
       Trace("simple-factor") << "...constant, no factoring" << std::endl;
@@ -534,9 +539,14 @@ void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
     }
     std::vector<Node> mfactors;
     getFactors(m.first, mfactors);
-    Trace("simple-factor") << "  Monomial factors are: " << mfactors << std::endl;
+    Trace("simple-factor") << "  Monomial factors are: " << mfactors
+                           << std::endl;
     std::vector<Node> newFactors;
-    std::set_intersection(factors.begin(), factors.end(), mfactors.begin(), mfactors.end(), std::back_inserter(newFactors));
+    std::set_intersection(factors.begin(),
+                          factors.end(),
+                          mfactors.begin(),
+                          mfactors.end(),
+                          std::back_inserter(newFactors));
     Trace("simple-factor") << "  Factors now: " << newFactors << std::endl;
     if (newFactors.empty())
     {
@@ -545,24 +555,32 @@ void OperatorElim::simpleNonzeroFactoring(Node& num, Node& den)
     }
     factors = newFactors;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> newChildren;
   for (const std::pair<const Node, Node>& m : msum)
   {
     std::vector<Node> mfactors;
     getFactors(m.first, mfactors);
     std::vector<Node> mfactorsFinal;
-    std::set_difference(mfactors.begin(), mfactors.end(), factors.begin(), factors.end(), std::back_inserter(mfactorsFinal));
+    std::set_difference(mfactors.begin(),
+                        mfactors.end(),
+                        factors.begin(),
+                        factors.end(),
+                        std::back_inserter(mfactorsFinal));
     if (!m.second.isNull())
     {
       mfactorsFinal.push_back(m.second);
     }
     newChildren.push_back(mkProduct(mfactorsFinal));
   }
-  Assert (newChildren.size()>1);
+  Assert(newChildren.size() > 1);
   num = nm->mkNode(ADD, newChildren);
   std::vector<Node> nfactorsFinal;
-  std::set_difference(nfactors.begin(), nfactors.end(), factors.begin(), factors.end(), std::back_inserter(nfactorsFinal));
+  std::set_difference(nfactors.begin(),
+                      nfactors.end(),
+                      factors.begin(),
+                      factors.end(),
+                      std::back_inserter(nfactorsFinal));
   if (!cden.isNull())
   {
     nfactorsFinal.push_back(cden);
