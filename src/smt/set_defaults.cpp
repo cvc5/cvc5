@@ -177,6 +177,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       // ensure at least preprocessing proofs are enabled
       if (opts.smt.proofMode == options::ProofMode::OFF)
       {
+        notifyModifyOption("proofMode", "PP_ONLY", "produce difficulty");
         opts.writeSmt().proofMode = options::ProofMode::PP_ONLY;
       }
     }
