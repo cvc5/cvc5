@@ -111,26 +111,6 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   return NodeManager::getKindForFunction(op);
 }
 
-Kind getEliminateKind(Kind ok)
-{
-  Kind nk = ok;
-  // We also must ensure that builtin operators which are eliminated
-  // during expand definitions are replaced by the proper operator.
-  if (ok == DIVISION)
-  {
-    nk = DIVISION_TOTAL;
-  }
-  else if (ok == INTS_DIVISION)
-  {
-    nk = INTS_DIVISION_TOTAL;
-  }
-  else if (ok == INTS_MODULUS)
-  {
-    nk = INTS_MODULUS_TOTAL;
-  }
-  return nk;
-}
-
 Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
@@ -147,23 +127,8 @@ Node mkSygusTerm(const DType& dt,
   if (!isExternal)
   {
     // Get the normalized version of the sygus operator. We do this by
-    // expanding definitions, rewriting it, and eliminating partial operators.
-    if (op.isConst())
-    {
-      // If it is a builtin operator, convert to total version if necessary.
-      // First, get the kind for the operator.
-      Kind ok = NodeManager::operatorToKind(op);
-      Trace("sygus-grammar-normalize-debug")
-          << "...builtin kind is " << ok << std::endl;
-      Kind nk = getEliminateKind(ok);
-      if (nk != ok)
-      {
-        Trace("sygus-grammar-normalize-debug")
-            << "...replace by builtin operator " << nk << std::endl;
-        opn = NodeManager::currentNM()->operatorOf(nk);
-      }
-    }
-    else
+    // expanding definitions.
+    if (!op.isConst())
     {
       // Get the expanded definition form, if it has been marked. This ensures
       // that user-defined functions have been eliminated from op.
