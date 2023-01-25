@@ -250,10 +250,9 @@ bool RegExpEval::canEvaluate(const Node& r)
   {
     cur = visit.back();
     visit.pop_back();
-
-    if (visited.find(cur) == visited.end())
+    // if not already visited
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       switch (cur.getKind())
       {
         case STRING_TO_REGEXP:
