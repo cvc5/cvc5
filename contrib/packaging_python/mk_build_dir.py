@@ -22,11 +22,7 @@ from skbuild.cmaker import CMaker
 
 python_version = CMaker.get_python_version()
 args = [
-	'-DBUILD_BINDINGS_PYTHON_VERSION:STRING=' + sys.version.split(' ')[0],
-	'-DPython_INCLUDE_DIR:PATH=' +
-			CMaker.get_python_include_dir(python_version),
-	'-DPython_LIBRARY:FILEPATH=' +
-			CMaker.get_python_library(python_version),
+	'-DBUILD_BINDINGS_PYTHON_VERSION:STRING=' + python_version
 ]
 
 subprocess.check_call(['./configure.sh', *sys.argv[1:], *args])
