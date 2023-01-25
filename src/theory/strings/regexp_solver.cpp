@@ -85,7 +85,6 @@ void RegExpSolver::computeAssertedMemberships()
 
 void RegExpSolver::checkMemberships(Theory::Effort e)
 {
-
   Trace("regexp-process") << "Checking Memberships, effort = " << e << " ... "
                           << std::endl;
   // compute the memberships
