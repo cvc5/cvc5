@@ -1,3 +1,5 @@
+; COMMAND-LINE: --ieval=use-learn
+; EXPECT: unsat
 (set-logic AUFLIA)
 (set-info :source | Set theory. |)
 (set-info :smt-lib-version 2.6)

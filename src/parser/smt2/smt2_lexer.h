@@ -28,18 +28,21 @@ namespace cvc5 {
 namespace parser {
 
 /**
- * The Flex generated lexer for SMT2, which will contain the Flex auto-generated
+ * The Flex generated lexer for SMT2, which contains the Flex auto-generated
  * implementation of yylex().
  */
 class Smt2Lexer : public FlexLexer
 {
  public:
-  Smt2Lexer(bool isSygus = true, bool isStrict = false)
-      : FlexLexer(), d_sygus(isSygus), d_strict(isStrict)
-  {
-  }
+  Smt2Lexer(bool isSygus = true, bool isStrict = false);
   virtual ~Smt2Lexer() {}
+  /** Inherited from yyFlexLexer */
+  int yylex() override;
 
+  /** Are we parsing sygus? */
+  bool isSygus() const;
+  /** Are we in strict mode? */
+  bool isStrict() const;
  private:
   /** Are we lexing sygus? */
   bool d_sygus;
