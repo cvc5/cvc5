@@ -94,11 +94,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
   if (opts.smt.produceUnsatCores
       && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
-    if (opts.smt.unsatCoresModeWasSetByUser)
-    {
-      notifyModifyOption(
+    notifyModifyOption(
           "unsatCoresMode", "assumptions", "enabling unsat cores");
-    }
     opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::ASSUMPTIONS;
   }
   if (opts.proof.checkProofSteps)
@@ -130,10 +127,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
-      if (opts.smt.unsatCoresModeWasSetByUser)
-      {
-        notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
-      }
+      notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
       opts.writeSmt().produceUnsatCores = true;
       opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
     }
@@ -167,11 +161,13 @@ void SetDefaults::setDefaultsPre(Options& opts)
       {
         // if requested to be based on proofs, we produce (preprocessing +) SAT
         // proofs
+        notifyModifyOption("proofMode", "SAT", "unsat cores SAT proof");
         opts.writeSmt().proofMode = options::ProofMode::SAT;
       }
       else if (opts.smt.proofMode == options::ProofMode::OFF)
       {
         // otherwise, we always produce preprocessing proofs
+        notifyModifyOption("proofMode", "PP_ONLY", "unsat cores");
         opts.writeSmt().proofMode = options::ProofMode::PP_ONLY;
       }
     }
@@ -402,7 +398,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 {
   if (!opts.smt.produceAssertions)
   {
-    verbose(1) << "SolverEngine: turning on produce-assertions." << std::endl;
+    notifyModifyOption("produceAssertions", "true", "");
     opts.writeSmt().produceAssertions = true;
   }
 
@@ -577,7 +573,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         && logic.isTheoryEnabled(THEORY_UF) && logic.isTheoryEnabled(THEORY_BV);
 
     bool withCare = qf_aufbv;
-    if (opts.writeSmt().simplifyWithCareEnabled != withCare)
+    if (opts.smt.simplifyWithCareEnabled != withCare)
     {
       notifyModifyOption(
           "simplifyWithCareEnabled", withCare ? "true" : "false", "logic");
@@ -658,9 +654,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         heuristicPivots = 0;
       }
     }
-    Trace("smt") << "setting arithHeuristicPivots  " << heuristicPivots
-                 << std::endl;
-    opts.writeArith().arithHeuristicPivots = heuristicPivots;
+    if (opts.arith.arithHeuristicPivots!=heuristicPivots)
+    {
+      std::stringstream ss;
+      ss << heuristicPivots;
+      notifyModifyOption("arithHeuristicPivots", ss.str(), "logic");
+      opts.writeArith().arithHeuristicPivots = heuristicPivots;
+    }
   }
   if (!opts.arith.arithPivotThresholdWasSetByUser)
   {
@@ -672,9 +672,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         pivotThreshold = 16;
       }
     }
-    Trace("smt") << "setting arith arithPivotThreshold  " << pivotThreshold
-                 << std::endl;
-    opts.writeArith().arithPivotThreshold = pivotThreshold;
+    if (opts.arith.arithPivotThreshold != pivotThreshold)
+    {
+      std::stringstream ss;
+      ss << pivotThreshold;
+      notifyModifyOption("arithPivotThreshold", ss.str(), "logic");
+      opts.writeArith().arithPivotThreshold = pivotThreshold;
+    }
   }
   if (!opts.arith.arithStandardCheckVarOrderPivotsWasSetByUser)
   {
@@ -683,24 +687,32 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     {
       varOrderPivots = 200;
     }
-    Trace("smt") << "setting arithStandardCheckVarOrderPivots  "
-                 << varOrderPivots << std::endl;
-    opts.writeArith().arithStandardCheckVarOrderPivots = varOrderPivots;
+    if (opts.arith.arithStandardCheckVarOrderPivots != varOrderPivots)
+    {
+      std::stringstream ss;
+      ss << varOrderPivots;
+      notifyModifyOption("arithStandardCheckVarOrderPivots", ss.str(), "logic");
+      opts.writeArith().arithStandardCheckVarOrderPivots = varOrderPivots;
+    }
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
     if (!opts.arith.nlExtTangentPlanesInterleaveWasSetByUser)
     {
-      Trace("smt") << "setting nlExtTangentPlanesInterleave to true"
-                   << std::endl;
+      notifyModifyOption("nlExtTangentPlanesInterleave", "true", "pure integer logic");
       opts.writeArith().nlExtTangentPlanesInterleave = true;
     }
   }
   if (!opts.arith.nlRlvAssertBoundsWasSetByUser)
   {
-    // use bound inference to determine when bounds are irrelevant only when
-    // the logic is quantifier-free
-    opts.writeArith().nlRlvAssertBounds = !logic.isQuantified();
+    bool val = !logic.isQuantified();
+    if (opts.arith.nlRlvAssertBounds!=val)
+    {
+      notifyModifyOption("nlRlvAssertBounds", val ? "true" : "false", "logic");
+      // use bound inference to determine when bounds are irrelevant only when
+      // the logic is quantifier-free
+      opts.writeArith().nlRlvAssertBounds = val;
+    }
   }
 
   // set the default decision mode
@@ -709,8 +721,9 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // set up of central equality engine
   if (opts.theory.eeMode == options::EqEngineMode::CENTRAL)
   {
-    if (!opts.arith.arithEqSolverWasSetByUser)
+    if (!opts.arith.arithEqSolverWasSetByUser && !opts.arith.arithEqSolver)
     {
+      notifyModifyOption("arithEqSolver", "true", "central equality engine");
       // use the arithmetic equality solver by default
       opts.writeArith().arithEqSolver = true;
     }
@@ -720,6 +733,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (!opts.theory.assignFunctionValues)
     {
+      notifyModifyOption("assignFunctionValues", "true", "higher-order logic");
       // must assign function values
       opts.writeTheory().assignFunctionValues = true;
     }
@@ -730,13 +744,11 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // shared selectors are generally not good to combine with standard
   // quantifier techniques e.g. E-matching
-  if (!opts.datatypes.dtSharedSelectorsWasSetByUser)
+  if (!opts.datatypes.dtSharedSelectorsWasSetByUser && opts.datatypes.dtSharedSelectors)
   {
     if (logic.isQuantified() && !usesSygus(opts))
     {
-      Trace("smt")
-          << "Disabling shared selectors for quantified logic without SyGuS"
-          << std::endl;
+      notifyModifyOption("dtSharedSelectors", "false", "quantified logic without SyGuS");
       opts.writeDatatypes().dtSharedSelectors = false;
     }
   }
@@ -757,6 +769,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
         || opts.smt.checkModels
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
+      notifyModifyOption("minisatSimpMode", "CLAUSE_ELIM", "non-basic logic");
       opts.writeProp().minisatSimpMode = options::MinisatSimpMode::CLAUSE_ELIM;
     }
   }
@@ -766,12 +779,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     if (!opts.theory.relevanceFilter)
     {
-      if (opts.theory.relevanceFilterWasSetByUser)
-      {
-        Trace("smt") << "SolverEngine: turning on relevance filtering to support "
-                     "--nl-ext-rlv="
-                  << opts.arith.nlRlvMode << std::endl;
-      }
+      notifyModifyOption("relevanceFilter", "true", "nl relevance mode");
       // must use relevance filtering techniques
       opts.writeTheory().relevanceFilter = true;
     }
@@ -781,16 +789,21 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (opts.smt.produceModels || opts.smt.produceAssignments
       || opts.smt.checkModels)
   {
-    opts.writeArrays().arraysOptimizeLinear = false;
+    if (opts.arrays.arraysOptimizeLinear)
+    {
+      notifyModifyOption("arraysOptimizeLinear", "false", "models");
+      opts.writeArrays().arraysOptimizeLinear = false;
+    }
   }
 
   if (opts.strings.stringFMF && !opts.strings.stringProcessLoopModeWasSetByUser)
   {
-    Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
-                    "--strings-fmf enabled"
-                 << std::endl;
-    opts.writeStrings().stringProcessLoopMode =
-        options::ProcessLoopMode::SIMPLE;
+    if (opts.strings.stringProcessLoopMode!=options::ProcessLoopMode::SIMPLE)
+    {
+      notifyModifyOption("stringProcessLoopMode", "SIMPLE", "strings-fmf");
+      opts.writeStrings().stringProcessLoopMode =
+          options::ProcessLoopMode::SIMPLE;
+    }
   }
 
   // !!! All options that require disabling models go here
