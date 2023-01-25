@@ -74,22 +74,38 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.checkModels || opts.driver.dumpModels)
   {
-    opts.writeSmt().produceModels = true;
+    if (!opts.writeSmt().produceModels)
+    {
+      notifyModifyOption("produceModels", "true", "check or dump models");
+      opts.writeSmt().produceModels = true;
+    }
   }
   if (opts.smt.checkModels)
   {
-    opts.writeSmt().produceAssignments = true;
+    if (!opts.writeSmt().produceAssignments)
+    {
+      notifyModifyOption("produceAssignments", "true", "checkModels");
+      opts.writeSmt().produceAssignments = true;
+    }
   }
   // unsat cores and proofs shenanigans
   if (opts.driver.dumpDifficulty)
   {
-    opts.writeSmt().produceDifficulty = true;
+    if (!opts.writeSmt().produceDifficulty)
+    {
+      notifyModifyOption("produceDifficulty", "true", "dumpDifficulty");
+      opts.writeSmt().produceDifficulty = true;
+    }
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
       || opts.smt.unsatAssumptions || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
-    opts.writeSmt().produceUnsatCores = true;
+    if (!opts.writeSmt().produceUnsatCores)
+    {
+      notifyModifyOption("produceUnsatCores", "true", "option requiring unsat cores");
+      opts.writeSmt().produceUnsatCores = true;
+    }
   }
   if (opts.smt.produceUnsatCores
       && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
@@ -116,19 +132,31 @@ void SetDefaults::setDefaultsPre(Options& opts)
   if (opts.smt.checkProofs || opts.driver.dumpProofs
       || opts.smt.proofMode == options::ProofMode::FULL)
   {
-    opts.writeSmt().produceProofs = true;
+    if (!opts.smt.produceProofs)
+    {
+      notifyModifyOption("produceProofs", "true", "option requiring proofs");
+      opts.writeSmt().produceProofs = true;
+    }
   }
 
   // this check assumes the user has requested *full* proofs
   if (opts.smt.produceProofs)
   {
-    // if the user requested proofs, proof mode is full
-    opts.writeSmt().proofMode = options::ProofMode::FULL;
+    if (opts.smt.proofMode!=options::ProofMode::FULL)
+    {
+      notifyModifyOption("proofMode", "FULL", "enabling proofs");
+      // if the user requested proofs, proof mode is full
+      opts.writeSmt().proofMode = options::ProofMode::FULL;
+    }
     // unsat cores are available due to proofs being enabled
     if (opts.smt.unsatCoresMode != options::UnsatCoresMode::SAT_PROOF)
     {
+      if (!opts.smt.produceUnsatCores)
+      {
+        notifyModifyOption("produceUnsatCores", "true", "enabling proofs");
+        opts.writeSmt().produceUnsatCores = true;
+      }
       notifyModifyOption("unsatCoresMode", "sat-proof", "enabling proofs");
-      opts.writeSmt().produceUnsatCores = true;
       opts.writeSmt().unsatCoresMode = options::UnsatCoresMode::SAT_PROOF;
     }
   }
