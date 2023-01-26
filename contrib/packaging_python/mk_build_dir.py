@@ -27,6 +27,10 @@ args = [
 			CMaker.get_python_include_dir(python_version),
 	'-DPython_LIBRARY:FILEPATH=' +
 			CMaker.get_python_library(python_version),
+	'-DPYTHON_INCLUDE_DIR:PATH=' +
+			CMaker.get_python_include_dir(python_version),
+	'-DPYTHON_LIBRARY:FILEPATH=' +
+			CMaker.get_python_library(python_version),
 ]
 
 subprocess.check_call(['./configure.sh', *sys.argv[1:], *args])
