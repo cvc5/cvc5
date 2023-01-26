@@ -125,7 +125,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
       {
         continue;
       }
-      Node e = rewriteLearnedRec(l, binfer, llrw, visited);
+      Node e = rewriteLearnedRec(l, binfer, learnedLits, llrw, visited);
       if (e.isConst())
       {
         // ignore true
@@ -147,7 +147,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     Node prev = (*assertionsToPreprocess)[i];
     Trace("learned-rewrite-assert")
         << "LearnedRewrite: assert: " << prev << std::endl;
-    Node e = rewriteLearnedRec(prev, binfer, llrw, visited);
+    Node e = rewriteLearnedRec(prev, binfer, learnedLits, llrw, visited);
     if (e != prev)
     {
       Trace("learned-rewrite-assert")
@@ -172,6 +172,7 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
 
 Node LearnedRewrite::rewriteLearnedRec(Node n,
                                        arith::BoundInference& binfer,
+                                       const std::vector<Node>& learnedLits,
                                        std::unordered_set<Node>& lems,
                                        std::unordered_map<TNode, Node>& visited)
 {
@@ -222,7 +223,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
         ret = nm->mkNode(cur.getKind(), children);
       }
       // rewrite here
-      ret = rewriteLearned(ret, binfer, lems);
+      ret = rewriteLearned(ret, binfer, learnedLits, lems);
       visited[cur] = ret;
     }
   } while (!visit.empty());
@@ -233,6 +234,7 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
 
 Node LearnedRewrite::rewriteLearned(Node n,
                                     arith::BoundInference& binfer,
+                                    const std::vector<Node>& learnedLits,
                                     std::unordered_set<Node>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -264,6 +266,18 @@ Node LearnedRewrite::rewriteLearned(Node n,
                && db.upper_value.getConst<Rational>().sgn() == -1)
       {
         isNonZeroDen = true;
+      }
+      else
+      {
+        // maybe the disequality is in the learned literal set?
+        Node deq =
+            nm->mkNode(EQUAL, den, nm->mkConstInt(Rational(0))).notNode();
+        deq = rewrite(deq);
+        if (std::find(learnedLits.begin(), learnedLits.end(), deq)
+            != learnedLits.end())
+        {
+          isNonZeroDen = true;
+        }
       }
     }
     if (isNonZeroDen)

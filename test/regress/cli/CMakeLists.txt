@@ -1560,7 +1560,8 @@ set(regress_0_tests
   regress0/strings/re-include-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
-  regress0/strings/re-mem-include-rewrite.smt2
+  regress0/strings/re-mem-eval-large.smt2
+  regress0/strings/re-mem-include-rewrite.smt2 
   regress0/strings/re-syntax.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -2192,6 +2193,7 @@ set(regress_1_tests
   regress1/nl/issue9183-3.smt2
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
+  regress1/nl/issue9420-ll.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2869,6 +2871,7 @@ set(regress_1_tests
   regress1/strings/seq-quant-infinite-branch.smt2
   regress1/strings/seq-skeleton-gap.smt2
   regress1/strings/simple-re-consume.smt2
+  regress1/strings/slent-re-pos-eager.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2
