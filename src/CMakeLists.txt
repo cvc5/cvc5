@@ -1130,6 +1130,8 @@ libcvc5_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
   theory/strings/regexp_entail.h
+  theory/strings/regexp_eval.cpp
+  theory/strings/regexp_eval.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
@@ -1400,6 +1402,10 @@ install(TARGETS cvc5
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+if(BUILD_SHARED_LIBS)
+  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+endif()
 
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)
