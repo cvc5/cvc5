@@ -28,9 +28,6 @@ runs:
         do
           echo "::group::Build extension for python $version"
 
-          echo "docker run pycvc5-manylinux2014 ${version} | grep PATH"
-          docker run pycvc5-manylinux2014 ${version} | grep PATH
-
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
