@@ -27,22 +27,17 @@ ${typechecker_includes}
 namespace cvc5::internal {
 namespace expr {
 
-TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
+TypeNode TypeChecker::computeType(NodeManager* nodeManager,
+                                  TNode n,
+                                  bool check,
+                                  std::ostream* errOut)
 {
   TypeNode typeNode;
 
   // Infer the type
   switch (n.getKind())
   {
-    case kind::VARIABLE:
-    case kind::SKOLEM:
-      typeNode = nodeManager->getAttribute(n, TypeAttr());
-      break;
-    case kind::BUILTIN:
-      typeNode = nodeManager->builtinOperatorType();
-      break;
-
-      // clang-format off
+    // clang-format off
 ${typerules}
       // clang-format on
 
@@ -50,14 +45,9 @@ ${typerules}
       Trace("getType") << "FAILURE" << std::endl;
       Unhandled() << " " << n.getKind();
   }
-
-  nodeManager->setAttribute(n, TypeAttr(), typeNode);
-  nodeManager->setAttribute(n, TypeCheckedAttr(),
-                            check || nodeManager->getAttribute(n, TypeCheckedAttr()));
-
   return typeNode;
 
-}/* TypeChecker::computeType */
+} /* TypeChecker::computeType */
 
 bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
 {

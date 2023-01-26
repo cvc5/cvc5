@@ -26,9 +26,11 @@ namespace expr {
 
 class TypeChecker {
 public:
+ static TypeNode preComputeType(NodeManager* nodeManager, TNode n);
  static TypeNode computeType(NodeManager* nodeManager,
                              TNode n,
-                             bool check = false);
+                             bool check = false,
+                             std::ostream* errOut = nullptr);
 
  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 
