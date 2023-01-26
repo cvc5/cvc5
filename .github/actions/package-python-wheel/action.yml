@@ -27,6 +27,10 @@ runs:
         for version in cp36 cp37 cp38 cp39 cp310 pp37 pp38
         do
           echo "::group::Build extension for python $version"
+
+          echo "docker run pycvc5-manylinux2014 ${version} | grep PATH"
+          docker run pycvc5-manylinux2014 ${version} | grep PATH
+
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
