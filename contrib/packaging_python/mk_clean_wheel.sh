@@ -33,12 +33,9 @@ ENVDIR=env$PYVERSION
 $PYTHONBIN -m venv ./$ENVDIR
 source ./$ENVDIR/bin/activate
 
-echo "whereis flex"
-whereis flex
-
 # install packages
 pip install -q --upgrade pip setuptools auditwheel
-pip install -q Cython pytest toml scikit-build flex
+pip install -q Cython pytest toml scikit-build flex pyparsing 
 if [ "$(uname)" == "Darwin" ]; then
     # Mac version of auditwheel
     pip install -q delocate

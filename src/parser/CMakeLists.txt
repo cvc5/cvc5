@@ -22,9 +22,7 @@ find_package(Java COMPONENTS Runtime REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex")
 endif()
-set(CMAKE_FIND_DEBUG_MODE TRUE) #temporary
 find_package(FLEX REQUIRED)
-set(CMAKE_FIND_DEBUG_MODE FALSE)
 
 #-----------------------------------------------------------------------------#
 # libcvc5parser source files
