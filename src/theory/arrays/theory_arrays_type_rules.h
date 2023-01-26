@@ -37,11 +37,6 @@ struct ArrayStoreTypeRule
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
-struct ArrayTableFunTypeRule
-{
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 struct ArrayLambdaTypeRule
 {
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
@@ -54,11 +49,6 @@ struct ArraysProperties
   static bool isWellFounded(TypeNode type);
 
   static Node mkGroundTerm(TypeNode type);
-};
-
-struct ArrayPartialSelectTypeRule
-{
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
 };
 
 struct ArrayEqRangeTypeRule
