@@ -503,7 +503,7 @@ class SolverTest
   {
     Solver slv = new Solver();
     Sort s = d_solver.mkSetSort(d_solver.getBooleanSort());
-    assertDoesNotThrow(() -> d_solver.mkEmptySet(new Sort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(new Sort()));
     assertDoesNotThrow(() -> d_solver.mkEmptySet(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(d_solver.getBooleanSort()));
     assertDoesNotThrow(() -> slv.mkEmptySet(s));
@@ -514,7 +514,7 @@ class SolverTest
   {
     Solver slv = new Solver();
     Sort s = d_solver.mkBagSort(d_solver.getBooleanSort());
-    assertDoesNotThrow(() -> d_solver.mkEmptyBag(new Sort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(new Sort()));
     assertDoesNotThrow(() -> d_solver.mkEmptyBag(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(d_solver.getBooleanSort()));
 
