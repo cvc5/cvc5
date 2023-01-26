@@ -321,7 +321,7 @@ else()
   endif()
 endif()
 
-find_package(Python 3.6...<3.11 COMPONENTS Interpreter REQUIRED)
+find_package(Python 3.6...3.10.999 COMPONENTS Interpreter REQUIRED)
 
 # 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
 #     https://github.com/scikit-build/scikit-build/issues/506

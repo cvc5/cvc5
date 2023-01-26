@@ -48,7 +48,7 @@ find_package(PythonExtensions REQUIRED)
 # 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
 #     https://github.com/scikit-build/scikit-build/issues/506
 # We define the following symbols below to be backward compatible.
-find_package(Python 3.6...<3.11 COMPONENTS Development)
+find_package(Python 3.6...3.10.999 COMPONENTS Development)
 set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
 set(PYTHON_LIBRARY "${Python_LIBRARIES}")
 
