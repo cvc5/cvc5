@@ -10,15 +10,15 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finite fields model construction
+ * Multivariate root finding.
  */
 
 #include "cvc5_private.h"
 
 #ifdef CVC5_USE_COCOA
 
-#ifndef CVC5__THEORY__FF__MODEL_H
-#define CVC5__THEORY__FF__MODEL_H
+#ifndef CVC5__THEORY__FF__MULTI_ROOTS_H
+#define CVC5__THEORY__FF__MULTI_ROOTS_H
 
 #include <CoCoA/BigInt.H>
 #include <CoCoA/ideal.H>
@@ -159,6 +159,6 @@ std::unique_ptr<AssignmentEnumerator> brancher(const CoCoA::ideal& ideal);
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__FF__MODEL_H */
+#endif /* CVC5__THEORY__FF__MULTI_ROOTS_H */
 
 #endif /* CVC5_USE_COCOA */
