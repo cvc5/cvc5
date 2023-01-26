@@ -66,6 +66,12 @@ class RegExpSolver : protected EnvObj
    * FroCoS 2015.
    */
   void checkMemberships(Theory::Effort e);
+  /**
+   * Check regular expression memberships eagerly, before running the CAV 14
+   * procedure for word equations. Adds lemmas based on our strategy involving
+   * reductions or simplifications.
+   */
+  void checkMembershipsEager();
 
  private:
   /** compute asserted memberships, store in d_assertedMems */
