@@ -18,10 +18,6 @@ import logging
 import os
 import sys
 from collections import defaultdict
-
-user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
-print(user_paths)
-
 from parser import Parser
 from node import *
 from util import *
