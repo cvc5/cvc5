@@ -25,6 +25,8 @@ from util import *
 
 def gen_kind(op):
     op_to_kind = {
+        Op.STORE: 'STORE',
+        Op.SELECT: 'SELECT',
         Op.ITE: 'ITE',
         Op.NOT: 'NOT',
         Op.AND: 'AND',
@@ -100,6 +102,8 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->regExpType()'
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
+    elif sort.base == BaseSort.AbsArray:
+        sort_code = 'nm->mkAbstractType(kind::ARRAY_TYPE)'
     elif sort.base == BaseSort.AbsBitVec:
         sort_code = 'nm->mkAbstractType(kind::BITVECTOR_TYPE)'
     elif sort.base == BaseSort.AbsAbs:

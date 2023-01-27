@@ -1363,7 +1363,9 @@ set(KINDS_FILES
 
 set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites)
 

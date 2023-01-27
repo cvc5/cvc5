@@ -19,6 +19,8 @@ from rule import Rule
 from util import die, fresh_name
 
 symbol_to_op = {
+    'store': Op.STORE,
+    'select': Op.SELECT,
     'bvugt': Op.BVUGT,
     'bvuge': Op.BVUGE,
     'bvsgt': Op.BVSGT,
@@ -251,11 +253,13 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.String, []))
         reglan_sort = pp.Keyword('RegLan').setParseAction(
             lambda s, l, t: Sort(BaseSort.RegLan, []))
+        abs_array_sort = pp.Keyword('?Array').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsArray, []))
         abs_bv_sort = pp.Keyword('?BitVec').setParseAction(
             lambda s, l, t: Sort(BaseSort.AbsBitVec, []))
         abs_abs_sort = pp.Keyword('?').setParseAction(
             lambda s, l, t: Sort(BaseSort.AbsAbs, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_bv_sort | abs_abs_sort
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_array_sort | abs_bv_sort | abs_abs_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:

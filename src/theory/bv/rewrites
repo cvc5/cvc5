@@ -1,5 +1,4 @@
 
 ; temporary
-(define-rule bv-eq-refl ((t ?BitVec)) (= t t) true)
 (define-rule bv-eq-symm ((t ?BitVec) (s ?BitVec)) (= t s) (= s t))
 
