@@ -112,6 +112,16 @@ void SygusSolver::assertSygusConstraint(Node n, bool isAssume)
   d_sygusConjectureStale = true;
 }
 
+std::vector<Node> SygusSolver::getSygusConstraints() const
+{
+  return listToVector(d_sygusConstraints);
+}
+
+std::vector<Node> SygusSolver::getSygusAssumptions() const
+{
+  return listToVector(d_sygusAssumps);
+}
+
 void SygusSolver::assertSygusInvConstraint(Node inv,
                                            Node pre,
                                            Node trans,
