@@ -163,6 +163,7 @@ class BaseSort(Enum):
     String = auto()
     RegLan = auto()
     AbsBitVec = auto()
+    AbsAbs = auto()
 
 
 class Node:
