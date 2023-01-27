@@ -25,6 +25,7 @@ libcvc5_add_sources(
   rewrite_db.h
 )
 
+list(append PYTHONPATH "${CMAKE_CURRENT_LIST_DIR}") 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
 
 add_custom_command(
