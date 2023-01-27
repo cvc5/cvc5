@@ -60,6 +60,14 @@ enum class AletheRule : uint32_t
   //
   // where y1,...,yn are not free in (forall (x1,...,xn) F2)
   ANCHOR_BIND,
+  // ======== skolemization rules
+  // G,x->(choice (x) F1) > j.  (= F1 F2)
+  // ------------------------------------
+  // G > k. (= (exists (x) F1) F2)
+  //
+  // G,x->(choice (x) (not F1)) > j.  (= F1 F2)
+  // ------------------------------------------
+  // G > k. (= (forall (x) F1) F2)
   ANCHOR_SKO_FORALL,
   ANCHOR_SKO_EX,
   // ======== input

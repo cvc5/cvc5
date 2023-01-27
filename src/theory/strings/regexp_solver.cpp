@@ -134,6 +134,39 @@ void RegExpSolver::checkInclusions()
                         << std::endl;
 }
 
+void RegExpSolver::checkMembershipsEager()
+{
+  if (!options().strings.stringRegexpPosConcatEager)
+  {
+    // option not enabled
+    return;
+  }
+  // eagerly reduce positive membership into re.++
+  std::vector<Node> mems = d_esolver.getActive(STRING_IN_REGEXP);
+  for (const Node& n : mems)
+  {
+    Assert(n.getKind() == STRING_IN_REGEXP);
+    if (n[1].getKind() != REGEXP_CONCAT)
+    {
+      // not a membership into concatenation
+      continue;
+    }
+    if (d_esolver.isReduced(n))
+    {
+      // already reduced
+      continue;
+    }
+    Node r = d_state.getRepresentative(n);
+    if (!r.isConst() || !r.getConst<bool>())
+    {
+      // not asserted true
+      continue;
+    }
+    // unfold it
+    doUnfold(n);
+  }
+}
+
 bool RegExpSolver::shouldUnfold(Theory::Effort e, bool pol) const
 {
   // Check positive, then negative memberships. If we are doing
