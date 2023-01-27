@@ -9,5 +9,3 @@ RUN ln -s /usr/bin/ccache /usr/lib64/ccache/g++ && \
     ln -s /usr/bin/ccache /usr/lib64/ccache/gcc && \
     ln -s /usr/bin/ccache /usr/lib64/ccache/c++ && \
     ln -s /usr/bin/ccache /usr/lib64/ccache/cc
-
-ENV PYTHONPATH="/home/pycvc5/src/rewriter/"

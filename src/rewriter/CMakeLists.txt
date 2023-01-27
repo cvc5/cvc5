@@ -37,6 +37,8 @@ add_custom_command(
       rewrite-db
       ${CMAKE_CURRENT_LIST_DIR}
       ${REWRITES_FILES}
+    WORKING_DIRECTORY
+      ${CMAKE_CURRENT_LIST_DIR}
     DEPENDS
       ${mkrewrites_script}
       ${REWRITES_FILES}
