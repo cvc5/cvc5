@@ -688,7 +688,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
   }
   else if (n == d)
   {
-    Node ret = nm->mkConstInt(k == kind::INTS_MODULUS_TOTAL ? 1 : 0);
+    Node ret = nm->mkConstInt(k == kind::INTS_MODULUS_TOTAL ? 0 : 1);
     return returnRewrite(t, ret, Rewrite::DIV_MOD_EQ);
   }
   else if (dIsConstant && d.getConst<Rational>().isOne())
