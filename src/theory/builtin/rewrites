@@ -1,0 +1,11 @@
+; Equality
+
+(define-rule eq-refl ((t ?)) (= t t) true)
+(define-rule eq-symm ((t ?) (s ?)) (= t s) (= s t))
+
+
+; ITE
+
+(define-rule ite-true-cond ((x ?) (y ?)) (ite true x y) x)
+(define-rule ite-false-cond ((x ?) (y ?)) (ite false x y) y)
+(define-rule ite-not-cond ((c Bool) (x ?) (y ?)) (ite (not c) x y) (ite c y x))
