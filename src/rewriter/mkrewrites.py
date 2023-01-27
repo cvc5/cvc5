@@ -18,6 +18,11 @@ import logging
 import os
 import sys
 from collections import defaultdict
+
+# Needed in order to include the modules below.
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
 from parser import Parser
 from node import *
 from util import *
