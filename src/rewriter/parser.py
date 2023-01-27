@@ -251,7 +251,9 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.String, []))
         reglan_sort = pp.Keyword('RegLan').setParseAction(
             lambda s, l, t: Sort(BaseSort.RegLan, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort
+        abs_bv_sort = pp.Keyword('?BitVec').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsBitVec, []))
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_bv_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:

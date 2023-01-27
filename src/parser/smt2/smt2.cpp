@@ -785,11 +785,11 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
   {
-    defineVar("set.empty", d_solver->mkEmptySet(Sort()));
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("set.empty", d_solver->mkEmptySet(d_solver->mkSetSort(btype)));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("set.universe",
-              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    defineVar("set.universe", d_solver->mkUniverseSet(btype));
 
     addOperator(SET_UNION, "set.union");
     addOperator(SET_INTER, "set.inter");
@@ -824,7 +824,8 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
-    defineVar("bag.empty", d_solver->mkEmptyBag(Sort()));
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->mkBagSort(btype)));
     addOperator(BAG_UNION_MAX, "bag.union_max");
     addOperator(BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(BAG_INTER_MIN, "bag.inter_min");
@@ -901,6 +902,25 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     defineVar("roundTowardZero", d_solver->mkRoundingMode(ROUND_TOWARD_ZERO));
 
     addFloatingPointOperators();
+  }
+
+  if (!strictModeEnabled())
+  {
+    // gradual types
+    defineType("?", d_solver->mkAbstractSort(ABSTRACT_SORT), true);
+    defineType("?Array", d_solver->mkAbstractSort(ARRAY_SORT), true);
+    defineType("?Bag", d_solver->mkAbstractSort(BAG_SORT), true);
+    defineType("?Tuple", d_solver->mkAbstractSort(TUPLE_SORT), true);
+    defineType(
+        "?FiniteField", d_solver->mkAbstractSort(FINITE_FIELD_SORT), true);
+    defineType("?->", d_solver->mkAbstractSort(FUNCTION_SORT), true);
+    defineType("?Seq", d_solver->mkAbstractSort(SEQUENCE_SORT), true);
+    defineType("?Set", d_solver->mkAbstractSort(SET_SORT), true);
+    defineType("?BitVec", d_solver->mkAbstractSort(BITVECTOR_SORT), true);
+    defineType(
+        "?FloatingPoint", d_solver->mkAbstractSort(FLOATINGPOINT_SORT), true);
+    defineType(
+        "?FloatingPoint", d_solver->mkAbstractSort(FLOATINGPOINT_SORT), true);
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FF))

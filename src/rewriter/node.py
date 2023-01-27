@@ -162,6 +162,7 @@ class BaseSort(Enum):
     Real = auto()
     String = auto()
     RegLan = auto()
+    AbsBitVec = auto()
 
 
 class Node:

@@ -19,95 +19,129 @@ namespace cvc5::internal {
 namespace theory {
 namespace sep {
 
+bool isMaybeBoolean(const TypeNode& tn)
+{
+  return tn.isBoolean() || tn.isFullyAbstract();
+}
+
+TypeNode SepEmpTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEP_EMP);
   return nodeManager->booleanType();
 }
 
+TypeNode SepPtoTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEP_PTO);
-  if (check)
-  {
-    TypeNode refType = n[0].getType(check);
-    TypeNode ptType = n[1].getType(check);
-  }
   return nodeManager->booleanType();
 }
 
+TypeNode SepStarTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
   Assert(n.getKind() == kind::SEP_STAR);
   if (check)
   {
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (const Node& nc : n)
     {
-      TypeNode ctype = n[i].getType(check);
-      if (ctype != btype)
+      TypeNode ctype = nc.getType(check);
+      if (!isMaybeBoolean(ctype))
       {
         throw TypeCheckingExceptionPrivate(n,
                                            "child of sep star is not Boolean");
+        return TypeNode::null();
       }
     }
   }
   return btype;
 }
 
+TypeNode SepWandTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
   Assert(n.getKind() == kind::SEP_WAND);
   if (check)
   {
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (const Node& nc : n)
     {
-      TypeNode ctype = n[i].getType(check);
-      if (ctype != btype)
+      TypeNode ctype = nc.getType(check);
+      if (!isMaybeBoolean(ctype))
       {
         throw TypeCheckingExceptionPrivate(
             n, "child of sep magic wand is not Boolean");
+        return TypeNode::null();
       }
     }
   }
   return btype;
 }
 
+TypeNode SepLabelTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
-                                       bool check)
+                                       bool check,
+                                       std::ostream* errOut)
 {
   TypeNode btype = nodeManager->booleanType();
   Assert(n.getKind() == kind::SEP_LABEL);
   if (check)
   {
     TypeNode ctype = n[0].getType(check);
-    if (ctype != btype)
+    if (!isMaybeBoolean(ctype))
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "child of sep label is not Boolean");
+      return TypeNode::null();
     }
     TypeNode stype = n[1].getType(check);
     if (!stype.isSet())
     {
       throw TypeCheckingExceptionPrivate(n, "label of sep label is not a set");
+      return TypeNode::null();
     }
   }
   return btype;
 }
 
+TypeNode SepNilTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode SepNilTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEP_NIL);
   Assert(check);

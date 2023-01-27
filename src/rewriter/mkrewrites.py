@@ -96,10 +96,12 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->realType()'
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
-    elif sort.base == BaseSort.String:
-        sort_code = 'nm->stringType()'
     elif sort.base == BaseSort.RegLan:
         sort_code = 'nm->regExpType()'
+    elif sort.base == BaseSort.String:
+        sort_code = 'nm->stringType()'
+    elif sort.base == BaseSort.AbsBitVec:
+        sort_code = 'nm->mkAbstractType(kind::BITVECTOR_TYPE)'
     else:
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'

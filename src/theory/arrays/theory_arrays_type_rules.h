@@ -27,24 +27,31 @@ namespace arrays {
 
 struct ArraySelectTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 struct ArrayStoreTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
-struct ArrayTableFunTypeRule
-{
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 struct ArrayLambdaTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 struct ArraysProperties
@@ -56,14 +63,13 @@ struct ArraysProperties
   static Node mkGroundTerm(TypeNode type);
 };
 
-struct ArrayPartialSelectTypeRule
-{
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
-};
-
 struct ArrayEqRangeTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 }  // namespace arrays

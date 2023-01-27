@@ -19,9 +19,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
+TypeNode QuantifierTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
-                                         bool check)
+                                         bool check,
+                                         std::ostream* errOut)
 {
   Trace("typecheck-q") << "type check for fa " << n << std::endl;
   Assert((n.getKind() == kind::FORALL || n.getKind() == kind::EXISTS)
@@ -32,11 +37,13 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
     {
       throw TypeCheckingExceptionPrivate(
           n, "first argument of quantifier is not bound var list");
+      return TypeNode::null();
     }
     if (n[1].getType(check) != nodeManager->booleanType())
     {
       throw TypeCheckingExceptionPrivate(n,
                                          "body of quantifier is not boolean");
+      return TypeNode::null();
     }
     if (n.getNumChildren() == 3)
     {
@@ -46,6 +53,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
             n,
             "third argument of quantifier is not instantiation "
             "pattern list");
+        return TypeNode::null();
       }
       for (const Node& p : n[2])
       {
@@ -56,6 +64,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
               n,
               "expected number of arguments to pool to be the same as the "
               "number of bound variables of the quantified formula");
+          return TypeNode::null();
         }
       }
     }
@@ -63,28 +72,43 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode QuantifierBoundVarListTypeRule::preComputeType(NodeManager* nm,
+                                                        TNode n)
+{
+  return nm->boundVarListType();
+}
 TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
-                                                     bool check)
+                                                     bool check,
+                                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::BOUND_VAR_LIST);
   if (check)
   {
     for (int i = 0; i < (int)n.getNumChildren(); i++)
-    {
-      if (n[i].getKind() != kind::BOUND_VARIABLE)
+      for (const Node& nc : n)
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "argument of bound var list is not bound variable");
-      }
+        if (nc.getKind() != kind::BOUND_VARIABLE)
+        {
+          if (errOut)
+          {
+            (*errOut) << "argument of bound var list is not bound variable";
+          }
+          return TypeNode::null();
+        }
     }
   }
   return nodeManager->boundVarListType();
 }
 
+TypeNode QuantifierInstPatternTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->instPatternListType();
+}
 TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   Assert(n.getKind() == kind::INST_PATTERN);
   if (check)
@@ -95,16 +119,24 @@ TypeNode QuantifierInstPatternTypeRule::computeType(NodeManager* nodeManager,
     if (n[0].isVar() && n[0].getKind() != kind::BOUND_VARIABLE
         && tn.isFunction())
     {
-      throw TypeCheckingExceptionPrivate(
-          n[0], "Pattern must be a list of fully-applied terms.");
+      if (errOut)
+      {
+        (*errOut) << "Pattern must be a list of fully-applied terms.";
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->instPatternType();
 }
 
+TypeNode QuantifierAnnotationTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->instPatternListType();
+}
 TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
-                                                   bool check)
+                                                   bool check,
+                                                   std::ostream* errOut)
 {
   if (n.getKind() == kind::INST_ATTRIBUTE)
   {
@@ -113,16 +145,24 @@ TypeNode QuantifierAnnotationTypeRule::computeType(NodeManager* nodeManager,
       // first must be a keyword
       if (n[0].getKind() != kind::CONST_STRING)
       {
-        throw TypeCheckingExceptionPrivate(
-            n[0], "Expecting a keyword at the head of INST_ATTRIBUTE.");
+        if (errOut)
+        {
+          (*errOut) << "Expecting a keyword at the head of INST_ATTRIBUTE.";
+        }
+        return TypeNode::null();
       }
     }
   }
   return nodeManager->instPatternType();
 }
 
+TypeNode QuantifierInstPatternListTypeRule::preComputeType(NodeManager* nm,
+                                                           TNode n)
+{
+  return nm->instPatternListType();
+}
 TypeNode QuantifierInstPatternListTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   Assert(n.getKind() == kind::INST_PATTERN_LIST);
   if (check)
@@ -134,30 +174,44 @@ TypeNode QuantifierInstPatternListTypeRule::computeType(
           && k != kind::INST_ATTRIBUTE && k != kind::INST_POOL
           && k != kind::INST_ADD_TO_POOL && k != kind::SKOLEM_ADD_TO_POOL)
       {
-        throw TypeCheckingExceptionPrivate(
-            n,
-            "argument of inst pattern list is not a legal quantifiers "
-            "annotation");
+        if (errOut)
+        {
+          (*errOut) << "argument of inst pattern list is not a legal "
+                       "quantifiers annotation";
+        }
+        return TypeNode::null();
       }
     }
   }
   return nodeManager->instPatternListType();
 }
+
+TypeNode QuantifierOracleFormulaGenTypeRule::preComputeType(NodeManager* nm,
+                                                            TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode QuantifierOracleFormulaGenTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   Assert(n.getKind() == kind::ORACLE_FORMULA_GEN);
   if (check)
   {
     if (!n[0].getType().isBoolean())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "expected Boolean for oracle interface assumption");
+      if (errOut)
+      {
+        (*errOut) << "expected Boolean for oracle interface assumption";
+      }
+      return TypeNode::null();
     }
     if (!n[1].getType().isBoolean())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "expected Boolean for oracle interface constraint");
+      if (errOut)
+      {
+        (*errOut) << "expected Boolean for oracle interface constraint";
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->booleanType();
