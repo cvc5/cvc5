@@ -2091,6 +2091,17 @@ def test_add_sygus_constraint(solver):
     with pytest.raises(RuntimeError):
         slv.addSygusConstraint(boolTerm)
 
+
+def test_get_sygus_constraints(solver):
+    solver.setOption("sygus", "true")
+    true_term = solver.mkBoolean(True)
+    false_term = solver.mkBoolean(False)
+    solver.addSygusConstraint(true_term)
+    solver.addSygusConstraint(false_term)
+    constraints = [true_term, false_term]
+    assert solver.getSygusConstraints() == constraints
+
+
 def test_add_sygus_assume(solver):
     solver.setOption("sygus", "true")
     nullTerm = cvc5.Term(solver)
@@ -2104,6 +2115,16 @@ def test_add_sygus_assume(solver):
     slv = cvc5.Solver()
     with pytest.raises(RuntimeError):
         slv.addSygusAssume(boolTerm)
+
+
+def test_get_sygus_assumptions(solver):
+    solver.setOption("sygus", "true")
+    true_term = solver.mkBoolean(True)
+    false_term = solver.mkBoolean(False)
+    solver.addSygusAssume(true_term)
+    solver.addSygusAssume(false_term)
+    assumptions = [true_term, false_term]
+    assert solver.getSygusAssumptions() == assumptions
 
 
 def test_add_sygus_inv_constraint(solver):
