@@ -7836,8 +7836,8 @@ std::vector<Term> Solver::getSygusAssumptions() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  std::vector<internal::Node> constraints = d_slv->getSygusAssumptions();
-  return Term::nodeVectorToTerms(d_nm, constraints);
+  std::vector<internal::Node> assumptions = d_slv->getSygusAssumptions();
+  return Term::nodeVectorToTerms(d_nm, assumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
