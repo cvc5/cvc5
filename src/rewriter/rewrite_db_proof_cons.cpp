@@ -32,7 +32,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                Node b,
                                theory::TheoryId tid,
                                MethodId mid,
-                               uint32_t recLimit)
+                               int64_t recLimit)
 {
   Trace("rpc") << "RewriteDbProofCons::prove: " << a << " == " << b
                << std::endl;

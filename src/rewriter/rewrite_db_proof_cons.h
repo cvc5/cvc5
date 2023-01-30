@@ -36,7 +36,9 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * This class is used to reconstruct proofs of theory rewrites.
+ * This class is used to reconstruct proofs of theory rewrites. It is described
+ * in detail in the paper "Reconstructing Fine-Grained Proofs of Rewrites Using
+ * a Domain-Specific Language", Noetzli et al FMCAD 2022.
  */
 class RewriteDbProofCons : protected EnvObj
 {
@@ -51,10 +53,14 @@ class RewriteDbProofCons : protected EnvObj
              Node b,
              theory::TheoryId tid,
              MethodId mid,
-             uint32_t recLimit);
+             int64_t recLimit);
 
  private:
-  /** Basic utility */
+  /** 
+   * Basic utility for (user-independent) rewrite rule reconstruction. Handles
+   * cases that should always be reconstructed, e.g. EVALUATE, REFL,
+   * BETA_REDUCE.
+   */
   BasicRewriteRCons d_trrc;
   /** Pointer to rewrite database */
   RewriteDb* d_db;
