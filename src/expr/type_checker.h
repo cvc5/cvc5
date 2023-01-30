@@ -26,7 +26,6 @@ namespace expr {
 
 class TypeChecker {
 public:
- static TypeNode preComputeType(NodeManager* nodeManager, TNode n);
  static TypeNode computeType(NodeManager* nodeManager,
                              TNode n,
                              bool check = false,
