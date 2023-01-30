@@ -458,7 +458,8 @@ def test_mk_cardinality_constraint(solver):
 def test_mk_empty_set(solver):
     slv = cvc5.Solver()
     s = solver.mkSetSort(solver.getBooleanSort())
-    solver.mkEmptySet(cvc5.Sort(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptySet(cvc5.Sort(solver))
     solver.mkEmptySet(s)
     with pytest.raises(RuntimeError):
         solver.mkEmptySet(solver.getBooleanSort())
@@ -468,7 +469,8 @@ def test_mk_empty_set(solver):
 def test_mk_empty_bag(solver):
     slv = cvc5.Solver()
     s = solver.mkBagSort(solver.getBooleanSort())
-    solver.mkEmptyBag(cvc5.Sort(solver))
+    with pytest.raises(RuntimeError):
+        solver.mkEmptyBag(cvc5.Sort(solver))
     solver.mkEmptyBag(s)
     with pytest.raises(RuntimeError):
         solver.mkEmptyBag(solver.getBooleanSort())

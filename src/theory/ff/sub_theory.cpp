@@ -161,6 +161,7 @@ void SubTheory::notifyFact(TNode fact)
 
 void SubTheory::postCheck(Theory::Effort e)
 {
+  if (d_facts.empty()) return;
   d_checkIndices.push_back(d_facts.size());
   auto inc = options().ff.ffIncrementality;
   if (e == Theory::EFFORT_STANDARD)
