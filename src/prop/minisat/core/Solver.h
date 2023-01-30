@@ -468,8 +468,7 @@ protected:
      */
     vec<bool> theory;
 
-    enum TheoryCheckType
-    {
+    enum TheoryCheckType {
       // Quick check, but don't perform theory reasoning
       CHECK_WITHOUT_THEORY,
       // Check and perform theory reasoning
