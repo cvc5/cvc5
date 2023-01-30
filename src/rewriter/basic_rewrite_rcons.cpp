@@ -47,7 +47,7 @@ bool BasicRewriteRCons::prove(
     Trace("trewrite-rcons") << "...EVALUATE" << std::endl;
     return true;
   }
-  if (eq[0].getKind()==APPLY_UF && eq[0].getOperator().getKind()==LAMBDA)
+  if (eq[0].getKind() == APPLY_UF && eq[0].getOperator().getKind() == LAMBDA)
   {
     std::vector<Node> args;
     args.push_back(eq[0].getOperator());
@@ -63,9 +63,9 @@ bool BasicRewriteRCons::prove(
 }
 
 bool BasicRewriteRCons::tryRule(CDProof* cdp,
-                                 Node eq,
-                                 PfRule r,
-                                 const std::vector<Node>& args)
+                                Node eq,
+                                PfRule r,
+                                const std::vector<Node>& args)
 {
   ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
   // do not provide expected, as this will always succeed if proof checking

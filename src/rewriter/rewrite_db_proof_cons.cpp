@@ -21,9 +21,7 @@ namespace cvc5::internal {
 namespace rewriter {
 
 RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
-    : EnvObj(env),
-      d_trrc(env),
-      d_db(db)
+    : EnvObj(env), d_trrc(env), d_db(db)
 {
 }
 

@@ -23,11 +23,11 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_proof_cons.h"
 #include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
-#include "rewriter/rewrite_db.h"
-#include "rewriter/rewrite_db_proof_cons.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
 

@@ -22,8 +22,8 @@
 
 #include "expr/match_trie.h"
 #include "expr/node.h"
-#include "proof/proof.h"
 #include "proof/method_id.h"
+#include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "rewriter/basic_rewrite_rcons.h"
 #include "rewriter/rewrite_db.h"
@@ -56,7 +56,7 @@ class RewriteDbProofCons : protected EnvObj
              int64_t recLimit);
 
  private:
-  /** 
+  /**
    * Basic utility for (user-independent) rewrite rule reconstruction. Handles
    * cases that should always be reconstructed, e.g. EVALUATE, REFL,
    * BETA_REDUCE.
