@@ -187,7 +187,8 @@ SatLiteral CnfStream::newLiteral(TNode node,
   }
 
   // If it's a theory literal, need to store it for back queries
-  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK || d_flitPolicy == FormulaLitPolicy::TRACK_AND_NOTIFY_VAR)
+  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK
+      || d_flitPolicy == FormulaLitPolicy::TRACK_AND_NOTIFY_VAR)
   {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());

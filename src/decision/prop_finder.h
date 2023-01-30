@@ -60,6 +60,7 @@ class PropFindInfo
 class PropFinder : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
+
  public:
   PropFinder(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
   ~PropFinder();
@@ -79,6 +80,7 @@ class PropFinder : protected EnvObj
   bool notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 
   void debugCheck();
+
  private:
   /** Set relevant */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
@@ -105,7 +107,7 @@ class PropFinder : protected EnvObj
   void updateJustify(
       std::vector<std::pair<TNode, prop::SatValue>>& justifyQueue,
       std::vector<TNode>& toVisit);
-  
+
   void debugCheckAssertion(const Node& a);
   /** mk or get PropFindInfo */
   PropFindInfo* getInfo(TNode n);

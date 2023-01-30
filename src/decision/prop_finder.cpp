@@ -112,7 +112,7 @@ bool PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 
   // we are notified about Boolean variables, but these should not be asserted
   // to the theory engine unless their kind is BOOLEAN_TERM_VARIABLE.
-  return !natom.isVar() || natom.getKind()==BOOLEAN_TERM_VARIABLE;
+  return !natom.isVar() || natom.getKind() == BOOLEAN_TERM_VARIABLE;
 }
 
 void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
@@ -340,14 +340,13 @@ SatValue PropFinder::updateRelevantInternal2(TNode n,
   }
   else if (cindex == 0)
   {
-    Trace("prop-finder")
-        << "...preregister theory literal " << n << std::endl;
+    Trace("prop-finder") << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
-    if (!n.isVar() || nk==BOOLEAN_TERM_VARIABLE)
+    if (!n.isVar() || nk == BOOLEAN_TERM_VARIABLE)
     {
       toPreregister.push_back(n);
-    
+
       if (options().prop.preregDebug)
       {
         d_preregistered.insert(n);
@@ -519,7 +518,7 @@ SatValue PropFinder::relevantUnion(SatValue r1, SatValue r2)
   return r1 == r2 ? r1 : SAT_VALUE_UNKNOWN;
 }
 
-void PropFinder::debugCheckAssertion(const Node& a )
+void PropFinder::debugCheckAssertion(const Node& a)
 {
   if (d_jcache.hasValue(a))
   {
@@ -533,26 +532,26 @@ void PropFinder::debugCheckAssertion(const Node& a )
     TNode t = toVisit.back().first;
     prop::SatValue val = toVisit.back().second;
     toVisit.pop_back();
-    if (t.getKind()==NOT)
+    if (t.getKind() == NOT)
     {
       t = t[0];
       val = invertValue(val);
     }
-    Assert (d_jcache.hasValue(a));
+    Assert(d_jcache.hasValue(a));
     Kind nk = t.getKind();
     if (nk == AND || nk == OR || nk == IMPLIES)
     {
       SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
       bool watchAll = shouldWatchAll(nk, val);
       bool watchChildren = true;
-      for (size_t i=0, nchild = t.getNumChildren(); i<nchild; i++)
+      for (size_t i = 0, nchild = t.getNumChildren(); i < nchild; i++)
       {
-        bool tcpol = t[i].getKind()!=NOT;
+        bool tcpol = t[i].getKind() != NOT;
         TNode tc = tcpol ? t[i] : t[i][0];
         bool hadValue = d_jcache.hasValue(tc);
-        bool invertChild = (i==0 && nk==IMPLIES);
+        bool invertChild = (i == 0 && nk == IMPLIES);
         prop::SatValue cval = d_jcache.lookupValue(tc);
-        if (cval==SAT_VALUE_UNKNOWN)
+        if (cval == SAT_VALUE_UNKNOWN)
         {
           if (watchChildren)
           {
@@ -567,21 +566,22 @@ void PropFinder::debugCheckAssertion(const Node& a )
         else
         {
           cval = tcpol ? cval : invertValue(cval);
-          AlwaysAssert(!hadValue) << "Missed store in justify cache " << t[i] << " in " << t;
+          AlwaysAssert(!hadValue)
+              << "Missed store in justify cache " << t[i] << " in " << t;
           if (invertChild)
           {
             cval = invertValue(cval);
           }
-          AlwaysAssert (cval!=forceVal) << "Missing justification";
+          AlwaysAssert(cval != forceVal) << "Missing justification";
         }
       }
     }
     else if (nk == ITE || (nk == EQUAL && t[0].getType().isBoolean())
-            || nk == XOR)
+             || nk == XOR)
     {
       bool hadValue = d_jcache.hasValue(t[0]);
       prop::SatValue cval = d_jcache.lookupValue(t[0]);
-      if (cval==SAT_VALUE_UNKNOWN)
+      if (cval == SAT_VALUE_UNKNOWN)
       {
         toVisit.emplace_back(t[0], SAT_VALUE_UNKNOWN);
       }
@@ -611,17 +611,17 @@ void PropFinder::debugCheckAssertion(const Node& a )
     else
     {
       // should be preregistered
-      AlwaysAssert(d_preregistered.find(t)!=d_preregistered.end()) << "Expected to preregister " << t << " in " << a;
+      AlwaysAssert(d_preregistered.find(t) != d_preregistered.end())
+          << "Expected to preregister " << t << " in " << a;
     }
-  }
-  while (!toVisit.empty());
+  } while (!toVisit.empty());
 }
 
 void PropFinder::debugCheck()
 {
   if (options().prop.preregDebug)
   {
-    for (size_t i=0; i<d_assertionIndex.get(); i++)
+    for (size_t i = 0; i < d_assertionIndex.get(); i++)
     {
       debugCheckAssertion(d_assertions[i]);
     }

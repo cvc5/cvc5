@@ -95,12 +95,8 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
     // must be notified about Boolean variables
     flp = FormulaLitPolicy::TRACK_AND_NOTIFY_VAR;
   }
-  d_cnfStream = new CnfStream(env,
-                              d_satSolver,
-                              d_theoryProxy,
-                              userContext,
-                              flp,
-                              "prop");
+  d_cnfStream =
+      new CnfStream(env, d_satSolver, d_theoryProxy, userContext, flp, "prop");
 
   // connect theory proxy
   d_theoryProxy->finishInit(d_satSolver, d_cnfStream);
