@@ -6020,9 +6020,8 @@ Term Solver::mkRegexpAllchar() const
 Term Solver::mkEmptySet(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isSet(), sort)
-      << "null sort or set sort";
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || d_nm == sort.d_nm, sort)
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isSet(), sort) << "null sort or set sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "set sort associated with the node manager of this solver object";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm, internal::EmptySet(*sort.d_type));
@@ -6033,9 +6032,8 @@ Term Solver::mkEmptySet(const Sort& sort) const
 Term Solver::mkEmptyBag(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isBag(), sort)
-      << "null sort or bag sort";
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || d_nm == sort.d_nm, sort)
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isBag(), sort) << "null sort or bag sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "bag sort associated with the node manager of this solver object";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm, internal::EmptyBag(*sort.d_type));
