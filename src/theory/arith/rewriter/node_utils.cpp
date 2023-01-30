@@ -154,7 +154,7 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
     Trace("simple-factor") << "...failed to get sum" << std::endl;
     return false;
   }
-  Assert (cden.isConst() && cden.getType().isInteger());
+  Assert(cden.isConst() && cden.getType().isInteger());
   Integer di = cden.getConst<Rational>().getNumerator().abs();
   Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
                          << std::endl;
@@ -169,7 +169,7 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
     {
       if (!m.second.isNull())
       {
-        Assert (m.second.isConst() && m.second.getType().isInteger());
+        Assert(m.second.isConst() && m.second.getType().isInteger());
         di = di.gcd(m.second.getConst<Rational>().getNumerator().abs());
       }
       else
@@ -186,8 +186,8 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
       {
         std::vector<Node> mfactors;
         getFactors(m.first, mfactors);
-        Trace("simple-factor") << "  Monomial factors are: " << mfactors
-                              << std::endl;
+        Trace("simple-factor")
+            << "  Monomial factors are: " << mfactors << std::endl;
         std::set_intersection(factors.begin(),
                               factors.end(),
                               mfactors.begin(),
@@ -221,7 +221,7 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
       Node mcFinal = m.second;
       if (!di.isOne())
       {
-        mcFinal = nm->mkConstInt(mcFinal.getConst<Rational>()/Rational(di));
+        mcFinal = nm->mkConstInt(mcFinal.getConst<Rational>() / Rational(di));
       }
       mfactorsFinal.push_back(mcFinal);
     }
@@ -241,7 +241,7 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
     Node cdenFinal = cden;
     if (!di.isOne())
     {
-      cdenFinal = nm->mkConstInt(cden.getConst<Rational>()/Rational(di));
+      cdenFinal = nm->mkConstInt(cden.getConst<Rational>() / Rational(di));
     }
     nfactorsFinal.push_back(cdenFinal);
   }
