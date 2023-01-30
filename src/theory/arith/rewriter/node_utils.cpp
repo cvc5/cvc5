@@ -155,7 +155,8 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
     return false;
   }
   Assert(cden.isNull() || (cden.isConst() && cden.getType().isInteger()));
-  Integer di = cden.isNull() ? Integer(1) : cden.getConst<Rational>().getNumerator().abs();
+  Integer di = cden.isNull() ? Integer(1)
+                             : cden.getConst<Rational>().getNumerator().abs();
   Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
                          << std::endl;
   // compute what factors are not divisible
