@@ -1,6 +1,9 @@
 ; REQUIRES: cocoa
 ; EXPECT: sat
 ; Tests the ff rewriter
+; COMMAND-LINE: --decision=justification
+; COMMAND-LINE: --ff-field-polys
+; COMMAND-LINE:
 (set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-logic QF_FF)

@@ -36,7 +36,7 @@ add_custom_command(
       rewrites.cpp
       rewrites.h
     COMMAND
-      ${PYTHON_EXECUTABLE}
+      ${Python_EXECUTABLE}
       ${mkrewrites_script}
       rewrite-db
       ${CMAKE_CURRENT_LIST_DIR}

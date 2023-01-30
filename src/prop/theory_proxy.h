@@ -28,6 +28,7 @@
 #include "prop/learned_db.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "prop/theory_preregistrar.h"
 #include "smt/env_obj.h"
 #include "theory/incomplete_id.h"
 #include "theory/theory.h"
@@ -185,8 +186,10 @@ class TheoryProxy : protected EnvObj, public Registrar
   void getSkolems(TNode node,
                   std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
-  /** Preregister term */
-  void preRegister(Node n) override;
+  /**
+   * Called when a SAT literal for atom n has been allocated in the SAT solver.
+   */
+  void notifySatLiteral(Node n) override;
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
@@ -227,8 +230,19 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
 
+  /** Preregister policy */
+  std::unique_ptr<TheoryPreregistrar> d_prr;
+
   /** Whether we have been requested to stop the search */
   context::CDO<bool> d_stopSearch;
+
+  /**
+   * Whether we activated new skolem definitions on the last call to
+   * theoryCheck. If this is true, then theoryNeedCheck must return true,
+   * since there are new formulas to satisfy. Note that skolem definitions
+   * are dynamically activated only when decision=justification.
+   */
+  bool d_activatedSkDefs;
 }; /* class TheoryProxy */
 
 }  // namespace prop
