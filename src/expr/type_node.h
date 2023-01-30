@@ -480,6 +480,9 @@ class CVC5_EXPORT TypeNode
   /** Is this an abstract type? */
   bool isAbstract() const;
 
+  /** Is this the fully abstract type? */
+  bool isFullyAbstract() const;
+
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
 
@@ -511,6 +514,13 @@ class CVC5_EXPORT TypeNode
   Kind getAbstractedKind() const;
 
   /**
+   * Is maybe kind. Return true if an instance of this type may have kind k.
+   * This is true if the kind of this sort is k, or if it is a abstract type
+   * whose abstracted kind is k or ABSTRACT_TYPE (the fully abstract type).
+   */
+  bool isMaybeKind(Kind k) const;
+
+  /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
    * functions, here.
@@ -530,6 +540,33 @@ class CVC5_EXPORT TypeNode
    */
   bool isFunctionLike() const;
 
+  /**
+   * Is instance of, returns true if this type is equivalent to the join
+   * (see TypeNode::join) of itself and t.
+   */
+  bool isInstanceOf(const TypeNode& t) const;
+  /**
+   * Is comparable to type t, returns true if this type and t have a non-null
+   * join (see TypeNode::join).
+   */
+  bool isComparableTo(const TypeNode& t) const;
+  /**
+   * Join with type. This returns the most specific type that is an instance
+   * of both this and t, or null if this type and t are incompatible.
+   *
+   * For example:
+   * ?BitVec join ? = ?BitVec
+   * (Array ?BitVec Int) join (Array (_ BitVec 4) ?) = (Array (_ BitVec 4) Int)
+   * (Array ? Int) join (Array ? Real) = null.
+   */
+  TypeNode join(const TypeNode& t) const;
+  /**
+   * Meet with type. The dual of join, for example:
+   * ?BitVec join ? = ?
+   * (Array ?BitVec Int) join (Array (_ BitVec 4) ?) = (Array ?BitVec ?)
+   * (Array ? Int) join (Array ? Real) = null.
+   */
+  TypeNode meet(const TypeNode& t) const;
   /**
    * Get the argument types of a function, datatype constructor,
    * datatype selector, or datatype tester.
@@ -706,20 +743,9 @@ class CVC5_EXPORT TypeNode
    */
   TypeNode getUninterpretedSortConstructor() const;
 
-private:
-
-  /**
-   * Indents the given stream a given amount of spaces.
-   *
-   * @param out the stream to indent
-   * @param indent the number of spaces
-   */
-  static void indent(std::ostream& out, int indent) {
-    for(int i = 0; i < indent; i++) {
-      out << ' ';
-    }
-  }
-
+ private:
+  /** Unify internal, for computing join and meet */
+  TypeNode unifyInternal(const TypeNode& t, bool isJoin) const;
 };/* class TypeNode */
 
 /**
