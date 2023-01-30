@@ -116,7 +116,11 @@ Node ensureReal(TNode t)
 Node getFactors(const Node& n, std::vector<Node>& factors)
 {
   Kind nk = n.getKind();
-  if (nk == kind::NONLINEAR_MULT)
+  if (nk == kind::CONST_INTEGER)
+  {
+    return n;
+  }
+  else if (nk == kind::NONLINEAR_MULT)
   {
     factors.insert(factors.end(), n.begin(), n.end());
     std::sort(factors.begin(), factors.end());
@@ -136,7 +140,6 @@ Node getFactors(const Node& n, std::vector<Node>& factors)
 
 bool simpleNonzeroFactoring(Node& num, Node& den)
 {
-  Assert(!den.isConst());
   if (den.getKind() == kind::ADD)
   {
     return false;
@@ -151,6 +154,8 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
     Trace("simple-factor") << "...failed to get sum" << std::endl;
     return false;
   }
+  Assert (cden.isConst() && cden.getType().isInteger());
+  Integer di = cden.getConst<Rational>().getNumerator().abs();
   Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
                          << std::endl;
   // compute what factors are not divisible
@@ -159,25 +164,42 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
   {
     Trace("simple-factor") << "Factor " << m.first << " -> " << m.second
                            << std::endl;
-    if (m.first.isNull())
+    // process the constant factor using gcd
+    if (!di.isOne())
     {
-      Trace("simple-factor") << "...constant, no factoring" << std::endl;
-      return false;
+      if (!m.second.isNull())
+      {
+        Assert (m.second.isConst() && m.second.getType().isInteger());
+        di = di.gcd(m.second.getConst<Rational>().getNumerator().abs());
+      }
+      else
+      {
+        di = Integer(1);
+      }
+      Trace("simple-factor") << "  Constant gcd now: " << di << std::endl;
     }
-    std::vector<Node> mfactors;
-    getFactors(m.first, mfactors);
-    Trace("simple-factor") << "  Monomial factors are: " << mfactors
-                           << std::endl;
+    // process the non-constant factor using set intersection
     std::vector<Node> newFactors;
-    std::set_intersection(factors.begin(),
-                          factors.end(),
-                          mfactors.begin(),
-                          mfactors.end(),
-                          std::back_inserter(newFactors));
-    Trace("simple-factor") << "  Factors now: " << newFactors << std::endl;
-    if (newFactors.empty())
+    if (!factors.empty())
     {
-      Trace("simple-factor") << "...new factors empty" << std::endl;
+      if (!m.first.isNull())
+      {
+        std::vector<Node> mfactors;
+        getFactors(m.first, mfactors);
+        Trace("simple-factor") << "  Monomial factors are: " << mfactors
+                              << std::endl;
+        std::set_intersection(factors.begin(),
+                              factors.end(),
+                              mfactors.begin(),
+                              mfactors.end(),
+                              std::back_inserter(newFactors));
+      }
+      Trace("simple-factor") << "  Factors now: " << newFactors << std::endl;
+    }
+    // if both components trivial, we are done
+    if (newFactors.empty() && di.isOne())
+    {
+      Trace("simple-factor") << "...no factoring" << std::endl;
       return false;
     }
     factors = newFactors;
@@ -196,7 +218,12 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
                         std::back_inserter(mfactorsFinal));
     if (!m.second.isNull())
     {
-      mfactorsFinal.push_back(m.second);
+      Node mcFinal = m.second;
+      if (!di.isOne())
+      {
+        mcFinal = nm->mkConstInt(mcFinal.getConst<Rational>()/Rational(di));
+      }
+      mfactorsFinal.push_back(mcFinal);
     }
     newChildren.push_back(mkNonlinearMult(mfactorsFinal));
   }
@@ -211,7 +238,12 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
                       std::back_inserter(nfactorsFinal));
   if (!cden.isNull())
   {
-    nfactorsFinal.push_back(cden);
+    Node cdenFinal = cden;
+    if (!di.isOne())
+    {
+      cdenFinal = nm->mkConstInt(cden.getConst<Rational>()/Rational(di));
+    }
+    nfactorsFinal.push_back(cdenFinal);
   }
   den = mkNonlinearMult(nfactorsFinal);
   Trace("simple-factor") << "...return " << num << " / " << den << std::endl;

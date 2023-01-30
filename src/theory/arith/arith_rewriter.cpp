@@ -779,10 +779,13 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     }
   }
   // factoring
-  if (rewriter::simpleNonzeroFactoring(n, d))
+  if (!pre)
   {
-    Node ret = nm->mkNode(k, n, d);
-    return returnRewrite(t, ret, Rewrite::DIV_FACTOR);
+    if (rewriter::simpleNonzeroFactoring(n, d))
+    {
+      Node ret = nm->mkNode(k, n, d);
+      return returnRewrite(t, ret, Rewrite::DIV_FACTOR);
+    }
   }
 
   return RewriteResponse(REWRITE_DONE, t);
