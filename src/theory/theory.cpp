@@ -531,7 +531,7 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   if (x.isConst() && y.isConst())
   {
     return true;
-  }    
+  }
   // first just check if they are disequal, which is sufficient for
   // non-shared terms.
   if (d_equalityEngine->areDisequal(x, y, false))
