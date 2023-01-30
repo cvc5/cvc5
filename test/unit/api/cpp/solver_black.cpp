@@ -569,7 +569,7 @@ TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
 TEST_F(TestApiBlackSolver, mkEmptySet)
 {
   Sort s = d_solver.mkSetSort(d_solver.getBooleanSort());
-  ASSERT_NO_THROW(d_solver.mkEmptySet(Sort()));
+  ASSERT_THROW(d_solver.mkEmptySet(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkEmptySet(s));
   ASSERT_THROW(d_solver.mkEmptySet(d_solver.getBooleanSort()),
                CVC5ApiException);
@@ -580,7 +580,7 @@ TEST_F(TestApiBlackSolver, mkEmptySet)
 TEST_F(TestApiBlackSolver, mkEmptyBag)
 {
   Sort s = d_solver.mkBagSort(d_solver.getBooleanSort());
-  ASSERT_NO_THROW(d_solver.mkEmptyBag(Sort()));
+  ASSERT_THROW(d_solver.mkEmptyBag(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkEmptyBag(s));
   ASSERT_THROW(d_solver.mkEmptyBag(d_solver.getBooleanSort()),
                CVC5ApiException);

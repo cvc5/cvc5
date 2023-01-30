@@ -234,3 +234,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "eliminate code points during preprocessing"
+
+[[option]]
+  name       = "stringRegexpPosConcatEager"
+  category   = "expert"
+  long       = "strings-re-posc-eager"
+  type       = "bool"
+  default    = "false"
+  help       = "eager reduction of positive membership into concatentation"
