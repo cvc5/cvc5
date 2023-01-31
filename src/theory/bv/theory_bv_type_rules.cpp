@@ -109,7 +109,7 @@ TypeNode BitVectorFixedWidthTypeRule::computeType(NodeManager* nodeManager,
   TypeNode t;
   for (const Node& nc : n)
   {
-    TypeNode tc = nc.getType(check);
+    TypeNode tc = nc.getType();
     if (check)
     {
       if (!checkMaybeBitVector(tc, errOut))
@@ -128,7 +128,7 @@ TypeNode BitVectorFixedWidthTypeRule::computeType(NodeManager* nodeManager,
     {
       if (errOut)
       {
-        (*errOut) << "expecting compatible bit-vector terms";
+        (*errOut) << "expecting comparable bit-vector terms";
       }
       return TypeNode::null();
     }
@@ -149,17 +149,17 @@ TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode lhsType = n[0].getType(check);
+    TypeNode lhsType = n[0].getType();
     if (!checkMaybeBitVector(lhsType, errOut))
     {
       return TypeNode::null();
     }
-    TypeNode rhsType = n[1].getType(check);
+    TypeNode rhsType = n[1].getType();
     if (!lhsType.isComparableTo(rhsType))
     {
       if (errOut)
       {
-        (*errOut) << "expecting compatible bit-vector terms";
+        (*errOut) << "expecting comparable bit-vector terms";
       }
       return TypeNode::null();
     }
@@ -178,7 +178,7 @@ TypeNode BitVectorRedTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode type = n[0].getType(check);
+    TypeNode type = n[0].getType();
     if (!checkMaybeBitVector(type, errOut))
     {
       return TypeNode::null();
@@ -198,14 +198,14 @@ TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode lhs = n[0].getType(check);
-    TypeNode rhs = n[1].getType(check);
+    TypeNode lhs = n[0].getType();
+    TypeNode rhs = n[1].getType();
     if (!checkMaybeBitVector(lhs, errOut) || !checkMaybeBitVector(rhs, errOut)
         || !lhs.isComparableTo(rhs))
     {
       if (errOut)
       {
-        (*errOut) << "expecting compatible bit-vector terms";
+        (*errOut) << "expecting comparable bit-vector terms";
       }
       return TypeNode::null();
     }
@@ -226,7 +226,7 @@ TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
   bool isAbstract = false;
   for (const auto& child : n)
   {
-    TypeNode t = child.getType(check);
+    TypeNode t = child.getType();
     // NOTE: We're throwing a type-checking exception here even
     // when check is false, bc if we don't check that the arguments
     // are bit-vectors the result type will be inaccurate
@@ -265,7 +265,7 @@ TypeNode BitVectorToBVTypeRule::computeType(NodeManager* nodeManager,
 {
   for (const auto& child : n)
   {
-    TypeNode t = child.getType(check);
+    TypeNode t = child.getType();
     if (!isMaybeBoolean(t))
     {
       if (errOut)
@@ -288,18 +288,18 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
                                            std::ostream* errOut)
 {
   Assert(n.getNumChildren() == 3);
-  TypeNode thenpart = n[1].getType(check);
-  TypeNode elsepart = n[2].getType(check);
+  TypeNode thenpart = n[1].getType();
+  TypeNode elsepart = n[2].getType();
   // like ite, return is the join of the branches
   TypeNode retType = thenpart.join(elsepart);
   if (check)
   {
-    TypeNode cond = n[0].getType(check);
+    TypeNode cond = n[0].getType();
     if (!nodeManager->mkBitVectorType(1).isComparableTo(cond))
     {
       if (errOut)
       {
-        (*errOut) << "expecting condition to be compatible with bit-vector "
+        (*errOut) << "expecting condition to be comparable with bit-vector "
                      "term size 1";
       }
       return TypeNode::null();
@@ -307,7 +307,7 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
   }
   if (retType.isNull() && errOut)
   {
-    (*errOut) << "expecting then and else parts to have compatible types";
+    (*errOut) << "expecting then and else parts to have comparable types";
   }
   return retType;
 }
@@ -324,7 +324,7 @@ TypeNode BitVectorBitOfTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     BitVectorBitOf info = n.getOperator().getConst<BitVectorBitOf>();
-    TypeNode t = n[0].getType(check);
+    TypeNode t = n[0].getType();
     if (!checkMaybeBitVector(t, errOut))
     {
       return TypeNode::null();
@@ -367,7 +367,7 @@ TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
 
   if (check)
   {
-    TypeNode t = n[0].getType(check);
+    TypeNode t = n[0].getType();
     if (!checkMaybeBitVector(t, errOut))
     {
       return TypeNode::null();
@@ -398,7 +398,7 @@ TypeNode BitVectorRepeatTypeRule::computeType(NodeManager* nodeManager,
                                               bool check,
                                               std::ostream* errOut)
 {
-  TypeNode t = n[0].getType(check);
+  TypeNode t = n[0].getType();
   // NOTE: We're throwing a type-checking exception here even
   // when check is false, bc if the argument isn't a bit-vector
   // the result type will be inaccurate
@@ -434,7 +434,7 @@ TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
                                               bool check,
                                               std::ostream* errOut)
 {
-  TypeNode t = n[0].getType(check);
+  TypeNode t = n[0].getType();
   // NOTE: We're throwing a type-checking exception here even
   // when check is false, bc if the argument isn't a bit-vector
   // the result type will be inaccurate
@@ -464,7 +464,7 @@ TypeNode BitVectorEagerAtomTypeRule::computeType(NodeManager* nodeManager,
 {
   if (check)
   {
-    TypeNode lhsType = n[0].getType(check);
+    TypeNode lhsType = n[0].getType();
     // simple check to Boolean
     if (!lhsType.isBoolean())
     {
@@ -486,7 +486,7 @@ TypeNode BitVectorAckermanizationUdivTypeRule::preComputeType(NodeManager* nm,
 TypeNode BitVectorAckermanizationUdivTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
-  TypeNode lhsType = n[0].getType(check);
+  TypeNode lhsType = n[0].getType();
   if (check)
   {
     if (!checkMaybeBitVector(lhsType, errOut))
@@ -505,7 +505,7 @@ TypeNode BitVectorAckermanizationUremTypeRule::preComputeType(NodeManager* nm,
 TypeNode BitVectorAckermanizationUremTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
-  TypeNode lhsType = n[0].getType(check);
+  TypeNode lhsType = n[0].getType();
   if (check)
   {
     if (!checkMaybeBitVector(lhsType, errOut))

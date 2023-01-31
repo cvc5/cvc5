@@ -33,26 +33,33 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
          && n.getNumChildren() > 0);
   if (check)
   {
+    // bound variable lists, etc. cannot be abstracted
     if (n[0].getType(check) != nodeManager->boundVarListType())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first argument of quantifier is not bound var list");
+      if (errOut)
+      {
+        (*errOut) << "first argument of quantifier is not bound var list";
+      }
       return TypeNode::null();
     }
-    if (n[1].getType(check) != nodeManager->booleanType())
+    TypeNode bodyType = n[1].getType(check);
+    if (!bodyType.isBoolean() && !bodyType.isFullyAbstract())
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "body of quantifier is not boolean");
+      if (errOut)
+      {
+        (*errOut) << "body of quantifier is not boolean";
+      }
       return TypeNode::null();
     }
     if (n.getNumChildren() == 3)
     {
       if (n[2].getType(check) != nodeManager->instPatternListType())
       {
-        throw TypeCheckingExceptionPrivate(
-            n,
-            "third argument of quantifier is not instantiation "
-            "pattern list");
+        if (errOut)
+        {
+          (*errOut) << "third argument of quantifier is not instantiation "
+                       "pattern list";
+        }
         return TypeNode::null();
       }
       for (const Node& p : n[2])
@@ -60,10 +67,12 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
         if (p.getKind() == kind::INST_POOL
             && p.getNumChildren() != n[0].getNumChildren())
         {
-          throw TypeCheckingExceptionPrivate(
-              n,
-              "expected number of arguments to pool to be the same as the "
-              "number of bound variables of the quantified formula");
+          if (errOut)
+          {
+            (*errOut)
+                << "expected number of arguments to pool to be the same as the "
+                   "number of bound variables of the quantified formula";
+          }
           return TypeNode::null();
         }
       }
@@ -85,17 +94,16 @@ TypeNode QuantifierBoundVarListTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::BOUND_VAR_LIST);
   if (check)
   {
-    for (int i = 0; i < (int)n.getNumChildren(); i++)
-      for (const Node& nc : n)
+    for (const Node& nc : n)
+    {
+      if (nc.getKind() != kind::BOUND_VARIABLE)
       {
-        if (nc.getKind() != kind::BOUND_VARIABLE)
+        if (errOut)
         {
-          if (errOut)
-          {
-            (*errOut) << "argument of bound var list is not bound variable";
-          }
-          return TypeNode::null();
+          (*errOut) << "argument of bound var list is not bound variable";
         }
+        return TypeNode::null();
+      }
     }
   }
   return nodeManager->boundVarListType();

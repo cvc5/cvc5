@@ -346,24 +346,23 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isJoin) const
     Kind tak = t.getAbstractedKind();
     if (tak == kind::ABSTRACT_TYPE)
     {
-      // everything is subtype of the fully abstract type
+      // everything is unifiable with the fully abstract type
       return isJoin ? *this : t;
     }
-    // ABSTRACT_TYPE{k} is a subtype of types with kind k
+    // ABSTRACT_TYPE{k} is unifiable with types with kind k
     if (getKind() == tak)
     {
       return isJoin ? *this : t;
     }
   }
+  // same as above, swapping this and t
   if (isAbstract())
   {
     Kind ak = getAbstractedKind();
     if (ak == kind::ABSTRACT_TYPE)
     {
-      // everything is subtype of the fully abstract type
       return isJoin ? t : *this;
     }
-    // ABSTRACT_TYPE{k} is a subtype of types with kind k
     if (t.getKind() == ak)
     {
       return isJoin ? t : *this;
@@ -684,6 +683,12 @@ std::string TypeNode::toString() const {
 const DType& TypeNode::getDType() const
 {
   return NodeManager::currentNM()->getDTypeFor(*this);
+}
+
+bool TypeNode::isRelation() const
+{
+  return getKind() == kind::SET_TYPE
+         && (*this)[0].getKind() == kind::TUPLE_TYPE;
 }
 
 bool TypeNode::isBag() const

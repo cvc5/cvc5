@@ -41,7 +41,7 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   {
     for (const auto& child : n)
     {
-      TypeNode tc = child.getType(check);
+      TypeNode tc = child.getType();
       if (!isMaybeBoolean(tc))
       {
         if (errOut)
@@ -65,14 +65,14 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
                                   bool check,
                                   std::ostream* errOut)
 {
-  TypeNode thenType = n[1].getType(check);
-  TypeNode elseType = n[2].getType(check);
+  TypeNode thenType = n[1].getType();
+  TypeNode elseType = n[2].getType();
   TypeNode resType = thenType.join(elseType);
   if (resType.isNull())
   {
     if (errOut)
     {
-      (*errOut) << "Branches of the ITE must have the same type." << std::endl
+      (*errOut) << "Branches of the ITE must have comparable type." << std::endl
                 << "then branch: " << n[1] << std::endl
                 << "its type   : " << thenType << std::endl
                 << "else branch: " << n[2] << std::endl
@@ -82,7 +82,7 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    TypeNode condType = n[0].getType(check);
+    TypeNode condType = n[0].getType();
     TypeNode booleanType = nodeManager->booleanType();
     if (!isMaybeBoolean(condType))
     {

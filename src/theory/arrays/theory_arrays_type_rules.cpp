@@ -37,7 +37,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                           std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SELECT);
-  TypeNode arrayType = n[0].getType(check);
+  TypeNode arrayType = n[0].getType();
   if (check)
   {
     if (!arrayType.isMaybeKind(kind::ARRAY_TYPE))
@@ -48,7 +48,7 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode indexType = n[1].getType(check);
+    TypeNode indexType = n[1].getType();
     if (!indexType.isComparableTo(arrayType.getArrayIndexType()))
     {
       if (errOut)
@@ -78,7 +78,7 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
 {
   if (n.getKind() == kind::STORE)
   {
-    TypeNode arrayType = n[0].getType(check);
+    TypeNode arrayType = n[0].getType();
     if (check)
     {
       if (!arrayType.isMaybeKind(kind::ARRAY_TYPE))
@@ -90,7 +90,7 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
         return TypeNode::null();
       }
     }
-    TypeNode indexType = n[1].getType(check);
+    TypeNode indexType = n[1].getType();
     TypeNode aindexType = arrayType.getArrayIndexType();
     TypeNode indexjoin = indexType.join(aindexType);
     if (indexjoin.isNull())
@@ -101,7 +101,7 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
       }
       return TypeNode::null();
     }
-    TypeNode valueType = n[2].getType(check);
+    TypeNode valueType = n[2].getType();
     TypeNode avalueType = arrayType.getArrayConstituentType();
     TypeNode valuejoin = valueType.join(avalueType);
     if (valuejoin.isNull())
@@ -219,7 +219,7 @@ TypeNode ArrayLambdaTypeRule::computeType(NodeManager* nodeManager,
                                           std::ostream* errOut)
 {
   Assert(n.getKind() == kind::ARRAY_LAMBDA);
-  TypeNode lamType = n[0].getType(check);
+  TypeNode lamType = n[0].getType();
   if (check)
   {
     if (n[0].getKind() != kind::LAMBDA)
@@ -293,47 +293,60 @@ TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == kind::EQ_RANGE);
   if (check)
   {
-    TypeNode n0_type = n[0].getType(check);
-    TypeNode n1_type = n[1].getType(check);
-    if (!n0_type.isArray())
+    TypeNode n0_type = n[0].getType();
+    TypeNode n1_type = n[1].getType();
+    if (!n0_type.isMaybeKind(kind::ARRAY_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "first operand of eqrange is not an array");
+      if (errOut)
+      {
+        (*errOut) << "first operand of eqrange is not an array";
+      }
       return TypeNode::null();
     }
-    if (!n1_type.isArray())
+    if (!n1_type.isMaybeKind(kind::ARRAY_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "second operand of eqrange is not an array");
+      if (errOut)
+      {
+        (*errOut) << "second operand of eqrange is not an array";
+      }
       return TypeNode::null();
     }
-    if (n0_type != n1_type)
+    if (!n0_type.isComparableTo(n1_type))
     {
-      throw TypeCheckingExceptionPrivate(n, "array types do not match");
+      if (errOut)
+      {
+        (*errOut) << "array types do not match";
+      }
       return TypeNode::null();
     }
     TypeNode indexType = n0_type.getArrayIndexType();
-    TypeNode indexRangeType1 = n[2].getType(check);
-    TypeNode indexRangeType2 = n[3].getType(check);
-    if (indexRangeType1 != indexType)
+    TypeNode indexRangeType1 = n[2].getType();
+    TypeNode indexRangeType2 = n[3].getType();
+    if (!indexRangeType1.isComparableTo(indexType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "eqrange lower index type does not match array index type");
+      if (errOut)
+      {
+        (*errOut) << "eqrange lower index type does not match array index type";
+      }
       return TypeNode::null();
     }
-    if (indexRangeType2 != indexType)
+    if (!indexRangeType2.isComparableTo(indexType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "eqrange upper index type does not match array index type");
+      if (errOut)
+      {
+        (*errOut) << "eqrange upper index type does not match array index type";
+      }
       return TypeNode::null();
     }
-    if (!indexType.isBitVector() && !indexType.isFloatingPoint()
+    if (!indexType.isMaybeKind(kind::BITVECTOR_TYPE)
+        && !indexType.isMaybeKind(kind::FLOATINGPOINT_TYPE)
         && !indexType.isRealOrInt())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "eqrange only supports bit-vectors, floating-points, integers, and "
-          "reals as index type");
+      if (errOut)
+      {
+        (*errOut) << "eqrange only supports bit-vectors, floating-points, "
+                     "integers, and reals as index type";
+      }
       return TypeNode::null();
     }
   }

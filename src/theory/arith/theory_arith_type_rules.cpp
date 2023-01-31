@@ -102,7 +102,7 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   Kind k = n.getKind();
   for (; child_it != child_it_end; ++child_it)
   {
-    TypeNode childType = (*child_it).getType(check);
+    TypeNode childType = (*child_it).getType();
     if (childType.isAbstract())
     {
       isAbstract = true;
@@ -166,8 +166,7 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     Assert(n.getNumChildren() == 2);
-    if (!isMaybeRealOrInt(n[0].getType(check))
-        || !isMaybeRealOrInt(n[1].getType(check)))
+    if (!isMaybeRealOrInt(n[0].getType()) || !isMaybeRealOrInt(n[1].getType()))
     {
       if (errOut)
       {
@@ -234,8 +233,8 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
       << "IAND typerule invoked for " << n << " instead of IAND kind";
   if (check)
   {
-    TypeNode arg1 = n[0].getType(check);
-    TypeNode arg2 = n[1].getType(check);
+    TypeNode arg1 = n[0].getType();
+    TypeNode arg2 = n[1].getType();
     if (!isMaybeInteger(arg1) || !isMaybeInteger(arg2))
     {
       if (errOut)
@@ -264,7 +263,7 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
   }
   if (check)
   {
-    TypeNode arg1 = n[0].getType(check);
+    TypeNode arg1 = n[0].getType();
     if (!isMaybeInteger(arg1))
     {
       if (errOut)
@@ -286,20 +285,25 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                    bool check,
                                                    std::ostream* errOut)
 {
+  // used internally, does not accept arguments of abstract type
   if (check)
   {
-    TypeNode t1 = n[0].getType(check);
+    TypeNode t1 = n[0].getType();
     if (!t1.isBoolean())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "expecting boolean term as first argument");
+      if (errOut)
+      {
+        (*errOut) << "expecting boolean term as first argument";
+      }
       return TypeNode::null();
     }
-    TypeNode t2 = n[1].getType(check);
+    TypeNode t2 = n[1].getType();
     if (!t2.isRealOrInt())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "expecting polynomial as second argument");
+      if (errOut)
+      {
+        (*errOut) << "expecting polynomial as second argument";
+      }
       return TypeNode::null();
     }
   }

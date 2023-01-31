@@ -921,8 +921,6 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     defineType("?BitVec", d_solver->mkAbstractSort(BITVECTOR_SORT), true);
     defineType(
         "?FloatingPoint", d_solver->mkAbstractSort(FLOATINGPOINT_SORT), true);
-    defineType(
-        "?FloatingPoint", d_solver->mkAbstractSort(FLOATINGPOINT_SORT), true);
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_FF))

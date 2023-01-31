@@ -68,8 +68,10 @@ TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
       TypeNode ctype = nc.getType(check);
       if (!isMaybeBoolean(ctype))
       {
-        throw TypeCheckingExceptionPrivate(n,
-                                           "child of sep star is not Boolean");
+        if (errOut)
+        {
+          (*errOut) << "child of sep star is not Boolean";
+        }
         return TypeNode::null();
       }
     }
@@ -95,8 +97,10 @@ TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
       TypeNode ctype = nc.getType(check);
       if (!isMaybeBoolean(ctype))
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "child of sep magic wand is not Boolean");
+        if (errOut)
+        {
+          (*errOut) << "child of sep magic wand is not Boolean";
+        }
         return TypeNode::null();
       }
     }
@@ -120,14 +124,19 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
     TypeNode ctype = n[0].getType(check);
     if (!isMaybeBoolean(ctype))
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "child of sep label is not Boolean");
+      if (errOut)
+      {
+        (*errOut) << "child of sep label is not Boolean";
+      }
       return TypeNode::null();
     }
     TypeNode stype = n[1].getType(check);
-    if (!stype.isSet())
+    if (!stype.isMaybeKind(kind::SET_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n, "label of sep label is not a set");
+      if (errOut)
+      {
+        (*errOut) << "label of sep label is not a set";
+      }
       return TypeNode::null();
     }
   }
