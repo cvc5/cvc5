@@ -483,7 +483,7 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
   return order;
 } /* NodeManager::TopologicalSort() */
 
-TypeNode NodeManager::getType(TNode n, bool check)
+TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
 {
   TypeNode typeNode;
   bool hasType = getAttribute(n, TypeAttr(), typeNode);
@@ -527,7 +527,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
       {
         Assert(check || m.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
         /* All the children have types, time to compute */
-        typeNode = TypeChecker::computeType(this, m, check);
+        typeNode = TypeChecker::computeType(this, m, check, errOut);
         worklist.pop();
       }
     }  // end while

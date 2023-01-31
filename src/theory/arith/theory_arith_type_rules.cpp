@@ -23,7 +23,8 @@ namespace arith {
 
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   // we use different kinds for constant integers and reals
   if (n.getKind() == kind::CONST_RATIONAL)
@@ -45,20 +46,22 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   return nodeManager->realType();
 }
 TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
                                                        TNode n,
-                                                       bool check)
+                                                       bool check,
+                                                       std::ostream* errOut)
 {
   return nodeManager->realType();
 }
 
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   TypeNode integerType = nodeManager->integerType();
   TypeNode realType = nodeManager->realType();
@@ -104,7 +107,8 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   if (check)
   {
@@ -121,7 +125,8 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check)
+                                                  bool check,
+                                                  std::ostream* errOut)
 {
   // for nullary operators, we only computeType for check=true, since they are
   // given TypeAttr() on creation
@@ -136,7 +141,8 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   if (n.getKind() != kind::IAND_OP)
   {
@@ -151,7 +157,8 @@ TypeNode IAndOpTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
-                                   bool check)
+                                   bool check,
+                                   std::ostream* errOut)
 {
   if (n.getKind() != kind::IAND)
   {
@@ -171,7 +178,8 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
-                                   bool check)
+                                   bool check,
+                                   std::ostream* errOut)
 {
   if (n.getKind() != kind::POW2)
   {
@@ -190,7 +198,8 @@ TypeNode Pow2TypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
-                                                   bool check)
+                                                   bool check,
+                                                   std::ostream* errOut)
 {
   if (check)
   {
