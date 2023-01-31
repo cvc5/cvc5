@@ -27,7 +27,8 @@ namespace strings {
 
 TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TypeNode tret;
   for (const Node& nc : n)
@@ -60,7 +61,8 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -88,7 +90,8 @@ TypeNode StringSubstrTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -116,7 +119,8 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
-                                       bool check)
+                                       bool check,
+                                       std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -138,7 +142,8 @@ TypeNode StringAtTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   if (check)
   {
@@ -168,7 +173,8 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -200,7 +206,8 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
-                                              bool check)
+                                              bool check,
+                                              std::ostream* errOut)
 {
   if (check)
   {
@@ -217,7 +224,8 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   if (check)
   {
@@ -234,7 +242,8 @@ TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   TypeNode t = n[0].getType(check);
   if (check)
@@ -251,7 +260,8 @@ TypeNode StringStrToStrTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   if (check)
   {
@@ -273,7 +283,8 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   if (check)
   {
@@ -294,7 +305,8 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
-                                             bool check)
+                                             bool check,
+                                             std::ostream* errOut)
 {
   if (check)
   {
@@ -315,7 +327,8 @@ bool StringToRegExpTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   Assert(n.getKind() == kind::CONST_SEQUENCE);
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
@@ -323,7 +336,8 @@ TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEQ_UNIT);
   TypeNode argType = n[0].getType(check);
@@ -332,7 +346,8 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
-                                     bool check)
+                                     bool check,
+                                     std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SEQ_NTH);
   TypeNode t = n[0].getType(check);

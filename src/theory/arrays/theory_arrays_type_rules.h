@@ -27,24 +27,36 @@ namespace arrays {
 
 struct ArraySelectTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 struct ArrayStoreTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
 struct ArrayTableFunTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 struct ArrayLambdaTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 struct ArraysProperties
@@ -58,12 +70,18 @@ struct ArraysProperties
 
 struct ArrayPartialSelectTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 struct ArrayEqRangeTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 }  // namespace arrays

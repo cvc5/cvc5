@@ -28,7 +28,8 @@ namespace arrays {
 
 TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   Assert(n.getKind() == kind::SELECT);
   TypeNode arrayType = n[0].getType(check);
@@ -51,7 +52,8 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
-                                         bool check)
+                                         bool check,
+                                         std::ostream* errOut)
 {
   if (n.getKind() == kind::STORE)
   {
@@ -179,7 +181,8 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
 
 TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
-                                            bool check)
+                                            bool check,
+                                            std::ostream* errOut)
 {
   Assert(n.getKind() == kind::ARR_TABLE_FUN);
   TypeNode arrayType = n[0].getType(check);
@@ -214,7 +217,8 @@ TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ArrayLambdaTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
-                                          bool check)
+                                          bool check,
+                                          std::ostream* errOut)
 {
   Assert(n.getKind() == kind::ARRAY_LAMBDA);
   TypeNode lamType = n[0].getType(check);
@@ -273,7 +277,8 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
 
 TypeNode ArrayPartialSelectTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   Assert(n.getKind() == kind::PARTIAL_SELECT_0
          || n.getKind() == kind::PARTIAL_SELECT_1);
@@ -282,7 +287,8 @@ TypeNode ArrayPartialSelectTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   Assert(n.getKind() == kind::EQ_RANGE);
   if (check)
