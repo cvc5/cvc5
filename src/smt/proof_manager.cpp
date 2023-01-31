@@ -144,6 +144,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): get free assumptions..."
         << std::endl;
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): initial "

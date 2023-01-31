@@ -335,6 +335,7 @@ class NodeManager
    * @param n the Node for which we want a type
    * @param check whether we should check the type as we compute it
    * (default: false)
+   * @param errOut An (optional) output stream to print type checking errors
    */
   TypeNode getType(TNode n, bool check = false, std::ostream* errOut = nullptr);
 
