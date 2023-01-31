@@ -154,7 +154,10 @@ template <class R, class A0 = ANone, class A1 = ANone, class A2 = ANone>
 class SimpleTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  static TypeNode computeType(NodeManager* nm,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut)
   {
     if (check)
     {
@@ -193,7 +196,10 @@ template <class R, class A>
 class SimpleTypeRuleVar
 {
  public:
-  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  static TypeNode computeType(NodeManager* nm,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut)
   {
     if (check)
     {
