@@ -77,6 +77,16 @@ class WitnessTypeRule
                               std::ostream* errOut);
 };
 
+class ApplyIndexedSymbolicTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
 class SortProperties
 {
  public:

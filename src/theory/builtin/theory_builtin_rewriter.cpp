@@ -22,7 +22,7 @@
 
 #include "expr/attribute.h"
 #include "expr/node_algorithm.h"
-#include "theory/rewriter.h"
+#include "theory/builtin/generic_op.h"
 
 using namespace std;
 
@@ -83,8 +83,18 @@ RewriteResponse TheoryBuiltinRewriter::doRewrite(TNode node)
     }
     case kind::DISTINCT:
       return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-    default: return RewriteResponse(REWRITE_DONE, node);
+    case kind::APPLY_INDEXED_SYMBOLIC:
+    {
+      Node rnode = rewriteApplyIndexedSymbolic(node);
+      if (rnode!=node)
+      {
+        return RewriteResponse(REWRITE_AGAIN_FULL, rnode);
+      }
+    }
+    break;
+    default: break;
   }
+  return RewriteResponse(REWRITE_DONE, node);
 }
 
 Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
@@ -120,6 +130,22 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
     // (witness ((x Bool)) (not x)) ---> false
     return NodeManager::currentNM()->mkConst(false);
   }
+  return node;
+}
+
+Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)
+{
+  // if all arguments are constant, we return the non-symbolic version
+  // of the operator, e.g. (extract 2 1 #b0000) ---> ((_ extract 2 1) #b0000)
+  for (const Node& nc : node)
+  {
+    if (!nc.isConst())
+    {
+      return node;
+    }
+  }
+  Kind okind = node.getOperator().getConst<GenericOp>().getKind();
+  // TODO
   return node;
 }
 
