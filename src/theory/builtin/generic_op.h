@@ -46,7 +46,7 @@ class GenericOp
    * Return the list of nodes corresponding to the indices of n, which is
    * an operator for an application of kind k.
    */
-  static std::vector<Node> getOperatorIndices(Kind k, Node n);
+  static std::vector<Node> getIndicesForOperator(Kind k, Node n);
   /**
    * Return the operator of kind k whose operators are the constants in the
    * given vector. 
@@ -56,6 +56,8 @@ class GenericOp
   GenericOp();
   /** The kind of indexed operator this operator represents */
   Kind d_kind;
+  /** Is k a kind that an indexed operator? */
+  static bool isNumeralIndexedOperatorKind(Kind k);
 };
 
 std::ostream& operator<<(std::ostream& out, const GenericOp& op);

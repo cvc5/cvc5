@@ -55,6 +55,7 @@
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
 #include "util/uninterpreted_sort_value.h"
+#include "theory/builtin/generic_op.h"
 
 using namespace std;
 
@@ -211,6 +212,9 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
+    case kind::APPLY_INDEXED_SYMBOLIC_OP:
+      out << smtKindString(n.getConst<GenericOp>().getKind());
+      break;
     case kind::BITVECTOR_TYPE:
       out << "(_ BitVec " << n.getConst<BitVectorSize>().d_size << ")";
       break;
@@ -629,6 +633,9 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
+    case kind::APPLY_INDEXED_SYMBOLIC: 
+      // operator is printed as kind
+      break;
 
     case kind::MATCH:
       out << smtKindString(k) << " ";

@@ -51,8 +51,7 @@ bool GenericOp::operator==(const GenericOp& op) const
   return getKind() == op.getKind();
 }
 
-
-bool GenericOp::isIndexedOperatorKind(Kind k)
+bool GenericOp::isNumeralIndexedOperatorKind(Kind k)
 {
   return k == REGEXP_LOOP || k == BITVECTOR_EXTRACT || k == BITVECTOR_REPEAT
          || k == BITVECTOR_ZERO_EXTEND || k == BITVECTOR_SIGN_EXTEND
@@ -63,11 +62,16 @@ bool GenericOp::isIndexedOperatorKind(Kind k)
          || k == FLOATINGPOINT_TO_FP_FROM_SBV
          || k == FLOATINGPOINT_TO_FP_FROM_REAL || k == FLOATINGPOINT_TO_SBV
          || k == FLOATINGPOINT_TO_UBV || k == FLOATINGPOINT_TO_SBV_TOTAL
-         || k == FLOATINGPOINT_TO_UBV_TOTAL || k == APPLY_UPDATER
+         || k == FLOATINGPOINT_TO_UBV_TOTAL;
+}
+
+bool GenericOp::isIndexedOperatorKind(Kind k)
+{
+  return isNumeralIndexedOperatorKind(k) || k == APPLY_UPDATER
          || k == APPLY_TESTER;
 }
 
-std::vector<Node> GenericOp::getOperatorIndices(Kind k, Node n)
+std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> indices;
@@ -210,6 +214,96 @@ bool convertToNumeralList(const std::vector<Node>& indices, std::vector<uint32_t
 Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
 {
   // all indices should be constant!
+  Assert (isIndexedOperatorKind(k));
+  NodeManager* nm = NodeManager::currentNM();
+  if (isNumeralIndexedOperatorKind(k))
+  {
+    std::vector<uint32_t> numerals;
+    if (!convertToNumeralList(indices, numerals))
+    {
+      // failed to convert due to overflow on index
+      return Node::null();
+    }
+    switch (k)
+    {
+      case REGEXP_LOOP:
+        Assert (numerals.size()==2);
+        return nm->mkConst(RegExpLoop(numerals[0], numerals[1]));
+      case BITVECTOR_EXTRACT:
+        Assert (numerals.size()==2);
+        return nm->mkConst(BitVectorExtract(numerals[0], numerals[1]));
+      case BITVECTOR_REPEAT:
+        Assert (numerals.size()==1);
+        return nm->mkConst(BitVectorRepeat(numerals[0]));
+      case BITVECTOR_ZERO_EXTEND:
+        Assert (numerals.size()==1);
+        return nm->mkConst(BitVectorZeroExtend(numerals[0]));
+      case BITVECTOR_SIGN_EXTEND:
+        Assert (numerals.size()==1);
+        return nm->mkConst(BitVectorSignExtend(numerals[0]));
+      case BITVECTOR_ROTATE_LEFT:
+        Assert (numerals.size()==1);
+        return nm->mkConst(BitVectorRotateLeft(numerals[0]));
+      case BITVECTOR_ROTATE_RIGHT:
+        Assert (numerals.size()==1);
+        return nm->mkConst(BitVectorRotateRight(numerals[0]));
+      case INT_TO_BITVECTOR:
+        Assert (numerals.size()==1);
+        return nm->mkConst(IntToBitVector(numerals[0]));
+      case IAND:
+        Assert (numerals.size()==1);
+        return nm->mkConst(IntAnd(numerals[0]));
+      case FLOATINGPOINT_TO_FP_FROM_FP:
+        Assert (numerals.size()==2);
+        return nm->mkConst(FloatingPointToFPFloatingPoint(numerals[0], numerals[1]));
+      case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
+        Assert (numerals.size()==2);
+        return nm->mkConst(FloatingPointToFPIEEEBitVector(numerals[0], numerals[1]));
+      case FLOATINGPOINT_TO_FP_FROM_SBV:
+        Assert (numerals.size()==2);
+        return nm->mkConst(FloatingPointToFPSignedBitVector(numerals[0], numerals[1]));
+      case FLOATINGPOINT_TO_FP_FROM_REAL:
+        Assert (numerals.size()==2);
+        return nm->mkConst(FloatingPointToFPReal(numerals[0], numerals[1]));
+      case FLOATINGPOINT_TO_SBV:
+        Assert (numerals.size()==1);
+        return nm->mkConst(FloatingPointToSBV(numerals[0]));
+      case FLOATINGPOINT_TO_UBV:
+        Assert (numerals.size()==1);
+        return nm->mkConst(FloatingPointToUBV(numerals[0]));
+      case FLOATINGPOINT_TO_SBV_TOTAL:
+        Assert (numerals.size()==1);
+        return nm->mkConst(FloatingPointToSBVTotal(numerals[0]));
+      case FLOATINGPOINT_TO_UBV_TOTAL:
+        Assert (numerals.size()==1);
+        return nm->mkConst(FloatingPointToUBVTotal(numerals[0]));
+      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k; break;
+    }
+  }
+  else
+  {
+    /*
+    switch (k)
+    {
+      case APPLY_TESTER:
+      {
+        unsigned index = DType::indexOf(n);
+        const DType& dt = DType::datatypeOf(n);
+        indices.push_back(dt[index].getConstructor());
+      }
+      break;
+      case APPLY_UPDATER:
+      {
+        unsigned index = DType::indexOf(n);
+        const DType& dt = DType::datatypeOf(n);
+        unsigned cindex = DType::cindexOf(n);
+        indices.push_back(dt[cindex][index].getSelector());
+      }
+      break;
+      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k; break;
+    }
+    */
+  }
   return Node::null();
 }
 

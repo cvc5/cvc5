@@ -7,7 +7,7 @@
 ;    (bvshl x amount)
 ;    (concat (extract (bvwidth x) (- (bvwidth x) 1 (bv2nat amount)) x) (bv 0 amount)))
 
-;(define-cond-rule bv-extract-combine ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
-;  (extract i j (extract k l x))
-;  (extract (+ k j) (+ l j) x))
+(define-rule bv-extract-combine ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+  (extract i j (extract k l x))
+  (extract (+ k j) (+ l j) x))
   
