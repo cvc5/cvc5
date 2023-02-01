@@ -4,7 +4,11 @@
  *
  * This file is part of the cvc5 project.
  *
+<<<<<<< HEAD
  * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+=======
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+>>>>>>> daf70f2b034d957b728afe6f9c65cf2a8d48a96d
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +41,9 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * This class is used to reconstruct proofs of theory rewrites.
+ * This class is used to reconstruct proofs of theory rewrites. It is described
+ * in detail in the paper "Reconstructing Fine-Grained Proofs of Rewrites Using
+ * a Domain-Specific Language", Noetzli et al FMCAD 2022.
  */
 class RewriteDbProofCons : protected EnvObj
 {
@@ -45,14 +51,14 @@ class RewriteDbProofCons : protected EnvObj
   RewriteDbProofCons(Env& env, RewriteDb* db);
   /**
    * Prove (= a b) with recursion limit recLimit. If cdp is provided, we add
-   * a proove for this fact on it.
+   * a proof for this fact on it.
    */
   bool prove(CDProof* cdp,
              Node a,
              Node b,
              theory::TheoryId tid,
              MethodId mid,
-             uint32_t recLimit);
+             int64_t recLimit);
 
  private:
   /** Notify class for the match trie */
@@ -134,7 +140,11 @@ class RewriteDbProofCons : protected EnvObj
 
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
-  /** Basic utility */
+  /**
+   * Basic utility for (user-independent) rewrite rule reconstruction. Handles
+   * cases that should always be reconstructed, e.g. EVALUATE, REFL,
+   * BETA_REDUCE.
+   */
   BasicRewriteRCons d_trrc;
   /** Node converter utility */
   RewriteDbNodeConverter d_rdnc;

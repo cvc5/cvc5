@@ -59,7 +59,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                Node b,
                                theory::TheoryId tid,
                                MethodId mid,
-                               uint32_t recLimit)
+                               int64_t recLimit)
 {
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
