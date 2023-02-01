@@ -213,6 +213,22 @@ TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(1);
 }
 
+TypeNode BitVectorSizeTypeRule::preComputeType(NodeManager* nm, TNode n)
+{
+  return nm->integerType();
+}
+TypeNode BitVectorSizeTypeRule::computeType(NodeManager* nodeManager,
+                                            TNode n,
+                                            bool check,
+                                            std::ostream* errOut)
+{
+  TypeNode t = n.getType(check);
+  if (!checkMaybeBitVector(t, errOut))
+  {
+    return TypeNode::null();
+  }
+  return nodeManager->integerType();
+}
 TypeNode BitVectorConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();

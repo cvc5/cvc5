@@ -43,6 +43,8 @@ well-founded BITVECTOR_TYPE \
 ## conversion to bit-vector from vector of Booleans kind
 operator BITVECTOR_BB_TERM 1: "create bit-vector from vector of Booleans"
 
+## size
+operator BITVECTOR_SIZE 1 "Size of bitvector"
 ## concatentation kind
 operator BITVECTOR_CONCAT 2: "concatenation of two or more bit-vectors"
 

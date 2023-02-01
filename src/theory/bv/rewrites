@@ -1,5 +1,152 @@
+(define-rule BvIteEqualChildren (
+		(c (_ BitVec 1))
+		(x ?BitVec)
+	)
+	(bvite c x x)
+	x)
+(define-rule BvIteEqualCond1 (
+		(c0 (_ BitVec 1))
+		(t0 ?BitVec)
+		(e0 ?BitVec)
+		(e1 ?BitVec)
+	)
+	(bvite c0 (bvite c0 t0 e0) e1)
+	(bvite c0 t0 e1))
+(define-rule BvIteEqualCond2 (
+		(c0 (_ BitVec 1))
+		(t0 ?BitVec)
+		(t1 ?BitVec)
+		(e1 ?BitVec)
+	)
+	(bvite c0 t0 (bvite c0 t1 e1))
+	(bvite c0 t0 e1))
+(define-rule BvIteEqualCond3 (
+		(c0 (_ BitVec 1))
+		(t0 ?BitVec)
+		(e0 ?BitVec)
+		(t1 ?BitVec)
+		(e1 ?BitVec)
+	)
+	(bvite c0 (bvite c0 t0 e0) (bvite c0 t1 e1))
+	(bvite c0 t0 e1))
+(define-rule BvIteMergeThenIf (
+		(c0 (_ BitVec 1))
+		(c1 ?BitVec)
+		(t1 ?BitVec)
+		(e1 ?BitVec)
+	)
+	(bvite c0 (bvite c1 t1 e1) t1)
+	(bvite (bvand c0 (bvnot c1)) e1 t1))
+(define-rule BvIteMergeElseIf (
+		(c0 (_ BitVec 1))
+		(c1 ?BitVec)
+		(t1 ?BitVec)
+		(e1 ?BitVec)
+	)
+	(bvite c0 (bvite c1 t1 e1) e1)
+	(bvite (bvand c0 c1) t1 e1))
+(define-rule BvIteMergeThenElse (
+		(c0 (_ BitVec 1))
+		(c1 ?BitVec)
+		(t0 ?BitVec)
+		(e1 ?BitVec)
+	)
+	(bvite c0 t0 (bvite c1 t0 e1))
+	(bvite (bvnor c0 c1) e1 t0))
+(define-rule BvIteMergeElseElse (
+		(c0 (_ BitVec 1))
+		(c1 ?BitVec)
+		(t1 ?BitVec)
+		(t0 ?BitVec)
+	)
+	(bvite c0 t0 (bvite c1 t1 t0))
+	(bvite (bvand (bvnot c0) c1) t1 t0))
 
-; temporary
+(define-rule BitwiseIdemp1 (
+		(x ?BitVec)
+	)
+	(bvand x x) x)
+(define-rule BitwiseIdemp2 (
+		(x ?BitVec)
+	)
+	(bvor x x) x)
+
+(define-rule XorDuplicate (
+		(x ?BitVec)
+	)
+	(bvxor x x) (_ bv 0 (bvsize x)))
+
+(define-rule BitwiseNotAnd (
+		(x ?BitVec)
+	)
+	(bvand x (bvnot x)) (_ bv 0 (bvsize x)))
+(define-rule BitwiseNotOr (
+		(x ?BitVec)
+	)
+	(bvor x (bvnot x)) (_ bv 1 8))
+(define-rule XorNot (
+		(x ?BitVec)
+		(y ?BitVec)
+	)
+	(bvxor (bvnot x) (bvnot y)) (bvxor x y))
+(define-rule NotIdemp (
+		(x ?BitVec)
+	)
+	(bvnot (bvnot x)) x)
+(define-rule UltSelf (
+		(x ?BitVec)
+	)
+	(bvult x x) false)
+(define-rule LtSelf (
+		(x ?BitVec)
+	)
+	(bvslt x x) false)
+(define-rule UleSelf (
+		(x ?BitVec)
+	)
+	(bvule x x) true)
+(define-rule LeSelf (
+		(x ?BitVec)
+	)
+	(bvsle x x) true)
+
+(define-rule UleMax (
+		(x ?BitVec)
+	)
+	(bvule x 1) true)
+(define-rule NotUlt (
+		(x ?BitVec)
+		(y ?BitVec)
+	)
+	(not (bvult x y))
+	(bvule y x))
+(define-rule NotUle (
+		(x ?BitVec)
+		(y ?BitVec)
+		)
+	(not (bvule x y))
+	(bvult y x))
+(define-rule NotSlt (
+		(x ?BitVec)
+		(y ?BitVec)
+	)
+	(not (bvslt x y))
+	(bvsle y x))
+(define-rule NotSle (
+		(x ?BitVec)
+		(y ?BitVec)
+		)
+	(not (bvsle x y))
+	(bvslt y x))
+
+
+(define-rule NegIdemp (
+		(x ?BitVec)
+	)
+	(bvneg (bvneg x))
+	x)
+
+(define-rule bv-eq-refl ((t ?BitVec)) (= t t) true)
 (define-rule bv-eq-symm ((t ?BitVec) (s ?BitVec)) (= t s) (= s t))
 
 ;(define-cond-rule ((x ?BitVec) (amount ?BitVec))
@@ -10,4 +157,3 @@
 (define-rule bv-extract-combine ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
   (extract i j (extract k l x))
   (extract (+ i l) (+ j l) x))
-  

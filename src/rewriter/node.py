@@ -28,6 +28,7 @@ class Op(Enum):
     # Bit-vectors
     ###########################################################################
 
+    BVSIZE = auto()
     # Bit-vector predicates
     BVUGT = auto()
     BVUGE = auto()

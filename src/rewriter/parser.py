@@ -21,6 +21,7 @@ from util import die, fresh_name
 symbol_to_op = {
     'store': Op.STORE,
     'select': Op.SELECT,
+    'bvsize': Op.BVSIZE,
     'bvugt': Op.BVUGT,
     'bvuge': Op.BVUGE,
     'bvsgt': Op.BVSGT,
