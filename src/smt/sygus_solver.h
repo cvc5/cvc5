@@ -101,6 +101,12 @@ class SygusSolver : protected EnvObj
   /** Add a regular sygus constraint or assumption.*/
   void assertSygusConstraint(Node n, bool isAssume);
 
+  /** @return sygus constraints .*/
+  std::vector<Node> getSygusConstraints() const;
+
+  /** @return sygus assumptions .*/
+  std::vector<Node> getSygusAssumptions() const;
+
   /**
    * Add an invariant constraint.
    *

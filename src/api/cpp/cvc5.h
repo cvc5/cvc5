@@ -4986,6 +4986,13 @@ class CVC5_EXPORT Solver
   void addSygusConstraint(const Term& term) const;
 
   /**
+   * Get the list of sygus constraints.
+   *
+   * @return The list of sygus constraints.
+   */
+  std::vector<Term> getSygusConstraints() const;
+
+  /**
    * Add a forumla to the set of Sygus assumptions.
    *
    * SyGuS v2:
@@ -4999,6 +5006,13 @@ class CVC5_EXPORT Solver
    * @param term The formula to add as an assumption.
    */
   void addSygusAssume(const Term& term) const;
+
+  /**
+   * Get the list of sygus assumptions.
+   *
+   * @return The list of sygus assumptions.
+   */
+  std::vector<Term> getSygusAssumptions() const;
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
