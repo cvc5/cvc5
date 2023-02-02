@@ -9,3 +9,4 @@
 (define-rule ite-true-cond ((x ?) (y ?)) (ite true x y) x)
 (define-rule ite-false-cond ((x ?) (y ?)) (ite false x y) y)
 (define-rule ite-not-cond ((c Bool) (x ?) (y ?)) (ite (not c) x y) (ite c y x))
+(define-rule ite-eq-branch ((c Bool) (x ?)) (ite c x x) x)

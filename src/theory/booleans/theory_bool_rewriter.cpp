@@ -47,22 +47,21 @@ RewriteResponse TheoryBoolRewriter::postRewrite(TNode node) {
  */
 RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 {
-  typedef std::unordered_set<TNode> node_set;
-
-  node_set visited;
+  std::unordered_set<TNode> visited;
   visited.insert(skipNode);
 
   std::vector<TNode> toProcess;
   toProcess.push_back(n);
 
   Kind k = n.getKind();
-  typedef std::vector<TNode> ChildList;
-  ChildList childList;   //TNode should be fine, since 'n' is still there
+  //TNode should be fine, since 'n' is still there
+  std::vector<TNode> childList;
 
-  for (unsigned i = 0; i < toProcess.size(); ++ i) {
+  size_t i = 0;
+  while (i < toProcess.size()) {
     TNode current = toProcess[i];
-    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
-      TNode child = current[j];
+    i++;
+    for (TNode child : current){
       if(visited.find(child) != visited.end()) {
         continue;
       } else if(child == trivialNode) {
@@ -76,8 +75,14 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
       }
     }
   }
-  if (childList.size() == 0) return RewriteResponse(REWRITE_DONE, skipNode);
-  if (childList.size() == 1) return RewriteResponse(REWRITE_AGAIN, childList[0]);
+  if (childList.size() == 0)
+  {
+    return RewriteResponse(REWRITE_DONE, skipNode);
+  }
+  if (childList.size() == 1)
+  {
+    return RewriteResponse(REWRITE_AGAIN, childList[0]);
+  }
 
   /* Trickery to stay under number of children possible in a node */
   NodeManager* nodeManager = NodeManager::currentNM();
@@ -92,11 +97,11 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
            < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
                  * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
     NodeBuilder nb(k);
-    ChildList::iterator cur = childList.begin(), next, en = childList.end();
+    std::vector<TNode>::iterator cur = childList.begin(), next, en = childList.end();
     while (cur != en)
     {
       next = min(cur + expr::NodeValue::MAX_CHILDREN, en);
-      nb << (nodeManager->mkNode(k, ChildList(cur, next)));
+      nb << (nodeManager->mkNode(k, std::vector<TNode>(cur, next)));
       cur = next;
     }
     return RewriteResponse(REWRITE_DONE, nb.constructNode());
@@ -368,9 +373,6 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
           << "TheoryBoolRewriter::preRewrite_ITE:  equalityParity n[1], n[2] "
           << parityTmp << " " << n << ": " << resp << std::endl;
       return RewriteResponse(REWRITE_AGAIN, resp);
-    // Curiously, this rewrite affects several benchmarks dramatically, including copy_array and some simple_startup - disable for now
-    // } else if (n[0].getKind() == kind::NOT) {
-    //   return RewriteResponse(REWRITE_AGAIN, n[0][0].iteNode(n[2], n[1]));
     } else if(!n[1].isConst() && (parityTmp = equalityParity(n[0], n[1])) != 0){
       // (parityTmp == 1) if n[0] == n[1]
       // otherwise, n[0] == not(n[1]) or not(n[0]) == n[1]
