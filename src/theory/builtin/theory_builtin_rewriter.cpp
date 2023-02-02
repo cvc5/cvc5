@@ -122,12 +122,7 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
     return NodeManager::currentNM()->mkConst(false);
   }
   // eliminate shadowing
-  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
-  if (retElimShadow != node)
-  {
-    return retElimShadow;
-  }
-  return node;
+  return ElimShadowNodeConverter::eliminateShadow(node);
 }
 
 }  // namespace builtin
