@@ -20,7 +20,8 @@ find_package(Java COMPONENTS Runtime REQUIRED)
 
 # Search for flex installed via homebrew.
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex")
+  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex") # macOS Intel
+  list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/flex") # macOS Apple Silicon
 endif()
 find_package(FLEX REQUIRED)
 
@@ -75,8 +76,12 @@ set(libcvc5parser_src_files
   smt2/smt2_cmd_parser.h
   smt2/smt2_lexer.cpp
   smt2/smt2_lexer.h
+  smt2/smt2_cmd_parser.cpp
+  smt2/smt2_cmd_parser.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_parser.cpp
+  smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
   smt2/sygus_input.cpp
@@ -97,7 +102,9 @@ set(libcvc5parser_src_files
 # Generate parsers for all supported languages
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/smt2)
-flex_target(Lexer smt2/smt2_lexer.flex ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
+flex_target(Lexer
+            ${CMAKE_CURRENT_SOURCE_DIR}/smt2/smt2_lexer.flex
+            ${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/smt2/smt2_lexer.cpp PROPERTIES GENERATED TRUE)
 
 # The FlexLexer.h header is installed to /usr/include/, but is not found by the

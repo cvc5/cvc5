@@ -1560,7 +1560,8 @@ set(regress_0_tests
   regress0/strings/re-include-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
-  regress0/strings/re-mem-include-rewrite.smt2
+  regress0/strings/re-mem-eval-large.smt2
+  regress0/strings/re-mem-include-rewrite.smt2 
   regress0/strings/re-syntax.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
@@ -2192,6 +2193,7 @@ set(regress_1_tests
   regress1/nl/issue9183-3.smt2
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
+  regress1/nl/issue9420-ll.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2869,6 +2871,7 @@ set(regress_1_tests
   regress1/strings/seq-quant-infinite-branch.smt2
   regress1/strings/seq-skeleton-gap.smt2
   regress1/strings/simple-re-consume.smt2
+  regress1/strings/slent-re-pos-eager.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2
@@ -3486,7 +3489,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
-    ${PYTHON_EXECUTABLE}
+    ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --lfsc-binary ${CMAKE_SOURCE_DIR}/deps/bin/lfscc
@@ -3495,22 +3498,10 @@ macro(cvc5_add_regression_test level file)
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
-
-  # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
-  # https://cmake.org/cmake/help/latest/release/3.9.html#other-changes
-  # This means that for newer versions, we can use the SKIP_RETURN_CODE to mark
-  # skipped tests as such.
-  if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
-    set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
-  endif()
+  set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
 endmacro()
 
-if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
-  # For CMake 3.9.0 and newer, we want the regression script to return 77 for
-  # skipped tests, such that we can mark them as skipped. See the
-  # `cvc5_add_regression_test` macro for more details.
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
-endif()
+set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
 
 foreach(file ${regress_0_tests})
   cvc5_add_regression_test(0 ${file})

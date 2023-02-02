@@ -872,7 +872,7 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
       // if empty, drop it
       // e.g. this ensures we rewrite (_)* ++ (a)* ---> (_)*
       if (RegExpEntail::isConstRegExp(curr)
-          && RegExpEntail::testConstStringInRegExp(emptyStr, 0, curr))
+          && RegExpEntail::testConstStringInRegExp(emptyStr, curr))
       {
         curr = Node::null();
       }
@@ -893,9 +893,9 @@ Node SequencesRewriter::rewriteConcatRegExp(TNode node)
           lastAllStar = true;
           // go back and remove empty ones from back of cvec
           // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
-          while (!cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
-                 && RegExpEntail::testConstStringInRegExp(
-                     emptyStr, 0, cvec.back()))
+          while (
+              !cvec.empty() && RegExpEntail::isConstRegExp(cvec.back())
+              && RegExpEntail::testConstStringInRegExp(emptyStr, cvec.back()))
           {
             cvec.pop_back();
           }
@@ -1097,7 +1097,7 @@ Node SequencesRewriter::rewriteAndOrRegExp(TNode node)
           continue;
         }
         // test whether c from (str.to_re c) is in r
-        if (RegExpEntail::testConstStringInRegExp(s, 0, r))
+        if (RegExpEntail::testConstStringInRegExp(s, r))
         {
           Trace("strings-rewrite-debug") << "...included" << std::endl;
           if (nk == REGEXP_INTER)
@@ -1335,7 +1335,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
   {
     // test whether x in node[1]
     cvc5::internal::String s = x.getConst<String>();
-    bool test = RegExpEntail::testConstStringInRegExp(s, 0, r);
+    bool test = RegExpEntail::testConstStringInRegExp(s, r);
     Node retNode = NodeManager::currentNM()->mkConst(test);
     return returnRewrite(node, retNode, Rewrite::RE_IN_EVAL);
   }
@@ -2804,7 +2804,7 @@ Node SequencesRewriter::rewriteIndexofRe(Node node)
     if (d_arithEntail.check(n, zero) && d_arithEntail.check(slen, n))
     {
       String emptyStr("");
-      if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, r))
+      if (RegExpEntail::testConstStringInRegExp(emptyStr, r))
       {
         return returnRewrite(node, n, Rewrite::INDEXOF_RE_EMP_RE);
       }
@@ -3402,7 +3402,7 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
     }
     // str.replace_re( x, y, z ) ---> z ++ x if "" in y ---> true
     String emptyStr("");
-    if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, y))
+    if (RegExpEntail::testConstStringInRegExp(emptyStr, y))
     {
       Node ret = nm->mkNode(STRING_CONCAT, z, x);
       return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
@@ -3463,7 +3463,7 @@ std::pair<size_t, size_t> SequencesRewriter::firstMatch(Node n, Node r)
 
   if (s.size() == 0)
   {
-    if (RegExpEntail::testConstStringInRegExp(s, 0, r))
+    if (RegExpEntail::testConstStringInRegExp(s, r))
     {
       return std::make_pair(0, 0);
     }
@@ -3475,12 +3475,13 @@ std::pair<size_t, size_t> SequencesRewriter::firstMatch(Node n, Node r)
 
   for (size_t i = 0, size = s.size(); i < size; i++)
   {
-    if (RegExpEntail::testConstStringInRegExp(s, i, re))
+    String ss = s.substr(i);
+    if (RegExpEntail::testConstStringInRegExp(ss, re))
     {
       for (size_t j = i; j <= size; j++)
       {
         String substr = s.substr(i, j - i);
-        if (RegExpEntail::testConstStringInRegExp(substr, 0, r))
+        if (RegExpEntail::testConstStringInRegExp(substr, r))
         {
           return std::make_pair(i, j);
         }

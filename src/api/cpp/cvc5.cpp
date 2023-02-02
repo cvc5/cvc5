@@ -5528,8 +5528,17 @@ void Solver::ensureWellFormedTerm(const Term& t) const
     if (internal::expr::hasFreeOrShadowedVar(*t.d_node, wasShadow))
     {
       std::stringstream se;
-      se << "Cannot process term with " << (wasShadow ? "shadowed" : "free")
-         << " variable";
+      se << "Cannot process term " << *t.d_node << " with ";
+      if (wasShadow)
+      {
+        se << "shadowed variables " << std::endl;
+      }
+      else
+      {
+        std::unordered_set<internal::Node> fvs;
+        internal::expr::getFreeVariables(*t.d_node, fvs);
+        se << "free variables: " << fvs << std::endl;
+      }
       throw CVC5ApiException(se.str().c_str());
     }
   }
@@ -6011,9 +6020,8 @@ Term Solver::mkRegexpAllchar() const
 Term Solver::mkEmptySet(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isSet(), sort)
-      << "null sort or set sort";
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || d_nm == sort.d_nm, sort)
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isSet(), sort) << "null sort or set sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "set sort associated with the node manager of this solver object";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm, internal::EmptySet(*sort.d_type));
@@ -6024,9 +6032,8 @@ Term Solver::mkEmptySet(const Sort& sort) const
 Term Solver::mkEmptyBag(const Sort& sort) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || sort.isBag(), sort)
-      << "null sort or bag sort";
-  CVC5_API_ARG_CHECK_EXPECTED(sort.isNull() || d_nm == sort.d_nm, sort)
+  CVC5_API_ARG_CHECK_EXPECTED(sort.isBag(), sort) << "null sort or bag sort";
+  CVC5_API_ARG_CHECK_EXPECTED(d_nm == sort.d_nm, sort)
       << "bag sort associated with the node manager of this solver object";
   //////// all checks before this line
   return Solver::mkValHelper(d_nm, internal::EmptyBag(*sort.d_type));
@@ -7800,6 +7807,16 @@ void Solver::addSygusConstraint(const Term& term) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Term> Solver::getSygusConstraints() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> constraints = d_slv->getSygusConstraints();
+  return Term::nodeVectorToTerms(d_nm, constraints);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 void Solver::addSygusAssume(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7811,6 +7828,16 @@ void Solver::addSygusAssume(const Term& term) const
       << "Cannot addSygusAssume unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, true);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Solver::getSygusAssumptions() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> assumptions = d_slv->getSygusAssumptions();
+  return Term::nodeVectorToTerms(d_nm, assumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
