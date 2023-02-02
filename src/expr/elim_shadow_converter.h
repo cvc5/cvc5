@@ -25,7 +25,7 @@ namespace cvc5::internal {
 /**
  * This converts a node into one that does not involve shadowing with the
  * given variables. In particular, if the given vars passed to the constructor
- * are bound in any quantifier in a subterm of the node to convert, they
+ * are bound in any binder in a subterm of the node to convert, they
  * are replaced by fresh variables.
  *
  * Shadowed variables may be introduced when e.g. quantified formulas
@@ -54,8 +54,8 @@ class ElimShadowNodeConverter : public NodeConverter
   static Node eliminateShadow(const Node& q);
 
  private:
-  /** The quantified formula to eliminate shadowing from */
-  Node d_quant;
+  /** The closure to eliminate shadowing from */
+  Node d_closure;
   /** The variables */
   std::vector<Node> d_vars;
 };
