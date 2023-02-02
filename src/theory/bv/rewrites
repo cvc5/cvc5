@@ -1,14 +1,14 @@
 
-;(define-cond-rule ShlByConst
-;	((x ?BitVec) (amount Int))
-;	(< amount (bvsize x))
-;	(bvshl x (_ bv amount (bvsize x)))
-;	(concat (extract (bvsize x) (- (bvsize x) 1 amount x) (bv 0 (bvsize x)))))
-;(define-cond-rule ShlByConst
-;	((x ?BitVec) (amount Int))
-;	(>= amount (bvsize x))
-;	(bvshl x (_ bv amount (bvsize x)))
-;	(_ bv 0 (bvsize x)))
+(define-cond-rule ShlByConst1
+	((x ?BitVec) (amount Int))
+	(< amount (bvsize x))
+	(bvshl x (_ bv amount (bvsize x)))
+	(concat (extract (bvsize x) (- (bvsize x) 1 amount x) (bv 0 (bvsize x)))))
+(define-cond-rule ShlByConst2
+	((x ?BitVec) (amount Int))
+	(>= amount (bvsize x))
+	(bvshl x (_ bv amount (bvsize x)))
+	(_ bv 0 (bvsize x)))
 
 
 (define-rule ConcatFlatten
@@ -19,10 +19,9 @@
 	(concat xs (concat s ys) zs)
 	(concat xs s ys zs))
 
-;(define-rule ExtractExtract
-;	((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
-;	(extract (extract x i j) k l)
-;	(extract x (+ i j) (- l k)))
+(define-rule bv-extract-combine ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
+  (extract i j (extract k l x))
+  (extract (+ i l) (+ j l) x))
 
 (define-rule BvIteEqualChildren (
 		(c (_ BitVec 1))
@@ -174,12 +173,3 @@
 
 (define-rule bv-eq-refl ((t ?BitVec)) (= t t) true)
 (define-rule bv-eq-symm ((t ?BitVec) (s ?BitVec)) (= t s) (= s t))
-
-;(define-cond-rule ((x ?BitVec) (amount ?BitVec))
-;    (< (bv2nat amount) (bvsize x))
-;    (bvshl x amount)
-;    (concat (extract (bvsize x) (- (bvsize x) 1 (bv2nat amount)) x) (bv 0 amount)))
-
-(define-rule bv-extract-combine ((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
-  (extract i j (extract k l x))
-  (extract (+ i l) (+ j l) x))
