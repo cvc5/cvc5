@@ -33,6 +33,9 @@ message("nocheckin 2 ${PYTHON_INCLUDE_DIRS}")
 message("nocheckin 3 ${Python_INCLUDE_DIR}")
 message("nocheckin 4 ${PYTHON_INCLUDE_DIR}")
 
+FILE(GLOB nocheckinFiles ${CMAKE_CURRENT_LIST_DIR}/*.py)
+message("nocheckinFiles 5 ${nocheckinFiles}")
+
 add_custom_command(
     OUTPUT
       rewrites.cpp

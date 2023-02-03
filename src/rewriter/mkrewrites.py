@@ -17,6 +17,9 @@ import argparse
 import logging
 import os
 import sys
+
+print("nocheckin dumping sys.path" + sys.path)
+
 from collections import defaultdict
 from parser import Parser
 from node import *
