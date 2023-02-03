@@ -22,6 +22,7 @@ from rw_parser import Parser
 from node import *
 from util import *
 
+
 def gen_kind(op):
     op_to_kind = {
         Op.ITE: 'ITE',
