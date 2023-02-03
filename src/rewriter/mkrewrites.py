@@ -26,6 +26,10 @@ import parser as MyParser
 from node import *
 from util import *
 
+import inspect
+print("nocheckin inspect")
+print(inspect.getfile(MyParser))
+
 
 def gen_kind(op):
     op_to_kind = {
