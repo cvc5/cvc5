@@ -18,7 +18,7 @@ import logging
 import os
 import sys
 from collections import defaultdict
-from my_parser import Parser
+from rw_parser import Parser
 from node import *
 from util import *
 

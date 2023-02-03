@@ -33,7 +33,4 @@ args = [
 			CMaker.get_python_library(python_version),
 ]
 
-print("nocheckin")
-print(args)
-
 subprocess.check_call(['./configure.sh', *sys.argv[1:], *args])

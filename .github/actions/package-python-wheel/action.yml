@@ -24,10 +24,9 @@ runs:
         echo "::endgroup::"
 
         OPTS="production --auto-download"
-        for version in pp37 pp38 cp36 cp37 cp38 cp39 cp310
+        for version in cp36 cp37 cp38 cp39 cp310 pp37 pp38
         do
           echo "::group::Build extension for python $version"
-
           docker run --rm \
             -v `pwd`:/home/pycvc5 \
             pycvc5-manylinux2014 \
