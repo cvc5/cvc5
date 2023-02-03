@@ -389,6 +389,12 @@ class CVC5_EXPORT SolverEngine
    */
   void assertSygusConstraint(Node n, bool isAssume = false);
 
+  /** @return sygus constraints .*/
+  std::vector<Node> getSygusConstraints();
+
+  /** @return sygus assumptions .*/
+  std::vector<Node> getSygusAssumptions();
+
   /**
    * Add an invariant constraint.
    *
