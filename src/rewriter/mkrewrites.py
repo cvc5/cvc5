@@ -18,7 +18,8 @@ import logging
 import os
 import sys
 
-print("nocheckin dumping sys.path" + sys.path)
+print("nocheckin dumping sys.path")
+print(sys.path)
 
 from collections import defaultdict
 from parser import Parser
