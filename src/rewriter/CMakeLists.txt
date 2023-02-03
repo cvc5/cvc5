@@ -28,6 +28,11 @@ libcvc5_add_sources(
 set(ENV{PYTHONPATH} "${CMAKE_CURRENT_LIST_DIR}")
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
 
+message("nocheckin 1 ${Python_INCLUDE_DIRS}")
+message("nocheckin 2 ${PYTHON_INCLUDE_DIRS}")
+message("nocheckin 3 ${Python_INCLUDE_DIR}")
+message("nocheckin 4 ${PYTHON_INCLUDE_DIR}")
+
 add_custom_command(
     OUTPUT
       rewrites.cpp
