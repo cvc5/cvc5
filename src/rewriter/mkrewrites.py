@@ -22,7 +22,7 @@ print("nocheckin dumping sys.path")
 print(sys.path)
 
 from collections import defaultdict
-from parser import Parser
+import Parser
 from node import *
 from util import *
 
