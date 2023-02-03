@@ -1,14 +1,15 @@
 
-(define-cond-rule ShlByConst1
-	((x ?BitVec) (amount Int))
-	(< amount (bvsize x))
-	(bvshl x (_ bv amount (bvsize x)))
-	(concat (extract (bvsize x) (- (bvsize x) 1 amount x) (bv 0 (bvsize x)))))
-(define-cond-rule ShlByConst2
-	((x ?BitVec) (amount Int))
-	(>= amount (bvsize x))
-	(bvshl x (_ bv amount (bvsize x)))
-	(_ bv 0 (bvsize x)))
+;(define-cond-rule ShlByConst1
+;	((x ?BitVec) (amount Int))
+;	(< amount (bvsize x))
+;	(bvshl x (_ bv amount (bvsize x)))
+;	(concat (extract (bvsize x) (- (bvsize x) 1 amount x) (bv 0 (bvsize x)))))
+;(define-cond-rule ShlByConst2
+;	((x ?BitVec) (amount Int))
+;	;(>= amount (bvsize x))
+;	(not (< amount (bvsize x)))
+;	(bvshl x (_ bv amount (bvsize x)))
+;	(_ bv 0 (bvsize x)))
 
 
 (define-rule ConcatFlatten
