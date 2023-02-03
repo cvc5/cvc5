@@ -22,7 +22,7 @@ print("nocheckin dumping sys.path")
 print(sys.path)
 
 from collections import defaultdict
-import Parser
+import parser as MyParser
 from node import *
 from util import *
 
@@ -261,7 +261,7 @@ def gen_rewrite_db(args):
     decls = []
     rewrites = []
     for rewrites_file in args.rewrites_files:
-        parser = Parser()
+        parser = MyParser.Parser()
         rules = parser.parse_rules(rewrites_file.read())
         symbols = parser.get_symbols()
 
