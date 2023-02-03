@@ -17,19 +17,10 @@ import argparse
 import logging
 import os
 import sys
-
-print("nocheckin dumping sys.path")
-print(sys.path)
-
 from collections import defaultdict
-import parser as MyParser
+from my_parser import Parser
 from node import *
 from util import *
-
-import inspect
-print("nocheckin inspect")
-print(inspect.getfile(MyParser))
-
 
 def gen_kind(op):
     op_to_kind = {
@@ -265,7 +256,7 @@ def gen_rewrite_db(args):
     decls = []
     rewrites = []
     for rewrites_file in args.rewrites_files:
-        parser = MyParser.Parser()
+        parser = Parser()
         rules = parser.parse_rules(rewrites_file.read())
         symbols = parser.get_symbols()
 
