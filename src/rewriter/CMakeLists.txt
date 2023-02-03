@@ -25,7 +25,7 @@ libcvc5_add_sources(
   rewrite_db.h
 )
 
-set(ENV{PYTHONPATH} "${CMAKE_CURRENT_LIST_DIR}")
+set($ENV{PYTHONPATH} "${CMAKE_CURRENT_LIST_DIR}")
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
 
 message("nocheckin 1 ${Python_INCLUDE_DIRS}")
