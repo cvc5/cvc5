@@ -517,6 +517,14 @@ class CVC5_EXPORT TypeNode
    * Is maybe kind. Return true if an instance of this type may have kind k.
    * This is true if the kind of this sort is k, or if it is a abstract type
    * whose abstracted kind is k or ABSTRACT_TYPE (the fully abstract type).
+   *
+   * For example:
+   * isMaybeKind ? BITVECTOR_TYPE = true
+   * isMaybeKind ? SET_TYPE = true
+   * isMaybeKind ?Set SET_TYPE = true
+   * isMaybeKind (Set Int) SET_TYPE = true
+   * isMaybeKind (_ BitVec 4) SET_TYPE = false
+   * isMaybeKind ?BitVec SET_TYPE = false
    */
   bool isMaybeKind(Kind k) const;
 
@@ -541,32 +549,37 @@ class CVC5_EXPORT TypeNode
   bool isFunctionLike() const;
 
   /**
-   * Is instance of, returns true if this type is equivalent to the join
-   * (see TypeNode::join) of itself and t.
+   * Is instance of, returns true if this type is equivalent to the leastUpperBound
+   * (see TypeNode::leastUpperBound) of itself and t.
    */
   bool isInstanceOf(const TypeNode& t) const;
   /**
    * Is comparable to type t, returns true if this type and t have a non-null
-   * join (see TypeNode::join).
+   * leastUpperBound (see TypeNode::leastUpperBound).
    */
   bool isComparableTo(const TypeNode& t) const;
   /**
-   * Join with type. This returns the most specific type that is an instance
+   * Least upper bound with type.
+   * 
+   * We consider a partial order on types such that T1 <= T2 if T2 is an
+   * instance of T1.
+   *
+   * This returns the most specific type that is an instance
    * of both this and t, or null if this type and t are incompatible.
    *
    * For example:
-   * ?BitVec join ? = ?BitVec
-   * (Array ?BitVec Int) join (Array (_ BitVec 4) ?) = (Array (_ BitVec 4) Int)
-   * (Array ? Int) join (Array ? Real) = null.
+   * ?BitVec <lub> ? = ?BitVec
+   * (Array ?BitVec Int) <lub> (Array (_ BitVec 4) ?) = (Array (_ BitVec 4) Int)
+   * (Array ? Int) <lub> (Array ? Real) = null.
    */
-  TypeNode join(const TypeNode& t) const;
+  TypeNode leastUpperBound(const TypeNode& t) const;
   /**
-   * Meet with type. The dual of join, for example:
-   * ?BitVec join ? = ?
-   * (Array ?BitVec Int) join (Array (_ BitVec 4) ?) = (Array ?BitVec ?)
-   * (Array ? Int) join (Array ? Real) = null.
+   * Greatest lower bound with type. The dual of leastUpperBound, for example:
+   * ?BitVec <glb> ? = ?
+   * (Array ?BitVec Int) <glb> (Array (_ BitVec 4) ?) = (Array ?BitVec ?)
+   * (Array ? Int) <glb> (Array ? Real) = null.
    */
-  TypeNode meet(const TypeNode& t) const;
+  TypeNode greatestLowerBound(const TypeNode& t) const;
   /**
    * Get the argument types of a function, datatype constructor,
    * datatype selector, or datatype tester.
@@ -744,7 +757,7 @@ class CVC5_EXPORT TypeNode
   TypeNode getUninterpretedSortConstructor() const;
 
  private:
-  /** Unify internal, for computing join and meet */
+  /** Unify internal, for computing leastUpperBound and meet */
   TypeNode unifyInternal(const TypeNode& t, bool isJoin) const;
 };/* class TypeNode */
 

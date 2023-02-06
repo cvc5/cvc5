@@ -321,15 +321,15 @@ bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 bool TypeNode::isInstanceOf(const TypeNode& t) const
 {
-  return join(t) == (*this);
+  return leastUpperBound(t) == (*this);
 }
 
-TypeNode TypeNode::join(const TypeNode& t) const
+TypeNode TypeNode::leastUpperBound(const TypeNode& t) const
 {
   return unifyInternal(t, true);
 }
 
-TypeNode TypeNode::meet(const TypeNode& t) const
+TypeNode TypeNode::greatestLowerBound(const TypeNode& t) const
 {
   return unifyInternal(t, false);
 }
