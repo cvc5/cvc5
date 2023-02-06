@@ -152,6 +152,8 @@ class PfManager : protected EnvObj
                                    std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
+  /** The rewrite proof database. */
+  std::unique_ptr<rewriter::RewriteDb> d_rewriteDb;
   /** For the new proofs module */
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
