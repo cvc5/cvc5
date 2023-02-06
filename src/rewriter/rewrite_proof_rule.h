@@ -50,10 +50,13 @@ class RewriteProofRule
    * @param conc The conclusion of the rule, which is an equality of the form
    * (= t s), where t is specified as rewriting to s. This equality is
    * normalized to fvs.
-   * @param isFixedPoint Whether the rule should be applied to fixed point in
-   * the strategy
+   * @param context The term context for the conclusion of the rule. This is
+   * non-null for all rules that should be applied to fixed-point. The context
+   * is a lambda term that specifies the next position of the term to rewrite.
    * @param isFlatForm Whether the rule is the flat form of the actual rule
-   * with the given id.
+   * with the given id (the flat form of a rule is where all nested applications
+   * have been replaced by fresh variables that are equated to the term they
+   * replace in the conditions of the rule).
    */
   void init(DslPfRule id,
             const std::vector<Node>& userFvs,
@@ -77,8 +80,7 @@ class RewriteProofRule
   /** Get (declared) conditions */
   const std::vector<Node>& getConditions() const;
   /**
-   * Get the conditions in context { vs -> ss }. This may involve running the
-   * side conditions of this method.
+   * Get the conditions of the rule under the substitution { vs -> ss }.
    */
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
@@ -98,7 +100,9 @@ class RewriteProofRule
 
   /**
    * Is variable explicit? An explicit variable is one that does not occur
-   * in a condition and thus its value must be specified in a proof.
+   * in a condition and thus its value must be specified in a proof
+   * in languages that allow for implicit/unspecified hole arguments,
+   * e.g. LFSC.
    */
   bool isExplicitVar(Node v) const;
   /**
@@ -107,6 +111,9 @@ class RewriteProofRule
    *   (define-rule bool-or-true ((xs Bool :list) (ys Bool :list))
    *      (or xs true ys) true)
    * The variable xs has list context `OR`.
+   *
+   * If v is in an ambiguous context, an exception will have been thrown
+   * in the constructor of this class.
    */
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */

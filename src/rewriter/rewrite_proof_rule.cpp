@@ -118,7 +118,7 @@ bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
 {
-  // otherwise, just substitute into each condition
+  // substitute into each condition
   for (const Node& c : d_obGen)
   {
     Node sc = expr::narySubstitute(c, vs, ss);
@@ -138,9 +138,11 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = d_conc;
+  // if the rule has conclusion s, and term context (lambda x. t[x]), then the
+  // conclusion is t[s], which we compute in the block below.
   if (isFixedPoint())
   {
-    Node context = getContext();
+    Node context = d_context;
     Node rhs = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
     conc = conc[0].eqNode(rhs);
   }
