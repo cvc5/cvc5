@@ -23,7 +23,8 @@ namespace boolean {
 
 TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
-                                      bool check)
+                                      bool check,
+                                      std::ostream* errOut)
 {
   TypeNode booleanType = nodeManager->booleanType();
   if (check)
@@ -44,7 +45,10 @@ TypeNode BooleanTypeRule::computeType(NodeManager* nodeManager,
   return booleanType;
 }
 
-TypeNode IteTypeRule::computeType(NodeManager* nodeManager, TNode n, bool check)
+TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
+                                  TNode n,
+                                  bool check,
+                                  std::ostream* errOut)
 {
   TypeNode thenType = n[1].getType(check);
   if (check)

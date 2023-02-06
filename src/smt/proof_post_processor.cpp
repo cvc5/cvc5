@@ -41,6 +41,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_pppg(nullptr),
+      d_rdbPc(env, rdb),
       d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
@@ -882,15 +883,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(!args.empty());
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
-    ProofNodeManager* pnm = d_env.getProofNodeManager();
-    // try to replay theory rewrite
-    // first, check that maybe its just an evaluation step
-    ProofChecker* pc = pnm->getChecker();
-    Node ceval = pc->checkDebug(
-        PfRule::EVALUATE, {}, {eq[0]}, Node::null(), "smt-proof-pp-debug");
-    if (!ceval.isNull() && ceval == eq)
+    TheoryId tid = THEORY_BUILTIN;
+    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+    MethodId mid = MethodId::RW_REWRITE;
+    getMethodId(args[2], mid);
+    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    // attempt to reconstruct the proof of the equality into cdp using the
+    // rewrite database proof reconstructor
+    if (d_rdbPc.prove(cdp, args[0][0], args[0][1], tid, mid, recLimit))
     {
-      cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
+      // if successful, we update the proof
       return eq;
     }
     // otherwise no update
@@ -956,9 +958,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     InferenceId iid;
     bool isRev;
     std::vector<Node> exp;
-    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
+    if (theory::strings::InferProofCons::unpackArgs(
+            args, conc, iid, isRev, exp))
     {
-      if (strings::InferProofCons::addProofTo(cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::addProofTo(
+              cdp, conc, iid, isRev, exp))
       {
         return conc;
       }

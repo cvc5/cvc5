@@ -2806,6 +2806,19 @@ public class Solver implements IPointer
   private native void addSygusConstraint(long pointer, long termPointer);
 
   /**
+   * Get the list of sygus constraints.
+   *
+   * @return The list of sygus constraints.
+   */
+  public Term[] getSygusConstraints()
+  {
+    long[] retPointers = getSygusConstraints(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getSygusConstraints(long pointer);
+
+  /**
    * Add a forumla to the set of Sygus assumptions.
    *
    * SyGuS v2:
@@ -2821,6 +2834,19 @@ public class Solver implements IPointer
   }
 
   private native void addSygusAssume(long pointer, long termPointer);
+
+  /**
+   * Get the list of sygus assumptions.
+   *
+   * @return The list of sygus assumptions.
+   */
+  public Term[] getSygusAssumptions()
+  {
+    long[] retPointers = getSygusAssumptions(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getSygusAssumptions(long pointer);
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
