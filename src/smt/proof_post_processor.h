@@ -23,6 +23,8 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_proof_cons.h"
 #include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
@@ -30,11 +32,6 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
-
-namespace rewriter {
-class RewriteDb;
-}
-
 namespace smt {
 
 /**
@@ -80,6 +77,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   Node d_true;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
+  /** The rewrite database proof generator */
+  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
   /** The witness form assumptions used in the proof */
@@ -160,83 +159,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
                           std::vector<Node>& tchildren,
                           bool isSymm = false);
 
-  /**
-   * When given children and args lead to different sets of literals in a
-   * conclusion depending on whether macro resolution or chain resolution is
-   * applied, the literals that appear in the chain resolution result, but not
-   * in the macro resolution result, from now on "crowding literals", are
-   * literals removed implicitly by macro resolution. For example
-   *
-   *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
-   * (1)  ----------------------------------------- MACRO_RES
-   *                 l2
-   *
-   * but
-   *
-   *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
-   * (2)  ---------------------------------------- CHAIN_RES
-   *                l0 v l0 v l1 v l2
-   *
-   * where l0 and l1 are crowding literals in the second proof.
-   *
-   * There are two views for how MACRO_RES implicitly removes the crowding
-   * literal, i.e., how MACRO_RES can be expanded into CHAIN_RES so that
-   * crowding literals are removed. The first is that (1) becomes
-   *
-   *  l0 v l0 v l0 v l1 v l2  ~l0 v l1  ~l0 v l1  ~l0 v l1  ~l1  ~l1  ~l1  ~l1
-   *  ---------------------------------------------------------------- CHAIN_RES
-   *                                 l2
-   *
-   * via the repetition of the premise responsible for removing more than one
-   * occurrence of the crowding literal. The issue however is that this
-   * expansion is exponential. Note that (2) has two occurrences of l0 and one
-   * of l1 as crowding literals. However, by repeating ~l0 v l1 two times to
-   * remove l0, the clause ~l1, which would originally need to be repeated only
-   * one time, now has to be repeated two extra times on top of that one. With
-   * multiple crowding literals and their elimination depending on premises that
-   * themselves add crowding literals one can easily end up with resolution
-   * chains going from dozens to thousands of premises. Such examples do occur
-   * in practice, even in our regressions.
-   *
-   * The second way of expanding MACRO_RES, which avoids this exponential
-   * behavior, is so that (1) becomes
-   *
-   *      l0 v l0 v l0 v l1 v l2
-   * (4)  ---------------------- FACTORING
-   *      l0 v l1 v l2                       ~l0 v l1
-   *      ------------------------------------------- CHAIN_RES
-   *                   l1 v l1 v l2
-   *                  ------------- FACTORING
-   *                     l1 v l2                   ~l1
-   *                    ------------------------------ CHAIN_RES
-   *                                 l2
-   *
-   * This method first determines what are the crowding literals by checking
-   * what literals occur in clauseLits that do not occur in targetClauseLits
-   * (the latter contains the literals from the original MACRO_RES conclusion
-   * while the former the literals from a direct application of CHAIN_RES). Then
-   * it builds a proof such as (4) and adds the steps to cdp. The final
-   * conclusion is returned.
-   *
-   * Note that in the example the CHAIN_RES steps introduced had only two
-   * premises, and could thus be replaced by a RESOLUTION step, but since we
-   * general there can be more than two premises we always use CHAIN_RES.
-   *
-   * @param clauseLits literals in the conclusion of a CHAIN_RESOLUTION step
-   * with children and args[1:]
-   * @param clauseLits literals in the conclusion of a MACRO_RESOLUTION step
-   * with children and args
-   * @param children a list of clauses
-   * @param args a list of arguments to a MACRO_RESOLUTION step
-   * @param cdp a CDProof
-   * @return The resulting node of transforming MACRO_RESOLUTION into
-   * CHAIN_RESOLUTION according to the above idea.
-   */
-  Node eliminateCrowdingLits(const std::vector<Node>& clauseLits,
-                             const std::vector<Node>& targetClauseLits,
-                             const std::vector<Node>& children,
-                             const std::vector<Node>& args,
-                             CDProof* cdp);
 };
 
 /**

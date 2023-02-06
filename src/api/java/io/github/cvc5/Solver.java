@@ -346,6 +346,37 @@ public class Solver implements IPointer
   private native long mkSequenceSort(long pointer, long elemSortPointer);
 
   /**
+   * Create an abstract sort. An abstract sort represents a sort for a given
+   * kind whose parameters and arguments are unspecified.
+   *
+   * The {@link SortKind} k must be the kind of a sort that can be abstracted, i.e., a sort
+   * that has indices or argument sorts. For example, {@link SortKind#ARRAY_SORT} and
+   *  {@link SortKind#BITVECTOR_SORT} can be passed as the {@link SortKind} k to this method, while
+   *  {@link SortKind#INTEGER_SORT} and  {@link SortKind#STRING_SORT} cannot.
+   *
+   * @api.note Providing the kind  {@link SortKind#ABSTRACT_SORT} as an argument to this method
+   * returns the (fully) unspecified sort, often denoted {@code ?}.
+   *
+   * @api.note Providing a kind {@code k} that has no indices and a fixed arity
+   * of argument sorts will return the sort of {@link SortKind} k whose arguments
+   * are the unspecified sort. For example, mkAbstractSort(ARRAY_SORT) will
+   * return the sort (ARRAY_SORT ? ?) instead of the abstract sort whose abstract
+   * kind is {@link SortKind#ABSTRACT_SORT}.
+   *
+   * @param kind The kind of the abstract sort
+   * @return The abstract sort.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   */
+  public Sort mkAbstractSort(SortKind kind)
+  {
+    long sortPointer = mkAbstractSort(pointer, kind.getValue());
+    return new Sort(sortPointer);
+  }
+
+  private native long mkAbstractSort(long pointer, int kindValue);
+
+  /**
    * Create an uninterpreted sort.
    * @param symbol The name of the sort.
    * @return The uninterpreted sort.
@@ -2775,6 +2806,19 @@ public class Solver implements IPointer
   private native void addSygusConstraint(long pointer, long termPointer);
 
   /**
+   * Get the list of sygus constraints.
+   *
+   * @return The list of sygus constraints.
+   */
+  public Term[] getSygusConstraints()
+  {
+    long[] retPointers = getSygusConstraints(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getSygusConstraints(long pointer);
+
+  /**
    * Add a forumla to the set of Sygus assumptions.
    *
    * SyGuS v2:
@@ -2790,6 +2834,19 @@ public class Solver implements IPointer
   }
 
   private native void addSygusAssume(long pointer, long termPointer);
+
+  /**
+   * Get the list of sygus assumptions.
+   *
+   * @return The list of sygus assumptions.
+   */
+  public Term[] getSygusAssumptions()
+  {
+    long[] retPointers = getSygusAssumptions(pointer);
+    return Utils.getTerms(retPointers);
+  }
+
+  private native long[] getSygusAssumptions(long pointer);
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an

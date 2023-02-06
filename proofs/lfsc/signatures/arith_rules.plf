@@ -2,7 +2,7 @@
 
 ; Computes the conclusion of the PfRule::ARITH_SUM_UB rule.
 ; Note that f2 is a a.+ application in n-ary form.
-(program sc_arith_sum_ub ((f1 term) (f2 term)) term
+(function sc_arith_sum_ub ((f1 term) (f2 term)) term
   (let r1 (sc_arith_get_rel f1)
   (let lhs1 (sc_arith_get_lhs f1)
   (let rhs1 (sc_arith_get_rhs f1)
@@ -21,7 +21,7 @@
     (holds res))))))))
 
 ; Computes the conclusion of the PfRule::ARITH_MULT_POS rule.
-(program sc_arith_mult_pos ((m term) (f term)) term
+(function sc_arith_mult_pos ((m term) (f term)) term
   (let r (sc_arith_get_rel f)
   (let lhs (sc_arith_get_lhs f)
   (let rhs (sc_arith_get_rhs f)
@@ -36,7 +36,7 @@
     (holds res))))))
 
 ; Computes the conclusion of the PfRule::ARITH_MULT_NEG rule.
-(program sc_arith_mult_neg ((m term) (f term)) term
+(function sc_arith_mult_neg ((m term) (f term)) term
   (let r (sc_arith_get_rel f)
   (let lhs (sc_arith_get_lhs f)
   (let rhs (sc_arith_get_rhs f)
@@ -51,7 +51,7 @@
     (holds res))))))
 
 ; Computes the conclusion of the PfRule::ARITH_TRICHOTOMY rule.
-(program sc_arith_trichotomy ((f1 term) (f2 term)) term
+(function sc_arith_trichotomy ((f1 term) (f2 term)) term
   (let r1 (sc_arith_get_rel_neg f1)
   (let a1 (sc_arith_get_atom f1)
   (let lhs1 (sc_arith_get_lhs a1)
@@ -77,7 +77,7 @@
 
 ; Returns ok if c is the greatest integer less than (integer or real) constant
 ; t. We compute this via conditions 0 <= c-t ^ (c-t)-1 <= 0.
-(program sc_check_int_tight_ub ((t term) (c term)) Ok
+(function sc_check_int_tight_ub ((t term) (c term)) Ok
   (mpq_between_zero_one (mp_add (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))
                                 (mp_neg (mpz_to_mpq (sc_arith_get_mpz c))))))
 
@@ -94,7 +94,7 @@
 
 ; Returns ok if c2 is the least integer greater than c1. We compute this
 ; via conditions 0 <= c1-c2 ^ (c1-c2)-1 <= 0.
-(program sc_check_int_tight_lb ((t term) (c term)) Ok
+(function sc_check_int_tight_lb ((t term) (c term)) Ok
   (mpq_between_zero_one (mp_add (mpz_to_mpq (sc_arith_get_mpz c))
                                 (mp_neg (match t ((int ct) (mpz_to_mpq ct)) ((real ct) ct))))))
 

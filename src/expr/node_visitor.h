@@ -29,27 +29,6 @@ namespace cvc5::internal {
 template<typename Visitor>
 class NodeVisitor {
 
-  /** For re-entry checking */
-  static thread_local bool s_inRun;
-
-  /**
-   * Guard against NodeVisitor<> being re-entrant.
-   */
-  template <class T>
-  class GuardReentry {
-    T& d_guard;
-  public:
-    GuardReentry(T& guard)
-    : d_guard(guard) {
-      Assert(!d_guard);
-      d_guard = true;
-    }
-    ~GuardReentry() {
-      Assert(d_guard);
-      d_guard = false;
-    }
-  };/* class NodeVisitor<>::GuardReentry */
-
 public:
 
   /**
@@ -72,8 +51,6 @@ public:
    * Performs the traversal.
    */
   static typename Visitor::return_type run(Visitor& visitor, TNode node) {
-
-    GuardReentry<bool> guard(s_inRun);
 
     // Notify of a start
     visitor.start(node);
@@ -117,8 +94,5 @@ public:
   }
 
 };/* class NodeVisitor<> */
-
-template <typename Visitor>
-thread_local bool NodeVisitor<Visitor>::s_inRun = false;
 
 }  // namespace cvc5::internal

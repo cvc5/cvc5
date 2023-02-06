@@ -27,6 +27,7 @@
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_db.h"
 #include "smt/assertions.h"
 #include "smt/difficulty_post_processor.h"
 #include "smt/env.h"
@@ -39,10 +40,12 @@ namespace smt {
 
 PfManager::PfManager(Env& env)
     : EnvObj(env),
-      d_pchecker(new ProofChecker(
-          statisticsRegistry(),
-          options().proof.proofCheck,
-          static_cast<uint32_t>(options().proof.proofPedantic))),
+      d_rewriteDb(new rewriter::RewriteDb),
+      d_pchecker(
+          new ProofChecker(statisticsRegistry(),
+                           options().proof.proofCheck,
+                           static_cast<uint32_t>(options().proof.proofPedantic),
+                           d_rewriteDb.get())),
       d_pnm(new ProofNodeManager(
           env.getOptions(), env.getRewriter(), d_pchecker.get())),
       d_pfpp(nullptr)
@@ -66,7 +69,7 @@ PfManager::PfManager(Env& env)
   // assumptions (which would disable the update of B1 in this case).
   d_pfpp = std::make_unique<ProofPostprocess>(
       env,
-      nullptr,
+      d_rewriteDb.get(),
       options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
 
   // add rules to eliminate here
@@ -137,6 +140,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): get free assumptions..."
         << std::endl;
+    std::vector<Node> assertions;
+    getAssertions(as, assertions);
     std::vector<Node> fassumps;
     expr::getFreeAssumptions(pfn.get(), fassumps);
     Trace("smt-proof") << "SolverEngine::connectProofToAssertions(): initial "
@@ -148,8 +153,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
 
     Trace("smt-proof")
         << "SolverEngine::connectProofToAssertions(): assertions are:\n";
-    std::vector<Node> assertions;
-    getAssertions(as, assertions);
     for (const Node& n : assertions)
     {
       Trace("smt-proof") << "- " << n << std::endl;
@@ -240,7 +243,7 @@ void PfManager::printProof(std::ostream& out,
     proof::AletheProofPostprocess vpfpp(
         d_env, anc, options().proof.proofAletheResPivots);
     vpfpp.process(fp);
-    proof::AletheProofPrinter vpp;
+    proof::AletheProofPrinter vpp(d_env);
     vpp.print(out, fp);
   }
   else if (mode == options::ProofFormatMode::LFSC)
@@ -335,7 +338,10 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
-rewriter::RewriteDb* PfManager::getRewriteDatabase() const { return nullptr; }
+rewriter::RewriteDb* PfManager::getRewriteDatabase() const
+{
+  return d_rewriteDb.get();
+}
 
 void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
 {

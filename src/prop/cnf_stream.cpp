@@ -146,7 +146,11 @@ void CnfStream::ensureLiteral(TNode n)
   }
 }
 
-SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
+SatLiteral CnfStream::newLiteral(TNode node,
+                                 bool isTheoryAtom,
+                                 bool notifyTheory,
+                                 bool canEliminate)
+{
   Trace("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom
                << ")\n"
                << push;
@@ -173,7 +177,8 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
       }
     } else {
       Trace("cnf") << d_name << "::newLiteral: new var\n";
-      lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, preRegister, canEliminate));
+      lit = SatLiteral(
+          d_satSolver->newVar(isTheoryAtom, notifyTheory, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
@@ -189,10 +194,11 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If a theory literal, we pre-register it
-  if (preRegister) {
+  if (notifyTheory)
+  {
     // In case we are re-entered due to lemmas, save our state
     bool backupRemovable = d_removable;
-    d_registrar->preRegister(node);
+    d_registrar->notifySatLiteral(node);
     d_removable = backupRemovable;
   }
   // Here, you can have it
