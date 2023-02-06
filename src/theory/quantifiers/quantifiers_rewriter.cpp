@@ -19,6 +19,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -57,11 +58,6 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
- * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
- * shadowed variable v, which is quantified by a subformula q' of quantified
- * formula q. Shadowed variables may be introduced when e.g. quantified formulas
- * appear on the right hand sides of substitutions in preprocessing. They are
- * eliminated by the rewriter.
  */
 struct QRewPrenexAttributeId
 {
@@ -75,10 +71,6 @@ struct QRewDtExpandAttributeId
 {
 };
 using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
-struct QElimShadowAttributeId
-{
-};
-using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -580,10 +572,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
       {
         Trace("quantifiers-rewrite-unshadow")
             << "Found shadowed variable " << v << " in " << q << std::endl;
-        BoundVarManager* bvm = nm->getBoundVarManager();
         oldVars.push_back(v);
-        Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, v);
         newVars.push_back(nv);
       }
     }

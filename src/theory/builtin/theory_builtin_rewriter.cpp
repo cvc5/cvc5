@@ -21,6 +21,7 @@
 #include <cmath>
 
 #include "expr/attribute.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
@@ -120,7 +121,8 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
     // (witness ((x Bool)) (not x)) ---> false
     return NodeManager::currentNM()->mkConst(false);
   }
-  return node;
+  // eliminate shadowing
+  return ElimShadowNodeConverter::eliminateShadow(node);
 }
 
 }  // namespace builtin
