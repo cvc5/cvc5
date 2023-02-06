@@ -72,10 +72,7 @@ void RewriteProofRule::init(DslPfRule id,
   for (const Node& v : fvs)
   {
     d_fvs.push_back(v);
-    if (fvsCond.find(v) == fvsCond.end())
-    {
-      d_noOccVars[v] = true;
-    }
+    d_noOccVars[v] = fvsCond.find(v) == fvsCond.end();
   }
   // if fixed point, initialize match utility
   if (d_context != Node::null())
