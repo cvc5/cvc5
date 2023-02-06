@@ -189,25 +189,6 @@ void getOperatorsMap(TNode n,
                      std::map<TypeNode, std::unordered_set<Node>>& ops,
                      std::unordered_set<TNode>& visited);
 
-/*
- * Substitution of Nodes in a capture avoiding way.
- * If x occurs free in n and it is substituted by a term t
- * and t includes some variable y that is bound in n,
- * then using alpha conversion y is replaced with a fresh bound variable
- * before the substitution.
- *
- */
-Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
-
-/**
- * Same as substituteCaptureAvoiding above, but with a
- * simultaneous substitution of a vector of variables.
- * Elements in source will be replaced by their corresponding element in dest.
- * Both vectors should have the same size.
- */
-Node substituteCaptureAvoiding(TNode n,
-                               std::vector<Node>& src,
-                               std::vector<Node>& dest);
 /**
  * Collect all types in n, which adds to types all types for which a subterm
  * of n has that type. Operators are not considered in the traversal.
