@@ -334,7 +334,7 @@ TypeNode TypeNode::greatestLowerBound(const TypeNode& t) const
   return unifyInternal(t, false);
 }
 
-TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isJoin) const
+TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
 {
   Assert(!isNull() && !t.isNull());
   if (*this == t)
@@ -347,12 +347,12 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isJoin) const
     if (tak == kind::ABSTRACT_TYPE)
     {
       // everything is unifiable with the fully abstract type
-      return isJoin ? *this : t;
+      return isLub ? *this : t;
     }
     // ABSTRACT_TYPE{k} is unifiable with types with kind k
     if (getKind() == tak)
     {
-      return isJoin ? *this : t;
+      return isLub ? *this : t;
     }
   }
   // same as above, swapping this and t
@@ -361,11 +361,11 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isJoin) const
     Kind ak = getAbstractedKind();
     if (ak == kind::ABSTRACT_TYPE)
     {
-      return isJoin ? t : *this;
+      return isLub ? t : *this;
     }
     if (t.getKind() == ak)
     {
-      return isJoin ? t : *this;
+      return isLub ? t : *this;
     }
   }
   Kind k = getKind();
@@ -385,7 +385,7 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isJoin) const
   {
     TypeNode c = (*this)[i];
     TypeNode tc = t[i];
-    TypeNode jc = c.unifyInternal(tc, isJoin);
+    TypeNode jc = c.unifyInternal(tc, isLub);
     if (jc.isNull())
     {
       // incompatible component type

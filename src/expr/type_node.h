@@ -757,8 +757,8 @@ class CVC5_EXPORT TypeNode
   TypeNode getUninterpretedSortConstructor() const;
 
  private:
-  /** Unify internal, for computing leastUpperBound and meet */
-  TypeNode unifyInternal(const TypeNode& t, bool isJoin) const;
+  /** Unify internal, for computing leastUpperBound and greatestLowerBound */
+  TypeNode unifyInternal(const TypeNode& t, bool isLub) const;
 };/* class TypeNode */
 
 /**
