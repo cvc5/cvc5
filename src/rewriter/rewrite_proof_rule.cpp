@@ -74,7 +74,7 @@ void RewriteProofRule::init(DslPfRule id,
     d_fvs.push_back(v);
     if (fvsCond.find(v) == fvsCond.end())
     {
-      d_noOccVars[v] = true;
+      d_noOccVars.insert(v);
     }
   }
   // if fixed point, initialize match utility

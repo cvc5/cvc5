@@ -20,6 +20,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include "expr/nary_match_trie.h"
 #include "expr/node.h"
@@ -144,7 +145,7 @@ class RewriteProofRule
    * The free variables that do not occur in the conditions. These cannot be
    * "holes" in a proof.
    */
-  std::map<Node, bool> d_noOccVars;
+  std::unordered_set<Node> d_noOccVars;
   /** The context for list variables (see expr::getListVarContext). */
   std::map<Node, Kind> d_listVarCtx;
   /** The match trie (for fixed point matching) */
