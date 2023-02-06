@@ -549,8 +549,8 @@ class CVC5_EXPORT TypeNode
   bool isFunctionLike() const;
 
   /**
-   * Is instance of, returns true if this type is equivalent to the leastUpperBound
-   * (see TypeNode::leastUpperBound) of itself and t.
+   * Is instance of, returns true if this type is equivalent to the
+   * leastUpperBound (see TypeNode::leastUpperBound) of itself and t.
    */
   bool isInstanceOf(const TypeNode& t) const;
   /**
@@ -560,7 +560,7 @@ class CVC5_EXPORT TypeNode
   bool isComparableTo(const TypeNode& t) const;
   /**
    * Least upper bound with type.
-   * 
+   *
    * We consider a partial order on types such that T1 <= T2 if T2 is an
    * instance of T1.
    *
