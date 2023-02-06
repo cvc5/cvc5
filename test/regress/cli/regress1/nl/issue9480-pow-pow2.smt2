@@ -1,4 +1,4 @@
-; SCRUBBER: sed -e 's/(error.*/error/'
+; SCRUBBER: sed -e 's/(error.*/error/; s/(^.*//'
 ; EXPECT: error
 ; EXIT: 1
 (set-logic QF_UFLRA)
