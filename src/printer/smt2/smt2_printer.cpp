@@ -1187,8 +1187,6 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::SELECT: return "select";
     case kind::STORE: return "store";
     case kind::ARRAY_TYPE: return "Array";
-    case kind::PARTIAL_SELECT_0: return "partial_select_0";
-    case kind::PARTIAL_SELECT_1: return "partial_select_1";
     case kind::EQ_RANGE: return "eqrange";
 
     // ff theory
