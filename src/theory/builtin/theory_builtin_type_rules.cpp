@@ -137,6 +137,13 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
+TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm,
+                                                        TNode n)
+{
+  // Note that this could be more precise by case splitting on the kind
+  // of indexed operator, but we don't do this for simplicity.
+  return nm->mkAbstractType(kind::ABSTRACT_TYPE);
+}
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the
  * skolem to return for mkGroundTerm.
