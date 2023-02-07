@@ -20,7 +20,8 @@ find_package(Java COMPONENTS Runtime REQUIRED)
 
 # Search for flex installed via homebrew.
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex")
+  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/flex") # macOS Intel
+  list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/opt/flex") # macOS Apple Silicon
 endif()
 find_package(FLEX REQUIRED)
 
@@ -75,8 +76,12 @@ set(libcvc5parser_src_files
   smt2/smt2_cmd_parser.h
   smt2/smt2_lexer.cpp
   smt2/smt2_lexer.h
+  smt2/smt2_cmd_parser.cpp
+  smt2/smt2_cmd_parser.h
   smt2/smt2_input.cpp
   smt2/smt2_input.h
+  smt2/smt2_parser.cpp
+  smt2/smt2_parser.h
   smt2/smt2_term_parser.cpp
   smt2/smt2_term_parser.h
   smt2/sygus_input.cpp
