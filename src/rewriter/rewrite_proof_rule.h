@@ -91,7 +91,8 @@ class RewriteProofRule
    * the match notify object ntm.
    *
    * Note this method is not run as the main matching algorithm for rewrite
-   * proof reconstruction, which considers all rules in parallel.
+   * proof reconstruction, which considers all rules in parallel. This method
+   * can be used for debugging matches of h against the head of this rule.
    */
   void getMatches(Node h, expr::NotifyMatch* ntm) const;
   /** Get conclusion of the rule */
@@ -115,6 +116,9 @@ class RewriteProofRule
    *
    * If v is in an ambiguous context, an exception will have been thrown
    * in the constructor of this class.
+   *
+   * This method returns UNDEFINED_KIND if there is no list context for v,
+   * e.g. if v is not a list variable.
    */
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
