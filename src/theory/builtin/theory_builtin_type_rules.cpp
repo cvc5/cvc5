@@ -144,7 +144,7 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
 {
   // Note that this could be more precise by case splitting on the kind
   // of indexed operator, but we don't do this for simplicity.
-  return nm->mkAbstractType(kind::ABSTRACT_TYPE);
+  return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);
 }
 /**
  * Attribute for caching the ground term for each type. Maps TypeNode to the
