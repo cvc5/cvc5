@@ -459,6 +459,7 @@ Node InstStrategyMbqi::convertFromModel(
         }
         else
         {
+          // TODO (wishue #143): could convert RAN to witness term here
           // failed to find equal, we fail
           return Node::null();
         }
