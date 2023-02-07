@@ -51,7 +51,6 @@ struct ArrayStoreTypeRule
   static bool computeIsConst(NodeManager* nodeManager, TNode n);
 };
 
-
 struct ArrayLambdaTypeRule
 {
   static TypeNode preComputeType(NodeManager* nm, TNode n);
@@ -70,7 +69,6 @@ struct ArraysProperties
 
   static Node mkGroundTerm(TypeNode type);
 };
-
 
 struct ArrayEqRangeTypeRule
 {

@@ -21,6 +21,7 @@
 #include <cmath>
 
 #include "expr/attribute.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "theory/builtin/generic_op.h"
 
@@ -130,7 +131,8 @@ Node TheoryBuiltinRewriter::rewriteWitness(TNode node)
     // (witness ((x Bool)) (not x)) ---> false
     return NodeManager::currentNM()->mkConst(false);
   }
-  return node;
+  // eliminate shadowing
+  return ElimShadowNodeConverter::eliminateShadow(node);
 }
 
 Node TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(TNode node)

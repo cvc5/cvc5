@@ -242,7 +242,9 @@ cdef extern from "api/cpp/cvc5.h" namespace "cvc5":
         Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
+        vector[Term] getSygusConstraints() except +
         void addSygusAssume(Term term) except +
+        vector[Term] getSygusAssumptions() except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +

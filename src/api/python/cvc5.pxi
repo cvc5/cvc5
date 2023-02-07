@@ -1801,6 +1801,18 @@ cdef class Solver:
         """
         self.csolver.addSygusConstraint(t.cterm)
 
+    def getSygusConstraints(self):
+        """
+            Get the list of sygus constraints.
+            :return: The list of sygus constraints.
+        """
+        constraints = []
+        for c in self.csolver.getSygusConstraints():
+            term = Term(self)
+            term.cterm = c
+            constraints.append(term)
+        return constraints
+
     def addSygusAssume(self, Term t):
         """
             Add a formula to the set of Sygus assumptions.
@@ -1814,6 +1826,18 @@ cdef class Solver:
             :param term: The formuula to add as an assumption.
         """
         self.csolver.addSygusAssume(t.cterm)
+
+    def getSygusAssumptions(self):
+        """
+            Get the list of sygus assumptions.
+            :return: The list of sygus assumptions.
+        """
+        assumptions = []
+        for a in self.csolver.getSygusAssumptions():
+            term = Term(self)
+            term.cterm = a
+            assumptions.append(term)
+        return assumptions
 
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         """
