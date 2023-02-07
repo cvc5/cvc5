@@ -20,6 +20,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include "expr/nary_match_trie.h"
 #include "expr/node.h"
@@ -29,7 +30,9 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * The definition of a (conditional) rewrite rule.
+ * The definition of a (conditional) rewrite rule. An instance of this
+ * class is generated for each DSL rule provided in the rewrite files. The
+ * interface of this class is used by the proof reconstruction algorithm.
  */
 class RewriteProofRule
 {
@@ -48,10 +51,13 @@ class RewriteProofRule
    * @param conc The conclusion of the rule, which is an equality of the form
    * (= t s), where t is specified as rewriting to s. This equality is
    * normalized to fvs.
-   * @param isFixedPoint Whether the rule should be applied to fixed point in
-   * the strategy
+   * @param context The term context for the conclusion of the rule. This is
+   * non-null for all rules that should be applied to fixed-point. The context
+   * is a lambda term that specifies the next position of the term to rewrite.
    * @param isFlatForm Whether the rule is the flat form of the actual rule
-   * with the given id.
+   * with the given id (the flat form of a rule is where all nested applications
+   * have been replaced by fresh variables that are equated to the term they
+   * replace in the conditions of the rule).
    */
   void init(DslPfRule id,
             const std::vector<Node>& userFvs,
@@ -77,8 +83,7 @@ class RewriteProofRule
   /** Does this rule have side conditions? */
   bool hasSideConditions() const;
   /**
-   * Get the conditions in context { vs -> ss }. This may involve running the
-   * side conditions of this method.
+   * Get the conditions of the rule under the substitution { vs -> ss }.
    */
   bool getObligations(const std::vector<Node>& vs,
                       const std::vector<Node>& ss,
@@ -88,21 +93,34 @@ class RewriteProofRule
    * the match notify object ntm.
    *
    * Note this method is not run as the main matching algorithm for rewrite
-   * proof reconstruction, which considers all rules in parallel.
+   * proof reconstruction, which considers all rules in parallel. This method
+   * can be used for debugging matches of h against the head of this rule.
    */
   void getMatches(Node h, expr::NotifyMatch* ntm) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
-  /** Get conclusion of the rule for ss */
+  /** Get conclusion of the rule for the substituted terms ss */
   Node getConclusionFor(const std::vector<Node>& ss) const;
 
   /**
    * Is variable explicit? An explicit variable is one that does not occur
-   * in a condition and thus its value must be specified in a proof.
+   * in a condition and thus its value must be specified in a proof
+   * in languages that allow for implicit/unspecified hole arguments,
+   * e.g. LFSC.
    */
   bool isExplicitVar(Node v) const;
   /**
-   * Get list context
+   * Get list context. This returns the parent kind of the list variable v.
+   * For example, for
+   *   (define-rule bool-or-true ((xs Bool :list) (ys Bool :list))
+   *      (or xs true ys) true)
+   * The variable xs has list context `OR`.
+   *
+   * If v is in an ambiguous context, an exception will have been thrown
+   * in the constructor of this class.
+   *
+   * This method returns UNDEFINED_KIND if there is no list context for v,
+   * e.g. if v is not a list variable.
    */
   Kind getListContext(Node v) const;
   /** Was this rule marked as being applied to fixed point? */
@@ -147,7 +165,7 @@ class RewriteProofRule
    * The free variables that do not occur in the conditions. These cannot be
    * "holes" in a proof.
    */
-  std::map<Node, bool> d_noOccVars;
+  std::unordered_set<Node> d_noOccVars;
   /** The context for list variables (see expr::getListVarContext). */
   std::map<Node, Kind> d_listVarCtx;
   /** The match trie (for fixed point matching) */
