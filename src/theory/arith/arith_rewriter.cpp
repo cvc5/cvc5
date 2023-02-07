@@ -785,7 +785,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
     if (rewriter::simpleNonzeroFactoring(n, d))
     {
       Node ret = nm->mkNode(k, n, d);
-      return returnRewrite(t, ret, Rewrite::DIV_FACTOR);
+      return returnRewrite(t, ret, Rewrite::DIV_TOTAL_FACTOR);
     }
   }
 
