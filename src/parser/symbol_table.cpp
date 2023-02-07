@@ -296,7 +296,8 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Term obj)
     Term existingFun = getOverloadedFunctionAt(tat, false);
     if (!existingFun.isNull())
     {
-      Trace("parser-overloading") << "...existing fun (no variant)" << std::endl;
+      Trace("parser-overloading")
+          << "...existing fun (no variant)" << std::endl;
       return false;
     }
   }

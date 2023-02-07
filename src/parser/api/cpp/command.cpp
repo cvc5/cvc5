@@ -842,7 +842,9 @@ DeclarationDefinitionCommand::DeclarationDefinitionCommand(
 
 std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 
-bool DeclarationDefinitionCommand::bindToTerm(SymbolManager* sm, cvc5::Term t, bool doOverload)
+bool DeclarationDefinitionCommand::bindToTerm(SymbolManager* sm,
+                                              cvc5::Term t,
+                                              bool doOverload)
 {
   if (!sm->bind(d_symbol, t, true))
   {
