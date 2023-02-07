@@ -339,7 +339,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
         }
         else if (t[0].isConst()
                  && t[0].getConst<Rational>().getNumerator().toUnsignedInt()
-                        == 2)
+                        == 2
+                 && t[1].getType().isInteger())
         {
           return RewriteResponse(
               REWRITE_DONE, NodeManager::currentNM()->mkNode(kind::POW2, t[1]));

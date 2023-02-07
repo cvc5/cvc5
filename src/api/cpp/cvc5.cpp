@@ -7807,6 +7807,16 @@ void Solver::addSygusConstraint(const Term& term) const
   CVC5_API_TRY_CATCH_END;
 }
 
+std::vector<Term> Solver::getSygusConstraints() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> constraints = d_slv->getSygusConstraints();
+  return Term::nodeVectorToTerms(d_nm, constraints);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 void Solver::addSygusAssume(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7818,6 +7828,16 @@ void Solver::addSygusAssume(const Term& term) const
       << "Cannot addSygusAssume unless sygus is enabled (use --sygus)";
   //////// all checks before this line
   d_slv->assertSygusConstraint(*term.d_node, true);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Solver::getSygusAssumptions() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  std::vector<internal::Node> assumptions = d_slv->getSygusAssumptions();
+  return Term::nodeVectorToTerms(d_nm, assumptions);
   ////////
   CVC5_API_TRY_CATCH_END;
 }
