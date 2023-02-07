@@ -137,8 +137,10 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
-TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm,
-                                                        TNode n)
+TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
+                                                   TNode n,
+                                                   bool check,
+                                                   std::ostream* errOut)
 {
   // Note that this could be more precise by case splitting on the kind
   // of indexed operator, but we don't do this for simplicity.

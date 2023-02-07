@@ -49,9 +49,10 @@ class GenericOp
   static std::vector<Node> getIndicesForOperator(Kind k, Node n);
   /**
    * Return the operator of kind k whose operators are the constants in the
-   * given vector. 
+   * given vector.
    */
   static Node getOperatorForIndices(Kind k, const std::vector<Node>& indices);
+
  private:
   GenericOp();
   /** The kind of indexed operator this operator represents */

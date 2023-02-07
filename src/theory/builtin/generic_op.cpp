@@ -16,13 +16,13 @@
 #include "theory/builtin/generic_op.h"
 
 #include <iostream>
-#include "util/rational.h"
+
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
-#include "expr/dtype.h"
-#include "expr/dtype_cons.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 
@@ -190,17 +190,20 @@ std::vector<Node> GenericOp::getIndicesForOperator(Kind k, Node n)
       indices.push_back(dt[cindex][index].getSelector());
     }
     break;
-    default: Unhandled() << "GenericOp::getOperatorIndices: unhandled kind " << k; break;
+    default:
+      Unhandled() << "GenericOp::getOperatorIndices: unhandled kind " << k;
+      break;
   }
   return indices;
 }
 
 /** Converts a list of constant integer terms to a list of unsigned integers */
-bool convertToNumeralList(const std::vector<Node>& indices, std::vector<uint32_t>& numerals)
+bool convertToNumeralList(const std::vector<Node>& indices,
+                          std::vector<uint32_t>& numerals)
 {
   for (const Node& i : indices)
   {
-    Assert (i.getKind()==CONST_INTEGER);
+    Assert(i.getKind() == CONST_INTEGER);
     const Integer& ii = i.getConst<Rational>().getNumerator();
     if (!ii.fitsUnsignedInt())
     {
@@ -214,7 +217,7 @@ bool convertToNumeralList(const std::vector<Node>& indices, std::vector<uint32_t
 Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
 {
   // all indices should be constant!
-  Assert (isIndexedOperatorKind(k));
+  Assert(isIndexedOperatorKind(k));
   NodeManager* nm = NodeManager::currentNM();
   if (isNumeralIndexedOperatorKind(k))
   {
@@ -227,57 +230,62 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
     switch (k)
     {
       case REGEXP_LOOP:
-        Assert (numerals.size()==2);
+        Assert(numerals.size() == 2);
         return nm->mkConst(RegExpLoop(numerals[0], numerals[1]));
       case BITVECTOR_EXTRACT:
-        Assert (numerals.size()==2);
+        Assert(numerals.size() == 2);
         return nm->mkConst(BitVectorExtract(numerals[0], numerals[1]));
       case BITVECTOR_REPEAT:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRepeat(numerals[0]));
       case BITVECTOR_ZERO_EXTEND:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorZeroExtend(numerals[0]));
       case BITVECTOR_SIGN_EXTEND:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorSignExtend(numerals[0]));
       case BITVECTOR_ROTATE_LEFT:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRotateLeft(numerals[0]));
       case BITVECTOR_ROTATE_RIGHT:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(BitVectorRotateRight(numerals[0]));
       case INT_TO_BITVECTOR:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(IntToBitVector(numerals[0]));
       case IAND:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(IntAnd(numerals[0]));
       case FLOATINGPOINT_TO_FP_FROM_FP:
-        Assert (numerals.size()==2);
-        return nm->mkConst(FloatingPointToFPFloatingPoint(numerals[0], numerals[1]));
+        Assert(numerals.size() == 2);
+        return nm->mkConst(
+            FloatingPointToFPFloatingPoint(numerals[0], numerals[1]));
       case FLOATINGPOINT_TO_FP_FROM_IEEE_BV:
-        Assert (numerals.size()==2);
-        return nm->mkConst(FloatingPointToFPIEEEBitVector(numerals[0], numerals[1]));
+        Assert(numerals.size() == 2);
+        return nm->mkConst(
+            FloatingPointToFPIEEEBitVector(numerals[0], numerals[1]));
       case FLOATINGPOINT_TO_FP_FROM_SBV:
-        Assert (numerals.size()==2);
-        return nm->mkConst(FloatingPointToFPSignedBitVector(numerals[0], numerals[1]));
+        Assert(numerals.size() == 2);
+        return nm->mkConst(
+            FloatingPointToFPSignedBitVector(numerals[0], numerals[1]));
       case FLOATINGPOINT_TO_FP_FROM_REAL:
-        Assert (numerals.size()==2);
+        Assert(numerals.size() == 2);
         return nm->mkConst(FloatingPointToFPReal(numerals[0], numerals[1]));
       case FLOATINGPOINT_TO_SBV:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToSBV(numerals[0]));
       case FLOATINGPOINT_TO_UBV:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToUBV(numerals[0]));
       case FLOATINGPOINT_TO_SBV_TOTAL:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToSBVTotal(numerals[0]));
       case FLOATINGPOINT_TO_UBV_TOTAL:
-        Assert (numerals.size()==1);
+        Assert(numerals.size() == 1);
         return nm->mkConst(FloatingPointToUBVTotal(numerals[0]));
-      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k; break;
+      default:
+        Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
+        break;
     }
   }
   else
@@ -300,12 +308,12 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
         indices.push_back(dt[cindex][index].getSelector());
       }
       break;
-      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k; break;
+      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind
+    " << k; break;
     }
     */
   }
   return Node::null();
 }
-
 
 }  // namespace cvc5::internal
