@@ -285,6 +285,7 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Term obj)
       // re-declaration here.
       if (isOverloadedFunction(prev_obj))
       {
+        Trace("parser-overloading") << "...existing overload" << std::endl;
         return false;
       }
     }
@@ -295,9 +296,11 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Term obj)
     Term existingFun = getOverloadedFunctionAt(tat, false);
     if (!existingFun.isNull())
     {
+      Trace("parser-overloading") << "...existing fun (no variant)" << std::endl;
       return false;
     }
   }
+  Trace("parser-overloading") << "...update symbols" << std::endl;
 
   // otherwise, update the symbols
   d_overloaded_symbols->insert(obj);

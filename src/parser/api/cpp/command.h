@@ -317,7 +317,12 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Command
 {
  protected:
   std::string d_symbol;
-
+  /** 
+   * Bind the symbol of this command to the given term. Return false if the
+   * binding was invalid. In this case, set to command status to
+   * CommandFailure.
+   */
+  bool bindToTerm(parser::SymbolManager* sm, cvc5::Term t, bool doOverload);
  public:
   DeclarationDefinitionCommand(const std::string& id);
 
