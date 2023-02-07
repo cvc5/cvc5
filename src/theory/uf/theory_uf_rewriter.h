@@ -34,7 +34,7 @@ namespace uf {
 class TheoryUfRewriter : public TheoryRewriter
 {
  public:
-  TheoryUfRewriter(bool isHigherOrder = false);
+  TheoryUfRewriter();
   /** post-rewrite */
   RewriteResponse postRewrite(TNode node) override;
   /** pre-rewrite */
@@ -70,8 +70,6 @@ class TheoryUfRewriter : public TheoryRewriter
   static RewriteResponse rewriteBVToNat(TNode node);
   /** rewrite int2bv */
   static RewriteResponse rewriteIntToBV(TNode node);
-  /** Is the logic higher-order? */
-  bool d_isHigherOrder;
 }; /* class TheoryUfRewriter */
 
 }  // namespace uf

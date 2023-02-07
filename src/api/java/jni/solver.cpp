@@ -2684,6 +2684,22 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addSygusConstraint(
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    getSygusConstraints
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSygusConstraints(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> constraints = solver->getSygusConstraints();
+  jlongArray ret = getPointersFromObjects<Term>(env, constraints);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    addSygusAssume
  * Signature: (JJ)V
  */
@@ -2695,6 +2711,22 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_addSygusAssume(
   Term* term = reinterpret_cast<Term*>(termPointer);
   solver->addSygusAssume(*term);
   CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
+ * Method:    getSygusAssumptions
+ * Signature: (J)[J
+ */
+JNIEXPORT jlongArray JNICALL Java_io_github_cvc5_Solver_getSygusAssumptions(
+    JNIEnv* env, jobject, jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Solver* solver = reinterpret_cast<Solver*>(pointer);
+  std::vector<Term> assumptions = solver->getSygusAssumptions();
+  jlongArray ret = getPointersFromObjects<Term>(env, assumptions);
+  return ret;
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
 }
 
 /*

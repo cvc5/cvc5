@@ -862,6 +862,18 @@ void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
   d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
+std::vector<Node> SolverEngine::getSygusConstraints()
+{
+  finishInit();
+  return d_sygusSolver->getSygusConstraints();
+}
+
+std::vector<Node> SolverEngine::getSygusAssumptions()
+{
+  finishInit();
+  return d_sygusSolver->getSygusAssumptions();
+}
+
 void SolverEngine::assertSygusInvConstraint(Node inv,
                                             Node pre,
                                             Node trans,
