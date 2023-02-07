@@ -1,4 +1,5 @@
-(set-info :smt-lib-version 2.6)
+; COMMAND-LINE: --produce-proofs --proof-granularity=dsl-rewrite --dump-proofs --proof-format-mode=alethe --dag-thres=0
+; EXPECT: unsat
 (set-logic QF_BV)
 (set-info :status unsat)
 
