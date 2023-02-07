@@ -954,7 +954,8 @@ EvalResult Evaluator::evalInternal(
         case kind::INT_TO_BITVECTOR:
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
-          const uint32_t size = currNodeVal.getOperator().getConst<IntToBitVector>().d_size;
+          const uint32_t size =
+              currNodeVal.getOperator().getConst<IntToBitVector>().d_size;
           results[currNode] = EvalResult(BitVector(size, i));
           break;
         }
