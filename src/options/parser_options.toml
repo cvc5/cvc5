@@ -60,11 +60,3 @@ name   = "Parser"
   type       = "bool"
   default    = "false"
   help       = "use flex parser"
-
-[[option]]
-  name       = "flexLexOnly"
-  category   = "expert"
-  long       = "flex-lex-only"
-  type       = "bool"
-  default    = "false"
-  help       = "(debugging) print the lexed input instead of parsing it"
