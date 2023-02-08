@@ -38,7 +38,7 @@ namespace parser {
  * arguments `args`, which give a recipe for the term we are parsing. The data
  * in these depend on the context we are in, as documented below.
  */
-enum class ParseCtx : uint32_t
+enum class ParseCtx
 {
   /**
    * NEXT_ARG: in context (<op> <term>* <term>
@@ -198,7 +198,7 @@ Term Smt2TermParser::parseTerm()
             std::vector<Term> args;
             if (d_state.isClosure(op.d_name))
             {
-              // if it is a closure, immediate read the bound variable list
+              // if it is a closure, immediately read the bound variable list
               d_state.pushScope();
               std::vector<std::pair<std::string, Sort>> sortedVarNames =
                   parseSortedVarList();
@@ -366,11 +366,9 @@ Term Smt2TermParser::parseTerm()
             Assert(!letBinders.empty());
             const std::vector<std::pair<std::string, Term>>& bs =
                 letBinders.back();
-            std::unordered_set<std::string> names;
             for (const std::pair<std::string, Term>& b : bs)
             {
               d_state.defineVar(b.first, b.second);
-              names.insert(b.first);
             }
             // done with the binders
             letBinders.pop_back();

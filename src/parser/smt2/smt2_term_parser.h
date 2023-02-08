@@ -142,7 +142,7 @@ class Smt2TermParser
    */
   ParseOp continueParseIndexedIdentifier(bool isOperator);
   /**
-   * Continue parse indexed identifier, we've parsed '(as ', now parse
+   * Continue parse qualified identifier, we've parsed '(as ', now parse
    * remainder '<identifier> <type>)' and return the result.
    */
   ParseOp continueParseQualifiedIdentifier(bool isOperator);
