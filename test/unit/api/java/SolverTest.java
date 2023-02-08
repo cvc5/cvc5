@@ -2723,6 +2723,19 @@ class SolverTest
   }
 
   @Test
+  void getSygusConstraints()
+  {
+    d_solver.setOption("sygus", "true");
+    Term trueTerm = d_solver.mkBoolean(true);
+    Term falseTerm = d_solver.mkBoolean(false);
+    d_solver.addSygusConstraint(trueTerm);
+    d_solver.addSygusConstraint(falseTerm);
+    Term[] constraints = d_solver.getSygusConstraints();
+    assertEquals(constraints[0], trueTerm);
+    assertEquals(constraints[1], falseTerm);
+  }
+
+  @Test
   void addSygusAssume()
   {
     d_solver.setOption("sygus", "true");
@@ -2737,6 +2750,19 @@ class SolverTest
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
     assertDoesNotThrow(() -> slv.addSygusAssume(boolTerm));
+  }
+
+  @Test
+  void getSygusAssumptions()
+  {
+    d_solver.setOption("sygus", "true");
+    Term trueTerm = d_solver.mkBoolean(true);
+    Term falseTerm = d_solver.mkBoolean(false);
+    d_solver.addSygusAssume(trueTerm);
+    d_solver.addSygusAssume(falseTerm);
+    Term[] assumptions = d_solver.getSygusAssumptions();
+    assertEquals(assumptions[0], trueTerm);
+    assertEquals(assumptions[1], falseTerm);
   }
 
   @Test

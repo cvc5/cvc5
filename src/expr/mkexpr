@@ -157,7 +157,7 @@ function typerule {
   check_theory_seen
   typerules="${typerules}
   case kind::$1:
-    typeNode = $2::computeType(nodeManager, n, check);
+    typeNode = $2::computeType(nodeManager, n, check, errOut);
     break;
 "
 }

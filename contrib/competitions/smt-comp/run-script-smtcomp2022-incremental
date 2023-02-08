@@ -1,0 +1,45 @@
+#!/bin/bash
+
+cvc5=$(dirname "$(readlink -f "$0")")/cvc5
+
+line=""
+while [[ -z "$line" ]]; do
+  read line
+done
+if [ "$line" != '(set-option :print-success true)' ]; then
+  echo 'ERROR: first line supposed to be set-option :print-success, but got: "'"$line"'"' >&2
+  exit 1
+fi
+echo success
+line=""
+while [[ -z "$line" ]]; do
+  read line
+done
+logic=$(expr "$line" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+if [ -z "$logic" ]; then
+  echo 'ERROR: second line supposed to be set-logic, but got: "'"$line"'"' >&2
+  exit 1
+fi
+echo success
+
+function runcvc5 {
+  # we run in this way for line-buffered input, otherwise memory's a
+  # concern (plus it mimics what we'll end up getting from an
+  # application-track trace runner?)
+  $cvc5 --incremental --force-logic="$logic" -L smt2.6 --print-success --no-type-checking --no-interactive "$@" <&0-
+}
+
+case "$logic" in
+
+QF_AUFLIA)
+  runcvc5 --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_BV)
+  runcvc5 --bitblast=eager
+  ;;
+*)
+  # just run the default
+  runcvc5
+  ;;
+
+esac
