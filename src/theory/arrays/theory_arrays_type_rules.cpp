@@ -179,42 +179,6 @@ bool ArrayStoreTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
   return true;
 }
 
-TypeNode ArrayTableFunTypeRule::computeType(NodeManager* nodeManager,
-                                            TNode n,
-                                            bool check,
-                                            std::ostream* errOut)
-{
-  Assert(n.getKind() == kind::ARR_TABLE_FUN);
-  TypeNode arrayType = n[0].getType(check);
-  if (check)
-  {
-    if (!arrayType.isArray())
-    {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "array table fun arg 0 is non-array");
-    }
-    TypeNode arrType2 = n[1].getType(check);
-    if (!arrayType.isArray())
-    {
-      throw TypeCheckingExceptionPrivate(n,
-                                         "array table fun arg 1 is non-array");
-    }
-    TypeNode indexType = n[2].getType(check);
-    if (indexType != arrayType.getArrayIndexType())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "array table fun arg 2 does not match type of array");
-    }
-    indexType = n[3].getType(check);
-    if (indexType != arrayType.getArrayIndexType())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "array table fun arg 3 does not match type of array");
-    }
-  }
-  return arrayType.getArrayIndexType();
-}
-
 TypeNode ArrayLambdaTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -273,16 +237,6 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
   // Thus, we must simply return a fresh Skolem here, using the same utility
   // as that of uninterpreted sorts.
   return builtin::SortProperties::mkGroundTerm(type);
-}
-
-TypeNode ArrayPartialSelectTypeRule::computeType(NodeManager* nodeManager,
-                                                 TNode n,
-                                                 bool check,
-                                                 std::ostream* errOut)
-{
-  Assert(n.getKind() == kind::PARTIAL_SELECT_0
-         || n.getKind() == kind::PARTIAL_SELECT_1);
-  return nodeManager->integerType();
 }
 
 TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,
