@@ -79,8 +79,6 @@ class RelevantPreregistrar : protected EnvObj
    */
   bool notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 
-  void debugCheck();
-
  private:
   /** Set relevant */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
@@ -106,8 +104,6 @@ class RelevantPreregistrar : protected EnvObj
    */
   void updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue,
                      std::vector<TNode>& toVisit);
-
-  void debugCheckAssertion(const Node& a);
   /** mk or get RlvInfo */
   RlvInfo* getInfo(TNode n);
   /** mk or get RlvInfo */
