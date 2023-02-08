@@ -478,6 +478,7 @@ cvc5::Term TptpState::convertStrToUnsorted(std::string str)
   if (e.isNull())
   {
     e = d_solver->mkConst(d_unsorted, str);
+    preemptCommand(new DeclareFunctionCommand(str, e, d_unsorted));
   }
   return e;
 }
