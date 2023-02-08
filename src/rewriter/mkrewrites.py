@@ -27,6 +27,9 @@ def gen_kind(op):
     op_to_kind = {
         Op.STORE: 'STORE',
         Op.SELECT: 'SELECT',
+
+        # Bit vectors
+        Op.BVSIZE: 'BITVECTOR_SIZE',
         Op.BVUGT: 'BITVECTOR_UGT',
         Op.BVUGE: 'BITVECTOR_UGE',
         Op.BVSGT: 'BITVECTOR_SGT',
@@ -66,6 +69,43 @@ def gen_kind(op):
         Op.SIGN_EXTEND: 'BITVECTOR_SIGN_EXTEND',
         Op.EXTRACT: 'BITVECTOR_EXTRACT',
         Op.REPEAT: 'BITVECTOR_REPEAT',
+        Op.BVCONST: 'CONST_BITVECTOR',
+        Op.BVUGT: 'BITVECTOR_UGT',
+        Op.BVUGE: 'BITVECTOR_UGE',
+        Op.BVSGT: 'BITVECTOR_SGT',
+        Op.BVSGE: 'BITVECTOR_SGE',
+        Op.BVSLT: 'BITVECTOR_SLT',
+        Op.BVSLE: 'BITVECTOR_SLE',
+        Op.BVULT: 'BITVECTOR_ULT',
+        Op.BVULE: 'BITVECTOR_ULE',
+        Op.BVREDAND: 'BITVECTOR_REDAND',
+        Op.BVREDOR: 'BITVECTOR_REDOR',
+        Op.BVNEG: 'BITVECTOR_NEG',
+        Op.BVADD: 'BITVECTOR_ADD',
+        Op.BVSUB: 'BITVECTOR_SUB',
+        Op.BVMUL: 'BITVECTOR_MUL',
+        Op.BVSDIV: 'BITVECTOR_SDIV',
+        Op.BVUDIV: 'BITVECTOR_UDIV',
+        Op.BVSREM: 'BITVECTOR_SREM',
+        Op.BVUREM: 'BITVECTOR_UREM',
+        Op.BVSMOD: 'BITVECTOR_SMOD',
+        Op.BVSHL: 'BITVECTOR_SHL',
+        Op.BVLSHR: 'BITVECTOR_LSHR',
+        Op.BVASHR: 'BITVECTOR_ASHR',
+        Op.ROTATE_LEFT: 'BITVECTOR_ROTATE_LEFT',
+        Op.ROTATE_RIGHT: 'BITVECTOR_ROTATE_RIGHT',
+        Op.BVNOT: 'BITVECTOR_NOT',
+        Op.BVAND: 'BITVECTOR_AND',
+        Op.BVOR: 'BITVECTOR_OR',
+        Op.BVXOR: 'BITVECTOR_XOR',
+        Op.BVNAND: 'BITVECTOR_NAND',
+        Op.BVNOR: 'BITVECTOR_NOR',
+        Op.BVXNOR: 'BITVECTOR_XNOR',
+        Op.CONCAT: 'BITVECTOR_CONCAT',
+        Op.BVITE: 'BITVECTOR_ITE',
+        Op.BVCOMP: 'BITVECTOR_COMP',
+        Op.BVCONST: 'CONST_BITVECTOR',
+
         Op.ITE: 'ITE',
         Op.NOT: 'NOT',
         Op.AND: 'AND',
@@ -147,6 +187,9 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->mkAbstractType(kind::BITVECTOR_TYPE)'
     elif sort.base == BaseSort.AbsAbs:
         sort_code = 'nm->mkAbstractType(kind::ABSTRACT_TYPE)'
+    elif sort.base == BaseSort.BitVec:
+        # This will result in a compilation error for variable BitVec sizes.
+        sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'

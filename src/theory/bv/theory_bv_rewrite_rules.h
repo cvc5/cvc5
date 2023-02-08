@@ -47,6 +47,7 @@ enum RewriteRuleId
   ReflexivityEq,
 
   /// operator elimination rules
+  SizeEliminate,
   UgtEliminate,
   UgeEliminate,
   SgeEliminate,
