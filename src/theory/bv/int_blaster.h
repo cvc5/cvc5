@@ -147,43 +147,43 @@ class IntBlaster : protected EnvObj
    *
    */
   Node createShiftNode(std::vector<Node> children,
-                       uint64_t bvsize,
+                       uint32_t bvsize,
                        bool isLeftShift);
 
   /** Adds the constraint 0 <= node < 2^size to lemmas */
-  void addRangeConstraint(Node node, uint64_t size, std::vector<Node>& lemmas);
+  void addRangeConstraint(Node node, uint32_t size, std::vector<Node>& lemmas);
 
   /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
 
   /** Returns a node that represents the bitwise negation of n. */
-  Node createBVNotNode(Node n, uint64_t bvsize);
+  Node createBVNotNode(Node n, uint32_t bvsize);
 
   /** Returns a node that represents the arithmetic negation of n. */
-  Node createBVNegNode(Node n, uint64_t bvsize);
+  Node createBVNegNode(Node n, uint32_t bvsize);
 
   /** Returns a node that represents the bitwise and of x and y, based on the
    * provided option. */
   Node createBVAndNode(Node x,
                        Node y,
-                       uint64_t bvsize,
+                       uint32_t bvsize,
                        std::vector<Node>& lemmas);
 
   /** Returns a node that represents the bitwise or of x and y, by translation
    * to sum and bitwise and. */
   Node createBVOrNode(Node x,
                       Node y,
-                      uint64_t bvsize,
+                      uint32_t bvsize,
                       std::vector<Node>& lemmas);
 
   /** Returns a node that represents the sum of x and y. */
-  Node createBVAddNode(Node x, Node y, uint64_t bvsize);
+  Node createBVAddNode(Node x, Node y, uint32_t bvsize);
 
   /** Returns a node that represents the difference of x and y. */
-  Node createBVSubNode(Node x, Node y, uint64_t bvsize);
+  Node createBVSubNode(Node x, Node y, uint32_t bvsize);
 
   /** Returns a node that represents the signed extension of x by amount. */
-  Node createSignExtendNode(Node x, uint64_t bvsize, uint64_t amount);
+  Node createSignExtendNode(Node x, uint32_t bvsize, uint32_t amount);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -193,7 +193,7 @@ class IntBlaster : protected EnvObj
    * @param k the bit width of the original bit-vector variable.
    * @return a node representing the range constraint.
    */
-  Node mkRangeConstraint(Node newVar, uint64_t k);
+  Node mkRangeConstraint(Node newVar, uint32_t k);
 
   /**
    * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
@@ -212,7 +212,7 @@ class IntBlaster : protected EnvObj
    * @param k A non-negative integer
    * @return A node that represents the constant 2^k
    */
-  Node pow2(uint64_t k);
+  Node pow2(uint32_t k);
 
   /**
    * @param k A positive integer k
@@ -220,14 +220,14 @@ class IntBlaster : protected EnvObj
    * For example, if k is 4, the result is a node representing the
    * constant 15.
    */
-  Node maxInt(uint64_t k);
+  Node maxInt(uint32_t k);
 
   /**
    * @param n A node representing an integer term
    * @param exponent A non-negative integer
    * @return A node representing (n mod (2^exponent))
    */
-  Node modpow2(Node n, uint64_t exponent);
+  Node modpow2(Node n, uint32_t exponent);
 
   /**
    * Returns true iff the type of at least
@@ -315,7 +315,7 @@ class IntBlaster : protected EnvObj
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node uts(Node n, uint64_t bvsize);
+  Node uts(Node n, uint32_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes
@@ -363,11 +363,11 @@ class IntBlaster : protected EnvObj
   /** the mode for translation to integers */
   options::SolveBVAsIntMode d_mode;
 
-  /** the granularity to use in the translation */
-  uint64_t d_granularity;
-
   /** an SolverEngine for context */
   context::Context* d_context;
+
+  /** the granularity to use in the translation */
+  uint32_t d_granularity;
 };
 
 }  // namespace cvc5::internal

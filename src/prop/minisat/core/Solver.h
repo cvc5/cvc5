@@ -474,9 +474,7 @@ protected:
       // Check and perform theory reasoning
       CHECK_WITH_THEORY,
       // The SAT abstraction of the problem is satisfiable, perform a full theory check
-      CHECK_FINAL,
-      // Perform a full theory check even if not done with everything
-      CHECK_FINAL_FAKE
+      CHECK_FINAL
     };
 
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is

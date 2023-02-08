@@ -76,6 +76,10 @@ class TheorySetsRewriter : public TheoryRewriter
    */
   bool checkConstantMembership(TNode elementTerm, TNode setTerm);
   /**
+   * Rewrite set comprehension
+   */
+  RewriteResponse postRewriteComprehension(TNode n);
+  /**
    *  rewrites for n include:
    *  - (set.map f (as set.empty (Set T1)) = (as set.empty (Set T2))
    *  - (set.map f (set.singleton x)) = (set.singleton (apply f x))

@@ -785,11 +785,11 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
   {
-    defineVar("set.empty", d_solver->mkEmptySet(Sort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("set.universe",
-              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("set.empty", d_solver->mkEmptySet(d_solver->mkSetSort(btype)));
+    defineVar("set.universe", d_solver->mkUniverseSet(btype));
 
     addOperator(SET_UNION, "set.union");
     addOperator(SET_INTER, "set.inter");
@@ -824,7 +824,10 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
-    defineVar("bag.empty", d_solver->mkEmptyBag(Sort()));
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->mkBagSort(btype)));
     addOperator(BAG_UNION_MAX, "bag.union_max");
     addOperator(BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(BAG_INTER_MIN, "bag.inter_min");

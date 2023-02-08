@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "api/cpp/cvc5_kind.h"
+#include "api/cpp/cvc5_sort_kind.h"
 #include "api/cpp/cvc5_types.h"
 
 namespace cvc5 {
@@ -418,6 +419,13 @@ class CVC5_EXPORT Sort
   bool operator>=(const Sort& s) const;
 
   /**
+   * @return The kind of the sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  SortKind getKind() const;
+
+  /**
    * Does this sort have a symbol, that is, a name?
    *
    * For example, uninterpreted sorts and uninterpreted sort constructors have
@@ -582,6 +590,14 @@ class CVC5_EXPORT Sort
    * @return True if the sort is a Sequence sort.
    */
   bool isSequence() const;
+
+  /**
+   * Determine if this is an abstract sort.
+   * @return True if the sort is a abstract sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  bool isAbstract() const;
 
   /**
    * Determine if this is an uninterpreted sort.
@@ -784,6 +800,15 @@ class CVC5_EXPORT Sort
    */
   Sort getSequenceElementSort() const;
 
+  /* Abstract sort ------------------------------------------------------- */
+  /**
+   * @return The sort kind of an abstract sort, which denotes the kind of
+   * sorts that this abstract sort denotes.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  SortKind getAbstractedKind() const;
+
   /* Uninterpreted sort constructor sort --------------------------------- */
 
   /**
@@ -837,6 +862,8 @@ class CVC5_EXPORT Sort
    * @return The element sorts of a tuple sort.
    */
   std::vector<Sort> getTupleSorts() const;
+
+  /* --------------------------------------------------------------------- */
 
  private:
   /** @return The internal wrapped TypeNode of this sort. */
@@ -3417,6 +3444,31 @@ class CVC5_EXPORT Solver
   Sort mkSequenceSort(const Sort& elemSort) const;
 
   /**
+   * Create an abstract sort. An abstract sort represents a sort for a given
+   * kind whose parameters and arguments are unspecified.
+   *
+   * The kind `k` must be the kind of a sort that can be abstracted, i.e., a
+   * sort that has indices or argument sorts. For example, #ARRAY_SORT and
+   * #BITVECTOR_SORT can be passed as the kind `k` to this method, while
+   * INTEGER_SORT and STRING_SORT cannot.
+   *
+   * @note Providing the kind #ABSTRACT_SORT as an argument to this method
+   * returns the (fully) unspecified sort, denoted `?`.
+   *
+   * @note Providing a kind `k` that has no indices and a fixed arity
+   * of argument sorts will return the sort of kind `k` whose arguments are the
+   * unspecified sort. For example, `mkAbstractSort(ARRAY_SORT)` will return
+   * the sort `(ARRAY_SORT ? ?)` instead of the abstract sort whose abstract
+   * kind is #ARRAY_SORT.
+   *
+   * @param k The kind of the abstract sort
+   * @return The abstract sort.
+   *
+   * @warning This method is experimental and may change in future versions.
+   */
+  Sort mkAbstractSort(SortKind k) const;
+
+  /**
    * Create an uninterpreted sort.
    * @param symbol The name of the sort.
    * @return The uninterpreted sort.
@@ -4934,6 +4986,13 @@ class CVC5_EXPORT Solver
   void addSygusConstraint(const Term& term) const;
 
   /**
+   * Get the list of sygus constraints.
+   *
+   * @return The list of sygus constraints.
+   */
+  std::vector<Term> getSygusConstraints() const;
+
+  /**
    * Add a forumla to the set of Sygus assumptions.
    *
    * SyGuS v2:
@@ -4947,6 +5006,13 @@ class CVC5_EXPORT Solver
    * @param term The formula to add as an assumption.
    */
   void addSygusAssume(const Term& term) const;
+
+  /**
+   * Get the list of sygus assumptions.
+   *
+   * @return The list of sygus assumptions.
+   */
+  std::vector<Term> getSygusAssumptions() const;
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an

@@ -104,6 +104,8 @@ class TermRegistry : protected EnvObj
    * memberships).
    */
   void preRegisterTerm(TNode n);
+  /** Preregister input variable */
+  void preRegisterInputVar(TNode n);
   /** Register term
    *
    * This performs user-context-dependent registration for a term n, which
