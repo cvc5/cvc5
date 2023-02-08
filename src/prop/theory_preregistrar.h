@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "decision/prop_finder.h"
+#include "prop/relevant_preregistrar.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
@@ -68,7 +68,7 @@ class TheoryPreregistrar : protected EnvObj
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
   /** Propagation finder */
-  std::unique_ptr<decision::PropFinder> d_propFinder;
+  std::unique_ptr<RelevantPreregistrar> d_rlvPrereg;
 };
 
 }  // namespace prop

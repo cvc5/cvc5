@@ -13,17 +13,16 @@
  * Propagation finder
  */
 
-#include "decision/prop_finder.h"
+#include "prop/relevant_preregistrar.h"
 
 #include "options/prop_options.h"
 
 using namespace cvc5::internal::kind;
-using namespace cvc5::internal::prop;
 
 namespace cvc5::internal {
-namespace decision {
+namespace prop {
 
-PropFindInfo::PropFindInfo(context::Context* c)
+RlvInfo::RlvInfo(context::Context* c)
     : d_iter(c, 0),
       d_rval(c, SAT_VALUE_UNKNOWN),
       d_childIndex(c, 0),
@@ -31,7 +30,7 @@ PropFindInfo::PropFindInfo(context::Context* c)
 {
 }
 
-PropFinder::PropFinder(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs)
+RelevantPreregistrar::RelevantPreregistrar(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs)
     : EnvObj(env),
       d_pstate(context()),
       d_assertions(userContext()),
@@ -44,9 +43,9 @@ PropFinder::PropFinder(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
 }
 
-PropFinder::~PropFinder() {}
+RelevantPreregistrar::~RelevantPreregistrar() {}
 
-void PropFinder::check(std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::check(std::vector<TNode>& toPreregister)
 {
   // ensure that all assertions have been marked as relevant
   size_t asize = d_assertions.size();
@@ -58,7 +57,7 @@ void PropFinder::check(std::vector<TNode>& toPreregister)
   }
 }
 
-void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma)
+void RelevantPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
   if (!skolem.isNull())
   {
@@ -66,31 +65,31 @@ void PropFinder::addAssertion(TNode n, TNode skolem, bool isLemma)
     return;
   }
   // buffer it into the list of assertions
-  Trace("prop-finder") << "PropFinder: add assertion " << n << std::endl;
+  Trace("prop-finder") << "RelevantPreregistrar: add assertion " << n << std::endl;
   d_assertions.push_back(n);
 }
 
-void PropFinder::notifySatLiteral(TNode n)
+void RelevantPreregistrar::notifySatLiteral(TNode n)
 {
-  Trace("prop-finder") << "PropFinder: notify SAT literal " << n << std::endl;
+  Trace("prop-finder") << "RelevantPreregistrar: notify SAT literal " << n << std::endl;
   // do nothing, only for stats
   d_statSatPrereg = d_statSatPrereg + 1;
 }
 
-void PropFinder::notifyActiveSkolemDefs(std::vector<TNode>& defs,
+void RelevantPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs,
                                         std::vector<TNode>& toPreregister)
 {
   for (TNode d : defs)
   {
-    Trace("prop-finder") << "PropFinder: add skolem definition " << d
+    Trace("prop-finder") << "RelevantPreregistrar: add skolem definition " << d
                          << std::endl;
     updateRelevant(d, toPreregister);
   }
 }
 
-bool PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
+bool RelevantPreregistrar::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
 {
-  Trace("prop-finder") << "PropFinder: notify asserted " << n << std::endl;
+  Trace("prop-finder") << "RelevantPreregistrar: notify asserted " << n << std::endl;
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
   // update relevant, which will ensure that natom is preregistered if not
@@ -115,7 +114,7 @@ bool PropFinder::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
   return !natom.isVar() || natom.getKind() == BOOLEAN_TERM_VARIABLE;
 }
 
-void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
   TNode nn = pol ? n : n[0];
@@ -131,7 +130,7 @@ void PropFinder::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
   updateRelevantInternal(toVisit, toPreregister);
 }
 
-void PropFinder::updateRelevantInternal(std::vector<TNode>& toVisit,
+void RelevantPreregistrar::updateRelevantInternal(std::vector<TNode>& toVisit,
                                         std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent. We forbid NOT for child and parent.
@@ -170,13 +169,13 @@ bool shouldWatchAll(Kind nk, SatValue rval)
 }
 
 // NOTE: responsible for popping self from toVisit!!!!
-SatValue PropFinder::updateRelevantInternal2(TNode n,
+SatValue RelevantPreregistrar::updateRelevantInternal2(TNode n,
                                              std::vector<TNode>& toPreregister,
                                              std::vector<TNode>& toVisit)
 {
   Trace("prop-finder-debug2") << "Update relevance on " << n << std::endl;
   Assert(n.getKind() != NOT);
-  PropFindInfo* currInfo = getInfo(n);
+  RlvInfo* currInfo = getInfo(n);
   // we should have already been marked relevant
   Assert(currInfo != nullptr);
   // if we've justified already, we are done
@@ -364,7 +363,7 @@ SatValue PropFinder::updateRelevantInternal2(TNode n,
   return newJval;
 }
 
-void PropFinder::markRelevant(TNode n,
+void RelevantPreregistrar::markRelevant(TNode n,
                               SatValue val,
                               std::vector<TNode>& toVisit)
 {
@@ -381,7 +380,7 @@ void PropFinder::markRelevant(TNode n,
   {
     return;
   }
-  PropFindInfo* currInfo = getInfo(n);
+  RlvInfo* currInfo = getInfo(n);
   // if we haven't allocated yet, set the relevance value directly
   if (currInfo == nullptr)
   {
@@ -410,7 +409,7 @@ void PropFinder::markRelevant(TNode n,
   // otherwise did not update, don't add to stack.
 }
 
-void PropFinder::markWatchedParent(TNode child,
+void RelevantPreregistrar::markWatchedParent(TNode child,
                                    TNode parent,
                                    SatValue implJustify)
 {
@@ -420,7 +419,7 @@ void PropFinder::markWatchedParent(TNode child,
   TNode childAtom = ppol ? child : child[0];
   Assert(childAtom.getKind() != NOT);
   Assert(parent.getKind() != NOT);
-  PropFindInfo* currInfo = getOrMkInfo(childAtom);
+  RlvInfo* currInfo = getOrMkInfo(childAtom);
   // add to parent list
   currInfo->d_parentList.push_back(parent);
   // if we imply the justification of the parent (perhaps with a negation)
@@ -431,7 +430,7 @@ void PropFinder::markWatchedParent(TNode child,
   }
 }
 
-void PropFinder::updateJustify(
+void RelevantPreregistrar::updateJustify(
     std::vector<std::pair<TNode, SatValue>>& justifyQueue,
     std::vector<TNode>& toVisit)
 {
@@ -446,7 +445,7 @@ void PropFinder::updateJustify(
     val = curr.second;
     i++;
     Assert(n.getKind() != NOT);
-    PropFindInfo* currInfo = getInfo(n);
+    RlvInfo* currInfo = getInfo(n);
     if (currInfo != nullptr)
     {
       std::map<Node, bool>::iterator itj;
@@ -484,9 +483,9 @@ void PropFinder::updateJustify(
   }
 }
 
-PropFindInfo* PropFinder::getInfo(TNode n)
+RlvInfo* RelevantPreregistrar::getInfo(TNode n)
 {
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo>>::const_iterator
+  context::CDInsertHashMap<Node, std::shared_ptr<RlvInfo>>::const_iterator
       it = d_pstate.find(n);
   if (it != d_pstate.end())
   {
@@ -495,17 +494,17 @@ PropFindInfo* PropFinder::getInfo(TNode n)
   return nullptr;
 }
 
-PropFindInfo* PropFinder::mkInfo(TNode n)
+RlvInfo* RelevantPreregistrar::mkInfo(TNode n)
 {
   Assert(d_pstate.find(n) == d_pstate.end());
-  std::shared_ptr<PropFindInfo> pi = std::make_shared<PropFindInfo>(context());
+  std::shared_ptr<RlvInfo> pi = std::make_shared<RlvInfo>(context());
   d_pstate.insert(n, pi);
   return pi.get();
 }
 
-PropFindInfo* PropFinder::getOrMkInfo(TNode n)
+RlvInfo* RelevantPreregistrar::getOrMkInfo(TNode n)
 {
-  PropFindInfo* pi = getInfo(n);
+  RlvInfo* pi = getInfo(n);
   if (pi != nullptr)
   {
     return pi;
@@ -513,12 +512,12 @@ PropFindInfo* PropFinder::getOrMkInfo(TNode n)
   return mkInfo(n);
 }
 
-SatValue PropFinder::relevantUnion(SatValue r1, SatValue r2)
+SatValue RelevantPreregistrar::relevantUnion(SatValue r1, SatValue r2)
 {
   return r1 == r2 ? r1 : SAT_VALUE_UNKNOWN;
 }
 
-void PropFinder::debugCheckAssertion(const Node& a)
+void RelevantPreregistrar::debugCheckAssertion(const Node& a)
 {
   if (d_jcache.hasValue(a))
   {
@@ -617,7 +616,7 @@ void PropFinder::debugCheckAssertion(const Node& a)
   } while (!toVisit.empty());
 }
 
-void PropFinder::debugCheck()
+void RelevantPreregistrar::debugCheck()
 {
   if (options().prop.preregDebug)
   {

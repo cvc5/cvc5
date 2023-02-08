@@ -36,8 +36,6 @@ libcvc5_add_sources(
   decision/justify_stack.h
   decision/justify_stats.cpp
   decision/justify_stats.h
-  decision/prop_finder.cpp
-  decision/prop_finder.h
   lib/clock_gettime.c
   lib/clock_gettime.h
   lib/ffs.c
@@ -272,6 +270,8 @@ libcvc5_add_sources(
   prop/prop_proof_manager.cpp
   prop/prop_proof_manager.h
   prop/registrar.h
+  prop/relevant_preregistrar.cpp
+  prop/relevant_preregistrar.h
   prop/sat_solver.h
   prop/sat_proof_manager.cpp
   prop/sat_proof_manager.h

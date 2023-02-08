@@ -29,7 +29,7 @@ TheoryPreregistrar::TheoryPreregistrar(Env& env,
 {
   if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
   {
-    d_propFinder.reset(new decision::PropFinder(d_env, ss, cs));
+    d_rlvPrereg.reset(new RelevantPreregistrar(d_env, ss, cs));
   }
 }
 
@@ -42,30 +42,30 @@ bool TheoryPreregistrar::needsActiveSkolemDefs() const
 
 void TheoryPreregistrar::check()
 {
-  if (d_propFinder != nullptr)
+  if (d_rlvPrereg != nullptr)
   {
     std::vector<TNode> toPreregister;
-    d_propFinder->check(toPreregister);
+    d_rlvPrereg->check(toPreregister);
     preRegisterToTheory(toPreregister);
   }
 }
 
 void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
 {
-  if (d_propFinder != nullptr)
+  if (d_rlvPrereg != nullptr)
   {
     // notice this does not trigger preregistration, instead the assertions
     // are buffered
-    d_propFinder->addAssertion(n, skolem, isLemma);
+    d_rlvPrereg->addAssertion(n, skolem, isLemma);
   }
 }
 
 void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs)
 {
-  if (d_propFinder != nullptr)
+  if (d_rlvPrereg != nullptr)
   {
     std::vector<TNode> toPreregister;
-    d_propFinder->notifyActiveSkolemDefs(defs, toPreregister);
+    d_rlvPrereg->notifyActiveSkolemDefs(defs, toPreregister);
     preRegisterToTheory(toPreregister);
   }
 }
@@ -78,9 +78,9 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
   }
-  else if (d_propFinder != nullptr)
+  else if (d_rlvPrereg != nullptr)
   {
-    d_propFinder->notifySatLiteral(n);
+    d_rlvPrereg->notifySatLiteral(n);
   }
 }
 
@@ -92,10 +92,10 @@ bool TheoryPreregistrar::notifyAsserted(TNode n)
     return true;
   }
   // if we are using the propagation finder, use it
-  if (d_propFinder != nullptr)
+  if (d_rlvPrereg != nullptr)
   {
     std::vector<TNode> toPreregister;
-    bool ret = d_propFinder->notifyAsserted(n, toPreregister);
+    bool ret = d_rlvPrereg->notifyAsserted(n, toPreregister);
     preRegisterToTheory(toPreregister);
     return ret;
   }
@@ -109,9 +109,9 @@ bool TheoryPreregistrar::notifyAsserted(TNode n)
 
 void TheoryPreregistrar::debugCheck()
 {
-  if (d_propFinder != nullptr)
+  if (d_rlvPrereg != nullptr)
   {
-    d_propFinder->debugCheck();
+    d_rlvPrereg->debugCheck();
   }
 }
 

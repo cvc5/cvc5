@@ -28,16 +28,16 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
-namespace decision {
+namespace prop {
 
-class PropFindInfo
+class RlvInfo
 {
  public:
-  PropFindInfo(context::Context* c);
+  RlvInfo(context::Context* c);
   /** The iteration */
   context::CDO<size_t> d_iter;
   /** The relevant value */
-  context::CDO<prop::SatValue> d_rval;
+  context::CDO<SatValue> d_rval;
   /** The last child we looked up */
   context::CDO<size_t> d_childIndex;
   /**
@@ -57,13 +57,13 @@ class PropFindInfo
 
 /**
  */
-class PropFinder : protected EnvObj
+class RelevantPreregistrar : protected EnvObj
 {
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  PropFinder(Env& env, prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
-  ~PropFinder();
+  RelevantPreregistrar(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs);
+  ~RelevantPreregistrar();
   /** theory check */
   void check(std::vector<TNode>& toPreregister);
   /** Notify assertion */
@@ -86,10 +86,10 @@ class PropFinder : protected EnvObj
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
   void updateRelevantInternal(std::vector<TNode>& toVisit,
                               std::vector<TNode>& toPreregister);
-  prop::SatValue updateRelevantInternal2(TNode n,
+  SatValue updateRelevantInternal2(TNode n,
                                          std::vector<TNode>& toPreregister,
                                          std::vector<TNode>& toVisit);
-  void markRelevant(TNode n, prop::SatValue val, std::vector<TNode>& toVisit);
+  void markRelevant(TNode n, SatValue val, std::vector<TNode>& toVisit);
   /**
    * NOTE: child should be a direct child of parent, with its negation.
    *
@@ -99,24 +99,24 @@ class PropFinder : protected EnvObj
    */
   void markWatchedParent(TNode child,
                          TNode parent,
-                         prop::SatValue implJustify = prop::SAT_VALUE_UNKNOWN);
+                         SatValue implJustify = SAT_VALUE_UNKNOWN);
   /**
    * Process the justification for all terms in justifyQueue, add all terms
    * that need to update their relevance to toVisit.
    */
   void updateJustify(
-      std::vector<std::pair<TNode, prop::SatValue>>& justifyQueue,
+      std::vector<std::pair<TNode, SatValue>>& justifyQueue,
       std::vector<TNode>& toVisit);
 
   void debugCheckAssertion(const Node& a);
-  /** mk or get PropFindInfo */
-  PropFindInfo* getInfo(TNode n);
-  /** mk or get PropFindInfo */
-  PropFindInfo* mkInfo(TNode n);
-  /** mk or get PropFindInfo */
-  PropFindInfo* getOrMkInfo(TNode n);
+  /** mk or get RlvInfo */
+  RlvInfo* getInfo(TNode n);
+  /** mk or get RlvInfo */
+  RlvInfo* mkInfo(TNode n);
+  /** mk or get RlvInfo */
+  RlvInfo* getOrMkInfo(TNode n);
   /** The state */
-  context::CDInsertHashMap<Node, std::shared_ptr<PropFindInfo>> d_pstate;
+  context::CDInsertHashMap<Node, std::shared_ptr<RlvInfo>> d_pstate;
   /** The list of assertions */
   context::CDList<Node> d_assertions;
   /** List of preregistered literals */
@@ -126,9 +126,9 @@ class PropFinder : protected EnvObj
   /** Null node */
   TNode d_null;
   /** A justification cache */
-  JustifyCache d_jcache;
+  decision::JustifyCache d_jcache;
   /** */
-  static prop::SatValue relevantUnion(prop::SatValue r1, prop::SatValue r2);
+  static SatValue relevantUnion(SatValue r1, SatValue r2);
   /** stats */
   context::CDO<size_t> d_statSatPrereg;
   context::CDO<size_t> d_statPrereg;
