@@ -227,7 +227,6 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       }
     }
   }
-  d_prr->debugCheck();
   if (!d_stopSearch.get())
   {
     d_theoryEngine->check(effort);
