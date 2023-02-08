@@ -372,6 +372,12 @@ RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node, bool prerewrite)
   Node resultNode = LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
+RewriteResponse TheoryBVRewriter::RewriteSize(TNode node, bool prerewrite)
+{
+  Node resultNode = LinearRewriteStrategy<RewriteRule<SizeEliminate>>::apply(node);
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
+
 RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
 {
   Node resultNode =
@@ -766,4 +772,6 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable[kind::BITVECTOR_SSUBO] = RewriteSsubo;
   d_rewriteTable[kind::BITVECTOR_SDIVO] = RewriteSdivo;
   d_rewriteTable[kind::BITVECTOR_EAGER_ATOM] = RewriteEagerAtom;
+  d_rewriteTable[kind::BITVECTOR_SIZE] = RewriteSize;
+  d_rewriteTable[kind::CONST_BITVECTOR_SYMBOLIC] = RewriteConstBvSym;
 }

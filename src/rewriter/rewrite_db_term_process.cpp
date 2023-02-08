@@ -18,7 +18,10 @@
 #include "expr/attribute.h"
 #include "expr/nary_term_util.h"
 #include "util/string.h"
+#include "util/bitvector.h"
+#include "util/rational.h"
 #include "theory/builtin/generic_op.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace cvc5::internal::kind;
 
@@ -47,6 +50,15 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       children.push_back(nm->mkConst(String(tmp)));
     }
     return nm->mkNode(STRING_CONCAT, children);
+  }
+  else if (k == CONST_BITVECTOR)
+  {
+    // (_ bv N M) is (bv N M)
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> children;
+    children.push_back(nm->mkConstInt(Rational(n.getConst<BitVector>().toInteger())));
+    children.push_back(nm->mkConstInt(Rational(theory::bv::utils::getSize(n))));
+    return nm->mkNode(CONST_BITVECTOR_SYMBOLIC, children);
   }
   // convert indexed operators to symbolic
   if (GenericOp::isIndexedOperatorKind(k))

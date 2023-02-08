@@ -502,6 +502,7 @@ bool RewriteRule<EvalConstBvSym>::applies(TNode node) {
 
 template<> inline
 Node RewriteRule<EvalConstBvSym>::apply(TNode node) {
+  Trace("bv-rewrite") << "RewriteRule<EvalConstBvSym>(" << node << ")" << std::endl;
   Integer a = node[0].getConst<Rational>().getNumerator();
   Integer b = node[1].getConst<Rational>().getNumerator();
   return utils::mkConst(b.toUnsignedInt(), a);

@@ -158,14 +158,14 @@
 
 ; Bugged Rule
 (define-cond-rule ShlByConst1
-  ((x ?BitVec) (amount Int))
+  ((x ?BitVec) (amount Int) (sz Int))
   (< amount (bvsize x))
-  (bvshl x (bv amount (bvsize x)))
+  (bvshl x (bv amount sz))
   (concat (extract (bvsize x) (- (bvsize x) 1 amount x) (bv 0 (bvsize x)))))
 (define-cond-rule ShlByConst2
-  ((x ?BitVec) (amount Int))
+  ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (bvsize x))
-  (bvshl x (bv amount (bvsize x)))
+  (bvshl x (bv amount sz))
   (bv 0 (bvsize x)))
 
 
