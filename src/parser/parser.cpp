@@ -48,7 +48,6 @@ ParserState::ParserState(ParserStateCallback* psc,
       d_strictMode(strictMode),
       d_parseOnly(d_solver->getOptionInfo("parse-only").boolValue())
 {
-  d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
 ParserState::~ParserState() {}
