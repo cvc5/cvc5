@@ -294,7 +294,8 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, getNameForUserName(name));
+  Sort type = d_solver->mkUninterpretedSortConstructorSort(
+      arity, getNameForUserName(name));
   defineType(name, vector<Sort>(arity), type);
   return type;
 }
