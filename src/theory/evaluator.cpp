@@ -945,7 +945,20 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
+        case kind::BITVECTOR_TO_NAT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          results[currNode] = EvalResult(Rational(res.toInteger()));
+          break;
+        }
+        case kind::INT_TO_BITVECTOR:
+        {
+          Integer i = results[currNode[0]].d_rat.getNumerator();
+          const uint32_t size =
+              currNodeVal.getOperator().getConst<IntToBitVector>().d_size;
+          results[currNode] = EvalResult(BitVector(size, i));
+          break;
+        }
         default:
         {
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
