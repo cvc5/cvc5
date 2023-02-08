@@ -38,7 +38,7 @@ namespace parser {
  * arguments `args`, which give a recipe for the term we are parsing. The data
  * in these depend on the context we are in, as documented below.
  */
-enum class ParseCtx : uint32_t
+enum class ParseCtx
 {
   /**
    * NEXT_ARG: in context (<op> <term>* <term>
