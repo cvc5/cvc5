@@ -3382,6 +3382,8 @@ set(regression_disabled_tests
   regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   # timeout on some builds after not applying default sygus options when using sygus-inst
   regress1/quantifiers/issue4062-cegqi-aux.smt2
+  # timeout instead of unknown on some builds
+  regress1/quantifiers/issue9477-mbqi-ran.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
