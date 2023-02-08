@@ -307,11 +307,13 @@ EvalResult Evaluator::evalInternal(
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0)
+        if (currNodeVal.getNumChildren() > 0 && currNodeVal.getKind()!=BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
           // our children may not have successful evaluations.
+          // bvsize is a rare exception to this, where the evaluation does
+          // not depend on the value of the argument.
           results[currNode] = EvalResult();
           evalAsNode[currNode] = currNodeVal;
           continue;
@@ -957,6 +959,36 @@ EvalResult Evaluator::evalInternal(
           const uint32_t size =
               currNodeVal.getOperator().getConst<IntToBitVector>().d_size;
           results[currNode] = EvalResult(BitVector(size, i));
+          break;
+        }
+        case kind::CONST_BITVECTOR_SYMBOLIC:
+        {
+          Integer i = results[currNode[0]].d_rat.getNumerator();
+          Integer w = results[currNode[1]].d_rat.getNumerator();
+          if (w.fitsUnsignedInt())
+          {
+            Trace("evaluator") << currNode << " evalutes to " << BitVector(w.toUnsignedInt(), i) << std::endl;
+            results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
+        case kind::BITVECTOR_SIZE:
+        {
+          const TypeNode& tn = currNode[0].getType();
+          if (tn.isBitVector())
+          {
+            results[currNode] = EvalResult(Rational(tn.getBitVectorSize()));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
           break;
         }
         default:

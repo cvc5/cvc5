@@ -156,7 +156,6 @@
   (bvnot (bvnor x y)))
 
 
-; Bugged Rule
 (define-cond-rule ShlByConst1
   ((x ?BitVec) (amount Int) (sz Int))
   (< amount (bvsize x))
@@ -166,7 +165,7 @@
   ((x ?BitVec) (amount Int) (sz Int))
   (>= amount (bvsize x))
   (bvshl x (bv amount sz))
-  (bv 0 (bvsize x)))
+  (bv 0 sz))
 
 
 ; -- Simplification Rules --

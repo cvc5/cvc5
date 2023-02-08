@@ -410,7 +410,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       {
         // does not hold, we fail
         Trace("rpc-debug2")
-            << "...fail (simple condition failure)" << std::endl;
+            << "...fail (simple condition failure for " << cond << ")" << std::endl;
         return false;
       }
       // already holds, continue

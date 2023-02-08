@@ -1250,6 +1250,9 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
     case kind::INT_TO_BITVECTOR: return "int2bv";
     case kind::BITVECTOR_BB_TERM: return "bbT";
+    
+    case kind::BITVECTOR_SIZE: return "bvsize";
+    case kind::CONST_BITVECTOR_SYMBOLIC: return "bv";
 
     // datatypes theory
     case kind::APPLY_TESTER: return "is";
