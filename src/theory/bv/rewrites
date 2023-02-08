@@ -1,5 +1,11 @@
 
 ; -- Core Normalization Rules --
+
+
+; Note that the extract semantics (extract j i x)
+; extracts the range [i..j]. Vide https://smtlib.cs.uiowa.edu/theories-FixedSizeBitVectors.shtml
+; Also concat is big-endian.
+
 (define-rule* ConcatFlatten
 	((xs ?BitVec :list)
 	 (s ?BitVec)
@@ -11,40 +17,46 @@
 	((xs ?BitVec :list)
 	 (s ?BitVec)
 	 (ys ?BitVec :list)
-	 (i Int) (n1 Int) (n2 Int)
+	 (i Int) (j Int) (k Int)
 	)
-	(concat xs (extract i n1 s) (extract (+ i n1) n2 s) ys)
-	(concat xs (extract i (+ n1 n2) s) ys))
+	(concat xs (extract k (+ j 1) s) (extract j i s) ys)
+	(concat xs (extract k i s) ys))
+; x[i..j][k..l] = x[i+k..i+l]
 (define-rule* ExtractExtract
 	((x ?BitVec) (i Int) (j Int) (k Int) (l Int))
-	(extract k l (extract i j x))
-	(extract (+ k j) (+ l j) x))
+	(extract l k (extract j i x))
+	(extract (+ i l) (+ i k) x))
 (define-cond-rule ExtractWhole
 	((x ?BitVec) (n Int))
 	(= n (bvsize x))
-	(extract 0 n x)
+	(extract (- n 1) 0 x)
 	x)
+; Case 1: (< j n) so the extract is self contained
 (define-cond-rule ExtractConcat1
 	((x ?BitVec) (xs ?BitVec :list)
 	(i Int) (j Int))
-	(and (< i (bvsize x)) (<= j (bvsize x))) ; off by one?
-	(extract i j (concat x xs))
-	(concat (extract i j x) xs)
+	(<= j (bvsize x))
+	(extract j i (concat xs x))
+	(concat xs (extract j i x))
 	)
+; Case 2: (< i n) but (>= j n), the extract crosses the boundary into the next one.
+; Note that we do not know the size of the element after x, so we leave it in (extract (concat ...)) form
 (define-cond-rule ExtractConcat2
 	((x ?BitVec) (xs ?BitVec :list)
 	(i Int) (j Int))
-	(and (< i (bvsize x)) (> j (bvsize x))) ; off by one?
-	(extract i j (concat x xs))
-	(concat (extract i (bvsize x) x)
-		(extract (- i (bvsize x)) (- j (bvsize x)) (concat xs)))
+	(and (< i (bvsize x)) (>= j (bvsize x)))
+	(extract j i (concat xs x))
+	(concat
+		(extract (- j (bvsize x)) 0 (concat xs))
+		(extract (- (bvsize x) 1) i x))
 	)
+; Case 3: (>= i n) and (>= j n), extract elides x
 (define-cond-rule ExtractConcat3
 	((x ?BitVec) (xs ?BitVec :list)
 	(i Int) (j Int))
 	(>= i (bvsize x))
-	(extract i j (concat x xs))
-	(extract (- i (bvsize x)) (- j (bvsize x)) (concat xs))
+	(extract j i (concat xs x))
+	(extract (- j (bvsize x)) (- i (bvsize x)) (concat xs))
 	)
 
 ; -- Operator Elimination Rules --
