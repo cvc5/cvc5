@@ -564,6 +564,8 @@ class CVC5_EXPORT ParserState
  protected:
   /** The API Solver object. */
   Solver* d_solver;
+  /** */
+  std::string d_printNamespace;
 
  private:
   /** The callback */
@@ -607,6 +609,8 @@ class CVC5_EXPORT ParserState
    * Only returns a symbol if it is not overloaded, returns null otherwise.
    */
   Term getSymbol(const std::string& var_name, SymbolType type);
+  /** Get name for user name */
+  std::string getNameForUserName(const std::string& name) const;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */

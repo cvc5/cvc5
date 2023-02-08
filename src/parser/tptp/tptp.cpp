@@ -37,6 +37,10 @@ TptpState::TptpState(ParserStateCallback* psc,
       d_fof(false),
       d_hol(false)
 {
+  // To ensure there are no conflicts with smt2 builtin symbols, we use a
+  // print namespace. This ensures that benchmarks coverted TPTP to smt2
+  // can be reparsed with -o raw-benchmark.
+  d_printNamespace = "tptp.";
   addTheory(TptpState::THEORY_CORE);
 
   /* Try to find TPTP dir */

@@ -866,7 +866,7 @@ std::string DeclareFunctionCommand::getCommandName() const
 void DeclareFunctionCommand::toStream(std::ostream& out) const
 {
   Printer::getPrinter(out)->toStreamCmdDeclareFunction(
-      out, d_symbol, sortToTypeNode(d_func.getSort()));
+      out, d_func.getSymbol(), sortToTypeNode(d_func.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
