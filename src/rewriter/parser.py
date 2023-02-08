@@ -192,10 +192,6 @@ class Parser:
                 lambda s, l, t: CBool(False))
         iconst = pp.Word(
             pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
-        bvconst = (
-            pp.Suppress('(') + pp.Suppress('_') + pp.Keyword('bv') + expr +
-            expr +
-            ')').setParseAction(lambda s, l, t: App(Op.BVCONST, [t[1], t[2]]))
         strconst = pp.QuotedString(
             quoteChar='"').setParseAction(lambda s, l, t: CString(t[0]))
 
@@ -223,7 +219,7 @@ class Parser:
             pp.Optional(expr) +
             pp.Suppress(')')).setParseAction(lambda s, l, t: mk_case(t[1:]))
 
-        options = bconst | iconst | bvconst | strconst | cond | indexed_app | app | let | var
+        options = bconst | iconst | strconst | cond | indexed_app | app | let | var
         if allow_comprehension:
             lambda_def = (pp.Suppress('(') + pp.Keyword('lambda') +
                           pp.Suppress('(') + self.symbol() + self.sort() +

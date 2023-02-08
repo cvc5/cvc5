@@ -111,6 +111,7 @@ enum RewriteRuleId
   EvalSle,
   EvalITEBv,
   EvalComp,
+  EvalConstBvSym,
   EvalEagerAtom,
 
   /// simplification rules
@@ -275,6 +276,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
+  case EvalConstBvSym:      out << "EvalConstBvSym";      return out;
   case EvalEagerAtom: out << "EvalEagerAtom"; return out;
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;

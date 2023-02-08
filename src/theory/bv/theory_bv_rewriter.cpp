@@ -367,6 +367,11 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
+RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node, bool prerewrite)
+{
+  Node resultNode = LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
+  return RewriteResponse(REWRITE_DONE, resultNode);
+}
 RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
 {
   Node resultNode =
