@@ -87,8 +87,8 @@ class RelevantPreregistrar : protected EnvObj
   void updateRelevantInternal(std::vector<TNode>& toVisit,
                               std::vector<TNode>& toPreregister);
   SatValue updateRelevantInternal2(TNode n,
-                                         std::vector<TNode>& toPreregister,
-                                         std::vector<TNode>& toVisit);
+                                   std::vector<TNode>& toPreregister,
+                                   std::vector<TNode>& toVisit);
   void markRelevant(TNode n, SatValue val, std::vector<TNode>& toVisit);
   /**
    * NOTE: child should be a direct child of parent, with its negation.
@@ -104,9 +104,8 @@ class RelevantPreregistrar : protected EnvObj
    * Process the justification for all terms in justifyQueue, add all terms
    * that need to update their relevance to toVisit.
    */
-  void updateJustify(
-      std::vector<std::pair<TNode, SatValue>>& justifyQueue,
-      std::vector<TNode>& toVisit);
+  void updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue,
+                     std::vector<TNode>& toVisit);
 
   void debugCheckAssertion(const Node& a);
   /** mk or get RlvInfo */
@@ -134,7 +133,7 @@ class RelevantPreregistrar : protected EnvObj
   context::CDO<size_t> d_statPrereg;
 };
 
-}  // namespace decision
+}  // namespace prop
 }  // namespace cvc5::internal
 
 #endif /* CVC5__DECISION__PROP_FINDER_H */

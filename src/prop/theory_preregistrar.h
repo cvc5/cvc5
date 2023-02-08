@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "prop/relevant_preregistrar.h"
 #include "expr/node.h"
+#include "prop/relevant_preregistrar.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {

@@ -30,7 +30,9 @@ RlvInfo::RlvInfo(context::Context* c)
 {
 }
 
-RelevantPreregistrar::RelevantPreregistrar(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs)
+RelevantPreregistrar::RelevantPreregistrar(Env& env,
+                                           CDCLTSatSolverInterface* ss,
+                                           CnfStream* cs)
     : EnvObj(env),
       d_pstate(context()),
       d_assertions(userContext()),
@@ -65,19 +67,21 @@ void RelevantPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
     return;
   }
   // buffer it into the list of assertions
-  Trace("prop-finder") << "RelevantPreregistrar: add assertion " << n << std::endl;
+  Trace("prop-finder") << "RelevantPreregistrar: add assertion " << n
+                       << std::endl;
   d_assertions.push_back(n);
 }
 
 void RelevantPreregistrar::notifySatLiteral(TNode n)
 {
-  Trace("prop-finder") << "RelevantPreregistrar: notify SAT literal " << n << std::endl;
+  Trace("prop-finder") << "RelevantPreregistrar: notify SAT literal " << n
+                       << std::endl;
   // do nothing, only for stats
   d_statSatPrereg = d_statSatPrereg + 1;
 }
 
-void RelevantPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs,
-                                        std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::notifyActiveSkolemDefs(
+    std::vector<TNode>& defs, std::vector<TNode>& toPreregister)
 {
   for (TNode d : defs)
   {
@@ -87,9 +91,11 @@ void RelevantPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs,
   }
 }
 
-bool RelevantPreregistrar::notifyAsserted(TNode n, std::vector<TNode>& toPreregister)
+bool RelevantPreregistrar::notifyAsserted(TNode n,
+                                          std::vector<TNode>& toPreregister)
 {
-  Trace("prop-finder") << "RelevantPreregistrar: notify asserted " << n << std::endl;
+  Trace("prop-finder") << "RelevantPreregistrar: notify asserted " << n
+                       << std::endl;
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
   // update relevant, which will ensure that natom is preregistered if not
@@ -114,7 +120,8 @@ bool RelevantPreregistrar::notifyAsserted(TNode n, std::vector<TNode>& toPreregi
   return !natom.isVar() || natom.getKind() == BOOLEAN_TERM_VARIABLE;
 }
 
-void RelevantPreregistrar::updateRelevant(TNode n, std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::updateRelevant(TNode n,
+                                          std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
   TNode nn = pol ? n : n[0];
@@ -130,8 +137,8 @@ void RelevantPreregistrar::updateRelevant(TNode n, std::vector<TNode>& toPreregi
   updateRelevantInternal(toVisit, toPreregister);
 }
 
-void RelevantPreregistrar::updateRelevantInternal(std::vector<TNode>& toVisit,
-                                        std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::updateRelevantInternal(
+    std::vector<TNode>& toVisit, std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent. We forbid NOT for child and parent.
   std::vector<std::pair<TNode, SatValue>> justifyQueue;
@@ -169,9 +176,8 @@ bool shouldWatchAll(Kind nk, SatValue rval)
 }
 
 // NOTE: responsible for popping self from toVisit!!!!
-SatValue RelevantPreregistrar::updateRelevantInternal2(TNode n,
-                                             std::vector<TNode>& toPreregister,
-                                             std::vector<TNode>& toVisit)
+SatValue RelevantPreregistrar::updateRelevantInternal2(
+    TNode n, std::vector<TNode>& toPreregister, std::vector<TNode>& toVisit)
 {
   Trace("prop-finder-debug2") << "Update relevance on " << n << std::endl;
   Assert(n.getKind() != NOT);
@@ -364,8 +370,8 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(TNode n,
 }
 
 void RelevantPreregistrar::markRelevant(TNode n,
-                              SatValue val,
-                              std::vector<TNode>& toVisit)
+                                        SatValue val,
+                                        std::vector<TNode>& toVisit)
 {
   // TODO: short cut if n is a theory literal, don't allocate cinfo?
   // problem is that adding to preregister has to be handled somewhere
@@ -410,8 +416,8 @@ void RelevantPreregistrar::markRelevant(TNode n,
 }
 
 void RelevantPreregistrar::markWatchedParent(TNode child,
-                                   TNode parent,
-                                   SatValue implJustify)
+                                             TNode parent,
+                                             SatValue implJustify)
 {
   Trace("prop-finder-debug")
       << "Mark watched " << child << " with parent " << parent << std::endl;
@@ -485,8 +491,8 @@ void RelevantPreregistrar::updateJustify(
 
 RlvInfo* RelevantPreregistrar::getInfo(TNode n)
 {
-  context::CDInsertHashMap<Node, std::shared_ptr<RlvInfo>>::const_iterator
-      it = d_pstate.find(n);
+  context::CDInsertHashMap<Node, std::shared_ptr<RlvInfo>>::const_iterator it =
+      d_pstate.find(n);
   if (it != d_pstate.end())
   {
     return it->second.get();
@@ -627,5 +633,5 @@ void RelevantPreregistrar::debugCheck()
   }
 }
 
-}  // namespace decision
+}  // namespace prop
 }  // namespace cvc5::internal
