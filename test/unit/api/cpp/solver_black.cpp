@@ -569,7 +569,7 @@ TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
 TEST_F(TestApiBlackSolver, mkEmptySet)
 {
   Sort s = d_solver.mkSetSort(d_solver.getBooleanSort());
-  ASSERT_NO_THROW(d_solver.mkEmptySet(Sort()));
+  ASSERT_THROW(d_solver.mkEmptySet(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkEmptySet(s));
   ASSERT_THROW(d_solver.mkEmptySet(d_solver.getBooleanSort()),
                CVC5ApiException);
@@ -580,7 +580,7 @@ TEST_F(TestApiBlackSolver, mkEmptySet)
 TEST_F(TestApiBlackSolver, mkEmptyBag)
 {
   Sort s = d_solver.mkBagSort(d_solver.getBooleanSort());
-  ASSERT_NO_THROW(d_solver.mkEmptyBag(Sort()));
+  ASSERT_THROW(d_solver.mkEmptyBag(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkEmptyBag(s));
   ASSERT_THROW(d_solver.mkEmptyBag(d_solver.getBooleanSort()),
                CVC5ApiException);
@@ -2750,6 +2750,17 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_NO_THROW(slv.addSygusConstraint(boolTerm));
 }
 
+TEST_F(TestApiBlackSolver, getSygusConstraints)
+{
+  d_solver.setOption("sygus", "true");
+  Term trueTerm = d_solver.mkBoolean(true);
+  Term falseTerm = d_solver.mkBoolean(false);
+  d_solver.addSygusConstraint(trueTerm);
+  d_solver.addSygusConstraint(falseTerm);
+  std::vector<Term> constraints{trueTerm, falseTerm};
+  ASSERT_EQ(d_solver.getSygusConstraints(), constraints);
+}
+
 TEST_F(TestApiBlackSolver, addSygusAssume)
 {
   d_solver.setOption("sygus", "true");
@@ -2764,6 +2775,17 @@ TEST_F(TestApiBlackSolver, addSygusAssume)
   Solver slv;
   slv.setOption("sygus", "true");
   ASSERT_NO_THROW(slv.addSygusAssume(boolTerm));
+}
+
+TEST_F(TestApiBlackSolver, getSygusAssumptions)
+{
+  d_solver.setOption("sygus", "true");
+  Term trueTerm = d_solver.mkBoolean(true);
+  Term falseTerm = d_solver.mkBoolean(false);
+  d_solver.addSygusAssume(trueTerm);
+  d_solver.addSygusAssume(falseTerm);
+  std::vector<Term> assumptions{trueTerm, falseTerm};
+  ASSERT_EQ(d_solver.getSygusAssumptions(), assumptions);
 }
 
 TEST_F(TestApiBlackSolver, addSygusInvConstraint)
