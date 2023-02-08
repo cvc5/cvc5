@@ -39,6 +39,7 @@
 #include "proof/unsat_core.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -540,7 +541,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
 
-  if (n.getKind() == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
+  if (k == kind::SKOLEM && nm->getSkolemManager()->isAbstractValue(n))
   {
     // abstract value
     std::string s = n.getName();
@@ -553,7 +554,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if (n.hasName())
     {
       std::string s = n.getName();
-      if (n.getKind() == kind::RAW_SYMBOL)
+      if (k == kind::RAW_SYMBOL)
       {
         // raw symbols are never quoted
         out << s;
@@ -565,16 +566,24 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     else
     {
-      if (n.getKind() == kind::VARIABLE)
+      if (k == kind::VARIABLE)
       {
         out << "var_";
       }
       else
       {
-        out << n.getKind() << '_';
+        out << k << '_';
       }
       out << n.getId();
     }
+    return;
+  }
+  if (k==kind::APPLY_UF && !n.getOperator().isVar())
+  {
+    // Must print as HO apply instead. This ensures un-beta-reduced function
+    // applications can be reparsed.
+    Node hoa = theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n);
+    toStream(out, hoa, toDepth);
     return;
   }
 
