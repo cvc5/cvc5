@@ -44,11 +44,9 @@ namespace rewriter {
 class RewriteDbNodeConverter : public NodeConverter
 {
  public:
-  /** convert to internal
-   *
-   * This converts the node n to the internal shape that it would be in
-   * the proof checker. This means that n-ary applications are converted
-   * to (left-associative) chains.
+  /**
+   * This converts the node n to the internal shape that it should be in
+   * for the DSL proof reconstruction algorithm.
    */
   Node postConvert(Node n) override;
 };

@@ -18,7 +18,6 @@
 #include "expr/attribute.h"
 #include "expr/nary_term_util.h"
 #include "util/string.h"
-#include "theory/builtin/generic_op.h"
 
 using namespace cvc5::internal::kind;
 
