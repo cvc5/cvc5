@@ -1656,7 +1656,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
     case kind::SET_MEMBER:
     {
       // add trigger predicate for equality and membership
-      d_equalityEngine->addTriggerPredicate(node);
+      d_state.addEqualityEngineTriggerPredicate(node);
     }
     break;
     case kind::RELATION_JOIN_IMAGE:
