@@ -30,6 +30,9 @@
 namespace cvc5::internal {
 namespace prop {
 
+/**
+ * Information maintained for a formula for tracking relevancy.
+ */
 class RlvInfo
 {
  public:
@@ -56,6 +59,25 @@ class RlvInfo
 };
 
 /**
+ * The relevant preregistration policy. This implements a policy where
+ * only a subset of theory literals are preregistered at any given time.
+ * This selection is based on a notion of relevance. Some simple examples
+ * of the intuition:
+ * - Say (or A B C) is an input formula and no literal is assigned, then we
+ * preregister A only.
+ * - Say (or A B C) is an input formula and A is already asserted true, then we
+ * preregister nothing since this formula is already justifed.
+ * - Say (and A B C) is an input formula, then we preregister A, B, C.
+ * - Say (= A (and B C)) is an input formula and A is already asserted true,
+ * then we preregister B, C.
+ * - Say (= A (and B C)) is an input formula and A is already asserted false,
+ * then we preregister B only.
+ * - Say (ite A B C) is an input formula and A is already asserted false, then
+ * we preregister C.
+ * 
+ * The intuition in the above cases is that we want to preregister only
+ * the literals that, if they were to be T-propagated, could contribute towards
+ * a SAT conflict in the current context.
  */
 class RelevantPreregistrar : protected EnvObj
 {
@@ -64,29 +86,50 @@ class RelevantPreregistrar : protected EnvObj
  public:
   RelevantPreregistrar(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs);
   ~RelevantPreregistrar();
-  /** theory check */
+  /** 
+   * Called the beginning of theory checks (in TheoryProxy), adds literals to
+   * preregister to toPreregister.
+   */
   void check(std::vector<TNode>& toPreregister);
-  /** Notify assertion */
+  /** 
+   * Notify n is an assertion (input formula), possibly associated with
+   * skolem.
+   */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify that n is a literal allocated by the SAT solver */
   void notifySatLiteral(TNode n);
-  /** Notify active skolem definitions */
+  /** 
+   * Notify active skolem definitions, adds literals to preregister to
+   * toPreregister.
+   */
   void notifyActiveSkolemDefs(std::vector<TNode>& defs,
                               std::vector<TNode>& toPreregister);
   /**
    * Notify that n is asserted from SAT solver, return true if we should
-   * assert n to the theory engine.
+   * assert n to the theory engine, and adds literals to
+   * preregister to toPreregister.
    */
   bool notifyAsserted(TNode n, std::vector<TNode>& toPreregister);
 
  private:
-  /** Set relevant */
+  /**
+   * Update that n should be considered relevant, and adds literals to
+   * preregister to toPreregister.
+   */
   void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
+  /**
+   * Update that n should be considered relevant, and adds literals to
+   * preregister to toPreregister.
+   */
   void updateRelevantInternal(std::vector<TNode>& toVisit,
                               std::vector<TNode>& toPreregister);
   SatValue updateRelevantInternal2(TNode n,
                                    std::vector<TNode>& toPreregister,
                                    std::vector<TNode>& toVisit);
+  /**
+   * Mark that n is relevant with polarity val. Adds n to the vector toVisit
+   * if its relevance information needs to be updated.
+   */
   void markRelevant(TNode n, SatValue val, std::vector<TNode>& toVisit);
   /**
    * NOTE: child should be a direct child of parent, with its negation.
@@ -104,13 +147,13 @@ class RelevantPreregistrar : protected EnvObj
    */
   void updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue,
                      std::vector<TNode>& toVisit);
-  /** mk or get RlvInfo */
+  /** get RlvInfo */
   RlvInfo* getInfo(TNode n);
-  /** mk or get RlvInfo */
+  /** mk RlvInfo */
   RlvInfo* mkInfo(TNode n);
   /** mk or get RlvInfo */
   RlvInfo* getOrMkInfo(TNode n);
-  /** The state */
+  /** The relevance state of each relevant formula in the input */
   context::CDInsertHashMap<Node, std::shared_ptr<RlvInfo>> d_pstate;
   /** The list of assertions */
   context::CDList<Node> d_assertions;
@@ -122,9 +165,9 @@ class RelevantPreregistrar : protected EnvObj
   TNode d_null;
   /** A justification cache */
   decision::JustifyCache d_jcache;
-  /** */
+  /** Takes the union of the relevance values denoted by r1 and r2 */
   static SatValue relevantUnion(SatValue r1, SatValue r2);
-  /** stats */
+  /** stats for debugging */
   context::CDO<size_t> d_statSatPrereg;
   context::CDO<size_t> d_statPrereg;
 };

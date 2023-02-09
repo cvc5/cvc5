@@ -67,14 +67,14 @@ void RelevantPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
     return;
   }
   // buffer it into the list of assertions
-  Trace("prop-finder") << "RelevantPreregistrar: add assertion " << n
+  Trace("prereg-rlv") << "RelevantPreregistrar: add assertion " << n
                        << std::endl;
   d_assertions.push_back(n);
 }
 
 void RelevantPreregistrar::notifySatLiteral(TNode n)
 {
-  Trace("prop-finder") << "RelevantPreregistrar: notify SAT literal " << n
+  Trace("prereg-rlv") << "RelevantPreregistrar: notify SAT literal " << n
                        << std::endl;
   // do nothing, only for stats
   d_statSatPrereg = d_statSatPrereg + 1;
@@ -85,7 +85,7 @@ void RelevantPreregistrar::notifyActiveSkolemDefs(
 {
   for (TNode d : defs)
   {
-    Trace("prop-finder") << "RelevantPreregistrar: add skolem definition " << d
+    Trace("prereg-rlv") << "RelevantPreregistrar: add skolem definition " << d
                          << std::endl;
     updateRelevant(d, toPreregister);
   }
@@ -94,7 +94,7 @@ void RelevantPreregistrar::notifyActiveSkolemDefs(
 bool RelevantPreregistrar::notifyAsserted(TNode n,
                                           std::vector<TNode>& toPreregister)
 {
-  Trace("prop-finder") << "RelevantPreregistrar: notify asserted " << n
+  Trace("prereg-rlv") << "RelevantPreregistrar: notify asserted " << n
                        << std::endl;
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
@@ -111,7 +111,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
   justifyQueue.emplace_back(natom, jval);
   std::vector<TNode> toVisit;
   updateJustify(justifyQueue, toVisit);
-  Trace("prop-finder-debug2")
+  Trace("prereg-rlv-debug2")
       << "...will visit " << toVisit.size() << " parents" << std::endl;
   updateRelevantInternal(toVisit, toPreregister);
 
@@ -152,7 +152,7 @@ void RelevantPreregistrar::updateRelevantInternal(
     // if we found it was justified
     if (jval != SAT_VALUE_UNKNOWN)
     {
-      Trace("prop-finder-debug")
+      Trace("prereg-rlv-debug")
           << "Mark " << t << " as justified " << jval << std::endl;
       // set its value in the justification cache
       d_jcache.setValue(t, jval);
@@ -175,11 +175,11 @@ bool shouldWatchAll(Kind nk, SatValue rval)
   return rval == SAT_VALUE_UNKNOWN || ((nk == AND) == (rval == SAT_VALUE_TRUE));
 }
 
-// NOTE: responsible for popping self from toVisit!!!!
+// NOTE: this method is responsible for popping from toVisit when applicable
 SatValue RelevantPreregistrar::updateRelevantInternal2(
     TNode n, std::vector<TNode>& toPreregister, std::vector<TNode>& toVisit)
 {
-  Trace("prop-finder-debug2") << "Update relevance on " << n << std::endl;
+  Trace("prereg-rlv-debug2") << "Update relevance on " << n << std::endl;
   Assert(n.getKind() != NOT);
   RlvInfo* currInfo = getInfo(n);
   // we should have already been marked relevant
@@ -187,7 +187,7 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(
   // if we've justified already, we are done
   if (d_jcache.hasValue(n))
   {
-    Trace("prop-finder-debug2") << "...already justified" << std::endl;
+    Trace("prereg-rlv-debug2") << "...already justified" << std::endl;
     toVisit.pop_back();
     return SAT_VALUE_UNKNOWN;
   }
@@ -197,7 +197,7 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(
   // if the justified value of n is found in this call, this is set to its value
   SatValue newJval = SAT_VALUE_UNKNOWN;
   size_t cindex = currInfo->d_childIndex;
-  Trace("prop-finder-debug2")
+  Trace("prereg-rlv-debug2")
       << "...relevance " << rval << ", childIndex " << cindex << ", iteration "
       << currInfo->d_iter << std::endl;
   Assert(cindex <= n.getNumChildren());
@@ -345,7 +345,7 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(
   }
   else if (cindex == 0)
   {
-    Trace("prop-finder") << "...preregister theory literal " << n << std::endl;
+    Trace("prereg-rlv") << "...preregister theory literal " << n << std::endl;
     // theory literals are added to the preregister queue
     toVisit.pop_back();
     if (!n.isVar() || nk == BOOLEAN_TERM_VARIABLE)
@@ -358,7 +358,7 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(
       }
     }
     d_statPrereg = d_statPrereg + 1;
-    Trace("prop-finder-status") << "Preregistered " << d_statPrereg << " / "
+    Trace("prereg-rlv-status") << "Preregistered " << d_statPrereg << " / "
                                 << d_statSatPrereg << " literals" << std::endl;
     // this ensures we don't preregister the same literal twice
     currInfo->d_childIndex = 1;
@@ -373,8 +373,8 @@ void RelevantPreregistrar::markRelevant(TNode n,
                                         SatValue val,
                                         std::vector<TNode>& toVisit)
 {
-  // TODO: short cut if n is a theory literal, don't allocate cinfo?
-  // problem is that adding to preregister has to be handled somewhere
+  // NOTE: we could short cut if n is a theory literal, don't allocate cinfo?
+  // however, adding to preregister has to be handled somewhere
   if (n.getKind() == NOT)
   {
     n = n[0];
@@ -390,7 +390,7 @@ void RelevantPreregistrar::markRelevant(TNode n,
   // if we haven't allocated yet, set the relevance value directly
   if (currInfo == nullptr)
   {
-    Trace("prop-finder-debug")
+    Trace("prereg-rlv-debug")
         << "Mark " << n << " as relevant with polarity " << val << std::endl;
     currInfo = mkInfo(n);
     currInfo->d_rval = val;
@@ -403,7 +403,7 @@ void RelevantPreregistrar::markRelevant(TNode n,
   SatValue newVal = relevantUnion(val, prevVal);
   if (newVal != prevVal)
   {
-    Trace("prop-finder-debug")
+    Trace("prereg-rlv-debug")
         << "Mark (update) " << n << " as relevant with polarity " << newVal
         << std::endl;
     // update relevance value and reset counters
@@ -419,7 +419,7 @@ void RelevantPreregistrar::markWatchedParent(TNode child,
                                              TNode parent,
                                              SatValue implJustify)
 {
-  Trace("prop-finder-debug")
+  Trace("prereg-rlv-debug")
       << "Mark watched " << child << " with parent " << parent << std::endl;
   bool ppol = (child.getKind() != NOT);
   TNode childAtom = ppol ? child : child[0];
@@ -473,7 +473,7 @@ void RelevantPreregistrar::updateJustify(
             {
               prop::SatValue newPJval =
                   childVal ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
-              Trace("prop-finder-debug")
+              Trace("prereg-rlv-debug")
                   << "Due to setting " << n << " to " << val << ", parent " << p
                   << " now has value " << newPJval << std::endl;
               d_jcache.setValue(p, newPJval);
