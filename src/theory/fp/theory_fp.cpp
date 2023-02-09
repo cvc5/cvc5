@@ -484,7 +484,7 @@ void TheoryFp::registerTerm(TNode node)
   // getEqualityStatus works as expected when theory combination is enabled.
   if (k == kind::EQUAL)
   {
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
   else
   {

@@ -280,7 +280,7 @@ void TheoryUF::preRegisterTerm(TNode node)
   {
     case kind::EQUAL:
       // Add the trigger for equality
-      d_equalityEngine->addTriggerPredicate(node);
+      d_state.addEqualityEngineTriggerPredicate(node);
       break;
     case kind::APPLY_UF:
     case kind::HO_APPLY:
@@ -288,8 +288,7 @@ void TheoryUF::preRegisterTerm(TNode node)
       // Maybe it's a predicate
       if (node.getType().isBoolean())
       {
-        // Get triggered for both equal and dis-equal
-        d_equalityEngine->addTriggerPredicate(node);
+        d_state.addEqualityEngineTriggerPredicate(node);
       }
       else
       {

@@ -141,7 +141,7 @@ void TheoryFiniteFields::preRegisterWithEe(TNode node)
   Assert(d_equalityEngine != nullptr);
   if (node.getKind() == kind::EQUAL)
   {
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
   else
   {
