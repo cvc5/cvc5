@@ -209,6 +209,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     // All kinds that we do congruence over that may return a Boolean go here
     if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH || k == EQUAL)
     {
+      // Get triggered for both equal and dis-equal
       d_state.addEqualityEngineTriggerPredicate(n);
     }
   }

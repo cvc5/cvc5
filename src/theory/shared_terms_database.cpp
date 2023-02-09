@@ -70,15 +70,10 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   Assert(d_equalityEngine != nullptr);
   d_registeredEqualities.insert(equality);
-  if (options().theory.preregCheckAssert)
+  if (d_theoryEngine->hasSatValue(equality))
   {
-    if (d_theoryEngine->hasSatValue(equality))
-    {
-      // don't need to propagate what is already asserted
-      Trace("ajr-temp") << "No trigger shared predicate since already asserted "
-                        << equality << std::endl;
-      return;
-    }
+    // don't need to propagate what is already asserted
+    return;
   }
   d_equalityEngine->addTriggerPredicate(equality);
   checkForConflict();

@@ -141,15 +141,13 @@ void TheoryState::addEqualityEngineTriggerPredicate(TNode pred)
   Assert(d_ee != nullptr);
   Assert(pred.getType().isBoolean());
   // if we don't already have a sat value
-  if (!options().theory.preregCheckAssert || !d_valuation.hasSatValue(pred))
+  if (!d_valuation.hasSatValue(pred))
   {
     // Get triggered for both equal and dis-equal
     d_ee->addTriggerPredicate(pred);
   }
   else
   {
-    Trace("ajr-temp") << "No trigger predicate since already asserted " << pred
-                      << std::endl;
     // otherwise we just add the term
     d_ee->addTerm(pred);
   }
