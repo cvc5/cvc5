@@ -89,7 +89,8 @@ void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
   // make the theory preregistrar
   d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
   // compute if we need to track skolem definitions
-  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs();
+  d_trackActiveSkDefs = d_decisionEngine->needsActiveSkolemDefs()
+                        || d_prr->needsActiveSkolemDefs();
   d_cnfStream = cs;
 }
 
@@ -153,6 +154,11 @@ void TheoryProxy::notifySkolemDefinition(Node a, TNode skolem)
 
 void TheoryProxy::notifyAssertion(Node a, TNode skolem, bool isLemma)
 {
+  // ignore constants
+  if (a.isConst())
+  {
+    return;
+  }
   // notify the decision engine
   d_decisionEngine->addAssertion(a, skolem, isLemma);
   // notify the preregistrar
@@ -185,7 +191,14 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       }
     }
     // notify the preregister utility, which may trigger new preregistrations
-    d_prr->notifyAsserted(assertion);
+    if (!d_prr->notifyAsserted(assertion))
+    {
+      // the preregistrar determined we should not assert this assertion, which
+      // can be the case for Boolean variables that we are notified about for
+      // the purposes of updating justification when using preregistration
+      // mode relevant.
+      continue;
+    }
     // now, assert to theory engine
     Trace("prereg") << "assert: " << assertion << std::endl;
     d_theoryEngine->assertFact(assertion);

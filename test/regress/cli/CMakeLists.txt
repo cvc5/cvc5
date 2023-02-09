@@ -755,6 +755,7 @@ set(regress_0_tests
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/datatype-field-ho.smt2
+  regress0/ho/dd.shadowing-defs.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
   regress0/ho/ext-finite-unsat.smt2
@@ -978,6 +979,7 @@ set(regress_0_tests
   regress0/parser/dd.define-named.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/define_sort.smt2
+  regress0/parser/double-bind.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/get-model-sort-constructor.smt2
@@ -1074,6 +1076,7 @@ set(regress_0_tests
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc.smt2
   regress0/proj-issue307-get-value-re.smt2
+  regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/cyclic-ucp.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/issue8983-trust-subs.smt2
@@ -2194,6 +2197,7 @@ set(regress_1_tests
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
   regress1/nl/issue9420-ll.smt2
+  regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2906,6 +2910,7 @@ set(regress_1_tests
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/array-uc.sy
+  regress1/sygus/bv2nat.sy
   regress1/sygus/bvudiv-by-2.sy
   regress1/sygus/cegar1.sy
   regress1/sygus/cegis-unif-inv-eq-fair.sy
@@ -2954,6 +2959,7 @@ set(regress_1_tests
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
+  regress1/sygus/int2bv.sy
   regress1/sygus/interpol1.smt2
   regress1/sygus/interpol1-push-pop.smt2
   regress1/sygus/interpol3.smt2
@@ -3378,6 +3384,8 @@ set(regression_disabled_tests
   regress1/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
   # timeout on some builds after not applying default sygus options when using sygus-inst
   regress1/quantifiers/issue4062-cegqi-aux.smt2
+  # timeout instead of unknown on some builds
+  regress1/quantifiers/issue9477-mbqi-ran.smt2
   ###
   regress1/rels/garbage_collect.cvc.smt2
   regress1/sets/setofsets-disequal.smt2
