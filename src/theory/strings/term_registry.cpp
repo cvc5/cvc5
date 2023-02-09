@@ -180,33 +180,7 @@ void TermRegistry::preRegisterTerm(TNode n)
       << "TheoryString::preregister : " << n << std::endl;
   // check for logic exceptions
   Kind k = n.getKind();
-  if (!options().strings.stringExp)
-  {
-    if (k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
-        || k == STRING_STOI || k == STRING_REPLACE || k == STRING_SUBSTR
-        || k == STRING_REPLACE_ALL || k == SEQ_NTH || k == STRING_REPLACE_RE
-        || k == STRING_REPLACE_RE_ALL || k == STRING_CONTAINS || k == STRING_LEQ
-        || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV
-        || k == STRING_UPDATE)
-    {
-      std::stringstream ss;
-      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(n)
-         << " not supported in default mode, try --strings-exp";
-      throw LogicException(ss.str());
-    }
-  }
-  if (k == EQUAL)
-  {
-    if (n[0].getType().isRegExp())
-    {
-      std::stringstream ss;
-      ss << "Equality between regular expressions is not supported";
-      throw LogicException(ss.str());
-    }
-    ee->addTriggerPredicate(n);
-    return;
-  }
-  else if (k == STRING_IN_REGEXP)
+  if (k == STRING_IN_REGEXP)
   {
     d_im->requirePhase(n, true);
   }
@@ -217,22 +191,6 @@ void TermRegistry::preRegisterTerm(TNode n)
   else if (k == SEQ_NTH || k == STRING_UPDATE)
   {
     d_hasSeqUpdate = true;
-  }
-  else if (k == REGEXP_RANGE)
-  {
-    for (const Node& nc : n)
-    {
-      if (!nc.isConst())
-      {
-        throw LogicException(
-            "expecting a constant string term in regexp range");
-      }
-      if (nc.getConst<String>().size() != 1)
-      {
-        throw LogicException(
-            "expecting a single constant string term in regexp range");
-      }
-    }
   }
   if (options().strings.stringEagerReg)
   {
@@ -246,32 +204,13 @@ void TermRegistry::preRegisterTerm(TNode n)
     ss << "Regular expression variables are not supported.";
     throw LogicException(ss.str());
   }
-  if (tn.isString())  // string-only
-  {
-    // all characters of constants should fall in the alphabet
-    if (n.isConst())
-    {
-      std::vector<unsigned> vec = n.getConst<String>().getVec();
-      for (unsigned u : vec)
-      {
-        if (u >= d_alphaCard)
-        {
-          std::stringstream ss;
-          ss << "Characters in string \"" << n
-             << "\" are outside of the given alphabet.";
-          throw LogicException(ss.str());
-        }
-      }
-    }
-    ee->addTerm(n);
-  }
-  else if (tn.isBoolean())
+  if (tn.isBoolean())
   {
     // All kinds that we do congruence over that may return a Boolean go here
-    if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH)
+    if (k == STRING_CONTAINS || k == STRING_LEQ || k == SEQ_NTH || k == EQUAL)
     {
       // Get triggered for both equal and dis-equal
-      ee->addTriggerPredicate(n);
+      d_state.addEqualityEngineTriggerPredicate(n);
     }
   }
   else
@@ -293,22 +232,9 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     d_functionsTerms.push_back(n);
   }
-  if (options().strings.stringFMF)
-  {
-    if (tn.isStringLike())
-    {
-      // Our decision strategy will minimize the length of this term if it is a
-      // variable but not an internally generated Skolem, or a term that does
-      // not belong to this theory.
-      if (n.isVar() ? !d_skCache.isSkolem(n)
-                    : kindToTheoryId(k) != THEORY_STRINGS)
-      {
-        d_inputVars.insert(n);
-        Trace("strings-preregister") << "input variable: " << n << std::endl;
-      }
-    }
-  }
 }
+
+void TermRegistry::preRegisterInputVar(TNode n) { d_inputVars.insert(n); }
 
 void TermRegistry::registerSubterms(Node n)
 {

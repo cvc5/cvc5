@@ -42,9 +42,6 @@ constant STORE_ALL \
     "expr/array_store_all.h" \
     "array store-all; payload is an instance of the cvc5::internal::ArrayStoreAll class (this is not supported by arrays decision procedure yet, but it is used for returned array models)"
 
-# used internally by array theory
-operator ARR_TABLE_FUN 4 "array table function (internal-only symbol)"
-
 # used internally for substitutions in models (e.g. the Boolean terms converter)
 # The (single) argument is a lambda(x:T):U.  Type of the array lambda is
 # Array T of U.  Thus ARRAY_LAMBDA LAMBDA(x:INT) . (read a x) is the same array
@@ -55,14 +52,8 @@ operator ARRAY_LAMBDA 1 "array lambda (internal-only symbol)"
 typerule SELECT ::cvc5::internal::theory::arrays::ArraySelectTypeRule
 typerule STORE ::cvc5::internal::theory::arrays::ArrayStoreTypeRule
 typerule STORE_ALL ::cvc5::internal::theory::arrays::ArrayStoreTypeRule
-typerule ARR_TABLE_FUN ::cvc5::internal::theory::arrays::ArrayTableFunTypeRule
 typerule ARRAY_LAMBDA ::cvc5::internal::theory::arrays::ArrayLambdaTypeRule
 typerule EQ_RANGE ::cvc5::internal::theory::arrays::ArrayEqRangeTypeRule
-
-operator PARTIAL_SELECT_0 0:2 "partial array select, for internal use only"
-operator PARTIAL_SELECT_1 0:2 "partial array select, for internal use only"
-typerule PARTIAL_SELECT_0 ::cvc5::internal::theory::arrays::ArrayPartialSelectTypeRule
-typerule PARTIAL_SELECT_1 ::cvc5::internal::theory::arrays::ArrayPartialSelectTypeRule
 
 # store operations that are ordered (by index) over a store-all are constant
 construle STORE ::cvc5::internal::theory::arrays::ArrayStoreTypeRule

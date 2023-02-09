@@ -98,6 +98,10 @@ public:
    * argument is unmodified.
    */
   bool hasSatValue(TNode n, bool& value) const;
+  /**
+   * Same as above, without setting the value.
+   */
+  bool hasSatValue(TNode n) const;
 
   /**
    * Returns the equality status of the two terms, from the theory that owns the domain type.

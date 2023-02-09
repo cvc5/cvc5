@@ -28,7 +28,7 @@ add_custom_command(
   OUTPUT
     ${JAVA_KIND_FILE}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_kind.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
@@ -47,7 +47,7 @@ add_custom_command(
   OUTPUT
     ${JAVA_SORT_KIND_FILE}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_sort_kind.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
@@ -68,7 +68,7 @@ add_custom_command(
   OUTPUT
   ${JAVA_TYPES_FILES}
   COMMAND
-    "${PYTHON_EXECUTABLE}"
+    "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     --enums-header "${PROJECT_SOURCE_DIR}/src/api/cpp/cvc5_types.h"
     --java-api-path "${CMAKE_CURRENT_BINARY_DIR}/io/github/"
