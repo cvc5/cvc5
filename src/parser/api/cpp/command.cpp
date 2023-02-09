@@ -494,7 +494,10 @@ cvc5::Sort DeclareSygusVarCommand::getSort() const { return d_sort; }
 
 void DeclareSygusVarCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  sm->bind(d_symbol, d_var, true);
+  if (!bindToTerm(sm, d_var, true))
+  {
+    return;
+  }
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -542,7 +545,10 @@ const cvc5::Grammar* SynthFunCommand::getGrammar() const { return d_grammar; }
 
 void SynthFunCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  sm->bind(d_symbol, d_fun, true);
+  if (!bindToTerm(sm, d_fun, true))
+  {
+    return;
+  }
   sm->addFunctionToSynthesize(d_fun);
   d_commandStatus = CommandSuccess::instance();
 }
@@ -836,6 +842,21 @@ DeclarationDefinitionCommand::DeclarationDefinitionCommand(
 
 std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 
+bool DeclarationDefinitionCommand::bindToTerm(SymbolManager* sm,
+                                              cvc5::Term t,
+                                              bool doOverload)
+{
+  if (!sm->bind(d_symbol, t, true))
+  {
+    std::stringstream ss;
+    ss << "Cannot bind " << d_symbol << " to symbol of type " << t.getSort();
+    ss << ", maybe the symbol has already been defined?";
+    d_commandStatus = new CommandFailure(ss.str());
+    return false;
+  }
+  return true;
+}
+
 /* -------------------------------------------------------------------------- */
 /* class DeclareFunctionCommand                                               */
 /* -------------------------------------------------------------------------- */
@@ -852,7 +873,10 @@ cvc5::Sort DeclareFunctionCommand::getSort() const { return d_sort; }
 
 void DeclareFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  sm->bind(d_symbol, d_func, true);
+  if (!bindToTerm(sm, d_func, true))
+  {
+    return;
+  }
   // mark that it will be printed in the model
   sm->addModelDeclarationTerm(d_func);
   d_commandStatus = CommandSuccess::instance();
@@ -893,7 +917,10 @@ const std::vector<cvc5::Term>& DeclarePoolCommand::getInitialValue() const
 
 void DeclarePoolCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
-  sm->bind(d_symbol, d_func, true);
+  if (!bindToTerm(sm, d_func, true))
+  {
+    return;
+  }
   // Notice that the pool is already declared by the parser so that it the
   // symbol is bound eagerly. This is analogous to DeclareSygusVarCommand.
   // Hence, we do nothing here.
@@ -1084,7 +1111,10 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
     bool global = sm->getGlobalDeclarations();
     cvc5::Term fun =
         solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
-    sm->bind(d_symbol, fun, global);
+    if (!bindToTerm(sm, fun, true))
+    {
+      return;
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

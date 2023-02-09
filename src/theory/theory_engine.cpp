@@ -725,6 +725,25 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder& learned)
   CVC5_FOR_EACH_THEORY;
 }
 
+bool TheoryEngine::hasSatValue(TNode n, bool& value) const
+{
+  if (d_propEngine->isSatLiteral(n))
+  {
+    return d_propEngine->hasValue(n, value);
+  }
+  return false;
+}
+
+bool TheoryEngine::hasSatValue(TNode n) const
+{
+  if (d_propEngine->isSatLiteral(n))
+  {
+    bool value;
+    return d_propEngine->hasValue(n, value);
+  }
+  return false;
+}
+
 bool TheoryEngine::isRelevant(Node lit) const
 {
   if (d_relManager != nullptr)

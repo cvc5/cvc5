@@ -136,6 +136,20 @@ class Smt2TermParser
    * syntax is '(<constructor_dec>+)'.
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
+  /**
+   * Continue parse indexed identifier, we've parsed '(_ ', now parse
+   * remainder '<symbol> <index>+)' and return the result.
+   */
+  ParseOp continueParseIndexedIdentifier(bool isOperator);
+  /**
+   * Continue parse qualified identifier, we've parsed '(as ', now parse
+   * remainder '<identifier> <type>)' and return the result.
+   */
+  ParseOp continueParseQualifiedIdentifier(bool isOperator);
+  /**
+   * Parse match case pattern
+   */
+  Term parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */
