@@ -21,11 +21,11 @@
 
 #include "base/check.h"
 #include "parser/input.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
-#include "parser/smt2/smt2.h"
+#include "parser/smt2/smt2_antlr.h"
 
 namespace cvc5 {
 namespace parser {
