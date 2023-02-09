@@ -102,10 +102,9 @@ class RegExpEntail
    */
   static bool isConstRegExp(TNode t);
   /**
-   * Does the substring of s starting at index_start occur in constant regular
-   * expression r?
+   * Does the substring of s occur in constant regular expression r?
    */
-  static bool testConstStringInRegExp(String& s, unsigned index_start, TNode r);
+  static bool testConstStringInRegExp(String& s, TNode r);
   /** Does regular expression node have (str.to.re "") as a child? */
   static bool hasEpsilonNode(TNode node);
   /** get length for regular expression
@@ -140,6 +139,13 @@ class RegExpEntail
   /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
  private:
+  /**
+   * Does the substring of s starting at index_start occur in constant regular
+   * expression r?
+   */
+  static bool testConstStringInRegExpInternal(String& s,
+                                              unsigned index_start,
+                                              TNode r);
   /** Set bound cache, used for getConstantBoundLengthForRegexp */
   static void setConstantBoundCache(TNode n, Node ret, bool isLower);
   /**

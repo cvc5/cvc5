@@ -23,6 +23,8 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
+#include "rewriter/rewrite_db.h"
+#include "rewriter/rewrite_db_proof_cons.h"
 #include "smt/env_obj.h"
 #include "smt/proof_final_callback.h"
 #include "smt/witness_form.h"
@@ -30,11 +32,6 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
-
-namespace rewriter {
-class RewriteDb;
-}
-
 namespace smt {
 
 /**
@@ -80,6 +77,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   Node d_true;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
+  /** The rewrite database proof generator */
+  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
   /** The witness form assumptions used in the proof */

@@ -29,13 +29,13 @@ namespace prop {
 class Registrar {
 public:
   virtual ~Registrar() {}
-  virtual void preRegister(Node n) = 0;
+  virtual void notifySatLiteral(Node n) = 0;
 
 };/* class Registrar */
 
 class NullRegistrar : public Registrar {
 public:
- void preRegister(Node n) override {}
+ void notifySatLiteral(Node n) override {}
 
 };/* class NullRegistrar */
 

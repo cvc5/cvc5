@@ -36,6 +36,10 @@ class Smt2TermParser
   Smt2TermParser(Smt2Lexer& lex, Smt2State& state);
   virtual ~Smt2TermParser() {}
 
+  /** Parses an SMT-LIB term <term> */
+  Term parseTerm();
+  /** Parses parentheses-enclosed term list (<term>*) */
+  std::vector<Term> parseTermList();
   /** Parse an SMT-LIB sort <sort> */
   Sort parseSort();
   /** Parses parentheses-enclosed sort list (<sort>*) */
@@ -73,6 +77,22 @@ class Smt2TermParser
    * Parses ':X', returns 'X'
    */
   std::string parseKeyword();
+  /**
+   * Parse grammar, SyGuS 2.1 <GrammarDef>, which has syntax:
+   *
+   * <GrammarDef> := ((<symbol> <sort>)^n+1) (<GroupedRuleList>^n+1)
+   * <GroupedRuleList> := (<symbol> <Sort> (<GTerm>+))
+   * where <GTerm> is a term that additionally allows the SyGuS-specific
+   * grammar rules for Constant and Variable.
+   */
+  Grammar* parseGrammar(const std::vector<Term>& sygusVars,
+                        const std::string& fun);
+  /**
+   * Parse optional grammar <GrammarDef>?, return null if a grammar was not
+   * parsed.
+   */
+  Grammar* parseGrammarOrNull(const std::vector<Term>& sygusVars,
+                              const std::string& fun);
   /** Parse integer numeral */
   uint32_t parseIntegerNumeral();
   /**
@@ -116,6 +136,20 @@ class Smt2TermParser
    * syntax is '(<constructor_dec>+)'.
    */
   void parseConstructorDefinitionList(DatatypeDecl& type);
+  /**
+   * Continue parse indexed identifier, we've parsed '(_ ', now parse
+   * remainder '<symbol> <index>+)' and return the result.
+   */
+  ParseOp continueParseIndexedIdentifier(bool isOperator);
+  /**
+   * Continue parse qualified identifier, we've parsed '(as ', now parse
+   * remainder '<identifier> <type>)' and return the result.
+   */
+  ParseOp continueParseQualifiedIdentifier(bool isOperator);
+  /**
+   * Parse match case pattern
+   */
+  Term parseMatchCasePattern(Sort headSort, std::vector<Term>& boundVars);
   /** The lexer */
   Smt2Lexer& d_lex;
   /** The state */

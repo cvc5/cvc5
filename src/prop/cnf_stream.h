@@ -50,6 +50,8 @@ enum class FormulaLitPolicy : uint32_t
 {
   // literals for formulas are notified
   TRACK_AND_NOTIFY,
+  // literals for Boolean variables are notified
+  TRACK_AND_NOTIFY_VAR,
   // literals for formulas are added to node map
   TRACK,
   // literals for formulas are kept internal (default)
@@ -280,13 +282,15 @@ class CnfStream : protected EnvObj
    * @param node a formula
    * @param isTheoryAtom is this a theory atom that needs to be asserted to
    * theory.
-   * @param preRegister whether to preregister the atom with the theory
+   * @param notifyTheory whether to notify the theory of the atom
    * @param canEliminate whether the sat solver can safely eliminate this
    * variable.
    * @return the literal corresponding to the formula
    */
-  SatLiteral newLiteral(TNode node, bool isTheoryAtom = false,
-                        bool preRegister = false, bool canEliminate = true);
+  SatLiteral newLiteral(TNode node,
+                        bool isTheoryAtom = false,
+                        bool notifyTheory = false,
+                        bool canEliminate = true);
 
   /**
    * Constructs a new literal for an atom and returns it.  Calls

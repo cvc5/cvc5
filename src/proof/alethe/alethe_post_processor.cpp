@@ -16,7 +16,8 @@
 #include "proof/alethe/alethe_post_processor.h"
 
 #include "expr/node_algorithm.h"
-#include "options/proof_options.h"
+#include "expr/skolem_manager.h"
+#include "proof/alethe/alethe_proof_rule.h"
 #include "proof/proof.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -435,14 +436,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs;
-      // checker expects opposite order
-      if (d_resPivots)
+      // checker expects opposite order. We always keep the pivots because we
+      // need them to compute in updatePost whether we will add OR steps. If
+      // d_resPivots is off we will remove the pivots after that.
+      for (size_t i = 0, size = args.size(); i < size; i = i + 2)
       {
-        for (size_t i = 0, size = args.size(); i < size; i = i + 2)
-        {
-          newArgs.push_back(args[i + 1]);
-          newArgs.push_back(args[i]);
-        }
+        newArgs.push_back(args[i + 1]);
+        newArgs.push_back(args[i]);
       }
       if (!isSingletonClause(res, children, args))
       {
@@ -1240,6 +1240,168 @@ bool AletheProofPostprocessCallback::update(Node res,
                                   : std::vector<Node>(),
                               *cdp);
     }
+    //================================================= Skolems rules
+    // ======== Skolem intro
+    // Since this rule just equates a term to its purification skolem, whose
+    // conversion is the term itself, the converted conclusion is an equality
+    // between the same terms.
+    case PfRule::SKOLEM_INTRO:
+    {
+      return addAletheStep(AletheRule::REFL,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== Replace term by its axiom definition
+    // For now this introduces a hole. The processing in the future should
+    // generate corresponding Alethe steps for each particular axiom for term
+    // removal (for example for the ITE case).
+    case PfRule::REMOVE_TERM_FORMULA_AXIOM:
+    {
+      return addAletheStep(AletheRule::HOLE,
+                           res,
+                           nm->mkNode(kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    // ======== Skolemize
+    // See proof_rule.h for documentation on the SKOLEMIZE rule. This
+    // comment uses variable names as introduced there.
+    //
+    // Either a positive existential or a negative forall is skolemized. First
+    // step is to build the Alethe skolemization step which introduces a valid
+    // equality:
+    //
+    //                      ---------------- REFL
+    //                       (= F F*sigma')
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_n
+    //          (= (exists ((xn Tn)) F) F*sigma')
+    // -----------------------------------------------
+    //                       ...
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_2
+    //   (= (exists ((x2 T1) ... (xn Tn)) F) F*sigma')
+    //  ----------------------------------------------- ANCHOR_SKO_EX, sigma_1
+    //   (= (exists ((x1 T1) ... (xn Tn)) F) F*sigma')
+    //
+    // where sigma' is the cumulative substitution built from sigma1...sigma_n,
+    // and each sigma_i replaces xi by the choice term (epsilon ((xi Ti))
+    // (exists ((xi+1 Ti+1) ... (xn+1 Tn+1)) F)).
+    //
+    // Then, we apply the equivalence elimination reasoning to obtain F*sigma
+    // from the premise:
+    //
+    //  ---------------- EQUIV_POS2
+    //     VP1              (= (exists (...) F) F*sigma')       (exists (...) F)
+    //  ------------------------------------------------------------- RESOLUTION
+    //                           F*sigma'
+    //
+    // VP1 :
+    //  (cl (not (= (exists (...) F) F*sigma')) (not (exists (...) F)) F*sigma')
+    //
+    // Note that F*sigma' is equivalent to F*sigma once its skolem terms are
+    // lifted to choice terms by the node converter.
+    //
+    // The case for negative forall is analagous except the rules are
+    // ANCHOR_SKO_FORALL and the one concluding the desired equivalence is
+    // followed by a congruence step to wrap the equality terms under a
+    // negation, i.e., (not ...).
+    case PfRule::SKOLEMIZE:
+    {
+      AletheRule skoRule;
+      bool isExists;
+      Node quant, skolemized;
+      Kind quantKind;
+      if (children[0].getKind() == kind::EXISTS)
+      {
+        isExists = true;
+        skoRule = AletheRule::ANCHOR_SKO_EX;
+        quant = children[0];
+        skolemized = res;
+        quantKind = kind::EXISTS;
+      }
+      else
+      {
+        isExists = false;
+        skoRule = AletheRule::ANCHOR_SKO_FORALL;
+        quant = children[0][0];
+        skolemized = res[0];
+        quantKind = kind::FORALL;
+      }
+      // add rfl step for final replacement
+      Node curPremise = nm->mkNode(
+          kind::SEXPR, d_cl, d_anc.convert(quant[1].eqNode(skolemized)));
+      addAletheStep(AletheRule::REFL, curPremise, curPremise, {}, {}, *cdp);
+      std::vector<Node> bVars{quant[0].begin(), quant[0].end()};
+      for (size_t size = quant[0].getNumChildren(), i = size; i > 0; --i)
+      {
+        // build i-th anchor step, whose argument will be the i-th variable
+        // mapped to a choice term for that variable over the quantifier over
+        // i+1-th to n-th variable over the quant body.
+        Node ithBVars = nm->mkNode(
+            kind::BOUND_VAR_LIST,
+            std::vector<Node>{bVars.begin() + (size - i), bVars.end()});
+        // What we are currently skolemizing is the quantifier (i-1)-th
+        // variable. So we must take the suffix of variables from that one (note
+        // that when i == 1 the suffix is all the variables)
+        Node curSkolemizing =
+            i == 1 ? quant
+                   : nm->mkNode(quantKind,
+                                nm->mkNode(kind::BOUND_VAR_LIST, ithBVars),
+                                quant[1]);
+        // The choice term is for the (i-1)-th variable defined as the
+        // quantifier with the suffix from the i-th variable. This is the same
+        // as the term we skolemized in the previous iteration. Note that for
+        // the last variable in the suffix this is what was used in the REFL
+        // step. In either case, this is always the lhs of the equality in
+        // curPremise (under the cl). Remember that when doing SKO_FORALL the
+        // body of the choice is negated.
+        Node ithChoice = nm->mkNode(
+            kind::WITNESS,
+            nm->mkNode(kind::BOUND_VAR_LIST, quant[0][i - 1]),
+            isExists ? curPremise[1][0] : curPremise[1][0].notNode());
+        Node conclusion =
+            nm->mkNode(kind::SEXPR,
+                       d_cl,
+                       d_anc.convert(curSkolemizing.eqNode(skolemized)));
+        addAletheStep(skoRule,
+                      conclusion,
+                      conclusion,
+                      {curPremise},
+                      {d_anc.convert(quant[0][i - 1].eqNode(ithChoice))},
+                      *cdp);
+        // update premise
+        curPremise = conclusion;
+      }
+      // add congruence step with NOT for the forall case
+      if (!isExists)
+      {
+        Node conclusion = nm->mkNode(
+            kind::SEXPR,
+            d_cl,
+            (curPremise[1][0].notNode()).eqNode(curPremise[1][1].notNode()));
+        addAletheStep(
+            AletheRule::CONG, conclusion, conclusion, {curPremise}, {}, *cdp);
+        curPremise = conclusion;
+      }
+      // now equality resolution reasoning
+      Node vp1 = nm->mkNode(
+          kind::SEXPR,
+          {d_cl, curPremise[1].notNode(), children[0].notNode(), res});
+      addAletheStep(AletheRule::EQUIV_POS2, vp1, vp1, {}, {}, *cdp);
+      addAletheStep(
+          AletheRule::RESOLUTION,
+          res,
+          nm->mkNode(kind::SEXPR, d_cl, res),
+          {vp1, curPremise, children[0]},
+          d_resPivots
+              ? std::vector<Node>{curPremise[1], d_false, children[0], d_false}
+              : std::vector<Node>(),
+          *cdp);
+      return true;
+    }
     // ======== Bitvector
     //
     // ------------------------ BV_BITBLAST_STEP_BV<KIND>
@@ -1634,8 +1796,9 @@ bool AletheProofPostprocessCallback::updatePost(
     // necessary to convert (cl (or ...)) to (cl ...).
     case AletheRule::RESOLUTION_OR:
     {
-      Assert(!d_resPivots || args.size() > 3);
-      // if we do not have pivots, we can't compute easily, so we do not update
+      // if we do not have pivots, we can't compute easily, so we do not try.
+      // This should only be the case if this proof node was previously updated
+      // and we are not printing pivots.
       if (args.size() < 4)
       {
         return false;
@@ -1643,18 +1806,10 @@ bool AletheProofPostprocessCallback::updatePost(
       std::vector<Node> newChildren = children;
       bool hasUpdated = false;
 
-      // If we are printing the pivots, the order of polarity/pivot is reversed.
+      // Note that we will have inverted the order of polarity/pivot.
       size_t polIdx, pivIdx;
-      if (d_resPivots)
-      {
-        polIdx = 4;
-        pivIdx = 3;
-      }
-      else
-      {
-        polIdx = 3;
-        pivIdx = 4;
-      }
+      polIdx = 4;
+      pivIdx = 3;
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true.
@@ -1707,16 +1862,8 @@ bool AletheProofPostprocessCallback::updatePost(
       // true if it isn't the pivot element.
       for (std::size_t i = 1, size = children.size(); i < size; ++i)
       {
-        if (d_resPivots)
-        {
-          polIdx = 2 * (i - 1) + 3 + 1;
-          pivIdx = 2 * (i - 1) + 3;
-        }
-        else
-        {
-          polIdx = 2 * (i - 1) + 3;
-          pivIdx = 2 * (i - 1) + 3 + 1;
-        }
+        polIdx = 2 * (i - 1) + 3 + 1;
+        pivIdx = 2 * (i - 1) + 3;
         if (children[i].getKind() == kind::OR
             && (args[polIdx] != d_false || args[pivIdx] != children[i]))
         {
@@ -1770,7 +1917,12 @@ bool AletheProofPostprocessCallback::updatePost(
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
             << newChildren << " / " << args << std::endl;
-        cdp->addStep(res, PfRule::ALETHE_RULE, newChildren, args);
+        cdp->addStep(res,
+                     PfRule::ALETHE_RULE,
+                     newChildren,
+                     d_resPivots
+                         ? args
+                         : std::vector<Node>{args.begin(), args.begin() + 3});
         return true;
       }
       Trace("alethe-proof") << "... no update\n";
@@ -1864,76 +2016,50 @@ bool AletheProofPostprocessCallback::updatePost(
 //
 // *  the corresponding proof node is ((false))
 // ** the corresponding proof node is (false)
-bool AletheProofPostprocessCallback::finalStep(
-    Node res,
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof* cdp)
+//
+// This method also handles the case where the internal proof is "empty", i.e.,
+// it consists only of "false" as an assumption.
+bool AletheProofPostprocessCallback::finalStep(Node res,
+                                               PfRule id,
+                                               std::vector<Node>& children,
+                                               const std::vector<Node>& args,
+                                               CDProof* cdp)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node falseNode = nm->mkConst(false);
+  std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
 
-  if (
-      // If the last proof rule was not translated yet
-      (id == PfRule::ALETHE_RULE) &&
-      // This case can only occur if the last step is an assumption
-      (args[2].getNumChildren() > 1) &&
-      // If the proof node has result (false) additional steps have to be added.
-      (args[2][1] != falseNode))
+  // convert inner proof, i.e., children[0], if its conclusion is (cl false) or
+  // if it's a false assumption
+  if (childPf->getRule() == PfRule::ALETHE_RULE
+      && ((childPf->getArguments()[2].getNumChildren() == 2
+           && childPf->getArguments()[2][1] == d_false)
+          || childPf->getArguments()[2] == d_false))
   {
-    return false;
+    Node notFalse =
+        nm->mkNode(kind::SEXPR, d_cl, d_false.notNode());  // (cl (not false))
+    Node newChild = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
+
+    addAletheStep(AletheRule::FALSE, notFalse, notFalse, {}, {}, *cdp);
+    addAletheStep(
+        AletheRule::RESOLUTION,
+        newChild,
+        newChild,
+        {children[0], notFalse},
+        d_resPivots ? std::vector<Node>{d_false, d_true} : std::vector<Node>(),
+        *cdp);
+    children[0] = newChild;
   }
 
-  // remove attribute for outermost scope
-  if (id != PfRule::ALETHE_RULE)
+  // Sanitize original assumptions and create a placeholder proof step to hold
+  // them.
+  Assert(id == PfRule::SCOPE);
+  std::vector<Node> sanitizedArgs{
+      nm->mkConstInt(static_cast<uint32_t>(AletheRule::UNDEFINED)), res, res};
+  for (const Node& arg : args)
   {
-    std::vector<Node> sanitized_args{
-        res, res, nm->mkConstInt(static_cast<uint32_t>(AletheRule::ASSUME))};
-    for (const Node& arg : args)
-    {
-      sanitized_args.push_back(d_anc.convert(arg));
-    }
-    return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitized_args);
+    sanitizedArgs.push_back(d_anc.convert(arg, false));
   }
-
-  bool success = true;
-  Node vp1 = nm->mkNode(kind::SEXPR, res);    // ((false))
-  Node vp2 = nm->mkConst(false).notNode();    // (not true)
-  Node res2 = nm->mkNode(kind::SEXPR, d_cl);  // (cl)
-  AletheRule vrule = getAletheRule(args[0]);
-
-  // In the special case that false is an assumption, we print false instead of
-  // (cl false)
-  success &= addAletheStep(
-      vrule,
-      vp1,
-      (vrule == AletheRule::ASSUME ? res : nm->mkNode(kind::SEXPR, d_cl, res)),
-      children,
-      {},
-      *cdp);
-  Trace("alethe-proof") << "... add Alethe step " << vp1 << " / "
-                        << nm->mkNode(kind::SEXPR, d_cl, res) << " " << vrule
-                        << " " << children << " / {}" << std::endl;
-
-  success &= addAletheStep(
-      AletheRule::FALSE, vp2, nm->mkNode(kind::SEXPR, d_cl, vp2), {}, {}, *cdp);
-  Trace("alethe-proof") << "... add Alethe step " << vp2 << " / "
-                        << nm->mkNode(kind::SEXPR, d_cl, vp2) << " "
-                        << AletheRule::FALSE << " {} / {}" << std::endl;
-
-  success &=
-      addAletheStep(AletheRule::RESOLUTION, res, res2, {vp2, vp1}, {}, *cdp);
-  Trace("alethe-proof") << "... add Alethe step " << res << " / " << res2 << " "
-                        << AletheRule::RESOLUTION << " {" << vp2 << ", " << vp1
-                        << " / {}" << std::endl;
-  if (!success)
-  {
-    Trace("alethe-proof") << "... Error while printing final steps"
-                          << std::endl;
-  }
-
-  return true;
+  return cdp->addStep(res, PfRule::ALETHE_RULE, children, sanitizedArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStep(

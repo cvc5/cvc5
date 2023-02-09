@@ -141,7 +141,7 @@ void TheoryBV::preRegisterTerm(TNode node)
   {
     if (node.getKind() == kind::EQUAL)
     {
-      ee->addTriggerPredicate(node);
+      d_state.addEqualityEngineTriggerPredicate(node);
     }
     else
     {

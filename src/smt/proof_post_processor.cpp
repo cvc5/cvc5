@@ -41,6 +41,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
                                                    bool updateScopedAssumptions)
     : EnvObj(env),
       d_pppg(nullptr),
+      d_rdbPc(env, rdb),
       d_wfpm(env),
       d_updateScopedAssumptions(updateScopedAssumptions)
 {
@@ -815,19 +816,59 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     }
     else
     {
-      // try to reconstruct as a standalone rewrite
-      std::vector<Node> targs;
-      targs.push_back(eq);
-      targs.push_back(
-          builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
-      // in this case, must be a non-standard rewrite kind
-      Assert(args.size() >= 2);
-      targs.push_back(args[1]);
-      Node eqp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
-      if (eqp.isNull())
+      Node retCurr = args[0];
+      std::vector<Node> transEq;
+      // try to reconstruct the (extended) rewrite
+      // first, use the standard rewriter followed by the extended equality
+      // rewriter
+      for (size_t i = 0; i < 2; i++)
       {
-        // don't know how to eliminate
-        return Node::null();
+        if (i == 1 && retCurr.getKind() != EQUAL)
+        {
+          break;
+        }
+        MethodId midi =
+            i == 0 ? MethodId::RW_REWRITE : MethodId::RW_REWRITE_EQ_EXT;
+        Node retDef = d_env.rewriteViaMethod(retCurr, midi);
+        if (retDef != retCurr)
+        {
+          // will expand this as a default rewrite if needed
+          Node eqd = retCurr.eqNode(retDef);
+          Node mid = mkMethodId(midi);
+          cdp->addStep(eqd, PfRule::REWRITE, {}, {retCurr, mid});
+          transEq.push_back(eqd);
+        }
+        retCurr = retDef;
+        if (retCurr == ret)
+        {
+          // already successful
+          break;
+        }
+      }
+      if (retCurr != ret)
+      {
+        // try to prove the rewritten form is equal to the extended rewritten
+        // form, treated as a stand alone (theory) rewrite
+        Node eqp = retCurr.eqNode(ret);
+        std::vector<Node> targs;
+        targs.push_back(eqp);
+        targs.push_back(
+            builtin::BuiltinProofRuleChecker::mkTheoryIdNode(theoryId));
+        // in this case, must be a non-standard rewrite kind
+        Assert(args.size() >= 2);
+        targs.push_back(args[1]);
+        Node eqpp = expandMacros(PfRule::THEORY_REWRITE, {}, targs, cdp);
+        transEq.push_back(eqp);
+        if (eqpp.isNull())
+        {
+          // don't know how to eliminate
+          return Node::null();
+        }
+      }
+      if (transEq.size() > 1)
+      {
+        // put together with transitivity
+        cdp->addStep(eq, PfRule::TRANS, transEq, {});
       }
     }
     if (args[0] == ret)
@@ -842,15 +883,16 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Assert(!args.empty());
     Node eq = args[0];
     Assert(eq.getKind() == EQUAL);
-    ProofNodeManager* pnm = d_env.getProofNodeManager();
-    // try to replay theory rewrite
-    // first, check that maybe its just an evaluation step
-    ProofChecker* pc = pnm->getChecker();
-    Node ceval = pc->checkDebug(
-        PfRule::EVALUATE, {}, {eq[0]}, Node::null(), "smt-proof-pp-debug");
-    if (!ceval.isNull() && ceval == eq)
+    TheoryId tid = THEORY_BUILTIN;
+    builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
+    MethodId mid = MethodId::RW_REWRITE;
+    getMethodId(args[2], mid);
+    int64_t recLimit = options().proof.proofRewriteRconsRecLimit;
+    // attempt to reconstruct the proof of the equality into cdp using the
+    // rewrite database proof reconstructor
+    if (d_rdbPc.prove(cdp, args[0][0], args[0][1], tid, mid, recLimit))
     {
-      cdp->addStep(eq, PfRule::EVALUATE, {}, {eq[0]});
+      // if successful, we update the proof
       return eq;
     }
     // otherwise no update
@@ -916,9 +958,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     InferenceId iid;
     bool isRev;
     std::vector<Node> exp;
-    if (strings::InferProofCons::unpackArgs(args, conc, iid, isRev, exp))
+    if (theory::strings::InferProofCons::unpackArgs(
+            args, conc, iid, isRev, exp))
     {
-      if (strings::InferProofCons::addProofTo(cdp, conc, iid, isRev, exp))
+      if (theory::strings::InferProofCons::addProofTo(
+              cdp, conc, iid, isRev, exp))
       {
         return conc;
       }
