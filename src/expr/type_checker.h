@@ -34,7 +34,7 @@ public:
   * may return Boolean type, since AND always has type Boolean regardless of
   * its children. Returning a type for this method does not ensure that n
   * is a well-sorted type.
-  * 
+  *
   * Notice that by convention, the method preComputeType is not be given for
   * kinds that have no children. Instead, the method computeType should be
   * implemented instead.
@@ -45,10 +45,10 @@ public:
  static TypeNode preComputeType(NodeManager* nodeManager, TNode n);
  /**
   * Compute type.
-  * 
+  *
   * Return the type of n. This method can assume that the types of the children
   * of n are available (via Node::getType()).
-  * 
+  *
   * @param nodeManager The current node manager
   * @param n The node to type check
   * @param check If this is true, we ensure that n is a well-formed term. If

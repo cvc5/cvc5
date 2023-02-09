@@ -46,8 +46,8 @@ TypeNode TypeChecker::preComputeType(NodeManager* nodeManager, TNode n)
     case kind::BUILTIN:
       typeNode = nodeManager->builtinOperatorType();
       break;
-      
-    // !!! will auto-generate preComputeType rules when they are available
+
+      // !!! will auto-generate preComputeType rules when they are available
 
     default:
       // not handled
