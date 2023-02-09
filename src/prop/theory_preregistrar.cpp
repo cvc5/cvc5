@@ -49,18 +49,19 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
   }
 }
 
-void TheoryPreregistrar::notifyAsserted(TNode n)
+bool TheoryPreregistrar::notifyAsserted(TNode n)
 {
   // if eager, we've already preregistered it
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
-    return;
+    return true;
   }
   // otherwise, we always ensure it is preregistered now, which does nothing
   // if it is already preregistered
   TNode natom = n.getKind() == kind::NOT ? n[0] : n;
   Trace("prereg") << "preregister (lazy): " << natom << std::endl;
   d_theoryEngine->preRegister(natom);
+  return true;
 }
 
 void TheoryPreregistrar::preRegisterToTheory(
