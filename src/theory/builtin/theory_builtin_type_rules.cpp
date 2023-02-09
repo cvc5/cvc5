@@ -68,7 +68,7 @@ TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,
     for (++child_it; child_it != child_it_end; ++child_it)
     {
       TypeNode currentType = (*child_it).getType();
-      joinType = joinType.join(currentType);
+      joinType = joinType.leastUpperBound(currentType);
       if (joinType.isNull())
       {
         if (errOut)
@@ -162,6 +162,7 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   // The type of a witness function is the type of its bound variable.
   return n[0][0].getType();
 }
+
 
 TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm,
                                                         TNode n)

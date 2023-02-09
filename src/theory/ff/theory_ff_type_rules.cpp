@@ -74,7 +74,7 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
       t = tc;
       continue;
     }
-    t = t.join(tc);
+    t = t.leastUpperBound(tc);
     if (t.isNull())
     {
       if (errOut)

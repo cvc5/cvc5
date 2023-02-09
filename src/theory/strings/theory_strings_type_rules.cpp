@@ -74,7 +74,7 @@ TypeNode StringConcatTypeRule::computeType(NodeManager* nodeManager,
       }
       continue;
     }
-    tret = tret.join(t);
+    tret = tret.leastUpperBound(t);
     if (tret.isNull())
     {
       if (errOut)
@@ -144,7 +144,7 @@ TypeNode StringUpdateTypeRule::computeType(NodeManager* nodeManager,
 {
   TypeNode t = n[0].getType();
   TypeNode t3 = n[2].getType();
-  TypeNode tret = t.join(t3);
+  TypeNode tret = t.leastUpperBound(t3);
   if (tret.isNull())
   {
     if (errOut)
@@ -283,7 +283,7 @@ TypeNode StringReplaceTypeRule::computeType(NodeManager* nodeManager,
       t = tc;
       continue;
     }
-    t = t.join(tc);
+    t = t.leastUpperBound(tc);
     if (t.isNull())
     {
       if (errOut)

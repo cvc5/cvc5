@@ -104,7 +104,7 @@ TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
          || n.getKind() == kind::SET_MINUS);
   TypeNode setType = n[0].getType();
   TypeNode secondSetType = n[1].getType();
-  TypeNode retType = setType.join(secondSetType);
+  TypeNode retType = setType.leastUpperBound(secondSetType);
   if (check)
   {
     if (!setType.isMaybeKind(kind::SET_TYPE)
@@ -458,8 +458,9 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
   for (size_t i = 0; i < numChildren - 1; ++i)
   {
     TypeNode elementType = n[i].getType();
-    retElementType = retElementType.isNull() ? elementType
-                                             : retElementType.join(elementType);
+    retElementType = retElementType.isNull()
+                         ? elementType
+                         : retElementType.leastUpperBound(elementType);
     if (retElementType.isNull())
     {
       if (errOut)

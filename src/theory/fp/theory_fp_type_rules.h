@@ -233,9 +233,7 @@ class FloatingPointToUBVTotalTypeRule
 class FloatingPointToSBVTotalTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -247,9 +245,7 @@ class FloatingPointToSBVTotalTypeRule
 class FloatingPointToRealTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -261,9 +257,7 @@ class FloatingPointToRealTypeRule
 class FloatingPointToRealTotalTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -275,9 +269,7 @@ class FloatingPointToRealTotalTypeRule
 class FloatingPointComponentBit
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -289,9 +281,7 @@ class FloatingPointComponentBit
 class FloatingPointComponentExponent
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -303,9 +293,7 @@ class FloatingPointComponentExponent
 class FloatingPointComponentSignificand
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -317,9 +305,7 @@ class FloatingPointComponentSignificand
 class RoundingModeBitBlast
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,

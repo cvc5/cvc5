@@ -27,9 +27,7 @@ namespace arrays {
 
 struct ArraySelectTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -39,9 +37,7 @@ struct ArraySelectTypeRule
 
 struct ArrayStoreTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,

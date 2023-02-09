@@ -38,9 +38,7 @@ namespace quantifiers {
  */
 struct QuantifierTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -54,9 +52,7 @@ struct QuantifierTypeRule
  */
 struct QuantifierBoundVarListTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -71,9 +67,7 @@ struct QuantifierBoundVarListTypeRule
  */
 struct QuantifierInstPatternTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -90,9 +84,7 @@ struct QuantifierInstPatternTypeRule
  */
 struct QuantifierAnnotationTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -107,9 +99,7 @@ struct QuantifierAnnotationTypeRule
  */
 struct QuantifierInstPatternListTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -124,9 +114,7 @@ struct QuantifierInstPatternListTypeRule
  */
 struct QuantifierOracleFormulaGenTypeRule
 {
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,

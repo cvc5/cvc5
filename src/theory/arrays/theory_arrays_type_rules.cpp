@@ -92,7 +92,7 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
     }
     TypeNode indexType = n[1].getType();
     TypeNode aindexType = arrayType.getArrayIndexType();
-    TypeNode indexjoin = indexType.join(aindexType);
+    TypeNode indexjoin = indexType.leastUpperBound(aindexType);
     if (indexjoin.isNull())
     {
       if (errOut)
@@ -103,7 +103,7 @@ TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
     }
     TypeNode valueType = n[2].getType();
     TypeNode avalueType = arrayType.getArrayConstituentType();
-    TypeNode valuejoin = valueType.join(avalueType);
+    TypeNode valuejoin = valueType.leastUpperBound(avalueType);
     if (valuejoin.isNull())
     {
       if (errOut)

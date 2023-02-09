@@ -31,9 +31,7 @@ namespace strings {
 class StringConcatTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -44,9 +42,7 @@ class StringConcatTypeRule
 class StringSubstrTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -57,9 +53,7 @@ class StringSubstrTypeRule
 class StringUpdateTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -70,9 +64,7 @@ class StringUpdateTypeRule
 class StringAtTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -83,9 +75,7 @@ class StringAtTypeRule
 class StringIndexOfTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -96,9 +86,7 @@ class StringIndexOfTypeRule
 class StringReplaceTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -109,9 +97,7 @@ class StringReplaceTypeRule
 class StringStrToBoolTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -122,9 +108,7 @@ class StringStrToBoolTypeRule
 class StringStrToIntTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -135,9 +119,7 @@ class StringStrToIntTypeRule
 class StringStrToStrTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -148,9 +130,7 @@ class StringStrToStrTypeRule
 class StringRelationTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -160,9 +140,7 @@ class StringRelationTypeRule
 
 class RegExpRangeTypeRule {
 public:
-
  static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
  static TypeNode computeType(NodeManager* nodeManager,
                              TNode n,
@@ -173,9 +151,7 @@ public:
 class StringToRegExpTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -199,9 +175,7 @@ class StringToRegExpTypeRule
 class ConstSequenceTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -212,9 +186,7 @@ class ConstSequenceTypeRule
 class SeqUnitTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -225,9 +197,7 @@ class SeqUnitTypeRule
 class SeqNthTypeRule
 {
  public:
-
   static TypeNode preComputeType(NodeManager* nm, TNode n);
-
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,

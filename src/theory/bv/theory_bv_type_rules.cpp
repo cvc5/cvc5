@@ -50,7 +50,7 @@ bool checkMaybeBitVector(const TypeNode& tn, std::ostream* errOut)
 
 /**
  * Ensure that tn is a bit-vector type.
- * Note this is equivalent to tn.join(?BitVec).
+ * Note this is equivalent to tn.leastUpperBound(?BitVec).
  */
 TypeNode ensureBv(NodeManager* nm, const TypeNode& tn)
 {
@@ -147,7 +147,7 @@ TypeNode BitVectorFixedWidthTypeRule::computeType(NodeManager* nodeManager,
       t = tc;
       continue;
     }
-    t = t.join(tc);
+    t = t.leastUpperBound(tc);
     if (t.isNull())
     {
       if (errOut)
@@ -253,6 +253,7 @@ TypeNode BitVectorSizeTypeRule::computeType(NodeManager* nodeManager,
   }
   return nodeManager->integerType();
 }
+
 TypeNode BitVectorConcatTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   return TypeNode::null();
@@ -331,7 +332,7 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
   TypeNode thenpart = n[1].getType();
   TypeNode elsepart = n[2].getType();
   // like ite, return is the join of the branches
-  TypeNode retType = thenpart.join(elsepart);
+  TypeNode retType = thenpart.leastUpperBound(elsepart);
   if (check)
   {
     TypeNode cond = n[0].getType();

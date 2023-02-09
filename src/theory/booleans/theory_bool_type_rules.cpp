@@ -67,7 +67,7 @@ TypeNode IteTypeRule::computeType(NodeManager* nodeManager,
 {
   TypeNode thenType = n[1].getType();
   TypeNode elseType = n[2].getType();
-  TypeNode resType = thenType.join(elseType);
+  TypeNode resType = thenType.leastUpperBound(elseType);
   if (resType.isNull())
   {
     if (errOut)
