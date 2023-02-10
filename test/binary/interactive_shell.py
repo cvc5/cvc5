@@ -33,7 +33,7 @@ def check_iteractive_shell():
     child.sendline("(set-log")
 
     # ... then we get an error
-    child.expect("Parse Error: <shell>:1.7: expected SMT-LIBv2 command, got `set-log\'")
+    child.expect("Parse Error: <shell>:1.2: expected SMT-LIBv2 command, got `set-log\' (SYMBOL)")
 
     # Start sending 'BOOL' (without an E)
     child.send("(declare-data")
