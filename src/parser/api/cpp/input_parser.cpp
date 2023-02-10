@@ -13,7 +13,7 @@
  * The interface for parsing an input with a parser.
  */
 
-#include "parser/input_parser.h"
+#include "parser/api/cpp/input_parser.h"
 
 #include "base/output.h"
 #include "parser/api/cpp/command.h"
@@ -25,10 +25,19 @@
 namespace cvc5 {
 namespace parser {
 
-InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
-    : d_solver(solver), d_sm(sm), d_useOptions(useOptions)
+InputParser::InputParser(Solver* solver, SymbolManager* sm)
+    : d_solver(solver), d_allocSm(nullptr), d_sm(sm)
 {
-  d_useFlex = solver->getOptionInfo("flex-parser").boolValue();
+  initialize();
+}
+
+InputParser::InputParser(Solver* solver) : d_solver(solver), d_allocSm(new SymbolManager(solver)), d_sm(d_allocSm.get()) {
+  initialize();
+}
+
+void InputParser::initialize()
+{  
+  d_useFlex = d_solver->getOptionInfo("flex-parser").boolValue();
   // flex not supported with TPTP yet
   if (d_solver->getOption("input-language") == "LANG_TPTP")
   {
@@ -47,11 +56,15 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm, bool useOptions)
   else
   {
     // Allocate an ANTLR parser
-    ParserBuilder parserBuilder(solver, sm, useOptions);
+    ParserBuilder parserBuilder(d_solver, d_sm, true);
     d_state = parserBuilder.build();
   }
   // if flex, don't make anything yet
 }
+
+Solver* InputParser::getSolver() { return d_solver; }
+
+SymbolManager* InputParser::getSymbolManager() { return d_sm; }
 
 Command* InputParser::nextCommand()
 {
