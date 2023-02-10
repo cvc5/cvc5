@@ -48,13 +48,13 @@ class CVC5_EXPORT InputParser
    * @param solver The solver (e.g. for constructing terms and sorts)
    * @param sm The symbol manager, which contains a symbol table that maps
    * symbols to terms and sorts.
-   */ 
+   */
   InputParser(Solver* solver, SymbolManager* sm);
   /**
    * Construct an input parser with an initially empty symbol manager.
    *
    * @param solver The solver (e.g. for constructing terms and sorts)
-   */ 
+   */
   InputParser(Solver* solver);
 
   /** Get the underlying solver of this input parser */

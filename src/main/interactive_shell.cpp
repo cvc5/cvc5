@@ -44,8 +44,8 @@
 #include "base/output.h"
 #include "main/command_executor.h"
 #include "parser/api/cpp/command.h"
-#include "parser/api/cpp/symbol_manager.h"
 #include "parser/api/cpp/input_parser.h"
+#include "parser/api/cpp/symbol_manager.h"
 #include "theory/logic_info.h"
 
 using namespace std;

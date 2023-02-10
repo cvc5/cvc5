@@ -31,12 +31,16 @@ InputParser::InputParser(Solver* solver, SymbolManager* sm)
   initialize();
 }
 
-InputParser::InputParser(Solver* solver) : d_solver(solver), d_allocSm(new SymbolManager(solver)), d_sm(d_allocSm.get()) {
+InputParser::InputParser(Solver* solver)
+    : d_solver(solver),
+      d_allocSm(new SymbolManager(solver)),
+      d_sm(d_allocSm.get())
+{
   initialize();
 }
 
 void InputParser::initialize()
-{  
+{
   d_useFlex = d_solver->getOptionInfo("flex-parser").boolValue();
   // flex not supported with TPTP yet
   if (d_solver->getOption("input-language") == "LANG_TPTP")

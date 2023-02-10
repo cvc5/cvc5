@@ -221,7 +221,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       }
 
       std::unique_ptr<InputParser> parser(new InputParser(
-              pExecutor->getSolver(), pExecutor->getSymbolManager()));
+          pExecutor->getSolver(), pExecutor->getSymbolManager()));
       if( inputFromStdin ) {
         parser->setStreamInput(
             solver->getOption("input-language"), cin, filename);
