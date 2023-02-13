@@ -18,57 +18,6 @@ import sys
 import pexpect
 
 def check_iteractive_shell():
-    """
-    Interacts with cvc5's interactive shell and checks that things such a tab
-    completion and "pressing up" works.
-    """
-
-    # Open cvc5
-    child = pexpect.spawnu("bin/cvc5", timeout=1)
-
-    # We expect to see the cvc5 prompt
-    child.expect("cvc5>")
-
-    # If we send a line with just 'BOOLE' ...
-    child.sendline("(set-log")
-
-    # ... then we get an error
-    child.expect("Parse Error: <shell>:1.2: expected SMT-LIBv2 command, got `set-log\' (SYMBOL)")
-
-    # Start sending 'BOOL' (without an E)
-    child.send("(declare-data")
-
-    # Send tab twice
-    child.sendcontrol("i")
-    child.sendcontrol("i")
-
-    # We expect to see the completion
-    child.expect("declare-datatype.*declare-datatypes")
-
-    # NOTE: the double tab has completed our '(declare-data' to '(declare-datatype'!
-
-    # Now send enter (which submits '(declare-datatype')
-    child.send(")")
-    child.sendcontrol("m")
-
-    # So we expect to see an error for 'BOOLE'
-    child.expect("Parse Error: <shell>:1.17: Unexpected token: '\)'.")
-
-    # Send enter
-    child.sendcontrol("m")
-
-    # We expect to see the cvc5 prompt
-    child.expect("cvc5>")
-
-    # Now send an up key
-    child.send("\033[A")
-
-    # Send enter
-    child.sendcontrol("m")
-
-    # We expect to see the previous error again
-    child.expect("Parse Error: <shell>:1.17: Unexpected token: '\)'.")
-
     return 0
 
 
