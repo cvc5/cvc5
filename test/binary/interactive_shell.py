@@ -33,7 +33,7 @@ def check_iteractive_shell():
     child.sendline("(set-log")
 
     # ... then we get an error
-    child.expect("expected SMT-LIBv2 command.")
+    child.expect("Expected SMT-LIBv2 command.")
 
     # Start sending 'BOOL' (without an E)
     child.send("(declare-data")
@@ -43,7 +43,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # So we expect to see an error for 'BOOLE'
-    child.expect("expected SMT-LIBv2 command")
+    child.expect("Expected SMT-LIBv2 command")
 
     # Send enter
     child.sendcontrol("m")
@@ -58,7 +58,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # We expect to see the previous error again
-    child.expect("Error finding next token")
+    child.expect("Error finding token")
 
     return 0
 
