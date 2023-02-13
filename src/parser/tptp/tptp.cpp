@@ -201,13 +201,13 @@ Term TptpState::makeApplyUf(std::vector<Term>& args)
   }
   // If a lambda, apply it immediately. This is furthermore important to
   // avoid lambdas with `-o raw-benchmark` when higher-order is not enabled.
-  if (args[0].getKind()==LAMBDA)
+  if (args[0].getKind() == LAMBDA)
   {
     std::vector<Term> vars(args[0][0].begin(), args[0][0].end());
-    std::vector<Term> subs(args.begin()+1, args.end());
-    return args[0][1].substitute(vars,subs);
+    std::vector<Term> subs(args.begin() + 1, args.end());
+    return args[0][1].substitute(vars, subs);
   }
-  
+
   return d_solver->mkTerm(APPLY_UF, args);
 }
 

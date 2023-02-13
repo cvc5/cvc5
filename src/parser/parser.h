@@ -567,7 +567,7 @@ class CVC5_EXPORT ParserState
   /**
    * A string to prepend to the name of all declared symbols, which helps
    * when converting benchmarks from one format to another.
-   * 
+   *
    * The print namespace does not impact the symbol bindings. For example,
    * if a variable "x" is declared and the print namespace is "tptp.", then
    * we bind the symbol "x" to a variable whose name is "tptp.x". This means
