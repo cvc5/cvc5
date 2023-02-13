@@ -329,7 +329,7 @@ constant ABSTRACT_TYPE \
 cardinality ABSTRACT_TYPE "Cardinality(Cardinality::INTEGERS)"
 
 constant APPLY_INDEXED_SYMBOLIC_OP \
-  struct \
+  class \
   GenericOp \
   ::cvc5::internal::GenericOpHashFunction \
   "theory/builtin/generic_op.h" \
