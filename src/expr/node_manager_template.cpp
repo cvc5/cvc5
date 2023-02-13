@@ -497,7 +497,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     return typeNode;
   }
   std::unordered_map<TNode, bool> visited;
-  std::unordered_map<TNode, bool>::iterator it;
+  std::unordered_map<TNode, bool>::const_iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
