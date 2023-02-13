@@ -19,7 +19,6 @@
 #include "parser/api/cpp/command.h"
 #include "parser/input.h"
 #include "parser/parser_builder.h"
-#include "parser/smt2/smt2_lexer.h"
 #include "theory/logic_info.h"
 
 namespace cvc5 {
