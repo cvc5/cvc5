@@ -9,6 +9,7 @@
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
 # #############################################################################
+
 #
 # The DSL rewrite rule compiler
 ##
@@ -100,6 +101,13 @@ def gen_kind(op):
         Op.BVNAND: 'BITVECTOR_NAND',
         Op.BVNOR: 'BITVECTOR_NOR',
         Op.BVXNOR: 'BITVECTOR_XNOR',
+        Op.BVUADDO: 'BITVECTOR_UADDO',
+        Op.BVSADDO: 'BITVECTOR_USDDO',
+        Op.BVUMULO: 'BITVECTOR_UMULO',
+        Op.BVSMULO: 'BITVECTOR_SMULO',
+        Op.BVUSUBO: 'BITVECTOR_USUBO',
+        Op.BVSSUBO: 'BITVECTOR_SSUBO',
+        Op.BVSDIVO: 'BITVECTOR_SDIVO',
         Op.CONCAT: 'BITVECTOR_CONCAT',
         Op.BVITE: 'BITVECTOR_ITE',
         Op.BVCOMP: 'BITVECTOR_COMP',

@@ -80,8 +80,9 @@
 ;(define-rule SltEliminate
 ;  ((x ?BitVec) (y ?BitVec))
 ;  (bvslt x y)
-;  (let (pow_two (^ 2 (bvsize x)))
-;    (bvult (bvadd x pow_two) (bvadd pow_two))
+;  (bvult
+;		(bvadd x (bv (^ 2 (- (bvsize x) 1)) (bvsize x)))
+;		(bvadd y (bv (^ 2 (- (bvsize x) 1)) (bvsize x)))
 ;  ))
 (define-rule SleEliminate
   ((x ?BitVec) (y ?BitVec))
@@ -92,10 +93,10 @@
   ((x ?BitVec))
   (bvredor x)
   (not (bvcomp x (bv 0 (bvsize x)))))
-;(define-rule RedandEliminate
-;  ((x ?BitVec))
-;  (bvredand x)
-;  (not (bvcomp x (bv 1 (bvsize x)))))
+(define-rule RedandEliminate
+  ((x ?BitVec))
+  (bvredor x)
+  (not (bvcomp x (not (bv 0 (bvsize x))))))
 
 (define-rule SubEliminate
   ((x ?BitVec) (y ?BitVec))
@@ -155,6 +156,52 @@
   ((x ?BitVec) (y ?BitVec))
   (bvxnor x y)
   (bvnot (bvxor x y)))
+
+;(define-rule SdivEliminate
+;	((x ?BitVec) (y ?BitVec))
+;	(bvsdiv x y)
+;	(bvite (xor (= (extract ))))
+;	)
+
+(define-rule ZeroExtendEliminate
+	((x ?BitVec) (n Int))
+	(zero_extend n x)
+	(concat (bv 0 n) x))
+;(define-rule SignExtendEliminate
+;	((x ?BitVec) (n Int))
+;	(sign_extend n x)
+;	(concat (repeat n (extract (- (bvsize x) 1) (- (bvsize x) 1) x))
+;		x))
+
+(define-rule UaddoEliminate
+	((x ?BitVec) (y ?BitVec))
+	(bvuaddo x y)
+	(= (extract (bvsize x) (bvsize x)
+			(bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
+		(bv 1 1)
+	))
+;(define-rule SaddoEliminate
+;	((x ?BitVec) (y ?BitVec))
+;	(bvsaddo x y)
+;	(= (extract (- (bvsize x) 1) (- (bvsize x) 1)
+;			(bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
+;		(bv 1 1)
+;	))
+
+(define-rule UsuboEliminate
+	((x ?BitVec) (y ?BitVec))
+	(bvusubo x y)
+	(= (extract (bvsize x) (bvsize x)
+			(bvsub (concat (bv 0 1) x) (concat (bv 0 1) y)))
+		(bv 1 1)
+	))
+(define-rule SdivoEliminate
+	((x ?BitVec) (y ?BitVec))
+	(bvsdivo x y)
+	(and
+		(= x (concat (bv 1 1) (bv 0 (- (bvsize x) 1))))
+		(= y (not (bv 0 (bvsize y))))
+	))
 
 
 (define-cond-rule ShlByConst1
@@ -266,7 +313,7 @@
 (define-rule BitwiseNotOr (
     (x ?BitVec)
   )
-  (bvor x (bvnot x)) (bv 1 (bvsize x)))
+  (bvor x (bvnot x)) (not (bv 0 (bvsize x))))
 (define-rule XorNot (
     (x ?BitVec)
     (y ?BitVec)
@@ -328,6 +375,9 @@
   )
   (bvneg (bvneg x))
   x)
+
+
+; --- Others ---
 
 (define-rule bv-eq-refl ((t ?BitVec)) (= t t) true)
 (define-rule bv-eq-symm ((t ?BitVec) (s ?BitVec)) (= t s) (= s t))

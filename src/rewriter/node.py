@@ -67,8 +67,13 @@ class Op(Enum):
     BVNAND = auto()
     BVNOR = auto()
     BVXNOR = auto()
-
-    CONCAT = auto()
+    BVUADDO = auto()
+    BVSADDO = auto()
+    BVUMULO = auto()
+    BVSMULO = auto()
+    BVUSUBO = auto()
+    BVSSUBO = auto()
+    BVSDIVO = auto()
 
     BVITE = auto()
     BVCOMP = auto()
@@ -76,6 +81,7 @@ class Op(Enum):
     BVCONST = auto()
     ZERO_EXTEND = auto()
     SIGN_EXTEND = auto()
+    CONCAT = auto()
     EXTRACT = auto()
     REPEAT = auto()
 
