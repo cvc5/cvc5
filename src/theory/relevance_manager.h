@@ -26,8 +26,8 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/term_context.h"
-#include "smt/env_obj.h"
 #include "theory/difficulty_manager.h"
+#include "theory/theory_engine_module.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {
@@ -75,7 +75,7 @@ class TheoryModel;
  * selection is computed lazily, i.e. only when someone asks if a literal is
  * relevant, and only at most once per FULL effort check.
  */
-class RelevanceManager : protected EnvObj
+class RelevanceManager : public TheoryEngineModule
 {
   using RlvPair = std::pair<Node, uint32_t>;
   using RlvPairHashFunction = PairHashFunction<Node, uint32_t, std::hash<Node>>;
@@ -89,9 +89,9 @@ class RelevanceManager : protected EnvObj
  public:
   /**
    * @param env The environment
-   * @param val The valuation class, for computing what is relevant.
+   * @param engine The parent theory engine
    */
-  RelevanceManager(Env& env, Valuation val);
+  RelevanceManager(Env& env, TheoryEngine* engine);
   /**
    * Notify (preprocessed) assertions. This is called for input formulas or
    * lemmas that need justification that have been fully processed, just before
@@ -109,9 +109,9 @@ class RelevanceManager : protected EnvObj
    * Begin round, called at the beginning of a full effort check in
    * TheoryEngine.
    */
-  void beginRound();
+  void check(Theory::Effort effort) override;
   /** End round, called at the end of a full effort check in TheoryEngine. */
-  void endRound();
+  void postCheck(Theory::Effort effort) override;
   /**
    * Is lit part of the current relevant selection? This computes the set of
    * relevant assertions if not already done so. This call is valid during a
@@ -141,9 +141,12 @@ class RelevanceManager : protected EnvObj
    */
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
-  void notifyLemma(TNode n);
+  void notifyLemma(TNode n,
+                   theory::LemmaProperty p,
+                   const std::vector<Node>& skAsserts,
+                   const std::vector<Node>& sks) override;
   /** Notify that m is a (candidate) model, for difficulty measurements */
-  void notifyCandidateModel(TheoryModel* m);
+  void notifyCandidateModel(TheoryModel* m) override;
   /**
    * Get difficulty map
    */

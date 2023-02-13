@@ -22,6 +22,7 @@
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
+#include "parser/flex_parser.h"
 #include "parser/parser_antlr.h"
 
 namespace cvc5 {
@@ -99,6 +100,8 @@ class CVC5_EXPORT InputParser
   SymbolManager* d_sm;
   /** use options */
   bool d_useOptions;
+  /** whether to use flex */
+  bool d_useFlex;
   /** Incremental string input language */
   std::string d_istringLang;
   /** Incremental string name */
@@ -109,6 +112,9 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<Parser> d_state;
   /** The underlying input */
   std::unique_ptr<Input> d_input;
+  //!!!!!!!!!!!!!!
+  //!!!!!!!!!!!!!! new implementation
+  std::unique_ptr<FlexParser> d_fparser;
   //!!!!!!!!!!!!!!
 };
 

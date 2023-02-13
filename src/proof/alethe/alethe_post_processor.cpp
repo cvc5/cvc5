@@ -436,14 +436,13 @@ bool AletheProofPostprocessCallback::update(Node res,
     case PfRule::CHAIN_RESOLUTION:
     {
       std::vector<Node> newArgs;
-      // checker expects opposite order
-      if (d_resPivots)
+      // checker expects opposite order. We always keep the pivots because we
+      // need them to compute in updatePost whether we will add OR steps. If
+      // d_resPivots is off we will remove the pivots after that.
+      for (size_t i = 0, size = args.size(); i < size; i = i + 2)
       {
-        for (size_t i = 0, size = args.size(); i < size; i = i + 2)
-        {
-          newArgs.push_back(args[i + 1]);
-          newArgs.push_back(args[i]);
-        }
+        newArgs.push_back(args[i + 1]);
+        newArgs.push_back(args[i]);
       }
       if (!isSingletonClause(res, children, args))
       {
@@ -1797,8 +1796,9 @@ bool AletheProofPostprocessCallback::updatePost(
     // necessary to convert (cl (or ...)) to (cl ...).
     case AletheRule::RESOLUTION_OR:
     {
-      Assert(!d_resPivots || args.size() > 3);
-      // if we do not have pivots, we can't compute easily, so we do not update
+      // if we do not have pivots, we can't compute easily, so we do not try.
+      // This should only be the case if this proof node was previously updated
+      // and we are not printing pivots.
       if (args.size() < 4)
       {
         return false;
@@ -1806,18 +1806,10 @@ bool AletheProofPostprocessCallback::updatePost(
       std::vector<Node> newChildren = children;
       bool hasUpdated = false;
 
-      // If we are printing the pivots, the order of polarity/pivot is reversed.
+      // Note that we will have inverted the order of polarity/pivot.
       size_t polIdx, pivIdx;
-      if (d_resPivots)
-      {
-        polIdx = 4;
-        pivIdx = 3;
-      }
-      else
-      {
-        polIdx = 3;
-        pivIdx = 4;
-      }
+      polIdx = 4;
+      pivIdx = 3;
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true.
@@ -1870,16 +1862,8 @@ bool AletheProofPostprocessCallback::updatePost(
       // true if it isn't the pivot element.
       for (std::size_t i = 1, size = children.size(); i < size; ++i)
       {
-        if (d_resPivots)
-        {
-          polIdx = 2 * (i - 1) + 3 + 1;
-          pivIdx = 2 * (i - 1) + 3;
-        }
-        else
-        {
-          polIdx = 2 * (i - 1) + 3;
-          pivIdx = 2 * (i - 1) + 3 + 1;
-        }
+        polIdx = 2 * (i - 1) + 3 + 1;
+        pivIdx = 2 * (i - 1) + 3;
         if (children[i].getKind() == kind::OR
             && (args[polIdx] != d_false || args[pivIdx] != children[i]))
         {
@@ -1933,7 +1917,12 @@ bool AletheProofPostprocessCallback::updatePost(
         Trace("alethe-proof")
             << "... update alethe step in finalizer " << res << " "
             << newChildren << " / " << args << std::endl;
-        cdp->addStep(res, PfRule::ALETHE_RULE, newChildren, args);
+        cdp->addStep(res,
+                     PfRule::ALETHE_RULE,
+                     newChildren,
+                     d_resPivots
+                         ? args
+                         : std::vector<Node>{args.begin(), args.begin() + 3});
         return true;
       }
       Trace("alethe-proof") << "... no update\n";
