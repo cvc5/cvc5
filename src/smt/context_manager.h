@@ -112,7 +112,7 @@ class ContextManager : protected EnvObj
   /** Pops the user and SAT contexts */
   void pop();
   /** Pops the user and SAT contexts to the given level */
-  void popto(int toLevel);
+  void popto(uint32_t toLevel);
   /**
    * Internal push, which processes any pending pops, and pushes (if in
    * incremental mode).
