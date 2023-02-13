@@ -77,13 +77,13 @@
   ((x ?BitVec) (y ?BitVec))
   (bvsge x y)
   (bvsle y x))
-;(define-rule SltEliminate
-;  ((x ?BitVec) (y ?BitVec))
-;  (bvslt x y)
-;  (bvult
-;		(bvadd x (bv (^ 2 (- (bvsize x) 1)) (bvsize x)))
-;		(bvadd y (bv (^ 2 (- (bvsize x) 1)) (bvsize x)))
-;  ))
+(define-rule SltEliminate
+  ((x ?BitVec) (y ?BitVec))
+  (bvslt x y)
+  (bvult
+		(bvadd x (bvshl (bv 1 (bvsize x)) (bv (- (bvsize x) 1) (bvsize x))) )
+		(bvadd y (bvshl (bv 1 (bvsize x)) (bv (- (bvsize x) 1) (bvsize x))) )
+  ))
 (define-rule SleEliminate
   ((x ?BitVec) (y ?BitVec))
   (bvsle x y)
@@ -119,9 +119,8 @@
 ;  (repeat n x)
 ;  (concat x (repeat (- n 1) x)))
 ;(define-cond-rule RepeatEliminate2
-;  ((x ?BitVec) (n Int))
-;  (= n 1)
-;  (repeat n x)
+;  ((x ?BitVec))
+;  (repeat 1 x)
 ;  x)
 
 ;; Not entirely clear if this is right
