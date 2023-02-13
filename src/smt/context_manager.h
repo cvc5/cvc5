@@ -129,7 +129,7 @@ class ContextManager : protected EnvObj
   /** Pointer to the SmtDriver */
   SmtDriver* d_smt;
   /** The context levels of user pushes */
-  std::vector<int> d_userLevels;
+  std::vector<uint32_t> d_userLevels;
   /** Number of internal pops that have been deferred. */
   unsigned d_pendingPops;
   /**
