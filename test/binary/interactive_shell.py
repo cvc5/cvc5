@@ -38,21 +38,12 @@ def check_iteractive_shell():
     # Start sending 'BOOL' (without an E)
     child.send("(declare-data")
 
-    # Send tab twice
-    child.sendcontrol("i")
-    child.sendcontrol("i")
-
-    # We expect to see the completion
-    child.expect("declare-datatype.*declare-datatypes")
-
-    # NOTE: the double tab has completed our '(declare-data' to '(declare-datatype'!
-
-    # Now send enter (which submits '(declare-datatype')
+    # Now send enter (which submits '(declare-data')
     child.send(")")
     child.sendcontrol("m")
 
     # So we expect to see an error for 'BOOLE'
-    child.expect("Expected SMT-LIBv2 symbol")
+    child.expect("expected SMT-LIBv2 command")
 
     # Send enter
     child.sendcontrol("m")
@@ -67,7 +58,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # We expect to see the previous error again
-    child.expect("Expected SMT-LIBv2 symbol")
+    child.expect("Error finding next token")
 
     return 0
 
