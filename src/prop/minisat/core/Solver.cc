@@ -394,7 +394,8 @@ CRef Solver::reason(Var x) {
   if (needProof() && explLevel < assertionLevel)
   {
     Trace("pf::sat") << "..user level is " << userContext()->getLevel() << "\n";
-    Assert(userContext()->getLevel() == (assertionLevel + 1));
+    Assert(userContext()->getLevel()
+           == static_cast<uint32_t>(assertionLevel + 1));
     d_proxy->notifyCurrPropagationInsertedAtLevel(explLevel);
   }
   // Construct the reason
