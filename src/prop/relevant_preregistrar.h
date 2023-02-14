@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Propagation finder
+ * Relevant preregistration policy
  */
 
 #include "cvc5_private.h"
@@ -37,7 +37,7 @@ class RlvInfo
 {
  public:
   RlvInfo(context::Context* c);
-  /** The iteration */
+  /** The iteration (see updateRelevantNext) */
   context::CDO<size_t> d_iter;
   /** The relevant value */
   context::CDO<SatValue> d_rval;
@@ -115,17 +115,68 @@ class RelevantPreregistrar : protected EnvObj
 
  private:
   /**
-   * Update that n should be considered relevant, and adds literals to
+   * Set that n should be considered relevant, and adds literals to
    * preregister to toPreregister.
    */
-  void updateRelevant(TNode n, std::vector<TNode>& toPreregister);
+  void setRelevant(TNode n, std::vector<TNode>& toPreregister);
   /**
-   * Update that n should be considered relevant, and adds literals to
-   * preregister to toPreregister.
+   * Updates the state of formulas in toVisit regarding relevance, and adds
+   * literals to preregister to toPreregister.
    */
-  void updateRelevantInternal(std::vector<TNode>& toVisit,
+  void updateRelevant(std::vector<TNode>& toVisit,
                               std::vector<TNode>& toPreregister);
-  SatValue updateRelevantInternal2(TNode n,
+  /** 
+   * Process the next step for handling the relevance of n. Called when n
+   * is the back element of toVisit.
+   * 
+   * This may add literals to preregister to toPreregister, or modify the list
+   * of formulas to visit (toVisit), e.g. either by popping n from this vector,
+   * or pushing its direct children to this vector.
+   * 
+   * In detail, we consider the state of how n has been processed (which is
+   * stored in d_pstate[n]), and whether n has already been justified (via
+   * d_jcache):
+   * 
+   * If n has already been justified, there is nothing to do, we pop n from
+   * toVisit and return.
+   * 
+   * Otherwise, this method depends on the relevance of n and its kind. The 
+   * following describes what is done, where this method implements
+   * one step of the overall behavior:
+   *
+   * - If n is a conjunction/disjunction that requires all children to be a
+   * certain value to be justified (e.g. AND with relevance true, OR with
+   * relevance false), then we do two passes (RlvInfo::d_iter):
+   *   - On the first iteration (d_iter=0), we iterate over children, marking
+   *     them as relevant. If we encounter a child that is justified with a
+   *     value that implies ours (e.g. a false child of AND), then we mark
+   *     ourselves as justified.
+   *   - On the second iteration (d_iter=1), we iterate over children. If
+   *     we encounter a child whose value is unknown, we mark it as watched,
+   *     i.e. we stop iterating and our relevance is updated when its value is
+   *     assigned. If all children have values, note these values are
+   *     non-forcing, and we mark ourselves justified (i.e. an AND with all
+   *     true children is justified true).
+   * - If n is a conjunction/disjunction that requires one child to be a
+   * certain value to be justified (e.g. AND with relevance false, OR with
+   * relevance true), then:
+   *    - We iterate over children, marking them as relevant. If we encounter 
+   *      a child that is justified with a value that implies ours, then we mark
+   *      ourselves as justified. If we encounter a child whose value is
+   *      unknown, we mark that child as watched and stop iterating until it has
+   *      a value. If all children have values, we mark ourselves justified
+   *      with the appropriate value.
+   * - If n is ITE/XOR/EQUAL, then:
+   *    - We mark the first child as relevant with unknown (both) polarities.
+   *    - If the first child is assigned a value, then based on that value, 
+   *      we mark another child as relevant. If n is ITE, then the relevant
+   *      branch is marked relevant. If n is XOR/EQUAL, then the right hand
+   *      side is marked relevant with the appropriate polarity.
+   *    - When two children have values, then we mark ourselves justified with
+   *      the appropriate value.
+   * - If n is a theory literal, is added to toPreregister.
+   */
+  SatValue updateRelevantNext(TNode n,
                                    std::vector<TNode>& toPreregister,
                                    std::vector<TNode>& toVisit);
   /**

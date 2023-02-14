@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Propagation finder
+ * Relevant preregistration policy
  */
 
 #include "prop/relevant_preregistrar.h"
@@ -54,7 +54,7 @@ void RelevantPreregistrar::check(std::vector<TNode>& toPreregister)
   while (d_assertionIndex.get() < asize)
   {
     TNode n = d_assertions[d_assertionIndex];
-    updateRelevant(n, toPreregister);
+    setRelevant(n, toPreregister);
     d_assertionIndex = d_assertionIndex + 1;
   }
 }
@@ -87,7 +87,7 @@ void RelevantPreregistrar::notifyActiveSkolemDefs(
   {
     Trace("prereg-rlv") << "RelevantPreregistrar: add skolem definition " << d
                          << std::endl;
-    updateRelevant(d, toPreregister);
+    setRelevant(d, toPreregister);
   }
 }
 
@@ -100,7 +100,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
   TNode natom = pol ? n : n[0];
   // update relevant, which will ensure that natom is preregistered if not
   // already done so
-  updateRelevant(natom, toPreregister);
+  setRelevant(natom, toPreregister);
   prop::SatValue jval = pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
   // if we haven't already set the value, set it now
   if (!d_jcache.hasValue(natom))
@@ -113,14 +113,14 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
   updateJustify(justifyQueue, toVisit);
   Trace("prereg-rlv-debug2")
       << "...will visit " << toVisit.size() << " parents" << std::endl;
-  updateRelevantInternal(toVisit, toPreregister);
+  updateRelevant(toVisit, toPreregister);
 
   // we are notified about Boolean variables, but these should not be asserted
   // to the theory engine unless their kind is BOOLEAN_TERM_VARIABLE.
   return !natom.isVar() || natom.getKind() == BOOLEAN_TERM_VARIABLE;
 }
 
-void RelevantPreregistrar::updateRelevant(TNode n,
+void RelevantPreregistrar::setRelevant(TNode n,
                                           std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
@@ -134,10 +134,10 @@ void RelevantPreregistrar::updateRelevant(TNode n,
   std::vector<TNode> toVisit;
   markRelevant(nn, pol ? SAT_VALUE_TRUE : SAT_VALUE_FALSE, toVisit);
   // process its relevance
-  updateRelevantInternal(toVisit, toPreregister);
+  updateRelevant(toVisit, toPreregister);
 }
 
-void RelevantPreregistrar::updateRelevantInternal(
+void RelevantPreregistrar::updateRelevant(
     std::vector<TNode>& toVisit, std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent. We forbid NOT for child and parent.
@@ -148,7 +148,7 @@ void RelevantPreregistrar::updateRelevantInternal(
     t = toVisit.back();
     Assert(t.getKind() != NOT);
     // update relevant
-    SatValue jval = updateRelevantInternal2(t, toPreregister, toVisit);
+    SatValue jval = updateRelevantNext(t, toPreregister, toVisit);
     // if we found it was justified
     if (jval != SAT_VALUE_UNKNOWN)
     {
@@ -176,7 +176,7 @@ bool shouldWatchAll(Kind nk, SatValue rval)
 }
 
 // NOTE: this method is responsible for popping from toVisit when applicable
-SatValue RelevantPreregistrar::updateRelevantInternal2(
+SatValue RelevantPreregistrar::updateRelevantNext(
     TNode n, std::vector<TNode>& toPreregister, std::vector<TNode>& toVisit)
 {
   Trace("prereg-rlv-debug2") << "Update relevance on " << n << std::endl;
@@ -203,6 +203,7 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(
   Assert(cindex <= n.getNumChildren());
   if (nk == AND || nk == OR || nk == IMPLIES)
   {
+    // the value that would 
     SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
     bool invertChild = (nk == IMPLIES && cindex == 0);
     size_t iter = currInfo->d_iter;
