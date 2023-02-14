@@ -57,7 +57,10 @@ Parser::~Parser()
   d_commandQueue.clear();
 }
 
-void Parser::preemptCommand(std::unique_ptr<Command> cmd) { d_commandQueue.push_back(cmd); }
+void Parser::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_commandQueue.push_back(cmd);
+}
 std::unique_ptr<Command> Parser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;

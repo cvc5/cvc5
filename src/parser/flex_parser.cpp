@@ -65,7 +65,10 @@ void FlexParser::unexpectedEOF(const std::string& msg)
   d_lex->parseError(msg, true);
 }
 
-void FlexParser::preemptCommand(std::unique_ptr<Command> cmd) { d_commandQueue.push_back(cmd); }
+void FlexParser::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_commandQueue.push_back(cmd);
+}
 
 std::unique_ptr<Command> FlexParser::nextCommand()
 {

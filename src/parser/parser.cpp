@@ -637,7 +637,10 @@ void ParserState::unexpectedEOF(const std::string& msg)
   d_psc->unexpectedEOF(msg);
 }
 
-void ParserState::preemptCommand(std::unique_ptr<Command> cmd) { d_psc->preemptCommand(cmd); }
+void ParserState::preemptCommand(std::unique_ptr<Command> cmd)
+{
+  d_psc->preemptCommand(cmd);
+}
 
 void ParserState::attributeNotSupported(const std::string& attr)
 {
