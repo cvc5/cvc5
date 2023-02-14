@@ -72,6 +72,13 @@ class TheoryPreregistrar : protected EnvObj
   void preRegisterToTheory(const std::vector<TNode>& toPreregister);
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
+  /**
+   * Keep track of sat literals that were registered at a SAT context level > 0
+   * and need reregistration when we backtrack to a lower level than the level
+   * they were registered at. SAT variables stay in the SAT solver and we have
+   * to ensure that they are registered at all times on the theory level.
+   */
+  std::unordered_map<Node, uint32_t> d_sat_literals;
 };
 
 }  // namespace prop

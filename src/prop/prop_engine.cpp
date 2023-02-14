@@ -712,6 +712,8 @@ void PropEngine::checkProof(const context::CDList<Node>& assertions)
   return d_ppm->checkProof(assertions);
 }
 
+CnfStream* PropEngine::getCnfStream() { return d_theoryProxy->getCnfStream(); }
+
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
 std::shared_ptr<ProofNode> PropEngine::getProof(bool connectCnf)

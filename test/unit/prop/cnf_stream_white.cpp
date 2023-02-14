@@ -42,7 +42,7 @@ class FakeSatSolver : public SatSolver
  public:
   FakeSatSolver() : d_nextVar(0), d_addClauseCalled(false) {}
 
-  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) override
+  SatVariable newVar(bool theoryAtom, bool canErase) override
   {
     return d_nextVar++;
   }
