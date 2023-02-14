@@ -124,9 +124,7 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
   Unreachable() << "CaDiCaL does not support adding XOR clauses.";
 }
 
-SatVariable CadicalSolver::newVar(bool isTheoryAtom,
-                                  bool preRegister,
-                                  bool canErase)
+SatVariable CadicalSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   ++d_statistics.d_numVariables;
   return d_nextVarIdx++;

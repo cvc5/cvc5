@@ -297,6 +297,8 @@ class PropEngine : protected EnvObj
    */
   bool properExplanation(TNode node, TNode expl) const;
 
+  /** Get the associated CNF stream. */
+  CnfStream* getCnfStream();
   /** Retrieve this modules proof CNF stream. */
   ProofCnfStream* getProofCnfStream();
 
