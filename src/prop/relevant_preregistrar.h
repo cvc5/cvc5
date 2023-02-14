@@ -150,7 +150,7 @@ class RelevantPreregistrar : protected EnvObj
    *   - On the first iteration (d_iter=0), we iterate over children, marking
    *     them as relevant. If we encounter a child that is justified with a
    *     value that implies ours (e.g. a false child of AND), then we mark
-   *     ourselves as justified.
+   *     ourselves as justified and stop the iteration.
    *   - On the second iteration (d_iter=1), we iterate over children. If
    *     we encounter a child whose value is unknown, we mark it as watched,
    *     i.e. we stop iterating and our relevance is updated when its value is
@@ -162,15 +162,15 @@ class RelevantPreregistrar : protected EnvObj
    * relevance true), then:
    *    - We iterate over children, marking them as relevant. If we encounter
    *      a child that is justified with a value that implies ours, then we mark
-   *      ourselves as justified. If we encounter a child whose value is
-   *      unknown, we mark that child as watched and stop iterating until it has
-   *      a value. If all children have values, we mark ourselves justified
-   *      with the appropriate value.
+   *      ourselves as justified and stop the iteration. If we encounter a
+   *      child whose value is unknown, we mark that child as watched and stop
+   *      the iteration until it has a value. If all children have values, we
+   *      mark ourselves justified with the appropriate value.
    * - If n is ITE/XOR/EQUAL, then:
    *    - We mark the first child as relevant with unknown (both) polarities.
    *    - If the first child is assigned a value, then based on that value,
-   *      we mark another child as relevant. If n is ITE, then the relevant
-   *      branch is marked relevant. If n is XOR/EQUAL, then the right hand
+   *      we mark another child as relevant: if n is ITE, then the relevant
+   *      branch is marked relevant; if n is XOR/EQUAL, then the right hand
    *      side is marked relevant with the appropriate polarity.
    *    - When two children have values, then we mark ourselves justified with
    *      the appropriate value.
