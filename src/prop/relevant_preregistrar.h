@@ -69,9 +69,11 @@ class RlvInfo
  * preregister nothing since this formula is already justifed.
  * - Say (and A B C) is an input formula, then we preregister A, B, C.
  * - Say (= A (and B C)) is an input formula and A is already asserted true,
- * then we preregister B, C.
+ * then we preregister B and C, since assigning either B or C to false would
+ * derive a conflict.
  * - Say (= A (and B C)) is an input formula and A is already asserted false,
- * then we preregister B only.
+ * then we preregister B only, since both B and C would have to be true to
+ * derive a conflict.
  * - Say (ite A B C) is an input formula and A is already asserted false, then
  * we preregister C.
  * 
