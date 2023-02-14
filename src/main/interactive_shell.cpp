@@ -335,7 +335,7 @@ restart:
   {
     while ((cmdp = d_parser->nextCommand()))
     {
-      Command * cmd = cmdp.get();
+      Command* cmd = cmdp.get();
       // execute the command immediately
       d_cexec->doCommand(cmd);
       if (cmd->interrupted())
