@@ -351,11 +351,6 @@ SatValue RelevantPreregistrar::updateRelevantInternal2(
     if (!n.isVar() || nk == BOOLEAN_TERM_VARIABLE)
     {
       toPreregister.push_back(n);
-
-      if (options().prop.preregDebug)
-      {
-        d_preregistered.insert(n);
-      }
     }
     d_statPrereg = d_statPrereg + 1;
     Trace("prereg-rlv-status") << "Preregistered " << d_statPrereg << " / "

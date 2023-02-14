@@ -1,3 +1,5 @@
+; COMMAND-LINE: --preregister-mode=rlv
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-const x (_ BitVec 1))
