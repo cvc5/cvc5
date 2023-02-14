@@ -58,7 +58,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # We expect to see the previous error again
-    child.expect("Error finding token")
+    child.expect("Expected SMT-LIBv2 command")
 
     return 0
 
