@@ -195,8 +195,9 @@ class RelevantPreregistrar : protected EnvObj
                          TNode parent,
                          SatValue implJustify = SAT_VALUE_UNKNOWN);
   /**
-   * Process the justification for all terms in justifyQueue, add all terms
-   * that need to update their relevance to toVisit.
+   * Process the justification for all terms in justifyQueue, which contains
+   * a list of formulas that have just been justified with the given values.
+   * Add all terms that need to update their relevance to toVisit.
    */
   void updateJustify(std::vector<std::pair<TNode, SatValue>>& justifyQueue,
                      std::vector<TNode>& toVisit);

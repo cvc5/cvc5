@@ -140,7 +140,7 @@ void RelevantPreregistrar::setRelevant(TNode n,
 void RelevantPreregistrar::updateRelevant(std::vector<TNode>& toVisit,
                                           std::vector<TNode>& toPreregister)
 {
-  // (child, desired polarity), parent. We forbid NOT for child and parent.
+  // list of (formula, polarity) that we have inferred in this call
   std::vector<std::pair<TNode, SatValue>> justifyQueue;
   TNode t;
   while (!toVisit.empty())
@@ -159,8 +159,8 @@ void RelevantPreregistrar::updateRelevant(std::vector<TNode>& toVisit,
       // add it to the queue for notifications
       justifyQueue.emplace_back(t, jval);
     }
-    // If we are done visiting, process the justify queue, which will
-    // add parents to visit
+    // If we are done processing relevance, process the justify queue, which may
+    // add new parents to toVisit
     if (toVisit.empty())
     {
       updateJustify(justifyQueue, toVisit);
@@ -205,8 +205,9 @@ SatValue RelevantPreregistrar::updateRelevantNext(
   Assert(cindex <= n.getNumChildren());
   if (nk == AND || nk == OR || nk == IMPLIES)
   {
-    // the value that would
+    // the value that would imply our value
     SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+    // whether the current child is (implicitly) negated
     bool invertChild = (nk == IMPLIES && cindex == 0);
     size_t iter = currInfo->d_iter;
     // check the status of the last child we looked at, if it exists
@@ -219,7 +220,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
       if (cval == SAT_VALUE_UNKNOWN)
       {
         // Watch all children if a single value would force us to our relevant
-        // value, or if we are in iter=1.
+        // value and we are in iter=0.
         // If we found an unknown child and aren't watching all children, we are
         // done for now.
         if (iter == 1 || !shouldWatchAll(nk, rval))
@@ -242,6 +243,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
     // if we didn't justify above, then look at the next child
     if (newJval == SAT_VALUE_UNKNOWN)
     {
+      // if we are at the end of children
       if (cindex == n.getNumChildren())
       {
         if (iter == 1 || !shouldWatchAll(nk, rval))
@@ -253,7 +255,8 @@ SatValue RelevantPreregistrar::updateRelevantNext(
         }
         else
         {
-          // otherwise, we will do another pass to check for justification
+          // otherwise, if d_iter=0, we will do another pass to check for
+          // justification
           currInfo->d_iter = iter + 1;
         }
       }
@@ -410,7 +413,7 @@ void RelevantPreregistrar::markRelevant(TNode n,
     currInfo->d_iter = 0;
     toVisit.emplace_back(n);
   }
-  // otherwise did not update, don't add to stack.
+  // otherwise did not update, don't add to toVisit.
 }
 
 void RelevantPreregistrar::markWatchedParent(TNode child,
