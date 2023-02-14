@@ -639,7 +639,7 @@ void ParserState::unexpectedEOF(const std::string& msg)
 
 void ParserState::preemptCommand(std::unique_ptr<Command> cmd)
 {
-  d_psc->preemptCommand(cmd);
+  d_psc->preemptCommand(std::move(cmd));
 }
 
 void ParserState::attributeNotSupported(const std::string& attr)

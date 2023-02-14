@@ -151,7 +151,7 @@ parseCommand returns [std::unique_ptr<cvc5::parser::Command> cmd_return = NULL]
   std::string name;
 }
 @after {
-  cmd_return = cmd;
+  cmd_return = std::move(cmd);
 }
   : LPAREN_TOK command[&cmd] RPAREN_TOK
 
@@ -186,7 +186,7 @@ parseSygus returns [std::unique_ptr<cvc5::parser::Command> cmd_return = NULL]
   std::string name;
 }
 @after {
-  cmd_return = cmd;
+  cmd_return = std::move(cmd);
 }
   : LPAREN_TOK cmd=sygusCommand RPAREN_TOK
   | EOF

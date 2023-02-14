@@ -59,7 +59,7 @@ Parser::~Parser()
 
 void Parser::preemptCommand(std::unique_ptr<Command> cmd)
 {
-  d_commandQueue.push_back(cmd);
+  d_commandQueue.push_back(std::move(cmd));
 }
 std::unique_ptr<Command> Parser::nextCommand()
 {
@@ -76,7 +76,7 @@ std::unique_ptr<Command> Parser::nextCommand()
     try
     {
       cmd = d_input->parseCommand();
-      d_commandQueue.push_back(cmd);
+      d_commandQueue.push_back(std::move(cmd));
       cmd = std::move(d_commandQueue.front());
       d_commandQueue.pop_front();
       setDone(cmd == NULL);

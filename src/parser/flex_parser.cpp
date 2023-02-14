@@ -20,6 +20,7 @@
 #include "parser/flex_lexer.h"
 #include "parser/parser_exception.h"
 #include "parser/smt2/smt2_parser.h"
+#include "parser/api/cpp/command.h"
 
 namespace cvc5 {
 namespace parser {
@@ -67,7 +68,7 @@ void FlexParser::unexpectedEOF(const std::string& msg)
 
 void FlexParser::preemptCommand(std::unique_ptr<Command> cmd)
 {
-  d_commandQueue.push_back(cmd);
+  d_commandQueue.push_back(std::move(cmd));
 }
 
 std::unique_ptr<Command> FlexParser::nextCommand()
@@ -85,7 +86,7 @@ std::unique_ptr<Command> FlexParser::nextCommand()
     try
     {
       cmd = parseNextCommand();
-      d_commandQueue.push_back(cmd);
+      d_commandQueue.push_back(std::move(cmd));
       cmd = std::move(d_commandQueue.front());
       d_commandQueue.pop_front();
       setDone(cmd == nullptr);
