@@ -72,26 +72,39 @@ std::string cvc5_errno_failreason()
 
 namespace detail {
 
+std::string stripQuotes(const std::string& filename)
+{
+  if (filename.size()<2 || filename[0]!='\"' || filename[filename.size()-1]!='\"')
+  {
+    throw OptionException("Stream names must be delimited by quotes, got invalid name `" + filename + "`.");
+  }
+  std::string sfile = filename;
+  sfile = sfile.erase(0, 1);
+  return sfile.erase(sfile.size() - 1, 1);
+}
+
 std::unique_ptr<std::ostream> openOStream(const std::string& filename)
 {
+  std::string sfile = stripQuotes(filename);
   errno = 0;
-  std::unique_ptr<std::ostream> res = std::make_unique<std::ofstream>(filename);
+  std::unique_ptr<std::ostream> res = std::make_unique<std::ofstream>(sfile);
   if (!res || !*res)
   {
     std::stringstream ss;
-    ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
+    ss << "Cannot open file: `" << sfile << "': " << cvc5_errno_failreason();
     throw OptionException(ss.str());
   }
   return res;
 }
 std::unique_ptr<std::istream> openIStream(const std::string& filename)
 {
+  std::string sfile = stripQuotes(filename);
   errno = 0;
-  std::unique_ptr<std::istream> res = std::make_unique<std::ifstream>(filename);
+  std::unique_ptr<std::istream> res = std::make_unique<std::ifstream>(sfile);
   if (!res || !*res)
   {
     std::stringstream ss;
-    ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
+    ss << "Cannot open file: `" << sfile << "': " << cvc5_errno_failreason();
     throw OptionException(ss.str());
   }
   return res;
