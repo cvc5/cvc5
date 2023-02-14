@@ -39,23 +39,32 @@ class RlvInfo
   RlvInfo(context::Context* c);
   /** The iteration (see updateRelevantNext) */
   context::CDO<size_t> d_iter;
-  /** The relevant value */
+  /**
+   * Tracks which polarity the formula is relevant. Intuitively, a formula that
+   * is relevant with polarity true is such that assigning its value to false
+   * may contribute to SAT conflict.
+   *
+   * In particular d_rval is either:
+   * SAT_VALUE_TRUE, SAT_VALUE_FALSE, or SAT_VALUE_UNKNOWN indicating that
+   * the formula is relevant in both polarities.
+   */
   context::CDO<SatValue> d_rval;
-  /** The last child we looked up */
+  /** The last child of this formula we processed */
   context::CDO<size_t> d_childIndex;
   /**
    * Parent list, a list of nodes that is waiting for the value of this node to
-   * be assigned for the purposes of updating relevance.
+   * be assigned for the purposes of updating justification and relevance.
    */
   context::CDList<Node> d_parentList;
   /**
-   * Parent list polarity, only for parents who are IMPLIES, OR, AND.
+   * Parent list polarity, only for parents who are IMPLIES, OR, AND. This
+   * stores the (implicit) polarity of this formula in the parent. For
+   * example, for the RlvInfo of F, we have:
+   *    d_parentListPol[ (and (not F) G) ] = false
+   *    d_parentListPol[ (or F G) ] = true
+   *    d_parentListPol[ (=> F G) ] = false
    */
   std::map<Node, bool> d_parentListPol;
-  /** set finished */
-  void setInactive();
-  /** is finished */
-  bool isActive() const;
 };
 
 /**
