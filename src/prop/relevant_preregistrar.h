@@ -41,7 +41,7 @@ class RlvInfo
   context::CDO<size_t> d_iter;
   /**
    * Tracks which polarity the formula is relevant. Intuitively, a formula that
-   * is relevant with polarity true is such that assigning its value to false
+   * is relevant with polarity b is such that assigning its value to ~b
    * may contribute to SAT conflict.
    *
    * In particular d_rval is either:
@@ -89,6 +89,11 @@ class RlvInfo
  * The intuition in the above cases is that we want to preregister only
  * the literals that, if they were to be T-propagated, could contribute towards
  * a SAT conflict in the current context.
+ *
+ * More generally, this class tracks relevance on formulas in the input. All
+ * top-level input formulas and lemmas are assigned relevance true. A formula
+ * marked relevant may cause its children to be relevant. Any theory literal
+ * marked relevant (in either polarity) is preregistered.
  */
 class RelevantPreregistrar : protected EnvObj
 {
