@@ -96,7 +96,7 @@ public:
   virtual SatValue modelValue(SatLiteral l) = 0;
 
   /** Get the current assertion level */
-  virtual unsigned getAssertionLevel() const = 0;
+  virtual uint32_t getAssertionLevel() const = 0;
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;

@@ -155,7 +155,7 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
     clauseLits.insert(MinisatSatSolver::toSatLiteral(clause[i]));
   }
   Node conclusion = getClauseNode(clause);
-  int clauseLevel = clause.level() + 1;
+  uint32_t clauseLevel = clause.level() + 1;
   if (clauseLevel < userContext()->getLevel()
       && !d_resChains.hasGenerator(conclusion))
   {
