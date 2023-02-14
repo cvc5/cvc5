@@ -27,7 +27,7 @@ TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
                                        CDCLTSatSolverInterface* ss,
                                        CnfStream* cs)
-    : EnvObj(env), d_theoryEngine(te)
+    : EnvObj(env), d_theoryEngine(te), d_sat_literals(env.getUserContext())
 {
 }
 
@@ -38,29 +38,16 @@ bool TheoryPreregistrar::needsActiveSkolemDefs() const { return false; }
 void TheoryPreregistrar::check()
 {
   uint32_t level = d_env.getContext()->getLevel();
-  std::vector<TNode> to_erase;
   for (auto& p : d_sat_literals)
   {
-    if (!d_theoryEngine->getPropEngine()->getCnfStream()->hasLiteral(p.first))
-    {
-      to_erase.push_back(p.first);
-    }
-    else if (p.second > level)
+    if (p.second > level)
     {
       notifySatLiteral(p.first);
-      p.second = level;
     }
   }
   if (level == 0)
   {
     d_sat_literals.clear();
-  }
-  else
-  {
-    for (const auto& node : to_erase)
-    {
-      d_sat_literals.erase(node);
-    }
   }
 }
 
@@ -75,7 +62,7 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
-    d_sat_literals.emplace(n, d_env.getContext()->getLevel());
+    d_sat_literals.insert(n, d_env.getContext()->getLevel());
   }
 }
 
