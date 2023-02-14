@@ -68,14 +68,14 @@ void RelevantPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma)
   }
   // buffer it into the list of assertions
   Trace("prereg-rlv") << "RelevantPreregistrar: add assertion " << n
-                       << std::endl;
+                      << std::endl;
   d_assertions.push_back(n);
 }
 
 void RelevantPreregistrar::notifySatLiteral(TNode n)
 {
   Trace("prereg-rlv") << "RelevantPreregistrar: notify SAT literal " << n
-                       << std::endl;
+                      << std::endl;
   // do nothing, only for stats
   d_statSatPrereg = d_statSatPrereg + 1;
 }
@@ -86,7 +86,7 @@ void RelevantPreregistrar::notifyActiveSkolemDefs(
   for (TNode d : defs)
   {
     Trace("prereg-rlv") << "RelevantPreregistrar: add skolem definition " << d
-                         << std::endl;
+                        << std::endl;
     setRelevant(d, toPreregister);
   }
 }
@@ -95,7 +95,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
                                           std::vector<TNode>& toPreregister)
 {
   Trace("prereg-rlv") << "RelevantPreregistrar: notify asserted " << n
-                       << std::endl;
+                      << std::endl;
   bool pol = n.getKind() != kind::NOT;
   TNode natom = pol ? n : n[0];
   // update relevant, which will ensure that natom is preregistered if not
@@ -121,7 +121,7 @@ bool RelevantPreregistrar::notifyAsserted(TNode n,
 }
 
 void RelevantPreregistrar::setRelevant(TNode n,
-                                          std::vector<TNode>& toPreregister)
+                                       std::vector<TNode>& toPreregister)
 {
   bool pol = n.getKind() != kind::NOT;
   TNode nn = pol ? n : n[0];
@@ -137,8 +137,8 @@ void RelevantPreregistrar::setRelevant(TNode n,
   updateRelevant(toVisit, toPreregister);
 }
 
-void RelevantPreregistrar::updateRelevant(
-    std::vector<TNode>& toVisit, std::vector<TNode>& toPreregister)
+void RelevantPreregistrar::updateRelevant(std::vector<TNode>& toVisit,
+                                          std::vector<TNode>& toPreregister)
 {
   // (child, desired polarity), parent. We forbid NOT for child and parent.
   std::vector<std::pair<TNode, SatValue>> justifyQueue;
@@ -203,7 +203,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
   Assert(cindex <= n.getNumChildren());
   if (nk == AND || nk == OR || nk == IMPLIES)
   {
-    // the value that would 
+    // the value that would
     SatValue forceVal = (nk == AND) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
     bool invertChild = (nk == IMPLIES && cindex == 0);
     size_t iter = currInfo->d_iter;
@@ -355,7 +355,7 @@ SatValue RelevantPreregistrar::updateRelevantNext(
     }
     d_statPrereg = d_statPrereg + 1;
     Trace("prereg-rlv-status") << "Preregistered " << d_statPrereg << " / "
-                                << d_statSatPrereg << " literals" << std::endl;
+                               << d_statSatPrereg << " literals" << std::endl;
     // this ensures we don't preregister the same literal twice
     currInfo->d_childIndex = 1;
     currInfo->d_rval = SAT_VALUE_UNKNOWN;

@@ -76,7 +76,7 @@ class RlvInfo
  * derive a conflict.
  * - Say (ite A B C) is an input formula and A is already asserted false, then
  * we preregister C.
- * 
+ *
  * The intuition in the above cases is that we want to preregister only
  * the literals that, if they were to be T-propagated, could contribute towards
  * a SAT conflict in the current context.
@@ -88,19 +88,19 @@ class RelevantPreregistrar : protected EnvObj
  public:
   RelevantPreregistrar(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs);
   ~RelevantPreregistrar();
-  /** 
+  /**
    * Called the beginning of theory checks (in TheoryProxy), adds literals to
    * preregister to toPreregister.
    */
   void check(std::vector<TNode>& toPreregister);
-  /** 
+  /**
    * Notify n is an assertion (input formula), possibly associated with
    * skolem.
    */
   void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify that n is a literal allocated by the SAT solver */
   void notifySatLiteral(TNode n);
-  /** 
+  /**
    * Notify active skolem definitions, adds literals to preregister to
    * toPreregister.
    */
@@ -124,23 +124,23 @@ class RelevantPreregistrar : protected EnvObj
    * literals to preregister to toPreregister.
    */
   void updateRelevant(std::vector<TNode>& toVisit,
-                              std::vector<TNode>& toPreregister);
-  /** 
+                      std::vector<TNode>& toPreregister);
+  /**
    * Process the next step for handling the relevance of n. Called when n
    * is the back element of toVisit.
-   * 
+   *
    * This may add literals to preregister to toPreregister, or modify the list
    * of formulas to visit (toVisit), e.g. either by popping n from this vector,
    * or pushing its direct children to this vector.
-   * 
+   *
    * In detail, we consider the state of how n has been processed (which is
    * stored in d_pstate[n]), and whether n has already been justified (via
    * d_jcache):
-   * 
+   *
    * If n has already been justified, there is nothing to do, we pop n from
    * toVisit and return.
-   * 
-   * Otherwise, this method depends on the relevance of n and its kind. The 
+   *
+   * Otherwise, this method depends on the relevance of n and its kind. The
    * following describes what is done, where this method implements
    * one step of the overall behavior:
    *
@@ -160,7 +160,7 @@ class RelevantPreregistrar : protected EnvObj
    * - If n is a conjunction/disjunction that requires one child to be a
    * certain value to be justified (e.g. AND with relevance false, OR with
    * relevance true), then:
-   *    - We iterate over children, marking them as relevant. If we encounter 
+   *    - We iterate over children, marking them as relevant. If we encounter
    *      a child that is justified with a value that implies ours, then we mark
    *      ourselves as justified. If we encounter a child whose value is
    *      unknown, we mark that child as watched and stop iterating until it has
@@ -168,7 +168,7 @@ class RelevantPreregistrar : protected EnvObj
    *      with the appropriate value.
    * - If n is ITE/XOR/EQUAL, then:
    *    - We mark the first child as relevant with unknown (both) polarities.
-   *    - If the first child is assigned a value, then based on that value, 
+   *    - If the first child is assigned a value, then based on that value,
    *      we mark another child as relevant. If n is ITE, then the relevant
    *      branch is marked relevant. If n is XOR/EQUAL, then the right hand
    *      side is marked relevant with the appropriate polarity.
@@ -177,8 +177,8 @@ class RelevantPreregistrar : protected EnvObj
    * - If n is a theory literal, is added to toPreregister.
    */
   SatValue updateRelevantNext(TNode n,
-                                   std::vector<TNode>& toPreregister,
-                                   std::vector<TNode>& toVisit);
+                              std::vector<TNode>& toPreregister,
+                              std::vector<TNode>& toVisit);
   /**
    * Mark that n is relevant with polarity val. Adds n to the vector toVisit
    * if its relevance information needs to be updated.
