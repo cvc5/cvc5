@@ -101,14 +101,14 @@ std::unique_ptr<std::istream> openIStream(const std::string& filename)
 ManagedErr::ManagedErr() : ManagedStream(&std::cerr, "stderr") {}
 bool ManagedErr::specialCases(const std::string& value)
 {
-  if (value == "stderr" || value == "--")
+  if (value == "\"stderr\"" || value == "--")
   {
     d_nonowned = &std::cerr;
     d_owned.reset();
     d_description = "stderr";
     return true;
   }
-  else if (value == "stdout")
+  else if (value == "\"stdout\"")
   {
     d_nonowned = &std::cout;
     d_owned.reset();
@@ -121,7 +121,7 @@ bool ManagedErr::specialCases(const std::string& value)
 ManagedIn::ManagedIn() : ManagedStream(&std::cin, "stdin") {}
 bool ManagedIn::specialCases(const std::string& value)
 {
-  if (value == "stdin" || value == "--")
+  if (value == "\"stdin\"" || value == "--")
   {
     d_nonowned = &std::cin;
     d_owned.reset();
@@ -134,14 +134,14 @@ bool ManagedIn::specialCases(const std::string& value)
 ManagedOut::ManagedOut() : ManagedStream(&std::cout, "stdout") {}
 bool ManagedOut::specialCases(const std::string& value)
 {
-  if (value == "stdout" || value == "--")
+  if (value == "\"stdout\"" || value == "--")
   {
     d_nonowned = &std::cout;
     d_owned.reset();
     d_description = "stdout";
     return true;
   }
-  else if (value == "stderr")
+  else if (value == "\"stderr\"")
   {
     d_nonowned = &std::cerr;
     d_owned.reset();
