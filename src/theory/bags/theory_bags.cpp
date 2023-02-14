@@ -471,7 +471,7 @@ void TheoryBags::preRegisterTerm(TNode n)
     case kind::EQUAL:
     {
       // add trigger predicate for equality and membership
-      d_equalityEngine->addTriggerPredicate(n);
+      d_state.addEqualityEngineTriggerPredicate(n);
     }
     break;
     case BAG_FROM_SET:

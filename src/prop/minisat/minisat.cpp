@@ -305,7 +305,8 @@ std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
 
 /** Incremental interface */
 
-unsigned MinisatSatSolver::getAssertionLevel() const {
+uint32_t MinisatSatSolver::getAssertionLevel() const
+{
   return d_minisat->getAssertionLevel();
 }
 

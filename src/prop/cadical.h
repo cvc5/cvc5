@@ -58,7 +58,7 @@ class CadicalSolver : public SatSolver
 
   SatValue modelValue(SatLiteral l) override;
 
-  unsigned getAssertionLevel() const override;
+  uint32_t getAssertionLevel() const override;
 
   bool ok() const override;
 

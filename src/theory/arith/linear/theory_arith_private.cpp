@@ -1812,7 +1812,7 @@ void TheoryArithPrivate::outputRestart() {
 }
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
-  int level = context()->getLevel();
+  uint32_t level = context()->getLevel();
   Trace("approx")
     << "attemptSolveInteger " << d_qflraStatus
     << " " << emmmittedLemmaOrSplit
@@ -1851,7 +1851,8 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
     return false;
   }
 
-  if (d_lastContextIntegerAttempted <= (level >> 2))
+  if (d_lastContextIntegerAttempted < 0
+      || static_cast<uint32_t>(d_lastContextIntegerAttempted) <= (level >> 2))
   {
     double d = (double)(d_solveIntMaybeHelp + 1)
                / (d_solveIntAttempts + 1 + level * level);
@@ -2697,7 +2698,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   Assert(options().arith.useApprox);
   Assert(ApproximateSimplex::enabled());
 
-  int level = context()->getLevel();
+  uint32_t level = context()->getLevel();
   d_lastContextIntegerAttempted = level;
 
   static constexpr int32_t mipLimit = 200000;

@@ -129,6 +129,7 @@ std::string getTheoryString(theory::TheoryId id)
 
 void TheoryEngine::finishInit()
 {
+  d_modules.clear();
   Trace("theory") << "Begin TheoryEngine::finishInit" << std::endl;
   // NOTE: This seems to be required since
   // theory::TheoryTraits<THEORY>::isParametric cannot be accessed without
@@ -160,7 +161,8 @@ void TheoryEngine::finishInit()
   // create the relevance filter if any option requires it
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
-    d_relManager.reset(new RelevanceManager(d_env, Valuation(this)));
+    d_relManager.reset(new RelevanceManager(d_env, this));
+    d_modules.push_back(d_relManager.get());
   }
 
   // initialize the quantifiers engine
@@ -210,6 +212,7 @@ void TheoryEngine::finishInit()
   {
     d_partitionGen =
         std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
+    d_modules.push_back(d_partitionGen.get());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
 }
@@ -397,22 +400,13 @@ void TheoryEngine::check(Theory::Effort effort) {
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
-      // Reset round for the relevance manager, which notice only sets a flag
-      // to indicate that its information must be recomputed.
-      if (d_relManager != nullptr)
-      {
-        d_relManager->beginRound();
-      }
       d_tc->resetRound();
     }
 
-    if (d_partitionGen != nullptr)
+    // check with the theory modules
+    for (TheoryEngineModule* tem : d_modules)
     {
-      TrustNode tl = d_partitionGen->check(effort);
-      if (!tl.isNull())
-      {
-        lemma(tl, LemmaProperty::NONE, THEORY_LAST);
-      }
+      tem->check(effort);
     }
 
     // Check until done
@@ -505,22 +499,23 @@ void TheoryEngine::check(Theory::Effort effort) {
           d_quantEngine->check(Theory::EFFORT_LAST_CALL);
         }
       }
-      // notify the relevant manager
-      if (d_relManager != nullptr)
+      // notify the theory modules of the model
+      for (TheoryEngineModule* tem : d_modules)
       {
-        d_relManager->notifyCandidateModel(getModel());
+        tem->notifyCandidateModel(getModel());
       }
     }
 
     Trace("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");
     Trace("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
+    // post check with the theory modules
+    for (TheoryEngineModule* tem : d_modules)
+    {
+      tem->postCheck(effort);
+    }
     if (Theory::fullEffort(effort))
     {
-      if (d_relManager != nullptr)
-      {
-        d_relManager->endRound();
-      }
       if (!d_inConflict && !needCheck())
       {
         // Do post-processing of model from the theories (e.g. used for
@@ -678,6 +673,12 @@ bool TheoryEngine::presolve() {
   } catch(const theory::Interrupted&) {
     Trace("theory") << "TheoryEngine::presolve() => interrupted" << endl;
   }
+  // presolve with the theory engine modules as well
+  for (TheoryEngineModule* tem : d_modules)
+  {
+    tem->presolve();
+  }
+
   // return whether we have a conflict
   return false;
 }/* TheoryEngine::presolve() */
@@ -723,6 +724,25 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder& learned)
 
   // static learning for each theory using the statement above
   CVC5_FOR_EACH_THEORY;
+}
+
+bool TheoryEngine::hasSatValue(TNode n, bool& value) const
+{
+  if (d_propEngine->isSatLiteral(n))
+  {
+    return d_propEngine->hasValue(n, value);
+  }
+  return false;
+}
+
+bool TheoryEngine::hasSatValue(TNode n) const
+{
+  if (d_propEngine->isSatLiteral(n))
+  {
+    bool value;
+    return d_propEngine->hasValue(n, value);
+  }
+  return false;
 }
 
 bool TheoryEngine::isRelevant(Node lit) const
@@ -1357,12 +1377,12 @@ void TheoryEngine::lemma(TrustNode tlemma,
     std::vector<Node> sks;
     Node retLemma =
         d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
-    if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
+
+    // notify the modules of the lemma
+    for (TheoryEngineModule* tem : d_modules)
     {
-      d_relManager->notifyPreprocessedAssertion(retLemma, false);
-      d_relManager->notifyPreprocessedAssertions(skAsserts, false);
+      tem->notifyLemma(retLemma, p, skAsserts, sks);
     }
-    d_relManager->notifyLemma(retLemma);
   }
 
   // Mark that we added some lemmas
@@ -1860,10 +1880,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   bool hasRelevantAssertions = false;
   if (d_relManager != nullptr)
   {
-    d_relManager->beginRound();
     relevantAssertions =
         d_relManager->getRelevantAssertions(hasRelevantAssertions);
-    d_relManager->endRound();
   }
   for(TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
     Theory* theory = d_theoryTable[theoryId];
