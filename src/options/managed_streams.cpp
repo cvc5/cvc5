@@ -74,9 +74,12 @@ namespace detail {
 
 std::string stripQuotes(const std::string& filename)
 {
-  if (filename.size()<2 || filename[0]!='\"' || filename[filename.size()-1]!='\"')
+  if (filename.size() < 2 || filename[0] != '\"'
+      || filename[filename.size() - 1] != '\"')
   {
-    throw OptionException("Stream names must be delimited by quotes, got invalid name `" + filename + "`.");
+    throw OptionException(
+        "Stream names must be delimited by quotes, got invalid name `"
+        + filename + "`.");
   }
   std::string sfile = filename;
   sfile = sfile.erase(0, 1);
