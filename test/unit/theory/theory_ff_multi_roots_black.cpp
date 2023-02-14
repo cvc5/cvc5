@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of ff model construction.
+ * Black box testing of ff multivariate roots.
  */
 
 #ifdef CVC5_USE_COCOA
@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "test_smt.h"
-#include "theory/ff/model.h"
+#include "theory/ff/multi_roots.h"
 #include "util/cocoa_globals.h"
 
 namespace cvc5::internal {
