@@ -264,7 +264,7 @@ class PropEngine : protected EnvObj
   /**
    * Get the assertion level of the SAT solver.
    */
-  unsigned getAssertionLevel() const;
+  uint32_t getAssertionLevel() const;
 
   /**
    * Return true if we are currently searching (either in this or
