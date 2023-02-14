@@ -138,7 +138,7 @@ parseExpr returns [cvc5::parser::tptp::myExpr expr]
  * Parses a command
  * @return the parsed command, or NULL if we've reached the end of the input
  */
-parseCommand returns [cvc5::parser::Command* cmd = NULL]
+parseCommand returns [std::unique_ptr<cvc5::parser::Command> cmd = nullptr]
 @declarations {
   cvc5::Term expr;
   TptpState::FormulaRole fr;

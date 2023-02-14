@@ -544,7 +544,7 @@ cvc5::Term TptpState::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
+std::unique_ptr<Command> TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
 {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
@@ -554,10 +554,9 @@ Command* TptpState::makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf)
     Assert(!expr.isNull());
   }
   if( expr.isNull() ){
-    return new EmptyCommand("Untreated role for expression");
-  }else{
-    return new AssertCommand(expr);
+    return std::make_unique<Command>(new EmptyCommand("Untreated role for expression"));
   }
+  return std::make_unique<Command>(new AssertCommand(expr));
 }
 
 }  // namespace parser

@@ -98,7 +98,7 @@ std::unique_ptr<Command> FlexParser::nextCommand()
       parseError(e.what());
     }
   }
-  Trace("parser") << "nextCommand() => " << cmd << std::endl;
+  Trace("parser") << "nextCommand() => " << cmd.get() << std::endl;
   return cmd;
 }
 
