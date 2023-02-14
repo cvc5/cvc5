@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ieval=use --enum-inst
+; COMMAND-LINE: --ieval=use
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const x9 Bool)
