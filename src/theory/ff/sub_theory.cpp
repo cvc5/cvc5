@@ -38,7 +38,7 @@ SubTheory::SubTheory(Env& env, FfStatistics* stats, Integer modulus)
     : EnvObj(env),
       context::ContextNotifyObj(context()),
       d_facts(context()),
-      d_leaves(context()),
+      d_leaves(userContext()),
       d_stats(stats),
       d_baseRing(CoCoA::NewZZmod(CoCoA::BigIntFromString(modulus.toString()))),
       d_modulus(modulus)

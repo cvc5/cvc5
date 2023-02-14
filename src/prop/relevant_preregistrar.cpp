@@ -483,7 +483,7 @@ void RelevantPreregistrar::updateJustify(
             continue;
           }
         }
-        // otherwise, must update relvance on the parent
+        // otherwise, must update relevance on the parent
         toVisit.emplace_back(p);
       }
     }
