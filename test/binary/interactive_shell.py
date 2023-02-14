@@ -38,7 +38,16 @@ def check_iteractive_shell():
     # Start sending 'BOOL' (without an E)
     child.send("(declare-data")
 
-    # Now send enter (which submits '(declare-data')
+    # Send tab twice
+    child.sendcontrol("i")
+    child.sendcontrol("i")
+
+    # We expect to see the completion
+    child.expect("declare-datatype.*declare-datatypes")
+
+    # NOTE: the double tab has completed our '(declare-data' to '(declare-datatype'!
+
+    # Now send enter (which submits '(declare-datatype')
     child.send(")")
     child.sendcontrol("m")
 
