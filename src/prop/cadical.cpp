@@ -197,7 +197,7 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
   return value(l);
 }
 
-unsigned CadicalSolver::getAssertionLevel() const
+uint32_t CadicalSolver::getAssertionLevel() const
 {
   Unreachable() << "CaDiCaL does not support assertion levels.";
 }
