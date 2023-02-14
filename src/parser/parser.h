@@ -56,7 +56,7 @@ class ParserStateCallback
    * inserts a new command before the current one. Also used in TPTP
    * because function and predicate symbols are implicitly declared.
    */
-  virtual void preemptCommand(Command* cmd) = 0;
+  virtual void preemptCommand(std::unique_ptr<Command> cmd) = 0;
 };
 
 /**
@@ -457,7 +457,7 @@ class CVC5_EXPORT ParserState
   /** Unexpectedly encountered an EOF */
   void unexpectedEOF(const std::string& msg);
   /** Preempt command */
-  void preemptCommand(Command* cmd);
+  void preemptCommand(std::unique_ptr<Command> cmd);
   //-------------------- end callbacks to parser
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);

@@ -65,7 +65,7 @@ class CVC5_EXPORT Parser : public ParserStateCallback
    *
    * Owns the memory of the Commands in the queue.
    */
-  std::list<Command*> d_commandQueue;
+  std::list<std::unique_ptr<Command>> d_commandQueue;
 
   /** Memory allocation for included files */
   class IncludeFileCache;
@@ -132,10 +132,10 @@ class CVC5_EXPORT Parser : public ParserStateCallback
    * inserts a new command before the current one. Also used in TPTP
    * because function and predicate symbols are implicitly declared.
    */
-  void preemptCommand(Command* cmd) override;
+  void preemptCommand(std::unique_ptr<Command> cmd) override;
 
   /** Parse and return the next command. */
-  Command* nextCommand();
+  std::unique_ptr<Command> nextCommand();
 
   /** Parse and return the next expression. */
   cvc5::Term nextExpression();

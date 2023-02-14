@@ -65,15 +65,15 @@ void FlexParser::unexpectedEOF(const std::string& msg)
   d_lex->parseError(msg, true);
 }
 
-void FlexParser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
+void FlexParser::preemptCommand(std::unique_ptr<Command> cmd) { d_commandQueue.push_back(cmd); }
 
-Command* FlexParser::nextCommand()
+std::unique_ptr<Command> FlexParser::nextCommand()
 {
   Trace("parser") << "nextCommand()" << std::endl;
-  Command* cmd = nullptr;
+  std::unique_ptr<Command> cmd;
   if (!d_commandQueue.empty())
   {
-    cmd = d_commandQueue.front();
+    cmd = std::move(d_commandQueue.front());
     d_commandQueue.pop_front();
     setDone(cmd == nullptr);
   }
@@ -83,7 +83,7 @@ Command* FlexParser::nextCommand()
     {
       cmd = parseNextCommand();
       d_commandQueue.push_back(cmd);
-      cmd = d_commandQueue.front();
+      cmd = std::move(d_commandQueue.front());
       d_commandQueue.pop_front();
       setDone(cmd == nullptr);
     }
