@@ -145,7 +145,7 @@ SatValue KissatSolver::modelValue(SatLiteral l)
   return value(l);
 }
 
-unsigned KissatSolver::getAssertionLevel() const
+uint32_t KissatSolver::getAssertionLevel() const
 {
   Unreachable() << "Kissat does not support assertion levels.";
 }
