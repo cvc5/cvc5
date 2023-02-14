@@ -171,7 +171,9 @@ void RelevantPreregistrar::updateRelevant(std::vector<TNode>& toVisit,
 
 bool shouldWatchAll(Kind nk, SatValue rval)
 {
-  // NOTE: this could be changed to return false when rval == SAT_VALUE_UNKNOWN.
+  // NOTE: this could be changed to return false when rval == SAT_VALUE_UNKNOWN,
+  // which would lead to fewer preregistrations. However, experiments have
+  // shown it is better to return true in this case.
   return rval == SAT_VALUE_UNKNOWN || ((nk == AND) == (rval == SAT_VALUE_TRUE));
 }
 
