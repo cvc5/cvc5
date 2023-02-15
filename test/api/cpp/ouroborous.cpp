@@ -95,11 +95,10 @@ std::string parse(std::string instr,
         Input::newStringInput(ilang, declarations, "internal-buffer"));
     // we don't need to execute the commands, but we DO need to parse them to
     // get the declarations
-    while (Command* c = parser->nextCommand())
+    while (std::unique_ptr<Command> c = parser->nextCommand())
     {
       // invoke the command, which may bind symbols
       c->invoke(&solver, &symman);
-      delete c;
     }
   assert(parser->done());  // parser should be done
   parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
