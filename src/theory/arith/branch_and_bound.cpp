@@ -162,10 +162,10 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
   }
   if (TraceIsOn("integers"))
   {
-    Trace("integers") << "integers: branch & bound: ";
+    Trace("integers") << "integers: branch & bound:";
     for (const TrustNode& tn : lems)
     {
-      Trace("integers") << tn;
+      Trace("integers") << " " << tn;
     }
     Trace("integers") << std::endl;
   }
