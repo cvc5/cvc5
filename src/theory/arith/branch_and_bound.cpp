@@ -61,6 +61,7 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     {
       lems.push_back(TrustNode::mkTrustLemma(eq, nullptr));
     }
+    // now use the purification variable
     var = k;
   }
   Integer floor = value.floor();

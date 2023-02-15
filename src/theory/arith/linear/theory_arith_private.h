@@ -557,7 +557,7 @@ private:
   /**
    * Issues branches for non-auxiliary integer variables with non-integer assignments.
    * Returns a cut for a lemma.
-   * If there is an integer model, this returns Node::null().
+   * If there is an integer model, this returns the empty vector.
    */
   std::vector<TrustNode> roundRobinBranch();
 
