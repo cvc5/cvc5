@@ -2899,7 +2899,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
     {
       ++d_statistics.d_panicBranches;
       std::vector<TrustNode> branches = branchIntegerVariable(canBranch);
-      Assert (!branches.empty());
+      Assert(!branches.empty());
       TrustNode branch = branches.back();
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = rewrite(branch.getNode()[0]);
@@ -3396,8 +3396,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         d_cutCount = d_cutCount + 1;
         for (const TrustNode& possibleLemma : possibleLemmas)
         {
-          Trace("arith::lemma") << "rrbranch lemma"
-                                << possibleLemma << endl;
+          Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
           if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
           {
             emmittedConflictOrSplit = true;
@@ -3438,7 +3437,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
 bool TheoryArithPrivate::foundNonlinear() const { return d_foundNl; }
 
-std::vector<TrustNode> TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
+std::vector<TrustNode> TheoryArithPrivate::branchIntegerVariable(
+    ArithVar x) const
 {
   const DeltaRational& d = d_partialModel.getAssignment(x);
   Assert(!d.isIntegral());
@@ -3448,7 +3448,7 @@ std::vector<TrustNode> TheoryArithPrivate::branchIntegerVariable(ArithVar x) con
   Assert(!(r.getDenominator() == 1 && i.getNumerator() == 0));
   TNode var = d_partialModel.asNode(x);
   std::vector<TrustNode> lems = d_bab.branchIntegerVariable(var, r);
-  Assert (!lems.empty());
+  Assert(!lems.empty());
   if (TraceIsOn("integers"))
   {
     TrustNode lem = lems.back();

@@ -15,13 +15,13 @@
 
 #include "theory/arith/branch_and_bound.h"
 
+#include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "proof/eager_proof_generator.h"
 #include "proof/proof_node.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -41,7 +41,9 @@ BranchAndBound::BranchAndBound(Env& env,
 {
 }
 
- std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var, Rational value, bool doPurify)
+std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
+                                                             Rational value,
+                                                             bool doPurify)
 {
   std::vector<TrustNode> lems;
   NodeManager* nm = NodeManager::currentNM();
@@ -52,7 +54,8 @@ BranchAndBound::BranchAndBound(Env& env,
     if (proofsEnabled())
     {
       // justified trivially by predicate introduction
-      lems.push_back(d_pfGen->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO,{},{eq}));
+      lems.push_back(
+          d_pfGen->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq}));
     }
     else
     {
@@ -74,7 +77,7 @@ BranchAndBound::BranchAndBound(Env& env,
     // it that fails, fall back on original branch and bound strategy.
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
     // if it rewrites to a non-arithmetic inequality, we must purify
-    if (ub.getKind()!=GEQ && !doPurify)
+    if (ub.getKind() != GEQ && !doPurify)
     {
       return branchIntegerVariable(var, value, true);
     }
@@ -140,14 +143,15 @@ BranchAndBound::BranchAndBound(Env& env,
   {
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
     // if it rewrites to a non-arithmetic inequality, we must purify
-    if (ub.getKind()!=GEQ && !doPurify)
+    if (ub.getKind() != GEQ && !doPurify)
     {
       return branchIntegerVariable(var, value, true);
     }
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
-      lems.push_back(d_pfGen->mkTrustNode(nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub}));
+      lems.push_back(d_pfGen->mkTrustNode(
+          nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub}));
     }
     else
     {
