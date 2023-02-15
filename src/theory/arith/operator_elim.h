@@ -123,7 +123,6 @@ class OperatorElim : public EagerProofGenerator
    * the Skolem constant for the identifier asi.
    */
   Node getArithSkolemApp(Node n, SkolemFunId asi);
-
   /**
    * Called when a non-linear term n is given to this class. Throw an exception
    * if the logic is linear.

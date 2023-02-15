@@ -679,13 +679,18 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = t.getKind();
   Assert(k == kind::INTS_MODULUS_TOTAL || k == kind::INTS_DIVISION_TOTAL);
-  TNode n = t[0];
-  TNode d = t[1];
+  Node n = t[0];
+  Node d = t[1];
   bool dIsConstant = d.isConst();
   if (dIsConstant && d.getConst<Rational>().isZero())
   {
     // (div x 0) ---> 0 or (mod x 0) ---> 0
     return returnRewrite(t, nm->mkConstInt(0), Rewrite::DIV_MOD_BY_ZERO);
+  }
+  else if (n == d)
+  {
+    Node ret = nm->mkConstInt(k == kind::INTS_MODULUS_TOTAL ? 0 : 1);
+    return returnRewrite(t, ret, Rewrite::DIV_MOD_EQ);
   }
   else if (dIsConstant && d.getConst<Rational>().isOne())
   {
@@ -774,6 +779,16 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       return returnRewrite(t, ret, Rewrite::DIV_OVER_MOD);
     }
   }
+  // factoring
+  if (!pre)
+  {
+    if (rewriter::simpleNonzeroFactoring(n, d))
+    {
+      Node ret = nm->mkNode(k, n, d);
+      return returnRewrite(t, ret, Rewrite::DIV_TOTAL_FACTOR);
+    }
+  }
+
   return RewriteResponse(REWRITE_DONE, t);
 }
 

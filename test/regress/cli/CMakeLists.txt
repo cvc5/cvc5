@@ -38,6 +38,7 @@ set(regress_0_tests
   regress0/arith/div.04.smt2
   regress0/arith/div.05.smt2
   regress0/arith/div.07.smt2
+  regress0/arith/div-rewrite-factor.smt2
   regress0/arith/exp-in-model.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
   regress0/arith/incorrect1.smtv1.smt2
@@ -2197,6 +2198,7 @@ set(regress_1_tests
   regress1/nl/issue9183-4.smt2
   regress1/nl/issue9183-5.smt2
   regress1/nl/issue9420-ll.smt2
+  regress1/nl/issue9435-div-factoring.smt2
   regress1/nl/issue9480-pow-pow2.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2

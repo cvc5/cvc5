@@ -778,6 +778,7 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr, std::ostream& out)
     return;
   }
   Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
+                           << " on " << getNumSamplePoints() << " sample points"
                            << std::endl;
 
   // see if they evaluate to same thing on all sample points

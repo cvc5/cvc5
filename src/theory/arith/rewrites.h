@@ -36,6 +36,8 @@ enum class Rewrite : uint32_t
   MOD_TOTAL_BY_CONST,
   // (div x c) replaced by total (div x c) if c != 0
   DIV_TOTAL_BY_CONST,
+  // (div x x) --> 1, (mod x x) ---> 0
+  DIV_MOD_EQ,
   // Total versions choose arbitrary values for 0 denominator:
   // (div x 0) ---> 0
   // (mod x 0) ---> 0
@@ -54,6 +56,8 @@ enum class Rewrite : uint32_t
   MOD_CHILD_MOD,
   // (div (mod x c) c) --> 0
   DIV_OVER_MOD,
+  // (div (* c x) (* c y)) --> (div x y) for total division
+  DIV_TOTAL_FACTOR,
   // (to_int c) --> floor(c), (is_int c) --> true iff c is int
   INT_EXT_CONST,
   // (to_int t) --> t, (is_int t) ---> true if t is int
