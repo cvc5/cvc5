@@ -76,7 +76,7 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
-    Node ubatom = ub.getKind()==NOT ? ub[0] : ub;
+    Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
     // if it rewrites to a non-arithmetic inequality, we must purify
     if (ubatom.getKind() != GEQ && !doPurify)
     {
@@ -143,7 +143,7 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
   else
   {
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
-    Node ubatom = ub.getKind()==NOT ? ub[0] : ub;
+    Node ubatom = ub.getKind() == NOT ? ub[0] : ub;
     // if it rewrites to a non-arithmetic inequality, we must purify
     if (ubatom.getKind() != GEQ && !doPurify)
     {
