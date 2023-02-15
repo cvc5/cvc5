@@ -21,6 +21,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "expr/skolem_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -40,10 +41,25 @@ BranchAndBound::BranchAndBound(Env& env,
 {
 }
 
-TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
+ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var, Rational value, bool doPurify)
 {
-  TrustNode lem = TrustNode::null();
+  std::vector<TrustNode> lems;
   NodeManager* nm = NodeManager::currentNM();
+  if (doPurify)
+  {
+    Node k = nm->getSkolemManager()->mkPurifySkolem(var, "bbk");
+    Node eq = k.eqNode(var);
+    if (proofsEnabled())
+    {
+      // justified trivially by predicate introduction
+      lems.push_back(d_pfGen->mkTrustNode(eq, PfRule::MACRO_SR_PRED_INTRO,{},{eq}));
+    }
+    else
+    {
+      lems.push_back(TrustNode::mkTrustLemma(eq, nullptr));
+    }
+    var = k;
+  }
   Integer floor = value.floor();
   if (options().arith.brabTest)
   {
@@ -57,6 +73,11 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
     // Prioritize trying a simple rounding of the real solution first,
     // it that fails, fall back on original branch and bound strategy.
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(nearest - 1)));
+    // if it rewrites to a non-arithmetic inequality, we must purify
+    if (ub.getKind()!=GEQ && !doPurify)
+    {
+      return branchIntegerVariable(var, value, true);
+    }
     Node lb = rewrite(nm->mkNode(GEQ, var, nm->mkConstInt(nearest + 1)));
     Node right = nm->mkNode(OR, ub, lb);
     Node rawEq = nm->mkNode(EQUAL, var, nm->mkConstInt(nearest));
@@ -108,30 +129,41 @@ TrustNode BranchAndBound::branchIntegerVariable(TNode var, Rational value)
       Pf pfL = pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
                            {pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
                            {l});
-      lem = d_pfGen->mkTrustNode(l, pfL);
+      lems.push_back(d_pfGen->mkTrustNode(l, pfL));
     }
     else
     {
-      lem = TrustNode::mkTrustLemma(l, nullptr);
+      lems.push_back(TrustNode::mkTrustLemma(l, nullptr));
     }
   }
   else
   {
     Node ub = rewrite(nm->mkNode(LEQ, var, nm->mkConstInt(floor)));
+    // if it rewrites to a non-arithmetic inequality, we must purify
+    if (ub.getKind()!=GEQ && !doPurify)
+    {
+      return branchIntegerVariable(var, value, true);
+    }
     Node lb = ub.notNode();
     if (proofsEnabled())
     {
-      lem =
-          d_pfGen->mkTrustNode(nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub});
+      lems.push_back(d_pfGen->mkTrustNode(nm->mkNode(OR, ub, lb), PfRule::SPLIT, {}, {ub}));
     }
     else
     {
-      lem = TrustNode::mkTrustLemma(nm->mkNode(OR, ub, lb), nullptr);
+      lems.push_back(TrustNode::mkTrustLemma(nm->mkNode(OR, ub, lb), nullptr));
     }
   }
-
-  Trace("integers") << "integers: branch & bound: " << lem << std::endl;
-  return lem;
+  if (TraceIsOn("integers"))
+  {
+    Trace("integers") << "integers: branch & bound: ";
+    for (const TrustNode& tn : lems)
+    {
+      Trace("integers") << tn;
+    }
+    Trace("integers") << std::endl;
+  }
+  return lems;
 }
 
 bool BranchAndBound::proofsEnabled() const

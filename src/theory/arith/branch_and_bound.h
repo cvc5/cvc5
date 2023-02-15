@@ -49,8 +49,13 @@ class BranchAndBound : protected EnvObj
   /**
    * Branch variable, called when integer var has given value
    * in the current model, returns a split to eliminate this model.
+   * 
+   * @param var The variable to branch on
+   * @param value Its current model value
+   * @param doPurify If true, we send the lemma (= k var) and branch on k
+   * instead, where k is the purification skolem for var.
    */
-  TrustNode branchIntegerVariable(TNode var, Rational value);
+  std::vector<TrustNode> branchIntegerVariable(TNode var, Rational value, bool doPurify = false);
 
  private:
   /** Are proofs enabled? */
