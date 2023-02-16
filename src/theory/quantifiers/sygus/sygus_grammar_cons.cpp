@@ -1271,11 +1271,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts[iat].d_sdt.addConstructor(ADD, cargsPlus);
     }
     // add the ITE, regardless of sum-of-monomials vs polynomial
+    /*
     std::vector<TypeNode> cargsIte;
     cargsIte.push_back(unres_bt);
     cargsIte.push_back(unres_types[iat]);
     cargsIte.push_back(unres_types[iat]);
     sdts[iat].d_sdt.addConstructor(ITE, cargsIte);
+    */
     sdts[iat].d_sdt.initializeDatatype(types[i], bvl, true, true);
     Trace("sygus-grammar-def")
         << "...built datatype " << sdts[iat].d_sdt.getDatatype() << std::endl;
