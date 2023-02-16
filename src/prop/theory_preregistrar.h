@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "context/cdhashmap.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
@@ -55,8 +55,12 @@ class TheoryPreregistrar : protected EnvObj
   void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /**
    * Notify that a SAT literal for atom n has been allocated in the SAT solver.
+   * @param n The node to preregister.
+   * @param reregister True if this node should be cached for reregistration
+   *                   in case its sat context level is greater than the
+   *                   current level.
    */
-  void notifySatLiteral(TNode n);
+  void notifySatLiteral(TNode n, bool reregister = true);
   /**
    * Callback to notify that the SAT solver backtracked by the given number
    * of levels.
@@ -87,7 +91,7 @@ class TheoryPreregistrar : protected EnvObj
    *
    * This is dependent on the user context.
    */
-  context::CDHashMap<Node, uint32_t> d_sat_literals;
+  context::CDList<std::pair<Node, uint32_t>> d_sat_literals;
 };
 
 }  // namespace prop
