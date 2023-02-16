@@ -333,7 +333,7 @@ restart:
 
   try
   {
-    while ((cmdp = d_parser->nextCommand()))
+    while (cmdp = d_parser->nextCommand())
     {
       Command* cmd = cmdp.get();
       // execute the command immediately
@@ -343,7 +343,7 @@ restart:
         d_quit = true;
         return false;
       }
-      cmdSeq.emplace_back(cmd);
+      cmdSeq.emplace_back(std::move(cmdp));
       if (dynamic_cast<QuitCommand*>(cmd) != NULL)
       {
         d_quit = true;
