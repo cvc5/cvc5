@@ -15,12 +15,12 @@
 
 #include "theory/difficulty_manager.h"
 
+#include "expr/node_algorithm.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "theory/relevance_manager.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
-#include "expr/node_algorithm.h"
 
 using namespace cvc5::internal::kind;
 
