@@ -1050,6 +1050,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
 
     // always add ITE
+    /*
     Kind k = ITE;
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
     std::vector<TypeNode> cargsIte;
@@ -1057,6 +1058,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     cargsIte.push_back(unres_t);
     cargsIte.push_back(unres_t);
     sdts[i].addConstructor(k, cargsIte);
+    */
   }
   std::map<TypeNode, std::pair<unsigned, bool>>::iterator itgat;
   // initialize the datatypes (except for the last one, reserved for Bool)
@@ -1452,6 +1454,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     for (unsigned i = 0; i < 4; i++)
     {
       Kind k = i == 0 ? NOT : (i == 1 ? AND : (i == 2 ? OR : ITE));
+      if (k == ITE)
+      {
+        continue;
+      }
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       std::vector<TypeNode> cargs;
       cargs.push_back(unres_bt);
