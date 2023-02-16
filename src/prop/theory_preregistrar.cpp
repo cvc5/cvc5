@@ -35,21 +35,7 @@ TheoryPreregistrar::~TheoryPreregistrar() {}
 
 bool TheoryPreregistrar::needsActiveSkolemDefs() const { return false; }
 
-void TheoryPreregistrar::check()
-{
-  uint32_t level = d_env.getContext()->getLevel();
-  for (auto& p : d_sat_literals)
-  {
-    if (p.second > level)
-    {
-      notifySatLiteral(p.first);
-    }
-  }
-  if (level == 0)
-  {
-    d_sat_literals.clear();
-  }
-}
+void TheoryPreregistrar::check() {}
 
 void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
@@ -63,6 +49,23 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
     d_sat_literals.insert(n, d_env.getContext()->getLevel());
+  }
+}
+
+void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
+{
+  (void)nlevels;
+  uint32_t level = d_env.getContext()->getLevel();
+  for (auto& p : d_sat_literals)
+  {
+    if (p.second > level)
+    {
+      notifySatLiteral(p.first);
+    }
+  }
+  if (level == 0)
+  {
+    d_sat_literals.clear();
   }
 }
 
