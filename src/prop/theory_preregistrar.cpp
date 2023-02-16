@@ -41,14 +41,17 @@ void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
 void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
 
-void TheoryPreregistrar::notifySatLiteral(TNode n)
+void TheoryPreregistrar::notifySatLiteral(TNode n, bool reregister)
 {
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
-    d_sat_literals.insert(n, d_env.getContext()->getLevel());
+    if (reregister)
+    {
+      d_sat_literals.push_back({n, d_env.getContext()->getLevel()});
+    }
   }
 }
 
@@ -56,16 +59,15 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
 {
   (void)nlevels;
   uint32_t level = d_env.getContext()->getLevel();
-  for (auto& p : d_sat_literals)
+  for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
   {
-    if (p.second > level)
+    auto [node, nlevel] = d_sat_literals[n - i - 1];
+
+    if (nlevel <= level)
     {
-      notifySatLiteral(p.first);
+      break;
     }
-  }
-  if (level == 0)
-  {
-    d_sat_literals.clear();
+    notifySatLiteral(node, false);
   }
 }
 
