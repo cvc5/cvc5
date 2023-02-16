@@ -23,63 +23,11 @@
 namespace cvc5::internal {
 namespace prop {
 
-class TheoryPreregistrarNotify : public context::ContextNotifyObj
-{
- public:
-  TheoryPreregistrarNotify(Env& env, TheoryPreregistrar& prr)
-      : context::ContextNotifyObj(env.getContext(), false),
-        d_env(env),
-        d_prr(prr),
-        d_sat_literals(env.getUserContext())
-  {
-  }
-
-  void registerSatLiteral(const Node& literal)
-  {
-    d_sat_literals.insert(literal, d_env.getContext()->getLevel());
-  }
-
- protected:
-  void contextNotifyPop() override
-  {
-    uint32_t level = d_env.getContext()->getLevel();
-    for (auto& p : d_sat_literals)
-    {
-      if (p.second > level)
-      {
-        d_prr.notifySatLiteral(p.first);
-      }
-    }
-    if (level == 0)
-    {
-      d_sat_literals.clear();
-    }
-  }
-
- private:
-  /** The associated environment. */
-  Env& d_env;
-  /** The associated theory preregistrar. */
-  TheoryPreregistrar& d_prr;
-  /**
-   * Keep track of sat literals that were registered at a SAT context level > 0
-   * and need reregistration when we backtrack to a lower level than the level
-   * they were registered at. SAT variables stay in the SAT solver (until they
-   * are popped via a user-context-level pop), and we have to ensure that they
-   * are registered at all times on the theory level.
-   *
-   * This is dependent on the user context.
-   */
-  context::CDHashMap<Node, uint32_t> d_sat_literals;
-};
-
 TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
                                        CDCLTSatSolver* ss,
                                        CnfStream* cs)
-    : EnvObj(env),
-      d_theoryEngine(te),
-      d_notify(new TheoryPreregistrarNotify(env, *this))
+    : EnvObj(env), d_theoryEngine(te), d_sat_literals(env.getUserContext())
 {
 }
 
@@ -87,7 +35,21 @@ TheoryPreregistrar::~TheoryPreregistrar() {}
 
 bool TheoryPreregistrar::needsActiveSkolemDefs() const { return false; }
 
-void TheoryPreregistrar::check() {}
+void TheoryPreregistrar::check()
+{
+  uint32_t level = d_env.getContext()->getLevel();
+  for (auto& p : d_sat_literals)
+  {
+    if (p.second > level)
+    {
+      notifySatLiteral(p.first);
+    }
+  }
+  if (level == 0)
+  {
+    d_sat_literals.clear();
+  }
+}
 
 void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
@@ -100,7 +62,7 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
-    d_notify->registerSatLiteral(n);
+    d_sat_literals.insert(n, d_env.getContext()->getLevel());
   }
 }
 
