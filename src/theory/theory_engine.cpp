@@ -373,16 +373,20 @@ void TheoryEngine::check(Theory::Effort effort) {
 #ifdef CVC5_FOR_EACH_THEORY_STATEMENT
 #undef CVC5_FOR_EACH_THEORY_STATEMENT
 #endif
-#define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)                      \
-  if (theory::TheoryTraits<THEORY>::hasCheck                        \
-      && isTheoryEnabled(THEORY))                       \
-  {                                                                 \
-    theoryOf(THEORY)->check(effort);                                \
-    if (d_inConflict)                                               \
-    {                                                               \
-      Trace("conflict") << THEORY << " in conflict. " << std::endl; \
-      break;                                                        \
-    }                                                               \
+#define CVC5_FOR_EACH_THEORY_STATEMENT(THEORY)                           \
+  if (theory::TheoryTraits<THEORY>::hasCheck && isTheoryEnabled(THEORY)) \
+  {                                                                      \
+    theoryOf(THEORY)->check(effort);                                     \
+    if (d_inConflict)                                                    \
+    {                                                                    \
+      Trace("conflict") << THEORY << " in conflict. " << std::endl;      \
+      break;                                                             \
+    }                                                                    \
+    if (rm->out())                                                       \
+    {                                                                    \
+      interrupt();                                                       \
+      return;                                                            \
+    }                                                                    \
   }
 
   // Do the checking
@@ -438,6 +442,13 @@ void TheoryEngine::check(Theory::Effort effort) {
 
       // We are still satisfiable, propagate as much as possible
       propagate(effort);
+
+      // Interrupt in case we reached a resource limit.
+      if (rm->out())
+      {
+        interrupt();
+        return;
+      }
 
       if (Theory::fullEffort(effort))
       {
