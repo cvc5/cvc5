@@ -41,14 +41,14 @@ void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
 void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
 
-void TheoryPreregistrar::notifySatLiteral(TNode n, bool reregister)
+void TheoryPreregistrar::notifySatLiteral(TNode n, bool registerToReregister)
 {
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
-    if (reregister)
+    if (registerToReregister)
     {
       d_sat_literals.push_back({n, d_env.getContext()->getLevel()});
     }
