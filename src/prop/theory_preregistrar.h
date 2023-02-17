@@ -20,7 +20,6 @@
 
 #include <vector>
 
-#include "context/cdlist.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 
@@ -32,6 +31,7 @@ namespace prop {
 
 class CDCLTSatSolver;
 class CnfStream;
+class TheoryPreregistrarNotify;
 
 /**
  * Implements the policy for preregistration to TheoryEngine based on
@@ -39,6 +39,8 @@ class CnfStream;
  */
 class TheoryPreregistrar : protected EnvObj
 {
+  friend TheoryPreregistrarNotify;
+
  public:
   TheoryPreregistrar(Env& env,
                      TheoryEngine* te,
@@ -88,10 +90,10 @@ class TheoryPreregistrar : protected EnvObj
    * they were registered at. SAT variables stay in the SAT solver (until they
    * are popped via a user-context-level pop), and we have to ensure that they
    * are registered at all times on the theory level.
-   *
-   * This is dependent on the user context.
    */
-  context::CDList<std::pair<Node, uint32_t>> d_sat_literals;
+  std::vector<std::pair<Node, uint32_t>> d_sat_literals;
+  /* Notifies on sat context pop. */
+  std::unique_ptr<TheoryPreregistrarNotify> d_notify;
 };
 
 }  // namespace prop
