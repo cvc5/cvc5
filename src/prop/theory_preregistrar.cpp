@@ -18,6 +18,7 @@
 #include "options/prop_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "prop/sat_solver.h"
 #include "theory/theory_engine.h"
 
 namespace cvc5::internal {
@@ -67,18 +68,15 @@ void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
 void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
 
-void TheoryPreregistrar::notifySatLiteral(TNode n, bool cache)
+void TheoryPreregistrar::notifySatLiteral(TNode n)
 {
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
-    if (cache)
-    {
-      // cache for registration
-      d_sat_literals.emplace_back(n, d_env.getContext()->getLevel());
-    }
+    // cache for registration
+    d_sat_literals.emplace_back(n, d_env.getContext()->getLevel());
   }
 }
 
@@ -102,7 +100,8 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
     // at a higher level than the current SAT context level. These literals
     // are popped from the SAT context on backtrack but remain in the SAT
     // solver, and thus must be reregistered.
-    notifySatLiteral(node, false);
+    Trace("prereg") << "reregister: " << n << std::endl;
+    d_theoryEngine->preRegister(node);
     // Update SAT context level the reregistered SAT literal has been
     // registered at. This is necessary to not reregister literals that
     // are already registered.

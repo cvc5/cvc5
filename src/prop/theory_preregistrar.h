@@ -58,10 +58,8 @@ class TheoryPreregistrar : protected EnvObj
   /**
    * Notify that a SAT literal for atom n has been allocated in the SAT solver.
    * @param n The node to preregister.
-   * @param cache True if this node should be cached for reregistration in case
-   * its sat context level is greater than the current level.
    */
-  void notifySatLiteral(TNode n, bool cache = true);
+  void notifySatLiteral(TNode n);
   /**
    * Callback to notify that the SAT solver backtracked by the given number
    * of levels.
