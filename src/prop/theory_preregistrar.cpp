@@ -23,11 +23,31 @@
 namespace cvc5::internal {
 namespace prop {
 
+/* -------------------------------------------------------------------------- */
+
+class TheoryPreregistrarNotify : public context::ContextNotifyObj
+{
+ public:
+  TheoryPreregistrarNotify(Env& env, TheoryPreregistrar& prr)
+      : context::ContextNotifyObj(env.getContext(), false), d_prr(prr)
+  {
+  }
+
+ protected:
+  void contextNotifyPop() override { d_prr.d_sat_literals.clear(); }
+
+ private:
+  /** The associated theory preregistrar. */
+  TheoryPreregistrar& d_prr;
+};
+
+/* -------------------------------------------------------------------------- */
+
 TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
                                        CDCLTSatSolverInterface* ss,
                                        CnfStream* cs)
-    : EnvObj(env), d_theoryEngine(te), d_sat_literals(env.getUserContext())
+    : EnvObj(env), d_theoryEngine(te)
 {
 }
 
@@ -62,7 +82,6 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
   for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
   {
     auto [node, nlevel] = d_sat_literals[n - i - 1];
-
     if (nlevel <= level)
     {
       break;
