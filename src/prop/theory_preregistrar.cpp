@@ -81,12 +81,13 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
   uint32_t level = d_env.getContext()->getLevel();
   for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
   {
-    auto [node, nlevel] = d_sat_literals[n - i - 1];
+    auto& [node, nlevel] = d_sat_literals[n - i - 1];
     if (nlevel <= level)
     {
       break;
     }
     notifySatLiteral(node, false);
+    nlevel = level;
   }
 }
 
