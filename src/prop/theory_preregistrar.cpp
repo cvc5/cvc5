@@ -25,6 +25,10 @@ namespace prop {
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The context notify object for the theory preregistrar. Clears the
+ * reregistration cache on user context pop.
+ */
 class TheoryPreregistrarNotify : public context::ContextNotifyObj
 {
  public:
@@ -63,15 +67,16 @@ void TheoryPreregistrar::addAssertion(TNode n, TNode skolem, bool isLemma) {}
 
 void TheoryPreregistrar::notifyActiveSkolemDefs(std::vector<TNode>& defs) {}
 
-void TheoryPreregistrar::notifySatLiteral(TNode n, bool registerToReregister)
+void TheoryPreregistrar::notifySatLiteral(TNode n, bool cache)
 {
   // if eager policy, send immediately
   if (options().prop.preRegisterMode == options::PreRegisterMode::EAGER)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
-    if (registerToReregister)
+    if (cache)
     {
+      // cache for registration
       d_sat_literals.push_back({n, d_env.getContext()->getLevel()});
     }
   }
@@ -80,15 +85,27 @@ void TheoryPreregistrar::notifySatLiteral(TNode n, bool registerToReregister)
 void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
 {
   (void)nlevels;
+
   uint32_t level = d_env.getContext()->getLevel();
   for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
   {
+    // We reregister SAT literals from newest to oldest. Changing this order
+    // potentially has an impact on performance (quantified instances).
     auto& [node, node_level] = d_sat_literals[n - i - 1];
+
     if (node_level <= level)
     {
       break;
     }
+
+    // Reregister all sat literals that have originally been preregistered
+    // at a higher level than the current SAT context level. These literals
+    // are popped from the SAT context on backtrack but remain in the SAT
+    // solver, and thus must be reregistered.
     notifySatLiteral(node, false);
+    // Update SAT context level the reregistered SAT literal has been
+    // registered at. This is necessary to not reregister literals that
+    // are already registered.
     node_level = level;
   }
 }

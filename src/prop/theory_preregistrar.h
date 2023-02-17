@@ -58,14 +58,14 @@ class TheoryPreregistrar : protected EnvObj
   /**
    * Notify that a SAT literal for atom n has been allocated in the SAT solver.
    * @param n The node to preregister.
-   * @param registerToReregister True if this node should be cached for
-   *                   reregistration in case its sat context level is greater
-   *                   than the current level.
+   * @param cache True if this node should be cached for reregistration in case
+   * its sat context level is greater than the current level.
    */
-  void notifySatLiteral(TNode n, bool registerToReregister = true);
+  void notifySatLiteral(TNode n, bool cache = true);
   /**
    * Callback to notify that the SAT solver backtracked by the given number
    * of levels.
+   * @param nlevels The number of levels the SAT solver backtracked.
    */
   void notifyBacktrack(uint32_t nlevels);
   /**
@@ -85,14 +85,15 @@ class TheoryPreregistrar : protected EnvObj
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
   /**
-   * Keep track of sat literals that were registered at a SAT context level > 0
-   * and need reregistration when we backtrack to a lower level than the level
-   * they were registered at. SAT variables stay in the SAT solver (until they
-   * are popped via a user-context-level pop), and we have to ensure that they
-   * are registered at all times on the theory level.
+   * Cache preregistered SAT literals, mapped to the SAT context level they
+   * were registered at. On backtrack, all literals that were registered at
+   * a level higher than the current (backtracked) level need registration.
+   * This is due to the fact that they get popped from the SAT context on
+   * backtrack but remain in the SAT solver.
+   * This cache is cleared on user context pop.
    */
   std::vector<std::pair<Node, uint32_t>> d_sat_literals;
-  /* Notifies on sat context pop. */
+  /* Notifies on SAT context pop. */
   std::unique_ptr<TheoryPreregistrarNotify> d_notify;
 };
 
