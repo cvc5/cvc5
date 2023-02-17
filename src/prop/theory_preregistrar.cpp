@@ -77,7 +77,7 @@ void TheoryPreregistrar::notifySatLiteral(TNode n, bool cache)
     if (cache)
     {
       // cache for registration
-      d_sat_literals.push_back({n, d_env.getContext()->getLevel()});
+      d_sat_literals.emplace_back(n, d_env.getContext()->getLevel());
     }
   }
 }
