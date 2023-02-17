@@ -136,6 +136,23 @@ void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const
   Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
 }
 
+void TheoryState::addEqualityEngineTriggerPredicate(TNode pred)
+{
+  Assert(d_ee != nullptr);
+  Assert(pred.getType().isBoolean());
+  // if we don't already have a sat value
+  if (!d_valuation.hasSatValue(pred))
+  {
+    // Get triggered for both equal and dis-equal
+    d_ee->addTriggerPredicate(pred);
+  }
+  else
+  {
+    // otherwise we just add the term
+    d_ee->addTerm(pred);
+  }
+}
+
 eq::EqualityEngine* TheoryState::getEqualityEngine() const { return d_ee; }
 
 void TheoryState::notifyInConflict() { d_conflict = true; }

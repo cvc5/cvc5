@@ -28,9 +28,9 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace theory {
 
-RelevanceManager::RelevanceManager(Env& env, Valuation val)
-    : EnvObj(env),
-      d_val(val),
+RelevanceManager::RelevanceManager(Env& env, TheoryEngine* engine)
+    : TheoryEngineModule(env, engine, "RelevanceManager"),
+      d_val(engine),
       d_input(userContext()),
       d_atomMap(userContext()),
       d_rset(context()),
@@ -44,7 +44,7 @@ RelevanceManager::RelevanceManager(Env& env, Valuation val)
 {
   if (options().smt.produceDifficulty)
   {
-    d_dman = std::make_unique<DifficultyManager>(env, this, val);
+    d_dman = std::make_unique<DifficultyManager>(env, this, d_val);
     d_trackRSetExp = true;
     // we cannot miniscope AND at the top level, since we need to
     // preserve the exact form of preprocessed assertions so the dependencies
@@ -142,13 +142,19 @@ void RelevanceManager::addInputToAtomsMap(TNode input)
   } while (!visit.empty());
 }
 
-void RelevanceManager::beginRound()
+void RelevanceManager::check(Theory::Effort effort)
 {
-  d_inFullEffortCheck = true;
-  d_fullEffortCheckFail = false;
+  if (Theory::fullEffort(effort))
+  {
+    d_inFullEffortCheck = true;
+    d_fullEffortCheckFail = false;
+  }
 }
 
-void RelevanceManager::endRound() { d_inFullEffortCheck = false; }
+void RelevanceManager::postCheck(Theory::Effort effort)
+{
+  d_inFullEffortCheck = false;
+}
 
 void RelevanceManager::computeRelevance()
 {
@@ -512,6 +518,9 @@ RelevanceManager::NodeList* RelevanceManager::getInputListFor(TNode atom,
 
 std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
 {
+  // set in full effort check temporarily
+  d_inFullEffortCheck = true;
+  d_fullEffortCheckFail = false;
   computeRelevance();
   // update success flag
   success = d_success;
@@ -523,11 +532,22 @@ std::unordered_set<TNode> RelevanceManager::getRelevantAssertions(bool& success)
       rset.insert(a);
     }
   }
+  // reset in full effort check
+  d_inFullEffortCheck = false;
   return rset;
 }
 
-void RelevanceManager::notifyLemma(TNode n)
+void RelevanceManager::notifyLemma(TNode n,
+                                   theory::LemmaProperty p,
+                                   const std::vector<Node>& skAsserts,
+                                   const std::vector<Node>& sks)
 {
+  // add to assertions
+  if (options().theory.relevanceFilter && isLemmaPropertyNeedsJustify(p))
+  {
+    notifyPreprocessedAssertion(n, false);
+    notifyPreprocessedAssertions(skAsserts, false);
+  }
   // notice that we may be in FULL or STANDARD effort here.
   if (d_dman != nullptr)
   {

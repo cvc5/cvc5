@@ -82,7 +82,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
 
   /** Incremental interface */
 
-  unsigned getAssertionLevel() const override;
+  uint32_t getAssertionLevel() const override;
 
   void push() override;
 

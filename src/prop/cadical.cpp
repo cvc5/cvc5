@@ -93,7 +93,7 @@ class ResourceLimitTerminator : public CaDiCaL::Terminator
   bool terminate() override
   {
     d_resmgr.spendResource(Resource::BvSatStep);
-    return d_resmgr.outOfResources() || d_resmgr.outOfTime();
+    return d_resmgr.out();
   }
 
  private:
@@ -197,7 +197,7 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
   return value(l);
 }
 
-unsigned CadicalSolver::getAssertionLevel() const
+uint32_t CadicalSolver::getAssertionLevel() const
 {
   Unreachable() << "CaDiCaL does not support assertion levels.";
 }
