@@ -112,16 +112,15 @@
   (bvite (= x y) 1 0))
 ;TODO: shouldn't this be ite?
 
-; Bugged rule
-;(define-cond-rule RepeatEliminate1
-;  ((x ?BitVec) (n Int))
-;  (> n 1)
-;  (repeat n x)
-;  (concat x (repeat (- n 1) x)))
-;(define-cond-rule RepeatEliminate2
-;  ((x ?BitVec))
-;  (repeat 1 x)
-;  x)
+(define-cond-rule RepeatEliminate1
+  ((x ?BitVec) (n Int))
+  (> n 1)
+  (repeat n x)
+  (concat x (repeat (- n 1) x)))
+(define-rule RepeatEliminate2
+  ((x ?BitVec))
+  (repeat 1 x)
+  x)
 
 ;; Not entirely clear if this is right
 (define-rule RotateLeftEliminate1
@@ -376,7 +375,34 @@
   x)
 
 
-; --- Others ---
+; -- Normalization Rules --
+(define-rule ExtractBitwiseAnd
+	((x ?BitVec) (y ?BitVec) (i Int) (j Int))
+	(extract i j (bvand x y))
+	(bvand (extract i j x) (extract i j y))
+	)
+(define-rule ExtractBitwiseOr
+	((x ?BitVec) (y ?BitVec) (i Int) (j Int))
+	(extract i j (bvor x y))
+	(bvor (extract i j x) (extract i j y))
+	)
+(define-rule ExtractBitwiseXor
+	((x ?BitVec) (y ?BitVec) (i Int) (j Int))
+	(extract i j (bvxor x y))
+	(bvxor (extract i j x) (extract i j y))
+	)
+(define-rule ExtractNot
+	((x ?BitVec) (i Int) (j Int))
+	(extract i j (bvnot x))
+	(bvnot (extract i j x))
+	)
+
+;(define-rule* ExtractArithAdd
+;	((xs ?BitVec :list) (x ?BitVec) (ys ?BitVec :list) (zs ?BitVec :list) (i Int))
+;	(extract i 0 (bvadd xs ))
+;	)
+
+; -- Others --
 
 (define-rule bv-eq-refl ((t ?BitVec)) (= t t) true)
 (define-rule bv-eq-symm ((t ?BitVec) (s ?BitVec)) (= t s) (= s t))
