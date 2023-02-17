@@ -681,12 +681,12 @@ void Solver::cancelUntil(int level) {
     Trace("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
     if (decisionLevel() > level){
-      uint32_t nlevels = decisionLevel() - level;
+      uint32_t nlevels = trail_lim.size() - level;
       // Pop the SMT context
       for (int l = trail_lim.size() - level; l > 0; --l)
       {
         d_context->pop();
-        }
+      }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;

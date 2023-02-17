@@ -29,7 +29,7 @@ class TheoryPreregistrarNotify : public context::ContextNotifyObj
 {
  public:
   TheoryPreregistrarNotify(Env& env, TheoryPreregistrar& prr)
-      : context::ContextNotifyObj(env.getContext(), false), d_prr(prr)
+      : context::ContextNotifyObj(env.getUserContext(), false), d_prr(prr)
   {
   }
 
@@ -47,7 +47,9 @@ TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
                                        CDCLTSatSolver* ss,
                                        CnfStream* cs)
-    : EnvObj(env), d_theoryEngine(te)
+    : EnvObj(env),
+      d_theoryEngine(te),
+      d_notify(new TheoryPreregistrarNotify(env, *this))
 {
 }
 
@@ -81,13 +83,13 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
   uint32_t level = d_env.getContext()->getLevel();
   for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
   {
-    auto& [node, nlevel] = d_sat_literals[n - i - 1];
-    if (nlevel <= level)
+    auto& [node, node_level] = d_sat_literals[n - i - 1];
+    if (node_level <= level)
     {
       break;
     }
     notifySatLiteral(node, false);
-    nlevel = level;
+    node_level = level;
   }
 }
 
