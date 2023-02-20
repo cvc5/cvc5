@@ -1865,7 +1865,7 @@ class SolverTest
     for (Map.Entry<Term, Term> t : dmap.entrySet())
     {
       // FIXME currently fails:
-      assertTrue(t.getKey() == f0 || t.getKey() == f1);
+      assertTrue(t.getKey().equals(f0) || t.getKey().equals(f1));
       assertTrue(t.getValue().getKind() == Kind.CONST_INTEGER);
     }
   }
