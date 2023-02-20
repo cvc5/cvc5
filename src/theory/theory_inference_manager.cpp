@@ -584,7 +584,7 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 
 TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
                                              InferenceId id,
-                        bool isConflict)
+                                             bool isConflict)
 {
   Assert(d_iipa != nullptr && d_apg != nullptr);
   Node lemma = trn.getProven();
