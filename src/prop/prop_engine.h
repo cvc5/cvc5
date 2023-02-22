@@ -45,7 +45,7 @@ class DecisionEngine;
 namespace prop {
 
 class CnfStream;
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 class ProofCnfStream;
 class PropPfManager;
 class TheoryProxy;
@@ -404,7 +404,7 @@ class PropEngine : protected EnvObj
   TheoryProxy* d_theoryProxy;
 
   /** The SAT solver proxy */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;

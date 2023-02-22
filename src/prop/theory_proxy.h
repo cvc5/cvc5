@@ -67,7 +67,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
+  void finishInit(CDCLTSatSolver* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();

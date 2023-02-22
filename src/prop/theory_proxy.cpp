@@ -72,7 +72,7 @@ TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
 
-void TheoryProxy::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
 {
   // make the decision engine, which requires pointers to the SAT solver and CNF
   // stream

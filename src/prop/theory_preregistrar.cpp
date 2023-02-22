@@ -23,7 +23,7 @@ namespace prop {
 
 TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
-                                       CDCLTSatSolverInterface* ss,
+                                       CDCLTSatSolver* ss,
                                        CnfStream* cs)
     : EnvObj(env), d_theoryEngine(te)
 {
