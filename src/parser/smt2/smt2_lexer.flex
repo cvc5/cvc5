@@ -23,6 +23,7 @@
 // with interactive inputs.
 %}
 
+%option full
 %option noyywrap
 %option nounput
 %option c++
