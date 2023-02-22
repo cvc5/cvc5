@@ -32,8 +32,8 @@ namespace prop {
 class SatSolverFactory
 {
  public:
-  static CDCLTSatSolverInterface* createCDCLTMinisat(
-      Env& env, StatisticsRegistry& registry);
+  static CDCLTSatSolver* createCDCLTMinisat(Env& env,
+                                            StatisticsRegistry& registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         ResourceManager* resmgr,
