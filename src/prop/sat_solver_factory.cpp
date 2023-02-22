@@ -23,7 +23,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
+CDCLTSatSolver* SatSolverFactory::createCDCLTMinisat(
     Env& env, StatisticsRegistry& registry)
 {
   return new MinisatSatSolver(env, registry);

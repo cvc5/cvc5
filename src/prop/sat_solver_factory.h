@@ -22,8 +22,8 @@
 #include <vector>
 
 #include "context/context.h"
-#include "prop/minisat/minisat.h"
 #include "prop/sat_solver.h"
+#include "smt/env.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -32,8 +32,8 @@ namespace prop {
 class SatSolverFactory
 {
  public:
-  static MinisatSatSolver* createCDCLTMinisat(Env& env,
-                                              StatisticsRegistry& registry);
+  static CDCLTSatSolver* createCDCLTMinisat(Env& env,
+                                            StatisticsRegistry& registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         ResourceManager* resmgr,
