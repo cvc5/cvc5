@@ -116,11 +116,10 @@ public:
 
 };/* class SatSolver */
 
-
-class CDCLTSatSolverInterface : public SatSolver
+class CDCLTSatSolver : public SatSolver
 {
  public:
-  virtual ~CDCLTSatSolverInterface(){};
+  virtual ~CDCLTSatSolver(){};
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
@@ -166,7 +165,7 @@ class CDCLTSatSolverInterface : public SatSolver
 
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
-}; /* class CDCLTSatSolverInterface */
+}; /* class CDCLTSatSolver */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

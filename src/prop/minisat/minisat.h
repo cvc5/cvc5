@@ -33,7 +33,7 @@ void toSatClause(const typename Solver::TClause& minisat_cl,
 
 namespace prop {
 
-class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
+class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
 {
  public:
   MinisatSatSolver(Env& env, StatisticsRegistry& registry);

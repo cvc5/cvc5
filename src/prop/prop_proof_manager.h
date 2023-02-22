@@ -31,7 +31,7 @@ namespace cvc5::internal {
 
 namespace prop {
 
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 
 /**
  * This class is responsible for managing the proof output of PropEngine, both
@@ -45,7 +45,7 @@ class PropPfManager : protected EnvObj
  public:
   PropPfManager(Env& env,
                 context::UserContext* userContext,
-                CDCLTSatSolverInterface* satSolver,
+                CDCLTSatSolver* satSolver,
                 ProofCnfStream* cnfProof);
 
   /** Saves assertion for later checking whether refutation proof is closed.
@@ -104,7 +104,7 @@ class PropPfManager : protected EnvObj
   /**
    * The SAT solver of this prop engine, which should provide a refutation
    * proof when requested */
-  CDCLTSatSolverInterface* d_satSolver;
+  CDCLTSatSolver* d_satSolver;
   /** Assertions corresponding to the leaves of the prop engine's proof.
    *
    * These are kept in a context-dependent manner since the prop engine's proof
