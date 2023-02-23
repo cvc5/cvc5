@@ -860,6 +860,20 @@ std::wstring ParserState::processAdHocStringEsc(const std::string& s)
   return res;
 }
 
+std::string ParserState::stripQuotes(const std::string& s)
+{
+  if (s.size() < 2 || s[0] != '\"'
+      || s[s.size() - 1] != '\"')
+  {
+    parseError(
+        "Expected a string delimited by quotes, got invalid string `"
+        + s + "`.");
+  }
+  std::string ss = s;
+  ss = ss.erase(0, 1);
+  return ss.erase(ss.size() - 1, 1);
+}
+
 Term ParserState::mkCharConstant(const std::string& s)
 {
   Assert(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos

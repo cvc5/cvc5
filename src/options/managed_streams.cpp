@@ -72,42 +72,26 @@ std::string cvc5_errno_failreason()
 
 namespace detail {
 
-std::string stripQuotes(const std::string& filename)
-{
-  if (filename.size() < 2 || filename[0] != '\"'
-      || filename[filename.size() - 1] != '\"')
-  {
-    throw OptionException(
-        "Stream names must be delimited by quotes, got invalid name `"
-        + filename + "`.");
-  }
-  std::string sfile = filename;
-  sfile = sfile.erase(0, 1);
-  return sfile.erase(sfile.size() - 1, 1);
-}
-
 std::unique_ptr<std::ostream> openOStream(const std::string& filename)
 {
-  std::string sfile = stripQuotes(filename);
   errno = 0;
-  std::unique_ptr<std::ostream> res = std::make_unique<std::ofstream>(sfile);
+  std::unique_ptr<std::ostream> res = std::make_unique<std::ofstream>(filename);
   if (!res || !*res)
   {
     std::stringstream ss;
-    ss << "Cannot open file: `" << sfile << "': " << cvc5_errno_failreason();
+    ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
     throw OptionException(ss.str());
   }
   return res;
 }
 std::unique_ptr<std::istream> openIStream(const std::string& filename)
 {
-  std::string sfile = stripQuotes(filename);
   errno = 0;
-  std::unique_ptr<std::istream> res = std::make_unique<std::ifstream>(sfile);
+  std::unique_ptr<std::istream> res = std::make_unique<std::ifstream>(filename);
   if (!res || !*res)
   {
     std::stringstream ss;
-    ss << "Cannot open file: `" << sfile << "': " << cvc5_errno_failreason();
+    ss << "Cannot open file: `" << filename << "': " << cvc5_errno_failreason();
     throw OptionException(ss.str());
   }
   return res;
@@ -117,14 +101,14 @@ std::unique_ptr<std::istream> openIStream(const std::string& filename)
 ManagedErr::ManagedErr() : ManagedStream(&std::cerr, "stderr") {}
 bool ManagedErr::specialCases(const std::string& value)
 {
-  if (value == "\"stderr\"" || value == "--")
+  if (value == "stderr" || value == "--")
   {
     d_nonowned = &std::cerr;
     d_owned.reset();
     d_description = "stderr";
     return true;
   }
-  else if (value == "\"stdout\"")
+  else if (value == "stdout")
   {
     d_nonowned = &std::cout;
     d_owned.reset();
@@ -137,7 +121,7 @@ bool ManagedErr::specialCases(const std::string& value)
 ManagedIn::ManagedIn() : ManagedStream(&std::cin, "stdin") {}
 bool ManagedIn::specialCases(const std::string& value)
 {
-  if (value == "\"stdin\"" || value == "--")
+  if (value == "stdin" || value == "--")
   {
     d_nonowned = &std::cin;
     d_owned.reset();
@@ -150,14 +134,14 @@ bool ManagedIn::specialCases(const std::string& value)
 ManagedOut::ManagedOut() : ManagedStream(&std::cout, "stdout") {}
 bool ManagedOut::specialCases(const std::string& value)
 {
-  if (value == "\"stdout\"" || value == "--")
+  if (value == "stdout" || value == "--")
   {
     d_nonowned = &std::cout;
     d_owned.reset();
     d_description = "stdout";
     return true;
   }
-  else if (value == "\"stderr\"")
+  else if (value == "stderr")
   {
     d_nonowned = &std::cerr;
     d_owned.reset();

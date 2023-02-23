@@ -560,6 +560,11 @@ class CVC5_EXPORT ParserState
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::wstring processAdHocStringEsc(const std::string& s);
+  
+  /**
+   * Strip quotes off a string, or return a parse error otherwise.
+   */
+  std::string stripQuotes(const std::string& s);
 
  protected:
   /** The API Solver object. */
