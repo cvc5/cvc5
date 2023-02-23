@@ -344,6 +344,8 @@ libcvc5_add_sources(
   smt/smt_driver.h
   smt/smt_driver_deep_restarts.cpp
   smt/smt_driver_deep_restarts.h
+  smt/smt_driver_to_core.cpp
+  smt/smt_driver_to_core.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
