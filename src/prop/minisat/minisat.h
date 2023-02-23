@@ -59,9 +59,7 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
     Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
-  SatVariable newVar(bool isTheoryAtom,
-                     bool preRegister,
-                     bool canErase) override;
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override { return d_minisat->trueVar(); }
   SatVariable falseVar() override { return d_minisat->falseVar(); }
 

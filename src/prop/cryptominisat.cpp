@@ -158,7 +158,8 @@ ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
 
 bool CryptoMinisatSolver::ok() const { return d_okay; }
 
-SatVariable  CryptoMinisatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
+SatVariable CryptoMinisatSolver::newVar(bool isTheoryAtom, bool canErase)
+{
   d_solver->new_var();
   ++d_numVariables;
   Assert(d_numVariables == d_solver->nVars());
