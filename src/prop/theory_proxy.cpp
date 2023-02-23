@@ -302,7 +302,7 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Assert(!literalNode.isNull());
   d_queue.push(literalNode);
   // Decision level = SAT context level - 1 due to global push().
-  d_theory_lit_dlevels[l.getSatVariable()] = context()->getLevel() - 1;
+  d_var_decision_levels[l.getSatVariable()] = context()->getLevel() - 1;
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
