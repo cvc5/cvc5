@@ -18,8 +18,9 @@
 #ifndef CVC5__SMT__SMT_DRIVER_TO_CORE_H
 #define CVC5__SMT__SMT_DRIVER_TO_CORE_H
 
-#include "smt/smt_driver.h"
+#include "smt/env_obj.h"
 #include "util/result.h"
+#include "smt/assertions.h"
 
 namespace cvc5::internal {
 
@@ -30,18 +31,22 @@ namespace smt {
 class SmtSolver;
 class ContextManager;
 
-class SmtDriverToCore : public SmtDriver
+class SmtDriverToCore : protected EnvObj
 {
  public:
-  SmtDriverToCore(Env& env, SmtSolver& smt, ContextManager* ctx);
+  SmtDriverToCore(Env& env);
 
- protected:
-  Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
-  void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
+  /** get timeout core */
+  Result getTimeoutCore(const Assertions& as, std::vector<Node>& toCore);
 
  private:
   /** initialize assertions */
   void initializePreprocessedAssertions(const std::vector<Node>& ppAsserts);
+  /** get next assertions */
+  void getNextAssertions(std::vector<Node>& nextAssertions);
+  /** check sat next */
+  Result checkSatNext(const std::vector<Node>& nextAssertions);
+  
   /**
    * Record current model, return true if we set d_nextIndexToInclude,
    * indicating that we want to include a new assertion.
@@ -56,8 +61,6 @@ class SmtDriverToCore : public SmtDriver
   /** Common nodes */
   Node d_true;
   Node d_false;
-  /** Initialized */
-  bool d_initialized;
   /** The original preprocessed assertions */
   std::vector<Node> d_ppAsserts;
   std::vector<Node> d_asserts;

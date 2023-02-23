@@ -36,11 +36,8 @@
 namespace cvc5::internal {
 namespace smt {
 
-SmtDriverToCore::SmtDriverToCore(Env& env,
-                                       SmtSolver& smt,
-                                       ContextManager* ctx)
-    : SmtDriver(env, smt, ctx),
-      d_initialized(false),
+SmtDriverToCore::SmtDriverToCore(Env& env)
+    : EnvObj(env),
       d_nextIndexToInclude(0),
       d_queryCount(0)
 {
@@ -49,20 +46,40 @@ SmtDriverToCore::SmtDriverToCore(Env& env,
 }
 
 
-void SmtDriverToCore::getNextAssertions(preprocessing::AssertionPipeline& ap)
+Result SmtDriverToCore::getTimeoutCore(const Assertions& as, std::vector<Node>& toCore)
 {
-  if (!d_initialized)
+  // provide all assertions initially
+  std::vector<Node> ppAsserts;
+  const context::CDList<Node>& al = as.getAssertionList();
+  for (const Node& a : al)
   {
-    Trace("smt-min-assert") << "Initialize assertions..." << std::endl;
-    // provide all assertions initially
-    Assertions& as = d_smt.getAssertions();
-    const context::CDList<Node>& al = as.getAssertionList();
-    for (const Node& a : al)
-    {
-      ap.push_back(a, true);
-    }
-    return;
+    ppAsserts.push_back(a);
   }
+  initializePreprocessedAssertions(ppAsserts);
+  
+  
+  Result result;
+  bool checkAgain = true;
+  std::vector<Node> nextAssertions;
+  do
+  {
+    nextAssertions.clear();
+    // get the next assertions, store in d_ap
+    getNextAssertions(nextAssertions);
+    // check sat based on the driver strategy
+    result = checkSatNext(nextAssertions);
+    // if we were asked to check again
+    if (result.getStatus() != Result::UNKNOWN
+        || result.getUnknownExplanation() != REQUIRES_CHECK_AGAIN)
+    {
+      checkAgain = false;
+    }
+  }while (checkAgain);
+  return result;
+}
+
+void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
+{
   Trace("smt-min-assert") << "Get next assertions..." << std::endl;
   // should have set d_nextIndexToInclude which is not already included
   Assert(d_nextIndexToInclude < d_ppAsserts.size());
@@ -122,6 +139,13 @@ void SmtDriverToCore::getNextAssertions(preprocessing::AssertionPipeline& ap)
                           << std::endl;
 
   // now have a list of assertions to include
+  for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
+  {
+    Assert(a.first < d_ppAsserts.size());
+    Assert(a.second.d_coverModels > 0);
+    Node pa = d_ppAsserts[a.first];
+    nextAsserts.push_back(pa);
+  }
   if (recomputeSymbols)
   {
     // we have to recompute symbols from scratch
@@ -144,7 +168,7 @@ void SmtDriverToCore::getNextAssertions(preprocessing::AssertionPipeline& ap)
       << d_ainfo.size() << ", #free variables = " << d_asymbols.size() << std::endl;
 }
 
-Result SmtDriverToCore::checkSatNext(preprocessing::AssertionPipeline& ap)
+Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
 {
   Assert (d_initialized);
   Trace("smt-min-assert") << "--- checkSatNext #models=" << d_modelValues.size()
@@ -152,11 +176,11 @@ Result SmtDriverToCore::checkSatNext(preprocessing::AssertionPipeline& ap)
   Trace("smt-min-assert") << "checkSatNext: preprocess" << std::endl;
   std::unique_ptr<SolverEngine> subSolver;
   Result result;
-  theory::initializeSubsolver(subSolver, d_env, options().smt.smtMinAssertTimeoutWasSetByUser, options().smt.smtMinAssertTimeout);
+  theory::initializeSubsolver(subSolver, d_env, options().smt.toCoreTimeoutWasSetByUser, options().smt.toCoreTimeout);
   subSolver->setOption("smt-min-assert", "false");
   subSolver->setOption("produce-models", "true");
   Trace("smt-min-assert") << "checkSatNext: assert to subsolver" << std::endl;
-  for (const Node& a : ap)
+  for (const Node& a : nextAssertions)
   {
     subSolver->assertFormula(a);
   }
@@ -164,11 +188,11 @@ Result SmtDriverToCore::checkSatNext(preprocessing::AssertionPipeline& ap)
   result = subSolver->checkSat();
   Trace("smt-min-assert")
       << "checkSatNext: ...result is " << result << std::endl;
-  if (options().smt.dumpSmtMinAssert && result.getStatus() == Result::UNKNOWN)
+  if (options().smt.dumpToCore && result.getStatus() == Result::UNKNOWN)
   {
     Trace("smt-min-assert")
       << "checkSatNext: dump benchmark " << d_queryCount << std::endl;
-    std::vector<Node> bench(ap.begin(), ap.end());
+    std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
     // Print the query to to queryN.smt2
     std::stringstream fname;
     fname << "query" << d_queryCount << ".smt2";
@@ -255,14 +279,6 @@ void SmtDriverToCore::initializePreprocessedAssertions(const std::vector<Node>& 
 bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
                                             SolverEngine* subSolver)
 {
-  // get the model reference
-  theory::TheoryModel* m = nullptr;
-  if (subSolver == nullptr)
-  {
-    TheoryEngine* te = d_smt.getTheoryEngine();
-    Assert(te != nullptr);
-    m = te->getBuiltModel();
-  }
   // allocate the model value vector
   d_modelValues.emplace_back();
   std::vector<Node>& currModel = d_modelValues.back();
@@ -279,16 +295,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
   {
     size_t ii = (i + startIndex) % nasserts;
     Node a = d_ppAsserts[ii];
-    Node av;
-    // if no subsolver, get from the model of the SMT solver
-    if (subSolver == nullptr)
-    {
-      av = m->getValue(a);
-    }
-    else
-    {
-      av = subSolver->getValue(a);
-    }
+    Node av = subSolver->getValue(a);
     av = av.isConst() ? av : Node::null();
     currModel[ii] = av;
     if (av == d_true)

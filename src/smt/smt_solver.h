@@ -135,7 +135,7 @@ class SmtSolver : protected EnvObj
   /** The preprocessor of this SMT solver */
   Preprocessor d_pp;
   /** Assertions manager */
-  smt::Assertions d_asserts;
+  Assertions d_asserts;
   /** Reference to the statistics of SolverEngine */
   SolverEngineStatistics& d_stats;
   /** The theory engine */
