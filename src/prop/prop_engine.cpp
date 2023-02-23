@@ -278,6 +278,18 @@ void PropEngine::assertInternal(
       d_ppm->registerAssertion(node);
     }
   }
+  else if (input && d_env.getUserContext()->getLevel() > 1)
+  {
+    d_cnfStream->ensureLiteral(node);
+    if (negated)
+    {
+      d_assumptions.push_back(node.notNode());
+    }
+    else
+    {
+      d_assumptions.push_back(node);
+    }
+  }
   else
   {
     d_cnfStream->convertAndAssert(node, removable, negated);

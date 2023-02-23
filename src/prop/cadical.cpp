@@ -18,11 +18,14 @@
 #include "prop/cadical.h"
 
 #include "base/check.h"
+#include "prop/theory_proxy.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
 namespace cvc5::internal {
 namespace prop {
+
+/* -------------------------------------------------------------------------- */
 
 using CadicalLit = int;
 using CadicalVar = int;
@@ -38,8 +41,7 @@ SatValue toSatValue(int result)
   return SAT_VALUE_UNKNOWN;
 }
 
-/* Note: CaDiCaL returns lit/-lit for true/false. Older versions returned 1/-1.
- */
+// Note: CaDiCaL returns lit/-lit for true/false. Older versions returned 1/-1.
 SatValue toSatValueLit(int value)
 {
   if (value > 0) return SAT_VALUE_TRUE;
@@ -56,9 +58,142 @@ CadicalVar toCadicalVar(SatVariable var) { return var; }
 
 }  // namespace helper functions
 
-CadicalSolver::CadicalSolver(StatisticsRegistry& registry,
+class CadicalPropagator : public CaDiCaL::ExternalPropagator
+{
+ public:
+  CadicalPropagator(prop::TheoryProxy* proxy) : d_proxy(proxy) {}
+
+  /**
+   * Notification from the SAT solver on assignment of a new literal.
+   * @param lit      The CaDiCaL literal that was assigned.
+   * @param is_fixed True if the assignment is fixed (on level 0).
+   */
+  void notify_assignment(int lit, bool is_fixed) override
+  {
+    (void)is_fixed;
+    if (d_decisions.size() == d_decisions_control.back())
+    {
+      SatLiteral slit(lit);
+      d_decisions.push_back(slit);
+      d_decision_vars.insert(slit.getSatVariable());
+    }
+  }
+
+  /**
+   * Notification from the SAT solver when it makes a decision.
+   */
+  void notify_new_decision_level() override
+  {
+    d_decisions_control.push_back(d_decisions.size());
+  }
+
+  /**
+   * Notification from the SAT solver on backtrack to the given level.
+   * @param level The level the SAT solver backtracked to.
+   */
+  void notify_backtrack(size_t level) override
+  {
+    Assert(d_proxy);
+    d_proxy->notifyBacktrack();
+
+    size_t cur_level = d_decisions_control.size();
+    Assert(cur_level > level);
+    for (; cur_level > level; --cur_level)
+    {
+      size_t idx = d_decisions_control.back();
+      d_decisions_control.pop_back();
+      for (size_t i = 0, n = d_decisions.size() - idx; i < n; ++i)
+      {
+        SatLiteral slit = d_decisions.back();
+        d_decisions.pop_back();
+        auto it = d_decision_vars.find(slit.getSatVariable());
+        Assert(it != d_decision_vars.end());
+        d_decision_vars.erase(*it);
+      }
+      Assert(d_decisions.size() == idx);
+    }
+  }
+
+  /**
+   * Callback of the SAT solver on finding a full sat assignment.
+   * @param model The full assignment.
+   * @return true If the current model is not in conflict with the theories.
+   */
+  bool cb_check_found_model(const std::vector<int>& model) override
+  {
+    return true;
+  }
+
+  /**
+   * Callback of the SAT solver before making a new decision.
+   * @return The decision.
+   */
+  int cb_decide() override { return 0; }
+
+  /**
+   * Callback of the SAT solver after BCP.
+   * @return The next theory propagation.
+   */
+  int cb_propagate() override { return 0; }
+
+  /**
+   * Callback of the SAT solver asking for the explanation of a theory literal.
+   * @note This is called on `propagated_lit` until the reason clause is
+   *       fully processed.
+   * @param propagated_lit The theory literal.
+   * @return The next literal of the reason clause, 0 to terminate the clause.
+   */
+  int cb_add_reason_clause_lit(int propagated_lit) override { return 0; }
+
+  /**
+   * Callback of the SAT solver to determine if we have a new clause to add.
+   * @return True to indicate that we have clauses to add.
+   */
+  bool cb_has_external_clause() override { return false; }
+
+  /**
+   * Callback of the SAT solver to add a new clause.
+   * @note This is called consecutively until the full clause is processed.
+   * @return The next literal of the clause, 0 to terminate the clause.
+   */
+  int cb_add_external_clause_lit() override { return 0; }
+
+  /**
+   * Get the current trail of decisions.
+   * @return The trail of decisions.
+   */
+  const std::vector<SatLiteral>& get_decisions() const { return d_decisions; }
+
+  /**
+   * Determine if a decision has been made on the given variable.
+   * @return True if the variable is a decision variable.
+   */
+  bool is_decision(const SatVariable& var)
+  {
+    return d_decision_vars.find(var) != d_decision_vars.end();
+  }
+
+ private:
+  /** The associated theory proxy. */
+  prop::TheoryProxy* d_proxy = nullptr;
+  /** The current trail of decisions. */
+  std::vector<SatLiteral> d_decisions;
+  /**
+   * The control stack for d_decisions, manages decision levels. Each element
+   * of the vector stores the index of the start of the next decision level.
+   * If empty, decision level is 0.
+   */
+  std::vector<size_t> d_decisions_control;
+  /** The set of decision variables. */
+  std::unordered_set<SatVariable> d_decision_vars;
+};
+
+CadicalSolver::CadicalSolver(Env& env,
+                             StatisticsRegistry& registry,
                              const std::string& name)
-    : d_solver(new CaDiCaL::Solver()),
+    : EnvObj(env),
+      d_solver(new CaDiCaL::Solver()),
+      d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
@@ -105,6 +240,8 @@ void CadicalSolver::setResourceLimit(ResourceManager* resmgr)
   d_terminator.reset(new ResourceLimitTerminator(*resmgr));
   d_solver->connect_terminator(d_terminator.get());
 }
+
+/* SatSolver Interface ------------------------------------------------------ */
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {
@@ -211,5 +348,51 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
   {
 }
 
+/* CDCLTSatSolver Interface ------------------------------------------------- */
+
+void CadicalSolver::initialize(context::Context* context,
+                               prop::TheoryProxy* theoryProxy,
+                               context::UserContext* userContext,
+                               ProofNodeManager* pnm)
+{
+  d_context = context;
+  d_proxy = theoryProxy;
+  d_propagator.reset(new CadicalPropagator(theoryProxy));
+}
+
+void CadicalSolver::push()
+{
+  d_context->push();  // SAT context for cvc5
+}
+
+void CadicalSolver::pop()
+{
+  d_context->pop();  // SAT context for cvc5
+}
+
+void CadicalSolver::resetTrail() {}
+
+void CadicalSolver::preferPhase(SatLiteral lit) {}
+
+bool CadicalSolver::isDecision(SatVariable var) const
+{
+  return d_propagator->is_decision(var);
+}
+
+bool CadicalSolver::isFixed(SatVariable var) const
+{
+  return d_solver->fixed(toCadicalVar(var));
+}
+
+std::vector<SatLiteral> CadicalSolver::getDecisions() const
+{
+  return d_propagator->get_decisions();
+}
+
+std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
+
+std::shared_ptr<ProofNode> CDCLTgetProof() { return nullptr; }
+
+/* -------------------------------------------------------------------------- */
 }  // namespace prop
 }  // namespace cvc5::internal
