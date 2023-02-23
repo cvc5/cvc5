@@ -60,14 +60,13 @@ Result SmtDriverToCore::getTimeoutCore(const Assertions& as, std::vector<Node>& 
   
   Result result;
   bool checkAgain = true;
-  std::vector<Node> nextAssertions;
   do
   {
-    nextAssertions.clear();
+    toCore.clear();
     // get the next assertions, store in d_ap
-    getNextAssertions(nextAssertions);
+    getNextAssertions(toCore);
     // check sat based on the driver strategy
-    result = checkSatNext(nextAssertions);
+    result = checkSatNext(toCore);
     // if we were asked to check again
     if (result.getStatus() != Result::UNKNOWN
         || result.getUnknownExplanation() != REQUIRES_CHECK_AGAIN)
@@ -80,18 +79,22 @@ Result SmtDriverToCore::getTimeoutCore(const Assertions& as, std::vector<Node>& 
 
 void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
 {
-  Trace("smt-min-assert") << "Get next assertions..." << std::endl;
+  if (d_modelValues.empty())
+  {
+    // empty initially
+    return;
+  }
+  Trace("smt-to-core") << "Get next assertions..." << std::endl;
   // should have set d_nextIndexToInclude which is not already included
   Assert(d_nextIndexToInclude < d_ppAsserts.size());
   Assert(d_ainfo.find(d_nextIndexToInclude) == d_ainfo.end());
   // initialize the assertion info
   AssertInfo& ainext = d_ainfo[d_nextIndexToInclude];
-  Assert(!d_modelValues.empty());
   // we assume it takes the current model
   size_t currModelIndex = d_modelValues.size() - 1;
   d_modelToAssert[currModelIndex] = d_nextIndexToInclude;
   ainext.d_coverModels++;
-  Trace("smt-min-assert") << "Add assertion #" << d_nextIndexToInclude << ": "
+  Trace("smt-to-core") << "Add assertion #" << d_nextIndexToInclude << ": "
                           << d_ppAsserts[d_nextIndexToInclude] << std::endl;
 
   // iterate over previous models
@@ -125,7 +128,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
       ita->second.d_coverModels--;
       if (ita->second.d_coverModels == 0)
       {
-        Trace("smt-min-assert")
+        Trace("smt-to-core")
             << "Remove assertion #" << itp->second << std::endl;
         // a previous assertion no longer is necessary
         d_ainfo.erase(ita);
@@ -135,7 +138,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
       ainext.d_coverModels++;
     }
   }
-  Trace("smt-min-assert") << "...covers " << ainext.d_coverModels << " models"
+  Trace("smt-to-core") << "...covers " << ainext.d_coverModels << " models"
                           << std::endl;
 
   // now have a list of assertions to include
@@ -163,7 +166,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
     d_asymbols.insert(syms.begin(), syms.end());
   }
     
-  Trace("smt-min-assert")
+  Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
       << d_ainfo.size() << ", #free variables = " << d_asymbols.size() << std::endl;
 }
@@ -171,59 +174,67 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
 Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
 {
   Assert (d_initialized);
-  Trace("smt-min-assert") << "--- checkSatNext #models=" << d_modelValues.size()
+  Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
                           << std::endl;
-  Trace("smt-min-assert") << "checkSatNext: preprocess" << std::endl;
+  Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
   std::unique_ptr<SolverEngine> subSolver;
   Result result;
   theory::initializeSubsolver(subSolver, d_env, options().smt.toCoreTimeoutWasSetByUser, options().smt.toCoreTimeout);
-  subSolver->setOption("smt-min-assert", "false");
+  subSolver->setOption("smt-to-core", "false");
   subSolver->setOption("produce-models", "true");
-  Trace("smt-min-assert") << "checkSatNext: assert to subsolver" << std::endl;
+  Trace("smt-to-core") << "checkSatNext: assert to subsolver" << std::endl;
   for (const Node& a : nextAssertions)
   {
     subSolver->assertFormula(a);
   }
-  Trace("smt-min-assert") << "checkSatNext: check with subsolver" << std::endl;
+  Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
   result = subSolver->checkSat();
-  Trace("smt-min-assert")
+  Trace("smt-to-core")
       << "checkSatNext: ...result is " << result << std::endl;
-  if (options().smt.dumpToCore && result.getStatus() == Result::UNKNOWN)
+  if (result.getStatus() == Result::UNKNOWN)
   {
-    Trace("smt-min-assert")
-      << "checkSatNext: dump benchmark " << d_queryCount << std::endl;
-    std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
-    // Print the query to to queryN.smt2
-    std::stringstream fname;
-    fname << "query" << d_queryCount << ".smt2";
-    std::ofstream fs(fname.str(), std::ofstream::out);
-    smt::PrintBenchmark pb(Printer::getPrinter(fs));
-    pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, bench);
-    fs.close();
-    d_queryCount++;
+    if (options().smt.dumpToCore)
+    {
+      Trace("smt-to-core")
+        << "checkSatNext: dump benchmark " << d_queryCount << std::endl;
+      std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
+      // Print the query to to queryN.smt2
+      std::stringstream fname;
+      fname << "query" << d_queryCount << ".smt2";
+      std::ofstream fs(fname.str(), std::ofstream::out);
+      smt::PrintBenchmark pb(Printer::getPrinter(fs));
+      pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, bench);
+      fs.close();
+      d_queryCount++;
+    }
+    else
+    {
+      // otherwise, will terminate
+      return result;
+    }
   }
   // if UNSAT, we are done
   if (result.getStatus() == Result::UNSAT)
   {
-    Trace("smt-min-assert") << "...return, UNSAT" << std::endl;
+    Trace("smt-to-core") << "...return, UNSAT" << std::endl;
     return result;
   }
-  Trace("smt-min-assert") << "checkSatNext: recordCurrentModel" << std::endl;
+  Trace("smt-to-core") << "checkSatNext: recordCurrentModel" << std::endl;
   bool allAssertsSat;
   if (recordCurrentModel(allAssertsSat, subSolver.get()))
   {
-    Trace("smt-min-assert") << "...return, check again" << std::endl;
+    Trace("smt-to-core") << "...return, check again" << std::endl;
     return Result(Result::UNKNOWN, UnknownExplanation::REQUIRES_CHECK_AGAIN);
   }
   else if (allAssertsSat)
   {
-    Trace("smt-min-assert") << "...return, SAT" << std::endl;
+    Trace("smt-to-core") << "...return, SAT" << std::endl;
     // a model happened to satisfy every assertion
     return Result(Result::SAT);
   }
   else
   {
-    Trace("smt-min-assert") << "...return, (fail) " << result << std::endl;
+    Trace("smt-to-core") << "...return, (fail) " << result << std::endl;
   }
   // Otherwise, we take the current result (likely unknown).
   // If result happens to be SAT, then we are in a case where the model doesnt
@@ -236,8 +247,8 @@ void SmtDriverToCore::initializePreprocessedAssertions(const std::vector<Node>& 
 {
   d_ppAsserts.clear();
 
-  Trace("smt-min-assert") << "initializePreprocessedAssertions" << std::endl;
-  Trace("smt-min-assert") << "# asserts = " << ppAsserts.size() << std::endl;
+  Trace("smt-to-core") << "initializePreprocessedAssertions" << std::endl;
+  Trace("smt-to-core") << "# asserts = " << ppAsserts.size() << std::endl;
   theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   for (const Node& pa : ppAsserts)
   {
@@ -269,7 +280,7 @@ void SmtDriverToCore::initializePreprocessedAssertions(const std::vector<Node>& 
       d_ppAsserts.push_back(pa);
     }
   }
-  Trace("smt-min-assert") << "get symbols..." << std::endl;
+  Trace("smt-to-core") << "get symbols..." << std::endl;
   for (size_t i=0, npasserts = d_ppAsserts.size(); i<npasserts; i++)
   {
     expr::getSymbols(d_ppAsserts[i], d_syms[i]);
@@ -320,7 +331,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
     }
     // prefer false over unknown, shared symbols over no shared symbols
     size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0);
-    Trace("smt-min-assert") << "score " << currScore << std::endl;
+    Trace("smt-to-core") << "score " << currScore << std::endl;
     if (indexSet && indexScore>=currScore)
     {
       continue;
@@ -330,7 +341,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
     d_nextIndexToInclude = ii;
     indexSet = true;
   }
-  Trace("smt-min-assert") << "selected new assertion, score=" << indexScore << std::endl;
+  Trace("smt-to-core") << "selected new assertion, score=" << indexScore << std::endl;
   // if we did not find a false assertion, remember it
   if (!allAssertsSat && !hadFalseAssert)
   {
