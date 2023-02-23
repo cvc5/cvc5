@@ -21,7 +21,7 @@
 
 #ifdef CVC5_USE_COCOA
 
-#include "theory/ff/roots.h"
+#include "theory/ff/uni_roots.h"
 
 #include <CoCoA/BigInt.H>
 #include <CoCoA/BigIntOps.H>

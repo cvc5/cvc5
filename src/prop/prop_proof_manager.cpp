@@ -26,7 +26,7 @@ namespace prop {
 
 PropPfManager::PropPfManager(Env& env,
                              context::UserContext* userContext,
-                             CDCLTSatSolverInterface* satSolver,
+                             CDCLTSatSolver* satSolver,
                              ProofCnfStream* cnfProof)
     : EnvObj(env),
       d_propProofs(userContext),
