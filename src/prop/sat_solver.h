@@ -154,11 +154,6 @@ class CDCLTSatSolver : public SatSolver
   virtual std::vector<Node> getOrderHeap() const = 0;
 
   /**
-   * Return the current decision level of `lit`.
-   */
-  virtual int32_t getDecisionLevel(SatVariable v) const { return -1; }
-
-  /**
    * Return the user-context level when `lit` was introduced..
    */
   virtual int32_t getIntroLevel(SatVariable v) const { return -1; }

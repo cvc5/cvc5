@@ -158,6 +158,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   SatValue getDecisionPolarity(SatVariable var);
 
+  /** Return decision level at which `var` was decided on. */
+  int32_t getDecisionLevel(SatVariable var) const;
+
   CnfStream* getCnfStream();
 
   /**
@@ -243,6 +246,9 @@ class TheoryProxy : protected EnvObj, public Registrar
    * are dynamically activated only when decision=justification.
    */
   bool d_activatedSkDefs;
+
+  /** Map to store current decision level for theory literals. */
+  std::unordered_map<SatVariable, int32_t> d_var_decision_levels;
 }; /* class TheoryProxy */
 
 }  // namespace prop
