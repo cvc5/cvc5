@@ -31,7 +31,7 @@ RlvInfo::RlvInfo(context::Context* c)
 }
 
 RelevantPreregistrar::RelevantPreregistrar(Env& env,
-                                           CDCLTSatSolverInterface* ss,
+                                           CDCLTSatSolver* ss,
                                            CnfStream* cs)
     : EnvObj(env),
       d_pstate(context()),

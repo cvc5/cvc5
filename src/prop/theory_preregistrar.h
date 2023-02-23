@@ -30,6 +30,8 @@ class TheoryEngine;
 
 namespace prop {
 
+class TheoryPreregistrarNotify;
+
 /**
  * Implements the policy for preregistration to TheoryEngine based on
  * notifications from the SAT solver.

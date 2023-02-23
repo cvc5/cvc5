@@ -109,6 +109,10 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
     // cache for registration
     d_sat_literals.emplace_back(n, d_env.getContext()->getLevel());
   }
+  else if (d_rlvPrereg != nullptr)
+  {
+    d_rlvPrereg->notifySatLiteral(n);
+  }
 }
 
 void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
@@ -137,10 +141,6 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
     // registered at. This is necessary to not reregister literals that
     // are already registered.
     node_level = level;
-  }
-  else if (d_rlvPrereg != nullptr)
-  {
-    d_rlvPrereg->notifySatLiteral(n);
   }
 }
 

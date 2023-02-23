@@ -100,7 +100,7 @@ class RelevantPreregistrar : protected EnvObj
   using NodeSet = context::CDHashSet<Node>;
 
  public:
-  RelevantPreregistrar(Env& env, CDCLTSatSolverInterface* ss, CnfStream* cs);
+  RelevantPreregistrar(Env& env, CDCLTSatSolver* ss, CnfStream* cs);
   ~RelevantPreregistrar();
   /**
    * Called the beginning of theory checks (in TheoryProxy), adds literals to
