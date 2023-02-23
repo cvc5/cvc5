@@ -361,8 +361,7 @@ std::vector<Node> PropEngine::getPropOrderHeap() const
 int32_t PropEngine::getDecisionLevel(Node lit) const
 {
   Assert(isSatLiteral(lit));
-  return d_theoryProxy->getDecisionLevel(
-      d_cnfStream->getLiteral(lit).getSatVariable());
+  return d_theoryProxy->getDecisionLevel(lit);
 }
 
 int32_t PropEngine::getIntroLevel(Node lit) const

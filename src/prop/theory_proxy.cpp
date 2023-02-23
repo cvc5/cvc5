@@ -183,8 +183,7 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
       {
         break;
       }
-      int32_t alevel =
-          getDecisionLevel(d_cnfStream->getLiteral(assertion).getSatVariable());
+      int32_t alevel = getDecisionLevel(assertion);
       if (!d_zll->notifyAsserted(assertion, alevel))
       {
         d_stopSearch = true;
@@ -302,7 +301,7 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Assert(!literalNode.isNull());
   d_queue.push(literalNode);
   // Decision level = SAT context level - 1 due to global push().
-  d_var_decision_levels[l.getSatVariable()] = context()->getLevel() - 1;
+  d_var_decision_levels[literalNode] = context()->getLevel() - 1;
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
@@ -400,10 +399,10 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return SAT_VALUE_UNKNOWN;
 }
 
-int32_t TheoryProxy::getDecisionLevel(SatVariable var) const
+int32_t TheoryProxy::getDecisionLevel(TNode node) const
 {
-  Assert(d_var_decision_levels.find(var) != d_var_decision_levels.end());
-  return d_var_decision_levels.at(var);
+  Assert(d_var_decision_levels.find(node) != d_var_decision_levels.end());
+  return d_var_decision_levels.at(node);
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
