@@ -862,12 +862,10 @@ std::wstring ParserState::processAdHocStringEsc(const std::string& s)
 
 std::string ParserState::stripQuotes(const std::string& s)
 {
-  if (s.size() < 2 || s[0] != '\"'
-      || s[s.size() - 1] != '\"')
+  if (s.size() < 2 || s[0] != '\"' || s[s.size() - 1] != '\"')
   {
-    parseError(
-        "Expected a string delimited by quotes, got invalid string `"
-        + s + "`.");
+    parseError("Expected a string delimited by quotes, got invalid string `" + s
+               + "`.");
   }
   std::string ss = s;
   ss = ss.erase(0, 1);

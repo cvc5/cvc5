@@ -1950,7 +1950,8 @@ void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
 {
   out << "(set-option :" << flag << ' ';
   // special cases: output channels require surrounding quotes in smt2 format
-  if (flag=="diagnostic-output-channel" || flag=="regular-output-channel" || flag=="in")
+  if (flag == "diagnostic-output-channel" || flag == "regular-output-channel"
+      || flag == "in")
   {
     out << "\"" << value << "\"";
   }
