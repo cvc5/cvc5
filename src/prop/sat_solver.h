@@ -136,8 +136,6 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual void resetTrail() = 0;
 
-  virtual bool properExplanation(SatLiteral lit, SatLiteral expl) const = 0;
-
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;

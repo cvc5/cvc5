@@ -76,8 +76,6 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
 
   SatValue modelValue(SatLiteral l) override;
 
-  bool properExplanation(SatLiteral lit, SatLiteral expl) const override;
-
   /** Incremental interface */
 
   uint32_t getAssertionLevel() const override;
