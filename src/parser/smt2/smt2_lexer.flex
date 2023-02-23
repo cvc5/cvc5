@@ -23,9 +23,11 @@
 // natively without relying on interactive mode (--stdin-input-per-line).
 // Disabling --stdin-input-per-line may cause some use cases of cvc5 involving
 // piping to hang (see issue #9257).
+// Option `%option ecs` ensures we parse quoted symbols with special characters.
 %}
 
 %option full
+%option ecs
 %option noyywrap
 %option nounput
 %option c++
