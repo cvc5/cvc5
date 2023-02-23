@@ -96,16 +96,16 @@ void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
       break;
     }
 
+    // Update SAT context level the reregistered SAT literal has been
+    // registered at. This is necessary to not reregister literals that
+    // are already registered.
+    node_level = level;
     // Reregister all sat literals that have originally been preregistered
     // at a higher level than the current SAT context level. These literals
     // are popped from the SAT context on backtrack but remain in the SAT
     // solver, and thus must be reregistered.
     Trace("prereg") << "reregister: " << n << std::endl;
     d_theoryEngine->preRegister(node);
-    // Update SAT context level the reregistered SAT literal has been
-    // registered at. This is necessary to not reregister literals that
-    // are already registered.
-    node_level = level;
   }
 }
 
