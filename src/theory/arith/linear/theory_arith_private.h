@@ -557,9 +557,9 @@ private:
   /**
    * Issues branches for non-auxiliary integer variables with non-integer assignments.
    * Returns a cut for a lemma.
-   * If there is an integer model, this returns Node::null().
+   * If there is an integer model, this returns the empty vector.
    */
-  TrustNode roundRobinBranch();
+  std::vector<TrustNode> roundRobinBranch();
 
   bool proofsEnabled() const { return d_pnm; }
 
@@ -716,7 +716,7 @@ private:
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  TrustNode branchIntegerVariable(ArithVar x) const;
+  std::vector<TrustNode> branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;

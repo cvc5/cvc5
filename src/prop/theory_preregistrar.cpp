@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Aina Niemetz, Andrew Reynolds
  *
  * This file is part of the cvc5 project.
  *
@@ -16,16 +16,45 @@
 #include "prop/theory_preregistrar.h"
 
 #include "options/prop_options.h"
+#include "prop/cnf_stream.h"
+#include "prop/prop_engine.h"
+#include "prop/sat_solver.h"
 #include "theory/theory_engine.h"
 
 namespace cvc5::internal {
 namespace prop {
 
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The context notify object for the theory preregistrar. Clears the
+ * reregistration cache on user context pop.
+ */
+class TheoryPreregistrarNotify : public context::ContextNotifyObj
+{
+ public:
+  TheoryPreregistrarNotify(Env& env, TheoryPreregistrar& prr)
+      : context::ContextNotifyObj(env.getUserContext(), false), d_prr(prr)
+  {
+  }
+
+ protected:
+  void contextNotifyPop() override { d_prr.d_sat_literals.clear(); }
+
+ private:
+  /** The associated theory preregistrar. */
+  TheoryPreregistrar& d_prr;
+};
+
+/* -------------------------------------------------------------------------- */
+
 TheoryPreregistrar::TheoryPreregistrar(Env& env,
                                        TheoryEngine* te,
-                                       CDCLTSatSolverInterface* ss,
+                                       CDCLTSatSolver* ss,
                                        CnfStream* cs)
-    : EnvObj(env), d_theoryEngine(te)
+    : EnvObj(env),
+      d_theoryEngine(te),
+      d_notify(new TheoryPreregistrarNotify(env, *this))
 {
 }
 
@@ -46,6 +75,37 @@ void TheoryPreregistrar::notifySatLiteral(TNode n)
   {
     Trace("prereg") << "preregister (eager): " << n << std::endl;
     d_theoryEngine->preRegister(n);
+    // cache for registration
+    d_sat_literals.emplace_back(n, d_env.getContext()->getLevel());
+  }
+}
+
+void TheoryPreregistrar::notifyBacktrack(uint32_t nlevels)
+{
+  (void)nlevels;
+
+  uint32_t level = d_env.getContext()->getLevel();
+  for (size_t i = 0, n = d_sat_literals.size(); i < n; ++i)
+  {
+    // We reregister SAT literals from newest to oldest. Changing this order
+    // potentially has an impact on performance (quantified instances).
+    auto& [node, node_level] = d_sat_literals[n - i - 1];
+
+    if (node_level <= level)
+    {
+      break;
+    }
+
+    // Reregister all sat literals that have originally been preregistered
+    // at a higher level than the current SAT context level. These literals
+    // are popped from the SAT context on backtrack but remain in the SAT
+    // solver, and thus must be reregistered.
+    Trace("prereg") << "reregister: " << n << std::endl;
+    d_theoryEngine->preRegister(node);
+    // Update SAT context level the reregistered SAT literal has been
+    // registered at. This is necessary to not reregister literals that
+    // are already registered.
+    node_level = level;
   }
 }
 
