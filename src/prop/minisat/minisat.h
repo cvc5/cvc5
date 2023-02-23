@@ -99,9 +99,6 @@ class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
    */
   std::vector<Node> getOrderHeap() const override;
 
-  /** Return decision level at which `lit` was decided on. */
-  int32_t getDecisionLevel(SatVariable v) const override;
-
   /**
    * Return user level at which `lit` was introduced.
    *
