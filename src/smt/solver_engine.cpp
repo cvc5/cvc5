@@ -779,7 +779,13 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   return Result(r, filename);
 }
 
-std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore() {}
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore() 
+{
+  finishInit();
+  Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
+  SmtDriverToCore sdtc(*d_env.get());
+  return sdtc.getTimeoutCore(d_smtSolver->getAssertions());
+}
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {
