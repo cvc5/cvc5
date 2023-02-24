@@ -177,9 +177,9 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // information, e.g. for querying the user.
       bool isInteractive = isatty(fileno(stdin));
       // set incremental if we are in interactive mode
-      if (isInteractive && !solver->getOptionInfo("incremental").setByUser)
+      if (!solver->getOptionInfo("incremental").setByUser)
       {
-        solver->setOption("incremental", "true");
+        solver->setOption("incremental", isInteractive ? "true" : "false");
       }
       InteractiveShell shell(
           pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
