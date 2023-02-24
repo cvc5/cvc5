@@ -330,6 +330,7 @@ class CVC5_EXPORT SolverEngine
   Result checkSat(const Node& assumption);
   Result checkSat(const std::vector<Node>& assumptions);
 
+  std::pair<Result, std::vector<Node>> getTimeoutCore();
   /**
    * Returns a set of so-called "failed" assumptions.
    *

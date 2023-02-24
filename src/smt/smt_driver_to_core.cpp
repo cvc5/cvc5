@@ -46,7 +46,7 @@ SmtDriverToCore::SmtDriverToCore(Env& env)
 }
 
 
-Result SmtDriverToCore::getTimeoutCore(const Assertions& as, std::vector<Node>& toCore)
+std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(const Assertions& as)
 {
   // provide all assertions initially
   std::vector<Node> ppAsserts;
@@ -57,7 +57,7 @@ Result SmtDriverToCore::getTimeoutCore(const Assertions& as, std::vector<Node>& 
   }
   initializePreprocessedAssertions(ppAsserts);
   
-  
+  std::vector<Node> toCore;
   Result result;
   bool checkAgain = true;
   do
@@ -74,7 +74,8 @@ Result SmtDriverToCore::getTimeoutCore(const Assertions& as, std::vector<Node>& 
       checkAgain = false;
     }
   }while (checkAgain);
-  return result;
+  
+  return std::pair<Result, std::vector<Node>>(result, toCore);
 }
 
 void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)

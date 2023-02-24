@@ -74,6 +74,7 @@
 #include "util/resource_manager.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
+#include "smt/smt_driver_to_core.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -776,6 +777,12 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // set the filename on the result
   const std::string& filename = d_env->getOptions().driver.filename;
   return Result(r, filename);
+}
+
+
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
+{
+  
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)

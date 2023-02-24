@@ -37,7 +37,7 @@ class SmtDriverToCore : protected EnvObj
   SmtDriverToCore(Env& env);
 
   /** get timeout core */
-  Result getTimeoutCore(const Assertions& as, std::vector<Node>& toCore);
+  std::pair<Result, std::vector<Node>> getTimeoutCore(const Assertions& as);
 
  private:
   /** initialize assertions */

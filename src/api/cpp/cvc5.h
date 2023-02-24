@@ -4287,6 +4287,15 @@ class CVC5_EXPORT Solver
    *         Unmentioned assertions can be assumed to have zero difficulty.
    */
   std::map<Term, Term> getDifficulty() const;
+  
+  /**
+   * Get a timeout core.
+   *
+   * @warning This method is experimental and may change in future versions.
+   *
+   * @return The result of the timeout core computation.
+   */
+  std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
   /**
    * Get a proof associated with the most recent call to checkSat.
