@@ -1454,10 +1454,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     for (unsigned i = 0; i < 4; i++)
     {
       Kind k = i == 0 ? NOT : (i == 1 ? AND : (i == 2 ? OR : ITE));
-      if (k == ITE)
-      {
-        continue;
-      }
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       std::vector<TypeNode> cargs;
       cargs.push_back(unres_bt);
@@ -1499,13 +1495,13 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     std::unordered_set<Node>& term_irrelevant)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
-  for (std::map<TypeNode, std::unordered_set<Node>>::iterator it =
-           extra_cons.begin();
-       it != extra_cons.end();
-       ++it)
+  if (TraceIsOn("sygus-grammar-def"))
   {
-    Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
+    Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
+    for (std::pair<const TypeNode, std::unordered_set<Node>>& ec : extra_cons)
+    {
+      Trace("sygus-grammar-def") << "    ...using " << ec.second.size() << " extra constants for " << ec.first << std::endl;
+    }
   }
   // TODO #1935 ITEs are added to Boolean grammars so that we can infer
   // unification strategies. We can do away with this if we can infer

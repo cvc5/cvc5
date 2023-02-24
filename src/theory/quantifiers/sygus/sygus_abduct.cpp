@@ -38,7 +38,8 @@ namespace quantifiers {
 
 SygusAbduct::SygusAbduct() {}
 
-Node SygusAbduct::mkAbductionConjecture(const std::string& name,
+Node SygusAbduct::mkAbductionConjecture(const Options& opts,
+                                        const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType)
@@ -97,6 +98,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // if provided, we will associate the provide sygus datatype type with the
   // function-to-synthesize. However, we must convert it so that its
   // free symbols are universally quantified.
+  TypeNode abdGTypeS;
   if (!abdGType.isNull())
   {
     Assert(abdGType.isDatatype() && abdGType.getDType().isSygus());
@@ -105,33 +107,38 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
     // substitute the free symbols of the grammar with variables corresponding
     // to the formal argument list of the new sygus datatype type.
-    TypeNode abdGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(
+    abdGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(
         abdGType, syms, varlist);
-
-    Assert(abdGTypeS.isDatatype() && abdGTypeS.getDType().isSygus());
-
-    Trace("sygus-abduct-debug")
-        << "Make sygus grammar attribute..." << std::endl;
-    Node sym = nm->mkBoundVar("sfproxy_abduct", abdGTypeS);
-    // Set the sygus grammar attribute to indicate that abdGTypeS encodes the
-    // grammar for abd.
-    theory::SygusSynthGrammarAttribute ssg;
-    abd.setAttribute(ssg, sym);
-    Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
-
-    // use the bound variable list from the new substituted grammar type
-    const DType& agtsd = abdGTypeS.getDType();
-    abvl = agtsd.getSygusVarList();
-    Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
   }
-  else if (!varlist.empty())
+  else
   {
-    // the bound variable list of the abduct-to-synthesize is determined by
-    // the variable list above
-    abvl = nm->mkNode(BOUND_VAR_LIST, varlist);
-    // We do not set a grammar type for abd (SygusSynthGrammarAttribute).
-    // Its grammar will be constructed internally in the default way
+    TypeNode btype = nm->booleanType();
+    std::map<TypeNode, std::unordered_set<Node>> extra_cons;
+    std::map<TypeNode, std::unordered_set<Node>> exclude_cons;
+    // exclude OR and ITE, as we don't want disjunctive abducts
+    exclude_cons[btype].insert(nm->operatorOf(OR));
+    exclude_cons[btype].insert(nm->operatorOf(ITE));
+    std::map<TypeNode, std::unordered_set<Node>> include_cons;
+    std::unordered_set<Node> term_irrelevant;
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, varlist);
+    abdGTypeS = CegGrammarConstructor::mkSygusDefaultType(opts, btype, bvl, name, extra_cons, exclude_cons, include_cons, term_irrelevant);
   }
+  Assert(abdGTypeS.isDatatype() && abdGTypeS.getDType().isSygus());
+
+  Trace("sygus-abduct-debug")
+      << "Make sygus grammar attribute..." << std::endl;
+  Node sym = nm->mkBoundVar("sfproxy_abduct", abdGTypeS);
+  // Set the sygus grammar attribute to indicate that abdGTypeS encodes the
+  // grammar for abd.
+  theory::SygusSynthGrammarAttribute ssg;
+  abd.setAttribute(ssg, sym);
+  Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
+
+  // use the bound variable list from the new substituted grammar type
+  const DType& agtsd = abdGTypeS.getDType();
+  abvl = agtsd.getSygusVarList();
+  Assert(!abvl.isNull() && abvl.getKind() == BOUND_VAR_LIST);
+
 
   Trace("sygus-abduct-debug") << "Make abduction predicate app..." << std::endl;
   std::vector<Node> achildren;
