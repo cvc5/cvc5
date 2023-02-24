@@ -33,7 +33,7 @@ void toSatClause(const typename Solver::TClause& minisat_cl,
 
 namespace prop {
 
-class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
+class MinisatSatSolver : public CDCLTSatSolver, protected EnvObj
 {
  public:
   MinisatSatSolver(Env& env, StatisticsRegistry& registry);
@@ -59,9 +59,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
     Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
-  SatVariable newVar(bool isTheoryAtom,
-                     bool preRegister,
-                     bool canErase) override;
+  SatVariable newVar(bool isTheoryAtom, bool canErase) override;
   SatVariable trueVar() override { return d_minisat->trueVar(); }
   SatVariable falseVar() override { return d_minisat->falseVar(); }
 
@@ -77,8 +75,6 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   SatValue value(SatLiteral l) override;
 
   SatValue modelValue(SatLiteral l) override;
-
-  bool properExplanation(SatLiteral lit, SatLiteral expl) const override;
 
   /** Incremental interface */
 
@@ -102,9 +98,6 @@ class MinisatSatSolver : public CDCLTSatSolverInterface, protected EnvObj
   /** Return the order heap.
    */
   std::vector<Node> getOrderHeap() const override;
-
-  /** Return decision level at which `lit` was decided on. */
-  int32_t getDecisionLevel(SatVariable v) const override;
 
   /**
    * Return user level at which `lit` was introduced.

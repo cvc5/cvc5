@@ -235,7 +235,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bool canErase)
+Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
 {
     int v = nVars();
 
@@ -255,15 +255,6 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     Trace("minisat") << "new var " << v << " with assertion level "
                      << assertionLevel << std::endl;
-
-    // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
-    if (preRegister)
-    {
-      Trace("minisat") << "  To register at level " << decisionLevel()
-                       << std::endl;
-      variables_to_register.push(VarIntroInfo(v, decisionLevel()));
-    }
-
     return v;
 }
 
@@ -690,10 +681,12 @@ void Solver::cancelUntil(int level) {
     Trace("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
     if (decisionLevel() > level){
-        // Pop the SMT context
-        for (int l = trail_lim.size() - level; l > 0; --l) {
-          d_context->pop();
-        }
+      uint32_t nlevels = trail_lim.size() - level;
+      // Pop the SMT context
+      for (int l = trail_lim.size() - level; l > 0; --l)
+      {
+        d_context->pop();
+      }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
@@ -709,17 +702,7 @@ void Solver::cancelUntil(int level) {
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
         flipped.shrink(flipped.size() - level);
-
-        // Register variables that have not been registered yet
-        int currentLevel = decisionLevel();
-        for (int i = variables_to_register.size() - 1;
-             i >= 0 && variables_to_register[i].d_level > currentLevel;
-             --i)
-        {
-          variables_to_register[i].d_level = currentLevel;
-          d_proxy->variableNotify(
-              MinisatSatSolver::toSatVariable(variables_to_register[i].d_var));
-        }
+        d_proxy->notifyBacktrack(nlevels);
     }
 }
 
@@ -2026,7 +2009,6 @@ void Solver::pop()
   // Pop the created variables
   resizeVars(assigns_lim.last());
   assigns_lim.pop();
-  variables_to_register.clear();
 
   // Pop the OK
   ok = trail_ok.last();
