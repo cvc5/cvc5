@@ -55,16 +55,16 @@ std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(
   }
   initializePreprocessedAssertions(ppAsserts);
 
-  std::vector<Node> toCore;
+  std::vector<Node> nextAssertions;
   Result result;
   bool checkAgain = true;
   do
   {
-    toCore.clear();
+    nextAssertions.clear();
     // get the next assertions, store in d_ap
-    getNextAssertions(toCore);
+    getNextAssertions(nextAssertions);
     // check sat based on the driver strategy
-    result = checkSatNext(toCore);
+    result = checkSatNext(nextAssertions);
     // if we were asked to check again
     if (result.getStatus() != Result::UNKNOWN
         || result.getUnknownExplanation() != REQUIRES_CHECK_AGAIN)
@@ -73,6 +73,12 @@ std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(
     }
   } while (checkAgain);
 
+  std::vector<Node> toCore;
+  for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
+  {
+    Assert(a.first < d_ppAsserts.size());
+    toCore.push_back(d_asserts[a.first]);
+  }
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
 
@@ -181,7 +187,6 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   Result result;
   theory::initializeSubsolver(
       subSolver, d_env, true, options().smt.toCoreTimeout);
-  subSolver->setOption("smt-to-core", "false");
   subSolver->setOption("produce-models", "true");
   Trace("smt-to-core") << "checkSatNext: assert to subsolver" << std::endl;
   for (const Node& a : nextAssertions)
@@ -206,6 +211,7 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
       pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, bench);
       fs.close();
       d_queryCount++;
+      return result;
     }
     else
     {
@@ -332,7 +338,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
     }
     // prefer false over unknown, shared symbols over no shared symbols
     size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0);
-    Trace("smt-to-core") << "score " << currScore << std::endl;
+    Trace("smt-to-core-debug") << "score " << currScore << std::endl;
     if (indexSet && indexScore >= currScore)
     {
       continue;

@@ -162,9 +162,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
-    if (d_solver->getOptionInfo("dump-timeout-cores").boolValue()
-        && (isResultUnsat || isResultSat || res.isUnknown()))
+    if (d_solver->getOptionInfo("dump-timeout-cores").boolValue())
     {
+      Trace("ajr-temp") << "Timeout core" << std::endl;
       getterCommands.emplace_back(new GetTimeoutCoreCommand());
     }
 
