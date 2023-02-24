@@ -179,7 +179,7 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
   std::unique_ptr<SolverEngine> subSolver;
   Result result;
-  theory::initializeSubsolver(subSolver, d_env, options().smt.toCoreTimeoutWasSetByUser, options().smt.toCoreTimeout);
+  theory::initializeSubsolver(subSolver, d_env, true, options().smt.toCoreTimeout);
   subSolver->setOption("smt-to-core", "false");
   subSolver->setOption("produce-models", "true");
   Trace("smt-to-core") << "checkSatNext: assert to subsolver" << std::endl;
