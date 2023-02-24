@@ -176,7 +176,8 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   d_prr->check();
   TNode assertion;
   int32_t alevel;
-  while (!d_queue.empty()) {
+  while (!d_queue.empty())
+  {
     std::tie(assertion, alevel) = d_queue.front();
     d_queue.pop();
     if (d_zll != nullptr)
