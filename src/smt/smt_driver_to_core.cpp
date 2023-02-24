@@ -179,7 +179,6 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
 
 Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
 {
-  Assert(d_initialized);
   Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
                        << std::endl;
   Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
