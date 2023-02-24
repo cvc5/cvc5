@@ -4287,7 +4287,7 @@ class CVC5_EXPORT Solver
    *         Unmentioned assertions can be assumed to have zero difficulty.
    */
   std::map<Term, Term> getDifficulty() const;
-  
+
   /**
    * Get a timeout core.
    *

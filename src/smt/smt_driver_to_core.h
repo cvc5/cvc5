@@ -18,9 +18,9 @@
 #ifndef CVC5__SMT__SMT_DRIVER_TO_CORE_H
 #define CVC5__SMT__SMT_DRIVER_TO_CORE_H
 
+#include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "util/result.h"
-#include "smt/assertions.h"
 
 namespace cvc5::internal {
 
@@ -46,7 +46,7 @@ class SmtDriverToCore : protected EnvObj
   void getNextAssertions(std::vector<Node>& nextAssertions);
   /** check sat next */
   Result checkSatNext(const std::vector<Node>& nextAssertions);
-  
+
   /**
    * Record current model, return true if we set d_nextIndexToInclude,
    * indicating that we want to include a new assertion.

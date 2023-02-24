@@ -2042,12 +2042,14 @@ void GetDifficultyCommand::toStream(std::ostream& out) const
   Printer::getPrinter(out)->toStreamCmdGetDifficulty(out);
 }
 
-
 /* -------------------------------------------------------------------------- */
-/* class GetTimeoutCoreCommand                                                  */
+/* class GetTimeoutCoreCommand */
 /* -------------------------------------------------------------------------- */
 
-GetTimeoutCoreCommand::GetTimeoutCoreCommand() : d_solver(nullptr), d_sm(nullptr) {}
+GetTimeoutCoreCommand::GetTimeoutCoreCommand()
+    : d_solver(nullptr), d_sm(nullptr)
+{
+}
 void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 {
   try
@@ -2068,10 +2070,10 @@ void GetTimeoutCoreCommand::invoke(cvc5::Solver* solver, SymbolManager* sm)
 }
 
 void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
-                                      std::ostream& out) const
+                                        std::ostream& out) const
 {
   cvc5::Result res = d_result.first;
-  if (res.isUnknown() && res.getUnknownExplanation()==TIMEOUT)
+  if (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT)
   {
     if (d_solver->getOption("print-unsat-cores-full") == "true")
     {
@@ -2093,10 +2095,7 @@ void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
     out << d_result.first << std::endl;
   }
 }
-cvc5::Result GetTimeoutCoreCommand::getResult() const
-{
-  return d_result.first;
-}
+cvc5::Result GetTimeoutCoreCommand::getResult() const { return d_result.first; }
 const std::vector<cvc5::Term>& GetTimeoutCoreCommand::getTimeoutCore() const
 {
   return d_result.second;

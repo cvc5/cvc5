@@ -57,6 +57,7 @@
 #include "smt/set_defaults.h"
 #include "smt/smt_driver.h"
 #include "smt/smt_driver_deep_restarts.h"
+#include "smt/smt_driver_to_core.h"
 #include "smt/smt_solver.h"
 #include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
@@ -74,7 +75,6 @@
 #include "util/resource_manager.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
-#include "smt/smt_driver_to_core.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -779,11 +779,7 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   return Result(r, filename);
 }
 
-
-std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
-{
-  
-}
+std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore() {}
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)
 {

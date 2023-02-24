@@ -18,35 +18,33 @@
 #include <fstream>
 
 #include "api/cpp/cvc5_types.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
-#include "prop/prop_engine.h"
 #include "options/smt_options.h"
+#include "printer/printer.h"
+#include "prop/prop_engine.h"
 #include "smt/env.h"
+#include "smt/print_benchmark.h"
 #include "smt/smt_solver.h"
 #include "smt/solver_engine.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/substitutions.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
-#include "smt/print_benchmark.h"
-#include "printer/printer.h"
 #include "util/random.h"
-#include "expr/node_algorithm.h"
-#include "theory/substitutions.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 SmtDriverToCore::SmtDriverToCore(Env& env)
-    : EnvObj(env),
-      d_nextIndexToInclude(0),
-      d_queryCount(0)
+    : EnvObj(env), d_nextIndexToInclude(0), d_queryCount(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-
-std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(const Assertions& as)
+std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(
+    const Assertions& as)
 {
   // provide all assertions initially
   std::vector<Node> ppAsserts;
@@ -56,7 +54,7 @@ std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(const Asser
     ppAsserts.push_back(a);
   }
   initializePreprocessedAssertions(ppAsserts);
-  
+
   std::vector<Node> toCore;
   Result result;
   bool checkAgain = true;
@@ -73,8 +71,8 @@ std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(const Asser
     {
       checkAgain = false;
     }
-  }while (checkAgain);
-  
+  } while (checkAgain);
+
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
 
@@ -96,7 +94,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
   d_modelToAssert[currModelIndex] = d_nextIndexToInclude;
   ainext.d_coverModels++;
   Trace("smt-to-core") << "Add assertion #" << d_nextIndexToInclude << ": "
-                          << d_ppAsserts[d_nextIndexToInclude] << std::endl;
+                       << d_ppAsserts[d_nextIndexToInclude] << std::endl;
 
   // iterate over previous models
   std::unordered_map<size_t, size_t>::iterator itp;
@@ -140,7 +138,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
     }
   }
   Trace("smt-to-core") << "...covers " << ainext.d_coverModels << " models"
-                          << std::endl;
+                       << std::endl;
 
   // now have a list of assertions to include
   for (std::pair<const size_t, AssertInfo>& a : d_ainfo)
@@ -166,21 +164,23 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
     std::unordered_set<Node>& syms = d_syms[d_nextIndexToInclude];
     d_asymbols.insert(syms.begin(), syms.end());
   }
-    
+
   Trace("smt-to-core")
       << "...finished get next assertions, #current assertions = "
-      << d_ainfo.size() << ", #free variables = " << d_asymbols.size() << std::endl;
+      << d_ainfo.size() << ", #free variables = " << d_asymbols.size()
+      << std::endl;
 }
 
 Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
 {
-  Assert (d_initialized);
+  Assert(d_initialized);
   Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
-                          << std::endl;
+                       << std::endl;
   Trace("smt-to-core") << "checkSatNext: preprocess" << std::endl;
   std::unique_ptr<SolverEngine> subSolver;
   Result result;
-  theory::initializeSubsolver(subSolver, d_env, true, options().smt.toCoreTimeout);
+  theory::initializeSubsolver(
+      subSolver, d_env, true, options().smt.toCoreTimeout);
   subSolver->setOption("smt-to-core", "false");
   subSolver->setOption("produce-models", "true");
   Trace("smt-to-core") << "checkSatNext: assert to subsolver" << std::endl;
@@ -190,14 +190,13 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   }
   Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
   result = subSolver->checkSat();
-  Trace("smt-to-core")
-      << "checkSatNext: ...result is " << result << std::endl;
+  Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN)
   {
     if (options().smt.dumpToCore)
     {
-      Trace("smt-to-core")
-        << "checkSatNext: dump benchmark " << d_queryCount << std::endl;
+      Trace("smt-to-core") << "checkSatNext: dump benchmark " << d_queryCount
+                           << std::endl;
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
       // Print the query to to queryN.smt2
       std::stringstream fname;
@@ -244,7 +243,8 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   return result;
 }
 
-void SmtDriverToCore::initializePreprocessedAssertions(const std::vector<Node>& ppAsserts)
+void SmtDriverToCore::initializePreprocessedAssertions(
+    const std::vector<Node>& ppAsserts)
 {
   d_ppAsserts.clear();
 
@@ -272,7 +272,7 @@ void SmtDriverToCore::initializePreprocessedAssertions(const std::vector<Node>& 
     d_asserts.push_back(pa);
     // apply top-level substitutions
     Node pas = sm.apply(pa);
-    if (pas!=pa)
+    if (pas != pa)
     {
       d_ppAsserts.push_back(rewrite(pas));
     }
@@ -282,14 +282,14 @@ void SmtDriverToCore::initializePreprocessedAssertions(const std::vector<Node>& 
     }
   }
   Trace("smt-to-core") << "get symbols..." << std::endl;
-  for (size_t i=0, npasserts = d_ppAsserts.size(); i<npasserts; i++)
+  for (size_t i = 0, npasserts = d_ppAsserts.size(); i < npasserts; i++)
   {
     expr::getSymbols(d_ppAsserts[i], d_syms[i]);
   }
 }
 
 bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
-                                            SolverEngine* subSolver)
+                                         SolverEngine* subSolver)
 {
   // allocate the model value vector
   d_modelValues.emplace_back();
@@ -325,7 +325,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
       // a different one
       continue;
     }
-    if (indexScore==3)
+    if (indexScore == 3)
     {
       // already max score
       continue;
@@ -333,7 +333,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
     // prefer false over unknown, shared symbols over no shared symbols
     size_t currScore = (isFalse ? 1 : 0) + (hasCurrentSharedSymbol(ii) ? 2 : 0);
     Trace("smt-to-core") << "score " << currScore << std::endl;
-    if (indexSet && indexScore>=currScore)
+    if (indexSet && indexScore >= currScore)
     {
       continue;
     }
@@ -342,43 +342,45 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
     d_nextIndexToInclude = ii;
     indexSet = true;
   }
-  Trace("smt-to-core") << "selected new assertion, score=" << indexScore << std::endl;
+  Trace("smt-to-core") << "selected new assertion, score=" << indexScore
+                       << std::endl;
   // if we did not find a false assertion, remember it
   if (!allAssertsSat && !hadFalseAssert)
   {
     d_unkModels.insert(d_modelValues.size());
   }
-  
-/*
-  if (subSolver != nullptr)
-  {
-    bool success;
-    std::unordered_set<TNode> rasserts =
-        subSolver->getRelevantAssertions(success);
-    d_asymbols.clear();
-    std::unordered_set<TNode> visited;
-    for (TNode a : rasserts)
+
+  /*
+    if (subSolver != nullptr)
     {
-      expr::getSymbols(a, d_asymbols, visited);
+      bool success;
+      std::unordered_set<TNode> rasserts =
+          subSolver->getRelevantAssertions(success);
+      d_asymbols.clear();
+      std::unordered_set<TNode> visited;
+      for (TNode a : rasserts)
+      {
+        expr::getSymbols(a, d_asymbols, visited);
+      }
     }
-  }
-*/
-  
+  */
+
   // we are successful if we have a new assertion to include
   return indexSet;
 }
 
 bool SmtDriverToCore::hasCurrentSharedSymbol(size_t i) const
 {
-  std::map<size_t, std::unordered_set<Node>>::const_iterator it = d_syms.find(i);
-  if (it==d_syms.end())
+  std::map<size_t, std::unordered_set<Node>>::const_iterator it =
+      d_syms.find(i);
+  if (it == d_syms.end())
   {
     return false;
   }
   const std::unordered_set<Node>& syms = it->second;
   for (const Node& n : syms)
   {
-    if (d_asymbols.find(n)!=d_asymbols.end())
+    if (d_asymbols.find(n) != d_asymbols.end())
     {
       return true;
     }

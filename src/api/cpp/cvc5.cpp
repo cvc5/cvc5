@@ -7172,13 +7172,13 @@ std::map<Term, Term> Solver::getDifficulty() const
   CVC5_API_TRY_CATCH_END;
 }
 
-
 std::pair<Result, std::vector<Term>> Solver::getTimeoutCore() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   std::vector<Term> res;
-  std::pair<internal::Result, std::vector<internal::Node>> resi = d_slv->getTimeoutCore();
+  std::pair<internal::Result, std::vector<internal::Node>> resi =
+      d_slv->getTimeoutCore();
   for (internal::Node& c : resi.second)
   {
     res.push_back(Term(d_nm, c));
