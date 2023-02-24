@@ -127,12 +127,12 @@ class ProofCnfStream : protected EnvObj, public ProofGenerator
    * saved in d_optClausesPfs, so that it is not potentially lost when the user
    * context is popped.
    */
-  void notifyCurrPropagationInsertedAtLevel(int explLevel);
+  void notifyCurrPropagationInsertedAtLevel(uint32_t explLevel);
   /** Notify that added clause was inserted at lower level than current.
    *
    * As above, the proof of this clause is saved in  d_optClausesPfs.
    */
-  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
+  void notifyClauseInsertedAtLevel(const SatClause& clause, uint32_t clLevel);
 
   /** Retrieve the proofs for clauses derived from the input */
   std::vector<std::shared_ptr<ProofNode>> getInputClausesProofs();

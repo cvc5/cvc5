@@ -497,7 +497,7 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     return typeNode;
   }
   std::unordered_map<TNode, bool> visited;
-  std::unordered_map<TNode, bool>::iterator it;
+  std::unordered_map<TNode, bool>::const_iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -515,7 +515,8 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     if (it == visited.end())
     {
       // See if it has a type inferrable at pre traversal. We only do this
-      // if we are not checking.
+      // if we are not checking, since preComputeType by design does not
+      // check the children types.
       if (!check)
       {
         typeNode = TypeChecker::preComputeType(this, cur);
