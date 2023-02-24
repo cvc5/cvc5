@@ -277,6 +277,9 @@ void PropEngine::assertInternal(
   {
     d_cnfStream->convertAndAssert(node, removable, negated);
   }
+
+  // Track user level of assertions
+  d_assertion_user_level[node] = userContext()->getLevel();
 }
 
 void PropEngine::assertLemmasInternal(
@@ -358,17 +361,15 @@ std::vector<Node> PropEngine::getPropOrderHeap() const
   return d_satSolver->getOrderHeap();
 }
 
-int32_t PropEngine::getDecisionLevel(Node lit) const
+int32_t PropEngine::getAssertionUserLevel(TNode assertion) const
 {
-  Assert(isSatLiteral(lit));
-  return d_theoryProxy->getDecisionLevel(lit);
-}
-
-int32_t PropEngine::getIntroLevel(Node lit) const
-{
-  Assert(isSatLiteral(lit));
-  return d_satSolver->getIntroLevel(
-      d_cnfStream->getLiteral(lit).getSatVariable());
+  auto it = d_assertion_user_level.find(assertion);
+  if (it != d_assertion_user_level.end())
+  {
+    // Subtract global push().
+    return it->second - 1;
+  }
+  return -1;
 }
 
 void PropEngine::printSatisfyingAssignment(){

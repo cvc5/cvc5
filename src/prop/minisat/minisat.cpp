@@ -280,11 +280,6 @@ std::vector<Node> MinisatSatSolver::getOrderHeap() const
   return d_minisat->getMiniSatOrderHeap();
 }
 
-int32_t MinisatSatSolver::getIntroLevel(SatVariable v) const
-{
-  return d_minisat->intro_level(v);
-}
-
 SatProofManager* MinisatSatSolver::getProofManager()
 {
   return d_minisat->getProofManager();

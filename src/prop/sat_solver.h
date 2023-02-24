@@ -151,11 +151,6 @@ class CDCLTSatSolver : public SatSolver
    */
   virtual std::vector<Node> getOrderHeap() const = 0;
 
-  /**
-   * Return the user-context level when `lit` was introduced..
-   */
-  virtual int32_t getIntroLevel(SatVariable v) const { return -1; }
-
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
 }; /* class CDCLTSatSolver */

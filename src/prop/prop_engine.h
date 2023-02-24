@@ -169,20 +169,9 @@ class PropEngine : protected EnvObj
   std::vector<Node> getPropOrderHeap() const;
 
   /**
-   * Return SAT context level at which `lit` was decided on.
-   *
-   * @param lit: The node in question, must have an associated SAT literal.
-   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
-   *         or -1 if `lit` has not been assigned yet.
+   * Return the user-context level when `assertion` was asserted.
    */
-  int32_t getDecisionLevel(Node lit) const;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   *
-   * @return User-context level or -1 if not yet introduced.
-   */
-  int32_t getIntroLevel(Node lit) const;
+  int32_t getAssertionUserLevel(TNode assertion) const;
 
   /**
    * Checks the current context for satisfiability.
@@ -429,6 +418,9 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
+
+  /** Maps the user level for each assertion added via assertInternal(). */
+  std::unordered_map<Node, int32_t> d_assertion_user_level;
 };
 
 }  // namespace prop

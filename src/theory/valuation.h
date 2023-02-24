@@ -191,20 +191,11 @@ public:
   bool isDecision(Node lit) const;
 
   /**
-   * Return SAT context level at which `lit` was decided on.
+   * Return the user-context level when `assertion` was asserted.
    *
-   * @param lit: The node in question, must have an associated SAT literal.
-   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
-   *         or -1 if `lit` has not been assigned yet.
+   * @return User-context level or -1 if not yet asserted.
    */
-  int32_t getDecisionLevel(Node lit) const;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   *
-   * @return User-context level or -1 if not yet introduced.
-   */
-  int32_t getIntroLevel(Node lit) const;
+  int32_t getAssertionUserLevel(TNode assertion) const;
 
   /**
    * Get the assertion level of the SAT solver.
