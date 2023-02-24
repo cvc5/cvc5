@@ -54,7 +54,6 @@ Parser::Parser() : d_done(true), d_canIncludeFile(true) {}
 
 Parser::~Parser()
 {
-  d_commandQueue.clear();
 }
 
 void Parser::preemptCommand(std::unique_ptr<Command> cmd)
