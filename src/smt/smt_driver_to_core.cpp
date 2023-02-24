@@ -193,7 +193,7 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN)
   {
-    if (options().smt.dumpToCore)
+    if (options().smt.timeoutCoreDumpToFile)
     {
       Trace("smt-to-core") << "checkSatNext: dump benchmark " << d_queryCount
                            << std::endl;

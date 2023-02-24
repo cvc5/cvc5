@@ -161,6 +161,12 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
+    
+    if (d_solver->getOptionInfo("dump-timeout-cores").boolValue()
+        && (isResultUnsat || isResultSat || res.isUnknown()))
+    {
+      getterCommands.emplace_back(new GetTimeoutCoreCommand());
+    }
 
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
         && (isResultUnsat || isResultSat || res.isUnknown()))
@@ -205,6 +211,15 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
       && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr)
   {
     return true;
+  }
+  // don't invoke check-sat when dump-timeout-cores is on, instead we
+  // invoke GetTimeoutCoreCommand.
+  if (dynamic_cast<const CheckSatCommand*>(cmd)!=nullptr || dynamic_cast<const CheckSatAssumingCommand*>(cmd)!=nullptr)
+  {
+    if (d_solver->getOptionInfo("dump-timeout-cores").boolValue())
+    {
+      return true;
+    }
   }
 
   cmd->invoke(solver, sm, out);

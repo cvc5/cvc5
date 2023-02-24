@@ -2073,6 +2073,7 @@ void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
                                         std::ostream& out) const
 {
   cvc5::Result res = d_result.first;
+  out << res << std::endl;
   if (res.isUnknown() && res.getUnknownExplanation() == TIMEOUT)
   {
     if (d_solver->getOption("print-unsat-cores-full") == "true")
@@ -2089,10 +2090,6 @@ void GetTimeoutCoreCommand::printResult(cvc5::Solver* solver,
       UnsatCore ucr(names);
       ucr.toStream(out);
     }
-  }
-  else
-  {
-    out << d_result.first << std::endl;
   }
 }
 cvc5::Result GetTimeoutCoreCommand::getResult() const { return d_result.first; }
