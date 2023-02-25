@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Black box testing of ff root finding.
+ * Black box testing of ff univariate root finding.
  */
 
 #ifdef CVC5_USE_COCOA
@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "test_smt.h"
-#include "theory/ff/roots.h"
+#include "theory/ff/uni_roots.h"
 #include "util/cocoa_globals.h"
 
 namespace cvc5::internal {

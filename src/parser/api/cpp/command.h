@@ -19,8 +19,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__PARSER__COMMAND_H
-#define CVC5__PARSER__COMMAND_H
+#ifndef CVC5__PARSER__API__CPP__COMMAND_H
+#define CVC5__PARSER__API__CPP__COMMAND_H
 
 #include <iosfwd>
 #include <sstream>
