@@ -97,22 +97,22 @@ SimpSolver::~SimpSolver()
 {
 }
 
+Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
+{
+  Var v = Solver::newVar(sign, dvar, isTheoryAtom, canErase);
 
-Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bool canErase) {
-    Var v = Solver::newVar(sign, dvar, isTheoryAtom, preRegister, canErase);
-
-    if (use_simplification){
-        frozen    .push((char)(!canErase));
-        eliminated.push((char)false);
-        n_occ     .push(0);
-        n_occ     .push(0);
-        occurs    .init(v);
-        touched   .push(0);
-        elim_heap .insert(v);
-    }
-    return v; }
-
-
+  if (use_simplification)
+  {
+    frozen.push((char)(!canErase));
+    eliminated.push((char)false);
+    n_occ.push(0);
+    n_occ.push(0);
+    occurs.init(v);
+    touched.push(0);
+    elim_heap.insert(v);
+  }
+  return v;
+}
 
 lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 {
