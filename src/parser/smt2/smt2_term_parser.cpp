@@ -655,6 +655,7 @@ Term Smt2TermParser::parseSymbolicExpr()
   Token tok;
   std::vector<std::vector<Term>> sstack;
   Solver* slv = d_state.getSolver();
+  Sort dummyType = slv->getBooleanSort();
   do
   {
     tok = d_lex.nextToken();
@@ -684,7 +685,7 @@ Term Smt2TermParser::parseSymbolicExpr()
       {
         // note that there are no tokens that are forbidden here
         std::string str = d_lex.tokenStr();
-        ret = slv->mkString(d_state.processAdHocStringEsc(str));
+        ret = slv->mkVar(dummyType, str);
       }
       break;
     }
