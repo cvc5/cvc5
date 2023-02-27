@@ -4,7 +4,7 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,8 +38,9 @@ namespace rewriter {
  * to the representation of terms required by the DSL proof reconstruction
  * algorithm.
  *
- * Notice that this converter is independent of the end target proof checker.
- * As such, we do not convert to n-ary form (as required by e.g. LFSC) here.
+ * Notice that this converter is independent of the end target proof checker,
+ * and thus we do not do any target-specific processing (e.g. converting to
+ * curried form).
  */
 class RewriteDbNodeConverter : public NodeConverter
 {
