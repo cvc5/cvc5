@@ -86,8 +86,6 @@ class SmtDriverToCore : protected EnvObj
   };
   /** The current indices in d_ppAsserts we are considering */
   std::map<size_t, AssertInfo> d_ainfo;
-  /** Use subsolver */
-  bool d_useSubsolver;
   /** Query count */
   size_t d_queryCount;
   /** Current free variables */
