@@ -723,6 +723,7 @@ setOptionInternal[std::unique_ptr<cvc5::parser::Command>* cmd]
       {
         ss = PARSER_STATE->stripQuotes(ss);
       }
+      cmd->reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SolverEngine eventually (if ever) executes it.
