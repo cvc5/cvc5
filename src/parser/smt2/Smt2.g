@@ -718,11 +718,11 @@ setOptionInternal[std::unique_ptr<cvc5::parser::Command>* cmd]
       std::string ss = sexprToString(sexpr);
       // special case: for channel settings, we are expected to parse e.g.
       // `"stdin"` which should be treated as `stdin`
-      if (key=="diagnostic-output-channel" || key=="regular-output-channel" || key=="in")
+      if (key == "diagnostic-output-channel" || key == "regular-output-channel"
+          || key == "in")
       {
         ss = PARSER_STATE->stripQuotes(ss);
       }
-      cmd->reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SolverEngine eventually (if ever) executes it.

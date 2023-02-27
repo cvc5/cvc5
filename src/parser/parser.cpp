@@ -867,9 +867,7 @@ std::string ParserState::stripQuotes(const std::string& s)
     parseError("Expected a string delimited by quotes, got invalid string `" + s
                + "`.");
   }
-  std::string ss = s;
-  ss = ss.erase(0, 1);
-  return ss.erase(ss.size() - 1, 1);
+  return s.substr(1, s.size() - 2);
 }
 
 Term ParserState::mkCharConstant(const std::string& s)
