@@ -264,7 +264,7 @@ class PropEngine : protected EnvObj
   /**
    * Get the assertion level of the SAT solver.
    */
-  unsigned getAssertionLevel() const;
+  uint32_t getAssertionLevel() const;
 
   /**
    * Return true if we are currently searching (either in this or
@@ -396,9 +396,6 @@ class PropEngine : protected EnvObj
 
   /** The theory engine we will be using */
   TheoryEngine* d_theoryEngine;
-
-  /** The decision engine we will be using */
-  std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;

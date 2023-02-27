@@ -16,6 +16,7 @@ input mechanisms.
     bitvectors_and_arrays
     extract
     datatypes
+    finite_field
     floatingpoint
     lineararith
     quickstart

@@ -21,13 +21,11 @@
 #include <vector>
 
 #include "proof/trust_node.h"
-#include "smt/env_obj.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_module.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {
-
-class TheoryEngine;
 
 namespace prop {
 class PropEngine;
@@ -35,7 +33,7 @@ class PropEngine;
 
 namespace theory {
 
-class PartitionGenerator : protected EnvObj
+class PartitionGenerator : public TheoryEngineModule
 {
  public:
   PartitionGenerator(Env& env,
@@ -47,7 +45,7 @@ class PartitionGenerator : protected EnvObj
    * check was called. Returns a lemma blocking off the emitted cube from the
    * search.
    */
-  TrustNode check(Theory::Effort e);
+  void check(Theory::Effort e) override;
 
  private:
   /* LiteralListType is used to specify where to pull literals from when calling
@@ -74,7 +72,7 @@ class PartitionGenerator : protected EnvObj
    * emitZLL is set to true, then zero-level learned literals will be appended
    * to the cubes.
    */
-  TrustNode makeRevisedPartitions(bool strict, bool emitZLL);
+  Node makeRevisedPartitions(bool strict, bool emitZLL);
 
   /**
    * Partition by taking a list of literals and emitting mutually exclusive
@@ -86,18 +84,18 @@ class PartitionGenerator : protected EnvObj
    * If emitZLL is set to true, then zero-level learned literals will be
    * appended to the cubes.
    */
-  TrustNode makeFullTrailPartitions(LiteralListType litType, bool emitZLL);
+  Node makeFullTrailPartitions(LiteralListType litType, bool emitZLL);
 
   /**
    * Generate a lemma that is the negation of toBlock which ultimately blocks
    * that path in the search.
    */
-  TrustNode blockPath(TNode toBlock);
+  Node blockPath(TNode toBlock);
 
   /**
    * Stop partitioning and return unsat.
    */
-  TrustNode stopPartitioning() const;
+  Node stopPartitioning() const;
 
   /**
    * Get a list of literals.

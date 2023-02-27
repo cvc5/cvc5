@@ -13,7 +13,7 @@
 ; we conclude e.g. L and not (or L false), as done in PfRule::RESOLUTION.
 ; This side condition may fail if c1 or c2 does not contain l with the required
 ; polarity.
-(program sc_resolution ((c1 term) (c2 term) (pol flag) (l term)) term
+(function sc_resolution ((c1 term) (c2 term) (pol flag) (l term)) term
   (nary_elim f_or
     (nary_concat f_or
       (nary_rm_first_or_self f_or (nary_intro f_or c1 false) (ifequal pol tt l (apply f_not l)) false) 
@@ -26,7 +26,7 @@
 ; In terms of SMT-LIB, this side condition converts:
 ;   (and F1 ... Fn) to (or (not F1) ... (not Fn))
 ; This side condition may fail if t is not an and-application in n-ary form.
-(program sc_not_and_rec ((t term)) term
+(function sc_not_and_rec ((t term)) term
   (match t
     ((apply t1 t2)
       (let t12 (getarg f_and t1)
@@ -37,14 +37,14 @@
 ; Pushes a not below an application of and. In terms of SMT-LIB syntax, this
 ; side condition converts:
 ;   (not (and F1 ... Fn)) to (or (not F1) ... (not Fn))
-(program sc_not_and ((t term)) term
+(function sc_not_and ((t term)) term
   (nary_elim f_or (sc_not_and_rec t) false)
 )
 
 ; Helper for sc_not_and_rev, which is the inverse of sc_not_and.
 ;   (or (not F1) ... (not Fn)) to (and F1 ... Fn)
 ; This side condition may fail if t is not an or-application in n-ary form.
-(program sc_not_and_rev_rec ((t term)) term
+(function sc_not_and_rev_rec ((t term)) term
   (match t
     ((apply t1 t2)
       (let t12 (getarg f_or t1)
@@ -56,7 +56,7 @@
 ; Pulls not from a list of children of an or-application. In terms of SMT-LIB
 ; syntax, this side condition converts:
 ;   (or (not F1) ... (not Fn)) to (and F1 ... Fn)
-(program sc_not_and_rev ((t term)) term
+(function sc_not_and_rev ((t term)) term
   (nary_elim f_and (sc_not_and_rev_rec t) true)
 )
 
@@ -67,7 +67,7 @@
 ; It may conclude an implication, or the negation of t, based on whether c
 ; is false, according to the definition of PfRule::SCOPE.
 ; This side condition may fail if t and c do not have the above properties.
-(program sc_process_scope ((t term) (c term)) term
+(function sc_process_scope ((t term) (c term)) term
   (let premise (sc_not_and_rev (nary_truncate f_or t c false))
   (match c
     (false (not premise))

@@ -19,6 +19,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
@@ -57,11 +58,6 @@ namespace quantifiers {
  * formula with body F, and a is the rational corresponding to the argument
  * position of the variable, e.g. lit is ((_ is C) x) and x is
  * replaced by (C y1 ... yn), where the argument position of yi is i.
- * - QElimShadowAttribute: cached on (q, q', v), which is used to replace a
- * shadowed variable v, which is quantified by a subformula q' of quantified
- * formula q. Shadowed variables may be introduced when e.g. quantified formulas
- * appear on the right hand sides of substitutions in preprocessing. They are
- * eliminated by the rewriter.
  */
 struct QRewPrenexAttributeId
 {
@@ -75,10 +71,6 @@ struct QRewDtExpandAttributeId
 {
 };
 using QRewDtExpandAttribute = expr::Attribute<QRewDtExpandAttributeId, Node>;
-struct QElimShadowAttributeId
-{
-};
-using QElimShadowAttribute = expr::Attribute<QElimShadowAttributeId, Node>;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -175,12 +167,29 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
-  if( !activeMap.empty() ){
-    //collect variables in inst pattern list only if we cannot eliminate quantifier
+  // Collect variables in inst pattern list only if we cannot eliminate
+  // quantifier, or if we have an add-to-pool annotation.
+  bool varComputePatList = !activeMap.empty();
+  for (const Node& ip : ipl)
+  {
+    Kind k = ip.getKind();
+    if (k == INST_ADD_TO_POOL || k == SKOLEM_ADD_TO_POOL)
+    {
+      varComputePatList = true;
+      break;
+    }
+  }
+  if (varComputePatList)
+  {
     computeArgs( args, activeMap, ipl, visited );
-    for( unsigned i=0; i<args.size(); i++ ){
-      if( activeMap.find( args[i] )!=activeMap.end() ){
-        activeArgs.push_back( args[i] );
+  }
+  if (!activeMap.empty())
+  {
+    for (const Node& a : args)
+    {
+      if (activeMap.find(a) != activeMap.end())
+      {
+        activeArgs.push_back(a);
       }
     }
   }
@@ -563,10 +572,8 @@ Node QuantifiersRewriter::computeProcessTerms2(
       {
         Trace("quantifiers-rewrite-unshadow")
             << "Found shadowed variable " << v << " in " << q << std::endl;
-        BoundVarManager* bvm = nm->getBoundVarManager();
         oldVars.push_back(v);
-        Node cacheVal = BoundVarManager::getCacheValue(q, body, v);
-        Node nv = bvm->mkBoundVar<QElimShadowAttribute>(cacheVal, v.getType());
+        Node nv = ElimShadowNodeConverter::getElimShadowVar(q, body, v);
         newVars.push_back(nv);
       }
     }
@@ -1727,15 +1734,8 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> args(q[0].begin(), q[0].end());
   Node body = q[1];
-  if( body.getKind()==FORALL ){
-    //combine prenex
-    std::vector< Node > newArgs;
-    newArgs.insert(newArgs.end(), q[0].begin(), q[0].end());
-    for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-      newArgs.push_back( body[0][i] );
-    }
-    return mkForAll( newArgs, body[1], qa );
-  }else if( body.getKind()==AND ){
+  if (body.getKind() == AND)
+  {
     // aggressive miniscoping implies that structural miniscoping should
     // be applied first
     if (miniscopeConj)
@@ -1781,13 +1781,17 @@ Node QuantifiersRewriter::computeMiniscoping(Node q,
       Node retVal = t;
       return retVal;
     }
-  }else if( body.getKind()==OR ){
+  }
+  else if (body.getKind() == OR)
+  {
     if (miniscopeFv)
     {
       //splitting subsumes free variable miniscoping, apply it with higher priority
       return computeSplit( args, body, qa );
     }
-  }else if( body.getKind()==NOT ){
+  }
+  else if (body.getKind() == NOT)
+  {
     Assert(isLiteral(body[0]));
   }
   //remove variables that don't occur
@@ -1945,6 +1949,15 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
+    // do not prenex to pull variables into those with user patterns
+    if (!d_opts.quantifiers.prenexQuantUser && qa.d_hasPattern)
+    {
+      return false;
+    }
+    if (qa.d_hasPool)
+    {
+      return false;
+    }
     return d_opts.quantifiers.prenexQuant != options::PrenexQuantMode::NONE
            && d_opts.quantifiers.miniscopeQuant
                   != options::MiniscopeQuantMode::AGG

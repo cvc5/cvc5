@@ -172,7 +172,13 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
+  //-------------------- ff inference
   // ---------------------------------- end arith theory
+
+  // ---------------------------------- finite field theory
+  // a catch-all, for now
+  FF_LEMMA,
+  // ---------------------------------- end finite field theory
 
   // ---------------------------------- arrays theory
   ARRAYS_EXT,
@@ -379,9 +385,6 @@ enum class InferenceId
   // evaluation unfolding for syntax-guided instantiation
   QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
-  // preprocessing a sygus conjecture based on quantifier elimination, of the
-  // form Q <=> Q_preprocessed
-  QUANTIFIERS_SYGUS_QE_PREPROC,
   // G or ~G where G is the active guard for a sygus enumerator
   QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
   // manual exclusion of a current solution
@@ -855,6 +858,8 @@ enum class InferenceId
   //-------------------- merge conflicts
   // prefix conflict
   STRINGS_PREFIX_CONFLICT,
+  // minimized prefix conflict
+  STRINGS_PREFIX_CONFLICT_MIN,
   // arithmetic bound conflict
   STRINGS_ARITH_BOUND_CONFLICT,
   //-------------------- other

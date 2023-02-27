@@ -37,6 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+from cvc5sortkinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
@@ -901,6 +902,16 @@ cdef class Solver:
         sort.csort = self.csolver.mkFloatingPointSort(exp, sig)
         return sort
 
+    def mkFiniteFieldSort(self, size):
+        """
+            Create a finite field sort.
+
+            :param size: The size of the field. Must be a prime-power.
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkFiniteFieldSort(str(size).encode())
+        return sort
+
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
         """
             Create a datatype sort.
@@ -1046,6 +1057,40 @@ cdef class Solver:
         """
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
+        return sort
+
+    def mkAbstractSort(self, k):
+        """
+            Create an abstract sort. An abstract sort represents a sort for a 
+            given kind whose parameters and arguments are unspecified.
+            
+            The kind ``k`` must be the kind of a sort that can be abstracted, i.e., 
+            a sort that has indices or argument sorts. For example, ARRAY_SORT
+            and :py:obj:`BITVECTOR_SORT <Kind.BITVECTOR_SORT>` can be
+            passed as the kind ``k`` to this method, while
+            :py:obj:`INTEGER_SORT <Kind.INTEGER_SORT>` and
+            :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
+            
+            .. note::
+            Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
+            as an argument to this method returns the (fully) unspecified sort,
+            denoted ``?``.
+            
+            .. note::
+            Providing a kind ``k`` of sort that has no indices and a fixed arity of
+            argument sorts will return the sort of kind ``k`` whose arguments are
+            the unspecified sort. For example, ``mkAbstractSort(ARRAY_SORT)`` will
+            return the sort ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
+            abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
+            
+            :param k: The kind of the abstract sort
+            :return: The abstract sort.
+            
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkAbstractSort(<c_SortKind> k.value)
         return sort
 
     def mkUninterpretedSort(self, str name = None):
@@ -1437,6 +1482,18 @@ cdef class Solver:
             raise ValueError("Unexpected inputs to mkBitVector")
         return term
 
+    def mkFiniteFieldElem(self, value, Sort sort):
+        """
+            Create finite field value.
+
+            :return: A Term representing a finite field value.
+            :param value: The value of the element's integer representation.
+            :param sort: The field to create the element in.
+        """
+        cdef Term term = Term(self)
+        term.cterm = self.csolver.mkFiniteFieldElem(str(value).encode(), sort.csort)
+        return term
+
     def mkConstArray(self, Sort sort, Term val):
         """
             Create a constant array with the provided constant value stored at
@@ -1744,6 +1801,18 @@ cdef class Solver:
         """
         self.csolver.addSygusConstraint(t.cterm)
 
+    def getSygusConstraints(self):
+        """
+            Get the list of sygus constraints.
+            :return: The list of sygus constraints.
+        """
+        constraints = []
+        for c in self.csolver.getSygusConstraints():
+            term = Term(self)
+            term.cterm = c
+            constraints.append(term)
+        return constraints
+
     def addSygusAssume(self, Term t):
         """
             Add a formula to the set of Sygus assumptions.
@@ -1757,6 +1826,18 @@ cdef class Solver:
             :param term: The formuula to add as an assumption.
         """
         self.csolver.addSygusAssume(t.cterm)
+
+    def getSygusAssumptions(self):
+        """
+            Get the list of sygus assumptions.
+            :return: The list of sygus assumptions.
+        """
+        assumptions = []
+        for a in self.csolver.getSygusAssumptions():
+            term = Term(self)
+            term.cterm = a
+            assumptions.append(term)
+        return assumptions
 
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         """
@@ -2931,6 +3012,15 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def getKind(self):
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :return: The :py:class:`SortKind` of this sort.
+        """
+        return SortKind(<int> self.csort.getKind())
+
     def hasSymbol(self):
         """
             :return: True iff this sort has a symbol.
@@ -3104,6 +3194,14 @@ cdef class Sort:
         """
         return self.csort.isArray()
 
+    def isFiniteField(self):
+        """
+            Determine if this is a finite field sort.
+
+            :return: True if the sort is an array sort.
+        """
+        return self.csort.isFiniteField()
+
     def isSet(self):
         """
             Determine if this is a set sort.
@@ -3127,6 +3225,17 @@ cdef class Sort:
             :return: True if the sort is a sequence sort.
         """
         return self.csort.isSequence()
+
+    def isAbstract(self):
+        """
+            Determine if this is an abstract sort.
+
+            :return: True if the sort is an abstract sort.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return self.csort.isAbstract()
 
     def isUninterpretedSort(self):
         """
@@ -3388,6 +3497,16 @@ cdef class Sort:
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
+    def getAbstractedKind(self):
+        """
+            :return: The sort kind of an abstract sort, which denotes the kind
+            of sorts that this abstract sort denotes.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return SortKind(<int> self.csort.getAbstractedKind())
+
     def getUninterpretedSortConstructorArity(self):
         """
             :return: The arity of a sort constructor sort.
@@ -3399,6 +3518,12 @@ cdef class Sort:
             :return: The bit-width of the bit-vector sort.
         """
         return self.csort.getBitVectorSize()
+
+    def getFiniteFieldSize(self):
+        """
+            :return: The size of the finite field sort.
+        """
+        return int(self.csort.getFiniteFieldSize().decode())
 
     def getFloatingPointExponentSize(self):
         """
@@ -4041,6 +4166,22 @@ cdef class Term:
         """
         return self.cterm.getBitVectorValue(base).decode()
 
+    def isFiniteFieldValue(self):
+        """
+            :return: True iff this term is a finite field value.
+        """
+        return self.cterm.isFiniteFieldValue()
+
+    def getFiniteFieldValue(self):
+        """
+           .. note:: Asserts :py:meth:`isFiniteFieldValue()`.
+
+           .. note:: Uses the integer representative of smallest absolute value.
+
+           :return: The representation of a finite field value as an integer.
+        """
+        return int(self.cterm.getFiniteFieldValue().decode())
+
     def toPythonObj(self):
         """
             Converts a constant value Term to a Python object.
@@ -4051,6 +4192,7 @@ cdef class Term:
             - **Int    :** Returns a Python int
             - **Real   :** Returns a Python Fraction
             - **BV     :** Returns a Python int (treats BV as unsigned)
+            - **FF     :** Returns a Python int (gives the FF integer representative of smallest absolute value)
             - **String :** Returns a Python Unicode string
             - **Array  :** Returns a Python dict mapping indices to values. The constant base is returned as the default value.
 
@@ -4064,6 +4206,8 @@ cdef class Term:
             return self.getRealValue()
         elif self.isBitVectorValue():
             return int(self.getBitVectorValue(), 2)
+        elif self.isFiniteFieldValue():
+            return self.getFiniteFieldValue()
         elif self.isStringValue():
             return self.getStringValue()
         elif self.getSort().isArray():

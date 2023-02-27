@@ -653,7 +653,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   {
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
     return;
   }
   // add to equality engine and the may equality engine
@@ -814,7 +814,7 @@ void TheoryArrays::preRegisterTerm(TNode node)
   // Note: do this here instead of in preRegisterTermInternal to prevent internal select
   // terms from being propagated out (as this results in an assertion failure).
   if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
 }
 
@@ -980,7 +980,7 @@ void TheoryArrays::computeCareGraph()
       // Also, insert this read in the list at the proper index
 
       if (!x_shared.isConst()) {
-        x_shared = d_valuation.getModelValue(x_shared);
+        x_shared = d_valuation.getCandidateModelValue(x_shared);
       }
       if (!x_shared.isNull()) {
         CTNodeList* temp;

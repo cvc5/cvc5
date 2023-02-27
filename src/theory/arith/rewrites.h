@@ -61,7 +61,11 @@ enum class Rewrite : uint32_t
   // (to_int real.pi) --> 3, (is_int real.pi) ---> false
   INT_EXT_PI,
   // (to_int (to_real x)) --> (to_int x), (is_int (to_real x)) --> (is_int x)
-  INT_EXT_TO_REAL
+  INT_EXT_TO_REAL,
+  // E.g. (<= (bv2nat x) N) -->
+  //      (ite (>= N 2^w) true (ite (< N 0) false (bvule x ((_ int2bv w) N))
+  // where N is a constant and w is the bitwidth of the type of x.
+  INEQ_BV_TO_NAT_ELIM
 };
 
 /**

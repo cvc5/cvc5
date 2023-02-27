@@ -32,7 +32,8 @@ namespace fp {
 
 TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   TRACE("FloatingPointConstantTypeRule");
 
@@ -56,7 +57,8 @@ TypeNode FloatingPointConstantTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode RoundingModeConstantTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
-                                                   bool check)
+                                                   bool check,
+                                                   std::ostream* errOut)
 {
   TRACE("RoundingModeConstantTypeRule");
 
@@ -66,7 +68,8 @@ TypeNode RoundingModeConstantTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
-                                              bool check)
+                                              bool check,
+                                              std::ostream* errOut)
 {
   TRACE("FloatingPointFPTypeRule");
 
@@ -110,7 +113,8 @@ TypeNode FloatingPointFPTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
-                                                bool check)
+                                                bool check,
+                                                std::ostream* errOut)
 {
   TRACE("FloatingPointTestTypeRule");
 
@@ -140,7 +144,8 @@ TypeNode FloatingPointTestTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
                                                      TNode n,
-                                                     bool check)
+                                                     bool check,
+                                                     std::ostream* errOut)
 {
   TRACE("FloatingPointOperationTypeRule");
 
@@ -169,7 +174,7 @@ TypeNode FloatingPointOperationTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode FloatingPointRoundingOperationTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointRoundingOperationTypeRule");
 
@@ -209,7 +214,7 @@ TypeNode FloatingPointRoundingOperationTypeRule::computeType(
 }
 
 TypeNode FloatingPointPartialOperationTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointOperationTypeRule");
   AlwaysAssert(n.getNumChildren() > 0);
@@ -249,7 +254,7 @@ TypeNode FloatingPointPartialOperationTypeRule::computeType(
 }
 
 TypeNode FloatingPointParametricOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointParametricOpTypeRule");
 
@@ -257,7 +262,7 @@ TypeNode FloatingPointParametricOpTypeRule::computeType(
 }
 
 TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointToFPIEEEBitVectorTypeRule");
   AlwaysAssert(n.getNumChildren() == 1);
@@ -291,7 +296,7 @@ TypeNode FloatingPointToFPIEEEBitVectorTypeRule::computeType(
 }
 
 TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointToFPFloatingPointTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -325,7 +330,8 @@ TypeNode FloatingPointToFPFloatingPointTypeRule::computeType(
 
 TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   TRACE("FloatingPointToFPRealTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -358,7 +364,7 @@ TypeNode FloatingPointToFPRealTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointToFPSignedBitVectorTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -391,7 +397,7 @@ TypeNode FloatingPointToFPSignedBitVectorTypeRule::computeType(
 }
 
 TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointToFPUnsignedBitVectorTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -425,7 +431,8 @@ TypeNode FloatingPointToFPUnsignedBitVectorTypeRule::computeType(
 
 TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   TRACE("FloatingPointToUBVTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -458,7 +465,8 @@ TypeNode FloatingPointToUBVTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
-                                                 bool check)
+                                                 bool check,
+                                                 std::ostream* errOut)
 {
   TRACE("FloatingPointToSBVTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -491,7 +499,8 @@ TypeNode FloatingPointToSBVTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
-                                                      bool check)
+                                                      bool check,
+                                                      std::ostream* errOut)
 {
   TRACE("FloatingPointToUBVTotalTypeRule");
   AlwaysAssert(n.getNumChildren() == 3);
@@ -538,7 +547,8 @@ TypeNode FloatingPointToUBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
-                                                      bool check)
+                                                      bool check,
+                                                      std::ostream* errOut)
 {
   TRACE("FloatingPointToSBVTotalTypeRule");
   AlwaysAssert(n.getNumChildren() == 3);
@@ -583,7 +593,8 @@ TypeNode FloatingPointToSBVTotalTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check)
+                                                  bool check,
+                                                  std::ostream* errOut)
 {
   TRACE("FloatingPointToRealTypeRule");
   AlwaysAssert(n.getNumChildren() == 1);
@@ -604,7 +615,8 @@ TypeNode FloatingPointToRealTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
                                                        TNode n,
-                                                       bool check)
+                                                       bool check,
+                                                       std::ostream* errOut)
 {
   TRACE("FloatingPointToRealTotalTypeRule");
   AlwaysAssert(n.getNumChildren() == 2);
@@ -634,7 +646,8 @@ TypeNode FloatingPointToRealTotalTypeRule::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
                                                 TNode n,
-                                                bool check)
+                                                bool check,
+                                                std::ostream* errOut)
 {
   TRACE("FloatingPointComponentBit");
 
@@ -664,7 +677,8 @@ TypeNode FloatingPointComponentBit::computeType(NodeManager* nodeManager,
 
 TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
                                                      TNode n,
-                                                     bool check)
+                                                     bool check,
+                                                     std::ostream* errOut)
 {
   TRACE("FloatingPointComponentExponent");
 
@@ -700,7 +714,7 @@ TypeNode FloatingPointComponentExponent::computeType(NodeManager* nodeManager,
 }
 
 TypeNode FloatingPointComponentSignificand::computeType(
-    NodeManager* nodeManager, TNode n, bool check)
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   TRACE("FloatingPointComponentSignificand");
 
@@ -733,7 +747,8 @@ TypeNode FloatingPointComponentSignificand::computeType(
 
 TypeNode RoundingModeBitBlast::computeType(NodeManager* nodeManager,
                                            TNode n,
-                                           bool check)
+                                           bool check,
+                                           std::ostream* errOut)
 {
   TRACE("RoundingModeBitBlast");
 

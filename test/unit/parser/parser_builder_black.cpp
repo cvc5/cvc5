@@ -25,7 +25,7 @@
 #include "options/language.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/parser.h"
+#include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"
 #include "test_api.h"
 

@@ -158,7 +158,7 @@ name   = "Strings Theory"
   long       = "strings-eager-eval"
   type       = "bool"
   default    = "true"
-  help       = "perform eager context-dependent evaluation for applications of string kinds"
+  help       = "perform eager context-dependent evaluation for applications of string kinds in the equality engine"
 
 [[option]]
   name       = "stringsAlphaCard"
@@ -234,3 +234,11 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "eliminate code points during preprocessing"
+
+[[option]]
+  name       = "stringRegexpPosConcatEager"
+  category   = "expert"
+  long       = "strings-re-posc-eager"
+  type       = "bool"
+  default    = "false"
+  help       = "eager reduction of positive membership into concatentation"

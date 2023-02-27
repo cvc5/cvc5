@@ -22,7 +22,7 @@ macro(cvc5_add_python_api_unit_test name filename)
 # 'ctest -R "unit/api/python/myapitest"'.
   set(test_name unit/api/python/${name})
   add_test (NAME ${test_name}
-    COMMAND ${PYTHON_EXECUTABLE}
+    COMMAND ${Python_EXECUTABLE}
             -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
     # directory for importing the python bindings
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
@@ -30,6 +30,9 @@ macro(cvc5_add_python_api_unit_test name filename)
 endmacro()
 
 # add specific test files
+if(USE_COCOA)
+  cvc5_add_python_api_unit_test(test_finite_field test_finite_field.py)
+endif()
 cvc5_add_python_api_unit_test(test_solver test_solver.py)
 cvc5_add_python_api_unit_test(test_sort test_sort.py)
 cvc5_add_python_api_unit_test(test_term test_term.py)

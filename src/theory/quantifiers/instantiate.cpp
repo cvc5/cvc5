@@ -101,6 +101,17 @@ bool Instantiate::addInstantiation(Node q,
                                    Node pfArg,
                                    bool doVts)
 {
+  // do the instantiation
+  bool ret = addInstantiationInternal(q, terms, id, pfArg, doVts);
+  // process the instantiation with callbacks via term registry
+  d_treg.processInstantiation(q, terms, ret);
+  // return whether the instantiation was successful
+  return ret;
+}
+
+bool Instantiate::addInstantiationInternal(
+    Node q, std::vector<Node>& terms, InferenceId id, Node pfArg, bool doVts)
+{
   // For resource-limiting (also does a time check).
   d_qim.safePoint(Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
@@ -391,7 +402,6 @@ bool Instantiate::addInstantiation(Node q,
           orig_body, q[1], maxInstLevel + 1);
     }
   }
-  d_treg.processInstantiation(q, terms);
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;

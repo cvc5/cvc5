@@ -39,6 +39,7 @@ const char* toString(LfscRule id)
     case LfscRule::CONCAT_CONFLICT_DEQ: return "concat_conflict_deq";
     case LfscRule::INSTANTIATE: return "instantiate";
     case LfscRule::SKOLEMIZE: return "skolemize";
+    case LfscRule::BETA_REDUCE: return "beta_reduce";
     case LfscRule::LAMBDA: return "\\";
     case LfscRule::PLET: return "plet";
     default: return "?";

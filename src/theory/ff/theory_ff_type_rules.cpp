@@ -16,7 +16,7 @@
 #include "theory/ff/theory_ff_type_rules.h"
 
 #include "util/cardinality.h"
-#include "util/ff_val.h"
+#include "util/finite_field_value.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -33,15 +33,17 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
 
 TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool _check)
+                                                  bool check,
+                                                  std::ostream* errOut)
 {
   return nodeManager->mkFiniteFieldType(
-      n.getConst<FfVal>().getFieldSize());
+      n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
 TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
-                                                    bool check)
+                                                    bool check,
+                                                    std::ostream* errOut)
 {
   TNode::iterator it = n.begin();
   TypeNode t = (*it).getType(check);

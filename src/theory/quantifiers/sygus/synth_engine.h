@@ -69,7 +69,7 @@ class SynthEngine : public QuantifiersModule
    * SynthConjecture::getSynthSolutions.
    */
   bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-  /** preregister assertion (before rewrite)
+  /** preprocess notify assertion (before rewrite)
    *
    * The purpose of this method is to inform the solution reconstruction
    * techniques within the single invocation module that n is an original
@@ -77,11 +77,9 @@ class SynthEngine : public QuantifiersModule
    * to help when trying to reconstruct a solution that fits a given input
    * syntax.
    */
-  void preregisterAssertion(Node n);
+  void ppNotifyAssertion(Node n);
 
  private:
-  /** the conjecture formula(s) we are waiting to assign */
-  std::vector<Node> d_waiting_conj;
   /** The synthesis conjectures that this class is managing. */
   std::vector<std::unique_ptr<SynthConjecture> > d_conjs;
   /**
@@ -90,10 +88,6 @@ class SynthEngine : public QuantifiersModule
    * preregisterAssertion.
    */
   SynthConjecture* d_conj;
-  /**
-   * The quantifier elimination preprocess module.
-   */
-  SygusQePreproc d_sqp;
   /** The statistics */
   SygusStatistics d_statistics;
   /** assign quantified formula q as a conjecture

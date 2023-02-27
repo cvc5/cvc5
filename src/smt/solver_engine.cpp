@@ -23,6 +23,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
@@ -252,6 +253,7 @@ SolverEngine::~SolverEngine()
     d_interpolSolver.reset(nullptr);
     d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
+    d_smtDriver.reset(nullptr);
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
@@ -860,6 +862,18 @@ void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
   d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
+std::vector<Node> SolverEngine::getSygusConstraints()
+{
+  finishInit();
+  return d_sygusSolver->getSygusConstraints();
+}
+
+std::vector<Node> SolverEngine::getSygusAssumptions()
+{
+  finishInit();
+  return d_sygusSolver->getSygusAssumptions();
+}
+
 void SolverEngine::assertSygusInvConstraint(Node inv,
                                             Node pre,
                                             Node trans,
@@ -956,7 +970,11 @@ Node SolverEngine::simplify(const Node& t)
   // apply substitutions
   tt = d_smtSolver->getPreprocessor()->applySubstitutions(tt);
   // now rewrite
-  return d_env->getRewriter()->rewrite(tt);
+  Node ret = d_env->getRewriter()->rewrite(tt);
+  // make so that the returned term does not involve arithmetic subtyping
+  SubtypeElimNodeConverter senc;
+  ret = senc.convert(ret);
+  return ret;
 }
 
 Node SolverEngine::getValue(const Node& t) const
@@ -1182,10 +1200,18 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
     bool wasShadow = false;
     if (expr::hasFreeOrShadowedVar(n, wasShadow))
     {
-      std::string varType(wasShadow ? "shadowed" : "free");
       std::stringstream se;
-      se << "Cannot process term with " << varType << " variable in " << src
-         << ".";
+      se << "Cannot process term " << n << " with ";
+      if (wasShadow)
+      {
+        se << "shadowed variables " << std::endl;
+      }
+      else
+      {
+        std::unordered_set<internal::Node> fvs;
+        expr::getFreeVariables(n, fvs);
+        se << "free variables: " << fvs << std::endl;
+      }
       throw ModalException(se.str().c_str());
     }
   }
@@ -1846,8 +1872,6 @@ void SolverEngine::pop()
   Trace("smt") << "SMT pop()" << endl;
   d_ctxManager->userPop();
 
-  // Clear out assertion queues etc., in case anything is still in there
-  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   // clear the learned literals from the preprocessor
   d_smtSolver->getPreprocessor()->clearLearnedLiterals();
 
@@ -1870,10 +1894,7 @@ void SolverEngine::resetAssertions()
 
   Trace("smt") << "SMT resetAssertions()" << endl;
 
-  d_smtSolver->getAssertions().getAssertionPipeline().clear();
   d_ctxManager->notifyResetAssertions();
-  // push the state to maintain global context around everything
-  d_ctxManager->setup(d_smtDriver.get());
 
   // reset SmtSolver, which will construct a new prop engine
   d_smtSolver->resetAssertions();

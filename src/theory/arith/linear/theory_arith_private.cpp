@@ -923,7 +923,8 @@ void TheoryArithPrivate::notifySharedTerm(TNode n)
   }
 }
 
-Node TheoryArithPrivate::getModelValue(TNode term) {
+Node TheoryArithPrivate::getCandidateModelValue(TNode term)
+{
   try{
     const DeltaRational drv = getDeltaValue(term);
     const Rational& delta = d_partialModel.getDelta();
@@ -1811,7 +1812,7 @@ void TheoryArithPrivate::outputRestart() {
 }
 
 bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit){
-  int level = context()->getLevel();
+  uint32_t level = context()->getLevel();
   Trace("approx")
     << "attemptSolveInteger " << d_qflraStatus
     << " " << emmmittedLemmaOrSplit
@@ -1850,7 +1851,8 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
     return false;
   }
 
-  if (d_lastContextIntegerAttempted <= (level >> 2))
+  if (d_lastContextIntegerAttempted < 0
+      || static_cast<uint32_t>(d_lastContextIntegerAttempted) <= (level >> 2))
   {
     double d = (double)(d_solveIntMaybeHelp + 1)
                / (d_solveIntAttempts + 1 + level * level);
@@ -2696,7 +2698,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   Assert(options().arith.useApprox);
   Assert(ApproximateSimplex::enabled());
 
-  int level = context()->getLevel();
+  uint32_t level = context()->getLevel();
   d_lastContextIntegerAttempted = level;
 
   static constexpr int32_t mipLimit = 200000;
@@ -2896,7 +2898,9 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
     if (canBranch != ARITHVAR_SENTINEL)
     {
       ++d_statistics.d_panicBranches;
-      TrustNode branch = branchIntegerVariable(canBranch);
+      std::vector<TrustNode> branches = branchIntegerVariable(canBranch);
+      Assert(!branches.empty());
+      TrustNode branch = branches.back();
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = rewrite(branch.getNode()[0]);
       if (!isSatLiteral(rwbranch))
@@ -3385,16 +3389,18 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
     }
 
     if(!emmittedConflictOrSplit) {
-      TrustNode possibleLemma = roundRobinBranch();
-      if (!possibleLemma.getNode().isNull())
+      std::vector<TrustNode> possibleLemmas = roundRobinBranch();
+      if (!possibleLemmas.empty())
       {
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
-        Trace("arith::lemma") << "rrbranch lemma"
-                              << possibleLemma << endl;
-        if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+        for (const TrustNode& possibleLemma : possibleLemmas)
         {
-          emmittedConflictOrSplit = true;
+          Trace("arith::lemma") << "rrbranch lemma" << possibleLemma << endl;
+          if (outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA))
+          {
+            emmittedConflictOrSplit = true;
+          }
         }
       }
     }
@@ -3431,7 +3437,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
 bool TheoryArithPrivate::foundNonlinear() const { return d_foundNl; }
 
-TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
+std::vector<TrustNode> TheoryArithPrivate::branchIntegerVariable(
+    ArithVar x) const
 {
   const DeltaRational& d = d_partialModel.getAssignment(x);
   Assert(!d.isIntegral());
@@ -3440,9 +3447,11 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
   Trace("integers") << "integers: assignment to [[" << d_partialModel.asNode(x) << "]] is " << r << "[" << i << "]" << endl;
   Assert(!(r.getDenominator() == 1 && i.getNumerator() == 0));
   TNode var = d_partialModel.asNode(x);
-  TrustNode lem = d_bab.branchIntegerVariable(var, r);
+  std::vector<TrustNode> lems = d_bab.branchIntegerVariable(var, r);
+  Assert(!lems.empty());
   if (TraceIsOn("integers"))
   {
+    TrustNode lem = lems.back();
     Node l = lem.getNode();
     if (isSatLiteral(l[0]))
     {
@@ -3465,7 +3474,7 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
                         << endl;
     }
   }
-  return lem;
+  return lems;
 }
 
 std::vector<ArithVar> TheoryArithPrivate::cutAllBounded() const{
@@ -3490,10 +3499,10 @@ std::vector<ArithVar> TheoryArithPrivate::cutAllBounded() const{
 }
 
 /** Returns true if the roundRobinBranching() issues a lemma. */
-TrustNode TheoryArithPrivate::roundRobinBranch()
+std::vector<TrustNode> TheoryArithPrivate::roundRobinBranch()
 {
   if(hasIntegerModel()){
-    return TrustNode::null();
+    return std::vector<TrustNode>();
   }else{
     ArithVar v = d_nextIntegerCheckVar;
 

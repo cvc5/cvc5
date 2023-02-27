@@ -16,7 +16,7 @@
 #
 # Required to disable this option for bash >=5.2 to avoid automatically
 # replacing & by the substituted text.
-shopt -u patsub_replacement
+shopt | grep -q '^patsub_replacement\b' &&  shopt -u patsub_replacement
 
 copyright=2010-2022
 
@@ -157,7 +157,7 @@ function typerule {
   check_theory_seen
   typerules="${typerules}
   case kind::$1:
-    typeNode = $2::computeType(nodeManager, n, check);
+    typeNode = $2::computeType(nodeManager, n, check, errOut);
     break;
 "
 }

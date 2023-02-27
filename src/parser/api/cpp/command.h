@@ -19,8 +19,8 @@
 
 #include "cvc5_public.h"
 
-#ifndef CVC5__PARSER__COMMAND_H
-#define CVC5__PARSER__COMMAND_H
+#ifndef CVC5__PARSER__API__CPP__COMMAND_H
+#define CVC5__PARSER__API__CPP__COMMAND_H
 
 #include <iosfwd>
 #include <sstream>
@@ -317,6 +317,11 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Command
 {
  protected:
   std::string d_symbol;
+  /**
+   * Bind the symbol of this command to the given term. Return false if the
+   * binding was invalid. In this case, set command status to CommandFailure.
+   */
+  bool bindToTerm(parser::SymbolManager* sm, cvc5::Term t, bool doOverload);
 
  public:
   DeclarationDefinitionCommand(const std::string& id);
