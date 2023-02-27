@@ -38,7 +38,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       return n;
     }
     std::vector<Node> children;
-    for (unsigned c : vec);
+    for (unsigned c : vec)
     {
       std::vector<unsigned> tmp;
       tmp.push_back(c);
