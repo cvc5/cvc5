@@ -8,7 +8,7 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # use: finishwith [params..]
 # to run cvc5 and let it output whatever it will to stdout.
 function finishwith {
-  $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench
+  $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive --fp-exp "$@" $bench
 }
 
 case "$logic" in
@@ -24,7 +24,7 @@ QF_NIA)
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFBVLIA|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|UFDTLIRA|AUFDTLIA|AUFDTLIRA|AUFBV|AUFBVDTLIA|AUFBVFP|AUFNIA|UFFPDTLIRA|UFFPDTNIRA|ABVFP|BVFP|FP)
-  finishwith --full-saturate-quant --fp-exp
+  finishwith --full-saturate-quant
   ;;
 UFBV)
   finishwith --finite-model-find
@@ -64,15 +64,6 @@ QF_ALIA)
   ;;
 QF_S|QF_SLIA)
   finishwith --strings-exp
-  ;;
-QF_ABVFP|QF_ABVFPLRA)
-  finishwith --fp-exp
-  ;;
-QF_BVFP|QF_BVFPLRA)
-  finishwith --fp-exp
-  ;;
-QF_FP|QF_FPLRA)
-  finishwith --fp-exp
   ;;
 *)
   # just run the default

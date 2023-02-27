@@ -503,7 +503,7 @@ class SolverTest
   {
     Solver slv = new Solver();
     Sort s = d_solver.mkSetSort(d_solver.getBooleanSort());
-    assertDoesNotThrow(() -> d_solver.mkEmptySet(new Sort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(new Sort()));
     assertDoesNotThrow(() -> d_solver.mkEmptySet(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(d_solver.getBooleanSort()));
     assertDoesNotThrow(() -> slv.mkEmptySet(s));
@@ -514,7 +514,7 @@ class SolverTest
   {
     Solver slv = new Solver();
     Sort s = d_solver.mkBagSort(d_solver.getBooleanSort());
-    assertDoesNotThrow(() -> d_solver.mkEmptyBag(new Sort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(new Sort()));
     assertDoesNotThrow(() -> d_solver.mkEmptyBag(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(d_solver.getBooleanSort()));
 
@@ -2723,6 +2723,19 @@ class SolverTest
   }
 
   @Test
+  void getSygusConstraints()
+  {
+    d_solver.setOption("sygus", "true");
+    Term trueTerm = d_solver.mkBoolean(true);
+    Term falseTerm = d_solver.mkBoolean(false);
+    d_solver.addSygusConstraint(trueTerm);
+    d_solver.addSygusConstraint(falseTerm);
+    Term[] constraints = d_solver.getSygusConstraints();
+    assertEquals(constraints[0], trueTerm);
+    assertEquals(constraints[1], falseTerm);
+  }
+
+  @Test
   void addSygusAssume()
   {
     d_solver.setOption("sygus", "true");
@@ -2737,6 +2750,19 @@ class SolverTest
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
     assertDoesNotThrow(() -> slv.addSygusAssume(boolTerm));
+  }
+
+  @Test
+  void getSygusAssumptions()
+  {
+    d_solver.setOption("sygus", "true");
+    Term trueTerm = d_solver.mkBoolean(true);
+    Term falseTerm = d_solver.mkBoolean(false);
+    d_solver.addSygusAssume(trueTerm);
+    d_solver.addSygusAssume(falseTerm);
+    Term[] assumptions = d_solver.getSygusAssumptions();
+    assertEquals(assumptions[0], trueTerm);
+    assertEquals(assumptions[1], falseTerm);
   }
 
   @Test

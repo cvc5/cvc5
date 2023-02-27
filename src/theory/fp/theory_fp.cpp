@@ -146,18 +146,18 @@ TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     return texp;
   }
 
-  if (Configuration::isAssertionBuild())
-  {
-    // The following kinds should have been removed by the
-    // rewriter/expandDefinition
-    Kind k = node.getKind();
-    Assert(k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_MIN
-           && k != kind::FLOATINGPOINT_MAX && k != kind::FLOATINGPOINT_EQ
-           && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT
-           && k != kind::FLOATINGPOINT_TO_UBV && k != kind::FLOATINGPOINT_TO_SBV
-           && k != kind::FLOATINGPOINT_TO_REAL)
-        << "Expected floating-point kind " << k << " to be removed";
-  }
+  // The following kinds should have been removed by the
+  // rewriter/expandDefinition
+  Assert(node.getKind() != kind::FLOATINGPOINT_SUB
+         && node.getKind() != kind::FLOATINGPOINT_MIN
+         && node.getKind() != kind::FLOATINGPOINT_MAX
+         && node.getKind() != kind::FLOATINGPOINT_EQ
+         && node.getKind() != kind::FLOATINGPOINT_GEQ
+         && node.getKind() != kind::FLOATINGPOINT_GT
+         && node.getKind() != kind::FLOATINGPOINT_TO_UBV
+         && node.getKind() != kind::FLOATINGPOINT_TO_SBV
+         && node.getKind() != kind::FLOATINGPOINT_TO_REAL)
+      << "Expected floating-point kind " << node.getKind() << " to be removed";
 
   return TrustNode::null();
 }
@@ -484,7 +484,7 @@ void TheoryFp::registerTerm(TNode node)
   // getEqualityStatus works as expected when theory combination is enabled.
   if (k == kind::EQUAL)
   {
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
   else
   {

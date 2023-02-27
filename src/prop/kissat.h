@@ -42,9 +42,7 @@ class KissatSolver : public SatSolver
 
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override;
 
-  SatVariable newVar(bool isTheoryAtom = false,
-                     bool preRegister = false,
-                     bool canErase = true) override;
+  SatVariable newVar(bool isTheoryAtom = false, bool canErase = true) override;
 
   SatVariable trueVar() override;
   SatVariable falseVar() override;
@@ -59,7 +57,7 @@ class KissatSolver : public SatSolver
 
   SatValue modelValue(SatLiteral l) override;
 
-  unsigned getAssertionLevel() const override;
+  uint32_t getAssertionLevel() const override;
 
   bool ok() const override;
 

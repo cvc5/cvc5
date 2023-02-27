@@ -32,21 +32,30 @@ namespace fp {
 class FloatingPointConstantTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for roundingmode values. */
 class RoundingModeConstantTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for (fp ...) operator. */
 class FloatingPointFPTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -56,7 +65,10 @@ class FloatingPointFPTypeRule
 class FloatingPointTestTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -67,7 +79,10 @@ class FloatingPointTestTypeRule
 class FloatingPointOperationTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -78,7 +93,10 @@ class FloatingPointOperationTypeRule
 class FloatingPointRoundingOperationTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -89,7 +107,10 @@ class FloatingPointRoundingOperationTypeRule
 class FloatingPointPartialOperationTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -100,56 +121,80 @@ class FloatingPointPartialOperationTypeRule
 class FloatingPointParametricOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point to_fp conversion from IEEE bit-vector. */
 class FloatingPointToFPIEEEBitVectorTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point to_fp conversion from floating-point. */
 class FloatingPointToFPFloatingPointTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point to_fp conversion from real. */
 class FloatingPointToFPRealTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point to_fp conversion from signed bit-vector. */
 class FloatingPointToFPSignedBitVectorTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point to_fp conversion from unsigned bit-vector. */
 class FloatingPointToFPUnsignedBitVectorTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for conversion from floating-point to unsigned bit-vector. */
 class FloatingPointToUBVTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for conversion from floating-point to signed bit-vector. */
 class FloatingPointToSBVTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -159,7 +204,10 @@ class FloatingPointToSBVTypeRule
 class FloatingPointToUBVTotalTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -169,49 +217,70 @@ class FloatingPointToUBVTotalTypeRule
 class FloatingPointToSBVTotalTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for conversion from floating-point to real. */
 class FloatingPointToRealTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for conversion from floating-point to real (total version). */
 class FloatingPointToRealTotalTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point components of bit-width 1. */
 class FloatingPointComponentBit
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point exponent component. */
 class FloatingPointComponentExponent
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for floating-point significand component. */
 class FloatingPointComponentSignificand
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Type rule for the ROUNDINGMODE_BITBLAST operator. */
 class RoundingModeBitBlast
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /** Cardinality computation for floating-point sorts. */

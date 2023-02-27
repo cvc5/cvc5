@@ -862,6 +862,18 @@ void SolverEngine::assertSygusConstraint(Node n, bool isAssume)
   d_sygusSolver->assertSygusConstraint(n, isAssume);
 }
 
+std::vector<Node> SolverEngine::getSygusConstraints()
+{
+  finishInit();
+  return d_sygusSolver->getSygusConstraints();
+}
+
+std::vector<Node> SolverEngine::getSygusAssumptions()
+{
+  finishInit();
+  return d_sygusSolver->getSygusAssumptions();
+}
+
 void SolverEngine::assertSygusInvConstraint(Node inv,
                                             Node pre,
                                             Node trans,
@@ -1188,10 +1200,18 @@ void SolverEngine::ensureWellFormedTerm(const Node& n,
     bool wasShadow = false;
     if (expr::hasFreeOrShadowedVar(n, wasShadow))
     {
-      std::string varType(wasShadow ? "shadowed" : "free");
       std::stringstream se;
-      se << "Cannot process term with " << varType << " variable in " << src
-         << ".";
+      se << "Cannot process term " << n << " with ";
+      if (wasShadow)
+      {
+        se << "shadowed variables " << std::endl;
+      }
+      else
+      {
+        std::unordered_set<internal::Node> fvs;
+        expr::getFreeVariables(n, fvs);
+        se << "free variables: " << fvs << std::endl;
+      }
       throw ModalException(se.str().c_str());
     }
   }

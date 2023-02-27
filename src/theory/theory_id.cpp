@@ -31,28 +31,33 @@ TheoryId& operator++(TheoryId& id)
   return id = static_cast<TheoryId>(static_cast<int>(id) + 1);
 }
 
-std::ostream& operator<<(std::ostream& out, TheoryId theoryId)
+std::string toString(TheoryId theoryId)
 {
   switch (theoryId)
   {
-    case THEORY_BUILTIN: out << "THEORY_BUILTIN"; break;
-    case THEORY_BOOL: out << "THEORY_BOOL"; break;
-    case THEORY_UF: out << "THEORY_UF"; break;
-    case THEORY_ARITH: out << "THEORY_ARITH"; break;
-    case THEORY_BV: out << "THEORY_BV"; break;
-    case THEORY_FF: out << "THEORY_FF"; break;
-    case THEORY_FP: out << "THEORY_FP"; break;
-    case THEORY_ARRAYS: out << "THEORY_ARRAYS"; break;
-    case THEORY_DATATYPES: out << "THEORY_DATATYPES"; break;
-    case THEORY_SAT_SOLVER: out << "THEORY_SAT_SOLVER"; break;
-    case THEORY_SEP: out << "THEORY_SEP"; break;
-    case THEORY_SETS: out << "THEORY_SETS"; break;
-    case THEORY_BAGS: out << "THEORY_BAGS"; break;
-    case THEORY_STRINGS: out << "THEORY_STRINGS"; break;
-    case THEORY_QUANTIFIERS: out << "THEORY_QUANTIFIERS"; break;
-
-    default: out << "UNKNOWN_THEORY"; break;
+    case THEORY_BUILTIN: return "THEORY_BUILTIN"; break;
+    case THEORY_BOOL: return "THEORY_BOOL"; break;
+    case THEORY_UF: return "THEORY_UF"; break;
+    case THEORY_ARITH: return "THEORY_ARITH"; break;
+    case THEORY_BV: return "THEORY_BV"; break;
+    case THEORY_FF: return "THEORY_FF"; break;
+    case THEORY_FP: return "THEORY_FP"; break;
+    case THEORY_ARRAYS: return "THEORY_ARRAYS"; break;
+    case THEORY_DATATYPES: return "THEORY_DATATYPES"; break;
+    case THEORY_SAT_SOLVER: return "THEORY_SAT_SOLVER"; break;
+    case THEORY_SEP: return "THEORY_SEP"; break;
+    case THEORY_SETS: return "THEORY_SETS"; break;
+    case THEORY_BAGS: return "THEORY_BAGS"; break;
+    case THEORY_STRINGS: return "THEORY_STRINGS"; break;
+    case THEORY_QUANTIFIERS: return "THEORY_QUANTIFIERS"; break;
+    default: break;
   }
+  return "UNKNOWN_THEORY";
+}
+
+std::ostream& operator<<(std::ostream& out, TheoryId theoryId)
+{
+  out << toString(theoryId);
   return out;
 }
 

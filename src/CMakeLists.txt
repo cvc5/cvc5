@@ -28,6 +28,8 @@ libcvc5_add_sources(
   decision/decision_engine.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
+  decision/justify_cache.cpp
+  decision/justify_cache.h
   decision/justify_info.cpp
   decision/justify_info.h
   decision/justify_stack.cpp
@@ -211,6 +213,8 @@ libcvc5_add_sources(
   proof/proof_set.h
   proof/proof_step_buffer.cpp
   proof/proof_step_buffer.h
+  proof/resolution_proofs_util.cpp
+  proof/resolution_proofs_util.h
   proof/trust_node.cpp
   proof/trust_node.h
   proof/theory_proof_step_buffer.cpp
@@ -275,6 +279,8 @@ libcvc5_add_sources(
   prop/sat_solver_types.h
   prop/skolem_def_manager.cpp
   prop/skolem_def_manager.h
+  prop/theory_preregistrar.cpp
+  prop/theory_preregistrar.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
   prop/zero_level_learner.cpp
@@ -690,14 +696,10 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/ff/groebner.cpp
-  theory/ff/groebner.h
   theory/ff/core.cpp
   theory/ff/core.h
-  theory/ff/model.cpp
-  theory/ff/model.h
-  theory/ff/roots.cpp
-  theory/ff/roots.h
+  theory/ff/multi_roots.cpp
+  theory/ff/multi_roots.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp
@@ -708,6 +710,8 @@ libcvc5_add_sources(
   theory/ff/theory_ff_rewriter.h
   theory/ff/theory_ff_type_rules.cpp
   theory/ff/theory_ff_type_rules.h
+  theory/ff/uni_roots.cpp
+  theory/ff/uni_roots.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
@@ -1124,6 +1128,8 @@ libcvc5_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
   theory/strings/regexp_entail.h
+  theory/strings/regexp_eval.cpp
+  theory/strings/regexp_eval.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
@@ -1170,6 +1176,8 @@ libcvc5_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_module.cpp
+  theory/theory_engine_module.h
   theory/theory_engine_proof_generator.cpp
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
@@ -1307,7 +1315,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
   COMMAND
-    ${PYTHON_EXECUTABLE}
+    ${Python_EXECUTABLE}
     ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_BINARY_DIR}
@@ -1350,12 +1358,18 @@ set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds)
 
 #-----------------------------------------------------------------------------#
+
+set(REWRITES_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites)
+
+#-----------------------------------------------------------------------------#
 # Add subdirectories
 
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)
 add_subdirectory(parser)
+add_subdirectory(rewriter)
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -1372,7 +1386,7 @@ set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
 add_dependencies(cvc5-obj cvc5base cvc5context)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-tags gen-theory)
+add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-rewrites gen-tags gen-theory)
 
 add_library(cvc5 $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
 
@@ -1388,6 +1402,10 @@ install(TARGETS cvc5
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+if(BUILD_SHARED_LIBS)
+  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+endif()
 
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)

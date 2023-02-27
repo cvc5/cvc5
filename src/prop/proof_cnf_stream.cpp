@@ -696,7 +696,7 @@ void ProofCnfStream::convertPropagation(TrustNode trn)
   }
 }
 
-void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
+void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
 {
   Assert(explLevel < (userContext()->getLevel() - 1));
   Assert(!d_currPropagationProcessed.isNull());
@@ -730,7 +730,7 @@ void ProofCnfStream::notifyCurrPropagationInsertedAtLevel(int explLevel)
 }
 
 void ProofCnfStream::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                                 int clLevel)
+                                                 uint32_t clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
                << clLevel + 1 << " despite being currently in level "

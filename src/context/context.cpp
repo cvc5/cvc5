@@ -54,6 +54,11 @@ Context::~Context() {
   }
 }
 
+uint32_t Context::getLevel() const
+{
+  Assert(d_scopeList.size() > 0);
+  return d_scopeList.size() - 1;
+}
 
 void Context::push() {
   Trace("pushpop") << std::string(2 * getLevel(), ' ') << "Push [to "
@@ -104,13 +109,11 @@ void Context::pop() {
                    << getLevel() << "] " << this << std::endl;
 }
 
-
-void Context::popto(int toLevel) {
+void Context::popto(uint32_t toLevel)
+{
   // Pop scopes until there are none left or toLevel is reached
-  if(toLevel < 0) toLevel = 0;
-  while(toLevel < getLevel()) pop();
+  while (toLevel < getLevel()) pop();
 }
-
 
 void Context::addNotifyObjPre(ContextNotifyObj* pCNO) {
   // Insert pCNO at *front* of list
@@ -294,7 +297,7 @@ std::ostream& operator<<(std::ostream& out, const Context& context)
 {
   static const std::string separator(79, '-');
 
-  int level = context.d_scopeList.size() - 1;
+  uint32_t level = context.d_scopeList.size() - 1;
   typedef std::vector<Scope*>::const_reverse_iterator const_reverse_iterator;
   for(const_reverse_iterator i = context.d_scopeList.rbegin();
       i != context.d_scopeList.rend();

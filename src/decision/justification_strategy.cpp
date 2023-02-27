@@ -15,6 +15,7 @@
 
 #include "decision/justification_strategy.h"
 
+#include "expr/node_algorithm.h"
 #include "prop/skolem_def_manager.h"
 
 using namespace cvc5::internal::kind;
@@ -24,7 +25,7 @@ namespace cvc5::internal {
 namespace decision {
 
 JustificationStrategy::JustificationStrategy(Env& env,
-                                             prop::CDCLTSatSolverInterface* ss,
+                                             prop::CDCLTSatSolver* ss,
                                              prop::CnfStream* cs)
     : DecisionEngine(env, ss, cs),
       d_assertions(
@@ -34,7 +35,7 @@ JustificationStrategy::JustificationStrategy(Env& env,
               .decision.jhRlvOrder),  // assertions are user-context dependent
       d_skolemAssertions(
           context(), context()),  // skolem assertions are SAT-context dependent
-      d_justified(context()),
+      d_jcache(context(), ss, cs),
       d_stack(context()),
       d_lastDecisionLit(context()),
       d_currStatusDec(false),
@@ -86,7 +87,7 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
   {
     Trace("jh-process") << "last decision = " << d_lastDecisionLit.get()
                         << std::endl;
-    lastChildVal = lookupValue(d_lastDecisionLit.get());
+    lastChildVal = d_jcache.lookupValue(d_lastDecisionLit.get());
     if (lastChildVal == SAT_VALUE_UNKNOWN)
     {
       // if the value is now unknown, we must reprocess the assertion, since
@@ -153,12 +154,12 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
       Assert(!next.first.isNull());
       Assert(next.second != SAT_VALUE_UNKNOWN);
       // Look up whether the next child already has a value
-      lastChildVal = lookupValue(next.first);
+      lastChildVal = d_jcache.lookupValue(next.first);
       if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
         bool nextPol = next.first.getKind() != kind::NOT;
         TNode nextAtom = nextPol ? next.first : next.first[0];
-        if (isTheoryAtom(nextAtom))
+        if (expr::isTheoryAtom(nextAtom))
         {
           // should be assigned a literal
           Assert(d_cnfStream->hasLiteral(nextAtom));
@@ -174,7 +175,7 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
               << "...return " << nextAtom << " " << lastChildVal << std::endl;
           // Note that the last child of the current node we looked at does
           // *not* yet have a value. Although we are returning it as a decision,
-          // we cannot set its value in d_justified, because we have yet to
+          // we cannot set its value in d_jcache, because we have yet to
           // push a decision level. Thus, we remember the literal we decided
           // on. The value of d_lastDecisionLit will be processed at the
           // beginning of the next call to getNext above.
@@ -191,8 +192,9 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
         else
         {
           // NOTE: it may be the case that we have yet to justify this node,
-          // as indicated by the return of lookupValue. We may have a value
-          // assigned to next.first by the SAT solver, but we ignore it here.
+          // as indicated by the return of d_jcache.lookupValue. We may have a
+          // value assigned to next.first by the SAT solver, but we ignore it
+          // here.
           // (2) unprocessed non-atom, push to the stack
           d_stack.pushToStack(next.first, next.second);
           d_stats.d_maxStackSize.maxAssign(d_stack.size());
@@ -228,7 +230,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Kind ck = curr.getKind();
   // the current node should be a non-theory literal and not have double
   // negation, due to our invariants of what is pushed onto the stack
-  Assert(!isTheoryAtom(curr));
+  Assert(!expr::isTheoryAtom(curr));
   Assert(ck != NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
@@ -261,7 +263,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // we scan only once, when processing the first child
         for (const Node& c : curr)
         {
-          SatValue v = lookupValue(c);
+          SatValue v = d_jcache.lookupValue(c);
           if (v == currDesiredVal)
           {
             Trace("jh-debug") << "already forcing child " << c << std::endl;
@@ -293,7 +295,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     if (i == 0)
     {
       // lookahead to second child to determine if value already forced
-      if (lookupValue(curr[1]) == SAT_VALUE_TRUE)
+      if (d_jcache.lookupValue(curr[1]) == SAT_VALUE_TRUE)
       {
         value = SAT_VALUE_TRUE;
       }
@@ -326,8 +328,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     if (i == 0)
     {
       // lookahead on branches
-      SatValue val1 = lookupValue(curr[1]);
-      SatValue val2 = lookupValue(curr[2]);
+      SatValue val1 = d_jcache.lookupValue(curr[1]);
+      SatValue val2 = d_jcache.lookupValue(curr[2]);
       if (val1 == val2)
       {
         // branches have no difference, value is that of branches, which may
@@ -369,7 +371,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     if (i == 0)
     {
       // check if the rhs forces a value
-      SatValue val1 = lookupValue(curr[1]);
+      SatValue val1 = d_jcache.lookupValue(curr[1]);
       if (val1 == SAT_VALUE_UNKNOWN)
       {
         // not forced, arbitrarily choose true
@@ -400,7 +402,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     else
     {
       // recompute the value of the first child
-      SatValue val0 = lookupValue(curr[0]);
+      SatValue val0 = d_jcache.lookupValue(curr[0]);
       Assert(val0 != SAT_VALUE_UNKNOWN);
       Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       // compute the value of the equal/xor. The values for LHS/RHS are
@@ -422,9 +424,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
   {
-    Assert(!isTheoryAtom(curr));
+    Assert(!expr::isTheoryAtom(curr));
     // add to justify if so
-    d_justified.insert(curr, value);
+    d_jcache.setValue(curr, value);
     // update the last child value, which will be used by the parent of the
     // current node, if it exists.
     lastChildVal = currPol ? value : invertValue(value);
@@ -443,41 +445,6 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       << "Child " << i << " of " << curr.getKind() << " had no desired value";
   // return the justify node
   return JustifyNode(curr[i], desiredVal);
-}
-
-prop::SatValue JustificationStrategy::lookupValue(TNode n)
-{
-  bool pol = n.getKind() != NOT;
-  TNode atom = pol ? n : n[0];
-  Assert(atom.getKind() != NOT);
-  // check if we have already determined the value
-  // notice that d_justified may contain nodes that are not assigned SAT values,
-  // since this class infers when the value of nodes can be determined.
-  auto jit = d_justified.find(atom);
-  if (jit != d_justified.end())
-  {
-    return pol ? jit->second : invertValue(jit->second);
-  }
-  // Notice that looking up values for non-theory atoms may lead to
-  // an incomplete strategy where a formula is asserted but not justified
-  // via its theory literal subterms. This is the case because the justification
-  // heuristic is not the only source of decisions, as the theory may request
-  // them.
-  if (isTheoryAtom(atom))
-  {
-    SatLiteral nsl = d_cnfStream->getLiteral(atom);
-    prop::SatValue val = d_satSolver->value(nsl);
-    if (val != SAT_VALUE_UNKNOWN)
-    {
-      // this is the moment where we realize a skolem definition is relevant,
-      // add now.
-      // NOTE: if we enable skolems when they are justified, we could call
-      // a method notifyJustified(atom) here
-      d_justified.insert(atom, val);
-      return pol ? val : invertValue(val);
-    }
-  }
-  return SAT_VALUE_UNKNOWN;
 }
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
@@ -550,7 +517,7 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
       }
       toProcess.insert(toProcess.begin() + index, negc.begin(), negc.end());
     }
-    else if (!isTheoryAtom(currAtom))
+    else if (!expr::isTheoryAtom(currAtom))
     {
       al.addAssertion(curr);
       // take stats
@@ -610,7 +577,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
     Trace("jh-process") << "Check assertion " << curr << std::endl;
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
-    currValue = lookupValue(curr);
+    currValue = d_jcache.lookupValue(curr);
     if (currValue == SAT_VALUE_UNKNOWN)
     {
       // if not already justified, we reset the stack and push to it
@@ -641,15 +608,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
 
 bool JustificationStrategy::isTheoryLiteral(TNode n)
 {
-  return isTheoryAtom(n.getKind() == NOT ? n[0] : n);
-}
-
-bool JustificationStrategy::isTheoryAtom(TNode n)
-{
-  Kind k = n.getKind();
-  Assert(k != NOT);
-  return k != AND && k != OR && k != IMPLIES && k != ITE && k != XOR
-         && (k != EQUAL || !n[0].getType().isBoolean());
+  return expr::isTheoryAtom(n.getKind() == NOT ? n[0] : n);
 }
 
 }  // namespace decision

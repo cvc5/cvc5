@@ -15,20 +15,20 @@
 
 #include "cvc5parser_public.h"
 
-#ifndef CVC5__PARSER__INPUT_PARSER_H
-#define CVC5__PARSER__INPUT_PARSER_H
+#ifndef CVC5__PARSER__API__CPP__INPUT_PARSER_H
+#define CVC5__PARSER__API__CPP__INPUT_PARSER_H
 
 #include <memory>
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
+#include "parser/flex_parser.h"
 #include "parser/parser_antlr.h"
 
 namespace cvc5 {
 namespace parser {
 
 class Command;
-class Parser;
 class SymbolManager;
 
 /**
@@ -38,16 +38,29 @@ class SymbolManager;
  * After construction, it is expected that an input is first set via e.g.
  * setFileInput, setStreamInput, or setStringInput. Then, the methods
  * nextCommand and nextExpression can be invoked to parse the input.
- *
- * It currently uses a (deprecated) implementation which relies on ANTLR.
  */
 class CVC5_EXPORT InputParser
 {
-  friend Parser;
-
  public:
-  InputParser(Solver* solver, SymbolManager* sm, bool useOptions);
+  /**
+   * Construct an input parser
+   *
+   * @param solver The solver (e.g. for constructing terms and sorts)
+   * @param sm The symbol manager, which contains a symbol table that maps
+   * symbols to terms and sorts.
+   */
+  InputParser(Solver* solver, SymbolManager* sm);
+  /**
+   * Construct an input parser with an initially empty symbol manager.
+   *
+   * @param solver The solver (e.g. for constructing terms and sorts)
+   */
+  InputParser(Solver* solver);
 
+  /** Get the underlying solver of this input parser */
+  Solver* getSolver();
+  /** Get the underlying symbol manager of this input parser */
+  SymbolManager* getSymbolManager();
   /** Set the input for the given file.
    *
    * @param lang the input language
@@ -93,12 +106,16 @@ class CVC5_EXPORT InputParser
   Term nextExpression();
 
  private:
+  /** Initialize this input parser, called during construction */
+  void initialize();
   /** Solver */
   Solver* d_solver;
+  /** The allocated symbol manager */
+  std::unique_ptr<SymbolManager> d_allocSm;
   /** Symbol manager */
   SymbolManager* d_sm;
-  /** use options */
-  bool d_useOptions;
+  /** whether to use flex */
+  bool d_useFlex;
   /** Incremental string input language */
   std::string d_istringLang;
   /** Incremental string name */
@@ -109,6 +126,9 @@ class CVC5_EXPORT InputParser
   std::unique_ptr<Parser> d_state;
   /** The underlying input */
   std::unique_ptr<Input> d_input;
+  //!!!!!!!!!!!!!!
+  //!!!!!!!!!!!!!! new implementation
+  std::unique_ptr<FlexParser> d_fparser;
   //!!!!!!!!!!!!!!
 };
 

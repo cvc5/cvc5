@@ -36,7 +36,7 @@
 #include "main/signal_handlers.h"
 #include "main/time_limit.h"
 #include "parser/api/cpp/command.h"
-#include "parser/input_parser.h"
+#include "parser/api/cpp/input_parser.h"
 #include "smt/solver_engine.h"
 #include "util/result.h"
 
@@ -221,7 +221,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       }
 
       std::unique_ptr<InputParser> parser(new InputParser(
-              pExecutor->getSolver(), pExecutor->getSymbolManager(), true));
+          pExecutor->getSolver(), pExecutor->getSymbolManager()));
       if( inputFromStdin ) {
         parser->setStreamInput(
             solver->getOption("input-language"), cin, filename);

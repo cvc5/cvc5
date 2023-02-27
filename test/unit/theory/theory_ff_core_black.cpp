@@ -51,8 +51,6 @@ class TestTheoryFfRootsBlack : public TestSmt
 TEST_F(TestTheoryFfRootsBlack, DistinctRootsPoly)
 {
   {
-    ff::IncrementalTracer tracer;
-    tracer.setFunctionPointers();
     CoCoA::BigInt p = CoCoA::BigIntFromString(TINY_MODULUS);
     CoCoA::ring ring = CoCoA::NewZZmod(p);
     std::vector<CoCoA::symbol> syms = CoCoA::symbols("x,y,z");
@@ -61,10 +59,8 @@ TEST_F(TestTheoryFfRootsBlack, DistinctRootsPoly)
     CoCoA::RingElem y = CoCoA::indet(polyRing, 1);
     CoCoA::RingElem z = CoCoA::indet(polyRing, 2);
     std::vector<CoCoA::RingElem> gens{x,x-y,y-z,z*z-z,y-1,x-x*x};
-    for (const auto& g : gens)
-    {
-      tracer.addInput(g);
-    }
+    ff::Tracer tracer(gens);
+    tracer.setFunctionPointers();
     CoCoA::ideal ideal(gens);
     std::vector<CoCoA::RingElem> basis = CoCoA::GBasis(ideal);
     ASSERT_EQ(basis.size(), 1);
