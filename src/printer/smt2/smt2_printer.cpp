@@ -39,12 +39,12 @@
 #include "proof/unsat_core.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
-#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/finite_field_value.h"
@@ -578,7 +578,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
   }
-  if (k==kind::APPLY_UF && !n.getOperator().isVar())
+  if (k == kind::APPLY_UF && !n.getOperator().isVar())
   {
     // Must print as HO apply instead. This ensures un-beta-reduced function
     // applications can be reparsed.
