@@ -25,7 +25,7 @@ namespace cvc5::internal {
 namespace decision {
 
 JustificationStrategy::JustificationStrategy(Env& env,
-                                             prop::CDCLTSatSolverInterface* ss,
+                                             prop::CDCLTSatSolver* ss,
                                              prop::CnfStream* cs)
     : DecisionEngine(env, ss, cs),
       d_assertions(

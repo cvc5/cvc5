@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Andrew Reynolds
+ *   Andrew Reynolds, Aina Niemetz
  *
  * This file is part of the cvc5 project.
  *
@@ -29,8 +29,9 @@ class TheoryEngine;
 
 namespace prop {
 
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 class CnfStream;
+class TheoryPreregistrarNotify;
 
 /**
  * Implements the policy for preregistration to TheoryEngine based on
@@ -38,10 +39,12 @@ class CnfStream;
  */
 class TheoryPreregistrar : protected EnvObj
 {
+  friend TheoryPreregistrarNotify;
+
  public:
   TheoryPreregistrar(Env& env,
                      TheoryEngine* te,
-                     CDCLTSatSolverInterface* ss,
+                     CDCLTSatSolver* ss,
                      CnfStream* cs);
   ~TheoryPreregistrar();
   /** Do we need to be informed of activated skolem definitions? */
@@ -54,8 +57,15 @@ class TheoryPreregistrar : protected EnvObj
   void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /**
    * Notify that a SAT literal for atom n has been allocated in the SAT solver.
+   * @param n The node to preregister.
    */
   void notifySatLiteral(TNode n);
+  /**
+   * Callback to notify that the SAT solver backtracked by the given number
+   * of levels.
+   * @param nlevels The number of levels the SAT solver backtracked.
+   */
+  void notifyBacktrack(uint32_t nlevels);
   /**
    * Notify that n is asserted from SAT solver, return true if we should
    * assert n to the theory engine.
@@ -72,6 +82,17 @@ class TheoryPreregistrar : protected EnvObj
   void preRegisterToTheory(const std::vector<TNode>& toPreregister);
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
+  /**
+   * Cache preregistered SAT literals, mapped to the SAT context level they
+   * were registered at. On backtrack, all literals that were registered at
+   * a level higher than the current (backtracked) level need registration.
+   * This is due to the fact that they get popped from the SAT context on
+   * backtrack but remain in the SAT solver.
+   * This cache is cleared on user context pop.
+   */
+  std::vector<std::pair<Node, uint32_t>> d_sat_literals;
+  /* Notifies on SAT context pop. */
+  std::unique_ptr<TheoryPreregistrarNotify> d_notify;
 };
 
 }  // namespace prop

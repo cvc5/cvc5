@@ -160,7 +160,7 @@ public:
   /**
    * Return the current Scope level.
    */
-  int getLevel() const { return d_scopeList.size() - 1; }
+  uint32_t getLevel() const;
 
   /**
    * Return the ContextMemoryManager associated with the context.
@@ -180,7 +180,7 @@ public:
   /**
    * Pop all the way back to given level
    */
-  void popto(int toLevel);
+  void popto(uint32_t toLevel);
 
   /**
    * Add pCNO to the list of objects notified before every pop
@@ -241,7 +241,7 @@ class Scope {
    * Scope level (total number of outstanding push() calls when this Scope was
    * created).
    */
-  int d_level;
+  uint32_t d_level;
 
   /**
    * Linked list of objects which changed in this scope,
@@ -264,7 +264,7 @@ class Scope {
    * Constructor: Create a new Scope; set the level and the previous Scope
    * if any.
    */
-  Scope(Context* pContext, ContextMemoryManager* pCMM, int level)
+  Scope(Context* pContext, ContextMemoryManager* pCMM, uint32_t level)
       : d_pContext(pContext),
         d_pCMM(pCMM),
         d_level(level),
@@ -292,7 +292,7 @@ class Scope {
   /**
    * Get the level of the current Scope
    */
-  int getLevel() const { return d_level; }
+  uint32_t getLevel() const { return d_level; }
 
   /**
    * Return true iff this Scope is the current top Scope
@@ -544,7 +544,7 @@ class CVC5_EXPORT ContextObj
    * ContextObj-derived class needs to compare the level of its last
    * update with another ContextObj.
    */
-  int getLevel() const { return d_pScope->getLevel(); }
+  uint32_t getLevel() const { return d_pScope->getLevel(); }
 
   /**
    * Returns true if the object is "current"-- that is, updated in the
