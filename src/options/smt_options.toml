@@ -212,7 +212,7 @@ name   = "SMT Layer"
   category   = "expert"
   long       = "difficulty-mode=MODE"
   type       = "DifficultyMode"
-  default    = "LEMMA_LITERAL"
+  default    = "LEMMA_LITERAL_ALL"
   help       = "choose output mode for get-difficulty, see --difficulty-mode=help"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
