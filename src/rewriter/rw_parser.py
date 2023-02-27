@@ -132,24 +132,40 @@ class SymbolTable:
             '_': Placeholder(),
         }
         self.symbols = {}
+        # Definitions must be decoupled from symbols because symbols have to be
+        # bound as to not trigger an error from mkrewrites when it checks rule
+        # validity.
+        self.defs = {}
 
     def add_symbol(self, name, sort):
         if name in self.consts or name in self.symbols:
             die(f'Symbol {name} has already been declared')
 
         self.symbols[name] = Var(fresh_name(name), sort)
+    def add_def(self, name, expr):
+        if name in self.consts or name in self.symbols or name in self.defs:
+            die(f'Definition {name} has already been declared')
+
+        self.defs[name] = expr
 
     def get_symbol(self, name):
         if name in self.consts:
             return self.consts[name]
 
-        if name not in self.symbols:
+        if name not in self.symbols and name not in self.defs:
+            raise RuntimeError(f'Symbol {name} not declared')
             die(f'Symbol {name} not declared')
-        return self.symbols[name]
+        # Should not matter the order of defs and symbols since collisions are
+        # detected.
+        if name in self.defs:
+            return self.defs[name]
+        else:
+            return self.symbols[name]
 
     def pop(self):
         # TODO: Actual push/pop
         self.symbols = {}
+        self.defs = {}
 
 
 class Parser:
@@ -210,6 +226,8 @@ class Parser:
         app = (pp.Suppress('(') + self.symbol() + pp.OneOrMore(expr) +
                pp.Suppress(')')).setParseAction(self.app_action)
 
+        # let and cond are deprecated. These should be removed
+
         # Let bindings
         binding = (
             pp.Suppress('(') + var + expr +
@@ -269,6 +287,9 @@ class Parser:
         if attrs:
             sort.is_list = True
         self.symbols.add_symbol(name, sort)
+    def def_decl_action(self, name, expr):
+        print(f"Adding symbol {name}={expr}")
+        self.symbols.add_def(name, expr)
 
     def var_list(self):
         decl = pp.Suppress(
@@ -277,6 +298,14 @@ class Parser:
              pp.Suppress(')')).setParseAction(
                  lambda s, l, t: self.var_decl_action(t[0], t[1], t[2:])))
         return (pp.Suppress('(') + pp.ZeroOrMore(decl) + pp.Suppress(')'))
+
+    def def_list(self):
+        d = pp.Suppress((pp.Suppress('(') + self.symbol() + self.expr()
+                         + pp.Suppress(')'))
+                .setParseAction(lambda s, l, t: self.def_decl_action(t[0], t[1])))
+        # The pp.Keyword is suppressed since otherwise it will go into the mkrewrite mechanism
+        return pp.Optional(pp.Suppress('(') + pp.Suppress(pp.Keyword('def')) +
+                           pp.ZeroOrMore(d) + pp.Suppress(')'))
 
     def rule_action(self, name, cond, lhs, rhs, is_fixed_point, rhs_context):
         bvars = self.symbols.symbols.values()
@@ -287,13 +316,13 @@ class Parser:
         rule = (
             pp.Suppress('(') +
             (pp.Keyword('define-rule*') | pp.Keyword('define-rule')) +
-            self.symbol() + self.var_list() + self.expr() + self.expr() + pp.Optional(self.expr()) +
+            self.symbol() + self.var_list() + self.def_list() + self.expr() + self.expr() + pp.Optional(self.expr()) +
             pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
                 t[1], CBool(True), t[2], t[3], t[0] == 'define-rule*', t[4] if len(t) == 5 else None))
         cond_rule = (
             pp.Suppress('(') +
             (pp.Keyword('define-cond-rule*') | pp.Keyword('define-cond-rule'))
-            + self.symbol() + self.var_list() + self.expr() + self.expr() +
+            + self.symbol() + self.var_list() + self.def_list() + self.expr() + self.expr() +
             self.expr() + pp.Optional(self.expr()) +
             pp.Suppress(')')).setParseAction(lambda s, l, t: self.rule_action(
                 t[1], t[2], t[3], t[4], t[0] == 'define-cond-rule*', t[5] if len(t) == 6 else None))

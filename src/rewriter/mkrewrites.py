@@ -301,6 +301,8 @@ def validate_rule(rule):
                         die(f'List variable {child.name} cannot be used in {curr.op} and {var_to_op[child]} simultaneously'
                             )
                     var_to_op[child] = curr.op
+        elif isinstance(curr, str):
+            print(f"Unparsed string detected {curr}")
         to_visit.extend(curr.children)
 
     # Perform type checking
