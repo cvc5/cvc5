@@ -389,11 +389,25 @@ bool AletheProofPostprocessCallback::update(Node res,
       {
         Unreachable();
       }
+      new_args.push_back(rule);
+      for(int i = 1, size = args.size(); i<size; i++){
+        if(!args[i].isNull()){
+	  if(args[i].toString() == ""){//TODO: better way
+	    new_args.push_back(nm->mkNode(kind::SEXPR,nm->mkBoundVar("cvc5_nary_op", nm->sExprType())));
+	  }
+	  else if(args[i].getKind() == kind::SEXPR){
+	    new_args.push_back(nm->mkNode(kind::SEXPR,nm->mkBoundVar("cvc5_nary_op", nm->sExprType()),args[i][0]));
+	  }
+	  else{
+	    new_args.push_back(args[i]);
+	  }
+	}
+      }
       return addAletheStep(AletheRule::ALL_SIMPLIFY,
                            res,
                            nm->mkNode(kind::SEXPR, d_cl, res),
                            children,
-                           {rule},
+                           new_args,
                            *cdp);
     }
     case PfRule::EVALUATE:
