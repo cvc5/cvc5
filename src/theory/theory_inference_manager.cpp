@@ -150,7 +150,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   // annotate if the annotation proof generator is active
   if (d_apg != nullptr)
   {
-    tconf = annotateId(tconf, id);
+    tconf = annotateId(tconf, id, true);
   }
   d_out.trustedConflict(tconf);
   ++d_numConflicts;
@@ -583,7 +583,8 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 }
 
 TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
-                                             InferenceId id)
+                                             InferenceId id,
+                                             bool isConflict)
 {
   Assert(d_iipa != nullptr && d_apg != nullptr);
   Node lemma = trn.getProven();
@@ -594,7 +595,7 @@ TrustNode TheoryInferenceManager::annotateId(const TrustNode& trn,
     Node tidn =
         builtin::BuiltinProofRuleChecker::mkTheoryIdNode(d_theory.getId());
     trna = d_defaultPg->mkTrustNode(
-        lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
+        trn.getNode(), PfRule::THEORY_LEMMA, {}, {lemma, tidn}, isConflict);
   }
   d_iipa->setAnnotation(lemma, id);
   return d_apg->transform(trna, d_iipa.get());
