@@ -190,7 +190,8 @@ void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
   // putting it here is easier to diagnose
   Assert(x != t) << "cannot substitute a term for itself";
 
-  d_substitutions[x] = rewrite(t);
+  // don't rewrite yet
+  d_substitutions[x] = t;
 
   // Also invalidate the cache if necessary
   if (invalidateCache) {
