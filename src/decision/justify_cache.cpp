@@ -24,7 +24,7 @@ namespace cvc5::internal {
 namespace decision {
 
 JustifyCache::JustifyCache(context::Context* c,
-                           prop::CDCLTSatSolverInterface* ss,
+                           prop::CDCLTSatSolver* ss,
                            prop::CnfStream* cs)
     : d_justified(c), d_satSolver(ss), d_cnfStream(cs)
 {

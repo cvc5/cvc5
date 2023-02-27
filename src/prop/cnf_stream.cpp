@@ -165,23 +165,32 @@ SatLiteral CnfStream::newLiteral(TNode node,
 
   // Get the literal for this node
   SatLiteral lit;
-  if (!hasLiteral(node)) {
+  if (!hasLiteral(node))
+  {
+    Trace("cnf") << d_name << "::newLiteral: node already registered\n";
     // If no literal, we'll make one
-    if (node.getKind() == kind::CONST_BOOLEAN) {
+    if (node.getKind() == kind::CONST_BOOLEAN)
+    {
       Trace("cnf") << d_name << "::newLiteral: boolean const\n";
-      if (node.getConst<bool>()) {
+      if (node.getConst<bool>())
+      {
         lit = SatLiteral(d_satSolver->trueVar());
-      } else {
+      }
+      else
+      {
         lit = SatLiteral(d_satSolver->falseVar());
       }
-    } else {
+    }
+    else
+    {
       Trace("cnf") << d_name << "::newLiteral: new var\n";
-      lit = SatLiteral(
-          d_satSolver->newVar(isTheoryAtom, notifyTheory, canEliminate));
+      lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
-  } else {
+  }
+  else
+  {
     Trace("cnf") << d_name << "::newLiteral: node already registered\n";
     lit = getLiteral(node);
   }
@@ -207,7 +216,9 @@ SatLiteral CnfStream::newLiteral(TNode node,
   return lit;
 }
 
-TNode CnfStream::getNode(const SatLiteral& literal) {
+TNode CnfStream::getNode(const SatLiteral& literal)
+{
+  Assert(d_literalToNodeMap.find(literal) != d_literalToNodeMap.end());
   Trace("cnf") << "getNode(" << literal << ")\n";
   Trace("cnf") << "getNode(" << literal << ") => "
                << d_literalToNodeMap[literal] << "\n";
