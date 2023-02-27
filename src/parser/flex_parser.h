@@ -85,6 +85,11 @@ class FlexParser : public ParserStateCallback
    */
   void preemptCommand(Command* cmd) override;
 
+  /** make flex parser from language string */
+  static std::unique_ptr<FlexParser> mkFlexParser(const std::string& lang,
+                                                  Solver* solver,
+                                                  SymbolManager* sm);
+
  protected:
   /** Initialize input */
   void initializeInput(const std::string& name);

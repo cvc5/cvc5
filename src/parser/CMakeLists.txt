@@ -33,6 +33,8 @@ set(libcvc5parserapi_src_files
   api/cpp/command.h
   api/cpp/symbol_manager.cpp
   api/cpp/symbol_manager.h
+  api/cpp/input_parser.cpp
+  api/cpp/input_parser.h
 )
 
 set(libcvc5parser_src_files
@@ -53,8 +55,6 @@ set(libcvc5parser_src_files
   flex_parser.h
   input.cpp
   input.h
-  input_parser.cpp
-  input_parser.h
   line_buffer.cpp
   line_buffer.h
   parse_op.cpp

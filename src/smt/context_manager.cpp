@@ -134,7 +134,7 @@ void ContextManager::pop()
   context()->pop();
 }
 
-void ContextManager::popto(int toLevel)
+void ContextManager::popto(uint32_t toLevel)
 {
   context()->popto(toLevel);
   userContext()->popto(toLevel);
