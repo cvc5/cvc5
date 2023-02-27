@@ -889,8 +889,13 @@ std::string DeclareFunctionCommand::getCommandName() const
 
 void DeclareFunctionCommand::toStream(std::ostream& out) const
 {
+  // Note we use the symbol of the function here. This makes a difference
+  // in the rare case we are binding a symbol in the parser to a variable
+  // whose name is different. For example, when converting TPTP to smt2,
+  // we require a namespace prefix. Using the function symbol name ensures
+  // that e.g. `-o raw-benchmark` results in a valid benchmark.
   Printer::getPrinter(out)->toStreamCmdDeclareFunction(
-      out, d_symbol, sortToTypeNode(d_func.getSort()));
+      out, d_func.getSymbol(), sortToTypeNode(d_func.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
