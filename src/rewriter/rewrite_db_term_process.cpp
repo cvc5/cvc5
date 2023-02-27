@@ -46,7 +46,7 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     }
     return nm->mkNode(STRING_CONCAT, children);
   }
-  
+
   return n;
 }
 
