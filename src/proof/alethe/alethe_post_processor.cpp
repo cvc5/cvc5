@@ -1214,7 +1214,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       // conclusions
       Assert(res.getKind() != kind::EQUAL);
       Node one = nm->mkConstInt(Rational(1));
-      Node minusOne = nm->mkNode(kind::NEG, one);
+      Node minusOne = nm->mkConstInt(Rational(-1));
       std::vector<Node> resArgs;
       std::vector<Node> resChildren;
       std::vector<Node> lits{d_cl};
