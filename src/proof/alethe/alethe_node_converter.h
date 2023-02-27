@@ -33,8 +33,6 @@ class AletheNodeConverter : public NodeConverter
  public:
   AletheNodeConverter() {}
   ~AletheNodeConverter() {}
-  /** convert at pre-order traversal */
-  Node preConvert(Node n) override;
   /** convert at post-order traversal */
   Node postConvert(Node n) override;
 
