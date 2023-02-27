@@ -12,14 +12,14 @@ rewriter ::cvc5::internal::theory::ff::TheoryFiniteFieldsRewriter \
     "theory/ff/theory_ff_rewriter.h"
 
 properties parametric
-properties check presolve
+properties check
 
 # Finite Fields
 constant FINITE_FIELD_TYPE \
   struct \
   FfSize \
   "::cvc5::internal::FfSizeHashFunction" \
-  "util/ff_val.h" \
+  "util/finite_field_value.h" \
   "finite field type"
 
 cardinality FINITE_FIELD_TYPE \
@@ -37,10 +37,10 @@ well-founded FINITE_FIELD_TYPE \
 
 constant CONST_FINITE_FIELD \
   class \
-  FfVal \
-  ::cvc5::internal::FfValHashFunction \
-  "util/ff_val.h" \
-  "a finite-field constant; payload is an instance of the cvc5::internal::FfVal class"
+  FiniteFieldValue \
+  ::cvc5::internal::FiniteFieldValueHashFunction \
+  "util/finite_field_value.h" \
+  "a finite-field constant; payload is an instance of the cvc5::internal::FiniteFieldValue class"
 
 ## ffmetic kinds
 operator FINITE_FIELD_MULT 2: "multiplication of two or more field elements"

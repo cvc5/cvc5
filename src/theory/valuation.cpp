@@ -99,11 +99,13 @@ Node Valuation::getSatValue(TNode n) const {
 
 bool Valuation::hasSatValue(TNode n, bool& value) const {
   Assert(d_engine != nullptr);
-  if (d_engine->getPropEngine()->isSatLiteral(n)) {
-    return d_engine->getPropEngine()->hasValue(n, value);
-  } else {
-    return false;
-  }
+  return d_engine->hasSatValue(n, value);
+}
+
+bool Valuation::hasSatValue(TNode n) const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->hasSatValue(n);
 }
 
 EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
@@ -111,9 +113,10 @@ EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
   return d_engine->getEqualityStatus(a, b);
 }
 
-Node Valuation::getModelValue(TNode var) {
+Node Valuation::getCandidateModelValue(TNode var)
+{
   Assert(d_engine != nullptr);
-  return d_engine->getModelValue(var);
+  return d_engine->getCandidateModelValue(var);
 }
 
 TheoryModel* Valuation::getModel() {

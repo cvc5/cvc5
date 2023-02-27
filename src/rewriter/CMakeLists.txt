@@ -21,6 +21,8 @@ libcvc5_add_sources(GENERATED
   rewrites.h
 )
 libcvc5_add_sources(
+  basic_rewrite_rcons.cpp
+  basic_rewrite_rcons.h
   rewrite_db.cpp
   rewrite_db.h
   rewrite_db_proof_cons.cpp
@@ -31,8 +33,6 @@ libcvc5_add_sources(
   rewrite_db_term_process.h
   rewrite_proof_rule.cpp
   rewrite_proof_rule.h
-  rewrite_rcons.cpp
-  rewrite_rcons.h
 )
 
 set(mkrewrites_script ${CMAKE_CURRENT_LIST_DIR}/mkrewrites.py)
@@ -42,7 +42,7 @@ add_custom_command(
       rewrites.cpp
       rewrites.h
     COMMAND
-      ${PYTHON_EXECUTABLE}
+      ${Python_EXECUTABLE}
       ${mkrewrites_script}
       rewrite-db
       ${CMAKE_CURRENT_LIST_DIR}

@@ -1,3 +1,18 @@
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# The DSL rewrite rule compiler
+##
+
 import argparse
 import logging
 import os
@@ -10,6 +25,85 @@ from util import *
 
 def gen_kind(op):
     op_to_kind = {
+        Op.STORE: 'STORE',
+        Op.SELECT: 'SELECT',
+
+        # Bit vectors
+        Op.BVSIZE: 'BITVECTOR_SIZE',
+        Op.BVUGT: 'BITVECTOR_UGT',
+        Op.BVUGE: 'BITVECTOR_UGE',
+        Op.BVSGT: 'BITVECTOR_SGT',
+        Op.BVSGE: 'BITVECTOR_SGE',
+        Op.BVSLT: 'BITVECTOR_SLT',
+        Op.BVSLE: 'BITVECTOR_SLE',
+        Op.BVULT: 'BITVECTOR_ULT',
+        Op.BVULE: 'BITVECTOR_ULE',
+        Op.BVREDAND: 'BITVECTOR_REDAND',
+        Op.BVREDOR: 'BITVECTOR_REDOR',
+        Op.BVNEG: 'BITVECTOR_NEG',
+        Op.BVADD: 'BITVECTOR_ADD',
+        Op.BVSUB: 'BITVECTOR_SUB',
+        Op.BVMUL: 'BITVECTOR_MUL',
+        Op.BVSDIV: 'BITVECTOR_SDIV',
+        Op.BVUDIV: 'BITVECTOR_UDIV',
+        Op.BVSREM: 'BITVECTOR_SREM',
+        Op.BVUREM: 'BITVECTOR_UREM',
+        Op.BVSMOD: 'BITVECTOR_SMOD',
+        Op.BVSHL: 'BITVECTOR_SHL',
+        Op.BVLSHR: 'BITVECTOR_LSHR',
+        Op.BVASHR: 'BITVECTOR_ASHR',
+        Op.ROTATE_LEFT: 'BITVECTOR_ROTATE_LEFT',
+        Op.ROTATE_RIGHT: 'BITVECTOR_ROTATE_RIGHT',
+        Op.BVNOT: 'BITVECTOR_NOT',
+        Op.BVAND: 'BITVECTOR_AND',
+        Op.BVOR: 'BITVECTOR_OR',
+        Op.BVXOR: 'BITVECTOR_XOR',
+        Op.BVNAND: 'BITVECTOR_NAND',
+        Op.BVNOR: 'BITVECTOR_NOR',
+        Op.BVXNOR: 'BITVECTOR_XNOR',
+        Op.CONCAT: 'BITVECTOR_CONCAT',
+        Op.BVITE: 'BITVECTOR_ITE',
+        Op.BVCOMP: 'BITVECTOR_COMP',
+        Op.BVCONST: 'CONST_BITVECTOR_SYMBOLIC',
+        Op.ZERO_EXTEND: 'BITVECTOR_ZERO_EXTEND',
+        Op.SIGN_EXTEND: 'BITVECTOR_SIGN_EXTEND',
+        Op.EXTRACT: 'BITVECTOR_EXTRACT',
+        Op.REPEAT: 'BITVECTOR_REPEAT',
+        Op.BVUGT: 'BITVECTOR_UGT',
+        Op.BVUGE: 'BITVECTOR_UGE',
+        Op.BVSGT: 'BITVECTOR_SGT',
+        Op.BVSGE: 'BITVECTOR_SGE',
+        Op.BVSLT: 'BITVECTOR_SLT',
+        Op.BVSLE: 'BITVECTOR_SLE',
+        Op.BVULT: 'BITVECTOR_ULT',
+        Op.BVULE: 'BITVECTOR_ULE',
+        Op.BVREDAND: 'BITVECTOR_REDAND',
+        Op.BVREDOR: 'BITVECTOR_REDOR',
+        Op.BVNEG: 'BITVECTOR_NEG',
+        Op.BVADD: 'BITVECTOR_ADD',
+        Op.BVSUB: 'BITVECTOR_SUB',
+        Op.BVMUL: 'BITVECTOR_MUL',
+        Op.BVSDIV: 'BITVECTOR_SDIV',
+        Op.BVUDIV: 'BITVECTOR_UDIV',
+        Op.BVSREM: 'BITVECTOR_SREM',
+        Op.BVUREM: 'BITVECTOR_UREM',
+        Op.BVSMOD: 'BITVECTOR_SMOD',
+        Op.BVSHL: 'BITVECTOR_SHL',
+        Op.BVLSHR: 'BITVECTOR_LSHR',
+        Op.BVASHR: 'BITVECTOR_ASHR',
+        Op.ROTATE_LEFT: 'BITVECTOR_ROTATE_LEFT',
+        Op.ROTATE_RIGHT: 'BITVECTOR_ROTATE_RIGHT',
+        Op.BVNOT: 'BITVECTOR_NOT',
+        Op.BVAND: 'BITVECTOR_AND',
+        Op.BVOR: 'BITVECTOR_OR',
+        Op.BVXOR: 'BITVECTOR_XOR',
+        Op.BVNAND: 'BITVECTOR_NAND',
+        Op.BVNOR: 'BITVECTOR_NOR',
+        Op.BVXNOR: 'BITVECTOR_XNOR',
+        Op.CONCAT: 'BITVECTOR_CONCAT',
+        Op.BVITE: 'BITVECTOR_ITE',
+        Op.BVCOMP: 'BITVECTOR_COMP',
+
         Op.ITE: 'ITE',
         Op.NOT: 'NOT',
         Op.AND: 'AND',
@@ -81,10 +175,19 @@ def gen_mk_skolem(name, sort):
         sort_code = 'nm->realType()'
     elif sort.base == BaseSort.String:
         sort_code = 'nm->stringType()'
-    elif sort.base == BaseSort.String:
-        sort_code = 'nm->stringType()'
     elif sort.base == BaseSort.RegLan:
         sort_code = 'nm->regExpType()'
+    elif sort.base == BaseSort.String:
+        sort_code = 'nm->stringType()'
+    elif sort.base == BaseSort.AbsArray:
+        sort_code = 'nm->mkAbstractType(kind::ARRAY_TYPE)'
+    elif sort.base == BaseSort.AbsBitVec:
+        sort_code = 'nm->mkAbstractType(kind::BITVECTOR_TYPE)'
+    elif sort.base == BaseSort.AbsAbs:
+        sort_code = 'nm->mkAbstractType(kind::ABSTRACT_TYPE)'
+    elif sort.base == BaseSort.BitVec:
+        # This will result in a compilation error for variable BitVec sizes.
+        sort_code = f'nm->mkBitVectorType({sort.children[0]})'
     else:
         die(f'Cannot generate code for {sort}')
     res = f'Node {name} = nm->mkBoundVar("{name}", {sort_code});'
@@ -119,7 +222,11 @@ def gen_mk_node(defns, expr):
         return expr.name
     elif isinstance(expr, App):
         args = ",".join(gen_mk_node(defns, child) for child in expr.children)
-        return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
+        if (expr.op == Op.EXTRACT):
+          args = f'nm->mkConst(GenericOp({gen_kind(expr.op)})),' + args
+          return f'nm->mkNode(APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
+        else:
+          return f'nm->mkNode({gen_kind(expr.op)}, {{ {args} }})'
     else:
         die(f'Cannot generate code for {expr}')
 
@@ -215,7 +322,7 @@ def preprocess_rule(rule, decls):
                 new_args.append(result[child])
 
             result[curr] = App(curr.op, new_args)
-            continue 
+            continue
 
         if isinstance(curr, Placeholder):
             result[curr] = bvar

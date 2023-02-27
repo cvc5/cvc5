@@ -19,6 +19,7 @@ libcvc5_add_sources(
   api/cpp/cvc5.h
   api/cpp/cvc5_checks.h
   api/cpp/cvc5_kind.h
+  api/cpp/cvc5_sort_kind.h
   api/cpp/cvc5_types.cpp
   api/cpp/cvc5_types.h
   decision/assertion_list.cpp
@@ -27,6 +28,8 @@ libcvc5_add_sources(
   decision/decision_engine.h
   decision/justification_strategy.cpp
   decision/justification_strategy.h
+  decision/justify_cache.cpp
+  decision/justify_cache.h
   decision/justify_info.cpp
   decision/justify_info.h
   decision/justify_stack.cpp
@@ -214,12 +217,16 @@ libcvc5_add_sources(
   proof/proof_set.h
   proof/proof_step_buffer.cpp
   proof/proof_step_buffer.h
+  proof/resolution_proofs_util.cpp
+  proof/resolution_proofs_util.h
   proof/trust_node.cpp
   proof/trust_node.h
   proof/theory_proof_step_buffer.cpp
   proof/theory_proof_step_buffer.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/alethe/alethe_let_binding.cpp
+  proof/alethe/alethe_let_binding.h
   proof/alethe/alethe_node_converter.cpp
   proof/alethe/alethe_node_converter.h
   proof/alethe/alethe_post_processor.cpp
@@ -276,6 +283,8 @@ libcvc5_add_sources(
   prop/sat_solver_types.h
   prop/skolem_def_manager.cpp
   prop/skolem_def_manager.h
+  prop/theory_preregistrar.cpp
+  prop/theory_preregistrar.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
   prop/zero_level_learner.cpp
@@ -592,6 +601,10 @@ libcvc5_add_sources(
   theory/booleans/theory_bool_type_rules.cpp
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
+  theory/builtin/abstract_type.cpp
+  theory/builtin/abstract_type.h
+  theory/builtin/generic_op.cpp
+  theory/builtin/generic_op.h
   theory/builtin/proof_checker.cpp
   theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp
@@ -689,14 +702,10 @@ libcvc5_add_sources(
   theory/evaluator.h
   theory/ext_theory.cpp
   theory/ext_theory.h
-  theory/ff/groebner.cpp
-  theory/ff/groebner.h
   theory/ff/core.cpp
   theory/ff/core.h
-  theory/ff/model.cpp
-  theory/ff/model.h
-  theory/ff/roots.cpp
-  theory/ff/roots.h
+  theory/ff/multi_roots.cpp
+  theory/ff/multi_roots.h
   theory/ff/stats.cpp
   theory/ff/stats.h
   theory/ff/sub_theory.cpp
@@ -707,6 +716,8 @@ libcvc5_add_sources(
   theory/ff/theory_ff_rewriter.h
   theory/ff/theory_ff_type_rules.cpp
   theory/ff/theory_ff_type_rules.h
+  theory/ff/uni_roots.cpp
+  theory/ff/uni_roots.h
   theory/fp/fp_word_blaster.cpp
   theory/fp/fp_word_blaster.h
   theory/fp/fp_expand_defs.cpp
@@ -1096,6 +1107,8 @@ libcvc5_add_sources(
   theory/strings/arith_entail.h
   theory/strings/base_solver.cpp
   theory/strings/base_solver.h
+  theory/strings/code_point_solver.cpp
+  theory/strings/code_point_solver.h
   theory/strings/core_solver.cpp
   theory/strings/core_solver.h
   theory/strings/eager_solver.cpp
@@ -1110,6 +1123,9 @@ libcvc5_add_sources(
   theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
+  theory/strings/model_cons.h
+  theory/strings/model_cons_default.cpp
+  theory/strings/model_cons_default.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
   theory/strings/proof_checker.cpp
@@ -1120,6 +1136,8 @@ libcvc5_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
   theory/strings/regexp_entail.h
+  theory/strings/regexp_eval.cpp
+  theory/strings/regexp_eval.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
   theory/strings/regexp_solver.cpp
@@ -1166,10 +1184,14 @@ libcvc5_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_module.cpp
+  theory/theory_engine_module.h
   theory/theory_engine_proof_generator.cpp
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
+  theory/theory_engine_statistics.cpp
+  theory/theory_engine_statistics.h
   theory/theory_eq_notify.h
   theory/theory_inference.cpp
   theory/theory_inference.h
@@ -1301,7 +1323,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/options
   COMMAND
-    ${PYTHON_EXECUTABLE}
+    ${Python_EXECUTABLE}
     ${CMAKE_CURRENT_LIST_DIR}/options/mkoptions.py
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_BINARY_DIR}
@@ -1347,7 +1369,10 @@ set(KINDS_FILES
 
 set(REWRITES_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/arith/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/rewrites
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/rewrites
   ${PROJECT_SOURCE_DIR}/src/theory/strings/rewrites)
 
 #-----------------------------------------------------------------------------#
@@ -1390,6 +1415,10 @@ install(TARGETS cvc5
   EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+if(BUILD_SHARED_LIBS)
+  set_target_properties(cvc5 PROPERTIES SOVERSION ${CVC5_SOVERSION})
+endif()
 
 include(GenerateExportHeader)
 generate_export_header(cvc5-obj BASE_NAME cvc5)
@@ -1468,6 +1497,7 @@ add_subdirectory(main)
 install(FILES
           api/cpp/cvc5.h
           api/cpp/cvc5_kind.h
+          api/cpp/cvc5_sort_kind.h
           api/cpp/cvc5_types.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc5/)

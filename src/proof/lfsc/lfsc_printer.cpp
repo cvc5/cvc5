@@ -115,6 +115,8 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
     pletMap.erase(p);
     printProofInternal(&lpcp, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
+    Node resType = p->getResult();
+    lbind.process(d_tproc.convert(resType));
   }
   // Print the body of the outermost scope
   printProofInternal(&lpcp, pnBody, emptyLetBind, pletMap, passumeMap);
@@ -298,16 +300,21 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
       std::stringstream resType;
       printInternal(resType, d_tproc.convert(res), lbind);
       out << "(check (: (holds " << resType.str() << ")" << std::endl;
-      itp = pletMap.find(p);
-      Assert(itp != pletMap.end());
-      size_t pid = itp->second;
       // print the letified proof
-      pletMap.erase(p);
-      printProofInternal(&lout, p, lbind, pletMap, passumeMap);
-      pletMap[p] = pid;
-      out << "))" << std::endl;
-      if (!isFinal)
+      if (isFinal)
       {
+        printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+        out << "))" << std::endl;
+      }
+      else
+      {
+        itp = pletMap.find(p);
+        Assert(itp != pletMap.end());
+        size_t pid = itp->second;
+        pletMap.erase(p);
+        printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+        pletMap[p] = pid;
+        out << "))" << std::endl;
         out << "(declare ";
         LfscPrintChannelOut::printId(out, pid, d_pletPrefix);
         out << " (holds " << resType.str() << "))" << std::endl;
@@ -887,6 +894,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
              << d_tproc.convertType(children[0]->getResult()[0].getType())
              << cs[0] << cs[1];
           break;
+        case LfscRule::INSTANTIATE:
+          pf << h << h << h << h << as[2] << cs[0];
+          break;
+        case LfscRule::BETA_REDUCE: pf << h << as[2]; break;
         default: return false; break;
       }
     }
@@ -1159,7 +1170,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       std::stringstream scName;
       scName << "dsl.sc." << scCount << "." << id;
       // generate the side condition
-      oscs << "(program " << scName.str() << " " << argList.str() << " term"
+      oscs << "(function " << scName.str() << " " << argList.str() << " term"
            << std::endl;
       // body must be converted to incorporate list semantics for substitutions
       // first traversal applies nary_elim to required n-ary applications
@@ -1182,7 +1193,7 @@ void LfscPrinter::printDslRule(std::ostream& out,
       LfscListScNodeConverter llsnc(d_tproc, listVars, false);
       Node tsc = llsnc.convert(t);
       oscs << "  ";
-      printInternal(oscs, tsc);
+      print(oscs, tsc);
       oscs << ")" << std::endl;
       termCount++;
       // introduce a term computed by side condition
@@ -1215,10 +1226,10 @@ void LfscPrinter::printDslRule(std::ostream& out,
     }
     odecl << " (holds ";
     Node t = d_tproc.convert(sterm);
-    printInternal(odecl, t);
+    print(odecl, t);
     odecl << ")";
   }
-  odecl << rparen.str() << std::endl;
+  odecl << rparen.str() << ")" << std::endl;
   // print the side conditions
   out << oscs.str();
   // print the rule declaration

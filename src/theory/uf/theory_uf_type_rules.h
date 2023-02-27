@@ -33,7 +33,12 @@ namespace uf {
 class UfTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -42,7 +47,12 @@ class UfTypeRule
 class CardinalityConstraintTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -53,7 +63,12 @@ class CardinalityConstraintTypeRule
 class CardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -63,7 +78,12 @@ class CardinalityConstraintOpTypeRule
 class CombinedCardinalityConstraintTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -74,7 +94,12 @@ class CombinedCardinalityConstraintTypeRule
 class CombinedCardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -86,7 +111,13 @@ class HoApplyTypeRule
 {
  public:
   // the typing rule for HO_APPLY terms
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -97,7 +128,12 @@ class HoApplyTypeRule
 class LambdaTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 }; /* class LambdaTypeRule */
 
 /**
@@ -107,7 +143,12 @@ class LambdaTypeRule
 class FunctionArrayConstTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 class FunctionProperties
@@ -129,7 +170,12 @@ class FunctionProperties
 class IntToBitVectorOpTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 /**
@@ -141,7 +187,12 @@ class IntToBitVectorOpTypeRule
 class BitVectorConversionTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check);
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
 };
 
 }  // namespace uf

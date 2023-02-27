@@ -30,6 +30,7 @@
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
 #include "parser/line_buffer.h"
+#include "parser/parser.h"
 #include "parser/parser_exception.h"
 
 namespace cvc5 {
@@ -94,6 +95,8 @@ class Parser;
  * <code>newFileInput</code>, <code>newStringInput</code>) create a parser
  * for the given input language and attach it to an input source of the
  * appropriate type.
+ *
+ * This class is deprecated and used only for the ANTLR parser.
  */
 class AntlrInput : public Input {
   /** The token lookahead used to lex and parse the input. This should usually be equal to
@@ -248,11 +251,7 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
 }
 
 inline unsigned AntlrInput::tokenToUnsigned(pANTLR3_COMMON_TOKEN token) {
-  unsigned result;
-  std::stringstream ss;
-  ss << tokenText(token);
-  ss >> result;
-  return result;
+  return stringToUnsigned(tokenText(token));
 }
 
 }  // namespace parser

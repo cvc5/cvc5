@@ -319,4 +319,24 @@ typerule WITNESS ::cvc5::internal::theory::builtin::WitnessTypeRule
 
 variable RAW_SYMBOL "a variable that is not quoted in the smt2 printer (internal only)"
 
+
+constant ABSTRACT_TYPE \
+  class \
+  AbstractType \
+  ::cvc5::internal::AbstractTypeHashFunction \
+  "theory/builtin/abstract_type.h" \
+  "abstract type"
+cardinality ABSTRACT_TYPE "Cardinality(Cardinality::INTEGERS)"
+
+constant APPLY_INDEXED_SYMBOLIC_OP \
+  class \
+  GenericOp \
+  ::cvc5::internal::GenericOpHashFunction \
+  "theory/builtin/generic_op.h" \
+  "operator for the bit-vector extract; payload is an instance of the cvc5::internal::GenericOp class"
+parameterized APPLY_INDEXED_SYMBOLIC APPLY_INDEXED_SYMBOLIC_OP 1: "generic indexed operator, whose arguments are the list of terms corresponding to (symbolic) indices to the operator followed by its normal arguments"
+
+typerule APPLY_INDEXED_SYMBOLIC_OP "SimpleTypeRule<RBuiltinOperator>"
+typerule APPLY_INDEXED_SYMBOLIC ::cvc5::internal::theory::builtin::ApplyIndexedSymbolicTypeRule
+
 endtheory

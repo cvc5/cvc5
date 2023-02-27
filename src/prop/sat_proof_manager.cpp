@@ -15,7 +15,6 @@
 
 #include "prop/sat_proof_manager.h"
 
-#include "base/configuration.h"
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/theory_proof_step_buffer.h"
@@ -143,9 +142,6 @@ void SatProofManager::endResChain(Minisat::Lit lit)
 
 void SatProofManager::endResChain(const Minisat::Clause& clause)
 {
-  // AlwaysAssert(clause.level() + 1 == d_userContext->getLevel())
-  //     << "Clause at " << clause.level() + 1 << ", userCxt at "
-  //     << d_userContext->getLevel();
   if (TraceIsOn("sat-proof"))
   {
     Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
@@ -159,7 +155,7 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
     clauseLits.insert(MinisatSatSolver::toSatLiteral(clause[i]));
   }
   Node conclusion = getClauseNode(clause);
-  int clauseLevel = clause.level() + 1;
+  uint32_t clauseLevel = clause.level() + 1;
   if (clauseLevel < userContext()->getLevel()
       && !d_resChains.hasGenerator(conclusion))
   {

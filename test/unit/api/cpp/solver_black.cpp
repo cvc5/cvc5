@@ -186,6 +186,12 @@ TEST_F(TestApiBlackSolver, mkBitVectorSort)
   ASSERT_THROW(d_solver.mkBitVectorSort(0), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, mkFiniteFieldSort)
+{
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldSort("31"));
+  ASSERT_THROW(d_solver.mkFiniteFieldSort("6"), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkFloatingPointSort)
 {
   ASSERT_NO_THROW(d_solver.mkFloatingPointSort(4, 8));
@@ -385,6 +391,15 @@ TEST_F(TestApiBlackSolver, mkSequenceSort)
   ASSERT_NO_THROW(slv.mkSequenceSort(d_solver.getIntegerSort()));
 }
 
+TEST_F(TestApiBlackSolver, mkAbstractSort)
+{
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(ARRAY_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(BITVECTOR_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(TUPLE_SORT));
+  ASSERT_NO_THROW(d_solver.mkAbstractSort(SET_SORT));
+  ASSERT_THROW(d_solver.mkAbstractSort(BOOLEAN_SORT), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackSolver, mkUninterpretedSort)
 {
   ASSERT_NO_THROW(d_solver.mkUninterpretedSort("u"));
@@ -466,6 +481,25 @@ TEST_F(TestApiBlackSolver, mkBitVector)
             d_solver.mkBitVector(8, "FF", 16));
 }
 
+TEST_F(TestApiBlackSolver, mkFiniteFieldElem)
+{
+  Sort f = d_solver.mkFiniteFieldSort("7");
+  Sort bv = d_solver.mkBitVectorSort(4);
+
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("0", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("1", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("6", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("8", f));
+  ASSERT_NO_THROW(d_solver.mkFiniteFieldElem("-1", f));
+
+  ASSERT_THROW(d_solver.mkFiniteFieldElem("-1", bv), CVC5ApiException);
+
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("-1", f),
+            d_solver.mkFiniteFieldElem("6", f));
+  ASSERT_EQ(d_solver.mkFiniteFieldElem("1", f),
+            d_solver.mkFiniteFieldElem("8", f));
+}
+
 TEST_F(TestApiBlackSolver, mkVar)
 {
   Sort boolSort = d_solver.getBooleanSort();
@@ -535,7 +569,7 @@ TEST_F(TestApiBlackSolver, mkCardinalityConstraint)
 TEST_F(TestApiBlackSolver, mkEmptySet)
 {
   Sort s = d_solver.mkSetSort(d_solver.getBooleanSort());
-  ASSERT_NO_THROW(d_solver.mkEmptySet(Sort()));
+  ASSERT_THROW(d_solver.mkEmptySet(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkEmptySet(s));
   ASSERT_THROW(d_solver.mkEmptySet(d_solver.getBooleanSort()),
                CVC5ApiException);
@@ -546,7 +580,7 @@ TEST_F(TestApiBlackSolver, mkEmptySet)
 TEST_F(TestApiBlackSolver, mkEmptyBag)
 {
   Sort s = d_solver.mkBagSort(d_solver.getBooleanSort());
-  ASSERT_NO_THROW(d_solver.mkEmptyBag(Sort()));
+  ASSERT_THROW(d_solver.mkEmptyBag(Sort()), CVC5ApiException);
   ASSERT_NO_THROW(d_solver.mkEmptyBag(s));
   ASSERT_THROW(d_solver.mkEmptyBag(d_solver.getBooleanSort()),
                CVC5ApiException);
@@ -2716,6 +2750,17 @@ TEST_F(TestApiBlackSolver, addSygusConstraint)
   ASSERT_NO_THROW(slv.addSygusConstraint(boolTerm));
 }
 
+TEST_F(TestApiBlackSolver, getSygusConstraints)
+{
+  d_solver.setOption("sygus", "true");
+  Term trueTerm = d_solver.mkBoolean(true);
+  Term falseTerm = d_solver.mkBoolean(false);
+  d_solver.addSygusConstraint(trueTerm);
+  d_solver.addSygusConstraint(falseTerm);
+  std::vector<Term> constraints{trueTerm, falseTerm};
+  ASSERT_EQ(d_solver.getSygusConstraints(), constraints);
+}
+
 TEST_F(TestApiBlackSolver, addSygusAssume)
 {
   d_solver.setOption("sygus", "true");
@@ -2730,6 +2775,17 @@ TEST_F(TestApiBlackSolver, addSygusAssume)
   Solver slv;
   slv.setOption("sygus", "true");
   ASSERT_NO_THROW(slv.addSygusAssume(boolTerm));
+}
+
+TEST_F(TestApiBlackSolver, getSygusAssumptions)
+{
+  d_solver.setOption("sygus", "true");
+  Term trueTerm = d_solver.mkBoolean(true);
+  Term falseTerm = d_solver.mkBoolean(false);
+  d_solver.addSygusAssume(trueTerm);
+  d_solver.addSygusAssume(falseTerm);
+  std::vector<Term> assumptions{trueTerm, falseTerm};
+  ASSERT_EQ(d_solver.getSygusAssumptions(), assumptions);
 }
 
 TEST_F(TestApiBlackSolver, addSygusInvConstraint)

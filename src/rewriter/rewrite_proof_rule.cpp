@@ -82,7 +82,7 @@ void RewriteProofRule::init(DslPfRule id,
     d_fvs.push_back(v);
     if (fvsCond.find(v) == fvsCond.end())
     {
-      d_noOccVars[v] = true;
+      d_noOccVars.insert(v);
     }
   }
   // if fixed point, initialize match utility
@@ -187,6 +187,7 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
 
 bool RewriteProofRule::hasSideConditions() const { return !d_scs.empty(); }
 
+
 bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
@@ -243,6 +244,7 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
   return true;
 }
 
+
 void RewriteProofRule::getMatches(Node h, expr::NotifyMatch* ntm) const
 {
   d_mt.getMatches(h, ntm);
@@ -254,9 +256,11 @@ Node RewriteProofRule::getConclusionFor(const std::vector<Node>& ss) const
 {
   Assert(d_fvs.size() == ss.size());
   Node conc = d_conc;
+  // if the rule has conclusion s, and term context (lambda x. t[x]), then the
+  // conclusion is t[s], which we compute in the block below.
   if (isFixedPoint())
   {
-    Node context = getContext();
+    Node context = d_context;
     Node rhs = context[1].substitute(TNode(context[0][0]), TNode(conc[1]));
     conc = conc[0].eqNode(rhs);
   }

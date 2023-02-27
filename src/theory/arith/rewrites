@@ -1,9 +1,4 @@
 ; Basic rules
-(define-rule arith-eq-refl-int ((t Int)) (= t t) true)
-(define-rule arith-eq-symm-int ((t Int) (s Int)) (= t s) (= s t))
-
-(define-rule arith-eq-refl-real ((t Real)) (= t t) true)
-(define-rule arith-eq-symm-real ((t Real) (s Real)) (= t s) (= s t))
 
 (define-rule arith-plus-zero ((t Int :list) (s Int :list)) (+ t 0 s) (+ t s))
 

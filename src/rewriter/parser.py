@@ -1,9 +1,27 @@
+###############################################################################
+# Top contributors (to current version):
+#   Andres Noetzli
+#
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Parser of the DSL rewrite rule compiler
+##
+
 import pyparsing as pp
 from node import *
 from rule import Rule
 from util import die, fresh_name
 
 symbol_to_op = {
+    'store': Op.STORE,
+    'select': Op.SELECT,
+    'bvsize': Op.BVSIZE,
     'bvugt': Op.BVUGT,
     'bvuge': Op.BVUGE,
     'bvsgt': Op.BVSGT,
@@ -174,10 +192,6 @@ class Parser:
                 lambda s, l, t: CBool(False))
         iconst = pp.Word(
             pp.nums).setParseAction(lambda s, l, t: CInt(int(t[0])))
-        bvconst = (
-            pp.Suppress('(') + pp.Suppress('_') + pp.Keyword('bv') + expr +
-            expr +
-            ')').setParseAction(lambda s, l, t: App(Op.BVCONST, [t[1], t[2]]))
         strconst = pp.QuotedString(
             quoteChar='"').setParseAction(lambda s, l, t: CString(t[0]))
 
@@ -205,7 +219,7 @@ class Parser:
             pp.Optional(expr) +
             pp.Suppress(')')).setParseAction(lambda s, l, t: mk_case(t[1:]))
 
-        options = bconst | iconst | bvconst | strconst | cond | indexed_app | app | let | var
+        options = bconst | iconst | strconst | cond | indexed_app | app | let | var
         if allow_comprehension:
             lambda_def = (pp.Suppress('(') + pp.Keyword('lambda') +
                           pp.Suppress('(') + self.symbol() + self.sort() +
@@ -236,7 +250,13 @@ class Parser:
             lambda s, l, t: Sort(BaseSort.String, []))
         reglan_sort = pp.Keyword('RegLan').setParseAction(
             lambda s, l, t: Sort(BaseSort.RegLan, []))
-        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort
+        abs_array_sort = pp.Keyword('?Array').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsArray, []))
+        abs_bv_sort = pp.Keyword('?BitVec').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsBitVec, []))
+        abs_abs_sort = pp.Keyword('?').setParseAction(
+            lambda s, l, t: Sort(BaseSort.AbsAbs, []))
+        return bv_sort | int_sort | real_sort | bool_sort | string_sort | reglan_sort | abs_array_sort | abs_bv_sort | abs_abs_sort
 
     def var_decl_action(self, name, sort, attrs):
         if attrs:

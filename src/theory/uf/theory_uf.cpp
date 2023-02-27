@@ -52,7 +52,7 @@ TheoryUF::TheoryUF(Env& env,
       d_ho(nullptr),
       d_functionsTerms(context()),
       d_symb(env, instanceName),
-      d_rewriter(logicInfo().isHigherOrder()),
+      d_rewriter(),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::uf::" + instanceName, false),
       d_notify(d_im, *this),
@@ -204,6 +204,12 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
                       << std::endl;
   Kind k = node.getKind();
   bool isHol = logicInfo().isHigherOrder();
+  if (node.getType().isAbstract())
+  {
+    std::stringstream ss;
+    ss << "Cannot process term of abstract type " << node;
+    throw LogicException(ss.str());
+  }
   if (k == kind::HO_APPLY || node.getType().isFunction())
   {
     if (!isHol)
@@ -274,7 +280,7 @@ void TheoryUF::preRegisterTerm(TNode node)
   {
     case kind::EQUAL:
       // Add the trigger for equality
-      d_equalityEngine->addTriggerPredicate(node);
+      d_state.addEqualityEngineTriggerPredicate(node);
       break;
     case kind::APPLY_UF:
     case kind::HO_APPLY:
@@ -282,8 +288,7 @@ void TheoryUF::preRegisterTerm(TNode node)
       // Maybe it's a predicate
       if (node.getType().isBoolean())
       {
-        // Get triggered for both equal and dis-equal
-        d_equalityEngine->addTriggerPredicate(node);
+        d_state.addEqualityEngineTriggerPredicate(node);
       }
       else
       {

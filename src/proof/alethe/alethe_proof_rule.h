@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_RULE_H
-#define CVC4__PROOF__ALETHE_PROOF_RULE_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H
 
 #include <iostream>
 
@@ -60,6 +60,14 @@ enum class AletheRule : uint32_t
   //
   // where y1,...,yn are not free in (forall (x1,...,xn) F2)
   ANCHOR_BIND,
+  // ======== skolemization rules
+  // G,x->(choice (x) F1) > j.  (= F1 F2)
+  // ------------------------------------
+  // G > k. (= (exists (x) F1) F2)
+  //
+  // G,x->(choice (x) (not F1)) > j.  (= F1 F2)
+  // ------------------------------------------
+  // G > k. (= (forall (x) F1) F2)
   ANCHOR_SKO_FORALL,
   ANCHOR_SKO_EX,
   // ======== input
@@ -167,6 +175,8 @@ enum class AletheRule : uint32_t
   // Tautology of linear disequalities.
   // > i. (cl F1 ... Fn)
   LA_GENERIC,
+  LA_MULT_POS,
+  LA_MULT_NEG,
   // Tautology of linear integer arithmetic
   // > i. (cl F1 ... Fn)
   LIA_GENERIC,
@@ -424,6 +434,9 @@ enum class AletheRule : uint32_t
   BV_BITBLAST_STEP_BVEQUAL,
   BV_BITBLAST_STEP_CONCAT,
   BV_BITBLAST_STEP_CONST,
+  // ======== hole
+  // Used for unjustified steps
+  HOLE,
   // ======== undefined
   // Used in case that a step in the proof rule could not be translated.
   UNDEFINED
@@ -453,4 +466,4 @@ AletheRule getAletheRule(Node n);
 
 }  // namespace cvc5::internal
 
-#endif /* CVC4__PROOF__ALETHE_PROOF_RULE_H */
+#endif /* CVC5__PROOF__ALETHE__ALETHE_PROOF_RULE_H */

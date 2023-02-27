@@ -272,7 +272,7 @@ Integer Integer::modByPow2(uint32_t exp) const
 
 Integer Integer::divByPow2(uint32_t exp) const { return d_value >> exp; }
 
-Integer Integer::pow(unsigned long int exp) const
+Integer Integer::pow(uint32_t exp) const
 {
   if (exp == 0)
   {

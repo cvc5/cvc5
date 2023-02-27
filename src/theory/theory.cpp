@@ -524,16 +524,37 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   Assert(d_equalityEngine != nullptr);
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
+  if (x == y)
+  {
+    return false;
+  }
+  if (x.isConst() && y.isConst())
+  {
+    return true;
+  }
+  // first just check if they are disequal, which is sufficient for
+  // non-shared terms.
+  if (d_equalityEngine->areDisequal(x, y, false))
+  {
+    return true;
+  }
+  // if we aren't shared, we are not disequal
   if (!d_equalityEngine->isTriggerTerm(x, d_id)
       || !d_equalityEngine->isTriggerTerm(y, d_id))
   {
     return false;
   }
+  // otherwise use getEqualityStatus to ask the appropriate theory whether
+  // x and y are disequal.
   TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(x, d_id);
   TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(y, d_id);
   EqualityStatus eqStatus = d_valuation.getEqualityStatus(x_shared, y_shared);
-  return eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
-         || eqStatus == EQUALITY_FALSE_IN_MODEL;
+  if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+      || eqStatus == EQUALITY_FALSE_IN_MODEL)
+  {
+    return true;
+  }
+  return false;
 }
 
 void Theory::getCareGraph(CareGraph* careGraph) {

@@ -36,26 +36,34 @@ set(EXAMPLES_API_PYTHON
   transcendentals
 )
 
-find_package(PythonInterp ${CVC5_BINDINGS_PYTHON_VERSION} REQUIRED)
+find_package(Python ${CVC5_BINDINGS_PYTHON_VERSION} EXACT REQUIRED)
 
 # Find Python bindings in the corresponding python-*/site-packages directory.
 # Lookup Python module directory and store path in PYTHON_MODULE_PATH.
 execute_process(COMMAND
-                  ${PYTHON_EXECUTABLE} -c
+                  ${Python_EXECUTABLE} -c
                     "from distutils.sysconfig import get_python_lib;\
                      print(get_python_lib(plat_specific=True,\
                              prefix='${CMAKE_PREFIX_PATH}/../..'))"
                 OUTPUT_VARIABLE PYTHON_MODULE_PATH
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-foreach(example ${EXAMPLES_API_PYTHON})
+function(create_python_example example)
   set(example_test example/api/python/${example})
   add_test(
     NAME ${example_test}
     COMMAND
-      "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/api/python/${example}.py"
+      "${Python_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/api/python/${example}.py"
   )
   set_tests_properties(${example_test} PROPERTIES
     LABELS "example"
     ENVIRONMENT PYTHONPATH=${PYTHON_MODULE_PATH}:${CMAKE_SOURCE_DIR}/api/python)
+endfunction()
+
+foreach(example ${EXAMPLES_API_PYTHON})
+  create_python_example(${example})
 endforeach()
+
+if(USE_COCOA)
+  create_python_example("finite_field")
+endif()

@@ -20,225 +20,80 @@
 
 #include <list>
 #include <memory>
-#include <set>
 #include <string>
 
 #include "api/cpp/cvc5.h"
 #include "cvc5_export.h"
 #include "parser/api/cpp/symbol_manager.h"
-#include "parser/input.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
-#include "symbol_table.h"
+#include "parser/parser_utils.h"
+#include "parser/symbol_table.h"
 
 namespace cvc5 {
-
-// Forward declarations
-class ResourceManager;
-
 namespace parser {
 
 class Command;
-class Input;
-
-/** Types of checks for the symbols */
-enum DeclarationCheck {
-  /** Enforce that the symbol has been declared */
-  CHECK_DECLARED,
-  /** Enforce that the symbol has not been declared */
-  CHECK_UNDECLARED,
-  /** Don't check anything */
-  CHECK_NONE
-};/* enum DeclarationCheck */
 
 /**
- * Returns a string representation of the given object (for
- * debugging).
+ * Callback from the parser state to the parser, for command preemption
+ * and error handling.
  */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
-  switch(check) {
-  case CHECK_NONE:
-    return out << "CHECK_NONE";
-  case CHECK_DECLARED:
-    return out << "CHECK_DECLARED";
-  case CHECK_UNDECLARED:
-    return out << "CHECK_UNDECLARED";
-  default:
-    return out << "DeclarationCheck!UNKNOWN";
-  }
-}
-
-/**
- * Types of symbols. Used to define namespaces.
- */
-enum SymbolType {
-  /** Variables */
-  SYM_VARIABLE,
-  /** Sorts */
-  SYM_SORT,
-  /** Symbols that should be preserved verbatim */
-  SYM_VERBATIM
-};/* enum SymbolType */
-
-/**
- * Returns a string representation of the given object (for
- * debugging).
- */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type);
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
-  switch(type) {
-  case SYM_VARIABLE:
-    return out << "SYM_VARIABLE";
-  case SYM_SORT:
-    return out << "SYM_SORT";
-  case SYM_VERBATIM:
-    return out << "SYM_VERBATIM";
-  default:
-    return out << "SymbolType!UNKNOWN";
-  }
-}
+class ParserStateCallback
+{
+ public:
+  ParserStateCallback() {}
+  virtual ~ParserStateCallback() {}
+  /** Issue a warning to the user. */
+  virtual void warning(const std::string& msg) = 0;
+  /** Raise a parse error with the given message. */
+  virtual void parseError(const std::string& msg) = 0;
+  /** Unexpectedly encountered an EOF */
+  virtual void unexpectedEOF(const std::string& msg) = 0;
+  /**
+   * Preempt the next returned command with other ones; used to
+   * support the :named attribute in SMT-LIBv2, which implicitly
+   * inserts a new command before the current one. Also used in TPTP
+   * because function and predicate symbols are implicitly declared.
+   */
+  virtual void preemptCommand(Command* cmd) = 0;
+};
 
 /**
  * This class encapsulates all of the state of a parser, including the
  * name of the file, line number and column information, and in-scope
  * declarations.
  */
-class CVC5_EXPORT Parser
+class CVC5_EXPORT ParserState
 {
-  friend class ParserBuilder;
-private:
+ public:
+  /**
+   * Create a parser state.
+   *
+   * @attention The parser takes "ownership" of the given
+   * input and will delete it on destruction.
+   *
+   * @param psc The callback for implementing parser-specific methods
+   * @param solver solver API object
+   * @param symm reference to the symbol manager
+   * @param input the parser input
+   * @param strictMode whether to incorporate strict(er) compliance checks
+   */
+  ParserState(ParserStateCallback* psc,
+              Solver* solver,
+              SymbolManager* sm,
+              bool strictMode = false);
 
- /** The input that we're parsing. */
- std::unique_ptr<Input> d_input;
-
- /**
-  * Reference to the symbol manager, which manages the symbol table used by
-  * this parser.
-  */
- SymbolManager* d_symman;
-
- /**
-  * This current symbol table used by this parser, from symbol manager.
-  */
- internal::parser::SymbolTable* d_symtab;
-
- /**
-  * The level of the assertions in the declaration scope.  Things declared
-  * after this level are bindings from e.g. a let, a quantifier, or a
-  * lambda.
-  */
- size_t d_assertionLevel;
-
- /** How many anonymous functions we've created. */
- size_t d_anonymousFunctionCount;
-
- /** Are we done */
- bool d_done;
-
- /** Are semantic checks enabled during parsing? */
- bool d_checksEnabled;
-
- /** Are we parsing in strict mode? */
- bool d_strictMode;
-
- /** Are we only parsing? */
- bool d_parseOnly;
-
- /**
-  * Can we include files?  (Set to false for security purposes in
-  * e.g. the online version.)
-  */
- bool d_canIncludeFile;
-
- /**
-  * Whether the logic has been forced with --force-logic.
-  */
- bool d_logicIsForced;
-
- /**
-  * The logic, if d_logicIsForced == true.
-  */
- std::string d_forcedLogic;
-
- /** The set of operators available in the current logic. */
- std::set<cvc5::Kind> d_logicOperators;
-
- /** The set of attributes already warned about. */
- std::set<std::string> d_attributesWarnedAbout;
-
- /**
-  * "Preemption commands": extra commands implied by subterms that
-  * should be issued before the currently-being-parsed command is
-  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-  *
-  * Owns the memory of the Commands in the queue.
-  */
- std::list<Command*> d_commandQueue;
-
- /** Lookup a symbol in the given namespace (as specified by the type).
-  * Only returns a symbol if it is not overloaded, returns null otherwise.
-  */
- cvc5::Term getSymbol(const std::string& var_name, SymbolType type);
-
-protected:
- /** The API Solver object. */
- cvc5::Solver* d_solver;
-
- /**
-  * Create a parser state.
-  *
-  * @attention The parser takes "ownership" of the given
-  * input and will delete it on destruction.
-  *
-  * @param solver solver API object
-  * @param symm reference to the symbol manager
-  * @param input the parser input
-  * @param strictMode whether to incorporate strict(er) compliance checks
-  * @param parseOnly whether we are parsing only (and therefore certain checks
-  * need not be performed, like those about unimplemented features, @see
-  * unimplementedFeature())
-  */
- Parser(cvc5::Solver* solver,
-        SymbolManager* sm,
-        bool strictMode = false,
-        bool parseOnly = false);
-
-public:
-
-  virtual ~Parser();
+  virtual ~ParserState();
 
   /** Get the associated solver. */
-  cvc5::Solver* getSolver() const;
-
-  /** Get the associated input. */
-  Input* getInput() const { return d_input.get(); }
-
-  /** Deletes and replaces the current parser input. */
-  void setInput(Input* input)  {
-    d_input.reset(input);
-    d_input->setParser(*this);
-    d_done = false;
-  }
-
-  /**
-   * Check if we are done -- either the end of input has been reached, or some
-   * error has been encountered.
-   * @return true if parser is done
-   */
-  inline bool done() const {
-    return d_done;
-  }
-
-  /** Sets the done flag */
-  inline void setDone(bool done = true) {
-    d_done = done;
-  }
+  Solver* getSolver() const;
 
   /** Enable semantic checks during parsing. */
   void enableChecks() { d_checksEnabled = true; }
 
-  /** Disable semantic checks during parsing. Disabling checks may lead to crashes on bad inputs. */
+  /** Disable semantic checks during parsing. Disabling checks may lead to
+   * crashes on bad inputs. */
   void disableChecks() { d_checksEnabled = false; }
 
   /** Enable strict parsing, according to the language standards. */
@@ -250,47 +105,45 @@ public:
 
   bool strictModeEnabled() { return d_strictMode; }
 
-  void allowIncludeFile() { d_canIncludeFile = true; }
-  void disallowIncludeFile() { d_canIncludeFile = false; }
-  bool canIncludeFile() const { return d_canIncludeFile; }
+  const std::string& getForcedLogic() const;
+  bool logicIsForced() const;
 
   /** Expose the functionality from SMT/SMT2 parsers, while making
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
-
-  virtual void forceLogic(const std::string& logic);
-
-  const std::string& getForcedLogic() const { return d_forcedLogic; }
-  bool logicIsForced() const { return d_logicIsForced; }
 
   /**
    * Gets the variable currently bound to name.
    *
    * @param name the name of the variable
    * @return the variable expression
-   * Only returns a variable if its name is not overloaded, returns null otherwise.
+   * Only returns a variable if its name is not overloaded, returns null
+   * otherwise.
    */
-  cvc5::Term getVariable(const std::string& name);
+  Term getVariable(const std::string& name);
 
   /**
    * Gets the function currently bound to name.
    *
    * @param name the name of the variable
    * @return the variable expression
-   * Only returns a function if its name is not overloaded, returns null otherwise.
+   * Only returns a function if its name is not overloaded, returns null
+   * otherwise.
    */
-  cvc5::Term getFunction(const std::string& name);
+  Term getFunction(const std::string& name);
 
   /**
-   * Returns the expression that name should be interpreted as, based on the current binding.
+   * Returns the expression that name should be interpreted as, based on the
+   * current binding.
    *
    * The symbol name should be declared.
-   * This creates the expression that the string "name" should be interpreted as.
-   * Typically this corresponds to a variable, but it may also correspond to
+   * This creates the expression that the string "name" should be interpreted
+   * as. Typically this corresponds to a variable, but it may also correspond to
    * a nullary constructor or a defined function.
-   * Only returns an expression if its name is not overloaded, returns null otherwise.
+   * Only returns an expression if its name is not overloaded, returns null
+   * otherwise.
    */
-  virtual cvc5::Term getExpressionForName(const std::string& name);
+  virtual Term getExpressionForName(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the
@@ -298,8 +151,7 @@ public:
    *
    * This is the same as above but where the name has been type cast to t.
    */
-  virtual cvc5::Term getExpressionForNameAndType(const std::string& name,
-                                                 cvc5::Sort t);
+  virtual Term getExpressionForNameAndType(const std::string& name, Sort t);
 
   /**
    * If this method returns true, then name is updated with the tester name
@@ -315,7 +167,7 @@ public:
    * the above syntax if strict mode is disabled.
    * - In cvc, the syntax for testers is "is_cons".
    */
-  virtual bool getTesterName(cvc5::Term cons, std::string& name);
+  virtual bool getTesterName(Term cons, std::string& name);
 
   /**
    * Returns the kind that should be used for applications of expression fun.
@@ -327,24 +179,19 @@ public:
    *   APPLY_UF if fun has function type,
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
-  cvc5::Kind getKindForFunction(cvc5::Term fun);
+  Kind getKindForFunction(Term fun);
 
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */
-  cvc5::Sort getSort(const std::string& sort_name);
+  Sort getSort(const std::string& sort_name);
 
   /**
    * Returns a (parameterized) sort, given a name and args.
    */
-  cvc5::Sort getSort(const std::string& sort_name,
-                     const std::vector<cvc5::Sort>& params);
-
-  /**
-   * Returns arity of a (parameterized) sort, given a name and args.
-   */
-  size_t getArity(const std::string& sort_name);
+  virtual Sort getParametricSort(const std::string& sort_name,
+                                 const std::vector<Sort>& params);
 
   /**
    * Checks if a symbol has been declared.
@@ -377,7 +224,7 @@ public:
    * @throws ParserException if checks are enabled and fun is not
    * a function
    */
-  void checkFunctionLike(cvc5::Term fun);
+  void checkFunctionLike(Term fun);
 
   /** Create a new cvc5 variable expression of the given type.
    *
@@ -386,34 +233,22 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  cvc5::Term bindVar(const std::string& name,
-                     const cvc5::Sort& type,
-                     bool doOverload = false);
-
-  /**
-   * Create a set of new cvc5 variable expressions of the given type.
-   *
-   * For each name, if a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the
-   * new expression.
-   */
-  std::vector<cvc5::Term> bindVars(const std::vector<std::string> names,
-                                   const cvc5::Sort& type,
-                                   bool doOverload = false);
+  Term bindVar(const std::string& name,
+               const Sort& type,
+               bool doOverload = false);
 
   /**
    * Create a new cvc5 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  cvc5::Term bindBoundVar(const std::string& name, const cvc5::Sort& type);
+  Term bindBoundVar(const std::string& name, const Sort& type);
   /**
    * Create a new cvc5 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
-  std::vector<cvc5::Term> bindBoundVars(
-      std::vector<std::pair<std::string, cvc5::Sort> >& sortedVarNames);
+  std::vector<Term> bindBoundVars(
+      std::vector<std::pair<std::string, Sort> >& sortedVarNames);
 
   /**
    * Create a set of new cvc5 bound variable expressions of the given type.
@@ -423,8 +258,8 @@ public:
    *  else if doOverload is false, the existing expression is shadowed by the
    * new expression.
    */
-  std::vector<cvc5::Term> bindBoundVars(const std::vector<std::string> names,
-                                        const cvc5::Sort& type);
+  std::vector<Term> bindBoundVars(const std::vector<std::string> names,
+                                  const Sort& type);
 
   /** Create a new variable definition (e.g., from a let binding).
    * If a symbol with name already exists,
@@ -433,7 +268,7 @@ public:
    * new expression.
    */
   void defineVar(const std::string& name,
-                 const cvc5::Term& val,
+                 const Term& val,
                  bool doOverload = false);
 
   /**
@@ -446,7 +281,7 @@ public:
    *                     the definition is the exact same as the existing one.
    */
   void defineType(const std::string& name,
-                  const cvc5::Sort& type,
+                  const Sort& type,
                   bool skipExisting = false);
 
   /**
@@ -457,59 +292,59 @@ public:
    * @param type The type that should be associated with the name
    */
   void defineType(const std::string& name,
-                  const std::vector<cvc5::Sort>& params,
-                  const cvc5::Sort& type);
+                  const std::vector<Sort>& params,
+                  const Sort& type);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
-                               const std::vector<cvc5::Sort>& params,
-                               const cvc5::Sort& type);
+                               const std::vector<Sort>& params,
+                               const Sort& type);
 
   /**
    * Creates a new sort with the given name.
    */
-  cvc5::Sort mkSort(const std::string& name);
+  Sort mkSort(const std::string& name);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  cvc5::Sort mkSortConstructor(const std::string& name, size_t arity);
+  Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
    */
-  cvc5::Sort mkUnresolvedType(const std::string& name);
+  Sort mkUnresolvedType(const std::string& name);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity.
    */
-  cvc5::Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
+  Sort mkUnresolvedTypeConstructor(const std::string& name, size_t arity);
   /**
    * Creates a new unresolved (parameterized) type constructor given the type
    * parameters.
    */
-  cvc5::Sort mkUnresolvedTypeConstructor(const std::string& name,
-                                         const std::vector<cvc5::Sort>& params);
+  Sort mkUnresolvedTypeConstructor(const std::string& name,
+                                   const std::vector<Sort>& params);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
    * depending on the arity.
    */
-  cvc5::Sort mkUnresolvedType(const std::string& name, size_t arity);
+  Sort mkUnresolvedType(const std::string& name, size_t arity);
 
   /**
    * Creates and binds sorts of a list of mutually-recursive datatype
    * declarations.
    *
    * For each symbol defined by the datatype, if a symbol with name already
-   * exists, then if doOverload is true, we create overloaded operators. Else, if
-   * doOverload is false, the existing expression is shadowed by the new
+   * exists, then if doOverload is true, we create overloaded operators. Else,
+   * if doOverload is false, the existing expression is shadowed by the new
    * expression.
    */
-  std::vector<cvc5::Sort> bindMutualDatatypeTypes(
-      std::vector<cvc5::DatatypeDecl>& datatypes, bool doOverload = false);
+  std::vector<Sort> bindMutualDatatypeTypes(
+      std::vector<DatatypeDecl>& datatypes, bool doOverload = false);
 
   /** make flat function type
    *
@@ -549,9 +384,9 @@ public:
    * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
-  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
-                                cvc5::Sort range,
-                                std::vector<cvc5::Term>& flattenVars);
+  Sort mkFlatFunctionType(std::vector<Sort>& sorts,
+                          Sort range,
+                          std::vector<Term>& flattenVars);
 
   /** make flat function type
    *
@@ -559,8 +394,7 @@ public:
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
-  cvc5::Sort mkFlatFunctionType(std::vector<cvc5::Sort>& sorts,
-                                cvc5::Sort range);
+  Sort mkFlatFunctionType(std::vector<Sort>& sorts, Sort range);
 
   /** make higher-order apply
    *
@@ -575,7 +409,7 @@ public:
    * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  cvc5::Term mkHoApply(cvc5::Term expr, const std::vector<cvc5::Term>& args);
+  Term mkHoApply(Term expr, const std::vector<Term>& args);
 
   /** Apply type ascription
    *
@@ -600,53 +434,33 @@ public:
    * @param s The sort to ascribe
    * @return Term t with sort s ascribed.
    */
-  cvc5::Term applyTypeAscription(cvc5::Term t, cvc5::Sort s);
+  Term applyTypeAscription(Term t, Sort s);
 
   /**
    * Add an operator to the current legal set.
    *
    * @param kind the built-in operator to add
    */
-  void addOperator(cvc5::Kind kind);
-
-  /**
-   * Preempt the next returned command with other ones; used to
-   * support the :named attribute in SMT-LIBv2, which implicitly
-   * inserts a new command before the current one. Also used in TPTP
-   * because function and predicate symbols are implicitly declared.
-   */
-  void preemptCommand(Command* cmd);
-
-  /** Is the symbol bound to a boolean variable? */
-  bool isBoolean(const std::string& name);
+  void addOperator(Kind kind);
 
   /** Is fun a function (or function-like thing)?
    * Currently this means its type is either a function, constructor, tester, or
    * selector.
    */
-  bool isFunctionLike(cvc5::Term fun);
+  bool isFunctionLike(Term fun);
 
-  /** Is the symbol bound to a predicate? */
-  bool isPredicate(const std::string& name);
-
-  /** Parse and return the next command. */
-  Command* nextCommand();
-
-  /** Parse and return the next expression. */
-  cvc5::Term nextExpression();
-
+  //-------------------- callbacks to parser
   /** Issue a warning to the user. */
-  void warning(const std::string& msg) { d_input->warning(msg); }
+  void warning(const std::string& msg);
+  /** Raise a parse error with the given message. */
+  void parseError(const std::string& msg);
+  /** Unexpectedly encountered an EOF */
+  void unexpectedEOF(const std::string& msg);
+  /** Preempt command */
+  void preemptCommand(Command* cmd);
+  //-------------------- end callbacks to parser
   /** Issue a warning to the user, but only once per attribute. */
   void attributeNotSupported(const std::string& attr);
-
-  /** Raise a parse error with the given message. */
-  inline void parseError(const std::string& msg) { d_input->parseError(msg); }
-  /** Unexpectedly encountered an EOF */
-  inline void unexpectedEOF(const std::string& msg)
-  {
-    d_input->parseError(msg, true);
-  }
 
   /**
    * If we are parsing only, don't raise an exception; if we are not,
@@ -662,11 +476,9 @@ public:
    * support parsing quantifiers (just not doing anything with them).
    * So this mechanism gives you a way to do it with --parse-only.
    */
-  inline void unimplementedFeature(const std::string& msg)
+  void unimplementedFeature(const std::string& msg)
   {
-    if(!d_parseOnly) {
-      parseError("Unimplemented feature: " + msg);
-    }
+    parseError("Unimplemented feature: " + msg);
   }
 
   /**
@@ -703,7 +515,7 @@ public:
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(cvc5::Term fun)
+  bool isOverloadedFunction(Term fun)
   {
     return d_symtab->isOverloadedFunction(fun);
   }
@@ -711,8 +523,8 @@ public:
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
-  */
-  cvc5::Term getOverloadedConstantForType(const std::string& name, cvc5::Sort t)
+   */
+  Term getOverloadedConstantForType(const std::string& name, Sort t)
   {
     return d_symtab->getOverloadedConstantForType(name, t);
   }
@@ -722,21 +534,12 @@ public:
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  cvc5::Term getOverloadedFunctionForTypes(const std::string& name,
-                                           std::vector<cvc5::Sort>& argTypes)
+  Term getOverloadedFunctionForTypes(const std::string& name,
+                                     std::vector<Sort>& argTypes)
   {
     return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
   }
   //------------------------ end operator overloading
-  /**
-   * Make string constant
-   *
-   * This makes the string constant based on the string s. This may involve
-   * processing ad-hoc escape sequences (if the language is not
-   * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
-   * the string.
-   */
-  cvc5::Term mkStringConstant(const std::string& s);
 
   /**
    * Make string constant from a single character in hex representation
@@ -744,7 +547,7 @@ public:
    * This makes the string constant based on the character from the strings,
    * represented as a hexadecimal code point.
    */
-  cvc5::Term mkCharConstant(const std::string& s);
+  Term mkCharConstant(const std::string& s);
 
   /** ad-hoc string escaping
    *
@@ -757,7 +560,57 @@ public:
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::wstring processAdHocStringEsc(const std::string& s);
+
+ protected:
+  /** The API Solver object. */
+  Solver* d_solver;
+
+ private:
+  /** The callback */
+  ParserStateCallback* d_psc;
+  /**
+   * Reference to the symbol manager, which manages the symbol table used by
+   * this parser.
+   */
+  SymbolManager* d_symman;
+
+  /**
+   * This current symbol table used by this parser, from symbol manager.
+   */
+  internal::parser::SymbolTable* d_symtab;
+
+  /** Are semantic checks enabled during parsing? */
+  bool d_checksEnabled;
+
+  /** Are we parsing in strict mode? */
+  bool d_strictMode;
+
+  /** Are we in parse-only mode? */
+  bool d_parseOnly;
+
+  /** The set of operators available in the current logic. */
+  std::set<Kind> d_logicOperators;
+
+  /** The set of attributes already warned about. */
+  std::set<std::string> d_attributesWarnedAbout;
+
+  /**
+   * "Preemption commands": extra commands implied by subterms that
+   * should be issued before the currently-being-parsed command is
+   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+   *
+   * Owns the memory of the Commands in the queue.
+   */
+  std::list<Command*> d_commandQueue;
+
+  /** Lookup a symbol in the given namespace (as specified by the type).
+   * Only returns a symbol if it is not overloaded, returns null otherwise.
+   */
+  Term getSymbol(const std::string& var_name, SymbolType type);
 }; /* class Parser */
+
+/** Compute the unsigned integer for a token. */
+uint32_t stringToUnsigned(const std::string& str);
 
 }  // namespace parser
 }  // namespace cvc5

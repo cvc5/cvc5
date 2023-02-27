@@ -59,7 +59,7 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
                                Node b,
                                theory::TheoryId tid,
                                MethodId mid,
-                               uint32_t recLimit)
+                               int64_t recLimit)
 {
   // clear the proof caches? use attributes instead?
   d_pcache.clear();
@@ -410,7 +410,7 @@ bool RewriteDbProofCons::proveWithRule(DslPfRule id,
       {
         // does not hold, we fail
         Trace("rpc-debug2")
-            << "...fail (simple condition failure)" << std::endl;
+            << "...fail (simple condition failure for " << cond << ")" << std::endl;
         return false;
       }
       // already holds, continue

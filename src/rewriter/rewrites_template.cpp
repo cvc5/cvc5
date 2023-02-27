@@ -19,6 +19,7 @@
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
 #include "util/string.h"
+#include "theory/builtin/generic_op.h"
 
 using namespace cvc5::internal::kind;
 
@@ -40,6 +41,7 @@ ${defns}$
 ${rules}$
   // clang-format on
 }
+
 bool isInternalDslPfRule(DslPfRule drule)
 {
   return drule == DslPfRule::FAIL || drule == DslPfRule::REFL
@@ -48,6 +50,7 @@ bool isInternalDslPfRule(DslPfRule drule)
          || drule == DslPfRule::TRUE_ELIM || drule == DslPfRule::TRUE_INTRO
          || drule == DslPfRule::ARITH_POLY_NORM;
 }
+
 const char* toString(DslPfRule drule)
 {
   switch (drule)

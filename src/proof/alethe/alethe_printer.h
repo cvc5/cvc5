@@ -15,10 +15,10 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__PROOF__ALETHE_PROOF_PRINTER_H
-#define CVC4__PROOF__ALETHE_PROOF_PRINTER_H
+#ifndef CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
+#define CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H
 
-#include "printer/let_binding.h"
+#include "proof/alethe/alethe_let_binding.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_updater.h"
 #include "smt/env_obj.h"
@@ -27,49 +27,27 @@ namespace cvc5::internal {
 
 namespace proof {
 
-class AletheLetBinding : public LetBinding
-{
- public:
-  AletheLetBinding(uint32_t thresh);
-
-  /**
-   * Convert n based on the state of the let binding. This replaces all
-   * letified subterms of n with a fresh variable whose name prefix is the
-   * given one.
-   *
-   * @param n The node to convert
-   * @param prefix The prefix of variables to convert
-   * @return the converted node.
-   */
-  Node convert(Node n, const std::string& prefix);
-
- private:
-  std::unordered_set<Node> d_declared;
-};
-
+/** A callback for populating a let binder.
+ *
+ * This callback does not actually update the proof node, but rather just
+ * consider the terms in the proof nodes for sharing. This is done in
+ * `shouldUpdate`, which is called on every proof node and always returns false.
+ */
 class LetUpdaterPfCallback : public ProofNodeUpdaterCallback
 {
  public:
   LetUpdaterPfCallback(AletheLetBinding& lbind);
   ~LetUpdaterPfCallback();
-  /**
-   * Initialize, called once for each new ProofNode to process. This
-   * initializes static information to be used by successive calls to update.
-   */
   void initializeUpdate();
-  /** Update the proof node iff has the LEAN_RULE id. */
+  /** Analyze the given proof node and populate d_lbind with its terms.
+   *
+   * Always returns false. */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
-  /** Update the proof rule application. */
-  bool update(Node res,
-              PfRule id,
-              const std::vector<Node>& children,
-              const std::vector<Node>& args,
-              CDProof* cdp,
-              bool& continueUpdate) override;
 
  protected:
+  /** The let binder populated during the update. */
   AletheLetBinding& d_lbind;
 };
 
@@ -95,7 +73,7 @@ class AletheProofPrinter : protected EnvObj
   void print(std::ostream& out, std::shared_ptr<ProofNode> pfn);
 
  private:
-  /** Used for printing the node after the initial Alethe anchor has been
+  /** Used for printing the proof node after the initial Alethe anchor has been
    * printed
    *
    * The initial anchor introduces the initial assumptions of the problem, which
@@ -123,11 +101,17 @@ class AletheProofPrinter : protected EnvObj
       std::string current_prefix,
       uint32_t& current_step_id);
 
+  /** Print term into stream
+   *
+   * The printing is done separately because it uses the let binder (d_lbind)
+   * for converting the term before printing.
+   */
   void printTerm(std::ostream& out, TNode n);
 
   /** The let binder for printing with sharing. */
   AletheLetBinding d_lbind;
 
+  /** The callback used for computing the let binding. */
   std::unique_ptr<LetUpdaterPfCallback> d_cb;
 };
 
@@ -135,4 +119,4 @@ class AletheProofPrinter : protected EnvObj
 
 }  // namespace cvc5::internal
 
-#endif /* CVC4__PROOF__ALETHE_PROOF_PRINTER_H */
+#endif /* CVC5__PROOF__ALETHE__ALETHE_PROOF_PRINTER_H */

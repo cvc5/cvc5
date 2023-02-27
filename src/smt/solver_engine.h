@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
@@ -270,6 +271,8 @@ class CVC5_EXPORT SolverEngine
                       const std::vector<Node>& formals,
                       Node formula,
                       bool global = false);
+  /** Same as above, with lambda */
+  void defineFunction(Node func, Node lambda, bool global = false);
 
   /**
    * Define functions recursive
@@ -385,6 +388,12 @@ class CVC5_EXPORT SolverEngine
    * @param isAssume True if n is an assumption.
    */
   void assertSygusConstraint(Node n, bool isAssume = false);
+
+  /** @return sygus constraints .*/
+  std::vector<Node> getSygusConstraints();
+
+  /** @return sygus assumptions .*/
+  std::vector<Node> getSygusAssumptions();
 
   /**
    * Add an invariant constraint.

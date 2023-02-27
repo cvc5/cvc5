@@ -47,6 +47,7 @@ enum RewriteRuleId
   ReflexivityEq,
 
   /// operator elimination rules
+  SizeEliminate,
   UgtEliminate,
   UgeEliminate,
   SgeEliminate,
@@ -110,6 +111,7 @@ enum RewriteRuleId
   EvalSle,
   EvalITEBv,
   EvalComp,
+  EvalConstBvSym,
   EvalEagerAtom,
 
   /// simplification rules
@@ -166,6 +168,7 @@ enum RewriteRuleId
   UgtUrem,
 
   UltOne,
+  UltOnes,
   SltZero,
   ZeroUlt,
   MergeSignExtend,
@@ -173,6 +176,7 @@ enum RewriteRuleId
   ZeroExtendEqConst,
   SignExtendUltConst,
   ZeroExtendUltConst,
+  IneqElimConversion,
 
   /// normalization rules
   ExtractBitwise,
@@ -272,6 +276,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case EvalSltBv:           out << "EvalSltBv";           return out;
   case EvalITEBv:           out << "EvalITEBv";           return out;
   case EvalComp:            out << "EvalComp";            return out;
+  case EvalConstBvSym:      out << "EvalConstBvSym";      return out;
   case EvalEagerAtom: out << "EvalEagerAtom"; return out;
   case EvalExtract :        out << "EvalExtract";         return out;
   case EvalSignExtend :     out << "EvalSignExtend";      return out;
@@ -357,6 +362,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NegAdd: out << "NegAdd"; return out;
   case BBAddNeg: out << "BBAddNeg"; return out;
   case UltOne : out << "UltOne"; return out;
+  case UltOnes: out << "UltOnes"; return out;
   case SltZero : out << "SltZero"; return out;
   case ZeroUlt : out << "ZeroUlt"; return out;
   case MergeSignExtend : out << "MergeSignExtend"; return out;
@@ -364,7 +370,8 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ZeroExtendEqConst: out << "ZeroExtendEqConst"; return out;
   case SignExtendUltConst: out << "SignExtendUltConst"; return out;
   case ZeroExtendUltConst: out << "ZeroExtendUltConst"; return out;
-    
+  case IneqElimConversion: out << "IneqElimConversion"; return out;
+
   case UleEliminate : out << "UleEliminate"; return out;
   case BitwiseSlicing : out << "BitwiseSlicing"; return out;
   case ExtractSignExtend : out << "ExtractSignExtend"; return out;
@@ -614,6 +621,7 @@ struct AllRewriteRules {
   RewriteRule<SremEliminate> rule144;
   RewriteRule<SmodEliminate> rule145;
   RewriteRule<UgtUrem> rule146;
+  RewriteRule<UltOnes> rule147;
 };
 
 template<> inline

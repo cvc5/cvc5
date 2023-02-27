@@ -1,12 +1,3 @@
-; --- should be independent of type
-
-(define-rule str-eq-refl ((t String)) (= t t) true)
-(define-rule str-eq-symm ((t String) (s String)) (= t s) (= s t))
-
-(define-rule str-ite-true-cond ((x String) (y String)) (ite true x y) x)
-(define-rule str-ite-false-cond ((x String) (y String)) (ite false x y) y)
-(define-rule str-ite-not-cond ((c Bool) (x String) (y String)) (ite (not c) x y) (ite c y x))
-
 ; ---
 
 (define-rule str-concat-flatten ((xs String :list) (s String) (ys String :list) (zs String :list))
@@ -22,8 +13,9 @@
   (= y (str.++ x2 x1 x)))
 
 (define-rule substr-empty-str ((n Int) (m Int)) (str.substr "" n m) "")
-(define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= n m) (str.substr x n m) "")
+(define-cond-rule substr-empty-range ((x String) (n Int) (m Int)) (>= 0 m) (str.substr x n m) "")
 (define-cond-rule substr-empty-start ((x String) (n Int) (m Int)) (>= n (str.len x)) (str.substr x n m) "")
+(define-cond-rule substr-empty-start-neg ((x String) (n Int) (m Int)) (< n 0) (str.substr x n m) "")
 (define-cond-rule substr-eq-empty ((s String) (n Int) (m Int))
   (and (= n 0) (> m n))
   (= (str.substr s n m) "")
@@ -35,7 +27,7 @@
   (str.len t))
 
 (define-cond-rule str-len-substr-in-range ((s String) (n Int) (m Int))
-  (and (>= n 0) (>= (str.len s) (+ n m)))
+  (and (>= n 0) (>= m 0) (>= (str.len s) (+ n m)))
   (str.len (str.substr s n m))
   m)
 

@@ -461,7 +461,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
 TrustNode TheoryBags::explain(TNode node) { return d_im.explainLit(node); }
 
-Node TheoryBags::getModelValue(TNode node) { return Node::null(); }
+Node TheoryBags::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheoryBags::preRegisterTerm(TNode n)
 {
@@ -471,7 +471,7 @@ void TheoryBags::preRegisterTerm(TNode n)
     case kind::EQUAL:
     {
       // add trigger predicate for equality and membership
-      d_equalityEngine->addTriggerPredicate(n);
+      d_state.addEqualityEngineTriggerPredicate(n);
     }
     break;
     case BAG_FROM_SET:

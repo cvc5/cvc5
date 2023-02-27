@@ -47,6 +47,8 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
+  // check normal forms equalities, propagate only
+  CHECK_NORMAL_FORMS_EQ_PROP,
   // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
   // check normal forms disequalities
@@ -57,8 +59,12 @@ enum InferStep
   CHECK_LENGTH_EQC,
   // check register terms for normal forms
   CHECK_REGISTER_TERMS_NF,
+  // check for eager extended function reductions
+  CHECK_EXTF_REDUCTION_EAGER,
   // check extended function reductions
   CHECK_EXTF_REDUCTION,
+  // check regular expression memberships eagerly (prior to CAV 14 procedure)
+  CHECK_MEMBERSHIP_EAGER,
   // check regular expression memberships
   CHECK_MEMBERSHIP,
   // check cardinality

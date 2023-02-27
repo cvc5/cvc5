@@ -23,6 +23,7 @@
 #include <unordered_map>
 
 #include "expr/node_traversal.h"
+#include "options/ff_options.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 #include "util/statistics_registry.h"
@@ -47,7 +48,9 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
     : Theory(THEORY_FF, env, out, valuation),
       d_state(env, valuation),
       d_im(env, *this, d_state, getStatsPrefix(THEORY_FF)),
-      d_eqNotify(d_im)
+      d_eqNotify(d_im),
+      d_stats(
+          std::make_unique<FfStatistics>(statisticsRegistry(), "theory::ff::"))
 {
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -77,7 +80,23 @@ void TheoryFiniteFields::finishInit()
 
 void TheoryFiniteFields::postCheck(Effort level)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::check") << "ff::check : " << level << " @ level "
+                     << context()->getLevel() << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  for (auto& subTheory : d_subTheories)
+  {
+    subTheory.second.postCheck(level);
+    if (subTheory.second.inConflict())
+    {
+      const Node conflict = nm->mkAnd(subTheory.second.conflict());
+      Trace("ff::conflict") << "ff::conflict : " << conflict << std::endl;
+      d_im.conflict(conflict, InferenceId::FF_LEMMA);
+    }
+  }
+#else  /* CVC5_USE_COCOA */
+  // We've received no facts (or we'd have crashed on notifyFact), so do nothing
+#endif /* CVC5_USE_COCOA */
 }
 
 void TheoryFiniteFields::notifyFact(TNode atom,
@@ -85,62 +104,79 @@ void TheoryFiniteFields::notifyFact(TNode atom,
                                     TNode fact,
                                     bool isInternal)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::check") << "ff::notifyFact : " << fact << " @ level "
+                     << context()->getLevel() << std::endl;
+  d_subTheories.at(atom[0].getType()).notifyFact(fact);
+#else  /* CVC5_USE_COCOA */
+  noCoCoA();
+#endif /* CVC5_USE_COCOA */
 }
 
 bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
                                             const std::set<Node>& termSet)
 {
-  // TODO
+#ifdef CVC5_USE_COCOA
+  Trace("ff::model") << "Term set: " << termSet << std::endl;
+  for (const auto& subTheory : d_subTheories)
+  {
+    for (const auto& entry : subTheory.second.model())
+    {
+      Trace("ff::model") << "Model entry: " << entry.first << " -> "
+                         << entry.second << std::endl;
+      if (termSet.count(entry.first))
+      {
+        bool okay = m->assertEquality(entry.first, entry.second, true);
+        AlwaysAssert(okay) << "Our model was rejected";
+      }
+    }
+  }
+#else  /* CVC5_USE_COCOA */
+  // We've received no facts (or we'd have crashed on notifyFact), so do nothing
+#endif /* CVC5_USE_COCOA */
   return true;
 }
 
-void TheoryFiniteFields::computeCareGraph()
+void TheoryFiniteFields::preRegisterWithEe(TNode node)
 {
-  // TODO
-}
-
-TrustNode TheoryFiniteFields::explain(TNode node)
-{
-  // TODO
-  return TrustNode::null();
-}
-
-Node TheoryFiniteFields::getModelValue(TNode node)
-{
-  // TODO
-  return Node::null();
+  Assert(d_equalityEngine != nullptr);
+  if (node.getKind() == kind::EQUAL)
+  {
+    d_state.addEqualityEngineTriggerPredicate(node);
+  }
+  else
+  {
+    d_equalityEngine->addTerm(node);
+  }
 }
 
 void TheoryFiniteFields::preRegisterTerm(TNode node)
 {
-  // TODO
+  preRegisterWithEe(node);
+#ifdef CVC5_USE_COCOA
+  Trace("ff::register") << "ff::preRegisterTerm : " << node << std::endl;
+  TypeNode ty = node.getType();
+  TypeNode fieldTy = ty;
+  if (!ty.isFiniteField())
+  {
+    Assert(node.getKind() == Kind::EQUAL);
+    fieldTy = node[0].getType();
+  }
+  if (d_subTheories.count(fieldTy) == 0)
+  {
+    d_subTheories.try_emplace(fieldTy, d_env, d_stats.get(), ty.getFfSize());
+  }
+#else  /* CVC5_USE_COCOA */
+  noCoCoA();
+#endif /* CVC5_USE_COCOA */
 }
 
-TrustNode TheoryFiniteFields::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+TrustNode TheoryFiniteFields::explain(TNode n)
 {
-  // TODO
-  return TrustNode::null();
-}
-
-Theory::PPAssertStatus TheoryFiniteFields::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
-{
-  TNode in = tin.getNode();
-  Trace("ff::pp") << "ff::ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
-  return status;
-}
-
-void TheoryFiniteFields::presolve()
-{
-  // TODO
-}
-
-bool TheoryFiniteFields::isEntailed(Node n, bool pol)
-{
-  // TODO
-  return false;
+  Trace("ff::prop") << "explain " << n << std::endl;
+  TrustNode exp = d_im.explainLit(n);
+  AlwaysAssert(!exp.isNull());
+  return exp;
 }
 
 }  // namespace ff
