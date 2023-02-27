@@ -10,12 +10,12 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finite fields model construction
+ * Multivariate root finding.
  */
 
 #ifdef CVC5_USE_COCOA
 
-#include "theory/ff/model.h"
+#include "theory/ff/multi_roots.h"
 
 #include <CoCoA/BigIntOps.H>
 #include <CoCoA/RingFp.H>
@@ -28,7 +28,7 @@
 #include <sstream>
 
 #include "smt/assertions.h"
-#include "theory/ff/roots.h"
+#include "theory/ff/uni_roots.h"
 
 namespace cvc5::internal {
 namespace theory {
