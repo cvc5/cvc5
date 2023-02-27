@@ -572,6 +572,9 @@ class CVC5_EXPORT ParserState
    * if a variable "x" is declared and the print namespace is "tptp.", then
    * we bind the symbol "x" to a variable whose name is "tptp.x". This means
    * that "x" can be parsed, but the variable will be printed as "tptp.x".
+   *
+   * !!!!!!!!! This is only necessary for the TPTP to smt2 conversion, and
+   * can be deleted if the TPTP parser is deleted.
    */
   std::string d_printNamespace;
 
