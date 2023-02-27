@@ -175,6 +175,10 @@ enum class AletheRule : uint32_t
   // Tautology of linear disequalities.
   // > i. (cl F1 ... Fn)
   LA_GENERIC,
+  // Tautology for multiplying both sides of inequality by positive factor
+  LA_MULT_POS,
+  // Tautology for multiplying both sides of inequality by negative factor
+  LA_MULT_NEG,
   // Tautology of linear integer arithmetic
   // > i. (cl F1 ... Fn)
   LIA_GENERIC,
