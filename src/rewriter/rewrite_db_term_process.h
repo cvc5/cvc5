@@ -4,7 +4,11 @@
  *
  * This file is part of the cvc5 project.
  *
+<<<<<<< HEAD
  * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+=======
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+>>>>>>> a1828e479a149b98be4364aa8d17ce84ba10d4aa
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,22 +32,26 @@ namespace cvc5::internal {
 namespace rewriter {
 
 /**
- * The AST structure of terms in the proof checker and in cvc5 is different.
- * This class converts between the two expected AST structures. These
+ * The desired AST of terms in our DSL rewrite rule proof reconstruction can be
+ * different than the default representation of terms in cvc5. These
  * differences include:
- * (1) cvc5 has (word) string literals; the proof checker assumes these are
+ * (1) cvc5 has (word) string literals; the DSL assumes these are
  * concatenations of constants, e.g. "ABC" is the term (str.++ "A" "B" "C").
- * Notice that we do not convert to n-ary form (as required by e.g. LFSC)
- * here.
+ *
+ * This node converter converts from the default representation of cvc5 terms
+ * to the representation of terms required by the DSL proof reconstruction
+ * algorithm.
+ *
+ * Notice that this converter is independent of the end target proof checker,
+ * and thus we do not do any target-specific processing (e.g. converting to
+ * curried form).
  */
 class RewriteDbNodeConverter : public NodeConverter
 {
  public:
-  /** convert to internal
-   *
-   * This converts the node n to the internal shape that it would be in
-   * the proof checker. This means that n-ary applications are converted
-   * to (left-associative) chains.
+  /**
+   * This converts the node n to the internal shape that it should be in
+   * for the DSL proof reconstruction algorithm.
    */
   Node postConvert(Node n) override;
 };

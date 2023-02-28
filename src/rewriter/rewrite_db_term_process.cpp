@@ -41,12 +41,11 @@ Node RewriteDbNodeConverter::postConvert(Node n)
     {
       return n;
     }
-    std::vector<unsigned> v(vec.begin(), vec.end());
     std::vector<Node> children;
-    for (unsigned i = 0, size = v.size(); i < size; i++)
+    for (unsigned c : vec)
     {
       std::vector<unsigned> tmp;
-      tmp.push_back(v[i]);
+      tmp.push_back(c);
       children.push_back(nm->mkConst(String(tmp)));
     }
     return nm->mkNode(STRING_CONCAT, children);
