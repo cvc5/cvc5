@@ -1228,7 +1228,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
                               d_resPivots
-                                  ? std::vector<Node>{children[0], d_true}
+                                  ? std::vector<Node>{children[0], d_false}
                                   : std::vector<Node>(),
                               *cdp);
     }
