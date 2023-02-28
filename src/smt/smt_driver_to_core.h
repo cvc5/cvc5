@@ -31,12 +31,36 @@ namespace smt {
 class SmtSolver;
 class ContextManager;
 
+/**
+ * An algorithm for computing a timeout core.
+ *
+ * The algorithm maintains a set of formulas C and a set of models M, both
+ * initially empty.
+ * In each iteration of the loop:
+ *   If C is unsat, return <unsat, {}>
+ *   If C is timeout, return <unknown, C>
+ *   If C is sat or unknown with model m:
+ *     If m satisfies all input formulas, return <sat, {}>
+ *     Otherwise, add m to M.
+ *     Update C to C' such that C'^m' = false for all models m' in M and repeat.
+ *
+ * The selection of C' is done by adding to C a single new assertion from our
+ * input that is falsified by m, and then removing from C' any assertions that
+ * are not falsified by another assertion already in C'.
+ */
 class SmtDriverToCore : protected EnvObj
 {
  public:
   SmtDriverToCore(Env& env);
 
-  /** get timeout core */
+  /** get timeout core for the current set of assertions stored in as.
+   *
+   * Returns a pair containing a result and a list of formulas. If the result is
+   * unknown and the reason is timeout, then the list of formulas correspond to
+   * a subset of the current assertions that cause a timeout in the specified
+   * by timeout-core-timeout. Otherwise, the list of formulas is empty and the
+   * result has the same guarantees as a response to checkSat.
+   */
   std::pair<Result, std::vector<Node>> getTimeoutCore(const Assertions& as);
 
  private:
