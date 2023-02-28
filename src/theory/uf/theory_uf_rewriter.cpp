@@ -15,21 +15,21 @@
 
 #include "theory/uf/theory_uf_rewriter.h"
 
+#include "expr/elim_shadow_converter.h"
 #include "expr/function_array_const.h"
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/uf/function_const.h"
+#include "util/bitvector.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TheoryUfRewriter::TheoryUfRewriter(bool isHigherOrder)
-    : d_isHigherOrder(isHigherOrder)
-{
-}
+TheoryUfRewriter::TheoryUfRewriter() {}
 
 RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
 {
@@ -60,41 +60,11 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
     {
       Trace("uf-ho-beta") << "uf-ho-beta : beta-reducing all args of : "
                           << lambda << " for " << node << "\n";
-      Node ret;
-      // build capture-avoiding substitution since in HOL shadowing may have
-      // been introduced
-      if (d_isHigherOrder)
-      {
-        std::vector<Node> vars;
-        std::vector<Node> subs;
-        for (const Node& v : lambda[0])
-        {
-          vars.push_back(v);
-        }
-        for (const Node& s : node)
-        {
-          subs.push_back(s);
-        }
-        if (TraceIsOn("uf-ho-beta"))
-        {
-          Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
-                              << " vars into " << subs.size() << " terms :\n";
-          for (unsigned i = 0, size = subs.size(); i < size; ++i)
-          {
-            Trace("uf-ho-beta")
-                << "uf-ho-beta: .... " << vars[i] << " |-> " << subs[i] << "\n";
-          }
-        }
-        ret = expr::substituteCaptureAvoiding(lambda[1], vars, subs);
-        Trace("uf-ho-beta") << "uf-ho-beta : ..result : " << ret << "\n";
-      }
-      else
-      {
-        std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
-        std::vector<TNode> subs(node.begin(), node.end());
-        ret = lambda[1].substitute(
-            vars.begin(), vars.end(), subs.begin(), subs.end());
-      }
+      std::vector<TNode> vars(lambda[0].begin(), lambda[0].end());
+      std::vector<TNode> subs(node.begin(), node.end());
+      Node ret = lambda[1].substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
     else if (!canUseAsApplyUfOperator(node.getOperator()))
@@ -125,20 +95,10 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
             << "uf-ho-beta : ....new lambda : " << new_body << "\n";
       }
 
-      // build capture-avoiding substitution since in HOL shadowing may have
-      // been introduced
-      if (d_isHigherOrder)
-      {
-        Node arg = node[1];
-        Node var = lambda[0][0];
-        new_body = expr::substituteCaptureAvoiding(new_body, var, arg);
-      }
-      else
-      {
-        TNode arg = node[1];
-        TNode var = lambda[0][0];
-        new_body = new_body.substitute(var, arg);
-      }
+      TNode arg = node[1];
+      TNode var = lambda[0][0];
+      new_body = new_body.substitute(var, arg);
+
       Trace("uf-ho-beta") << "uf-ho-beta : ..new body : " << new_body << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, new_body);
     }
@@ -146,7 +106,10 @@ RewriteResponse TheoryUfRewriter::postRewrite(TNode node)
   else if (k == kind::LAMBDA)
   {
     Node ret = rewriteLambda(node);
-    return RewriteResponse(REWRITE_DONE, ret);
+    if (ret != node)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+    }
   }
   else if (k == kind::BITVECTOR_TO_NAT)
   {
@@ -249,19 +212,33 @@ Node TheoryUfRewriter::rewriteLambda(Node node)
     Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
     return retNode;
   }
-  else
+  Trace("builtin-rewrite-debug")
+      << "...failed to get array representation." << std::endl;
+  // eliminate shadowing
+  Node retElimShadow = ElimShadowNodeConverter::eliminateShadow(node);
+  if (retElimShadow != node)
   {
-    Trace("builtin-rewrite-debug")
-        << "...failed to get array representation." << std::endl;
+    return retElimShadow;
   }
   return node;
 }
 
 RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 {
+  Assert(node.getKind() == kind::BITVECTOR_TO_NAT);
   if (node[0].isConst())
   {
     Node resultNode = arith::eliminateBv2Nat(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  else if (node[0].getKind() == kind::INT_TO_BITVECTOR)
+  {
+    // (bv2nat ((_ int2bv w) x)) ----> (mod x 2^w)
+    NodeManager* nm = NodeManager::currentNM();
+    const uint32_t size =
+        node[0].getOperator().getConst<IntToBitVector>().d_size;
+    Node sn = nm->mkConstInt(Rational(Integer(2).pow(size)));
+    Node resultNode = nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0][0], sn);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
   }
   return RewriteResponse(REWRITE_DONE, node);
@@ -269,10 +246,37 @@ RewriteResponse TheoryUfRewriter::rewriteBVToNat(TNode node)
 
 RewriteResponse TheoryUfRewriter::rewriteIntToBV(TNode node)
 {
+  Assert(node.getKind() == kind::INT_TO_BITVECTOR);
   if (node[0].isConst())
   {
     Node resultNode = arith::eliminateInt2Bv(node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
+  }
+  else if (node[0].getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    TypeNode otype = node.getType();
+    TypeNode itype = node[0][0].getType();
+    if (otype == itype)
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, node[0][0]);
+    }
+    size_t osize = otype.getBitVectorSize();
+    size_t isize = itype.getBitVectorSize();
+    if (osize > isize)
+    {
+      // ((_ int2bv w) (bv2nat x)) ---> (concat (_ bv0 v) x)
+      Node zero = bv::utils::mkZero(osize - isize);
+      Node concat = NodeManager::currentNM()->mkNode(
+          kind::BITVECTOR_CONCAT, zero, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, concat);
+    }
+    else
+    {
+      // ((_ int2bv w) (bv2nat x)) ---> ((_ extract w 0) x)
+      Assert(osize < isize);
+      Node extract = bv::utils::mkExtract(node[0][0], osize, 0);
+      return RewriteResponse(REWRITE_AGAIN_FULL, extract);
+    }
   }
   return RewriteResponse(REWRITE_DONE, node);
 }

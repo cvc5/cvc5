@@ -520,11 +520,14 @@ bool TheoryArith::sanityCheckIntegerModel()
                  "integer variable "
               << p.first << " : " << p.second << std::endl;
     // must branch and bound
-    TrustNode lem =
+    std::vector<TrustNode> lems =
         d_bab.branchIntegerVariable(p.first, p.second.getConst<Rational>());
-    if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
+    for (const TrustNode& lem : lems)
     {
-      addedLemma = true;
+      if (d_im.trustedLemma(lem, InferenceId::ARITH_BB_LEMMA))
+      {
+        addedLemma = true;
+      }
     }
     badAssignment = true;
   }

@@ -17,8 +17,8 @@
 
 #ifdef CVC5_USE_COCOA
 
-#ifndef CVC5__THEORY__FF__ROOTS_H
-#define CVC5__THEORY__FF__ROOTS_H
+#ifndef CVC5__THEORY__FF__UNI_ROOTS_H
+#define CVC5__THEORY__FF__UNI_ROOTS_H
 
 #include <CoCoA/ring.H>
 #include <CoCoA/RingFp.H>
@@ -49,6 +49,6 @@ std::vector<CoCoA::RingElem> roots(CoCoA::RingElem f);
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__FF__ROOTS_H */
+#endif /* CVC5__THEORY__FF__UNI_ROOTS_H */
 
 #endif /* CVC5_USE_COCOA */
