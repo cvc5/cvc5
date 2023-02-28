@@ -4,13 +4,13 @@
  *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * The solver for SMT queries in an SolverEngine.
+ * A module for computing a timeout core from a set of assertions.
  */
 
 #include "cvc5_private.h"
@@ -32,10 +32,10 @@ class SmtSolver;
 class ContextManager;
 
 /**
- * An algorithm for computing a timeout core.
+ * A module for computing a timeout core.
  *
- * The algorithm maintains a set of formulas C and a set of models M, both
- * initially empty.
+ * The algorithm it uses maintains a set of formulas C and a set of models M,
+ * both initially empty.
  * In each iteration of the loop:
  *   If C is unsat, return <unsat, {}>
  *   If C is timeout, return <unknown, C>
@@ -46,7 +46,9 @@ class ContextManager;
  *
  * The selection of C' is done by adding to C a single new assertion from our
  * input that is falsified by m, and then removing from C' any assertions that
- * are not falsified by another assertion already in C'.
+ * are not falsified by another assertion already in C'. In detail, each model
+ * in M is "owned" by an assertion in C. When a new assertion is added to C,
+ * it takes ownership of all models that it is falsified by.
  */
 class SmtDriverToCore : protected EnvObj
 {
