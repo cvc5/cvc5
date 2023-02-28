@@ -38,6 +38,7 @@
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
+#include "util/finite_field_value.h"
 
 using namespace cvc5::internal::kind;
 
@@ -269,6 +270,16 @@ Node LfscNodeConverter::postConvert(Node n)
         nm->mkFunctionType({sn.getType(), en.getType(), in.getType()}, tn);
     Node bconstf = getSymbolInternal(k, tnv, "fp");
     return mkApplyUf(bconstf, {sn, en, in});
+  }
+  else if (k == CONST_FINITE_FIELD)
+  {
+    const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
+    Node v = convert(nm->mkConstInt(ffv.getValue()));
+    Node fs = convert(nm->mkConstInt(ffv.getFieldSize()));
+    TypeNode tnv =
+        nm->mkFunctionType({v.getType(), fs.getType()}, tn);
+    Node ffconstf = getSymbolInternal(k, tnv, "ff.value");
+    return mkApplyUf(ffconstf, {v, fs});
   }
   else if (k == CONST_STRING)
   {

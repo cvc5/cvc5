@@ -573,6 +573,9 @@
 
 ;; ---- Finite fields
 
+; A finite field constant is a term having 2 integer children.
+(declare f_ff.value term)
+(define ff.value (# x term (# y term (apply (apply f_ff.value x) y))))
 (declare f_ff.add term)
 (define ff.add (# x term (# y term (apply (apply f_ff.add x) y))))
 (declare f_ff.neg term)
