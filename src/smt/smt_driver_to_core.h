@@ -70,7 +70,6 @@ class SmtDriverToCore : protected EnvObj
   void getNextAssertions(std::vector<Node>& nextAssertions);
   /** check sat next */
   Result checkSatNext(const std::vector<Node>& nextAssertions);
-
   /**
    * Record current model, return true if we set d_nextIndexToInclude,
    * indicating that we want to include a new assertion.
@@ -80,39 +79,50 @@ class SmtDriverToCore : protected EnvObj
    */
   bool recordCurrentModel(bool& allAssertsSat,
                           SolverEngine* subSolver = nullptr);
-  /** has current shared symbol */
+  /** Does the i^th assertion have a current shared symbol (a free symbol in d_asymbols). */
   bool hasCurrentSharedSymbol(size_t i) const;
   /** Common nodes */
   Node d_true;
   Node d_false;
-  /** The original preprocessed assertions */
-  std::vector<Node> d_ppAsserts;
+  /** The original assertions */
   std::vector<Node> d_asserts;
-  /** the model value map */
-  std::vector<std::vector<Node>> d_modelValues;
-  /** set of model indices that only had unknown points */
-  std::unordered_set<size_t> d_unkModels;
-  /** mapping from models to the assertions that cover them */
-  std::unordered_map<size_t, size_t> d_modelToAssert;
-  /** next index to include */
-  size_t d_nextIndexToInclude;
-  /**
-   * All information about an assertion.
+  /** 
+   * The preprocessed assertions, which we have run substitutions and
+   * rewriting on
    */
+  std::vector<Node> d_ppAsserts;
+  /** 
+   * The cache of models, we store a model as the model value of each assertion
+   * in d_ppAsserts. 
+   */
+  std::vector<std::vector<Node>> d_modelValues;
+  /**
+   * Set of indices in d_modelValues that only had unknown (but no false)
+   * values of assertions.
+   */
+  std::unordered_set<size_t> d_unkModels;
+  /**
+   * Mapping from indices in d_modelToAssert to index of the assertion that covers them */
+  std::unordered_map<size_t, size_t> d_modelToAssert;
+  /** The next index of an assertion to include */
+  size_t d_nextIndexToInclude;
+  /** Information about an assertion. */
   class AssertInfo
   {
    public:
     AssertInfo() : d_coverModels(0) {}
     /** Number of models we cover */
     size_t d_coverModels;
-    /** the skolem */
-    Node d_skolem;
   };
-  /** The current indices in d_ppAsserts we are considering */
+  /** 
+   * The current indices in d_ppAsserts we are considering. The assertions
+   * whose indices are in the domain of this map are the current candidate
+   * timeout core.
+   */
   std::map<size_t, AssertInfo> d_ainfo;
   /** Query count */
   size_t d_queryCount;
-  /** Current free variables */
+  /** The current set of free variables of the current candidate core. */
   std::unordered_set<Node> d_asymbols;
   /** Free symbols of each assertion */
   std::map<size_t, std::unordered_set<Node>> d_syms;
