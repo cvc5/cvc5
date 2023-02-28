@@ -86,6 +86,7 @@ symbol_to_op = {
     '>=': Op.GEQ,
     '=': Op.EQ,
     'ite': Op.ITE,
+    'distinct': Op.DISTINCT,
     'str.++': Op.STRING_CONCAT,
     'str.in_re': Op.STRING_IN_REGEXP,
     'str.len': Op.STRING_LENGTH,
@@ -288,7 +289,6 @@ class Parser:
             sort.is_list = True
         self.symbols.add_symbol(name, sort)
     def def_decl_action(self, name, expr):
-        print(f"Adding symbol {name}={expr}")
         self.symbols.add_def(name, expr)
 
     def var_list(self):

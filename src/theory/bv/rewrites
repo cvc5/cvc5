@@ -122,7 +122,6 @@
   (repeat 1 x)
   x)
 
-;; Not entirely clear if this is right
 (define-rule RotateLeftEliminate1
   ((x ?BitVec) (amount Int))
   (rotate_left amount x)
@@ -155,21 +154,27 @@
   (bvxnor x y)
   (bvnot (bvxor x y)))
 
-;(define-rule SdivEliminate
-;	((x ?BitVec) (y ?BitVec))
-;	(bvsdiv x y)
-;	(bvite (xor (= (extract ))))
-;	)
+(define-rule SdivEliminate
+	((x ?BitVec) (y ?BitVec))
+	(def
+		(n (bvsize x))
+		(xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+		(yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+		(rUdiv (bvudiv (ite xLt0 (bvneg x) x) (ite yLt0 (bvneg y) y)))
+	)
+	(bvsdiv x y)
+	(ite (xor xLt0 yLt0) (bvneg rUdiv) rUdiv)
+	)
 
 (define-rule ZeroExtendEliminate
 	((x ?BitVec) (n Int))
 	(zero_extend n x)
 	(concat (bv 0 n) x))
-;(define-rule SignExtendEliminate
-;	((x ?BitVec) (n Int))
-;	(sign_extend n x)
-;	(concat (repeat n (extract (- (bvsize x) 1) (- (bvsize x) 1) x))
-;		x))
+(define-rule SignExtendEliminate
+	((x ?BitVec) (n Int))
+	(def (s (bvsize x)))
+	(sign_extend n x)
+	(concat (repeat n (extract (- s 1) (- s 1) x)) x))
 
 (define-rule UaddoEliminate
 	((x ?BitVec) (y ?BitVec))
@@ -178,21 +183,14 @@
 			(bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
 		(bv 1 1)
 	))
-;(define-rule SaddoEliminate
-;	((x ?BitVec) (y ?BitVec))
-;	(bvsaddo x y)
-;	(= (extract (- (bvsize x) 1) (- (bvsize x) 1)
-;			(bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
-;		(bv 1 1)
-;	))
-
-(define-rule UsuboEliminate
+(define-rule SaddoEliminate
 	((x ?BitVec) (y ?BitVec))
-	(bvusubo x y)
-	(= (extract (bvsize x) (bvsize x)
-			(bvsub (concat (bv 0 1) x) (concat (bv 0 1) y)))
+	(bvsaddo x y)
+	(= (extract (- (bvsize x) 1) (- (bvsize x) 1)
+			(bvadd (concat (bv 0 1) x) (concat (bv 0 1) y)))
 		(bv 1 1)
 	))
+
 (define-rule SdivoEliminate
 	((x ?BitVec) (y ?BitVec))
 	(bvsdivo x y)
@@ -200,19 +198,79 @@
 		(= x (concat (bv 1 1) (bv 0 (- (bvsize x) 1))))
 		(= y (not (bv 0 (bvsize y))))
 	))
-
-(define-cond-rule ShlByConst1
-  ((x ?BitVec) (amount Int) (sz Int))
-  (def (n (bvsize x)))
-  (< amount n)
-  (bvshl x (bv amount sz))
-	(concat (extract n (- n 1 amount x) (bv 0 n)))
+(define-rule SmodEliminate
+	((x ?BitVec) (y ?BitVec))
+	(def
+		(n (bvsize x))
+		(xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+		(yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+		(xAbs (bvite xLt0 (bvneg x) x))
+		(yAbs (bvite yLt0 (bvneg y) y))
+		(u (bvurem xAbs yAbs))
 	)
-(define-cond-rule ShlByConst2
-  ((x ?BitVec) (amount Int) (sz Int))
-  (>= amount (bvsize x))
-  (bvshl x (bv amount sz))
-  (bv 0 x))
+	(bvsmod x y)
+	(ite (= u (bv 0 n))
+		u
+		(ite (and (not xLt0) (not yLt0))
+			u
+			(ite (and xLt0 (not yLt0))
+				(bvadd (bvneg u) y)
+				(ite (and (not xLt0) yLt0)
+					(bvadd u y)
+					(bvneg u)
+				)
+			)
+		)
+	))
+(define-rule SremEliminate
+	((x ?BitVec) (y ?BitVec))
+	(def
+		(n (bvsize x))
+		(xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+		(yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+		(xAbs (bvite xLt0 (bvneg x) x))
+		(yAbs (bvite yLt0 (bvneg y) y))
+		(u (bvurem xAbs yAbs))
+	)
+	(bvsrem x y)
+	(bvite xLt0 (bvneg u) u)
+	)
+; Unsigned multiplication overflow detection.
+; See M.Gok, M.J. Schulte, P.I. Balzola, "Efficient integer multiplication
+; overflow detection circuits", 2001.
+; http://ieeexplore.ieee.org/document/987767
+;(define-rule UmuloEliminate
+;	((x ?BitVec) (y ?BitVec))
+;	(bvumulo x y)
+;
+;	)
+
+(define-rule UsuboEliminate
+	((x ?BitVec) (y ?BitVec))
+	(def
+		(n (bvsize x))
+		(s (bvsub (zero_extend x 1) (zero_extend y 1)))
+	)
+	(bvusubo x y)
+	(= (extract (- n 1) (- n 1) s) (bv 1 1))
+	)
+; Overflow occurs when
+; 1. (N - P) = P
+; 2. (P - N) = N
+(define-rule SsuboEliminate
+	((x ?BitVec) (y ?BitVec))
+	(def
+		(n (bvsize x))
+		(xLt0 (= (extract (- n 1) (- n 1) x) (bv 1 1)))
+		(yLt0 (= (extract (- n 1) (- n 1) y) (bv 1 1)))
+		(s (bvsub x y))
+		(sLt0 (= (extract (- n 1) (- n 1) s) (bv 1 1)))
+	)
+	(bvssubo x y)
+	(or
+		(and xLt0 (not yLt0) (not sLt0))
+		(and (not xLt0) yLt0 sLt0)
+	))
 
 
 ; -- Simplification Rules --
@@ -291,6 +349,21 @@
   (bvite c0 t0 (bvite c1 t1 t0))
   (bvite (bvand (bvnot c0) c1) t1 t0))
 
+
+(define-cond-rule ShlByConst1
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (< amount n)
+  (bvshl x (bv amount sz))
+	(concat (extract n (- n 1 amount x) (bv 0 n)))
+	)
+(define-cond-rule ShlByConst2
+  ((x ?BitVec) (amount Int) (sz Int))
+  (>= amount (bvsize x))
+  (bvshl x (bv amount sz))
+  (bv 0 x))
+
+
 (define-rule BitwiseIdemp1 (
     (x ?BitVec)
   )
@@ -322,6 +395,16 @@
     (x ?BitVec)
   )
   (bvnot (bvnot x)) x)
+(define-rule UltZero1
+	((x ?BitVec))
+	(bvult (bv 0 (bvsize x)) x)
+	(distinct (bv 0 (bvsize x)) x)
+	)
+(define-rule UltZero2
+	((x ?BitVec))
+	(bvult x (bv 0 (bvsize x)))
+	false
+	)
 (define-rule UltSelf (
     (x ?BitVec)
   )

@@ -120,6 +120,7 @@ class Op(Enum):
     ITE = auto()
     LAMBDA = auto()
     BOUND_VARS = auto()
+    DISTINCT = auto()
 
     ###########################################################################
     # Strings
