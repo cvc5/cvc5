@@ -83,7 +83,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                                             CDProof* cdp,
                                             bool& continueUpdate)
 {
-  Trace("alethe-proof") << "- Alethe post process callback " << res << " " << id
+  Trace("alethe-proof") << "...Alethe pre-update " << res << " " << id
                         << " " << children << " / " << args << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
@@ -1841,7 +1841,7 @@ bool AletheProofPostprocessCallback::updatePost(
 {
   NodeManager* nm = NodeManager::currentNM();
   AletheRule rule = getAletheRule(args[0]);
-  Trace("alethe-proof") << "... finalizer for rule " << rule << " / " << res
+  Trace("alethe-proof") << "...Alethe post-update " << rule << " / " << res
                         << " / args: " << args << std::endl;
   switch (rule)
   {
@@ -1871,7 +1871,7 @@ bool AletheProofPostprocessCallback::updatePost(
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true.
       if (children[0].getKind() == kind::OR
-          && (args[polIdx] != d_true || children[0] != args[pivIdx]))
+          && (args[polIdx] != d_true || args[pivIdx] != children[0]))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
         Node childConclusion = childPf->getArguments()[2];
@@ -1905,9 +1905,80 @@ bool AletheProofPostprocessCallback::updatePost(
                         {},
                         *cdp);
           newChildren[0] = newConclusion;
+          Trace("alethe-proof") << "Added OR step for " << childConclusion
+                                << " / " << newConclusion << std::endl;
+        }
+      }
+      // If child is used as a singleton but the premise is a clause, then
+      // inadvertently the result of a FACTORING or REORDERING step over a
+      // clause, obtained from an OR step over a Node, yielded the same Node
+      // of a literal. In this cause we must not use FACTORING or REORDERING
+      // (which in Alethe operate on clauses) but rewrite the original Node
+      // converted into a clause and processed, thus obtained the Node of the
+      // literal being used in the premise.
+      else if (children[0].getKind() == kind::OR)
+      {
+        Assert(args[polIdx] == d_true && args[pivIdx] == children[0]);
+        std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
+        Node childConclusion = childPf->getArguments()[2];
+        AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
+        if (childConclusion.getNumChildren() > 2 && childConclusion[0] == d_cl)
+        {
+          hasUpdated = true;
+          Trace("alethe-proof") << "\n";
+          Assert((childRule == AletheRule::CONTRACTION
+                  || childRule == AletheRule::REORDERING)
+                 && getAletheRule(childPf->getChildren()[0]->getArguments()[0])
+                        == AletheRule::OR);
+          // get great grand child
+          std::shared_ptr<ProofNode> greatGrandChildPf =
+              childPf->getChildren()[0]->getChildren()[0];
+          Node greatGrandChildConclusion = greatGrandChildPf->getResult();
+          // Note that we need to add this proof node explicitly to cdp
+          // because cdp does not have a step for it. Rather it is only
+          // present in cdp as a descendant of childPf (which is in cdp), so
+          // if childPf is to be lost, then so will greatGrandChildPf.
+          addAletheStep(AletheRule::ASSUME,
+                        greatGrandChildConclusion,
+                        greatGrandChildConclusion,
+                        {},
+                        {},
+                        *cdp);
+          // equate it to what we expect, use equiv elim and resolution to
+          // obtain a proof the expected
+          Node expectedConclusion = childPf->getResult();
+          Assert(expectedConclusion == children[0]);
+          Node equiv = greatGrandChildConclusion.eqNode(expectedConclusion);
+          addAletheStep(AletheRule::ALL_SIMPLIFY,
+                        equiv,
+                        nm->mkNode(kind::SEXPR, d_cl, equiv),
+                        {},
+                        {},
+                        *cdp);
+          Node equivElim = nm->mkNode(kind::SEXPR,
+                                      {d_cl,
+                                       equiv.notNode(),
+                                       greatGrandChildConclusion.notNode(),
+                                       expectedConclusion});
+          addAletheStep(
+              AletheRule::EQUIV_POS2, equivElim, equivElim, {}, {}, *cdp);
+          Node newChild = nm->mkNode(kind::SEXPR, d_cl, expectedConclusion);
+          addAletheStep(AletheRule::RESOLUTION,
+                        newChild,
+                        newChild,
+                        {equivElim, equiv, greatGrandChildConclusion},
+                        d_resPivots
+                            ? std::vector<Node>{equiv,
+                                                d_false,
+                                                greatGrandChildConclusion,
+                                                d_false}
+                            : std::vector<Node>(),
+                        *cdp);
+          newChildren[0] = newChild;
           Trace("alethe-proof")
-              << "Added OR step in finalizer " << childConclusion << " / "
-              << newConclusion << std::endl;
+              << "Reverted handling as a clause for converting "
+              << greatGrandChildConclusion << " into " << expectedConclusion
+              << std::endl;
         }
       }
       // For all other children C_i the procedure is similar. There is however a
@@ -1963,9 +2034,77 @@ bool AletheProofPostprocessCallback::updatePost(
                           {},
                           *cdp);
             newChildren[i] = conclusion;
+            Trace("alethe-proof") << "Added OR step for " << childConclusion
+                                  << " / " << conclusion << std::endl;
+          }
+        }
+        // As for the first premise, we need to handle the case in which the
+        // premise is a singleton but the rule concluding it yields a clause.
+        else if (children[i].getKind() == kind::OR)
+        {
+          Assert(args[polIdx] == d_false && args[pivIdx] == children[i]);
+          std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
+          Node childConclusion = childPf->getArguments()[2];
+          if (childConclusion.getNumChildren() > 2
+              && childConclusion[0] == d_cl)
+          {
+            hasUpdated = true;
+            Trace("alethe-proof") << "\n";
+            AletheRule childRule = getAletheRule(childPf->getArguments()[0]);
+            Assert(
+                (childRule == AletheRule::CONTRACTION
+                 || childRule == AletheRule::REORDERING)
+                && getAletheRule(childPf->getChildren()[0]->getArguments()[0])
+                       == AletheRule::OR);
+            // get great grand child
+            std::shared_ptr<ProofNode> greatGrandChildPf =
+                childPf->getChildren()[0]->getChildren()[0];
+            Node greatGrandChildConclusion = greatGrandChildPf->getResult();
+            // Note that we need to add this proof node explicitly to cdp
+            // because cdp does not have a step for it. Rather it is only
+            // present in cdp as a descendant of childPf (which is in cdp), so
+            // if childPf is to be lost, then so will greatGrandChildPf.
+            addAletheStep(AletheRule::ASSUME,
+                          greatGrandChildConclusion,
+                          greatGrandChildConclusion,
+                          {},
+                          {},
+                          *cdp);
+            // equate it to what we expect, use equiv elim and resolution to
+            // obtain a proof the expected
+            Node expectedConclusion = childPf->getResult();
+            Assert(expectedConclusion == children[i]);
+            Node equiv = greatGrandChildConclusion.eqNode(expectedConclusion);
+            addAletheStep(AletheRule::ALL_SIMPLIFY,
+                          equiv,
+                          nm->mkNode(kind::SEXPR, d_cl, equiv),
+                          {},
+                          {},
+                          *cdp);
+            Node equivElim = nm->mkNode(kind::SEXPR,
+                                        {d_cl,
+                                         equiv.notNode(),
+                                         greatGrandChildConclusion.notNode(),
+                                         expectedConclusion});
+            addAletheStep(
+                AletheRule::EQUIV_POS2, equivElim, equivElim, {}, {}, *cdp);
+            Node newChild = nm->mkNode(kind::SEXPR, d_cl, expectedConclusion);
+            addAletheStep(AletheRule::RESOLUTION,
+                          newChild,
+                          newChild,
+                          {equivElim, equiv, greatGrandChildConclusion},
+                          d_resPivots
+                              ? std::vector<Node>{equiv,
+                                                  d_false,
+                                                  greatGrandChildConclusion,
+                                                  d_false}
+                              : std::vector<Node>(),
+                          *cdp);
+            newChildren[i] = newChild;
             Trace("alethe-proof")
-                << "Added OR step in finalizer " << childConclusion << " / "
-                << conclusion << std::endl;
+                << "Reverted handling as a clause for converting "
+                << greatGrandChildConclusion << " into " << expectedConclusion
+                << std::endl;
           }
         }
       }
