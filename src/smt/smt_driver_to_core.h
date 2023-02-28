@@ -72,7 +72,8 @@ class SmtDriverToCore : protected EnvObj
   Result checkSatNext(const std::vector<Node>& nextAssertions);
   /**
    * Record current model, return true if we set d_nextIndexToInclude,
-   * indicating that we want to include a new assertion.
+   * indicating that we want to include a new assertion
+   * (d_ppAsserts[d_nextIndexToInclude]).
    *
    * @param allAssertsSat set to true if the current model satisfies all
    * assertions.
@@ -122,8 +123,6 @@ class SmtDriverToCore : protected EnvObj
    * timeout core.
    */
   std::map<size_t, AssertInfo> d_ainfo;
-  /** Query count */
-  size_t d_queryCount;
   /** The current set of free variables of the current candidate core. */
   std::unordered_set<Node> d_asymbols;
   /** Free symbols of each assertion */
