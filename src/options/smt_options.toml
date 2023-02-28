@@ -521,19 +521,3 @@ name   = "SMT Layer"
   type       = "uint64_t"
   default    = "10000"
   help       = "timeout (in milliseconds) for satisfiability checks for timeout cores"
-
-[[option]]
-  name       = "dumpTimeoutCore"
-  category   = "expert"
-  long       = "dump-timeout-cores"
-  type       = "bool"
-  default    = "false"
-  help       = "dump timeout benchmarks for timeout core algorithm"
-
-[[option]]
-  name       = "timeoutCoreDumpToFile"
-  category   = "expert"
-  long       = "timeout-core-dump-files"
-  type       = "bool"
-  default    = "false"
-  help       = "dump timeout benchmarks for timeout core algorithm"

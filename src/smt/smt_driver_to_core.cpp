@@ -124,7 +124,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
     }
     if (coverModel)
     {
-      // decrement the count of the assertion
+      // decrement the count of the assertion that previously owned it
       itp = d_modelToAssert.find(i);
       Assert(itp != d_modelToAssert.end());
       Assert(itp->second != d_nextIndexToInclude);
@@ -196,31 +196,27 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN)
-  {
-    if (options().smt.timeoutCoreDumpToFile)
+  {  
+    if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
       Trace("smt-to-core") << "checkSatNext: dump benchmark " << d_queryCount
                            << std::endl;
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
       // Print the query to to queryN.smt2
-      std::stringstream fname;
-      fname << "query" << d_queryCount << ".smt2";
-      std::ofstream fs(fname.str(), std::ofstream::out);
-      smt::PrintBenchmark pb(Printer::getPrinter(fs));
-      pb.printBenchmark(fs, d_env.getLogicInfo().getLogicString(), {}, bench);
-      fs.close();
-      d_queryCount++;
-      return result;
+      std::stringstream ss;
+      smt::PrintBenchmark pb(Printer::getPrinter(ss));
+      pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ";; timeout core" << std::endl;
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ss.str();
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ";; end timeout core" << std::endl;
     }
-    else
-    {
-      // otherwise, will terminate
-      return result;
-    }
+    // will terminate with unknown (timeout)
+    return result;
   }
   // if UNSAT, we are done
   if (result.getStatus() == Result::UNSAT)
   {
+    // keep core, which is an unsat core?
     Trace("smt-to-core") << "...return, UNSAT" << std::endl;
     return result;
   }
@@ -233,6 +229,8 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   }
   else if (allAssertsSat)
   {
+    // core is discarded if we terminate with sat
+    d_ainfo.clear();
     Trace("smt-to-core") << "...return, SAT" << std::endl;
     // a model happened to satisfy every assertion
     return Result(Result::SAT);
@@ -241,8 +239,10 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   {
     Trace("smt-to-core") << "...return, (fail) " << result << std::endl;
   }
+  // core is discarded if we terminate with sat/unknown
+  d_ainfo.clear();
   // Otherwise, we take the current result (likely unknown).
-  // If result happens to be SAT, then we are in a case where the model doesnt
+  // If result happens to be sat, then we are in a case where the model doesnt
   // satisfy an assertion that was included, in which case we trust the
   // checkSatInternal result.
   return result;
