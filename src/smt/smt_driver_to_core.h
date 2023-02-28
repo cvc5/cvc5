@@ -79,21 +79,22 @@ class SmtDriverToCore : protected EnvObj
    */
   bool recordCurrentModel(bool& allAssertsSat,
                           SolverEngine* subSolver = nullptr);
-  /** Does the i^th assertion have a current shared symbol (a free symbol in d_asymbols). */
+  /** Does the i^th assertion have a current shared symbol (a free symbol in
+   * d_asymbols). */
   bool hasCurrentSharedSymbol(size_t i) const;
   /** Common nodes */
   Node d_true;
   Node d_false;
   /** The original assertions */
   std::vector<Node> d_asserts;
-  /** 
+  /**
    * The preprocessed assertions, which we have run substitutions and
    * rewriting on
    */
   std::vector<Node> d_ppAsserts;
-  /** 
+  /**
    * The cache of models, we store a model as the model value of each assertion
-   * in d_ppAsserts. 
+   * in d_ppAsserts.
    */
   std::vector<std::vector<Node>> d_modelValues;
   /**
@@ -102,7 +103,8 @@ class SmtDriverToCore : protected EnvObj
    */
   std::unordered_set<size_t> d_unkModels;
   /**
-   * Mapping from indices in d_modelToAssert to index of the assertion that covers them */
+   * Mapping from indices in d_modelToAssert to index of the assertion that
+   * covers them */
   std::unordered_map<size_t, size_t> d_modelToAssert;
   /** The next index of an assertion to include */
   size_t d_nextIndexToInclude;
@@ -114,7 +116,7 @@ class SmtDriverToCore : protected EnvObj
     /** Number of models we cover */
     size_t d_coverModels;
   };
-  /** 
+  /**
    * The current indices in d_ppAsserts we are considering. The assertions
    * whose indices are in the domain of this map are the current candidate
    * timeout core.
