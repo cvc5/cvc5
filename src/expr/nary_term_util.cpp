@@ -19,10 +19,10 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
+#include "util/finite_field_value.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "util/finite_field_value.h"
 
 using namespace cvc5::internal::kind;
 

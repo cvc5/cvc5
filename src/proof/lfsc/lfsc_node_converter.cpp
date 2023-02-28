@@ -33,12 +33,12 @@
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/bitvector.h"
+#include "util/finite_field_value.h"
 #include "util/floatingpoint.h"
 #include "util/iand.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
-#include "util/finite_field_value.h"
 
 using namespace cvc5::internal::kind;
 
@@ -276,8 +276,7 @@ Node LfscNodeConverter::postConvert(Node n)
     const FiniteFieldValue& ffv = n.getConst<FiniteFieldValue>();
     Node v = convert(nm->mkConstInt(ffv.getValue()));
     Node fs = convert(nm->mkConstInt(ffv.getFieldSize()));
-    TypeNode tnv =
-        nm->mkFunctionType({v.getType(), fs.getType()}, tn);
+    TypeNode tnv = nm->mkFunctionType({v.getType(), fs.getType()}, tn);
     Node ffconstf = getSymbolInternal(k, tnv, "ff.value");
     return mkApplyUf(ffconstf, {v, fs});
   }
