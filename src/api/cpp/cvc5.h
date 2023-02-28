@@ -4289,11 +4289,26 @@ class CVC5_EXPORT Solver
   std::map<Term, Term> getDifficulty() const;
 
   /**
-   * Get a timeout core.
+   * Get a timeout core, which computes a subset of the current assertions that
+   * cause a timeout. It does not require being proceeded by a call to checkSat.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-timeout-core)
+   * \endverbatim
    *
    * @warning This method is experimental and may change in future versions.
    *
-   * @return The result of the timeout core computation.
+   * @return The result of the timeout core computation. This is a pair
+   * containing a result and a list of formulas. If the result is unknown
+   * and the reason is timeout, then the list of formulas correspond to a
+   * subset of the current assertions that cause a timeout in the specified
+   * time :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
+   * Otherwise, the list of formulas is empty and the result has the same
+   * guarantees as a response to checkSat.
    */
   std::pair<Result, std::vector<Term>> getTimeoutCore() const;
 
