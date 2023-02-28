@@ -196,7 +196,7 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
   if (result.getStatus() == Result::UNKNOWN)
-  {  
+  {
     if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
       Trace("smt-to-core") << "checkSatNext: dump benchmark " << d_queryCount
@@ -206,9 +206,11 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
       std::stringstream ss;
       smt::PrintBenchmark pb(Printer::getPrinter(ss));
       pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
-      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ";; timeout core" << std::endl;
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK)
+          << ";; timeout core" << std::endl;
       output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ss.str();
-      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ";; end timeout core" << std::endl;
+      output(OutputTag::TIMEOUT_CORE_BENCHMARK)
+          << ";; end timeout core" << std::endl;
     }
     // will terminate with unknown (timeout)
     return result;
