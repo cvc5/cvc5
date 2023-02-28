@@ -200,8 +200,7 @@ Node LfscNodeConverter::postConvert(Node n)
     {
       return opc;
     }
-    std::vector<Node> children(n.begin(), n.end());
-    return postConvert(mkApplyUf(opc, children));
+    return postConvert(mkApplyUf(opc, std::vector<Node>(n.begin(), n.end())));
   }
   else if (k == HO_APPLY)
   {
@@ -331,8 +330,7 @@ Node LfscNodeConverter::postConvert(Node n)
     // note that SUB is not n-ary
     // get the macro-apply version of the operator
     Node opc = getOperatorOfTerm(n, true);
-    std::vector<Node> children( n.begin(), n.end());
-    return mkApplyUf(opc, children);
+    return mkApplyUf(opc, std::vector<Node>(n.begin(), n.end()));
   }
   else if (k == SET_EMPTY || k == SET_UNIVERSE || k == BAG_EMPTY)
   {
