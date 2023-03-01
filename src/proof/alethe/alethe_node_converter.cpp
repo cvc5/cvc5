@@ -40,7 +40,7 @@ Node AletheNodeConverter::postConvert(Node n)
         wi = SkolemManager::getWitnessForm(n);
       }
       // skolem with witness form, just convert that
-      if (!wi.isNull() && wi != n)
+      if (!wi.isNull())
       {
         Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
                              << " has witness form " << wi << "\n";
