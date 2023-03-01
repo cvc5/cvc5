@@ -46,35 +46,7 @@ Node AletheNodeConverter::postConvert(Node n)
                              << " has witness form " << wi << "\n";
         return convert(wi);
       }
-      // either random skolem or one with a predefined function. In the former
-      // we break, in latter we recover the semantics via the witness form
-      // correspoding to the function
-      SkolemManager* sm = nm->getSkolemManager();
-      SkolemFunId sfi = SkolemFunId::NONE;
-      Node cacheVal;
-      if (!sm->isSkolemFunction(n, sfi, cacheVal) || sfi == SkolemFunId::NONE)
-      {
-        Unreachable() << "Fresh Skolem not allowed\n";
-      }
-      Trace("alethe-conv") << "AletheNodeConverter: ..skolem is fun " << sfi
-                           << ", with cache " << cacheVal << "\n";
-      if (sfi != SkolemFunId::ARRAY_DEQ_DIFF)
-      {
-        Unreachable() << "Unsupported Skolem fun " << sfi << "\n";
-      }
-      // create the witness term (witness ((x T)) ())
-
-      Node v = nm->mkBoundVar(n.getType());
-      // the cache for this skolem must be an sexpr with the two arrays
-      Node def =
-          nm->mkNode(kind::IMPLIES,
-                     cacheVal[0].eqNode(cacheVal[1]).notNode(),
-                     nm->mkNode(kind::SELECT, cacheVal[0], v)
-                         .eqNode(nm->mkNode(kind::SELECT, cacheVal[1], v))
-                         .notNode());
-      wi = nm->mkNode(kind::WITNESS, nm->mkNode(kind::BOUND_VAR_LIST, v), def);
-      Trace("alethe-conv") << "Built " << wi << "\n";
-      return convert(wi);
+      Unreachable() << "Fresh Skolems are not allowed\n";
     }
     case kind::FORALL:
     {
