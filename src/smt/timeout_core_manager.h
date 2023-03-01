@@ -37,7 +37,7 @@ class ContextManager;
  * The algorithm it uses maintains a set of formulas C and a set of models M,
  * both initially empty.
  * In each iteration of the loop:
- *   If C is unsat, return <unsat, {}>
+ *   If C is unsat, return <unsat, C>
  *   If C is timeout, return <unknown, C>
  *   If C is sat or unknown with model m:
  *     If m satisfies all input formulas, return <sat, {}>
@@ -57,10 +57,11 @@ class TimeoutCoreManager : protected EnvObj
 
   /** get timeout core for the current set of assertions stored in as.
    *
-   * Returns a pair containing a result and a list of formulas. If the result is
-   * unknown and the reason is timeout, then the list of formulas correspond to
+   * Returns a pair containing a result and a list of formulas C. If the result
+   * is unknown and the reason is timeout, then the list C corresponds to
    * a subset of the current assertions that cause a timeout in the specified
-   * by timeout-core-timeout. Otherwise, the list of formulas is empty and the
+   * by timeout-core-timeout. If the result is unsat, then C is an unsat core
+   * for the set of assertions. Otherwise, the list of formulas is empty and the
    * result has the same guarantees as a response to checkSat.
    */
   std::pair<Result, std::vector<Node>> getTimeoutCore(const Assertions& as);
