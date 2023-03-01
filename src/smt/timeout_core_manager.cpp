@@ -195,21 +195,8 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
-  if (result.getStatus() == Result::UNKNOWN)
+  if (result.getStatus() == Result::UNKNOWN && result.getUnknownExplanation()==TIMEOUT)
   {
-    if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
-    {
-      std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
-      // Print the query to to queryN.smt2
-      std::stringstream ss;
-      smt::PrintBenchmark pb(Printer::getPrinter(ss));
-      pb.printBenchmark(ss, d_env.getLogicInfo().getLogicString(), {}, bench);
-      output(OutputTag::TIMEOUT_CORE_BENCHMARK)
-          << ";; timeout core" << std::endl;
-      output(OutputTag::TIMEOUT_CORE_BENCHMARK) << ss.str();
-      output(OutputTag::TIMEOUT_CORE_BENCHMARK)
-          << ";; end timeout core" << std::endl;
-    }
     // will terminate with unknown (timeout)
     return result;
   }
