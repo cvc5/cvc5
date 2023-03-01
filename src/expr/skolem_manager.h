@@ -232,9 +232,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * must provide information that characterizes the skolem. This information
  * may either be:
  * (1) the term that the skolem purifies (`mkPurifySkolem`)
- * (2) a predicate the skolem satisfies (this is currently solely used by
- * `mkSkolemize` for witnessing existential quantifiers),
- * (3) an identifier (`mkSkolemFunction`), which are typically used for
+ * (2) an identifier (`mkSkolemFunction`) and a set of "cache values", which
+ * can be seen as arguments to the skolem function. These are typically used for
  * implementing theory-specific inferences that introduce symbols that
  * are not interpreted by the theory (see SkolemFunId enum).
  *
@@ -243,30 +242,28 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * skolem variable.
  *
  * It is implemented by mapping terms to an attribute corresponding to their
- * "original form" and "witness form" as described below. Hence, this class does
- * not impact the reference counting of skolem variables which may be deleted if
- * they are not used.
+ * "original form" as described below. Hence, this class does not impact the
+ * reference counting of skolem variables which may be deleted if they are not
+ * used.
  *
- * We distinguish two kinds of mappings between terms and skolems:
+ * To handle purification of witness terms, notice that the purification
+ * skolem for (witness ((x T)) P) is equivalent to the skolem function:
+ *    (QUANTIFIERS_SKOLEMIZE (exists ((x T)) P) 0)
+ * In other words, the purification for witness terms are equivalent to
+ * the skolemization of their corresponding existential. This is currently only
+ * used for eliminating witness terms coming from algorithms that introduce
+ * them, e.g. BV/set instantiation. Unifying these two skolems is required
+ * for ensuring proof checking succeeds for term formula removal on witness
+ * terms.
  *
- * (1) "Original form", which associates skolems with the terms they purify.
- * This is used in `mkPurifySkolem` below.
- *
- * (2) "Witness form", which associates skolems with a witness term whose
- * body is a predicate they satisfy. This is used in `mkSkolemize` below.
- *
- * It is possible to unify these so that purification skolems for t are skolems
- * whose witness form is (witness ((x T)) (= x t)). However, there are
- * motivations not to do so. In particular, witness terms in most contexts
- * should be seen as black boxes, converting something to witness form may have
- * unintended consequences e.g. variable shadowing. In contrast, converting to
- * original form does not have these complications. Furthermore, having original
- * form greatly simplifies reasoning in the proof, in particular, it avoids the
- * need to reason about identifiers for introduced variables x.
- *
- * Furthermore, note that original form and witness form may share skolems
- * in the rare case that a witness term is purified. This is currently only the
- * case for algorithms that introduce witnesses, e.g. BV/set instantiation.
+ * The use of purification skolems and skolem functions avoid having to reason
+ * about witness terms. This avoids several complications. In particular,
+ * witness terms in most contexts should be seen as black boxes, converting
+ * something to a witness them may have unintended consequences e.g. variable
+ * shadowing. In contrast, converting to original form does not have these
+ * complications. Furthermore, having original form greatly simplifies
+ * reasoning in the proof in certain external proof formats, in particular, it
+ * avoids the need to reason about identifiers for introduced variables x.
  */
 class SkolemManager
 {
