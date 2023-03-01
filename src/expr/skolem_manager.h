@@ -263,7 +263,8 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * shadowing. In contrast, converting to original form does not have these
  * complications. Furthermore, having original form greatly simplifies
  * reasoning in the proof in certain external proof formats, in particular, it
- * avoids the need to reason about identifiers for introduced variables x.
+ * avoids the need to reason about identifiers for introduced variables for
+ * the binders of witness terms.
  */
 class SkolemManager
 {
