@@ -120,7 +120,8 @@ SkolemManager::SkolemManager() : d_skolemCounter(0) {}
 Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& prefix,
                                    const std::string& comment,
-                                   int flags)
+                                   int flags,
+                                   ProofGenerator* pg)
 {
   // We do not recursively compute the original form of t here
   Node k;
@@ -133,10 +134,17 @@ Node SkolemManager::mkPurifySkolem(Node t,
     k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
                          t.getType(),
                          {exists, nm->mkConstInt(Rational(0))});
+    // store the proof generator if it exists
+    if (pg!=nullptr)
+    {
+      d_gens[exists] = pg;
+    }
   }
   else
   {
     k = mkSkolemInternal(t, prefix, comment, flags);
+    // shouldn't provide proof generators for other terms
+    Assert (pg==nullptr);
   }
   // set unpurified form attribute for k
   UnpurifiedFormAttribute ufa;
@@ -208,6 +216,16 @@ Node SkolemManager::mkDummySkolem(const std::string& prefix,
                                   int flags)
 {
   return mkSkolemNode(prefix, type, comment, flags);
+}
+
+ProofGenerator* SkolemManager::getProofGenerator(Node t) const
+{
+  std::map<Node, ProofGenerator*>::const_iterator it = d_gens.find(t);
+  if (it != d_gens.end())
+  {
+    return it->second;
+  }
+  return nullptr;
 }
 
 bool SkolemManager::isAbstractValue(TNode n) const

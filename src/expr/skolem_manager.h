@@ -302,11 +302,22 @@ class SkolemManager
    * (ite A B C). Then, asking for the purify skolem for:
    *  (ite (ite A B C) D E) and (ite k D E)
    * will return two different Skolems.
+   * 
+   * @param t The term to purify
+   * @param prefix The prefix of the name of  the skolem
+   * @param comment Debug information about the skolem
+   * @param flags The flags for the skolem (see SkolemFlags)
+   * @param pg The proof generator for the skolemization of t. This should
+   * only be provided if t is a witness term (witness ((x T)) P). If non-null,
+   * this proof generator must respond to a call to getProofFor on 
+   * (exists ((x T)) P) during the lifetime of the current node manager.
+   * @return The purification skolem for t
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,
                       const std::string& comment = "",
-                      int flags = SKOLEM_DEFAULT);
+                      int flags = SKOLEM_DEFAULT,
+                      ProofGenerator* pg = nullptr);
   /**
    * Make skolem function. This method should be used for creating fixed
    * skolem functions of the forms described in SkolemFunId. The user of this
@@ -372,7 +383,11 @@ class SkolemManager
                      const TypeNode& type,
                      const std::string& comment = "",
                      int flags = SKOLEM_DEFAULT);
-
+  /**
+   * Get proof generator for existentially quantified formula q. This returns
+   * the proof generator that was provided in a call to `mkSkolemize` above.
+   */
+  ProofGenerator* getProofGenerator(Node q) const;
   /** Returns true if n is a skolem that stands for an abstract value */
   bool isAbstractValue(TNode n) const;
   /**
@@ -400,6 +415,10 @@ class SkolemManager
   std::map<std::tuple<SkolemFunId, TypeNode, Node>, Node> d_skolemFuns;
   /** Backwards mapping of above */
   std::map<Node, std::tuple<SkolemFunId, TypeNode, Node>> d_skolemFunMap;
+  /**
+   * Mapping from witness terms to proof generators.
+   */
+  std::map<Node, ProofGenerator*> d_gens;
 
   /**
    * A counter used to produce unique skolem names.
