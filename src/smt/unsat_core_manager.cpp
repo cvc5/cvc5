@@ -17,8 +17,8 @@
 
 #include "expr/skolem_manager.h"
 #include "proof/proof_node_algorithm.h"
-#include "theory/quantifiers/skolemize.h"
 #include "smt/assertions.h"
+#include "theory/quantifiers/skolemize.h"
 
 namespace cvc5::internal {
 namespace smt {

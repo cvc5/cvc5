@@ -69,7 +69,8 @@ TrustNode Skolemize::process(Node q)
     Node existsq = nm->mkNode(EXISTS, echildren);
     std::vector<Node> vars(existsq[0].begin(), existsq[0].end());
     std::vector<Node> skolems = getSkolemConstants(existsq);
-    Node res = existsq[1].substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
+    Node res = existsq[1].substitute(
+        vars.begin(), vars.end(), skolems.begin(), skolems.end());
     Node qnot = q.notNode();
     CDProof cdp(d_env);
     cdp.addStep(res, PfRule::SKOLEMIZE, {qnot}, {});
@@ -103,9 +104,9 @@ TrustNode Skolemize::process(Node q)
 
 std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 {
-  Assert (q.getKind()==EXISTS);
+  Assert(q.getKind() == EXISTS);
   std::vector<Node> skolems;
-  for (size_t i=0, nvars = q[0].getNumChildren(); i<nvars; i++)
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
     skolems.push_back(getSkolemConstant(q, i));
   }
@@ -114,15 +115,14 @@ std::vector<Node> Skolemize::getSkolemConstants(const Node& q)
 
 Node Skolemize::getSkolemConstant(const Node& q, size_t i)
 {
-  Assert (q.getKind()==EXISTS);
-  Assert (i<q[0].getNumChildren());
-  NodeManager * nm = NodeManager::currentNM();
-  SkolemManager * sm = nm->getSkolemManager();
+  Assert(q.getKind() == EXISTS);
+  Assert(i < q[0].getNumChildren());
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node r = nm->mkConstInt(Rational(i));
   std::vector<Node> cacheVals{q, r};
-  return sm->mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE,
-                              q[0][i].getType(),
-                              cacheVals);
+  return sm->mkSkolemFunction(
+      SkolemFunId::QUANTIFIERS_SKOLEMIZE, q[0][i].getType(), cacheVals);
 }
 
 void Skolemize::getSelfSel(const DType& dt,
@@ -184,12 +184,12 @@ bool Skolemize::getSkolemConstantsInduction(Node q, std::vector<Node>& skolems)
 }
 
 Node Skolemize::mkSkolemizedBodyInduction(const Options& opts,
-                                 Node f,
-                                 Node n,
-                                 std::vector<TNode>& fvs,
-                                 std::vector<Node>& sk,
-                                 Node& sub,
-                                 std::vector<unsigned>& sub_vars)
+                                          Node f,
+                                          Node n,
+                                          std::vector<TNode>& fvs,
+                                          std::vector<Node>& sk,
+                                          Node& sub,
+                                          std::vector<unsigned>& sub_vars)
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute the argument types from the free variables

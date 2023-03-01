@@ -103,12 +103,12 @@ class Skolemize : protected EnvObj
    * of Reynolds et al., VMCAI 2015.
    */
   static Node mkSkolemizedBodyInduction(const Options& opts,
-                               Node q,
-                               Node n,
-                               std::vector<TNode>& fvs,
-                               std::vector<Node>& sk,
-                               Node& sub,
-                               std::vector<unsigned>& sub_vars);
+                                        Node q,
+                                        Node n,
+                                        std::vector<TNode>& fvs,
+                                        std::vector<Node>& sk,
+                                        Node& sub,
+                                        std::vector<unsigned>& sub_vars);
   /** get skolem constants for quantified formula q */
   bool getSkolemConstantsInduction(Node q, std::vector<Node>& skolems);
   /** get the skolemized body for quantified formula q

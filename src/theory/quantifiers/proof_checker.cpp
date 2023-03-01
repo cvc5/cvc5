@@ -72,7 +72,8 @@ Node QuantifiersProofRuleChecker::checkInternal(
     }
     std::vector<Node> vars(exists[0].begin(), exists[0].end());
     std::vector<Node> skolems = Skolemize::getSkolemConstants(exists);
-    Node res = exists[1].substitute(vars.begin(), vars.end(), skolems.begin(), skolems.end());
+    Node res = exists[1].substitute(
+        vars.begin(), vars.end(), skolems.begin(), skolems.end());
     return res;
   }
   else if (id == PfRule::INSTANTIATE)
