@@ -68,7 +68,9 @@ TrustNode Skolemize::process(Node q)
     echildren[1] = echildren[1].notNode();
     Node existsq = nm->mkNode(EXISTS, echildren);
     std::vector<Node> vars(existsq[0].begin(), existsq[0].end());
-    std::vector<Node> skolems = getSkolemConstants(existsq);
+    // cache the skolems in d_skolem_constants[q]
+    std::vector<Node>& skolems = d_skolem_constants[q];
+    skolems = getSkolemConstants(existsq);
     Node res = existsq[1].substitute(
         vars.begin(), vars.end(), skolems.begin(), skolems.end());
     Node qnot = q.notNode();
