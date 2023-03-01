@@ -309,8 +309,9 @@ Node GenericOp::getOperatorForIndices(Kind k, const std::vector<Node>& indices)
         return dt[cindex][index].getUpdater();
       }
       break;
-      default: Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind" << k;
-    break;
+      default:
+        Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind" << k;
+        break;
     }
   }
   return Node::null();
