@@ -135,7 +135,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
                          t.getType(),
                          {exists, nm->mkConstInt(Rational(0))});
     // store the proof generator if it exists
-    if (pg!=nullptr)
+    if (pg != nullptr)
     {
       d_gens[exists] = pg;
     }
@@ -144,7 +144,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   {
     k = mkSkolemInternal(t, prefix, comment, flags);
     // shouldn't provide proof generators for other terms
-    Assert (pg==nullptr);
+    Assert(pg == nullptr);
   }
   // set unpurified form attribute for k
   UnpurifiedFormAttribute ufa;

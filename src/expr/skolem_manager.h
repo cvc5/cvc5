@@ -302,14 +302,14 @@ class SkolemManager
    * (ite A B C). Then, asking for the purify skolem for:
    *  (ite (ite A B C) D E) and (ite k D E)
    * will return two different Skolems.
-   * 
+   *
    * @param t The term to purify
    * @param prefix The prefix of the name of  the skolem
    * @param comment Debug information about the skolem
    * @param flags The flags for the skolem (see SkolemFlags)
    * @param pg The proof generator for the skolemization of t. This should
    * only be provided if t is a witness term (witness ((x T)) P). If non-null,
-   * this proof generator must respond to a call to getProofFor on 
+   * this proof generator must respond to a call to getProofFor on
    * (exists ((x T)) P) during the lifetime of the current node manager.
    * @return The purification skolem for t
    */
