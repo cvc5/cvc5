@@ -1158,7 +1158,7 @@ symbolicExpr[cvc5::Term& sexpr]
   std::vector<cvc5::Term> children;
 }
   : simpleSymbolicExpr[s]
-    { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
+    { sexpr = SOLVER->mkVar(SOLVER->getBooleanSort(), s); }
   | LPAREN_TOK
     ( symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN_TOK
     { sexpr = SOLVER->mkTerm(cvc5::SEXPR, children); }

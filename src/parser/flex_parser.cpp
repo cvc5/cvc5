@@ -142,7 +142,11 @@ std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
   else if (lang == "LANG_TPTP")
   {
     // TPTP is not supported
-    Unhandled() << "The TPTP input language is not supported with flex.";
+    Unhandled() << "the TPTP input language is not supported with flex.";
+  }
+  else
+  {
+    Unhandled() << "unable to detect input file format, try --lang";
   }
   return parser;
 }
