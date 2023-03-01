@@ -22,6 +22,7 @@
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
+#include "printer/smt2/smt2_printer.h"
 #include "smt/logic_exception.h"
 #include "theory/decision_manager.h"
 #include "theory/ext_theory.h"
@@ -78,6 +79,7 @@ TheoryStrings::TheoryStrings(Env& env, OutputChannel& out, Valuation valuation)
                 d_csolver,
                 d_extTheory,
                 d_statistics),
+      d_psolver(env, d_state, d_im, d_termReg, d_bsolver),
       d_asolver(env,
                 d_state,
                 d_im,
@@ -469,7 +471,7 @@ bool TheoryStrings::collectModelInfoType(
         // str.unit is applied to integers, where we are guaranteed the model
         // exists. We preempitively get the model value here, so that we
         // avoid repeated model values for strings.
-        Node val = d_valuation.getModelValue(nfe[0][0]);
+        Node val = d_valuation.getCandidateModelValue(nfe[0][0]);
         assignedValue = utils::mkUnit(eqc.getType(), val);
         assignedValue = rewrite(assignedValue);
         Trace("strings-model")
@@ -507,7 +509,7 @@ bool TheoryStrings::collectModelInfoType(
         {
           // its value must be equal to its code
           Node ct = nm->mkNode(kind::STRING_TO_CODE, eip->d_codeTerm.get());
-          Node ctv = d_valuation.getModelValue(ct);
+          Node ctv = d_valuation.getCandidateModelValue(ct);
           unsigned cvalue =
               ctv.getConst<Rational>().getNumerator().toUnsignedInt();
           Trace("strings-model") << "(code: " << cvalue << ") ";
@@ -532,7 +534,7 @@ bool TheoryStrings::collectModelInfoType(
           for (const std::pair<const Node, Node>& w : writeModel)
           {
             Trace("strings-model") << "  " << w.first << " -> " << w.second;
-            Node ivalue = d_valuation.getModelValue(w.first);
+            Node ivalue = d_valuation.getCandidateModelValue(w.first);
             Assert(ivalue.isConst() && ivalue.getType().isInteger());
             // ignore if out of bounds
             Rational irat = ivalue.getConst<Rational>();
@@ -1106,110 +1108,18 @@ void TheoryStrings::notifySharedTerm(TNode n)
   }
 }
 
-void TheoryStrings::checkCodes()
-{
-  // ensure that lemmas regarding str.code been added for each constant string
-  // of length one
-  if (d_termReg.hasStringCode())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    // str.code applied to the code term for each equivalence class that has a
-    // code term but is not a constant
-    std::vector<Node> nconst_codes;
-    // str.code applied to the proxy variables for each equivalence classes that
-    // are constants of size one
-    std::vector<Node> const_codes;
-    const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
-    for (const Node& eqc : seqc)
-    {
-      if (!eqc.getType().isString())
-      {
-        continue;
-      }
-
-      if (eqc.isConst())
-      {
-        Node c = eqc;
-        Trace("strings-code-debug") << "Get proxy variable for " << c
-                                    << std::endl;
-        Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
-        cc = rewrite(cc);
-        Assert(cc.isConst());
-        Node cp = d_termReg.ensureProxyVariableFor(c);
-        Node vc = nm->mkNode(STRING_TO_CODE, cp);
-        if (!d_state.areEqual(cc, vc))
-        {
-          std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
-        }
-        const_codes.push_back(vc);
-      }
-      else
-      {
-        EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-        if (ei && !ei->d_codeTerm.get().isNull())
-        {
-          Node vc = nm->mkNode(kind::STRING_TO_CODE, ei->d_codeTerm.get());
-          nconst_codes.push_back(vc);
-        }
-      }
-    }
-    if (d_im.hasProcessed())
-    {
-      return;
-    }
-    // now, ensure that str.code is injective
-    std::vector<Node> cmps;
-    cmps.insert(cmps.end(), const_codes.rbegin(), const_codes.rend());
-    cmps.insert(cmps.end(), nconst_codes.rbegin(), nconst_codes.rend());
-    for (unsigned i = 0, num_ncc = nconst_codes.size(); i < num_ncc; i++)
-    {
-      Node c1 = nconst_codes[i];
-      cmps.pop_back();
-      for (const Node& c2 : cmps)
-      {
-        Trace("strings-code-debug")
-            << "Compare codes : " << c1 << " " << c2 << std::endl;
-        if (!d_state.areDisequal(c1, c2) && !d_state.areEqual(c1, d_neg_one))
-        {
-          Node eq_no = c1.eqNode(d_neg_one);
-          Node deq = c1.eqNode(c2).negate();
-          Node eqn = c1[0].eqNode(c2[0]);
-          // str.code(x)==-1 V str.code(x)!=str.code(y) V x==y
-          Node inj_lem = nm->mkNode(kind::OR, eq_no, deq, eqn);
-          deq = rewrite(deq);
-          d_im.addPendingPhaseRequirement(deq, false);
-          std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
-        }
-      }
-    }
-  }
-}
-
-void TheoryStrings::checkRegisterTermsNormalForms()
-{
-  const std::vector<Node>& seqc = d_bsolver.getStringLikeEqc();
-  for (const Node& eqc : seqc)
-  {
-    NormalForm& nfi = d_csolver.getNormalForm(eqc);
-    // check if there is a length term for this equivalence class
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-    Node lt = ei ? ei->d_lengthTerm : Node::null();
-    if (lt.isNull())
-    {
-      Node c = d_termReg.mkNConcat(nfi.d_nf, eqc.getType());
-      d_termReg.registerTerm(c);
-    }
-  }
-}
-
 TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Kind ak = atom.getKind();
   if (ak == EQUAL)
   {
+    if (atom[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     // always apply aggressive equality rewrites here
     Node ret = d_rewriter.rewriteEqualityExt(atom);
     if (ret != atom)
@@ -1260,6 +1170,22 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
             STRING_SUBSTR, atom[0], atom[1], nm->mkConstInt(Rational(1))));
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
+  else if (ak == REGEXP_RANGE)
+  {
+    for (const Node& nc : atom)
+    {
+      if (!nc.isConst())
+      {
+        throw LogicException(
+            "expecting a constant string term in regexp range");
+      }
+      if (nc.getConst<String>().size() != 1)
+      {
+        throw LogicException(
+            "expecting a single constant string term in regexp range");
+      }
+    }
+  }
 
   TrustNode ret;
   Node atomRet = atom;
@@ -1274,6 +1200,51 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
                            << " via regular expression elimination."
                            << std::endl;
       atomRet = ret.getNode();
+    }
+  }
+  if (options().strings.stringFMF)
+  {
+    // Our decision strategy will minimize the length of this term if it is a
+    // variable but not an internally generated Skolem, or a term that does
+    // not belong to this theory.
+    if (atom.isVar() ? !d_termReg.getSkolemCache()->isSkolem(atom)
+                     : kindToTheoryId(ak) != THEORY_STRINGS
+                           && atom.getType().isStringLike())
+    {
+      d_termReg.preRegisterInputVar(atom);
+      Trace("strings-preregister") << "input variable: " << atom << std::endl;
+    }
+  }
+
+  // all characters of constants should fall in the alphabet
+  if (atom.isConst() && atom.getType().isString())
+  {
+    uint32_t alphaCard = d_termReg.getAlphabetCardinality();
+    std::vector<unsigned> vec = atom.getConst<String>().getVec();
+    for (unsigned u : vec)
+    {
+      if (u >= alphaCard)
+      {
+        std::stringstream ss;
+        ss << "Characters in string \"" << atom
+           << "\" are outside of the given alphabet.";
+        throw LogicException(ss.str());
+      }
+    }
+  }
+  if (!options().strings.stringExp)
+  {
+    if (ak == STRING_INDEXOF || ak == STRING_INDEXOF_RE || ak == STRING_ITOS
+        || ak == STRING_STOI || ak == STRING_REPLACE || ak == STRING_SUBSTR
+        || ak == STRING_REPLACE_ALL || ak == SEQ_NTH || ak == STRING_REPLACE_RE
+        || ak == STRING_REPLACE_RE_ALL || ak == STRING_CONTAINS
+        || ak == STRING_LEQ || ak == STRING_TO_LOWER || ak == STRING_TO_UPPER
+        || ak == STRING_REV || ak == STRING_UPDATE)
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << printer::smt2::Smt2Printer::smtKindStringOf(atom)
+         << " not supported in default mode, try --strings-exp";
+      throw LogicException(ss.str());
     }
   }
   return ret;
@@ -1295,16 +1266,23 @@ void TheoryStrings::runInferStep(InferStep s, Theory::Effort e, int effort)
     case CHECK_EXTF_EVAL: d_esolver.checkExtfEval(effort); break;
     case CHECK_CYCLES: d_csolver.checkCycles(); break;
     case CHECK_FLAT_FORMS: d_csolver.checkFlatForms(); break;
+    case CHECK_NORMAL_FORMS_EQ_PROP: d_csolver.checkNormalFormsEqProp(); break;
     case CHECK_NORMAL_FORMS_EQ: d_csolver.checkNormalFormsEq(); break;
     case CHECK_NORMAL_FORMS_DEQ: d_csolver.checkNormalFormsDeq(); break;
-    case CHECK_CODES: checkCodes(); break;
+    case CHECK_CODES: d_psolver.checkCodes(); break;
     case CHECK_LENGTH_EQC: d_csolver.checkLengthsEqc(); break;
     case CHECK_SEQUENCES_ARRAY_CONCAT: d_asolver.checkArrayConcat(); break;
     case CHECK_SEQUENCES_ARRAY: d_asolver.checkArray(); break;
     case CHECK_SEQUENCES_ARRAY_EAGER: d_asolver.checkArrayEager(); break;
-    case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
-    case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(effort); break;
-    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(effort); break;
+    case CHECK_REGISTER_TERMS_NF:
+      d_csolver.checkRegisterTermsNormalForms();
+      break;
+    case CHECK_EXTF_REDUCTION_EAGER:
+      d_esolver.checkExtfReductionsEager();
+      break;
+    case CHECK_EXTF_REDUCTION: d_esolver.checkExtfReductions(e); break;
+    case CHECK_MEMBERSHIP_EAGER: d_rsolver.checkMembershipsEager(); break;
+    case CHECK_MEMBERSHIP: d_rsolver.checkMemberships(e); break;
     case CHECK_CARDINALITY: d_bsolver.checkCardinality(); break;
     default: Unreachable(); break;
   }

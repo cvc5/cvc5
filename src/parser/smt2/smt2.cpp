@@ -139,9 +139,11 @@ void Smt2State::addDatatypesOperators()
   ParserState::addOperator(APPLY_TESTER);
   ParserState::addOperator(APPLY_SELECTOR);
 
+  addIndexedOperator(APPLY_TESTER, "is");
   if (!strictModeEnabled())
   {
     ParserState::addOperator(APPLY_UPDATER);
+    addIndexedOperator(APPLY_UPDATER, "update");
     // Tuple projection is both indexed and non-indexed (when indices are empty)
     addOperator(TUPLE_PROJECT, "tuple.project");
     addIndexedOperator(TUPLE_PROJECT, "tuple.project");
@@ -292,6 +294,8 @@ void Smt2State::addCoreSymbols()
   addOperator(NOT, "not");
   addOperator(OR, "or");
   addOperator(XOR, "xor");
+  addClosureKind(FORALL, "forall");
+  addClosureKind(EXISTS, "exists");
 }
 
 void Smt2State::addOperator(Kind kind, const std::string& name)
@@ -306,6 +310,13 @@ void Smt2State::addIndexedOperator(Kind tKind, const std::string& name)
 {
   ParserState::addOperator(tKind);
   d_indexedOpKindMap[name] = tKind;
+}
+
+void Smt2State::addClosureKind(Kind tKind, const std::string& name)
+{
+  // also include it as a normal operator
+  addOperator(tKind, name);
+  d_closureKindMap[name] = tKind;
 }
 
 bool Smt2State::isIndexedOperatorEnabled(const std::string& name) const
@@ -462,6 +473,96 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
   return Term();
 }
 
+Term Smt2State::mkIndexedConstant(const std::string& name,
+                                  const std::vector<std::string>& symbols)
+{
+  if (d_logic.isTheoryEnabled(internal::theory::THEORY_STRINGS))
+  {
+    if (name == "char")
+    {
+      if (symbols.size() != 1)
+      {
+        parseError("Unexpected number of indices for char");
+      }
+      if (symbols[0].length() <= 2 || symbols[0].substr(0, 2) != "#x")
+      {
+        parseError(std::string("Unexpected index for char: `") + symbols[0]
+                   + "'");
+      }
+      return mkCharConstant(symbols[0].substr(2));
+    }
+  }
+  else if (d_logic.hasCardinalityConstraints())
+  {
+    if (name == "fmf.card")
+    {
+      if (symbols.size() != 2)
+      {
+        parseError("Unexpected number of indices for fmf.card");
+      }
+      Sort t = getSort(symbols[0]);
+      // convert second symbol back to a numeral
+      uint32_t ubound = stringToUnsigned(symbols[1]);
+      return d_solver->mkCardinalityConstraint(t, ubound);
+    }
+  }
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return Term();
+}
+
+Term Smt2State::mkIndexedOp(Kind k,
+                            const std::vector<std::string>& symbols,
+                            const std::vector<Term>& args)
+{
+  if (k == APPLY_TESTER || k == APPLY_UPDATER)
+  {
+    Assert(symbols.size() == 1);
+    Assert(!args.empty());
+    const std::string& cname = symbols[0];
+    // must be declared
+    checkDeclaration(cname, CHECK_DECLARED, SYM_VARIABLE);
+    Term f = getExpressionForNameAndType(cname, args[0].getSort());
+    if (f.getKind() == APPLY_CONSTRUCTOR && f.getNumChildren() == 1)
+    {
+      // for nullary constructors, must get the operator
+      f = f[0];
+    }
+    if (k == APPLY_TESTER)
+    {
+      if (!f.getSort().isDatatypeConstructor())
+      {
+        parseError("Bad syntax for (_ is X), X must be a constructor.");
+      }
+      // get the datatype that f belongs to
+      Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+      Datatype d = sf.getDatatype();
+      // lookup by name
+      DatatypeConstructor dc = d.getConstructor(f.toString());
+      return dc.getTesterTerm();
+    }
+    else
+    {
+      Assert(k == APPLY_UPDATER);
+      if (!f.getSort().isDatatypeSelector())
+      {
+        parseError("Bad syntax for (_ update X), X must be a selector.");
+      }
+      std::string sname = f.toString();
+      // get the datatype that f belongs to
+      Sort sf = f.getSort().getDatatypeSelectorDomainSort();
+      Datatype d = sf.getDatatype();
+      // find the selector
+      DatatypeSelector ds = d.getSelector(f.toString());
+      // get the updater term
+      return ds.getUpdaterTerm();
+    }
+  }
+  std::stringstream ss;
+  ss << "Unknown indexed op kind " << k;
+  parseError(ss.str());
+  return Term();
+}
+
 Kind Smt2State::getIndexedOpKind(const std::string& name)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
@@ -470,6 +571,17 @@ Kind Smt2State::getIndexedOpKind(const std::string& name)
     return (*kIt).second;
   }
   parseError(std::string("Unknown indexed function `") + name + "'");
+  return UNDEFINED_KIND;
+}
+
+Kind Smt2State::getClosureKind(const std::string& name)
+{
+  const auto& kIt = d_closureKindMap.find(name);
+  if (kIt != d_closureKindMap.end())
+  {
+    return (*kIt).second;
+  }
+  parseError(std::string("Unknown closure `") + name + "'");
   return UNDEFINED_KIND;
 }
 
@@ -592,6 +704,8 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
   if (d_logic.isHigherOrder())
   {
     addOperator(HO_APPLY, "@");
+    // lambda is a closure kind
+    addClosureKind(LAMBDA, "lambda");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_ARITH))
@@ -671,11 +785,11 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_SETS))
   {
-    defineVar("set.empty", d_solver->mkEmptySet(Sort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
-    defineVar("set.universe",
-              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("set.empty", d_solver->mkEmptySet(d_solver->mkSetSort(btype)));
+    defineVar("set.universe", d_solver->mkUniverseSet(btype));
 
     addOperator(SET_UNION, "set.union");
     addOperator(SET_INTER, "set.inter");
@@ -704,11 +818,16 @@ Command* Smt2State::setLogic(std::string name, bool fromCommand)
     addIndexedOperator(RELATION_GROUP, "rel.group");
     addIndexedOperator(RELATION_AGGREGATE, "rel.aggr");
     addIndexedOperator(RELATION_PROJECT, "rel.project");
+    // set.comprehension is a closure kind
+    addClosureKind(SET_COMPREHENSION, "set.comprehension");
   }
 
   if (d_logic.isTheoryEnabled(internal::theory::THEORY_BAGS))
   {
-    defineVar("bag.empty", d_solver->mkEmptyBag(Sort()));
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    Sort btype = d_solver->getBooleanSort();
+    defineVar("bag.empty", d_solver->mkEmptyBag(d_solver->mkBagSort(btype)));
     addOperator(BAG_UNION_MAX, "bag.union_max");
     addOperator(BAG_UNION_DISJOINT, "bag.union_disjoint");
     addOperator(BAG_INTER_MIN, "bag.inter_min");
@@ -1209,6 +1328,12 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
     Trace("parser") << "applyParseOp: return store all " << ret << std::endl;
     return ret;
   }
+  else if (p.d_kind == APPLY_TESTER || p.d_kind == APPLY_UPDATER)
+  {
+    Term iop = mkIndexedOp(p.d_kind, {p.d_name}, args);
+    kind = p.d_kind;
+    args.insert(args.begin(), iop);
+  }
   else if (p.d_kind != NULL_TERM)
   {
     // it should not have an expression or type specified at this point
@@ -1468,6 +1593,11 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     parseError(ss.str());
   }
   return ret;
+}
+
+bool Smt2State::isClosure(const std::string& name)
+{
+  return d_closureKindMap.find(name) != d_closureKindMap.end();
 }
 
 std::unique_ptr<Command> Smt2State::handlePush(std::optional<uint32_t> nscopes)

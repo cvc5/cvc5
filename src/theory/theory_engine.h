@@ -34,6 +34,7 @@
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/theory.h"
+#include "theory/theory_engine_module.h"
 #include "theory/theory_engine_statistics.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_substitutions.h"
@@ -219,7 +220,19 @@ class TheoryEngine : protected EnvObj
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
-
+  /**
+   * Returns true if the node has a current SAT assignment. If yes, the
+   * argument "value" is set to its value.
+   *
+   * @return true if the literal has a current assignment, and returns the
+   * value in the "value" argument; otherwise false and the "value"
+   * argument is unmodified.
+   */
+  bool hasSatValue(TNode n, bool& value) const;
+  /**
+   * Same as above, without setting the value.
+   */
+  bool hasSatValue(TNode n) const;
   /**
    * Solve the given literal with a theory that owns it. The proof of tliteral
    * is carried in the trust node. The proof added to substitutionOut should
@@ -356,7 +369,7 @@ class TheoryEngine : protected EnvObj
    * Returns the value that a theory that owns the type of var currently
    * has (or null if none);
    */
-  Node getModelValue(TNode var);
+  Node getCandidateModelValue(TNode var);
 
   /**
    * Get relevant assertions. This returns a set of assertions that are
@@ -630,6 +643,8 @@ class TheoryEngine : protected EnvObj
    * used.
    */
   std::unique_ptr<theory::PartitionGenerator> d_partitionGen;
+  /** The list of modules */
+  std::vector<theory::TheoryEngineModule*> d_modules;
 
 }; /* class TheoryEngine */
 

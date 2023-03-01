@@ -158,7 +158,8 @@ ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
 
 bool CryptoMinisatSolver::ok() const { return d_okay; }
 
-SatVariable  CryptoMinisatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
+SatVariable CryptoMinisatSolver::newVar(bool isTheoryAtom, bool canErase)
+{
   d_solver->new_var();
   ++d_numVariables;
   Assert(d_numVariables == d_solver->nVars());
@@ -229,7 +230,8 @@ SatValue CryptoMinisatSolver::value(SatLiteral l){
 
 SatValue CryptoMinisatSolver::modelValue(SatLiteral l) { return value(l); }
 
-unsigned CryptoMinisatSolver::getAssertionLevel() const {
+uint32_t CryptoMinisatSolver::getAssertionLevel() const
+{
   Unreachable() << "No interface to get assertion level in Cryptominisat";
   return -1;
 }

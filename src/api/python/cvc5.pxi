@@ -37,6 +37,7 @@ from cvc5 cimport wstring as c_wstring
 from cvc5 cimport tuple as c_tuple
 from cvc5 cimport get0, get1, get2
 from cvc5kinds cimport Kind as c_Kind
+from cvc5sortkinds cimport SortKind as c_SortKind
 from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
@@ -1058,6 +1059,40 @@ cdef class Solver:
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
         return sort
 
+    def mkAbstractSort(self, k):
+        """
+            Create an abstract sort. An abstract sort represents a sort for a 
+            given kind whose parameters and arguments are unspecified.
+            
+            The kind ``k`` must be the kind of a sort that can be abstracted, i.e., 
+            a sort that has indices or argument sorts. For example, ARRAY_SORT
+            and :py:obj:`BITVECTOR_SORT <Kind.BITVECTOR_SORT>` can be
+            passed as the kind ``k`` to this method, while
+            :py:obj:`INTEGER_SORT <Kind.INTEGER_SORT>` and
+            :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
+            
+            .. note::
+            Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
+            as an argument to this method returns the (fully) unspecified sort,
+            denoted ``?``.
+            
+            .. note::
+            Providing a kind ``k`` of sort that has no indices and a fixed arity of
+            argument sorts will return the sort of kind ``k`` whose arguments are
+            the unspecified sort. For example, ``mkAbstractSort(ARRAY_SORT)`` will
+            return the sort ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
+            abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
+            
+            :param k: The kind of the abstract sort
+            :return: The abstract sort.
+            
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        cdef Sort sort = Sort(self)
+        sort.csort = self.csolver.mkAbstractSort(<c_SortKind> k.value)
+        return sort
+
     def mkUninterpretedSort(self, str name = None):
         """
             Create an uninterpreted sort.
@@ -1766,6 +1801,18 @@ cdef class Solver:
         """
         self.csolver.addSygusConstraint(t.cterm)
 
+    def getSygusConstraints(self):
+        """
+            Get the list of sygus constraints.
+            :return: The list of sygus constraints.
+        """
+        constraints = []
+        for c in self.csolver.getSygusConstraints():
+            term = Term(self)
+            term.cterm = c
+            constraints.append(term)
+        return constraints
+
     def addSygusAssume(self, Term t):
         """
             Add a formula to the set of Sygus assumptions.
@@ -1779,6 +1826,18 @@ cdef class Solver:
             :param term: The formuula to add as an assumption.
         """
         self.csolver.addSygusAssume(t.cterm)
+
+    def getSygusAssumptions(self):
+        """
+            Get the list of sygus assumptions.
+            :return: The list of sygus assumptions.
+        """
+        assumptions = []
+        for a in self.csolver.getSygusAssumptions():
+            term = Term(self)
+            term.cterm = a
+            assumptions.append(term)
+        return assumptions
 
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         """
@@ -2953,6 +3012,15 @@ cdef class Sort:
     def __hash__(self):
         return csorthash(self.csort)
 
+    def getKind(self):
+        """
+            .. warning:: This method is experimental and may change in future
+                         versions.
+
+            :return: The :py:class:`SortKind` of this sort.
+        """
+        return SortKind(<int> self.csort.getKind())
+
     def hasSymbol(self):
         """
             :return: True iff this sort has a symbol.
@@ -3157,6 +3225,17 @@ cdef class Sort:
             :return: True if the sort is a sequence sort.
         """
         return self.csort.isSequence()
+
+    def isAbstract(self):
+        """
+            Determine if this is an abstract sort.
+
+            :return: True if the sort is an abstract sort.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return self.csort.isAbstract()
 
     def isUninterpretedSort(self):
         """
@@ -3417,6 +3496,16 @@ cdef class Sort:
         cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSequenceElementSort()
         return sort
+
+    def getAbstractedKind(self):
+        """
+            :return: The sort kind of an abstract sort, which denotes the kind
+            of sorts that this abstract sort denotes.
+
+            .. warning:: This method is experimental and may change in future
+                         versions.
+        """
+        return SortKind(<int> self.csort.getAbstractedKind())
 
     def getUninterpretedSortConstructorArity(self):
         """

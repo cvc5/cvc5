@@ -93,12 +93,28 @@ name   = "Proof"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
 
 [[option]]
+  name       = "proofRewriteRconsRecLimit"
+  category   = "regular"
+  long       = "proof-rewrite-rcons-limit=N"
+  type       = "int64_t"
+  default    = "5"
+  help       = "the matching recursion limit for reconstructing proofs of theory rewrites"
+
+[[option]]
   name       = "proofAnnotate"
   category   = "expert"
   long       = "proof-annotate"
   type       = "bool"
   default    = "false"
   help       = "add optional annotations to proofs, which enables statistics for inference ids for lemmas and conflicts appearing in final proof"
+
+[[option]]
+  name       = "optResReconSize"
+  category   = "regular"
+  long       = "opt-res-reconstruction-size"
+  type       = "bool"
+  default    = "true"
+  help       = "Optimize resolution reconstruction to reduce proof size"
 
 [[option]]
   name       = "proofPruneInput"

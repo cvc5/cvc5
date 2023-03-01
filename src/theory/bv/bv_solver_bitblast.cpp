@@ -79,7 +79,7 @@ class BBRegistrar : public prop::Registrar
  public:
   BBRegistrar(NodeBitblaster* bb) : d_bitblaster(bb) {}
 
-  void preRegister(Node n) override
+  void notifySatLiteral(Node n) override
   {
     if (d_registeredAtoms.find(n) != d_registeredAtoms.end())
     {

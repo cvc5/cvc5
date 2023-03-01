@@ -26,7 +26,7 @@ logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]
 # returns normally and prints the output of the solver to $out_file.
 function trywith {
   limit=$1; shift;
-  result="$({ ulimit -S -t "$limit"; $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive "$@" $bench; } 2>&1)"
+  result="$({ ulimit -S -t "$limit"; $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive --fp-exp "$@" $bench; } 2>&1)"
   case "$result" in
     sat|unsat) echo "$result"; exit 0;;
     *)         echo "$result" &> "$out_file";;
@@ -124,9 +124,9 @@ ABV|BV)
   finishwith --enum-inst --no-cegqi-innermost --global-negate
   ;;
 ABVFP|ABVFPLRA|BVFP|FP|NIA|NRA)
-  trywith 300 --enum-inst --nl-ext-tplanes --fp-exp
+  trywith 300 --enum-inst --nl-ext-tplanes
   trywith 60 --mbqi --no-cegqi --no-sygus-inst
-  finishwith --sygus-inst --fp-exp
+  finishwith --sygus-inst
   ;;
 LIA|LRA)
   trywith 30 --enum-inst
@@ -162,15 +162,6 @@ QF_ALIA)
 QF_S|QF_SLIA)
   trywith 300 --strings-exp --strings-fmf --no-jh-rlv-order
   finishwith --strings-exp --no-jh-rlv-order
-  ;;
-QF_ABVFP|QF_ABVFPLRA)
-  finishwith --fp-exp
-  ;;
-QF_BVFP|QF_BVFPLRA)
-  finishwith --fp-exp
-  ;;
-QF_FP|QF_FPLRA)
-  finishwith --fp-exp
   ;;
 *)
   # just run the default

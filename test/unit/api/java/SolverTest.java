@@ -17,6 +17,7 @@ package tests;
 
 import static io.github.cvc5.Kind.*;
 import static io.github.cvc5.RoundingMode.*;
+import static io.github.cvc5.SortKind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
@@ -340,6 +341,16 @@ class SolverTest
   }
 
   @Test
+  void mkAbstractSort() throws CVC5ApiException
+  {
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(ARRAY_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(BITVECTOR_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(TUPLE_SORT));
+    assertDoesNotThrow(() -> d_solver.mkAbstractSort(SET_SORT));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkAbstractSort(BOOLEAN_SORT));
+  }
+
+  @Test
   void mkUninterpretedSort() throws CVC5ApiException
   {
     assertDoesNotThrow(() -> d_solver.mkUninterpretedSort("u"));
@@ -492,7 +503,7 @@ class SolverTest
   {
     Solver slv = new Solver();
     Sort s = d_solver.mkSetSort(d_solver.getBooleanSort());
-    assertDoesNotThrow(() -> d_solver.mkEmptySet(new Sort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(new Sort()));
     assertDoesNotThrow(() -> d_solver.mkEmptySet(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptySet(d_solver.getBooleanSort()));
     assertDoesNotThrow(() -> slv.mkEmptySet(s));
@@ -503,7 +514,7 @@ class SolverTest
   {
     Solver slv = new Solver();
     Sort s = d_solver.mkBagSort(d_solver.getBooleanSort());
-    assertDoesNotThrow(() -> d_solver.mkEmptyBag(new Sort()));
+    assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(new Sort()));
     assertDoesNotThrow(() -> d_solver.mkEmptyBag(s));
     assertThrows(CVC5ApiException.class, () -> d_solver.mkEmptyBag(d_solver.getBooleanSort()));
 
@@ -2712,6 +2723,19 @@ class SolverTest
   }
 
   @Test
+  void getSygusConstraints()
+  {
+    d_solver.setOption("sygus", "true");
+    Term trueTerm = d_solver.mkBoolean(true);
+    Term falseTerm = d_solver.mkBoolean(false);
+    d_solver.addSygusConstraint(trueTerm);
+    d_solver.addSygusConstraint(falseTerm);
+    Term[] constraints = d_solver.getSygusConstraints();
+    assertEquals(constraints[0], trueTerm);
+    assertEquals(constraints[1], falseTerm);
+  }
+
+  @Test
   void addSygusAssume()
   {
     d_solver.setOption("sygus", "true");
@@ -2726,6 +2750,19 @@ class SolverTest
     Solver slv = new Solver();
     slv.setOption("sygus", "true");
     assertDoesNotThrow(() -> slv.addSygusAssume(boolTerm));
+  }
+
+  @Test
+  void getSygusAssumptions()
+  {
+    d_solver.setOption("sygus", "true");
+    Term trueTerm = d_solver.mkBoolean(true);
+    Term falseTerm = d_solver.mkBoolean(false);
+    d_solver.addSygusAssume(trueTerm);
+    d_solver.addSygusAssume(falseTerm);
+    Term[] assumptions = d_solver.getSygusAssumptions();
+    assertEquals(assumptions[0], trueTerm);
+    assertEquals(assumptions[1], falseTerm);
   }
 
   @Test

@@ -212,7 +212,7 @@ name   = "SMT Layer"
   category   = "expert"
   long       = "difficulty-mode=MODE"
   type       = "DifficultyMode"
-  default    = "LEMMA_LITERAL"
+  default    = "LEMMA_LITERAL_ALL"
   help       = "choose output mode for get-difficulty, see --difficulty-mode=help"
   help_mode  = "difficulty output modes."
 [[option.mode.LEMMA_LITERAL]]
@@ -386,6 +386,7 @@ name   = "SMT Layer"
   long       = "bvand-integer-granularity=N"
   type       = "uint64_t"
   default    = "1"
+  maximum    = "8"
   help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
 [[option]]

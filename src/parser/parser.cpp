@@ -45,7 +45,8 @@ ParserState::ParserState(ParserStateCallback* psc,
       d_symman(sm),
       d_symtab(sm->getSymbolTable()),
       d_checksEnabled(true),
-      d_strictMode(strictMode)
+      d_strictMode(strictMode),
+      d_parseOnly(d_solver->getOptionInfo("parse-only").boolValue())
 {
 }
 
@@ -61,6 +62,17 @@ Term ParserState::getSymbol(const std::string& name, SymbolType type)
   // Functions share var namespace
   return d_symtab->lookup(name);
 }
+std::string ParserState::getNameForUserName(const std::string& name) const
+{
+  if (!d_printNamespace.empty())
+  {
+    std::stringstream ss;
+    ss << d_printNamespace << name;
+    return ss.str();
+  }
+  return name;
+}
+
 const std::string& ParserState::getForcedLogic() const
 {
   return d_symman->getForcedLogic();
@@ -178,7 +190,7 @@ Term ParserState::bindVar(const std::string& name,
                           bool doOverload)
 {
   Trace("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  Term expr = d_solver->mkConst(type, name);
+  Term expr = d_solver->mkConst(type, getNameForUserName(name));
   defineVar(name, expr, doOverload);
   return expr;
 }
@@ -273,7 +285,7 @@ void ParserState::defineParameterizedType(const std::string& name,
 Sort ParserState::mkSort(const std::string& name)
 {
   Trace("parser") << "newSort(" << name << ")" << std::endl;
-  Sort type = d_solver->mkUninterpretedSort(name);
+  Sort type = d_solver->mkUninterpretedSort(getNameForUserName(name));
   defineType(name, type);
   return type;
 }
@@ -282,7 +294,8 @@ Sort ParserState::mkSortConstructor(const std::string& name, size_t arity)
 {
   Trace("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  Sort type = d_solver->mkUninterpretedSortConstructorSort(arity, name);
+  Sort type = d_solver->mkUninterpretedSortConstructorSort(
+      arity, getNameForUserName(name));
   defineType(name, vector<Sort>(arity), type);
   return type;
 }
@@ -660,6 +673,12 @@ void ParserState::pushScope(bool isUserContext)
 void ParserState::pushGetValueScope()
 {
   pushScope();
+  // We cannot ask for the model domain elements if we are in parse-only mode.
+  // Hence, we do nothing here.
+  if (d_parseOnly)
+  {
+    return;
+  }
   // we must bind all relevant uninterpreted constants, which coincide with
   // the set of uninterpreted constants that are printed in the definition
   // of a model.

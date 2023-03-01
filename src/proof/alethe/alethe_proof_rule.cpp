@@ -30,6 +30,8 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::ASSUME: return "assume";
     case AletheRule::ANCHOR_SUBPROOF: return "subproof";
     case AletheRule::ANCHOR_BIND: return "bind";
+    case AletheRule::ANCHOR_SKO_FORALL: return "sko_forall";
+    case AletheRule::ANCHOR_SKO_EX: return "sko_ex";
     case AletheRule::TRUE: return "true";
     case AletheRule::FALSE: return "false";
     case AletheRule::NOT_NOT: return "not_not";
@@ -59,6 +61,8 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::DISTINCT_ELIM: return "distinct_elim";
     case AletheRule::LA_RW_EQ: return "la_rw_eq";
     case AletheRule::LA_GENERIC: return "la_generic";
+    case AletheRule::LA_MULT_POS: return "la_mult_pos";
+    case AletheRule::LA_MULT_NEG: return "la_mult_neg";
     case AletheRule::LIA_GENERIC: return "lia_generic";
     case AletheRule::LA_DISEQUALITY: return "la_disequality";
     case AletheRule::LA_TOTALITY: return "la_totality";
@@ -68,6 +72,7 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::QNT_RM_UNUSED: return "qnt_rm_unused";
     case AletheRule::TH_RESOLUTION: return "th_resolution";
     case AletheRule::RESOLUTION: return "resolution";
+    case AletheRule::RESOLUTION_OR: return "resolution";
     case AletheRule::REFL: return "refl";
     case AletheRule::TRANS: return "trans";
     case AletheRule::CONG: return "cong";
@@ -135,6 +140,8 @@ const char* aletheRuleToString(AletheRule id)
       return "bv_bitblast_step_bvequal";
     case AletheRule::BV_BITBLAST_STEP_CONCAT: return "bv_bitblast_step_concat";
     case AletheRule::BV_BITBLAST_STEP_CONST: return "bv_bitblast_step_const";
+    //================================================= Hole
+    case AletheRule::HOLE: return "hole";
     //================================================= Undefined rule
     case AletheRule::UNDEFINED: return "undefined";
     default: return "?";

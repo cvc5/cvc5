@@ -112,17 +112,6 @@ class Solver : protected EnvObj
   /** True if we are currently solving. */
   bool minisat_busy;
 
-  // Information about registration of variables
-  struct VarIntroInfo
-  {
-    Var d_var;
-    int d_level;
-    VarIntroInfo(Var var, int level) : d_var(var), d_level(level) {}
-  };
-
-  /** Variables to re-register with theory solvers on backtracks */
-  vec<VarIntroInfo> variables_to_register;
-
   /** Keep only newSize variables */
   void resizeVars(int newSize);
 
@@ -143,7 +132,6 @@ public:
  Var newVar(bool polarity = true,
             bool dvar = true,
             bool isTheoryAtom = false,
-            bool preRegister = false,
             bool canErase = true);  // Add a new variable with parameters
                                     // specifying variable mode.
  Var trueVar() const { return varTrue; }
@@ -474,9 +462,7 @@ protected:
       // Check and perform theory reasoning
       CHECK_WITH_THEORY,
       // The SAT abstraction of the problem is satisfiable, perform a full theory check
-      CHECK_FINAL,
-      // Perform a full theory check even if not done with everything
-      CHECK_FINAL_FAKE
+      CHECK_FINAL
     };
 
     // Temporaries (to reduce allocation overhead). Each variable is prefixed by the method in which it is

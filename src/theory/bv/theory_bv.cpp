@@ -97,8 +97,9 @@ void TheoryBV::finishInit()
   eq::EqualityEngine* ee = getEqualityEngine();
   if (ee)
   {
+    bool eagerEval = options().bv.bvEagerEval;
     // The kinds we are treating as function application in congruence
-    ee->addFunctionKind(kind::BITVECTOR_CONCAT, true);
+    ee->addFunctionKind(kind::BITVECTOR_CONCAT, eagerEval);
     //    ee->addFunctionKind(kind::BITVECTOR_AND);
     //    ee->addFunctionKind(kind::BITVECTOR_OR);
     //    ee->addFunctionKind(kind::BITVECTOR_XOR);
@@ -107,9 +108,9 @@ void TheoryBV::finishInit()
     //    ee->addFunctionKind(kind::BITVECTOR_NOR);
     //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
     //    ee->addFunctionKind(kind::BITVECTOR_COMP);
-    ee->addFunctionKind(kind::BITVECTOR_MULT, true);
-    ee->addFunctionKind(kind::BITVECTOR_ADD, true);
-    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+    ee->addFunctionKind(kind::BITVECTOR_MULT, eagerEval);
+    ee->addFunctionKind(kind::BITVECTOR_ADD, eagerEval);
+    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, eagerEval);
     //    ee->addFunctionKind(kind::BITVECTOR_SUB);
     //    ee->addFunctionKind(kind::BITVECTOR_NEG);
     //    ee->addFunctionKind(kind::BITVECTOR_UDIV);
@@ -140,7 +141,7 @@ void TheoryBV::preRegisterTerm(TNode node)
   {
     if (node.getKind() == kind::EQUAL)
     {
-      ee->addTriggerPredicate(node);
+      d_state.addEqualityEngineTriggerPredicate(node);
     }
     else
     {

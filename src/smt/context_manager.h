@@ -112,7 +112,7 @@ class ContextManager : protected EnvObj
   /** Pops the user and SAT contexts */
   void pop();
   /** Pops the user and SAT contexts to the given level */
-  void popto(int toLevel);
+  void popto(uint32_t toLevel);
   /**
    * Internal push, which processes any pending pops, and pushes (if in
    * incremental mode).
@@ -129,7 +129,7 @@ class ContextManager : protected EnvObj
   /** Pointer to the SmtDriver */
   SmtDriver* d_smt;
   /** The context levels of user pushes */
-  std::vector<int> d_userLevels;
+  std::vector<uint32_t> d_userLevels;
   /** Number of internal pops that have been deferred. */
   unsigned d_pendingPops;
   /**

@@ -66,6 +66,12 @@ runs:
       run: |
         echo "::group::Install macOS software"
         brew update --quiet
+
+        # Temporary workaround while versions of python greater than 3.10 are not supported:
+        # Hardcoding python version to 3.10 on macOS CI.
+        brew link --overwrite python@3.10
+        ln -s -f /usr/local/bin/python3.10 /usr/local/bin/python3
+
         brew install \
           ccache \
           cln \
@@ -73,7 +79,7 @@ runs:
           pkgconfig \
           flex \
           gnu-sed
-        python3 -m pip install --user pexpect setuptools toml
+        python3 -m pip install --user pexpect setuptools toml pyparsing
         # Make ImageVersion accessible as env.image_version. Environment
         # variables of the runner are not automatically imported:
         #
