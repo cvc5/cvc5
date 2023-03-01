@@ -1008,6 +1008,7 @@ set(regress_0_tests
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
+  regress0/parser/stdout-diag.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
   regress0/parser/to_fp.smt2
@@ -2000,6 +2001,7 @@ set(regress_1_tests
   regress1/bv/issue3654.smt2
   regress1/bv/issue3776.smt2
   regress1/bv/issue3958.smt2
+  regress1/bv/issue9517-conv-arith-deq.smt2
   regress1/bv/min-pp-rewrite-error.smt2
   regress1/bv/proj-issue438-prerewrite-fixed-point-original.smt2
   regress1/bv/unsound1.smt2

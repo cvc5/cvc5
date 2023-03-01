@@ -109,7 +109,9 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // if no children, its easy
   if (exp.empty())
   {
-    std::shared_ptr<ProofNode> pf = pnm->mkNode(id, {}, args, conc);
+    // do not use "conc" as expected here, instead this will be checked
+    // later in setProofFor, where conc may be negated if isConflict is true
+    std::shared_ptr<ProofNode> pf = pnm->mkNode(id, {}, args);
     return mkTrustNode(conc, pf, isConflict);
   }
   // otherwise, we use CDProof + SCOPE
