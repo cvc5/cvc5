@@ -81,16 +81,17 @@ void TheoryFiniteFields::finishInit()
 void TheoryFiniteFields::postCheck(Effort level)
 {
 #ifdef CVC5_USE_COCOA
-  Trace("ff::check") << "ff::check : " << level << std::endl;
+  Trace("ff::check") << "ff::check : " << level << " @ level "
+                     << context()->getLevel() << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (auto& subTheory : d_subTheories)
   {
     subTheory.second.postCheck(level);
     if (subTheory.second.inConflict())
     {
-      d_im.conflict(
-          nm->mkAnd(subTheory.second.conflict()),
-          InferenceId::FF_LEMMA);
+      const Node conflict = nm->mkAnd(subTheory.second.conflict());
+      Trace("ff::conflict") << "ff::conflict : " << conflict << std::endl;
+      d_im.conflict(conflict, InferenceId::FF_LEMMA);
     }
   }
 #else  /* CVC5_USE_COCOA */
@@ -141,7 +142,7 @@ void TheoryFiniteFields::preRegisterWithEe(TNode node)
   Assert(d_equalityEngine != nullptr);
   if (node.getKind() == kind::EQUAL)
   {
-    d_equalityEngine->addTriggerPredicate(node);
+    d_state.addEqualityEngineTriggerPredicate(node);
   }
   else
   {
@@ -163,10 +164,8 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
   }
   if (d_subTheories.count(fieldTy) == 0)
   {
-    d_subTheories.try_emplace(
-        fieldTy, d_env, d_stats.get(), ty.getFfSize());
+    d_subTheories.try_emplace(fieldTy, d_env, d_stats.get(), ty.getFfSize());
   }
-  d_subTheories.at(fieldTy).preRegisterTerm(node);
 #else  /* CVC5_USE_COCOA */
   noCoCoA();
 #endif /* CVC5_USE_COCOA */

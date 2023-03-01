@@ -17,8 +17,9 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "parser/parser_exception.h"
 #include "parser/flex_lexer.h"
+#include "parser/parser_exception.h"
+#include "parser/smt2/smt2_parser.h"
 
 namespace cvc5 {
 namespace parser {
@@ -125,6 +126,29 @@ Term FlexParser::nextExpression()
   }
   Trace("parser") << "nextExpression() => " << result << std::endl;
   return result;
+}
+
+std::unique_ptr<FlexParser> FlexParser::mkFlexParser(const std::string& lang,
+                                                     Solver* solver,
+                                                     SymbolManager* sm)
+{
+  std::unique_ptr<FlexParser> parser;
+  if (lang == "LANG_SYGUS_V2" || lang == "LANG_SMTLIB_V2_6")
+  {
+    bool isSygus = (lang == "LANG_SYGUS_V2");
+    bool strictMode = solver->getOptionInfo("strict-parsing").boolValue();
+    parser.reset(new Smt2Parser(solver, sm, strictMode, isSygus));
+  }
+  else if (lang == "LANG_TPTP")
+  {
+    // TPTP is not supported
+    Unhandled() << "the TPTP input language is not supported with flex.";
+  }
+  else
+  {
+    Unhandled() << "unable to detect input file format, try --lang";
+  }
+  return parser;
 }
 
 }  // namespace parser

@@ -67,7 +67,7 @@ class TheoryProxy : protected EnvObj, public Registrar
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
+  void finishInit(CDCLTSatSolver* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
@@ -158,6 +158,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   SatValue getDecisionPolarity(SatVariable var);
 
+  /** Return decision level at which `var` was decided on. */
+  int32_t getDecisionLevel(TNode node) const;
+
   CnfStream* getCnfStream();
 
   /**
@@ -190,6 +193,12 @@ class TheoryProxy : protected EnvObj, public Registrar
    * Called when a SAT literal for atom n has been allocated in the SAT solver.
    */
   void notifySatLiteral(Node n) override;
+
+  /**
+   * Callback to notify that the SAT solver backtracked by the given number
+   * of levels.
+   */
+  void notifyBacktrack(uint32_t nlevels);
 
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
@@ -243,6 +252,9 @@ class TheoryProxy : protected EnvObj, public Registrar
    * are dynamically activated only when decision=justification.
    */
   bool d_activatedSkDefs;
+
+  /** Map to store current decision level for theory literals. */
+  std::unordered_map<Node, int32_t> d_var_decision_levels;
 }; /* class TheoryProxy */
 
 }  // namespace prop
