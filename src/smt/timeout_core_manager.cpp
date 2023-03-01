@@ -195,7 +195,8 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
-  if (result.getStatus() == Result::UNKNOWN)
+  if (result.getStatus() == Result::UNKNOWN
+      && result.getUnknownExplanation() == TIMEOUT)
   {
     if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
