@@ -21,6 +21,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "util/rational.h"
 
 using namespace cvc5::internal::kind;
 
@@ -122,7 +123,17 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    int flags)
 {
   // We do not recursively compute the original form of t here
-  Node k = mkSkolemInternal(t, prefix, comment, flags);
+  Node k;
+  if (t.getKind()==WITNESS)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node exists = nm->mkNode(EXISTS, t[0], t[1]);
+    k = mkSkolemFunction(SkolemFunId::QUANTIFIERS_SKOLEMIZE, t.getType(), {exists, nm->mkConstInt(Rational(0))});
+  }
+  else
+  {
+    k = mkSkolemInternal(t, prefix, comment, flags);
+  }
   // set unpurified form attribute for k
   UnpurifiedFormAttribute ufa;
   k.setAttribute(ufa, t);
@@ -149,6 +160,7 @@ Node SkolemManager::mkSkolemFunction(SkolemFunId id,
     Node k = mkSkolemNode(ss.str(), tn, "an internal skolem function", flags);
     d_skolemFuns[key] = k;
     d_skolemFunMap[k] = key;
+    Trace("sk-manager-skolem") << "mkSkolemFunction(" << id << ", " << cacheVal << ") returns " << k << std::endl;
     return k;
   }
   return it->second;
