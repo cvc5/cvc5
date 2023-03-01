@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__SMT__SMT_DRIVER_TO_CORE_H
-#define CVC5__SMT__SMT_DRIVER_TO_CORE_H
+#ifndef CVC5__SMT__TIMEOUT_CORE_MANAGER_H
+#define CVC5__SMT__TIMEOUT_CORE_MANAGER_H
 
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
@@ -50,10 +50,10 @@ class ContextManager;
  * in M is "owned" by an assertion in C. When a new assertion is added to C,
  * it takes ownership of all models that it is falsified by.
  */
-class SmtDriverToCore : protected EnvObj
+class TimeoutCoreManager : protected EnvObj
 {
  public:
-  SmtDriverToCore(Env& env);
+  TimeoutCoreManager(Env& env);
 
   /** get timeout core for the current set of assertions stored in as.
    *

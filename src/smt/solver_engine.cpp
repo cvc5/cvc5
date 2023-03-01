@@ -57,7 +57,7 @@
 #include "smt/set_defaults.h"
 #include "smt/smt_driver.h"
 #include "smt/smt_driver_deep_restarts.h"
-#include "smt/smt_driver_to_core.h"
+#include "smt/timeout_core_manager.h"
 #include "smt/smt_solver.h"
 #include "smt/solver_engine_state.h"
 #include "smt/solver_engine_stats.h"
@@ -783,8 +783,8 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore()
 {
   finishInit();
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
-  SmtDriverToCore sdtc(*d_env.get());
-  return sdtc.getTimeoutCore(d_smtSolver->getAssertions());
+  TimeoutCoreManager tcm(*d_env.get());
+  return tcm.getTimeoutCore(d_smtSolver->getAssertions());
 }
 
 std::vector<Node> SolverEngine::getUnsatAssumptions(void)

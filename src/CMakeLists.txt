@@ -344,8 +344,6 @@ libcvc5_add_sources(
   smt/smt_driver.h
   smt/smt_driver_deep_restarts.cpp
   smt/smt_driver_deep_restarts.h
-  smt/smt_driver_to_core.cpp
-  smt/smt_driver_to_core.h
   smt/smt_mode.cpp
   smt/smt_mode.h
   smt/smt_solver.cpp
@@ -354,6 +352,8 @@ libcvc5_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
+  smt/timeout_core_manager.cpp
+  smt/timeout_core_manager.h
   smt/unsat_core_manager.cpp
   smt/unsat_core_manager.h
   smt/witness_form.cpp

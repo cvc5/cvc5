@@ -13,7 +13,7 @@
  * A module for computing a timeout core from a set of assertions.
  */
 
-#include "smt/smt_driver_to_core.h"
+#include "smt/timeout_core_manager.h"
 
 #include <fstream>
 
@@ -36,14 +36,14 @@
 namespace cvc5::internal {
 namespace smt {
 
-SmtDriverToCore::SmtDriverToCore(Env& env)
+TimeoutCoreManager::TimeoutCoreManager(Env& env)
     : EnvObj(env), d_nextIndexToInclude(0), d_queryCount(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(
+std::pair<Result, std::vector<Node>> TimeoutCoreManager::getTimeoutCore(
     const Assertions& as)
 {
   // provide all assertions initially
@@ -82,7 +82,7 @@ std::pair<Result, std::vector<Node>> SmtDriverToCore::getTimeoutCore(
   return std::pair<Result, std::vector<Node>>(result, toCore);
 }
 
-void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
+void TimeoutCoreManager::getNextAssertions(std::vector<Node>& nextAsserts)
 {
   if (d_modelValues.empty())
   {
@@ -177,7 +177,7 @@ void SmtDriverToCore::getNextAssertions(std::vector<Node>& nextAsserts)
       << std::endl;
 }
 
-Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
+Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
 {
   Trace("smt-to-core") << "--- checkSatNext #models=" << d_modelValues.size()
                        << std::endl;
@@ -250,7 +250,7 @@ Result SmtDriverToCore::checkSatNext(const std::vector<Node>& nextAssertions)
   return result;
 }
 
-void SmtDriverToCore::initializePreprocessedAssertions(
+void TimeoutCoreManager::initializePreprocessedAssertions(
     const std::vector<Node>& ppAsserts)
 {
   d_ppAsserts.clear();
@@ -295,7 +295,7 @@ void SmtDriverToCore::initializePreprocessedAssertions(
   }
 }
 
-bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
+bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
                                          SolverEngine* subSolver)
 {
   // allocate the model value vector
@@ -376,7 +376,7 @@ bool SmtDriverToCore::recordCurrentModel(bool& allAssertsSat,
   return indexSet;
 }
 
-bool SmtDriverToCore::hasCurrentSharedSymbol(size_t i) const
+bool TimeoutCoreManager::hasCurrentSharedSymbol(size_t i) const
 {
   std::map<size_t, std::unordered_set<Node>>::const_iterator it =
       d_syms.find(i);
