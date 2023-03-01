@@ -261,7 +261,7 @@ std::ostream& operator<<(std::ostream& out, SkolemFunId id);
  * The use of purification skolems and skolem functions avoid having to reason
  * about witness terms. This avoids several complications. In particular,
  * witness terms in most contexts should be seen as black boxes, converting
- * something to a witness them may have unintended consequences e.g. variable
+ * something to a witness term may have unintended consequences e.g. variable
  * shadowing. In contrast, converting to original form does not have these
  * complications. Furthermore, having original form greatly simplifies
  * reasoning in the proof in certain external proof formats, in particular, it
