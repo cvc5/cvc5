@@ -195,7 +195,8 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   Trace("smt-to-core") << "checkSatNext: check with subsolver" << std::endl;
   result = subSolver->checkSat();
   Trace("smt-to-core") << "checkSatNext: ...result is " << result << std::endl;
-  if (result.getStatus() == Result::UNKNOWN && result.getUnknownExplanation()==TIMEOUT)
+  if (result.getStatus() == Result::UNKNOWN
+      && result.getUnknownExplanation() == TIMEOUT)
   {
     // will terminate with unknown (timeout)
     return result;
@@ -281,7 +282,7 @@ void TimeoutCoreManager::initializePreprocessedAssertions(
 }
 
 bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
-                                         SolverEngine* subSolver)
+                                            SolverEngine* subSolver)
 {
   // allocate the model value vector
   d_modelValues.emplace_back();
