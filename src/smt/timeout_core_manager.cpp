@@ -37,7 +37,7 @@ namespace cvc5::internal {
 namespace smt {
 
 TimeoutCoreManager::TimeoutCoreManager(Env& env)
-    : EnvObj(env), d_nextIndexToInclude(0), d_queryCount(0)
+    : EnvObj(env), d_nextIndexToInclude(0)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -199,8 +199,6 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions)
   {
     if (isOutputOn(OutputTag::TIMEOUT_CORE_BENCHMARK))
     {
-      Trace("smt-to-core") << "checkSatNext: dump benchmark " << d_queryCount
-                           << std::endl;
       std::vector<Node> bench(nextAssertions.begin(), nextAssertions.end());
       // Print the query to to queryN.smt2
       std::stringstream ss;
@@ -357,20 +355,8 @@ bool TimeoutCoreManager::recordCurrentModel(bool& allAssertsSat,
     d_unkModels.insert(d_modelValues.size());
   }
 
-  /*
-    if (subSolver != nullptr)
-    {
-      bool success;
-      std::unordered_set<TNode> rasserts =
-          subSolver->getRelevantAssertions(success);
-      d_asymbols.clear();
-      std::unordered_set<TNode> visited;
-      for (TNode a : rasserts)
-      {
-        expr::getSymbols(a, d_asymbols, visited);
-      }
-    }
-  */
+  // Note we could consider updating d_asymbols to contain only the symbols
+  // in the relevant assertions of the subsolver here as a heuristic.
 
   // we are successful if we have a new assertion to include
   return indexSet;
