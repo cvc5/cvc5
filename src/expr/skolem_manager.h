@@ -48,7 +48,9 @@ enum class SkolemFunId
   TRANSCENDENTAL_PURIFY_ARG,
   /** a shared selector */
   SHARED_SELECTOR,
-  /** The n^th skolem for quantified formula Q. */
+  /**
+   * The n^th skolem for quantified formula Q. Its arguments are (Q,n).
+   */
   QUANTIFIERS_SKOLEMIZE,
   //----- string skolems are cached based on two strings (a, b)
   /** exists k. ( b occurs k times in a ) */
