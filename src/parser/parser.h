@@ -561,9 +561,27 @@ class CVC5_EXPORT ParserState
    */
   std::wstring processAdHocStringEsc(const std::string& s);
 
+  /**
+   * Strip quotes off a string, or return a parse error otherwise.
+   */
+  std::string stripQuotes(const std::string& s);
+
  protected:
   /** The API Solver object. */
   Solver* d_solver;
+  /**
+   * A string to prepend to the name of all declared symbols, which helps
+   * when converting benchmarks from one format to another.
+   *
+   * The print namespace does not impact the symbol bindings. For example,
+   * if a variable "x" is declared and the print namespace is "tptp.", then
+   * we bind the symbol "x" to a variable whose name is "tptp.x". This means
+   * that "x" can be parsed, but the variable will be printed as "tptp.x".
+   *
+   * !!!!!!!!! This is only necessary for the TPTP to smt2 conversion, and
+   * can be deleted if the TPTP parser is deleted.
+   */
+  std::string d_printNamespace;
 
  private:
   /** The callback */
@@ -607,6 +625,8 @@ class CVC5_EXPORT ParserState
    * Only returns a symbol if it is not overloaded, returns null otherwise.
    */
   Term getSymbol(const std::string& var_name, SymbolType type);
+  /** Get name for user name */
+  std::string getNameForUserName(const std::string& name) const;
 }; /* class Parser */
 
 /** Compute the unsigned integer for a token. */
