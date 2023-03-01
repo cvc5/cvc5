@@ -134,6 +134,13 @@ class LfscNodeConverter : public NodeConverter
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /**
+   * Make APPLY_UF, which ensures the operator op is a variable. If it is not,
+   * we create a dummy variable whose name is the result of printing op. This
+   * is to ensure proper smt2 printing, which does not permit operators to
+   * be higher-order terms.
+   */
+  Node mkApplyUf(Node op, const std::vector<Node>& args) const;
+  /**
    * Make skolem function, if k was constructed by a skolem function identifier
    * (in SkolemManager::mkSkolemFunction) that is supported in the LFSC
    * signature.
