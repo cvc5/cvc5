@@ -74,7 +74,7 @@ void InstStrategyPool::checkOwnership(Node q)
   if (options().quantifiers.userPoolQuant == options::UserPoolMode::TRUST
       && q.getNumChildren() == 3)
   {
-    // if strict pools, take ownership of this quantified formula
+    // if only using pools for instantiation, take ownership of this quantified formula
     for (const Node& p : q[2])
     {
       if (p.getKind() == INST_POOL)
@@ -263,7 +263,7 @@ bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
       // symbolic tuple??
       continue;
     }
-    inst.insert(inst.end(), t.begin(), t.end());
+    std::vector<Node> inst(t.begin(), t.end());
     Assert(inst.size() == q[0].getNumChildren());
     if (ie->addInstantiation(q, inst, InferenceId::QUANTIFIERS_INST_POOL_TUPLE))
     {

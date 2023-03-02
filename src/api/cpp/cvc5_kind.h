@@ -5420,7 +5420,7 @@ enum Kind : int32_t
    *
    * A pool symbol represents a set of terms of a given sort. An instantiation
    * pool annotation should either:
-   * (1) have child sets whose match the types of the quantified formula,
+   * (1) have child sets matching the types of the quantified formula,
    * (2) have a child set of tuple type whose component types match the types
    * of the quantified formula.
    *
