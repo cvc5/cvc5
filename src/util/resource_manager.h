@@ -87,6 +87,7 @@ enum class Resource
   RestartStep,
   RewriteStep,
   SatConflictStep,
+  SygusEnumStep,
   TheoryCheckStep,
   Unknown
 };
