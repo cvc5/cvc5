@@ -713,11 +713,23 @@ setOptionInternal[std::unique_ptr<cvc5::parser::Command>* cmd]
   cvc5::Term sexpr;
 }
   : keyword[name] symbolicExpr[sexpr]
-    { cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr)));
+    { 
+      std::string key = name.c_str() + 1;
+      std::string ss = sexprToString(sexpr);
+      // special case: for channel settings, we are expected to parse e.g.
+      // `"stdin"` which should be treated as `stdin`
+      // Note we could consider a more general solution where knowing whether
+      // this special case holds can be queried via OptionInfo.
+      if (key == "diagnostic-output-channel" || key == "regular-output-channel"
+          || key == "in" || key == "out")
+      {
+        ss = PARSER_STATE->stripQuotes(ss);
+      }
+      cmd->reset(new SetOptionCommand(key, ss));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SolverEngine eventually (if ever) executes it.
-      if(name == ":global-declarations")
+      if(key == "global-declarations")
       {
         SYM_MAN->setGlobalDeclarations(sexprToString(sexpr) == "true");
       }
@@ -1146,7 +1158,7 @@ symbolicExpr[cvc5::Term& sexpr]
   std::vector<cvc5::Term> children;
 }
   : simpleSymbolicExpr[s]
-    { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
+    { sexpr = SOLVER->mkVar(SOLVER->getBooleanSort(), s); }
   | LPAREN_TOK
     ( symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN_TOK
     { sexpr = SOLVER->mkTerm(cvc5::SEXPR, children); }
