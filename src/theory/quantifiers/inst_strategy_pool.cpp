@@ -74,7 +74,8 @@ void InstStrategyPool::checkOwnership(Node q)
   if (options().quantifiers.userPoolQuant == options::UserPoolMode::TRUST
       && q.getNumChildren() == 3)
   {
-    // if only using pools for instantiation, take ownership of this quantified formula
+    // if only using pools for instantiation, take ownership of this quantified
+    // formula
     for (const Node& p : q[2])
     {
       if (p.getKind() == INST_POOL)
@@ -132,7 +133,8 @@ bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
   {
     if (targs[i] != q[0][i].getType())
     {
-      // the i^th component type of the pool in the annotation does not match the i^th variable
+      // the i^th component type of the pool in the annotation does not match
+      // the i^th variable
       return false;
     }
   }
