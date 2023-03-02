@@ -35,6 +35,11 @@ namespace rewriter {
 class IsListTypeClassCallback : public expr::TypeClassCallback
 {
  public:
+  /**
+   * Returns an identifier that distinguished whether v has list semantics
+   * (1 if yes, 0 if no). This is used when canonizing terms for the
+   * database below.
+   */
   uint32_t getTypeClass(TNode v) override;
 };
 
@@ -68,15 +73,24 @@ class RewriteDb
                Node cond,
                Node context,
                bool isFlatForm = false);
-  /** get matches */
-  void getMatches(Node eq, expr::NotifyMatch* ntm);
-  /** get rule for id */
+  /** 
+   * Get matches, which incrementally makes callbacks on the notify class
+   * ntm for all rules that match eq.
+   */
+  void getMatches(const Node& eq, expr::NotifyMatch* ntm);
+  /** Get the rule definition for id */
   const RewriteProofRule& getRule(DslPfRule id) const;
-  /** get ids for conclusion */
-  const std::vector<DslPfRule>& getRuleIdsForConclusion(Node eq) const;
-  /** get ids for head */
-  const std::vector<DslPfRule>& getRuleIdsForHead(Node h) const;
-  /** the union of free variables in all rules */
+  /** 
+   * Get ids for conclusion, returns the list of identifiers of rules whose
+   * conclusion is eq.
+   */
+  const std::vector<DslPfRule>& getRuleIdsForConclusion(const Node& eq) const;
+  /** 
+   * Get ids for head, returns the list of identifiers of rules whose
+   * head (the left hand side of its equality) is h.
+   */
+  const std::vector<DslPfRule>& getRuleIdsForHead(const Node& h) const;
+  /** Return the union of free variables in all rules */
   const std::unordered_set<Node>& getAllFreeVariables() const;
 
  private:
