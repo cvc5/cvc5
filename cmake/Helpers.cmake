@@ -273,7 +273,7 @@ function(find_supported_python_version)
       message(FATAL_ERROR 
          "Could not find Python. The supported versions are 3.6..<3.10."
       )
-    endif
+    endif()
 
   # endif()
 endfunction()
