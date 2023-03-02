@@ -19,10 +19,15 @@
 // NOTE: alternatively we could lex simple_symbol as:
 //  [a-zA-Z0-9~!@\$%\^&\*+=<>\.\?/_-]+
 // ??
-// Note that `%option full` could make lexing faster but it is incompatible
-// with interactive inputs.
+// Note that removing `%option full` allows us to support piping from stdin
+// natively without relying on interactive mode (--stdin-input-per-line).
+// Disabling --stdin-input-per-line may cause some use cases of cvc5 involving
+// piping to hang (see issue #9257).
+// Option `%option ecs` ensures we parse quoted symbols with special characters.
 %}
 
+%option full
+%option ecs
 %option noyywrap
 %option nounput
 %option c++

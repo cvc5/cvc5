@@ -33,7 +33,7 @@ def check_iteractive_shell():
     child.sendline("(set-log")
 
     # ... then we get an error
-    child.expect("Parse Error: <shell>:1.7: expected SMT-LIBv2 command, got `set-log\'")
+    child.expect("Expected SMT-LIBv2 command.")
 
     # Start sending 'BOOL' (without an E)
     child.send("(declare-data")
@@ -52,7 +52,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # So we expect to see an error for 'BOOLE'
-    child.expect("Parse Error: <shell>:1.17: Unexpected token: '\)'.")
+    child.expect("Expected SMT-LIBv2 symbol")
 
     # Send enter
     child.sendcontrol("m")
@@ -67,7 +67,7 @@ def check_iteractive_shell():
     child.sendcontrol("m")
 
     # We expect to see the previous error again
-    child.expect("Parse Error: <shell>:1.17: Unexpected token: '\)'.")
+    child.expect("Expected SMT-LIBv2 symbol")
 
     return 0
 

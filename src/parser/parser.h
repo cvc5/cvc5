@@ -561,6 +561,11 @@ class CVC5_EXPORT ParserState
    */
   std::wstring processAdHocStringEsc(const std::string& s);
 
+  /**
+   * Strip quotes off a string, or return a parse error otherwise.
+   */
+  std::string stripQuotes(const std::string& s);
+
  protected:
   /** The API Solver object. */
   Solver* d_solver;
