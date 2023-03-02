@@ -362,6 +362,67 @@
   (>= amount (bvsize x))
   (bvshl x (bv amount sz))
   (bv 0 x))
+(define-cond-rule LshrByConst1
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (< amount n)
+  (bvlshr x (bv amount sz))
+	(concat (bv 0 amount) (extract (- n 1) amount))
+	)
+(define-cond-rule LshrByConst2
+  ((x ?BitVec) (amount Int) (sz Int))
+  (>= amount (bvsize x))
+  (bvlshr x (bv amount sz))
+  (bv 0 x))
+(define-cond-rule AshrByConst1
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (< amount n)
+  (bvlshr x (bv amount sz))
+	(concat
+		(repeat amount (extract (- n 1) (- n 1) x))
+		(extract (- n 1) amount)
+	))
+(define-cond-rule AshrByConst2
+  ((x ?BitVec) (amount Int) (sz Int))
+  (def (n (bvsize x)))
+  (>= amount (bvsize x))
+  (bvlshr x (bv amount sz))
+  (repeat n (extract (- n 1) (- n 1) x)))
+
+(define-rule* AndOrXorConcatPullUp1
+	((x ?BitVec) (y ?BitVec) (ys ?BitVec :list))
+	(def
+		(nx (bvsize x))
+		(ny (bvsize y))
+	)
+	(bvand x (concat ys y))
+	(concat
+		(bvand (extract (- nx 1) ny x) (concat ys)) ; Recur on this
+		(bvand (extract (- ny 1) 0 x) y)
+	))
+(define-rule* AndOrXorConcatPullUp2
+	((x ?BitVec) (y ?BitVec) (ys ?BitVec :list))
+	(def
+		(nx (bvsize x))
+		(ny (bvsize y))
+	)
+	(bvor x (concat ys y))
+	(concat
+		(bvor (extract (- nx 1) ny x) (concat ys)) ; Recur on this
+		(bvor (extract (- ny 1) 0 x) y)
+	))
+(define-rule* AndOrXorConcatPullUp3
+	((x ?BitVec) (y ?BitVec) (ys ?BitVec :list))
+	(def
+		(nx (bvsize x))
+		(ny (bvsize y))
+	)
+	(bvxor x (concat ys y))
+	(concat
+		(bvxor (extract (- nx 1) ny x) (concat ys)) ; Recur on this
+		(bvxor (extract (- ny 1) 0 x) y)
+	))
 
 
 (define-rule BitwiseIdemp1 (
@@ -395,6 +456,7 @@
     (x ?BitVec)
   )
   (bvnot (bvnot x)) x)
+
 (define-rule UltZero1
 	((x ?BitVec))
 	(bvult (bv 0 (bvsize x)) x)
@@ -417,7 +479,17 @@
     (x ?BitVec)
   )
   (bvule x x) true)
-(define-rule SleSelf (
+(define-rule UleZero
+	((x ?BitVec))
+	(bvule x (bv 0 (bvsize x)))
+	(= x (bv 0 (bvsize x)))
+	)
+(define-rule ZeroUle
+	((x ?BitVec))
+	(bvule (bv 0 (bvsize x)) x)
+	true
+	)
+(define-rule LeSelf (
     (x ?BitVec)
   )
   (bvsle x x) true)
@@ -451,12 +523,120 @@
   (not (bvsle x y))
   (bvslt y x))
 
+;(define-rule MultSlice
+;	((x ?BitVec) (y ?BitVec))
+;	(def
+;		(n (bvsize x))
+;		(xBot (extract (- (/ n 2) 1) 0 x))
+;		(yBot (extract (- (/ n 2) 1) 0 y))
+;		(xTop (extract (- n 1) (/ n 2) x))
+;		(yTop (extract (- n 1) (/ n 2) y))
+;		(zeros (bv 0 (/ n 2)))
+;	)
+;	(bvmul x y)
+;	(add
+;		(bvmul (concat zeros xBot) (concat zeros yBot))
+;		(concat (bvmul yTop xBot) zeros)
+;		(concat (bvmul xTop yBot) zeros)
+;	))
+; If the bit-vectors multiplied have enough leading zeros,
+; we can determine that the top bits of the multiplication
+; are zero and not compute them. Only apply for large bitwidths
+; as this can interfere with other mult normalization rewrites such
+; as flattening.
+;(define-rule ExtractMultLeadingBit
+;	(
+;		(high Int) (low Int)
+;		(x ?BitVec) (x1i Int) (x2 ?BitVec)
+;		(y ?BitVec) (y1i Int) (y2 ?BitVec)
+;		(x1in Int) (y1in Int)
+;	)
+;	(def
+;		(n (bvsize x))
+;	)
+;	(and (>= n 64)
+;	(extract high low (bvmul (concat (bv x1i x1in) x2) (concat (bv y1i y1in) y2)))
+;	(bv 0 (+ (- high low) 1))
+;	)
+
 
 (define-rule NegIdemp (
     (x ?BitVec)
   )
   (bvneg (bvneg x))
   x)
+
+; (x udiv 0) = 111...1
+(define-rule UdivZero
+	((x ?BitVec))
+	(bvudiv x (bv 0 (bvsize x)))
+	(bvnot (bv 0 (bvsize x)))
+	)
+; (x udiv 1) = x
+(define-rule UdivOne
+	((x ?BitVec))
+	(bvudiv x (bv 1 (bvsize x)))
+	x
+	)
+; (x urem 1) = 0
+(define-rule UremOne
+	((x ?BitVec))
+	(bvurem x (bv 1 (bvsize x)))
+	(bv 0 (bvsize x))
+	)
+; (x urem x) = 0
+(define-rule UremSelf
+	((x ?BitVec))
+	(bvudiv x x)
+	(bv 0 (bvsize x))
+	)
+; (0_k >> a) = 0_k
+(define-rule ShiftZero1
+	((n Int) (a ?BitVec))
+	(bvshl (bv 0 n) a)
+	(bv 0 n)
+	)
+(define-rule ShiftZero2
+	((n Int) (a ?BitVec))
+	(bvlshr (bv 0 n) a)
+	(bv 0 n)
+	)
+(define-rule ShiftZero3
+	((n Int) (a ?BitVec))
+	(bvashr (bv 0 n) a)
+	(bv 0 n)
+	)
+
+; (bvugt (bvurem T x) x)
+;   ==>  (ite (= x 0_k) (bvugt T x) false)
+;   ==>  (and (=> (= x 0_k) (bvugt T x)) (=> (not (= x 0_k)) false))
+;   ==>  (and (=> (= x 0_k) (bvugt T x)) (= x 0_k))
+;   ==>  (and (bvugt T x) (= x 0_k))
+;   ==>  (and (bvugt T 0_k) (= x 0_k))
+(define-rule UgtUrem
+	((y ?BitVec) (x ?BitVec))
+	(bvugt (bvurem y x) x)
+	(and
+		(bvugt y (bv 0 (bvsize y)))
+		(= x (bvsize x))
+	))
+
+(define-rule UltOne
+	((x ?BitVec))
+	(bvult x (bv 1 (bvsize x)))
+	(= x (bv 0 (bvsize x)))
+	)
+;(define-rule SltZero
+;	((x ?BitVec))
+;	(def n (bvsize x))
+;	(bvslt x (bv 0 n))
+;	(= (extract (- n 1) (- n 1) x) (bv 1 1))
+;	)
+(define-rule ZeroUlt
+	((x ?BitVec))
+	(bvult (bv 0 (bvsize x)) x)
+	(not (= x (bv 0 (bvsize x))))
+	)
 
 
 ; -- Normalization Rules --
