@@ -257,7 +257,7 @@ function(check_python_module module)
 endfunction()
 
 macro(find_supported_python_version)
-  if(false and ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
+  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
     find_package(Python 3.6...<3.10.999 COMPONENTS Interpreter REQUIRED)
   else()
     # The version range syntax is only supported from CMake 3.19 on.
