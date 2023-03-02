@@ -263,11 +263,17 @@ function(find_supported_python_version)
     # The version range syntax is only supported from CMake 3.19 on.
     # So, for previous versions, we manually search for an allowed python version
     foreach (python_version 3.10 3.9 3.8 3.7 3.6)
-      find_package(Python ${python_version} COMPONENTS Interpreter REQUIRED)
+      find_package(Python ${python_version} COMPONENTS Interpreter)
       if(${Python_FOUND})
         break()
       endif()
     endforeach()
+
+    if (NOT ${Python_FOUND})
+      message(FATAL_ERROR 
+         "Could not find Python. The supported versions are 3.6..<3.10."
+      )
+    endif
 
   # endif()
 endfunction()
