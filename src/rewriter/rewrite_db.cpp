@@ -36,10 +36,13 @@ RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
   d_false = nm->mkConst(false);
   rewriter::addRules(*this);
 
-  Trace("rewrite-db") << "Rewrite database:" << std::endl;
-  Trace("rewrite-db") << "START" << std::endl;
-  Trace("rewrite-db") << d_mt.debugPrint();
-  Trace("rewrite-db") << "END" << std::endl;
+  if (TraceIsOn("rewrite-db"))
+  {
+    Trace("rewrite-db") << "Rewrite database:" << std::endl;
+    Trace("rewrite-db") << "START" << std::endl;
+    Trace("rewrite-db") << d_mt.debugPrint();
+    Trace("rewrite-db") << "END" << std::endl;
+  }
 }
 
 void RewriteDb::addRule(DslPfRule id,
@@ -54,23 +57,6 @@ void RewriteDb::addRule(DslPfRule id,
   // flatten if necessary, and if possible
   std::vector<Node> fvsf = fvs;
   std::vector<Node> condsn;
-  Node af;  // = flattenHead(a, condsn, fvsf);
-  if (!af.isNull())
-  {
-    Trace("ajr-temp") << "Flatten " << id << " " << a << " to " << af
-                      << std::endl;
-    if (cond.getKind() == AND)
-    {
-      condsn.insert(condsn.begin(), cond.begin(), cond.end());
-    }
-    else if (!cond.isConst())
-    {
-      condsn.insert(condsn.begin(), cond);
-    }
-    // remake the condition, replace the head
-    cond = nm->mkAnd(condsn);
-    a = af;
-  }
   Node eq = a.eqNode(b);
   // we canonize left-to-right, hence we should traverse in the opposite
   // order, since we index based on conclusion, we make a dummy node here
