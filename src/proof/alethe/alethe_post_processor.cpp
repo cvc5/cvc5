@@ -1228,7 +1228,7 @@ bool AletheProofPostprocessCallback::update(Node res,
                               nm->mkNode(kind::SEXPR, d_cl, res),
                               {vp2, children[0]},
                               d_resPivots
-                                  ? std::vector<Node>{children[0], d_true}
+                                  ? std::vector<Node>{children[0], d_false}
                                   : std::vector<Node>(),
                               *cdp);
     }
@@ -1852,16 +1852,20 @@ bool AletheProofPostprocessCallback::update(Node res,
       if (res == equal)
       {  // no postprocessing necessary
         return success
-               && addAletheStep(AletheRule::RESOLUTION,
-                                res,
-                                nm->mkNode(kind::SEXPR, d_cl, res),
-                                {vp2, vp_child1, vp_child2},
-                                d_resPivots ? std::vector<Node>{vp_child1[1],
-                                                                d_false,
-                                                                vp_child2[0],
-                                                                d_true}
-                                            : std::vector<Node>(),
-                                *cdp);
+               && addAletheStep(
+                   AletheRule::RESOLUTION,
+                   res,
+                   nm->mkNode(kind::SEXPR, d_cl, res),
+                   {vp2, vp_child1, vp_child2},
+                   d_resPivots
+                       ? std::vector<Node>{vp_child1[1],
+                                           d_false,
+                                           // note that vp_child2 is not a
+                                           // clause, so it is itself the pivot
+                                           vp_child2,
+                                           d_false}
+                       : std::vector<Node>(),
+                   *cdp);
       }
       if (res == greater)
       {  // have (not (<= x c)) but result should be (> x c)
