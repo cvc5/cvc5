@@ -15,8 +15,8 @@
  */
 #include "theory/quantifiers/sygus/synth_engine.h"
 
-#include "options/quantifiers_options.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_registry.h"
@@ -98,12 +98,14 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
       activeCheckConj.push_back(sc);
     }
   }
-  Trace("ajr-temp") << "tlimit-per is " << options().base.perCallMillisecondLimit << std::endl;
+  Trace("ajr-temp") << "tlimit-per is "
+                    << options().base.perCallMillisecondLimit << std::endl;
   std::vector<SynthConjecture*> acnext;
   ResourceManager* rm = d_env.getResourceManager();
   do
   {
-    Trace("ajr-temp")  << "remaining time: " << rm->getRemainingTime() << std::endl;
+    Trace("ajr-temp") << "remaining time: " << rm->getRemainingTime()
+                      << std::endl;
     rm->spendResource(Resource::SygusCheckStep);
     Trace("sygus-engine-debug") << "Checking " << activeCheckConj.size()
                                 << " active conjectures..." << std::endl;
@@ -118,7 +120,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj.clear();
     activeCheckConj = acnext;
     acnext.clear();
-  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck() && !rm->out());
+  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck()
+           && !rm->out());
   Trace("sygus-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }

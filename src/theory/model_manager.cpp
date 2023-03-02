@@ -82,12 +82,12 @@ bool ModelManager::buildModel()
   }
 
   ResourceManager* rm = d_env.getResourceManager();
-    
+
   // Disable resource manager limit while building the model. This ensures
   // that building the model is not interrupted (and shouldn't take too
   // long).
   rm->setEnabled(false);
-      
+
   // reset the flags now
   d_modelBuilt = true;
   d_modelBuiltSuccess = false;
@@ -109,12 +109,12 @@ bool ModelManager::buildModel()
     }
 
     Trace("model-builder") << "ModelManager: model built success is "
-                          << d_modelBuiltSuccess << std::endl;
+                           << d_modelBuiltSuccess << std::endl;
   }
 
   // Enable resource management again.
   rm->setEnabled(true);
-      
+
   return d_modelBuiltSuccess;
 }
 
