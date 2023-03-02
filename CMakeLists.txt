@@ -321,7 +321,25 @@ else()
   endif()
 endif()
 
-find_package(Python 3.6...3.10.999 COMPONENTS Interpreter REQUIRED)
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION) 
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+else()
+  find_package(Python 3.6...<3.10.999 COMPONENTS Interpreter REQUIRED)
+endif()
+
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+if(NOT DEFINED PYTHON_EXECUTABLE) 
+  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+endif()
+if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+endif()
+if (NOT DEFINED PYTHON_LIBRARIES) 
+  set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
+endif()
+
 find_package(GMP 6.1 REQUIRED)
 
 if(ENABLE_ASAN)

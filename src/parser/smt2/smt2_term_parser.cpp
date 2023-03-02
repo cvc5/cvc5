@@ -257,6 +257,7 @@ Term Smt2TermParser::parseTerm()
       case Token::QUOTED_SYMBOL:
       {
         std::string name = tokenStrToSymbol(tok);
+        d_state.checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
         ret = d_state.getExpressionForName(name);
       }
       break;
@@ -654,6 +655,7 @@ Term Smt2TermParser::parseSymbolicExpr()
   Token tok;
   std::vector<std::vector<Term>> sstack;
   Solver* slv = d_state.getSolver();
+  Sort dummyType = slv->getBooleanSort();
   do
   {
     tok = d_lex.nextToken();
@@ -683,7 +685,7 @@ Term Smt2TermParser::parseSymbolicExpr()
       {
         // note that there are no tokens that are forbidden here
         std::string str = d_lex.tokenStr();
-        ret = slv->mkString(d_state.processAdHocStringEsc(str));
+        ret = slv->mkVar(dummyType, str);
       }
       break;
     }
