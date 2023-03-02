@@ -101,6 +101,7 @@ bool InstStrategyPool::hasProductSemantics(Node q, Node p)
     TypeNode tn = p[i].getType().getSetElementType();
     if (tn != q[0][i].getType())
     {
+      // the i^th pool in the annotation does not match the i^th variable
       return false;
     }
   }
@@ -131,6 +132,7 @@ bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
   {
     if (targs[i] != q[0][i].getType())
     {
+      // the i^th component type of the pool in the annotation does not match the i^th variable
       return false;
     }
   }
@@ -257,10 +259,9 @@ bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
     {
       return true;
     }
-    std::vector<Node> inst;
     if (t.getKind() != APPLY_CONSTRUCTOR)
     {
-      // symbolic tuple??
+      // a symbolic tuple is in the pool, we ignore it.
       continue;
     }
     std::vector<Node> inst(t.begin(), t.end());
