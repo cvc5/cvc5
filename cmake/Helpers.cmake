@@ -271,7 +271,7 @@ macro(find_supported_python_version)
 
     if (NOT ${Python_FOUND})
       message(FATAL_ERROR 
-         "Could not find Python. The supported versions are 3.6..<3.10."
+         "Could not find a suitable Python version. Only Python versions <=3.10 are currently supported."
       )
     endif()
 
