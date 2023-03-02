@@ -32,7 +32,8 @@ template <>
 inline bool RewriteRule<SizeEliminate>::applies(TNode node)
 {
   // ensures argument has concrete bitvector type
-  return (node.getKind() == kind::BITVECTOR_SIZE && node[0].getType().isBitVector());
+  return (node.getKind() == kind::BITVECTOR_SIZE
+          && node[0].getType().isBitVector());
 }
 
 template <>

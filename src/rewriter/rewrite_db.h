@@ -73,19 +73,19 @@ class RewriteDb
                Node cond,
                Node context,
                bool isFlatForm = false);
-  /** 
+  /**
    * Get matches, which incrementally makes callbacks on the notify class
    * ntm for all rules that match eq.
    */
   void getMatches(const Node& eq, expr::NotifyMatch* ntm);
   /** Get the rule definition for id */
   const RewriteProofRule& getRule(DslPfRule id) const;
-  /** 
+  /**
    * Get ids for conclusion, returns the list of identifiers of rules whose
    * conclusion is eq.
    */
   const std::vector<DslPfRule>& getRuleIdsForConclusion(const Node& eq) const;
-  /** 
+  /**
    * Get ids for head, returns the list of identifiers of rules whose
    * head (the left hand side of its equality) is h.
    */

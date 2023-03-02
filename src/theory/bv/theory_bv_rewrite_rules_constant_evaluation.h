@@ -493,16 +493,20 @@ Node RewriteRule<EvalComp>::apply(TNode node) {
   return utils::mkConst(1, 0);
 }
 
-template<> inline
-bool RewriteRule<EvalConstBvSym>::applies(TNode node) {
+template <>
+inline bool RewriteRule<EvalConstBvSym>::applies(TNode node)
+{
   // second argument must be positive and fit unsigned int
-  return (node.getKind() == kind::CONST_BITVECTOR_SYMBOLIC &&
-          node[0].isConst() && node[1].isConst() && node[1].getConst<Rational>().sgn()==1 && node[1].getConst<Rational>().getNumerator().fitsUnsignedInt());
+  return (node.getKind() == kind::CONST_BITVECTOR_SYMBOLIC && node[0].isConst()
+          && node[1].isConst() && node[1].getConst<Rational>().sgn() == 1
+          && node[1].getConst<Rational>().getNumerator().fitsUnsignedInt());
 }
 
-template<> inline
-Node RewriteRule<EvalConstBvSym>::apply(TNode node) {
-  Trace("bv-rewrite") << "RewriteRule<EvalConstBvSym>(" << node << ")" << std::endl;
+template <>
+inline Node RewriteRule<EvalConstBvSym>::apply(TNode node)
+{
+  Trace("bv-rewrite") << "RewriteRule<EvalConstBvSym>(" << node << ")"
+                      << std::endl;
   Integer a = node[0].getConst<Rational>().getNumerator();
   Integer b = node[1].getConst<Rational>().getNumerator();
   return utils::mkConst(b.toUnsignedInt(), a);

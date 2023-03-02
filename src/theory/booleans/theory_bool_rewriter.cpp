@@ -54,14 +54,16 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   toProcess.push_back(n);
 
   Kind k = n.getKind();
-  //TNode should be fine, since 'n' is still there
+  // TNode should be fine, since 'n' is still there
   std::vector<TNode> childList;
 
   size_t i = 0;
-  while (i < toProcess.size()) {
+  while (i < toProcess.size())
+  {
     TNode current = toProcess[i];
     i++;
-    for (TNode child : current){
+    for (TNode child : current)
+    {
       if(visited.find(child) != visited.end()) {
         continue;
       } else if(child == trivialNode) {
@@ -97,7 +99,8 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
            < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
                  * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
     NodeBuilder nb(k);
-    std::vector<TNode>::iterator cur = childList.begin(), next, en = childList.end();
+    std::vector<TNode>::iterator cur = childList.begin(), next,
+                                 en = childList.end();
     while (cur != en)
     {
       next = min(cur + expr::NodeValue::MAX_CHILDREN, en);

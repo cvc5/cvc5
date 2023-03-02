@@ -32,7 +32,9 @@ using namespace cvc5::internal::rewriter;
 namespace cvc5::internal {
 namespace proof {
 
-LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp, rewriter::RewriteDb* rdb)
+LfscPrinter::LfscPrinter(Env& env,
+                         LfscNodeConverter& ltp,
+                         rewriter::RewriteDb* rdb)
     : EnvObj(env),
       d_tproc(ltp),
       d_assumpCounter(0),
@@ -40,7 +42,8 @@ LfscPrinter::LfscPrinter(Env& env, LfscNodeConverter& ltp, rewriter::RewriteDb* 
       d_termLetPrefix("t"),
       d_assumpPrefix("a"),
       d_pletPrefix("p"),
-      d_pletTrustChildPrefix("q"), d_rdb(rdb)
+      d_pletTrustChildPrefix("q"),
+      d_rdb(rdb)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_boolType = nm->booleanType();

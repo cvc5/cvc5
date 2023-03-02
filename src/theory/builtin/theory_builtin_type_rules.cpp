@@ -163,17 +163,15 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
-
-TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm,
-                                                        TNode n)
+TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   // TODO: could be more precise
   return nm->mkAbstractType(kind::ABSTRACT_TYPE);
 }
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(NodeManager* nodeManager,
-                                                     TNode n,
-                                                     bool check,
-                                                     std::ostream* errOut)
+                                                   TNode n,
+                                                   bool check,
+                                                   std::ostream* errOut)
 {
   // TODO: could be more precise
   return nodeManager->mkAbstractType(kind::ABSTRACT_TYPE);

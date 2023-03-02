@@ -39,6 +39,7 @@
 #include "proof/unsat_core.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/builtin/abstract_type.h"
+#include "theory/builtin/generic_op.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -56,7 +57,6 @@
 #include "util/smt2_quote_string.h"
 #include "util/string.h"
 #include "util/uninterpreted_sort_value.h"
-#include "theory/builtin/generic_op.h"
 
 using namespace std;
 
@@ -642,7 +642,7 @@ void Smt2Printer::toStream(std::ostream& out,
         out << ")";
       }
       return;
-    case kind::APPLY_INDEXED_SYMBOLIC: 
+    case kind::APPLY_INDEXED_SYMBOLIC:
       // operator is printed as kind
       break;
 
@@ -1259,7 +1259,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case kind::BITVECTOR_ROTATE_RIGHT: return "rotate_right";
     case kind::INT_TO_BITVECTOR: return "int2bv";
     case kind::BITVECTOR_BB_TERM: return "bbT";
-    
+
     case kind::BITVECTOR_SIZE: return "bvsize";
     case kind::CONST_BITVECTOR_SYMBOLIC: return "bv";
 

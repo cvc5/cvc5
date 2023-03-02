@@ -54,7 +54,8 @@ Node NodeConverter::convert(Node n, bool preserveTypes)
       {
         Trace("nconv-debug2")
             << "..pre-rewrite changed " << cur << " into " << curp << std::endl;
-        AlwaysAssert(!preserveTypes || cur.getType().isComparableTo(curp.getType()))
+        AlwaysAssert(!preserveTypes
+                     || cur.getType().isComparableTo(curp.getType()))
             << "Pre-converting " << cur << " to " << curp << " changes type";
         visit.push_back(cur);
         visit.push_back(curp);

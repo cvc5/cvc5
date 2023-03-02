@@ -18,8 +18,8 @@
 #include "proof/proof_checker.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
-#include "util/string.h"
 #include "theory/builtin/generic_op.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 

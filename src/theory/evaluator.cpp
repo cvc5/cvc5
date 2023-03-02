@@ -307,7 +307,8 @@ EvalResult Evaluator::evalInternal(
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0 && currNodeVal.getKind()!=BITVECTOR_SIZE)
+        if (currNodeVal.getNumChildren() > 0
+            && currNodeVal.getKind() != BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
@@ -967,7 +968,8 @@ EvalResult Evaluator::evalInternal(
           Integer w = results[currNode[1]].d_rat.getNumerator();
           if (w.fitsUnsignedInt())
           {
-            Trace("evaluator") << currNode << " evalutes to " << BitVector(w.toUnsignedInt(), i) << std::endl;
+            Trace("evaluator") << currNode << " evalutes to "
+                               << BitVector(w.toUnsignedInt(), i) << std::endl;
             results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
           }
           else

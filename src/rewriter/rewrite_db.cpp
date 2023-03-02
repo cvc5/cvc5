@@ -248,7 +248,8 @@ const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
   return it->second;
 }
 
-const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(const Node& eq) const
+const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(
+    const Node& eq) const
 {
   std::map<Node, std::vector<DslPfRule> >::const_iterator it =
       d_concToRules.find(eq);

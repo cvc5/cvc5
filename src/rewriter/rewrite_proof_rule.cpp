@@ -187,7 +187,6 @@ const std::vector<Node>& RewriteProofRule::getConditions() const
 
 bool RewriteProofRule::hasSideConditions() const { return !d_scs.empty(); }
 
-
 bool RewriteProofRule::getObligations(const std::vector<Node>& vs,
                                       const std::vector<Node>& ss,
                                       std::vector<Node>& vcs) const
@@ -243,7 +242,6 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
   }
   return true;
 }
-
 
 void RewriteProofRule::getMatches(Node h, expr::NotifyMatch* ntm) const
 {

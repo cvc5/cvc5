@@ -369,12 +369,14 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node, bool prerewrite)
 {
-  Node resultNode = LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 RewriteResponse TheoryBVRewriter::RewriteSize(TNode node, bool prerewrite)
 {
-  Node resultNode = LinearRewriteStrategy<RewriteRule<SizeEliminate>>::apply(node);
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<SizeEliminate>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 

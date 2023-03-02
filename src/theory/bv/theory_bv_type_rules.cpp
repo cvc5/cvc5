@@ -97,14 +97,13 @@ TypeNode BitVectorConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
 }
 
-TypeNode BitVectorConstantSymbolicTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode BitVectorConstantSymbolicTypeRule::preComputeType(NodeManager* nm,
+                                                           TNode n)
 {
   return TypeNode::null();
 }
-TypeNode BitVectorConstantSymbolicTypeRule::computeType(NodeManager* nodeManager,
-                                                TNode n,
-                                                bool check,
-                                                std::ostream* errOut)
+TypeNode BitVectorConstantSymbolicTypeRule::computeType(
+    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
   if (check)
   {
@@ -113,7 +112,8 @@ TypeNode BitVectorConstantSymbolicTypeRule::computeType(NodeManager* nodeManager
       const TypeNode& tn = nc.getType();
       if (!tn.isInteger() && !tn.isFullyAbstract())
       {
-        (*errOut) << "expecting integer argument to symbolic bitvector constant";
+        (*errOut)
+            << "expecting integer argument to symbolic bitvector constant";
         return TypeNode::null();
       }
     }
