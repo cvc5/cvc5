@@ -87,7 +87,7 @@ const char* toString(Resource r)
     case Resource::RestartStep: return "RestartStep";
     case Resource::RewriteStep: return "RewriteStep";
     case Resource::SatConflictStep: return "SatConflictStep";
-    case Resource::SygusEnumStep: return "SygusEnumStep";
+    case Resource::SygusCheckStep: return "SygusCheckStep";
     case Resource::TheoryCheckStep: return "TheoryCheckStep";
     default: return "?Resource?";
   }
