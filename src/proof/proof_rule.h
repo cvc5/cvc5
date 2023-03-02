@@ -254,7 +254,7 @@ enum class PfRule : uint32_t
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
    * 
    * where the DSL rewrite rule with the given identifier is
-   *   :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
+   * :math:`\forall x_1 \dots x_n. (G_1 \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
