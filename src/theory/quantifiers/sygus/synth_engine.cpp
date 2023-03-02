@@ -15,7 +15,6 @@
  */
 #include "theory/quantifiers/sygus/synth_engine.h"
 
-#include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -98,14 +97,10 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
       activeCheckConj.push_back(sc);
     }
   }
-  Trace("ajr-temp") << "tlimit-per is "
-                    << options().base.perCallMillisecondLimit << std::endl;
   std::vector<SynthConjecture*> acnext;
   ResourceManager* rm = d_env.getResourceManager();
   do
   {
-    Trace("ajr-temp") << "remaining time: " << rm->getRemainingTime()
-                      << std::endl;
     rm->spendResource(Resource::SygusCheckStep);
     Trace("sygus-engine-debug") << "Checking " << activeCheckConj.size()
                                 << " active conjectures..." << std::endl;
