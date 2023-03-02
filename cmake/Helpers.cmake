@@ -255,3 +255,19 @@ function(check_python_module module)
         "Note: You need to have pip installed for this Python version.")
   endif()
 endfunction()
+
+function(find_supported_python_version)
+  if(false and ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
+    find_package(Python 3.6...<3.10.999 COMPONENTS Interpreter REQUIRED)
+  else()
+    # The version range syntax is only supported from CMake 3.19 on.
+    # So, for previous versions, we manually search for an allowed python version
+    foreach (python_version 3.10 3.9 3.8 3.7 3.6)
+      find_package(Python ${python_version} COMPONENTS Interpreter REQUIRED)
+      if(${Python_FOUND})
+        break()
+      endif()
+    endforeach()
+
+  endif()
+endfunction()
