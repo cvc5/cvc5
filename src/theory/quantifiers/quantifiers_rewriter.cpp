@@ -231,10 +231,10 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
       doRewrite = true;
     }
     if( doRewrite ){
-      std::vector< Node > children(body[0].begin(), body[0].end());
+      std::vector<Node> children(body[0].begin(), body[0].end());
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
       children.push_back( body[1] );
-      if( body.getNumChildren()==3 )
+      if (body.getNumChildren() == 3)
       {
         children.push_back( body[2] );
       }
