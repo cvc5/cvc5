@@ -224,17 +224,32 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     std::vector<Node> args;
     Node body = in;
     bool combineQuantifiers = false;
-    while (body.getNumChildren() == 2 && body.getKind() == body[1].getKind())
+    bool continueCombine = false;
+    do
     {
-      args.insert(args.end(), body[0].begin(), body[0].end());
-      body = body[1];
-      combineQuantifiers = true;
+      for (const Node& v : body[0])
+      {
+        if (std::find(args.begin(), args.end(), v)==args.end())
+        {
+          args.push_back(v);
+        }
+      }
+      if (body.getNumChildren() == 2 && body.getKind() == body[1].getKind())
+      {
+        body = body[1];
+        continueCombine = true;
+        combineQuantifiers = true;
+      }
+      else
+      {
+        continueCombine = false;
+      }
     }
+    while (continueCombine);
     if (combineQuantifiers)
     {
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> children;
-      args.insert(args.end(), body[0].begin(), body[0].end());
       children.push_back(nm->mkNode(BOUND_VAR_LIST, args));
       children.push_back(body[1]);
       if (body.getNumChildren() == 3)
