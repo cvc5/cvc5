@@ -196,7 +196,26 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
 }
 
 RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
-  if( in.getKind()==kind::EXISTS || in.getKind()==kind::FORALL ){
+  return RewriteResponse(REWRITE_DONE, in);
+}
+
+RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
+  Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
+  RewriteStatus status = REWRITE_DONE;
+  Node ret = in;
+  RewriteStep rew_op = COMPUTE_LAST;
+  //get the body
+  if( in.getKind()==EXISTS ){
+    std::vector< Node > children;
+    children.push_back( in[0] );
+    children.push_back( in[1].negate() );
+    if( in.getNumChildren()==3 ){
+      children.push_back( in[2] );
+    }
+    ret = NodeManager::currentNM()->mkNode( FORALL, children );
+    ret = ret.negate();
+    status = REWRITE_AGAIN_FULL;
+  }else if( in.getKind()==FORALL ){
     Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << std::endl;
     std::vector< Node > args;
     Node body = in;
@@ -218,35 +237,15 @@ RewriteResponse QuantifiersRewriter::preRewrite(TNode in) {
       if( body.getNumChildren()==3 ){
         children.push_back( body[2] );
       }
-      Node n = NodeManager::currentNM()->mkNode( in.getKind(), children );
+      Node n = NodeManager::currentNM()->mkNode( FORALL, children );
       if( in!=n ){
         Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
         Trace("quantifiers-pre-rewrite") << " to " << std::endl;
         Trace("quantifiers-pre-rewrite") << n << std::endl;
       }
-      return RewriteResponse(REWRITE_DONE, n);
+      return RewriteResponse(REWRITE_AGAIN_FULL, n);
     }
-  }
-  return RewriteResponse(REWRITE_DONE, in);
-}
-
-RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
-  Trace("quantifiers-rewrite-debug") << "post-rewriting " << in << std::endl;
-  RewriteStatus status = REWRITE_DONE;
-  Node ret = in;
-  RewriteStep rew_op = COMPUTE_LAST;
-  //get the body
-  if( in.getKind()==EXISTS ){
-    std::vector< Node > children;
-    children.push_back( in[0] );
-    children.push_back( in[1].negate() );
-    if( in.getNumChildren()==3 ){
-      children.push_back( in[2] );
-    }
-    ret = NodeManager::currentNM()->mkNode( FORALL, children );
-    ret = ret.negate();
-    status = REWRITE_AGAIN_FULL;
-  }else if( in.getKind()==FORALL ){
+    
     if( in[1].isConst() && in.getNumChildren()==2 ){
       return RewriteResponse( status, in[1] );
     }else{
