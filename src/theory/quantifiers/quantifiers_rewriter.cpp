@@ -226,20 +226,16 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     Node body = in;
     bool doRewrite = false;
     while( body.getNumChildren()==2 && body.getKind()==body[1].getKind() ){
-      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-        args.push_back( body[0][i] );
-      }
+      args.insert(args.end(), body[0].begin(), body[0].end());
       body = body[1];
       doRewrite = true;
     }
     if( doRewrite ){
-      std::vector< Node > children;
-      for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
-        args.push_back( body[0][i] );
-      }      
+      std::vector< Node > children(body[0].begin(), body[0].end());
       children.push_back( NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST,args) );
       children.push_back( body[1] );
-      if( body.getNumChildren()==3 ){
+      if( body.getNumChildren()==3 )
+      {
         children.push_back( body[2] );
       }
       Node n = NodeManager::currentNM()->mkNode(FORALL, children);
