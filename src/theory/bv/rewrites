@@ -626,12 +626,12 @@
 	(bvult x (bv 1 (bvsize x)))
 	(= x (bv 0 (bvsize x)))
 	)
-;(define-rule SltZero
-;	((x ?BitVec))
-;	(def n (bvsize x))
-;	(bvslt x (bv 0 n))
-;	(= (extract (- n 1) (- n 1) x) (bv 1 1))
-;	)
+(define-rule SltZero
+	((x ?BitVec))
+	(def (n (bvsize x)))
+	(bvslt x (bv 0 n))
+	(= (extract (- n 1) (- n 1) x) (bv 1 1))
+	)
 (define-rule ZeroUlt
 	((x ?BitVec))
 	(bvult (bv 0 (bvsize x)) x)
