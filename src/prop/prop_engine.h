@@ -169,9 +169,10 @@ class PropEngine : protected EnvObj
   std::vector<Node> getPropOrderHeap() const;
 
   /**
-   * Return the user-context level when `assertion` was asserted.
+   * Return whether lit has a fixed SAT assignment (i.e., implied by input
+   * assertions).
    */
-  int32_t getAssertionUserLevel(TNode assertion) const;
+  bool isFixed(TNode lit) const;
 
   /**
    * Checks the current context for satisfiability.

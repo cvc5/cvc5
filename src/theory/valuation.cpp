@@ -191,10 +191,10 @@ bool Valuation::isDecision(Node lit) const {
   return d_engine->getPropEngine()->isDecision(lit);
 }
 
-int32_t Valuation::getAssertionUserLevel(TNode lit) const
+bool Valuation::isFixed(TNode lit) const
 {
   Assert(d_engine != nullptr);
-  return d_engine->getPropEngine()->getAssertionUserLevel(lit);
+  return d_engine->getPropEngine()->isFixed(lit);
 }
 
 unsigned Valuation::getAssertionLevel() const{

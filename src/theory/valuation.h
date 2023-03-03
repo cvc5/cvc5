@@ -191,11 +191,10 @@ public:
   bool isDecision(Node lit) const;
 
   /**
-   * Return the user-context level when `assertion` was asserted.
-   *
-   * @return User-context level or -1 if not yet asserted.
+   * Return whether lit has a fixed SAT assignment (i.e., implied by input
+   * assertions).
    */
-  int32_t getAssertionUserLevel(TNode assertion) const;
+  bool isFixed(TNode lit) const;
 
   /**
    * Get the assertion level of the SAT solver.
