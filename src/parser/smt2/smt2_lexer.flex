@@ -162,10 +162,10 @@ unterminated_comment ;[^\n]*
 {simple_symbol} return cvc5::parser::SYMBOL;
 {unterminated_comment} return cvc5::parser::EOF_TOK;
 {comment} {
-  addLines(1);
-  bumpSpan();
-  break;
-}
+            addLines(1);
+            bumpSpan();
+            break;
+          }
 . parseError("Error finding token"); break;
 %%
 
