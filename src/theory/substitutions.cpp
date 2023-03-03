@@ -239,8 +239,9 @@ Node SubstitutionMap::apply(TNode t,
   {
     Node orig = result;
     result = r->rewrite(result);
-    Assert(r->rewrite(result) == result) << "Non-idempotent rewrite: " << orig << " --> " << result
-                                         << " --> " << r->rewrite(result);
+    Assert(r->rewrite(result) == result)
+        << "Non-idempotent rewrite: " << orig << " --> " << result << " --> "
+        << r->rewrite(result);
   }
 
   return result;
