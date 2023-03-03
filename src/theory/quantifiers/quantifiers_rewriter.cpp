@@ -225,17 +225,17 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
     std::vector<Node> args;
     Node body = in;
     bool doRewrite = false;
-    while (body.getNumChildren()==2 && body.getKind()==body[1].getKind())
+    while (body.getNumChildren() == 2 && body.getKind() == body[1].getKind())
     {
       args.insert(args.end(), body[0].begin(), body[0].end());
       body = body[1];
       doRewrite = true;
     }
     if( doRewrite ){
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> children;
       args.insert(args.end(), body[0].begin(), body[0].end());
-      children.push_back(nm->mkNode(BOUND_VAR_LIST,args));
+      children.push_back(nm->mkNode(BOUND_VAR_LIST, args));
       children.push_back(body[1]);
       if (body.getNumChildren() == 3)
       {
