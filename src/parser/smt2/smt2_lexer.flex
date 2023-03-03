@@ -160,8 +160,12 @@ unterminated_comment ;[^\n]*
                 }
 {unterminated_quoted_symbol} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
 {simple_symbol} return cvc5::parser::SYMBOL;
-{unterminated_comment} return cvc5::parser::UNTERMINATED_QUOTED_SYMBOL;
-{comment} break;
+{unterminated_comment} return cvc5::parser::EOF_TOK;
+{comment} {
+  addLines(1);
+  bumpSpan();
+  break;
+}
 . parseError("Error finding token"); break;
 %%
 
