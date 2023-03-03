@@ -230,7 +230,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
       body = body[1];
       combineQuantifiers = true;
     }
-    if( combineQuantifiers )
+    if (combineQuantifiers)
     {
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> children;
@@ -244,7 +244,7 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
       ret = nm->mkNode(FORALL, children);
       status = REWRITE_AGAIN_FULL;
     }
-    else if( in[1].isConst() && in.getNumChildren()==2 )
+    else if (in[1].isConst() && in.getNumChildren() == 2)
     {
       return RewriteResponse( status, in[1] );
     }
