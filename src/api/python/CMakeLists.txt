@@ -43,17 +43,21 @@ endif()
 # Required for Cython target below
 list(APPEND CMAKE_MODULE_PATH ${SKBUILD_CMAKE_MODULE_PATH})
 
-# 'PythonExtensions' is not yet compatible with cmake's new 'FindPython'.
-#     https://github.com/scikit-build/scikit-build/issues/506
-# We define the following symbols below to be backward compatible.
-find_package(Python 3.6...3.10.999 COMPONENTS Development)
-
-# Since PythonExtensions still uses PythonInterp and PythonLibs, we have to
-# make sure that these modules find the same Python version that was found by
-# FindPython.
-find_package(PythonInterp ${Python_VERSION} REQUIRED)
-find_package(PythonLibs ${Python_VERSION} REQUIRED)
 find_package(PythonExtensions REQUIRED)
+
+find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION} EXACT COMPONENTS Development)
+# Some cmake packages are not compatible with the newest version
+# of FindPython, introduced in cmake 3.12.
+# We define the symbols below to be backward compatible.
+if(NOT DEFINED PYTHON_EXECUTABLE) 
+  set(PYTHON_EXECUTABLE "${Python_EXECUTABLE}")
+endif()
+if (NOT DEFINED PYTHON_INCLUDE_DIRS) 
+  set(PYTHON_INCLUDE_DIRS "${Python_INCLUDE_DIRS}")
+endif()
+if (NOT DEFINED PYTHON_LIBRARIES) 
+  set(PYTHON_LIBRARIES "${Python_LIBRARIES}")
+endif()
 
 find_package(Cython 0.29 REQUIRED)
 

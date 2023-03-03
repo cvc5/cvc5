@@ -36,7 +36,7 @@ class JustifyCache
  public:
   /** Constructor */
   JustifyCache(context::Context* c,
-               prop::CDCLTSatSolverInterface* ss,
+               prop::CDCLTSatSolver* ss,
                prop::CnfStream* cs);
   /**
    * Returns the value TRUE/FALSE for n, or UNKNOWN otherwise.
@@ -64,7 +64,7 @@ class JustifyCache
   /** Mapping from non-negated nodes to their SAT value */
   context::CDInsertHashMap<Node, prop::SatValue> d_justified;
   /** Pointer to the SAT solver */
-  prop::CDCLTSatSolverInterface* d_satSolver;
+  prop::CDCLTSatSolver* d_satSolver;
   /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;
 };

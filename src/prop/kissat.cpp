@@ -100,9 +100,7 @@ ClauseId KissatSolver::addXorClause(SatClause& clause, bool rhs, bool removable)
   Unreachable() << "Kissat does not support adding XOR clauses.";
 }
 
-SatVariable KissatSolver::newVar(bool isTheoryAtom,
-                                 bool preRegister,
-                                 bool canErase)
+SatVariable KissatSolver::newVar(bool isTheoryAtom, bool canErase)
 {
   ++d_statistics.d_numVariables;
   return d_nextVarIdx++;
