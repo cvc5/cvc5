@@ -221,17 +221,17 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
   }
   else if (in.getKind() == FORALL)
   {
-    Trace("quantifiers-rewrite-debug") << "pre-rewriting " << in << std::endl;
     std::vector<Node> args;
     Node body = in;
-    bool doRewrite = false;
+    bool combineQuantifiers = false;
     while (body.getNumChildren() == 2 && body.getKind() == body[1].getKind())
     {
       args.insert(args.end(), body[0].begin(), body[0].end());
       body = body[1];
-      doRewrite = true;
+      combineQuantifiers = true;
     }
-    if( doRewrite ){
+    if( combineQuantifiers )
+    {
       NodeManager* nm = NodeManager::currentNM();
       std::vector<Node> children;
       args.insert(args.end(), body[0].begin(), body[0].end());
@@ -241,18 +241,15 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in)
       {
         children.push_back(body[2]);
       }
-      Node n = nm->mkNode(FORALL, children);
-      if( in!=n ){
-        Trace("quantifiers-pre-rewrite") << "*** pre-rewrite " << in << std::endl;
-        Trace("quantifiers-pre-rewrite") << " to " << std::endl;
-        Trace("quantifiers-pre-rewrite") << n << std::endl;
-      }
-      return RewriteResponse(REWRITE_AGAIN_FULL, n);
+      ret = nm->mkNode(FORALL, children);
+      status = REWRITE_AGAIN_FULL;
     }
-
-    if( in[1].isConst() && in.getNumChildren()==2 ){
+    else if( in[1].isConst() && in.getNumChildren()==2 )
+    {
       return RewriteResponse( status, in[1] );
-    }else{
+    }
+    else
+    {
       //compute attributes
       QAttributes qa;
       QuantAttributes::computeQuantAttributes( in, qa );
