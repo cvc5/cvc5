@@ -17,7 +17,7 @@
 
 #include "gtest/gtest.h"
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
 #include "base/output.h"
 
 namespace cvc5::internal {

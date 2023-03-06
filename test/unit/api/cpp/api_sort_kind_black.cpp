@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
 #include "base/output.h"
 #include "gtest/gtest.h"
 

@@ -15,7 +15,7 @@
 
 #include <sstream>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
 #include "base/output.h"
 #include "options/base_options.h"
 #include "options/language.h"

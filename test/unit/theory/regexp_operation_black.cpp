@@ -17,7 +17,7 @@
 #include <memory>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "test_smt.h"

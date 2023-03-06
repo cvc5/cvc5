@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
 #include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
