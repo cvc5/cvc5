@@ -360,8 +360,11 @@ std::vector<Node> PropEngine::getPropOrderHeap() const
 
 bool PropEngine::isFixed(TNode lit) const
 {
-  Assert(isSatLiteral(lit));
-  return d_satSolver->isFixed(d_cnfStream->getLiteral(lit).getSatVariable());
+  if (isSatLiteral(lit))
+  {
+    return d_satSolver->isFixed(d_cnfStream->getLiteral(lit).getSatVariable());
+  }
+  return false;
 }
 
 void PropEngine::printSatisfyingAssignment(){
