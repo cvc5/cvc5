@@ -419,9 +419,6 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
-
-  /** Maps the user level for each assertion added via assertInternal(). */
-  std::unordered_map<Node, int32_t> d_assertion_user_level;
 };
 
 }  // namespace prop
