@@ -495,10 +495,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       // reset the model in the combination engine
       d_tc->resetModel();
-      // Disable resource manager limit while building the model. This ensures
-      // that building the model is not interrupted (and shouldn't take too
-      // long).
-      rm->setEnabled(false);
       //checks for theories requiring the model go at last call
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
       {
@@ -531,8 +527,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       {
         tem->notifyCandidateModel(getModel());
       }
-      // Enable resource management again.
-      rm->setEnabled(true);
     }
 
     Trace("theory") << "TheoryEngine::check(" << effort << "): done, we are " << (d_inConflict ? "unsat" : "sat") << (d_lemmasAdded ? " with new lemmas" : " with no new lemmas");

@@ -21,39 +21,33 @@
 namespace cvc5::internal {
 namespace proof {
 
-Node AletheNodeConverter::preConvert(Node n)
-{
-  Kind k = n.getKind();
-  if (k == kind::SKOLEM || k == kind::BOOLEAN_TERM_VARIABLE)
-  {
-    Trace("alethe-conv") << "AletheNodeConverter: [PRE] handling skolem " << n
-                         << "\n";
-    Node wi = SkolemManager::getWitnessForm(n);
-    // true skolem with witness form, just convert that
-    if (!wi.isNull())
-    {
-      Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
-                           << " has witness form " << wi << "\n";
-      return wi;
-    }
-    // purification skolem, so we simply retrieve its original form and convert
-    // that
-    Node oi = SkolemManager::getOriginalForm(n);
-    AlwaysAssert(!oi.isNull());
-    Trace("alethe-conv")
-        << "AletheNodeConverter: ..pre-convert to original form " << oi << "\n";
-    return oi;
-  }
-  return n;
-}
-
 Node AletheNodeConverter::postConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  AlwaysAssert(k != kind::SKOLEM && k != kind::BOOLEAN_TERM_VARIABLE);
   switch (k)
   {
+    case kind::SKOLEM:
+    case kind::BOOLEAN_TERM_VARIABLE:
+    {
+      Trace("alethe-conv") << "AletheNodeConverter: handling skolem " << n
+                           << "\n";
+      Node wi = SkolemManager::getOriginalForm(n);
+      Trace("alethe-conv") << "AletheNodeConverter: ..original: " << wi << "\n";
+      if (wi == n)
+      {
+        // if it is not a purification skolem, maybe it has a witness skolem
+        wi = SkolemManager::getWitnessForm(n);
+      }
+      // skolem with witness form, just convert that
+      if (!wi.isNull())
+      {
+        Trace("alethe-conv") << "AletheNodeConverter: ..skolem " << n
+                             << " has witness form " << wi << "\n";
+        return convert(wi);
+      }
+      Unreachable() << "Fresh Skolems are not allowed\n";
+    }
     case kind::FORALL:
     {
       // remove patterns, if any
