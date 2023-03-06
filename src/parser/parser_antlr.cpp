@@ -15,6 +15,8 @@
 
 #include "parser/parser_antlr.h"
 
+#include <cvc5/cpp/cvc5.h>
+
 #include <clocale>
 #include <fstream>
 #include <iostream>
@@ -22,7 +24,6 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "api/cpp/cvc5.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"

@@ -18,6 +18,8 @@
 #ifndef CVC5__OUTPUT_H
 #define CVC5__OUTPUT_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <algorithm>
 #include <cstdio>
 #include <ios>
@@ -26,8 +28,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "cvc5_export.h"
 
 namespace cvc5::internal {
 

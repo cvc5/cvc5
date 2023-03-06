@@ -39,7 +39,8 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif   /* HAVE_LIBEDITLINE */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "main/command_executor.h"

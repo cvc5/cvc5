@@ -14,7 +14,7 @@
  * the language bindings are generated automatically.
  */
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #ifndef CVC5__API__CVC5_TYPES_H
 #define CVC5__API__CVC5_TYPES_H
@@ -252,6 +252,6 @@ enum ProofComponent
 };
 /** Writes a proof component identifier to a stream. */
 std::ostream& operator<<(std::ostream& out, ProofComponent pc);
-}
+}  // namespace cvc5::modes
 
 #endif

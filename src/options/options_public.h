@@ -22,6 +22,8 @@
 #ifndef CVC5__OPTIONS__OPTIONS_PUBLIC_H
 #define CVC5__OPTIONS__OPTIONS_PUBLIC_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
 #include <optional>
 #include <sstream>
@@ -29,7 +31,6 @@
 #include <variant>
 #include <vector>
 
-#include "cvc5_export.h"
 #include "options/options.h"
 
 namespace cvc5::internal::options {
