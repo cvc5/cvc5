@@ -16,7 +16,7 @@
 
 #include <cassert>
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cpp/cvc5.h>
 
 using namespace cvc5;
 
