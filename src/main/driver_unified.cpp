@@ -169,10 +169,6 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
     // Parse and execute commands until we are done
     if (solver->getOptionInfo("interactive").boolValue() && inputFromStdin)
     {
-      if (!solver->getOptionInfo("incremental").setByUser)
-      {
-        solver->setOption("incremental", "true");
-      }
       // We use the interactive shell when piping from stdin, even some cases
       // where the input stream is not a TTY. We do this to avoid memory issues
       // involving tokens that span multiple lines.
@@ -180,6 +176,11 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       // (via isatty). If we are not interactive, we disable certain output
       // information, e.g. for querying the user.
       bool isInteractive = isatty(fileno(stdin));
+      // set incremental if we are in interactive mode
+      if (!solver->getOptionInfo("incremental").setByUser)
+      {
+        solver->setOption("incremental", isInteractive ? "true" : "false");
+      }
       InteractiveShell shell(
           pExecutor.get(), dopts.in(), dopts.out(), isInteractive);
 

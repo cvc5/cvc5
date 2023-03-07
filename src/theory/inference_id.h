@@ -353,6 +353,8 @@ enum class InferenceId
   QUANTIFIERS_INST_ENUM,
   // instantiations from pool instantiation
   QUANTIFIERS_INST_POOL,
+  // instantiations from pool instantiation (tuple semantics)
+  QUANTIFIERS_INST_POOL_TUPLE,
   //-------------------- bounded integers
   // a proxy lemma from bounded integers, used to control bounds on ground terms
   QUANTIFIERS_BINT_PROXY,
