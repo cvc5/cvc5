@@ -18,9 +18,9 @@
 #ifndef CVC5__API__CVC5_H
 #define CVC5__API__CVC5_H
 
-#include <cvc5/cpp/cvc5_kind.h>
-#include <cvc5/cpp/cvc5_sort_kind.h>
-#include <cvc5/cpp/cvc5_types.h>
+#include <cvc5/cvc5_kind.h>
+#include <cvc5/cvc5_sort_kind.h>
+#include <cvc5/cvc5_types.h>
 
 #include <functional>
 #include <map>
