@@ -17,6 +17,7 @@
 #define CVC5__TEST__UNIT__TEST_API_H
 
 #include <cvc5/cpp/cvc5.h>
+
 #include "gtest/gtest.h"
 
 namespace cvc5::internal {

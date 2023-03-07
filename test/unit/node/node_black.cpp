@@ -13,12 +13,13 @@
  * Black box testing of cvc5::Node.
  */
 
+#include <cvc5/cpp/cvc5.h>
+
 #include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <cvc5/cpp/cvc5.h>
 #include "expr/array_store_all.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"

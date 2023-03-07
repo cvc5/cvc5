@@ -25,11 +25,12 @@
  * below, in SMT-LIBv2 form (but they're good for all languages).
  */
 
+#include <cvc5/cpp/cvc5.h>
+
 #include <cassert>
 #include <iostream>
 #include <string>
 
-#include <cvc5/cpp/cvc5.h>
 #include "parser/api/cpp/command.h"
 #include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"

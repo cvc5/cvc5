@@ -17,10 +17,10 @@
  * system tests.
  */
 
+#include <cvc5/cpp/cvc5.h>
+
 #include <iostream>
 #include <sstream>
-
-#include <cvc5/cpp/cvc5.h>
 
 using namespace cvc5;
 using namespace std;

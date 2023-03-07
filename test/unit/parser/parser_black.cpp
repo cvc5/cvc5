@@ -13,9 +13,10 @@
  * Black box testing of cvc5::parser::Parser for CVC and SMT-LIbv2 inputs.
  */
 
+#include <cvc5/cpp/cvc5.h>
+
 #include <sstream>
 
-#include <cvc5/cpp/cvc5.h>
 #include "base/output.h"
 #include "options/base_options.h"
 #include "options/language.h"

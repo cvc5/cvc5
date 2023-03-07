@@ -13,6 +13,7 @@
  * Black box testing of cvc5::parser::ParserBuilder.
  */
 
+#include <cvc5/cpp/cvc5.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -21,7 +22,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <cvc5/cpp/cvc5.h>
 #include "options/language.h"
 #include "parser/api/cpp/command.h"
 #include "parser/api/cpp/symbol_manager.h"

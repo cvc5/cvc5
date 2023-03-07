@@ -13,12 +13,12 @@
  * Black box testing of the Kind enum of the  C++ API.
  */
 
+#include <cvc5/cpp/cvc5.h>
+
 #include <algorithm>
 
-#include "gtest/gtest.h"
-
-#include <cvc5/cpp/cvc5.h>
 #include "base/output.h"
+#include "gtest/gtest.h"
 
 namespace cvc5::internal {
 
