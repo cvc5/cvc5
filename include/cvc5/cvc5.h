@@ -4376,7 +4376,8 @@ class CVC5_EXPORT Solver
    * for showing the satisfiability of the last call to checkSat using the
    * current model. This method will only return false (for any `v`) if
    * option
-   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`\endverbatim has been set.
+   * \verbatim embed:rst:inline :ref:`model-cores <lbl-option-model-cores>`\endverbatim
+   * has been set.
    *
    * @warning This method is experimental and may change in future versions.
    *
