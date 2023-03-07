@@ -19,7 +19,7 @@
 #ifndef CVC5__PARSER__TPTP_H
 #define CVC5__PARSER__TPTP_H
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <memory>
 #include <unordered_map>

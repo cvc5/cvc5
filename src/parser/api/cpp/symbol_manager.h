@@ -18,7 +18,7 @@
 #ifndef CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
 #define CVC5__PARSER__API__CPP__SYMBOL_MANAGER_H
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 #include <cvc5/cvc5_export.h>
 
 #include <map>

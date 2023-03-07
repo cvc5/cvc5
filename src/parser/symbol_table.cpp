@@ -16,7 +16,7 @@
 
 #include "parser/symbol_table.h"
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <ostream>
 #include <string>

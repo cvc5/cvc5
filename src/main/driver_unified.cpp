@@ -13,7 +13,7 @@
  * Driver for cvc5 executable (cvc5).
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 #include <stdio.h>
 #include <unistd.h>
 

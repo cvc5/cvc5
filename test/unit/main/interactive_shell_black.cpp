@@ -13,7 +13,7 @@
  * Black box testing of cvc5::InteractiveShell.
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <memory>
 #include <sstream>

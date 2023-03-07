@@ -13,7 +13,7 @@
  * The cvc5 Java API.
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include "api_utilities.h"
 #include "io_github_cvc5_Sort.h"

@@ -15,7 +15,7 @@
 
 #include "util/statistics_public.h"
 
-#include <cvc5/cpp/cvc5_kind.h>
+#include <cvc5/cvc5_kind.h>
 
 #include "expr/kind.h"
 #include "theory/inference_id.h"

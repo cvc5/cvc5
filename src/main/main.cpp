@@ -14,7 +14,7 @@
  */
 #include "main/main.h"
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 

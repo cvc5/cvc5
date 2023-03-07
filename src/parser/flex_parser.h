@@ -18,7 +18,7 @@
 #ifndef CVC5__PARSER__FLEX_PARSER_H
 #define CVC5__PARSER__FLEX_PARSER_H
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <list>
 #include <memory>

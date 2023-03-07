@@ -13,7 +13,7 @@
  * Black box testing of the SortKind enum of the  C++ API.
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <algorithm>
 

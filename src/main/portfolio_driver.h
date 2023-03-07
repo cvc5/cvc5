@@ -17,7 +17,7 @@
 #ifndef CVC5__MAIN__PORTFOLIO_DRIVER_H
 #define CVC5__MAIN__PORTFOLIO_DRIVER_H
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <optional>
 

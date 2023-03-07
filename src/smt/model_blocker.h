@@ -18,7 +18,7 @@
 #ifndef __CVC5__THEORY__MODEL_BLOCKER_H
 #define __CVC5__THEORY__MODEL_BLOCKER_H
 
-#include <cvc5/cpp/cvc5_types.h>
+#include <cvc5/cvc5_types.h>
 
 #include <vector>
 

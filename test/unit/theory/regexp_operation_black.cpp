@@ -13,7 +13,7 @@
  * Unit tests for symbolic regular expression operations.
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 #include <memory>

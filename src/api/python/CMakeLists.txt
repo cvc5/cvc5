@@ -76,12 +76,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cpp/cvc5_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5kinds"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cpp/cvc5_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_kind.h"
 )
 add_custom_target(cvc5kinds DEPENDS ${GENERATED_KINDS_FILES})
 
@@ -96,12 +96,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cpp/cvc5_sort_kind.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5sortkinds"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cpp/cvc5_sort_kind.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_sort_kind.h"
 )
 add_custom_target(cvc5sortkinds DEPENDS ${GENERATED_SORT_KINDS_FILES})
 
@@ -115,12 +115,12 @@ add_custom_command(
   COMMAND
     "${Python_EXECUTABLE}"
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
-    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cpp/cvc5_types.h"
+    --enums-header "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
     --enums-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc5types"
   DEPENDS
     "${CMAKE_CURRENT_BINARY_DIR}/genenums.py"
     "${PROJECT_SOURCE_DIR}/src/api/parseenums.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/cpp/cvc5_types.h"
+    "${PROJECT_SOURCE_DIR}/include/cvc5/cvc5_types.h"
 )
 add_custom_target(cvc5types DEPENDS ${GENERATED_TYPES_FILES})
 

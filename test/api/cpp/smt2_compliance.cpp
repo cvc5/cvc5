@@ -13,7 +13,7 @@
  * A test of SMT-LIBv2 commands, checks for compliant output.
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <cassert>
 #include <iostream>

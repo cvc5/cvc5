@@ -18,7 +18,7 @@
  * which the datastructure needs to handle properly problematic.
  */
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <iostream>
 #include <sstream>

@@ -16,7 +16,7 @@
 #ifndef CVC5__MAIN__OPTIONS_H
 #define CVC5__MAIN__OPTIONS_H
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <iosfwd>
 #include <string>

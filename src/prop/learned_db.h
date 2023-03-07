@@ -18,7 +18,7 @@
 #ifndef CVC5__PROP__LEARNED_DB_H
 #define CVC5__PROP__LEARNED_DB_H
 
-#include <cvc5/cpp/cvc5_types.h>
+#include <cvc5/cvc5_types.h>
 
 #include "context/cdhashset.h"
 #include "context/cdo.h"

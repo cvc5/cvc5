@@ -18,7 +18,7 @@
 #ifndef CVC5__PROP_PROOF_MANAGER_H
 #define CVC5__PROP_PROOF_MANAGER_H
 
-#include <cvc5/cpp/cvc5_types.h>
+#include <cvc5/cvc5_types.h>
 
 #include "context/cdlist.h"
 #include "context/cdo.h"

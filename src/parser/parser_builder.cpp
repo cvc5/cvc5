@@ -16,7 +16,7 @@
 // This must be included first.
 #include "parser/parser_builder.h"
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <string>
 

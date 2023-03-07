@@ -18,7 +18,7 @@
 #ifndef CVC5__PARSER__SMT2__SMT2_H
 #define CVC5__PARSER__SMT2__SMT2_H
 
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 
 #include <optional>
 #include <sstream>

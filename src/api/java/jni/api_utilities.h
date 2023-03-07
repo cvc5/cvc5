@@ -15,7 +15,7 @@
 
 #ifndef CVC5__API_UTILITIES_H
 #define CVC5__API_UTILITIES_H
-#include <cvc5/cpp/cvc5.h>
+#include <cvc5/cvc5.h>
 #include <jni.h>
 
 #include <string>
