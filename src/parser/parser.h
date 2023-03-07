@@ -18,12 +18,13 @@
 #ifndef CVC5__PARSER__PARSER_H
 #define CVC5__PARSER__PARSER_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
 #include <list>
 #include <memory>
 #include <string>
 
-#include "api/cpp/cvc5.h"
-#include "cvc5_export.h"
 #include "parser/api/cpp/symbol_manager.h"
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"

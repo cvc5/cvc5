@@ -16,11 +16,11 @@
 #ifndef CVC5__MAIN__OPTIONS_H
 #define CVC5__MAIN__OPTIONS_H
 
+#include <cvc5/cvc5.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
-
-#include "api/cpp/cvc5.h"
 
 namespace cvc5::main {
 

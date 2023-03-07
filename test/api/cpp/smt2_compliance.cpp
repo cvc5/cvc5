@@ -13,11 +13,12 @@
  * A test of SMT-LIBv2 commands, checks for compliant output.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <cassert>
 #include <iostream>
 #include <sstream>
 
-#include "api/cpp/cvc5.h"
 #include "parser/api/cpp/command.h"
 #include "parser/parser_antlr.h"
 #include "parser/parser_builder.h"

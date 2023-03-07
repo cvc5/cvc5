@@ -32,7 +32,6 @@
 #include <string>
 
 #include "base/exception.h"
-#include "cvc5_export.h"  // remove when Cvc language support is removed
 #include "util/integer.h"
 
 namespace cvc5::internal {
@@ -52,7 +51,7 @@ namespace cvc5::internal {
  * in danger of invoking the char* constructor, from whence you will segfault.
  */
 
-class CVC5_EXPORT Rational
+class Rational
 {
  public:
   /**
@@ -302,7 +301,7 @@ struct RationalHashFunction
   inline size_t operator()(const cvc5::internal::Rational& r) const { return r.hash(); }
 }; /* struct RationalHashFunction */
 
-std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& os, const Rational& n);
 
 }  // namespace cvc5::internal
 

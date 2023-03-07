@@ -19,7 +19,8 @@
 #ifndef CVC5__PARSER__TPTP_ANTLR_H
 #define CVC5__PARSER__TPTP_ANTLR_H
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "parser/parse_op.h"
 #include "parser/parser_antlr.h"
 #include "parser/tptp/tptp.h"

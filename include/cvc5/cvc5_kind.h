@@ -13,7 +13,7 @@
  * The term kinds of the cvc5 C++ API.
  */
 
-#include "cvc5_export.h"
+#include <cvc5/cvc5_export.h>
 
 #ifndef CVC5__API__CVC5_KIND_H
 #define CVC5__API__CVC5_KIND_H
@@ -5640,6 +5640,6 @@ struct CVC5_EXPORT hash<cvc5::Kind>
   size_t operator()(cvc5::Kind k) const;
 };
 
-}
+}  // namespace std
 
 #endif
