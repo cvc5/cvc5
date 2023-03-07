@@ -140,7 +140,7 @@ class CVC5_EXPORT Input
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  virtual Command* parseCommand() = 0;
+  virtual std::unique_ptr<Command> parseCommand() = 0;
 
   /**
    * Issue a warning to the user, with source file, line, and column info.

@@ -60,7 +60,8 @@ SygusInput::~SygusInput() {
   d_pSmt2Parser->free(d_pSmt2Parser);
 }
 
-Command* SygusInput::parseCommand() {
+std::unique_ptr<Command> SygusInput::parseCommand()
+{
   return d_pSmt2Parser->parseSygus(d_pSmt2Parser);
 }
 

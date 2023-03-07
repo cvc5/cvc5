@@ -54,7 +54,7 @@ bool ExecutionContext::solveContinuous(parser::InputParser* parser,
       d_executor->reset();
       break;
     }
-    cmd.reset(parser->nextCommand());
+    cmd = parser->nextCommand();
     if (cmd == nullptr) break;
 
     status = d_executor->doCommand(cmd);

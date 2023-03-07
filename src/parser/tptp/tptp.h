@@ -19,6 +19,7 @@
 #ifndef CVC5__PARSER__TPTP_H
 #define CVC5__PARSER__TPTP_H
 
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -130,7 +131,9 @@ class TptpState : public ParserState
    * getAssertionExpr above). This may set a flag in the parser to mark
    * that we have asserted a conjecture.
    */
-  Command* makeAssertCommand(FormulaRole fr, cvc5::Term expr, bool cnf);
+  std::unique_ptr<Command> makeAssertCommand(FormulaRole fr,
+                                             cvc5::Term expr,
+                                             bool cnf);
 
   /** Ugly hack because I don't know how to return an expression from a
       token */

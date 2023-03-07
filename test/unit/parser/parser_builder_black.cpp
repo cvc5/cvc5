@@ -47,10 +47,9 @@ class TestParseBlackParserBuilder : public TestApi
 
   void checkInput(Parser* parser, const std::string& expected)
   {
-    Command* cmd = parser->nextCommand();
+    std::unique_ptr<Command> cmd = parser->nextCommand();
     ASSERT_NE(cmd, nullptr);
     ASSERT_EQ(cmd->toString(), expected);
-    delete cmd;
 
     cmd = parser->nextCommand();
     ASSERT_EQ(cmd, nullptr);
