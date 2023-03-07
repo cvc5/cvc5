@@ -98,9 +98,8 @@ class CVC5_EXPORT InputParser
 
   /**
    * Parse and return the next command.
-   * NOTE: currently memory management of commands is handled internally.
    */
-  Command* nextCommand();
+  std::unique_ptr<Command> nextCommand();
 
   /** Parse and return the next expression. */
   Term nextExpression();

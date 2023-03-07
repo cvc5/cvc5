@@ -85,12 +85,11 @@ class TestParserBlackParser : public TestInternal
             .build());
     parser->setInput(Input::newStringInput(d_lang, goodInput, "test"));
     ASSERT_FALSE(parser->done());
-    Command* cmd;
-    while ((cmd = parser->nextCommand()) != NULL)
+    std::unique_ptr<Command> cmd;
+    while ((cmd = parser->nextCommand()) != nullptr)
     {
       Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
       cmd->invoke(d_solver.get(), d_symman.get());
-      delete cmd;
     }
 
     ASSERT_TRUE(parser->done());
@@ -108,12 +107,11 @@ class TestParserBlackParser : public TestInternal
     parser->setInput(Input::newStringInput(d_lang, badInput, "test"));
     ASSERT_THROW(
         {
-          Command* cmd;
+          std::unique_ptr<Command> cmd;
           while ((cmd = parser->nextCommand()) != NULL)
           {
             Trace("parser") << "Parsed command: " << (*cmd) << std::endl;
             cmd->invoke(d_solver.get(), d_symman.get());
-            delete cmd;
           }
           std::cout << "\nBad input succeeded:\n" << badInput << std::endl;
         },
